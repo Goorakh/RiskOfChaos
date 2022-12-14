@@ -1,0 +1,10 @@
+{
+	strings:
+	{
+		"CHAOS_EFFECT_ACTIVATE": "<style=cWorldEvent>Effect activated: <b>{0}</b></style>",
+		
+		"EFFECT_NOTHING_NAME": "Nothing",
+		"EFFECT_RANDOMPORTALORB_NAME": "Spawn Random Portal Orb",
+		"EFFECT_ENABLERANDOMARTIFACT_NAME": "Enable Random Artifact (Lasts 1 Stage)"
+	}
+}

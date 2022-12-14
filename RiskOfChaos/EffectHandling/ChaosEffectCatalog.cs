@@ -1,0 +1,52 @@
+﻿using BepInEx.Configuration;
+using HG;
+using RiskOfOptions;
+using RoR2;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace RiskOfChaos.EffectHandling
+{
+    public static class ChaosEffectCatalog
+    {
+        const string CONFIG_SECTION_NAME = "Effects";
+
+        public const string CONFIG_MOD_GUID = $"RoC_Config_{CONFIG_SECTION_NAME}";
+        public const string CONFIG_MOD_NAME = $"Risk of Chaos: {CONFIG_SECTION_NAME}";
+
+        static ChaosEffectInfo[] _effects;
+
+        static int _effectCount;
+        public static int EffectCount => _effectCount;
+
+        static ChaosEffectCatalog()
+        {
+            // ModSettingsManager.SetModIcon(effects_icon, GUID, NAME);
+            ModSettingsManager.SetModDescription("Effect config options for Risk of Chaos", CONFIG_MOD_GUID, CONFIG_MOD_NAME);
+        }
+
+        [SystemInitializer]
+        static void Init()
+        {
+            _effects = HG.Reflection.SearchableAttribute.GetInstances<ChaosEffectAttribute>()
+                                                        .Cast<ChaosEffectAttribute>()
+                                                        .OrderBy(static e => e.Identifier)
+                                                        .Select(static (e, i) => e.BuildEffectInfo(i))
+                                                        .ToArray();
+
+            _effectCount = _effects.Length;
+        }
+
+        public static ChaosEffectInfo GetEffectInfo(uint effectIndex)
+        {
+            return ArrayUtils.GetSafe(_effects, (int)effectIndex);
+        }
+
+        public static ChaosEffectInfo GetRandomEffect(Xoroshiro128Plus rng)
+        {
+            return rng.NextElementUniform(_effects);
+        }
+    }
+}
