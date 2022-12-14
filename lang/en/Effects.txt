@@ -5,6 +5,7 @@
 		
 		"EFFECT_NOTHING_NAME": "Nothing",
 		"EFFECT_RANDOMPORTALORB_NAME": "Spawn Random Portal Orb",
-		"EFFECT_ENABLERANDOMARTIFACT_NAME": "Enable Random Artifact (Lasts 1 Stage)"
+		"EFFECT_ENABLERANDOMARTIFACT_NAME": "Enable Random Artifact (Lasts 1 Stage)",
+		"EFFECT_MOUNTAINSHRINEADD2_NAME": "+2 Mountain Shrine"
 	}
 }

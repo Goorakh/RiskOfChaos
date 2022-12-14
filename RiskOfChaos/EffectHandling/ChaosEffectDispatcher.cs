@@ -65,12 +65,16 @@ namespace RiskOfChaos.EffectHandling
 
         static void dispatchRandomEffect()
         {
-            ChaosEffectInfo effect;
-            do
+            WeightedSelection<ChaosEffectInfo> weightedSelection = ChaosEffectCatalog.GetAllActivatableEffects();
+            if (weightedSelection.Count > 0)
             {
-                effect = ChaosEffectCatalog.GetRandomEffect(_nextEffectRNG);
-            } while (!effect.CanActivate);
-            dispatchEffect(effect);
+                ChaosEffectInfo effect = weightedSelection.Evaluate(_nextEffectRNG.nextNormalizedFloat);
+                dispatchEffect(effect);
+            }
+            else
+            {
+                Log.Error("No activatable effect!");
+            }
         }
 
         static void dispatchEffect(in ChaosEffectInfo effect)

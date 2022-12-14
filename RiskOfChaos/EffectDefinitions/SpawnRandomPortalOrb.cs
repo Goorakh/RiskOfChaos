@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RoR2;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace RiskOfChaos.EffectDefinitions
@@ -66,11 +67,22 @@ namespace RiskOfChaos.EffectDefinitions
             }
         }
 
+        static IEnumerable<PortalInfo> getAllPortalInfos()
+        {
+            return Enumerable.Range(0, NUM_SHOULD_ATTEMPT_SPAWN_PROPERTIES + TeleporterInteraction.instance.portalSpawners.Length).Select(i => GetPortalInfo(i));
+        }
+
         [EffectCanActivate]
         static bool CanActivate()
         {
             TeleporterInteraction tpInteraction = TeleporterInteraction.instance;
-            return tpInteraction && Enumerable.Range(0, NUM_SHOULD_ATTEMPT_SPAWN_PROPERTIES + TeleporterInteraction.instance.portalSpawners.Length).Any(i => !GetPortalInfo(i).WillSpawn);
+            return tpInteraction && tpInteraction.activationState < TeleporterInteraction.ActivationState.Finished && getAllPortalInfos().Any(p => !p.WillSpawn);
+        }
+
+        [EffectWeightMultiplierSelector]
+        static float GetWeightMult()
+        {
+            return RoCMath.CalcReductionWeight(getAllPortalInfos().Count(p => !p.WillSpawn), 3.5f);
         }
 
         public override void OnStart()

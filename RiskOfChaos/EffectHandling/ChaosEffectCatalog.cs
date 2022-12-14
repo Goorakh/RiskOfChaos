@@ -44,9 +44,32 @@ namespace RiskOfChaos.EffectHandling
             return ArrayUtils.GetSafe(_effects, (int)effectIndex);
         }
 
-        public static ChaosEffectInfo GetRandomEffect(Xoroshiro128Plus rng)
+        public static int FindEffectIndex(string identifier)
         {
-            return rng.NextElementUniform(_effects);
+            for (int i = 0; i < _effects.Length; i++)
+            {
+                if (string.Equals(_effects[i].Identifier, identifier))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        public static WeightedSelection<ChaosEffectInfo> GetAllActivatableEffects()
+        {
+            WeightedSelection<ChaosEffectInfo> weightedSelection = new WeightedSelection<ChaosEffectInfo>(_effectCount);
+
+            foreach (ChaosEffectInfo effect in _effects)
+            {
+                if (effect.CanActivate)
+                {
+                    weightedSelection.AddChoice(effect, effect.TotalSelectionWeight);
+                }
+            }
+
+            return weightedSelection;
         }
     }
 }

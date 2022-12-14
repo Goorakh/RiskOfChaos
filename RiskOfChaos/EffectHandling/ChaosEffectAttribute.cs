@@ -9,6 +9,8 @@ namespace RiskOfChaos.EffectHandling
 
         // public bool HasDescription { get; set; }
 
+        public float DefaultSelectionWeight { get; set; } = 1f;
+
         public ChaosEffectAttribute(string identifier)
         {
             Identifier = identifier;
