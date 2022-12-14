@@ -8,15 +8,11 @@ using System.Collections.Generic;
 using System.Linq;
 using RiskOfOptions.OptionConfigs;
 using System;
+using RoR2.Artifacts;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions
 {
-    // Show the artifact popup on start
-
-    // Kin: UI doesn't update to show the enemy type
-    // Sacrifice: On activate: remove all chests?
-    // Metamorphosis: Respawn all players?
-
     [ChaosEffect(EFFECT_ID)]
     public class EnableRandomArtifact : BaseEffect
     {
@@ -60,6 +56,7 @@ namespace RiskOfChaos.EffectDefinitions
         static EnableRandomArtifact()
         {
             Stage.onServerStageComplete += Stage_onServerStageComplete;
+            Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
         }
 
         [SystemInitializer(typeof(ArtifactCatalog), typeof(ChaosEffectCatalog))]
@@ -95,6 +92,11 @@ namespace RiskOfChaos.EffectDefinitions
 
                 _artifactsToDisableNextStage.Clear();
             }
+        }
+
+        static void Run_onRunDestroyGlobal(Run run)
+        {
+            _artifactsToDisableNextStage.Clear();
         }
 
         static ArtifactConfig? getArtifactConfig(ArtifactIndex index)

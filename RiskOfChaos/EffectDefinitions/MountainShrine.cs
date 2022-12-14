@@ -25,25 +25,6 @@ namespace RiskOfChaos.EffectDefinitions
             return RoCMath.CalcReductionWeight(TeleporterInteraction.instance.shrineBonusStacks, 2f);
         }
 
-        static CharacterBody getLocalUserBody()
-        {
-            LocalUser localUser = LocalUserManager.GetFirstLocalUser();
-            if (localUser != null)
-            {
-                CharacterMaster localPlayerMaster = localUser.cachedMaster;
-                if (localPlayerMaster)
-                {
-                    CharacterBody localUserBody = localPlayerMaster.GetBody();
-                    if (localUserBody)
-                    {
-                        return localUserBody;
-                    }
-                }
-            }
-
-            return null;
-        }
-
         public override void OnStart()
         {
             TeleporterInteraction tpInteraction = TeleporterInteraction.instance;
@@ -55,23 +36,12 @@ namespace RiskOfChaos.EffectDefinitions
 
             Chat.SendBroadcastChat(new Chat.SubjectFormatChatMessage
             {
-                subjectAsCharacterBody = getLocalUserBody(),
+                subjectAsCharacterBody = PlayerUtils.GetLocalUserBody(),
                 baseToken = "SHRINE_BOSS_USE_MESSAGE"
             });
 
-            foreach (PlayerCharacterMasterController playerController in PlayerCharacterMasterController.instances)
+            foreach (CharacterBody body in PlayerUtils.GetAllPlayerBodies(false))
             {
-                if (!playerController)
-                    continue;
-
-                CharacterMaster master = playerController.master;
-                if (!master)
-                    continue;
-
-                CharacterBody body = master.GetBody();
-                if (!body)
-                    continue;
-
                 EffectManager.SpawnEffect(LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/ShrineUseEffect"), new EffectData
                 {
                     origin = body.corePosition,

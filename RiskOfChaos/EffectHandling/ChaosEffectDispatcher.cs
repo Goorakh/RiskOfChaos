@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.EffectDefinitions;
 using RoR2;
+using RoR2.Audio;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -18,16 +19,8 @@ namespace RiskOfChaos.EffectHandling
         {
             RoR2Application.onFixedUpdate += RoR2Application_onFixedUpdate;
 
-            Stage.onServerStageBegin += Stage_onServerStageBegin;
-
             Run.onRunStartGlobal += Run_onRunStartGlobal;
             Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
-        }
-
-        static void Stage_onServerStageBegin(Stage stage)
-        {
-            const float START_OFFSET = 2f;
-            _nextEffectDispatchTime = stage.entryTime + START_OFFSET;
         }
 
         static void Run_onRunStartGlobal(Run run)
@@ -36,6 +29,7 @@ namespace RiskOfChaos.EffectHandling
                 return;
 
             _nextEffectRNG = new Xoroshiro128Plus(run.runRNG.nextUlong);
+            _nextEffectDispatchTime = new Run.FixedTimeStamp(run.fixedTime);
         }
 
         static void Run_onRunDestroyGlobal(Run run)
@@ -45,21 +39,15 @@ namespace RiskOfChaos.EffectHandling
 
         static void RoR2Application_onFixedUpdate()
         {
-            if (!NetworkServer.active)
+            if (!NetworkServer.active || !Stage.instance)
                 return;
 
-            if (_nextEffectDispatchTime.hasPassed)
+            const float STAGE_START_OFFSET = 2f;
+            if (_nextEffectDispatchTime.hasPassed && Stage.instance.entryTime.timeSince > STAGE_START_OFFSET)
             {
                 dispatchRandomEffect();
 
-                if (Main.EffectActivationMode.Value == ChaosEffectMode.OnTimer)
-                {
-                    _nextEffectDispatchTime = Run.FixedTimeStamp.now + Main.TimeBetweenEffects.Value;
-                }
-                else
-                {
-                    _nextEffectDispatchTime = Run.FixedTimeStamp.positiveInfinity;
-                }
+                _nextEffectDispatchTime += Main.TimeBetweenEffects.Value;
             }
         }
 
@@ -83,6 +71,17 @@ namespace RiskOfChaos.EffectHandling
             effectInstance.OnStart();
 
             Chat.SendBroadcastChat(new Chat.SimpleChatMessage { baseToken = effect.GetActivationMessage() });
+
+            playEffectActivatedSoundOnAllPlayerBodies();
+        }
+
+        static void playEffectActivatedSoundOnAllPlayerBodies()
+        {
+            uint soundEventID = AkSoundEngine.GetIDFromString("Play_env_hiddenLab_laptop_sequence_fail");
+            foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
+            {
+                EntitySoundManager.EmitSoundServer(soundEventID, playerBody.gameObject);
+            }
         }
     }
 }

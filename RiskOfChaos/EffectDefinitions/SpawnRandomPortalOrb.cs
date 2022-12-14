@@ -76,7 +76,7 @@ namespace RiskOfChaos.EffectDefinitions
         static bool CanActivate()
         {
             TeleporterInteraction tpInteraction = TeleporterInteraction.instance;
-            return tpInteraction && tpInteraction.activationState < TeleporterInteraction.ActivationState.Finished && getAllPortalInfos().Any(p => !p.WillSpawn);
+            return tpInteraction && tpInteraction.activationState < TeleporterInteraction.ActivationState.Charged && getAllPortalInfos().Any(p => !p.WillSpawn);
         }
 
         [EffectWeightMultiplierSelector]
