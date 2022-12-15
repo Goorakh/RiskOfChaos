@@ -1,4 +1,5 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Trackers;
+using RoR2;
 using RoR2.Artifacts;
 using RoR2.UI;
 using System;

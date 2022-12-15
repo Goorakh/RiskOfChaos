@@ -8,12 +8,18 @@ namespace RiskOfChaos
 {
     public static class PlayerUtils
     {
-        public static IEnumerable<CharacterBody> GetAllPlayerBodies(bool requireAlive)
+        public static IEnumerable<CharacterMaster> GetAllPlayerMasters(bool requireAlive)
         {
-            return from PlayerCharacterMasterController playerMasterController in PlayerCharacterMasterController.instances
+            return from playerMasterController in PlayerCharacterMasterController.instances
                    where playerMasterController
                    let playerMaster = playerMasterController.master
                    where playerMaster && (!requireAlive || !playerMaster.IsDeadAndOutOfLivesServer())
+                   select playerMaster;
+        }
+
+        public static IEnumerable<CharacterBody> GetAllPlayerBodies(bool requireAlive)
+        {
+            return from playerMaster in GetAllPlayerMasters(requireAlive)
                    let playerBody = playerMaster.GetBody()
                    where playerBody
                    select playerBody;

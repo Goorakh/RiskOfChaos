@@ -6,6 +6,10 @@
 		"EFFECT_NOTHING_NAME": "Nothing",
 		"EFFECT_RANDOMPORTALORB_NAME": "Spawn Random Portal Orb",
 		"EFFECT_ENABLERANDOMARTIFACT_NAME": "Enable Random Artifact (Lasts 1 Stage)",
-		"EFFECT_MOUNTAINSHRINEADD2_NAME": "+2 Mountain Shrine"
+		"EFFECT_MOUNTAINSHRINEADD2_NAME": "+2 Mountain Shrine",
+		"EFFECT_ACTIVATESTAGETELEPORTER_NAME": "Activate Teleporter",
+		"EFFECT_GIVERANDOMITEM_NAME": "Give Random Item",
+		"EFFECT_EVERYONE1HP_NAME": "One Hit KO",
+		"EFFECT_FREEZEALL_NAME": "Freeze!"
 	}
 }

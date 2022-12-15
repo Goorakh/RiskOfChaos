@@ -2,14 +2,11 @@
 using HG;
 using RiskOfChaos.EffectHandling;
 using RiskOfOptions.Options;
-using RiskOfOptions;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
 using RiskOfOptions.OptionConfigs;
-using System;
-using RoR2.Artifacts;
-using UnityEngine.Networking;
+using System.Runtime.CompilerServices;
 
 namespace RiskOfChaos.EffectDefinitions
 {
@@ -18,12 +15,13 @@ namespace RiskOfChaos.EffectDefinitions
     {
         const string EFFECT_ID = "EnableRandomArtifact";
 
+        static string _configSectionName;
+
         readonly struct ArtifactConfig
         {
-            public readonly ConfigEntry<bool> CanEnable;
             public readonly ConfigEntry<float> SelectionWeight;
 
-            public ArtifactConfig(string configSectionName, ArtifactIndex artifactIndex)
+            public ArtifactConfig(ArtifactIndex artifactIndex)
             {
                 const string LOG_PREFIX = $"{nameof(EnableRandomArtifact)}+{nameof(ArtifactConfig)}..ctor ";
 
@@ -36,17 +34,14 @@ namespace RiskOfChaos.EffectDefinitions
 
                 string artifactName = Language.GetString(artifactDef.nameToken, "en");
 
-                CanEnable = Main.Instance.Config.Bind(new ConfigDefinition(configSectionName, $"{artifactName} Enabled"), true, new ConfigDescription($"If the {artifactName} should be able to be picked"));
-                ModSettingsManager.AddOption(new CheckBoxOption(CanEnable), ChaosEffectCatalog.CONFIG_MOD_GUID, ChaosEffectCatalog.CONFIG_MOD_NAME);
-
-                SelectionWeight = Main.Instance.Config.Bind(new ConfigDefinition(configSectionName, $"{artifactName} Weight"), 1f, new ConfigDescription($"How likely the {artifactName} is to be picked, higher value means more likely, lower value means less likely"));
-                ModSettingsManager.AddOption(new StepSliderOption(SelectionWeight, new StepSliderConfig
+                SelectionWeight = Main.Instance.Config.Bind(new ConfigDefinition(_configSectionName, $"{artifactName} Weight"), 1f, new ConfigDescription($"How likely the {artifactName} is to be picked, higher value means more likely, lower value means less likely.\n\nA value of 0 will exclude it completely"));
+                ChaosEffectCatalog.AddConfigOption(new StepSliderOption(SelectionWeight, new StepSliderConfig
                 {
                     formatString = "{0:F1}",
                     increment = 0.1f,
                     min = 0f,
                     max = 2.5f
-                }), ChaosEffectCatalog.CONFIG_MOD_GUID, ChaosEffectCatalog.CONFIG_MOD_NAME);
+                }));
             }
         }
         static ArtifactConfig[] _artifactConfigs;
@@ -62,22 +57,12 @@ namespace RiskOfChaos.EffectDefinitions
         [SystemInitializer(typeof(ArtifactCatalog), typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            const string LOG_PREFIX = $"{nameof(EnableRandomArtifact)}.{nameof(Init)} ";
-
-            int index = ChaosEffectCatalog.FindEffectIndex(EFFECT_ID);
-
-            if (index < 0)
-            {
-                Log.Warning(LOG_PREFIX + $"unable to find effect '{EFFECT_ID}'");
-                return;
-            }
-
-            ChaosEffectInfo effectInfo = ChaosEffectCatalog.GetEffectInfo((uint)index);
+            _configSectionName = ChaosEffectCatalog.GetConfigSectionName(EFFECT_ID);
 
             _artifactConfigs = new ArtifactConfig[ArtifactCatalog.artifactCount];
             for (int i = 0; i < ArtifactCatalog.artifactCount; i++)
             {
-                _artifactConfigs[i] = new ArtifactConfig(effectInfo.ConfigSectionName, (ArtifactIndex)i);
+                _artifactConfigs[i] = new ArtifactConfig((ArtifactIndex)i);
             }
         }
 
@@ -107,12 +92,6 @@ namespace RiskOfChaos.EffectDefinitions
             return _artifactConfigs[(int)index];
         }
 
-        static bool canEnableArtifact(ArtifactIndex index)
-        {
-            ArtifactConfig? config = getArtifactConfig(index);
-            return config.HasValue && config.Value.CanEnable.Value;
-        }
-
         static float getArtifactSelectionWeight(ArtifactIndex index)
         {
             ArtifactConfig? config = getArtifactConfig(index);
@@ -120,6 +99,12 @@ namespace RiskOfChaos.EffectDefinitions
                 return 0f;
 
             return config.Value.SelectionWeight.Value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static bool canEnableArtifact(ArtifactIndex index)
+        {
+            return getArtifactSelectionWeight(index) > 0f;
         }
 
         static IEnumerable<ArtifactIndex> getAllAvailableArtifactIndices()

@@ -10,7 +10,7 @@ namespace RiskOfChaos.EffectHandling
 {
     public static class ChaosEffectDispatcher
     {
-        static Run.FixedTimeStamp _nextEffectDispatchTime = Run.FixedTimeStamp.positiveInfinity;
+        static float _nextEffectDispatchTime = float.PositiveInfinity;
 
         static Xoroshiro128Plus _nextEffectRNG;
 
@@ -25,11 +25,15 @@ namespace RiskOfChaos.EffectHandling
 
         static void Run_onRunStartGlobal(Run run)
         {
-            if (!NetworkServer.active)
-                return;
-
-            _nextEffectRNG = new Xoroshiro128Plus(run.runRNG.nextUlong);
-            _nextEffectDispatchTime = new Run.FixedTimeStamp(run.fixedTime);
+            if (NetworkServer.active)
+            {
+                _nextEffectRNG = new Xoroshiro128Plus(run.runRNG.nextUlong);
+                _nextEffectDispatchTime = 0f;
+            }
+            else
+            {
+                _nextEffectDispatchTime = float.PositiveInfinity;
+            }
         }
 
         static void Run_onRunDestroyGlobal(Run run)
@@ -39,11 +43,11 @@ namespace RiskOfChaos.EffectHandling
 
         static void RoR2Application_onFixedUpdate()
         {
-            if (!NetworkServer.active || !Stage.instance)
+            if (!NetworkServer.active || !Run.instance || !Stage.instance)
                 return;
 
             const float STAGE_START_OFFSET = 2f;
-            if (_nextEffectDispatchTime.hasPassed && Stage.instance.entryTime.timeSince > STAGE_START_OFFSET)
+            if (Run.instance.GetRunStopwatch() >= _nextEffectDispatchTime && Stage.instance.entryTime.timeSince > STAGE_START_OFFSET)
             {
                 dispatchRandomEffect();
 

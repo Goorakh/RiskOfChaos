@@ -1,0 +1,134 @@
+﻿using BepInEx.Configuration;
+using RiskOfChaos.EffectHandling;
+using RiskOfOptions.OptionConfigs;
+using RiskOfOptions.Options;
+using RoR2;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using UnityEngine;
+
+namespace RiskOfChaos.EffectDefinitions
+{
+    [ChaosEffect(EFFECT_ID)]
+    public class GiveRandomItem : BaseEffect
+    {
+        const string EFFECT_ID = "GiveRandomItem";
+
+        static string _configSectionName;
+
+        static BasicPickupDropTable _dropTable;
+
+        static ConfigEntry<float> _tier1Weight;
+        static ConfigEntry<float> _tier2Weight;
+        static ConfigEntry<float> _tier3Weight;
+        static ConfigEntry<float> _bossWeight;
+        static ConfigEntry<float> _lunarItemWeight;
+        static ConfigEntry<float> _voidTier1Weight;
+        static ConfigEntry<float> _voidTier2Weight;
+        static ConfigEntry<float> _voidTier3Weight;
+        static ConfigEntry<float> _voidBossWeight;
+
+        static void regenerateDropTable()
+        {
+            const string LOG_PREFIX = $"{nameof(GiveRandomItem)}.{nameof(regenerateDropTable)} ";
+
+#if DEBUG
+            Log.Debug(LOG_PREFIX + $"regenerating drop table...");
+#endif
+
+            if (!_dropTable)
+            {
+                _dropTable = ScriptableObject.CreateInstance<BasicPickupDropTable>();
+            }
+
+            _dropTable.tier1Weight = _tier1Weight.Value;
+            _dropTable.tier2Weight = _tier2Weight.Value;
+            _dropTable.tier3Weight = _tier3Weight.Value;
+            _dropTable.bossWeight = _bossWeight.Value;
+            _dropTable.lunarEquipmentWeight = 0f;
+            _dropTable.lunarItemWeight = _lunarItemWeight.Value;
+            _dropTable.lunarCombinedWeight = 0f;
+            _dropTable.equipmentWeight = 0f;
+            _dropTable.voidTier1Weight = _voidTier1Weight.Value;
+            _dropTable.voidTier2Weight = _voidTier2Weight.Value;
+            _dropTable.voidTier3Weight = _voidTier3Weight.Value;
+            _dropTable.voidBossWeight = _voidBossWeight.Value;
+
+            // If this is done mid-run, Regenerate has to be called, since it's only done by the game on run start
+            Run run = Run.instance;
+            if (run)
+            {
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                _dropTable.Regenerate(run);
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+            }
+        }
+
+        [SystemInitializer(typeof(ChaosEffectCatalog))]
+        static void Init()
+        {
+            _configSectionName = ChaosEffectCatalog.GetConfigSectionName(EFFECT_ID);
+
+            static ConfigEntry<float> addWeightConfig(string name, float defaultValue)
+            {
+                ConfigEntry<float> config = Main.Instance.Config.Bind(new ConfigDefinition(_configSectionName, $"Weight: {name}"), defaultValue, new ConfigDescription($"Controls how likely {name} are to be given\n\nA value of 0 means items from this tier will never be given"));
+                ChaosEffectCatalog.AddConfigOption(new StepSliderOption(config, new StepSliderConfig { formatString = "{0:F2}", min = 0f, max = 1f, increment = 0.01f }));
+
+                config.SettingChanged += static (sender, e) =>
+                {
+                    regenerateDropTable();
+                };
+
+                return config;
+            }
+
+            _tier1Weight = addWeightConfig("Common Items", 0.75f);
+            _tier2Weight = addWeightConfig("Uncommon Items", 0.6f);
+            _tier3Weight = addWeightConfig("Legendary Items", 0.3f);
+            _bossWeight = addWeightConfig("Boss Items", 0.5f);
+            _lunarItemWeight = addWeightConfig("Lunar Items", 0.35f);
+            _voidTier1Weight = addWeightConfig("Common Void Items", 0.4f);
+            _voidTier2Weight = addWeightConfig("Uncommon Void Items", 0.35f);
+            _voidTier3Weight = addWeightConfig("Legendary Void Items", 0.3f);
+            _voidBossWeight = addWeightConfig("Void Boss Items", 0.3f);
+
+            regenerateDropTable();
+        }
+
+        public override void OnStart()
+        {
+            const string LOG_PREFIX = $"{nameof(GiveRandomItem)}.{nameof(OnStart)} ";
+
+            PickupIndex pickupIndex = _dropTable.GenerateDrop(RNG);
+            PickupDef pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
+
+            foreach (CharacterMaster playerMaster in PlayerUtils.GetAllPlayerMasters(false))
+            {
+                if (pickupDef.itemIndex != ItemIndex.None)
+                {
+                    Inventory inventory = playerMaster.inventory;
+                    if (inventory)
+                    {
+                        inventory.GiveItem(pickupDef.itemIndex, 1);
+                    }
+                }
+                else if (pickupDef.equipmentIndex != EquipmentIndex.None)
+                {
+                    Inventory inventory = playerMaster.inventory;
+                    if (inventory)
+                    {
+                        inventory.SetEquipmentIndex(pickupDef.equipmentIndex);
+                    }
+                }
+                else
+                {
+                    Log.Error(LOG_PREFIX + $"unhandled pickup index {pickupIndex}");
+                    continue;
+                }
+
+                GenericPickupController.SendPickupMessage(playerMaster, pickupIndex);
+            }
+        }
+    }
+}

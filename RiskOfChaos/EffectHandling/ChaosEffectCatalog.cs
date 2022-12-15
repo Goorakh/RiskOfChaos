@@ -1,6 +1,7 @@
 ﻿using BepInEx.Configuration;
 using HG;
 using RiskOfOptions;
+using RiskOfOptions.Options;
 using RoR2;
 using System;
 using System.Collections.Generic;
@@ -55,6 +56,25 @@ namespace RiskOfChaos.EffectHandling
             }
 
             return -1;
+        }
+
+        internal static string GetConfigSectionName(string effectIdentifier)
+        {
+            const string LOG_PREFIX = $"{nameof(ChaosEffectCatalog)}.{nameof(GetConfigSectionName)} ";
+
+            int index = FindEffectIndex(effectIdentifier);
+            if (index < 0)
+            {
+                Log.Error(LOG_PREFIX + $"unable to find index for identifier {effectIdentifier}");
+                return "UNKNOWN";
+            }
+
+            return GetEffectInfo((uint)index).ConfigSectionName;
+        }
+
+        internal static void AddConfigOption(BaseOption option)
+        {
+            ModSettingsManager.AddOption(option, CONFIG_MOD_GUID, CONFIG_MOD_NAME);
         }
 
         public static WeightedSelection<ChaosEffectInfo> GetAllActivatableEffects()
