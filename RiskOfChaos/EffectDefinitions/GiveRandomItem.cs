@@ -23,7 +23,9 @@ namespace RiskOfChaos.EffectDefinitions
         static ConfigEntry<float> _tier2Weight;
         static ConfigEntry<float> _tier3Weight;
         static ConfigEntry<float> _bossWeight;
+        static ConfigEntry<float> _lunarEquipmentWeight;
         static ConfigEntry<float> _lunarItemWeight;
+        static ConfigEntry<float> _equipmentWeight;
         static ConfigEntry<float> _voidTier1Weight;
         static ConfigEntry<float> _voidTier2Weight;
         static ConfigEntry<float> _voidTier3Weight;
@@ -46,10 +48,10 @@ namespace RiskOfChaos.EffectDefinitions
             _dropTable.tier2Weight = _tier2Weight.Value;
             _dropTable.tier3Weight = _tier3Weight.Value;
             _dropTable.bossWeight = _bossWeight.Value;
-            _dropTable.lunarEquipmentWeight = 0f;
+            _dropTable.lunarEquipmentWeight = _lunarEquipmentWeight.Value;
             _dropTable.lunarItemWeight = _lunarItemWeight.Value;
             _dropTable.lunarCombinedWeight = 0f;
-            _dropTable.equipmentWeight = 0f;
+            _dropTable.equipmentWeight = _equipmentWeight.Value;
             _dropTable.voidTier1Weight = _voidTier1Weight.Value;
             _dropTable.voidTier2Weight = _voidTier2Weight.Value;
             _dropTable.voidTier3Weight = _voidTier3Weight.Value;
@@ -87,7 +89,9 @@ namespace RiskOfChaos.EffectDefinitions
             _tier2Weight = addWeightConfig("Uncommon Items", 0.6f);
             _tier3Weight = addWeightConfig("Legendary Items", 0.3f);
             _bossWeight = addWeightConfig("Boss Items", 0.5f);
+            _lunarEquipmentWeight = addWeightConfig("Lunar Equipments", 0.15f);
             _lunarItemWeight = addWeightConfig("Lunar Items", 0.35f);
+            _equipmentWeight = addWeightConfig("Equipments", 0.25f);
             _voidTier1Weight = addWeightConfig("Common Void Items", 0.4f);
             _voidTier2Weight = addWeightConfig("Uncommon Void Items", 0.35f);
             _voidTier3Weight = addWeightConfig("Legendary Void Items", 0.3f);
