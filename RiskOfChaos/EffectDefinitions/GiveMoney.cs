@@ -6,7 +6,7 @@ using System.Text;
 
 namespace RiskOfChaos.EffectDefinitions
 {
-    [ChaosEffect("GiveMoney")]
+    [ChaosEffect("GiveMoney", EffectRepetitionWeightExponent = 0f)]
     public class GiveMoney : BaseEffect
     {
         public override void OnStart()

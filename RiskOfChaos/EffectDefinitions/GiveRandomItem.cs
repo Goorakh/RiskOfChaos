@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions
 {
-    [ChaosEffect(EFFECT_ID)]
+    [ChaosEffect(EFFECT_ID, EffectRepetitionWeightExponent = 0f)]
     public class GiveRandomItem : BaseEffect
     {
         const string EFFECT_ID = "GiveRandomItem";
@@ -75,7 +75,7 @@ namespace RiskOfChaos.EffectDefinitions
             static ConfigEntry<float> addWeightConfig(string name, float defaultValue)
             {
                 ConfigEntry<float> config = Main.Instance.Config.Bind(new ConfigDefinition(_configSectionName, $"Weight: {name}"), defaultValue, new ConfigDescription($"Controls how likely {name} are to be given\n\nA value of 0 means items from this tier will never be given"));
-                ChaosEffectCatalog.AddConfigOption(new StepSliderOption(config, new StepSliderConfig { formatString = "{0:F2}", min = 0f, max = 1f, increment = 0.05f }));
+                ChaosEffectCatalog.AddEffectConfigOption(new StepSliderOption(config, new StepSliderConfig { formatString = "{0:F2}", min = 0f, max = 1f, increment = 0.05f }));
 
                 config.SettingChanged += static (sender, e) =>
                 {

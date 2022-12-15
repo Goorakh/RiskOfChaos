@@ -7,6 +7,7 @@ using RoR2;
 using System;
 using System.Linq;
 using System.Reflection;
+using UnityEngine;
 
 namespace RiskOfChaos.EffectHandling
 {
@@ -29,12 +30,16 @@ namespace RiskOfChaos.EffectHandling
         readonly MethodInfo[] _canActivateMethods;
         public bool CanActivate => _canActivateMethods != null && (_canActivateMethods.Length == 0 || _canActivateMethods.All(m => (bool)m.Invoke(null, null)));
 
+        public readonly float EffectRepetitionWeightExponentMultiplier;
+        public readonly EffectActivationCountMode EffectRepetitionWeightCalculationMode;
+
         readonly MethodInfo[] _weightMultSelectorMethods;
         public float TotalSelectionWeight
         {
             get
             {
-                float weight = SelectionWeightConfig.Value;
+                int activationCount = ChaosEffectDispatcher.GetEffectActivationCount(EffectIndex, EffectRepetitionWeightCalculationMode);
+                float weight = Mathf.Exp(-activationCount * EffectRepetitionWeightExponentMultiplier) * SelectionWeightConfig.Value;
 
                 if (_weightMultSelectorMethods != null)
                 {
@@ -78,19 +83,22 @@ namespace RiskOfChaos.EffectHandling
                 Log.Error(LOG_PREFIX + $"attribute target is not a Type ({attribute.target})");
             }
 
+            EffectRepetitionWeightExponentMultiplier = attribute.EffectRepetitionWeightExponent / 100f;
+            EffectRepetitionWeightCalculationMode = attribute.EffectRepetitionWeightCalculationMode;
+
             ConfigSectionName = "Effect: " + Language.GetString(NameToken, "en");
 
             IsEnabledConfig = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Enabled"), true, new ConfigDescription("If the effect should be able to be picked"));
-            ModSettingsManager.AddOption(new CheckBoxOption(IsEnabledConfig), ChaosEffectCatalog.CONFIG_MOD_GUID, ChaosEffectCatalog.CONFIG_MOD_NAME);
+            ChaosEffectCatalog.AddEffectConfigOption(new CheckBoxOption(IsEnabledConfig));
 
             SelectionWeightConfig = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Weight"), attribute.DefaultSelectionWeight, new ConfigDescription("How likely the effect is to be picked, higher value means more likely, lower value means less likely"));
-            ModSettingsManager.AddOption(new StepSliderOption(SelectionWeightConfig, new StepSliderConfig
+            ChaosEffectCatalog.AddEffectConfigOption(new StepSliderOption(SelectionWeightConfig, new StepSliderConfig
             {
                 formatString = "{0:F1}",
                 increment = 0.1f,
                 min = 0f,
                 max = 2.5f
-            }), ChaosEffectCatalog.CONFIG_MOD_GUID, ChaosEffectCatalog.CONFIG_MOD_NAME);
+            }));
         }
 
         public readonly BaseEffect InstantiateEffect(Xoroshiro128Plus effectRNG)

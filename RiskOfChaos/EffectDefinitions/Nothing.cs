@@ -5,7 +5,7 @@ using System.Text;
 
 namespace RiskOfChaos.EffectDefinitions
 {
-    [ChaosEffect("Nothing", DefaultSelectionWeight = 0.5f)]
+    [ChaosEffect("Nothing", DefaultSelectionWeight = 0.5f, EffectRepetitionWeightExponent = 0f)]
     public class Nothing : BaseEffect
     {
     }

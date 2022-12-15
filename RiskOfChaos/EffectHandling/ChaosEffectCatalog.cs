@@ -6,6 +6,7 @@ using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace RiskOfChaos.EffectHandling
@@ -14,8 +15,8 @@ namespace RiskOfChaos.EffectHandling
     {
         const string CONFIG_SECTION_NAME = "Effects";
 
-        public const string CONFIG_MOD_GUID = $"RoC_Config_{CONFIG_SECTION_NAME}";
-        public const string CONFIG_MOD_NAME = $"Risk of Chaos: {CONFIG_SECTION_NAME}";
+        const string CONFIG_MOD_GUID = $"RoC_Config_{CONFIG_SECTION_NAME}";
+        const string CONFIG_MOD_NAME = $"Risk of Chaos: {CONFIG_SECTION_NAME}";
 
         static ChaosEffectInfo[] _effects;
 
@@ -40,6 +41,12 @@ namespace RiskOfChaos.EffectHandling
             _effectCount = _effects.Length;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T[] PerEffectArray<T>()
+        {
+            return new T[_effectCount];
+        }
+
         public static ChaosEffectInfo GetEffectInfo(uint effectIndex)
         {
             return ArrayUtils.GetSafe(_effects, (int)effectIndex);
@@ -47,6 +54,8 @@ namespace RiskOfChaos.EffectHandling
 
         public static int FindEffectIndex(string identifier)
         {
+            const string LOG_PREFIX = $"{nameof(ChaosEffectCatalog)}.{nameof(FindEffectIndex)} ";
+
             for (int i = 0; i < _effects.Length; i++)
             {
                 if (string.Equals(_effects[i].Identifier, identifier))
@@ -54,6 +63,8 @@ namespace RiskOfChaos.EffectHandling
                     return i;
                 }
             }
+
+            Log.Warning(LOG_PREFIX + $"unable to find effect index for identifier '{identifier}'");
 
             return -1;
         }
@@ -72,7 +83,8 @@ namespace RiskOfChaos.EffectHandling
             return GetEffectInfo((uint)index).ConfigSectionName;
         }
 
-        internal static void AddConfigOption(BaseOption option)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void AddEffectConfigOption(BaseOption option)
         {
             ModSettingsManager.AddOption(option, CONFIG_MOD_GUID, CONFIG_MOD_NAME);
         }

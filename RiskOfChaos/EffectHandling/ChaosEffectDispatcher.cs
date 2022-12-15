@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectDefinitions;
+﻿using HG;
+using RiskOfChaos.EffectDefinitions;
 using RoR2;
 using RoR2.Audio;
 using System;
@@ -8,14 +9,63 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling
 {
+    public struct ChaosEffectActivationCounter
+    {
+        public static readonly ChaosEffectActivationCounter EmptyCounter = new ChaosEffectActivationCounter(-1);
+
+        public readonly int EffectIndex;
+
+        public int TotalActivations { get; private set; }
+
+        public int StageActivations { get; private set; }
+
+        public ChaosEffectActivationCounter(int effectIndex)
+        {
+            EffectIndex = effectIndex;
+
+            TotalActivations = 0;
+            StageActivations = 0;
+
+            if (effectIndex != -1)
+            {
+                Stage.onServerStageComplete += Stage_onServerStageComplete;
+                Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
+            }
+        }
+
+        void Stage_onServerStageComplete(Stage stage)
+        {
+            TotalActivations += StageActivations;
+            StageActivations = 0;
+        }
+
+        void Run_onRunDestroyGlobal(Run run)
+        {
+            TotalActivations = 0;
+            StageActivations = 0;
+        }
+    }
+
     public static class ChaosEffectDispatcher
     {
         static float _nextEffectDispatchTime = float.PositiveInfinity;
 
         static Xoroshiro128Plus _nextEffectRNG;
 
+        static ChaosEffectActivationCounter[] _effectActivationCounts;
+
+        [SystemInitializer(typeof(ChaosEffectCatalog))]
+        static void InitEffectActivationCounter()
+        {
+            _effectActivationCounts = ChaosEffectCatalog.PerEffectArray<ChaosEffectActivationCounter>();
+            for (int i = 0; i < ChaosEffectCatalog.EffectCount; i++)
+            {
+                _effectActivationCounts[i] = new ChaosEffectActivationCounter(i);
+            }
+        }
+
         [SystemInitializer]
-        static void Init()
+        static void InitEventListeners()
         {
             RoR2Application.onFixedUpdate += RoR2Application_onFixedUpdate;
 
@@ -86,6 +136,31 @@ namespace RiskOfChaos.EffectHandling
             {
                 EntitySoundManager.EmitSoundServer(soundEventID, playerBody.gameObject);
             }
+        }
+
+        static ChaosEffectActivationCounter getEffectActivationCounter(int effectIndex)
+        {
+            return ArrayUtils.GetSafe(_effectActivationCounts, effectIndex, ChaosEffectActivationCounter.EmptyCounter);
+        }
+
+        public static int GetTotalRunEffectActivationCount(int effectIndex)
+        {
+            return getEffectActivationCounter(effectIndex).TotalActivations;
+        }
+
+        public static int GetTotalStageEffectActivationCount(int effectIndex)
+        {
+            return getEffectActivationCounter(effectIndex).StageActivations;
+        }
+
+        public static int GetEffectActivationCount(int effectIndex, EffectActivationCountMode mode)
+        {
+            return mode switch
+            {
+                EffectActivationCountMode.PerStage => GetTotalStageEffectActivationCount(effectIndex),
+                EffectActivationCountMode.PerRun => GetTotalRunEffectActivationCount(effectIndex),
+                _ => 0,
+            };
         }
     }
 }
