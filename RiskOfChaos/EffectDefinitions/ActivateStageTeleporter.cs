@@ -25,11 +25,12 @@ namespace RiskOfChaos.EffectDefinitions
         static float GetWeightMult()
         {
             Stage stage = Stage.instance;
-            if (!stage)
-                return 1f;
-            
+            TeleporterInteraction tpInteraction = TeleporterInteraction.instance;
+            if (!stage || !tpInteraction)
+                return 0f;
+
             float timeOnStage = stage.entryTime.timeSince;
-            return Mathf.Min(1f, timeOnStage / (60f * 5f));
+            return Mathf.Min(1f, timeOnStage / (60f * 7.5f * (tpInteraction.activationState >= TeleporterInteraction.ActivationState.Charged ? 1.5f : 1f)));
         }
 
         public override void OnStart()
