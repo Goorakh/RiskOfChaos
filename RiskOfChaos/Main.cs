@@ -1,19 +1,14 @@
 using BepInEx;
 using BepInEx.Configuration;
-using Facepunch.Steamworks;
-using R2API;
 using R2API.Utils;
-using RiskOfChaos.EffectHandling;
 using RiskOfOptions;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
-using RoR2;
 using System.Diagnostics;
-using UnityEngine;
-using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos
 {
+    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync)]
     [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInDependency("com.rune580.riskofoptions")]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
@@ -22,7 +17,7 @@ namespace RiskOfChaos
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Gorakh";
         public const string PluginName = "RiskOfChaos";
-        public const string PluginVersion = "1.0.0";
+        public const string PluginVersion = "0.1.0";
 
         internal static Main Instance;
 
