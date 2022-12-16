@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Trackers;
+﻿using RiskOfChaos.Extensions;
+using RiskOfChaos.Trackers;
 using RoR2;
 using RoR2.Artifacts;
 using RoR2.UI;
@@ -84,9 +85,7 @@ namespace RiskOfChaos
 
             foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
             {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public (CharacterBody.transform)
-                playerBody.master.Respawn(playerBody.footPosition, playerBody.transform.rotation);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public (CharacterBody.transform)
+                playerBody.master.Respawn(playerBody.footPosition, playerBody.GetRotation());
             }
         }
 
