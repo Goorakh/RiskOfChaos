@@ -53,6 +53,23 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
+        readonly MethodInfo _getEffectNameFormatArgsMethod;
+        public string DisplayName
+        {
+            get
+            {
+                if (_getEffectNameFormatArgsMethod != null)
+                {
+                    object[] args = (object[])_getEffectNameFormatArgsMethod.Invoke(null, null);
+                    return Language.GetStringFormatted(NameToken, args);
+                }
+                else
+                {
+                    return Language.GetString(NameToken);
+                }
+            }
+        }
+
         public ChaosEffectInfo(int effectIndex, ChaosEffectAttribute attribute)
         {
             const string LOG_PREFIX = $"{nameof(ChaosEffectInfo)}..ctor ";
@@ -73,9 +90,13 @@ namespace RiskOfChaos.EffectHandling
                 }
                 else
                 {
-                    _canActivateMethods = effectType.GetMethods(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public).Where(m => m.GetParameters().Length == 0 && m.GetCustomAttribute<EffectCanActivateAttribute>() != null).ToArray();
+                    const BindingFlags FLAGS = BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public;
 
-                    _weightMultSelectorMethods = effectType.GetMethods(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public).Where(m => m.GetCustomAttribute<EffectWeightMultiplierSelectorAttribute>() != null).ToArray();
+                    _canActivateMethods = effectType.GetMethods(FLAGS).Where(m => m.GetParameters().Length == 0 && m.GetCustomAttribute<EffectCanActivateAttribute>() != null).ToArray();
+
+                    _weightMultSelectorMethods = effectType.GetMethods(FLAGS).Where(m => m.GetCustomAttribute<EffectWeightMultiplierSelectorAttribute>() != null).ToArray();
+
+                    _getEffectNameFormatArgsMethod = effectType.GetMethods(FLAGS).Where(m => m.GetCustomAttribute<EffectNameFormatArgsAttribute>() != null).FirstOrDefault();
                 }
             }
             else
@@ -86,7 +107,7 @@ namespace RiskOfChaos.EffectHandling
             EffectRepetitionWeightExponentMultiplier = attribute.EffectRepetitionWeightExponent / 100f;
             EffectRepetitionWeightCalculationMode = attribute.EffectRepetitionWeightCalculationMode;
 
-            ConfigSectionName = "Effect: " + Language.GetString(NameToken, "en");
+            ConfigSectionName = "Effect: " + (attribute.ConfigName ?? Language.GetString(NameToken, "en"));
 
             IsEnabledConfig = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Enabled"), true, new ConfigDescription("If the effect should be able to be picked"));
             ChaosEffectCatalog.AddEffectConfigOption(new CheckBoxOption(IsEnabledConfig));
@@ -110,7 +131,7 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly string GetActivationMessage()
         {
-            return Language.GetStringFormatted("CHAOS_EFFECT_ACTIVATE", Language.GetString(NameToken));
+            return Language.GetStringFormatted("CHAOS_EFFECT_ACTIVATE", DisplayName);
         }
     }
 }

@@ -7,6 +7,8 @@ namespace RiskOfChaos.EffectHandling
     {
         public readonly string Identifier;
 
+        public string ConfigName { get; set; } = null;
+
         // public bool HasDescription { get; set; }
 
         public float DefaultSelectionWeight { get; set; } = 1f;
