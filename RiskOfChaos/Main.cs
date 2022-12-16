@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace RiskOfChaos
 {
-    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync)]
+    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInDependency("com.rune580.riskofoptions")]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
