@@ -13,6 +13,9 @@
 		"EFFECT_FREEZEALL_NAME": "Freeze!",
 		"EFFECT_GIVEMONEY_NAME": "Payday",
 		"EFFECT_INCREASEDIRECTORCREDITS_NAME": "+50% Director Credits",
-		"EFFECT_ORDERINVENTORY_NAME": "Sequence All Players"
+		"EFFECT_ORDERINVENTORY_NAME": "Sequence All Players",
+		"EFFECT_SPAWNSCAVBAG_NAME": "Spawn Scavenger Bag",
+		"EFFECT_DROPALLITEMS_NAME": "Drop All Items",
+		"EFFECT_METEOR_NAME": "Meteor Shower"
 	}
 }
