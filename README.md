@@ -38,6 +38,10 @@ A: I failed art class __(If you have a better design in mind please let me know,
 
 ## Changelog
 
-**0.1.0**
+**0.1.1 Changes:**
+
+* README update
+
+**0.1.0 Changes:**
 
 * First release
