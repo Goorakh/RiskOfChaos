@@ -16,6 +16,7 @@
 		"EFFECT_ORDERINVENTORY_NAME": "Sequence All Players",
 		"EFFECT_SPAWNSCAVBAG_NAME": "Spawn Scavenger Bag",
 		"EFFECT_DROPALLITEMS_NAME": "Drop All Items",
-		"EFFECT_METEOR_NAME": "Meteor Shower"
+		"EFFECT_METEOR_NAME": "Meteor Shower",
+		"EFFECT_RANDOMIZELOADOUT_NAME": "Randomize Loadout"
 	}
 }
