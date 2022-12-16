@@ -36,6 +36,8 @@ A: That's not a question
 Q: Why does the icon look like shit?<br/>
 A: I failed art class __(If you have a better design in mind please let me know, I'll take any excuse to get rid of that abomination)__
 
+If you have any feedback or bug reports, please open a [GitHub issue](https://github.com/Goorakh/RiskOfChaos/issues/new)
+
 ## Changelog
 
 **0.1.1 Changes:**
