@@ -32,10 +32,6 @@ namespace RiskOfChaos.Patches
                     cursor.EmitDelegate(static () => PreventionEnabled);
                     cursor.Emit(OpCodes.Brtrue, afterIfLbl);
                 }
-
-#if DEBUG
-                Log.Debug(il.ToString());
-#endif
             };
         }
     }
