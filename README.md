@@ -40,6 +40,11 @@ If you have any feedback or bug reports, please open a [GitHub issue](https://gi
 
 ## Changelog
 
+**0.1.2 Changes:**
+
+* Fix Randomize Loadout spawning players as a new survivor if Artifact of Metamorphosis was enabled.
+* (Hopefully) fix language tokens sometimes not loading properly
+
 **0.1.1 Changes:**
 
 * README update
