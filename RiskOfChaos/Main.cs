@@ -10,6 +10,7 @@ namespace RiskOfChaos
 {
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     [BepInDependency(R2API.R2API.PluginGUID)]
+    [R2APISubmoduleDependency(nameof(R2API.RecalculateStatsAPI))]
     [BepInDependency("com.rune580.riskofoptions")]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     public class Main : BaseUnityPlugin

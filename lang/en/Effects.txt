@@ -17,6 +17,7 @@
 		"EFFECT_SPAWNSCAVBAG_NAME": "Spawn Scavenger Bag",
 		"EFFECT_DROPALLITEMS_NAME": "Drop All Items",
 		"EFFECT_METEOR_NAME": "Meteor Shower",
-		"EFFECT_RANDOMIZELOADOUT_NAME": "Randomize Loadout"
+		"EFFECT_RANDOMIZELOADOUT_NAME": "Randomize Loadout",
+		"EFFECT_SPAWNINVINCIBLELEMURIAN_NAME": "You and a super intelligent Lemurian..."
 	}
 }
