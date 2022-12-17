@@ -1,9 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.Extensions;
+using RiskOfChaos.Patches;
 using RoR2;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace RiskOfChaos.EffectDefinitions
 {
@@ -40,7 +38,9 @@ namespace RiskOfChaos.EffectDefinitions
 
                     if (changedCurrentBody)
                     {
+                        PreventMetamorphosisRespawn.PreventionEnabled = true;
                         playerMaster.Respawn(playerBody.footPosition, playerBody.GetRotation());
+                        PreventMetamorphosisRespawn.PreventionEnabled = false;
                     }
                 }
             }
