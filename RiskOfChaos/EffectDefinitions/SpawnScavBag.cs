@@ -22,22 +22,10 @@ namespace RiskOfChaos.EffectDefinitions
 
         public override void OnStart()
         {
-            Vector3 spawnPosition;
-
-            IEnumerable<CharacterBody> playerBodies = PlayerUtils.GetAllPlayerBodies(true);
-            if (playerBodies.Any())
-            {
-                spawnPosition = RNG.NextElementUniform(playerBodies.ToArray()).footPosition;
-            }
-            else
-            {
-                spawnPosition = Vector3.zero;
-            }
-
             DirectorPlacementRule placement = new DirectorPlacementRule
             {
                 placementMode = DirectorPlacementRule.PlacementMode.NearestNode,
-                position = spawnPosition,
+                position = SpawnUtils.GetRandomSpawnPosition(RNG) ?? Vector3.zero,
                 minDistance = 50f,
                 maxDistance = float.PositiveInfinity
             };
