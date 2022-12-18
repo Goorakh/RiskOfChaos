@@ -6,7 +6,7 @@ Heavily inspired by the "Chaos Mod" series of GTA games.
 
 Only the host needs to have the mod, though it is recommended everyone have the mod installed anyway (certain visuals won't appear for players without the mod)
 
-Currently includes 15 different effects.
+Currently includes 16 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
