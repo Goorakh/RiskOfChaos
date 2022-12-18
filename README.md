@@ -41,7 +41,7 @@ If you have any feedback or bug reports, please open a [GitHub issue](https://gi
 
 ## Changelog
 
-*0.1.3 Changes:*
+**0.1.3 Changes:**
 
 * Added effect: You and a super intelligent Lemurian...
 
