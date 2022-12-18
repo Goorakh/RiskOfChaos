@@ -68,8 +68,8 @@ namespace RiskOfChaos.EffectDefinitions
             DirectorPlacementRule placement = new DirectorPlacementRule
             {
                 placementMode = DirectorPlacementRule.PlacementMode.NearestNode,
-                position = SpawnUtils.GetRandomSpawnPosition(RNG) ?? Vector3.zero,
-                minDistance = 200f,
+                position = SpawnUtils.GetRandomSpawnPosition(RNG, false) ?? Vector3.zero,
+                minDistance = 0f,
                 maxDistance = float.PositiveInfinity
             };
 

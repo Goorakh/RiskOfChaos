@@ -8,12 +8,15 @@ namespace RiskOfChaos
 {
     public static class SpawnUtils
     {
-        public static Vector3? GetRandomSpawnPosition(Xoroshiro128Plus rng)
+        public static Vector3? GetRandomSpawnPosition(Xoroshiro128Plus rng, bool allowPlayerSpawn)
         {
-            IEnumerable<CharacterBody> allPlayerBodies = PlayerUtils.GetAllPlayerBodies(true);
-            if (allPlayerBodies.Any())
+            if (allowPlayerSpawn)
             {
-                return rng.NextElementUniform(allPlayerBodies.ToArray()).footPosition;
+                IEnumerable<CharacterBody> allPlayerBodies = PlayerUtils.GetAllPlayerBodies(true);
+                if (allPlayerBodies.Any())
+                {
+                    return rng.NextElementUniform(allPlayerBodies.ToArray()).footPosition;
+                }
             }
 
             SceneInfo sceneInfo = SceneInfo.instance;

@@ -26,6 +26,7 @@ Currently includes 15 different effects.
 * Drop All Items: Drops all players' items and equipment on the ground
 * Meteor Shower: Activates the glowing meteorite equipment
 * Randomize Loadout: Randomizes all player's loadouts (skills and skins)
+* You and a super intelligent Lemurian...: Spawns an invincible Lemurian in a random location on the map with an infinite damage stat (instantly die if you touch it)
 </details>
 
 FAQ:
@@ -39,6 +40,10 @@ A: I failed art class __(If you have a better design in mind please let me know,
 If you have any feedback or bug reports, please open a [GitHub issue](https://github.com/Goorakh/RiskOfChaos/issues/new)
 
 ## Changelog
+
+*_._._ Changes:*
+
+* Added effect: You and a super intelligent Lemurian...
 
 **0.1.2 Changes:**
 
