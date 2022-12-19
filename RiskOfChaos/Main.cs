@@ -1,6 +1,7 @@
 using BepInEx;
 using BepInEx.Configuration;
 using R2API.Utils;
+using RiskOfChaos.EffectHandling;
 using RiskOfOptions;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
@@ -65,6 +66,8 @@ namespace RiskOfChaos
                 // ModSettingsManager.SetModIcon(general_icon, GUID, NAME);
                 ModSettingsManager.SetModDescription("General config options for Risk of Chaos", GUID, NAME);
             }
+
+            ChaosEffectCatalog.InitConfig();
         }
     }
 }

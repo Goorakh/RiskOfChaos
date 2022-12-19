@@ -23,7 +23,7 @@ namespace RiskOfChaos.EffectHandling
         static int _effectCount;
         public static int EffectCount => _effectCount;
 
-        static ChaosEffectCatalog()
+        internal static void InitConfig()
         {
             // ModSettingsManager.SetModIcon(effects_icon, GUID, NAME);
             ModSettingsManager.SetModDescription("Effect config options for Risk of Chaos", CONFIG_MOD_GUID, CONFIG_MOD_NAME);
