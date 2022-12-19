@@ -8,37 +8,24 @@ namespace RiskOfChaos
     {
         internal static void Init()
         {
-            On.RoR2.Language.SetFolders += Language_SetFolders;
-        }
-
-        static void Language_SetFolders(On.RoR2.Language.orig_SetFolders orig, RoR2.Language self, IEnumerable<string> newFolders)
-        {
-            const string LOG_PREFIX = $"{nameof(LanguageFileHandler)}.{nameof(Language_SetFolders)} ";
-
-            string languageFolderPath = Path.Combine(Path.GetDirectoryName(Main.Instance.Info.Location), "lang");
-            if (Directory.Exists(languageFolderPath))
+            RoR2.Language.collectLanguageRootFolders += static folders =>
             {
-                const string DEFAULT_LANG_NAME = "en";
+                const string LOG_PREFIX = $"{nameof(LanguageFileHandler)}.{nameof(RoR2.Language.collectLanguageRootFolders)}";
 
-                IEnumerable<string> dirs = Directory.EnumerateDirectories(languageFolderPath, self.name);
-                if (!dirs.Any())
+                string languageFolderPath = Path.Combine(Path.GetDirectoryName(Main.Instance.Info.Location), "lang");
+                if (Directory.Exists(languageFolderPath))
                 {
-                    dirs = Directory.EnumerateDirectories(languageFolderPath, DEFAULT_LANG_NAME);
+#if DEBUG
+                    Log.Debug(LOG_PREFIX + $"Found lang folder at {languageFolderPath}, adding to list ({string.Join(", ", folders)})");
+#endif
 
-                    Log.Info(LOG_PREFIX + $"did not find lang folder for {self.name} ({languageFolderPath}), defaulting to {DEFAULT_LANG_NAME}, dirs=[{string.Join(", ", dirs)}]");
+                    folders.Add(languageFolderPath);
                 }
                 else
                 {
-                    Log.Info(LOG_PREFIX + $"found lang folder for {self.name} ({languageFolderPath}), dirs=[{string.Join(", ", dirs)}]");
+                    Log.Warning(LOG_PREFIX + $"Unable to find lang folder at {languageFolderPath}");
                 }
-
-                orig(self, newFolders.Union(dirs));
-                return;
-            }
-
-            Log.Warning(LOG_PREFIX + $"Unable to find lang folder for {self.name}, path: {languageFolderPath}");
-
-            orig(self, newFolders);
+            };
         }
     }
 }
