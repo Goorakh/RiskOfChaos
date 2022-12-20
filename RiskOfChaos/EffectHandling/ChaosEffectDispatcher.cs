@@ -68,6 +68,15 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
+        [ConCommand(commandName = "roc_startrandom", flags = ConVarFlags.SenderMustBeServer, helpText = "Dispatches a random effect")]
+        static void CCDispatchRandomEffect(ConCommandArgs args)
+        {
+            if (!Run.instance)
+                return;
+
+            dispatchRandomEffect();
+        }
+
         static void dispatchRandomEffect()
         {
             WeightedSelection<ChaosEffectInfo> weightedSelection = ChaosEffectCatalog.GetAllActivatableEffects();
@@ -79,6 +88,19 @@ namespace RiskOfChaos.EffectHandling
             else
             {
                 Log.Error("No activatable effect!");
+            }
+        }
+
+        [ConCommand(commandName = "roc_start", flags = ConVarFlags.SenderMustBeServer, helpText = "Dispatches an effect")]
+        static void CCDispatchEffect(ConCommandArgs args)
+        {
+            if (!Run.instance)
+                return;
+
+            int index = ChaosEffectCatalog.FindEffectIndex(args[0]);
+            if (index >= 0)
+            {
+                dispatchEffect(ChaosEffectCatalog.GetEffectInfo((uint)index));
             }
         }
 
