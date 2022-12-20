@@ -6,7 +6,7 @@ Heavily inspired by the "Chaos Mod" series of GTA games.
 
 Only the host needs to have the mod, though it is recommended everyone have the mod installed anyway (certain visuals won't appear for players without the mod)
 
-Currently includes 17 different effects.
+Currently includes 18 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -28,6 +28,7 @@ Currently includes 17 different effects.
 * Randomize Loadout: Randomizes all player's loadouts (skills and skins)
 * You and a super intelligent Lemurian...: Spawns an invincible Lemurian in a random location on the map with an infinite damage stat (instantly die if you touch it)
 * Mitosis: Duplicates every character on the map
+* Scrap Random Item: Turns a random scrappable item in every players inventory into the corresponding scrap
 </details>
 
 FAQ:
@@ -41,6 +42,10 @@ A: I failed art class __(If you have a better design in mind please let me know,
 If you have any feedback or bug reports, please open a [GitHub issue](https://github.com/Goorakh/RiskOfChaos/issues/new)
 
 ## Changelog
+
+**_._._ Changes:**
+
+* Added effect: Scrap Random Item
 
 **0.1.4 Changes:**
 

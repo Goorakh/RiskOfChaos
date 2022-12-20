@@ -19,6 +19,7 @@
 		"EFFECT_METEOR_NAME": "Meteor Shower",
 		"EFFECT_RANDOMIZELOADOUT_NAME": "Randomize Loadout",
 		"EFFECT_SPAWNINVINCIBLELEMURIAN_NAME": "You and a super intelligent Lemurian...",
-		"EFFECT_DUPLICATEALLCHARACTERS_NAME": "Mitosis"
+		"EFFECT_DUPLICATEALLCHARACTERS_NAME": "Mitosis",
+		"EFFECT_SCRAPRANDOMITEM_NAME": "Scrap Random Item"
 	}
 }
