@@ -97,7 +97,7 @@ namespace RiskOfChaos.EffectHandling
             if (!Run.instance)
                 return;
 
-            int index = ChaosEffectCatalog.FindEffectIndex(args[0]);
+            int index = ChaosEffectCatalog.FindEffectIndex(args[0], false);
             if (index >= 0)
             {
                 dispatchEffect(ChaosEffectCatalog.GetEffectInfo((uint)index));
