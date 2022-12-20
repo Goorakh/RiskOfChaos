@@ -36,7 +36,7 @@ namespace RiskOfChaos.EffectDefinitions
                     // Set dirty bit
                     playerMaster.SetLoadoutServer(loadout);
 
-                    if (changedCurrentBody)
+                    if (changedCurrentBody && !playerMaster.IsDeadAndOutOfLivesServer())
                     {
                         PreventMetamorphosisRespawn.PreventionEnabled = true;
                         playerMaster.Respawn(playerBody.footPosition, playerBody.GetRotation());
