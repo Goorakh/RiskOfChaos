@@ -43,9 +43,10 @@ If you have any feedback or bug reports, please open a [GitHub issue](https://gi
 
 ## Changelog
 
-**_._._ Changes:**
+**0.1.5 Changes:**
 
 * Added effect: Scrap Random Item
+* Randomize Loadout will no longer revive dead players
 
 **0.1.4 Changes:**
 
