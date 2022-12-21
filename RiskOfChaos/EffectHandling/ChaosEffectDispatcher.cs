@@ -111,6 +111,8 @@ namespace RiskOfChaos.EffectHandling
 
             Chat.SendBroadcastChat(new Chat.SimpleChatMessage { baseToken = effect.GetActivationMessage() });
 
+            getEffectActivationCounterUncheckedRef(effect.EffectIndex).StageActivations++;
+
             playEffectActivatedSoundOnAllPlayerBodies();
         }
 
@@ -123,9 +125,17 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
+        static ref ChaosEffectActivationCounter getEffectActivationCounterUncheckedRef(int effectIndex)
+        {
+            return ref _effectActivationCounts[effectIndex];
+        }
+
         static ChaosEffectActivationCounter getEffectActivationCounter(int effectIndex)
         {
-            return ArrayUtils.GetSafe(_effectActivationCounts, effectIndex, ChaosEffectActivationCounter.EmptyCounter);
+            if (effectIndex < 0 || effectIndex >= _effectActivationCounts.Length)
+                return ChaosEffectActivationCounter.EmptyCounter;
+
+            return getEffectActivationCounterUncheckedRef(effectIndex);
         }
 
         public static int GetTotalRunEffectActivationCount(int effectIndex)

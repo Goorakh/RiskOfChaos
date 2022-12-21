@@ -10,7 +10,7 @@ namespace RiskOfChaos.EffectHandling
 
         public int TotalActivations { get; private set; }
 
-        public int StageActivations { get; private set; }
+        public int StageActivations;
 
         public ChaosEffectActivationCounter(int effectIndex)
         {
