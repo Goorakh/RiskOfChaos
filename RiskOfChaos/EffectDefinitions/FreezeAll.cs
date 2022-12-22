@@ -15,11 +15,12 @@ namespace RiskOfChaos.EffectDefinitions
             {
                 if (body && body.TryGetComponent(out SetStateOnHurt setStateOnHurt))
                 {
-                    bool originalCanBeFrozen = setStateOnHurt.canBeFrozen;
+                    ref bool canBeFrozen = ref setStateOnHurt.canBeFrozen;
+                    bool originalCanBeFrozen = canBeFrozen;
 
-                    setStateOnHurt.canBeFrozen = true;
+                    canBeFrozen = true;
                     setStateOnHurt.SetFrozen(4f);
-                    setStateOnHurt.canBeFrozen = originalCanBeFrozen;
+                    canBeFrozen = originalCanBeFrozen;
                 }
             }
         }
