@@ -20,6 +20,8 @@
 		"EFFECT_RANDOMIZELOADOUT_NAME": "Randomize Loadout",
 		"EFFECT_SPAWNINVINCIBLELEMURIAN_NAME": "You and a super intelligent Lemurian...",
 		"EFFECT_DUPLICATEALLCHARACTERS_NAME": "Mitosis",
-		"EFFECT_SCRAPRANDOMITEM_NAME": "Scrap Random Item"
+		"EFFECT_SCRAPRANDOMITEM_NAME": "Scrap Random Item",
+		"EFFECT_INCREASEGRAVITY_NAME": "+{0:P0} Gravity (Lasts 1 stage)",
+		"EFFECT_DECREASEGRAVITY_NAME": "-{0:P0} Gravity (Lasts 1 stage)"
 	}
 }
