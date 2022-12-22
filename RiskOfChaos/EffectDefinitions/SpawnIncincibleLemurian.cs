@@ -24,44 +24,44 @@ namespace RiskOfChaos.EffectDefinitions
         static bool _hooksApplied;
         static void tryApplyHooks()
         {
-            if (!_hooksApplied)
+            if (_hooksApplied)
+                return;
+            
+            On.RoR2.HealthComponent.TakeDamage += static (orig, self, damageInfo) =>
             {
-                On.RoR2.HealthComponent.TakeDamage += static (orig, self, damageInfo) =>
+                if (NetworkServer.active &&
+                    damageInfo != null &&
+                    damageInfo.attacker &&
+                    damageInfo.attacker.TryGetComponent(out CharacterBody attackerBody) &&
+                    _activeLemurianMasterObjects.Contains(attackerBody.masterObject))
                 {
-                    if (NetworkServer.active &&
-                        damageInfo != null &&
-                        damageInfo.attacker &&
-                        damageInfo.attacker.TryGetComponent(out CharacterBody attackerBody) &&
-                        _activeLemurianMasterObjects.Contains(attackerBody.masterObject))
-                    {
-                        // you die if the snail touches you
-                        damageInfo.damage = float.PositiveInfinity;
-                        damageInfo.damageType |= DamageType.BypassArmor | DamageType.BypassBlock | DamageType.BypassOneShotProtection;
-                    }
+                    // you die if the snail touches you
+                    damageInfo.damage = float.PositiveInfinity;
+                    damageInfo.damageType |= DamageType.BypassArmor | DamageType.BypassBlock | DamageType.BypassOneShotProtection;
+                }
 
-                    orig(self, damageInfo);
-                };
+                orig(self, damageInfo);
+            };
 
-                On.RoR2.CharacterAI.BaseAI.FindEnemyHurtBox += static (orig, self, maxDistance, full360Vision, filterByLoS) =>
+            On.RoR2.CharacterAI.BaseAI.FindEnemyHurtBox += static (orig, self, maxDistance, full360Vision, filterByLoS) =>
+            {
+                if (self && _activeLemurianMasterObjects.Contains(self.gameObject))
                 {
-                    if (self && _activeLemurianMasterObjects.Contains(self.gameObject))
-                    {
-                        filterByLoS = false;
-                    }
+                    filterByLoS = false;
+                }
 
-                    return orig(self, maxDistance, full360Vision, filterByLoS);
-                };
+                return orig(self, maxDistance, full360Vision, filterByLoS);
+            };
 
-                RecalculateStatsAPI.GetStatCoefficients += static (body, args) =>
+            RecalculateStatsAPI.GetStatCoefficients += static (body, args) =>
+            {
+                if (body && _activeLemurianMasterObjects.Contains(body.masterObject))
                 {
-                    if (body && _activeLemurianMasterObjects.Contains(body.masterObject))
-                    {
-                        args.moveSpeedReductionMultAdd += 1f;
-                    }
-                };
+                    args.moveSpeedReductionMultAdd += 1f;
+                }
+            };
 
-                _hooksApplied = true;
-            }
+            _hooksApplied = true;
         }
 
         [EffectCanActivate]
