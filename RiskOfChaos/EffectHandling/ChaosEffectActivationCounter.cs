@@ -8,7 +8,7 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly int EffectIndex;
 
-        public int TotalActivations { get; private set; }
+        public int TotalActivations { readonly get; private set; }
 
         public int StageActivations;
 
