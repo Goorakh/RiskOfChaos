@@ -106,12 +106,21 @@ namespace RiskOfChaos.EffectHandling
 
         static void dispatchEffect(in ChaosEffectInfo effect)
         {
+            const string LOG_PREFIX = $"{nameof(ChaosEffectDispatcher)}.{nameof(dispatchEffect)} ";
+
             BaseEffect effectInstance = effect.InstantiateEffect(new Xoroshiro128Plus(_nextEffectRNG.nextUlong));
             effectInstance?.OnStart();
 
             Chat.SendBroadcastChat(new Chat.SimpleChatMessage { baseToken = effect.GetActivationMessage() });
 
-            getEffectActivationCounterUncheckedRef(effect.EffectIndex).StageActivations++;
+            try
+            {
+                getEffectActivationCounterUncheckedRef(effect.EffectIndex).StageActivations++;
+            }
+            catch (IndexOutOfRangeException ex)
+            {
+                Log.Error(LOG_PREFIX + $"{nameof(IndexOutOfRangeException)} in {nameof(getEffectActivationCounterUncheckedRef)}, invalid effect index? {nameof(effect.EffectIndex)}={effect.EffectIndex}: {ex}");
+            }
 
             playEffectActivatedSoundOnAllPlayerBodies();
         }
