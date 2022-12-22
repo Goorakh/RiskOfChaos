@@ -22,63 +22,45 @@ namespace RiskOfChaos.EffectDefinitions
         static readonly HashSet<GameObject> _activeLemurianMasterObjects = new HashSet<GameObject>();
 
         static bool _hooksApplied;
-        static void updateHooks()
+        static void tryApplyHooks()
         {
-            static void TakeDamage_Hook(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo)
+            if (!_hooksApplied)
             {
-                if (NetworkServer.active &&
-                    damageInfo != null &&
-                    damageInfo.attacker &&
-                    damageInfo.attacker.TryGetComponent(out CharacterBody attackerBody) &&
-                    _activeLemurianMasterObjects.Contains(attackerBody.masterObject))
+                On.RoR2.HealthComponent.TakeDamage += static (orig, self, damageInfo) =>
                 {
-                    // you die if the snail touches you
-                    damageInfo.damage = float.PositiveInfinity;
-                    damageInfo.damageType |= DamageType.BypassArmor | DamageType.BypassBlock | DamageType.BypassOneShotProtection;
-                }
+                    if (NetworkServer.active &&
+                        damageInfo != null &&
+                        damageInfo.attacker &&
+                        damageInfo.attacker.TryGetComponent(out CharacterBody attackerBody) &&
+                        _activeLemurianMasterObjects.Contains(attackerBody.masterObject))
+                    {
+                        // you die if the snail touches you
+                        damageInfo.damage = float.PositiveInfinity;
+                        damageInfo.damageType |= DamageType.BypassArmor | DamageType.BypassBlock | DamageType.BypassOneShotProtection;
+                    }
 
-                orig(self, damageInfo);
-            }
+                    orig(self, damageInfo);
+                };
 
-            static HurtBox FindEnemyHurtBox_Hook(On.RoR2.CharacterAI.BaseAI.orig_FindEnemyHurtBox orig, BaseAI self, float maxDistance, bool full360Vision, bool filterByLoS)
-            {
-                if (self && _activeLemurianMasterObjects.Contains(self.gameObject))
+                On.RoR2.CharacterAI.BaseAI.FindEnemyHurtBox += static (orig, self, maxDistance, full360Vision, filterByLoS) =>
                 {
-                    filterByLoS = false;
-                }
+                    if (self && _activeLemurianMasterObjects.Contains(self.gameObject))
+                    {
+                        filterByLoS = false;
+                    }
 
-                return orig(self, maxDistance, full360Vision, filterByLoS);
-            }
+                    return orig(self, maxDistance, full360Vision, filterByLoS);
+                };
 
-            void getStatCoefficients(CharacterBody body, RecalculateStatsAPI.StatHookEventArgs args)
-            {
-                if (body && _activeLemurianMasterObjects.Contains(body.masterObject))
+                RecalculateStatsAPI.GetStatCoefficients += static (body, args) =>
                 {
-                    args.moveSpeedReductionMultAdd += 1f;
-                }
-            }
+                    if (body && _activeLemurianMasterObjects.Contains(body.masterObject))
+                    {
+                        args.moveSpeedReductionMultAdd += 1f;
+                    }
+                };
 
-            if (_activeLemurianMasterObjects.Count > 0)
-            {
-                if (!_hooksApplied)
-                {
-                    On.RoR2.HealthComponent.TakeDamage += TakeDamage_Hook;
-                    On.RoR2.CharacterAI.BaseAI.FindEnemyHurtBox += FindEnemyHurtBox_Hook;
-                    RecalculateStatsAPI.GetStatCoefficients += getStatCoefficients;
-
-                    _hooksApplied = true;
-                }
-            }
-            else
-            {
-                if (_hooksApplied)
-                {
-                    On.RoR2.HealthComponent.TakeDamage -= TakeDamage_Hook;
-                    On.RoR2.CharacterAI.BaseAI.FindEnemyHurtBox -= FindEnemyHurtBox_Hook;
-                    RecalculateStatsAPI.GetStatCoefficients -= getStatCoefficients;
-
-                    _hooksApplied = false;
-                }
+                _hooksApplied = true;
             }
         }
 
@@ -132,11 +114,10 @@ namespace RiskOfChaos.EffectDefinitions
 
                         if (_activeLemurianMasterObjects.Add(characterMaster.gameObject))
                         {
-                            updateHooks();
+                            tryApplyHooks();
                             OnDestroyCallback.AddCallback(characterMaster.gameObject, static onDestroyCallback =>
                             {
                                 _activeLemurianMasterObjects.Remove(onDestroyCallback.gameObject);
-                                updateHooks();
                             });
                         }
                     }
