@@ -124,6 +124,12 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly BaseEffect InstantiateEffect(Xoroshiro128Plus effectRNG)
         {
+            if (EffectType == null)
+            {
+                Log.Error($"Cannot instantiate effect {Identifier}, {nameof(EffectType)} is null!");
+                return null;
+            }
+
             BaseEffect effectInstance = (BaseEffect)Activator.CreateInstance(EffectType);
             effectInstance.RNG = effectRNG;
             return effectInstance;

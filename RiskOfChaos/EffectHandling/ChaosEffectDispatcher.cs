@@ -107,7 +107,7 @@ namespace RiskOfChaos.EffectHandling
         static void dispatchEffect(in ChaosEffectInfo effect)
         {
             BaseEffect effectInstance = effect.InstantiateEffect(new Xoroshiro128Plus(_nextEffectRNG.nextUlong));
-            effectInstance.OnStart();
+            effectInstance?.OnStart();
 
             Chat.SendBroadcastChat(new Chat.SimpleChatMessage { baseToken = effect.GetActivationMessage() });
 
