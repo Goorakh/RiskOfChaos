@@ -45,10 +45,11 @@ If you have any feedback or bug reports, please open a [GitHub issue](https://gi
 
 ## Changelog
 
-**?.?.? Changes:**
+**0.1.7 Changes:**
 
 * Added effect: +50% Gravity
 * Added effect: -50% Gravity
+* Fixed +50% Director Credits carrying over to future stages (would still apply to directors after stage load)
 
 **0.1.6 Changes:**
 
