@@ -1,5 +1,6 @@
 ﻿using HG;
 using RiskOfChaos.EffectDefinitions;
+using RiskOfChaos.Utility;
 using RoR2;
 using RoR2.Audio;
 using System;

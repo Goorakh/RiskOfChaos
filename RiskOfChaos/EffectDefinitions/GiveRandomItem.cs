@@ -1,5 +1,7 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.Utility;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
@@ -109,29 +111,27 @@ namespace RiskOfChaos.EffectDefinitions
 
             foreach (CharacterMaster playerMaster in PlayerUtils.GetAllPlayerMasters(false))
             {
-                if (pickupDef.itemIndex != ItemIndex.None)
+                Inventory inventory = playerMaster.inventory;
+                if (inventory && inventory.TryGrant(pickupDef))
                 {
-                    Inventory inventory = playerMaster.inventory;
-                    if (inventory)
-                    {
-                        inventory.GiveItem(pickupDef.itemIndex, 1);
-                    }
-                }
-                else if (pickupDef.equipmentIndex != EquipmentIndex.None)
-                {
-                    Inventory inventory = playerMaster.inventory;
-                    if (inventory)
-                    {
-                        inventory.SetEquipmentIndex(pickupDef.equipmentIndex);
-                    }
+                    GenericPickupController.SendPickupMessage(playerMaster, pickupIndex);
                 }
                 else
                 {
-                    Log.Error(LOG_PREFIX + $"unhandled pickup index {pickupIndex}");
-                    continue;
+                    CharacterBody playerBody = playerMaster.GetBody();
+                    if (playerBody)
+                    {
+                        GenericPickupController.CreatePickup(new GenericPickupController.CreatePickupInfo
+                        {
+                            pickupIndex = pickupIndex,
+                            position = playerBody.footPosition
+                        });
+                    }
+                    else
+                    {
+                        Log.Warning(LOG_PREFIX + $"unable to spawn pickup {pickupIndex} at {playerMaster}: Null body");
+                    }
                 }
-
-                GenericPickupController.SendPickupMessage(playerMaster, pickupIndex);
             }
         }
     }

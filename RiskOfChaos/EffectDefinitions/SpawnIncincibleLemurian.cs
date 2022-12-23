@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using R2API;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.Utility;
 using RoR2;
 using RoR2.CharacterAI;
 using RoR2.Navigation;

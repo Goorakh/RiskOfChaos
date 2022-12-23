@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.EffectHandling;
+using RiskOfChaos.Utility;
 using RoR2;
 using System;
 using System.Collections.Generic;

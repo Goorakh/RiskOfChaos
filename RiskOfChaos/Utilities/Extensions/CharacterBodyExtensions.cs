@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
-namespace RiskOfChaos.Extensions
+namespace RiskOfChaos.Utilities.Extensions
 {
     public static class CharacterBodyExtensions
     {

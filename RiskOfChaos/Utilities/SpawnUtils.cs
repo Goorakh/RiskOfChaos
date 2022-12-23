@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace RiskOfChaos
+namespace RiskOfChaos.Utility
 {
     public static class SpawnUtils
     {

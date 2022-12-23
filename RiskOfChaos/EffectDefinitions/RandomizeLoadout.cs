@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling;
-using RiskOfChaos.Extensions;
 using RiskOfChaos.Patches;
+using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.Utility;
 using RoR2;
 
 namespace RiskOfChaos.EffectDefinitions
