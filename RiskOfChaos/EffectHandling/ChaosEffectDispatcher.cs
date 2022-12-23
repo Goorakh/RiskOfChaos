@@ -138,10 +138,10 @@ namespace RiskOfChaos.EffectHandling
         {
             const string LOG_PREFIX = $"{nameof(ChaosEffectDispatcher)}.{nameof(dispatchEffect)} ";
 
+            Chat.SendBroadcastChat(new Chat.SimpleChatMessage { baseToken = effect.GetActivationMessage() });
+
             BaseEffect effectInstance = effect.InstantiateEffect(new Xoroshiro128Plus(_nextEffectRNG.nextUlong));
             effectInstance?.OnStart();
-
-            Chat.SendBroadcastChat(new Chat.SimpleChatMessage { baseToken = effect.GetActivationMessage() });
 
             try
             {
