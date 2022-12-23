@@ -34,6 +34,8 @@ namespace RiskOfChaos.EffectHandling
 
             Run.onRunStartGlobal += Run_onRunStartGlobal;
             Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
+
+            Stage.onServerStageComplete += Stage_onServerStageComplete;
         }
 
         static void Run_onRunStartGlobal(Run run)
@@ -51,7 +53,35 @@ namespace RiskOfChaos.EffectHandling
 
         static void Run_onRunDestroyGlobal(Run run)
         {
+            const string LOG_PREFIX = $"{nameof(ChaosEffectDispatcher)}.{nameof(Run_onRunDestroyGlobal)} ";
+
             _nextEffectRNG = null;
+
+            for (int i = 0; i < _effectActivationCounts.Length; i++)
+            {
+                ref ChaosEffectActivationCounter activationCounter = ref _effectActivationCounts[i];
+                activationCounter.StageActivations = 0;
+                activationCounter.RunActivations = 0;
+            }
+
+#if DEBUG
+            Log.Debug(LOG_PREFIX + $"reset all effect activation counters");
+#endif
+        }
+
+        static void Stage_onServerStageComplete(Stage stage)
+        {
+            const string LOG_PREFIX = $"{nameof(ChaosEffectDispatcher)}.{nameof(Stage_onServerStageComplete)} ";
+
+            for (int i = 0; i < _effectActivationCounts.Length; i++)
+            {
+                ref ChaosEffectActivationCounter activationCounter = ref _effectActivationCounts[i];
+                activationCounter.StageActivations = 0;
+            }
+
+#if DEBUG
+            Log.Debug(LOG_PREFIX + $"reset effect stage activation counters");
+#endif
         }
 
         static void RoR2Application_onFixedUpdate()
@@ -115,7 +145,13 @@ namespace RiskOfChaos.EffectHandling
 
             try
             {
-                getEffectActivationCounterUncheckedRef(effect.EffectIndex).StageActivations++;
+                ref ChaosEffectActivationCounter activationCounter = ref getEffectActivationCounterUncheckedRef(effect.EffectIndex);
+                activationCounter.StageActivations++;
+                activationCounter.RunActivations++;
+
+#if DEBUG
+                Log.Debug(LOG_PREFIX + $"increased effect activation counter: {activationCounter}");
+#endif
             }
             catch (IndexOutOfRangeException ex)
             {
@@ -149,7 +185,7 @@ namespace RiskOfChaos.EffectHandling
 
         public static int GetTotalRunEffectActivationCount(int effectIndex)
         {
-            return getEffectActivationCounter(effectIndex).TotalActivations;
+            return getEffectActivationCounter(effectIndex).RunActivations;
         }
 
         public static int GetTotalStageEffectActivationCount(int effectIndex)

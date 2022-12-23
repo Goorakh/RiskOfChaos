@@ -8,7 +8,7 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly int EffectIndex;
 
-        public int TotalActivations { readonly get; private set; }
+        public int RunActivations;
 
         public int StageActivations;
 
@@ -16,26 +16,13 @@ namespace RiskOfChaos.EffectHandling
         {
             EffectIndex = effectIndex;
 
-            TotalActivations = 0;
-            StageActivations = 0;
-
-            if (effectIndex != -1)
-            {
-                Stage.onServerStageComplete += Stage_onServerStageComplete;
-                Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
-            }
-        }
-
-        void Stage_onServerStageComplete(Stage stage)
-        {
-            TotalActivations += StageActivations;
+            RunActivations = 0;
             StageActivations = 0;
         }
 
-        void Run_onRunDestroyGlobal(Run run)
+        public readonly override string ToString()
         {
-            TotalActivations = 0;
-            StageActivations = 0;
+            return $"(EI={EffectIndex}) {nameof(StageActivations)}={StageActivations}, {nameof(RunActivations)}={RunActivations}";
         }
     }
 }
