@@ -41,12 +41,22 @@ namespace RiskOfChaos.EffectDefinitions
                 }
             };
 
-            SceneCatalog.onMostRecentSceneDefChanged += static _ =>
+            Stage.onServerStageComplete += static _ =>
             {
-                _appliedToDirectors.Clear();
+                clearAppliedToDirectors();
+            };
+
+            Run.onRunDestroyGlobal += static _ =>
+            {
+                clearAppliedToDirectors();
             };
 
             _appliedPatch = true;
+        }
+
+        static void clearAppliedToDirectors()
+        {
+            _appliedToDirectors.Clear();
         }
 
         [EffectCanActivate]
