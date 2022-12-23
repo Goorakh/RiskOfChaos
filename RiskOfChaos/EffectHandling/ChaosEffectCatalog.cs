@@ -39,6 +39,11 @@ namespace RiskOfChaos.EffectHandling
                                                         .ToArray();
 
             _effectCount = _effects.Length;
+
+            foreach (ChaosEffectInfo effectInfo in _effects.OrderBy(ei => ei.ConfigSectionName))
+            {
+                effectInfo.AddRiskOfOptionsEntries();
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

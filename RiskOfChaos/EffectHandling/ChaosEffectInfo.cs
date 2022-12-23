@@ -110,9 +110,14 @@ namespace RiskOfChaos.EffectHandling
             ConfigSectionName = "Effect: " + (attribute.ConfigName ?? Language.GetString(NameToken, "en"));
 
             IsEnabledConfig = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Enabled"), true, new ConfigDescription("If the effect should be able to be picked"));
-            ChaosEffectCatalog.AddEffectConfigOption(new CheckBoxOption(IsEnabledConfig));
 
             SelectionWeightConfig = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Weight"), attribute.DefaultSelectionWeight, new ConfigDescription("How likely the effect is to be picked, higher value means more likely, lower value means less likely"));
+        }
+
+        public readonly void AddRiskOfOptionsEntries()
+        {
+            ChaosEffectCatalog.AddEffectConfigOption(new CheckBoxOption(IsEnabledConfig));
+
             ChaosEffectCatalog.AddEffectConfigOption(new StepSliderOption(SelectionWeightConfig, new StepSliderConfig
             {
                 formatString = "{0:F1}",
