@@ -10,7 +10,7 @@ namespace RiskOfChaos
         {
             RoR2.Language.collectLanguageRootFolders += static folders =>
             {
-                const string LOG_PREFIX = $"{nameof(LanguageFileHandler)}.{nameof(RoR2.Language.collectLanguageRootFolders)}";
+                const string LOG_PREFIX = $"{nameof(LanguageFileHandler)}.{nameof(RoR2.Language.collectLanguageRootFolders)} ";
 
                 string languageFolderPath = Path.Combine(Path.GetDirectoryName(Main.Instance.Info.Location), "lang");
                 if (Directory.Exists(languageFolderPath))
