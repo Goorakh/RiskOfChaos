@@ -45,6 +45,11 @@ If you have any feedback or bug reports, please open a [GitHub issue](https://gi
 
 ## Changelog
 
+**0.1.8 Changes:**
+
+* Removed (now unnecessary) R2API.Networking dependency
+* Fixed language tokens not loading due to invalid folder structure in last upload (oops)
+
 **0.1.7 Changes:**
 
 * Added effect: +50% Gravity
