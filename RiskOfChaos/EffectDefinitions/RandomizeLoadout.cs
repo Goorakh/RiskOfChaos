@@ -38,11 +38,34 @@ namespace RiskOfChaos.EffectDefinitions
 
                     if (changedCurrentBody && !playerMaster.IsDeadAndOutOfLivesServer())
                     {
-                        PreventMetamorphosisRespawn.PreventionEnabled = true;
-                        playerMaster.Respawn(playerBody.footPosition, playerBody.GetRotation());
-                        PreventMetamorphosisRespawn.PreventionEnabled = false;
+                        respawnPlayerBody(playerMaster, playerBody);
                     }
                 }
+            }
+        }
+
+        static void respawnPlayerBody(CharacterMaster playerMaster, CharacterBody playerBody)
+        {
+            const string LOG_PREFIX = $"{nameof(RandomizeLoadout)}.{nameof(respawnPlayerBody)} ";
+
+            VehicleSeat oldVehicleSeat = playerBody.currentVehicle;
+
+#if DEBUG
+            Log.Debug(LOG_PREFIX + $"seat={oldVehicleSeat}");
+#endif
+
+            if (oldVehicleSeat)
+            {
+                oldVehicleSeat.EjectPassenger();
+            }
+
+            PreventMetamorphosisRespawn.PreventionEnabled = true;
+            playerBody = playerMaster.Respawn(playerBody.footPosition, playerBody.GetRotation());
+            PreventMetamorphosisRespawn.PreventionEnabled = false;
+
+            if (oldVehicleSeat)
+            {
+                oldVehicleSeat.AssignPassenger(playerBody.gameObject);
             }
         }
 
