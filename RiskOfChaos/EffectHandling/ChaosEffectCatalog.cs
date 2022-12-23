@@ -52,13 +52,19 @@ namespace RiskOfChaos.EffectHandling
             return ArrayUtils.GetSafe(_effects, (int)effectIndex);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int FindEffectIndex(string identifier, bool caseSensitive = true)
         {
-            const string LOG_PREFIX = $"{nameof(ChaosEffectCatalog)}.{nameof(FindEffectIndex)} ";
+            return findEffectIndex(identifier, caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
+        }
+
+        static int findEffectIndex(string identifier, StringComparison comparisonMode)
+        {
+            const string LOG_PREFIX = $"{nameof(ChaosEffectCatalog)}.{nameof(findEffectIndex)} ";
 
             for (int i = 0; i < _effects.Length; i++)
             {
-                if (string.Equals(_effects[i].Identifier, identifier, caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(_effects[i].Identifier, identifier, comparisonMode))
                 {
                     return i;
                 }
