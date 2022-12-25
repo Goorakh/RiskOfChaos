@@ -22,6 +22,7 @@
 		"EFFECT_DUPLICATEALLCHARACTERS_NAME": "Mitosis",
 		"EFFECT_SCRAPRANDOMITEM_NAME": "Scrap Random Item",
 		"EFFECT_INCREASEGRAVITY_NAME": "+{0:P0} Gravity (Lasts 1 stage)",
-		"EFFECT_DECREASEGRAVITY_NAME": "-{0:P0} Gravity (Lasts 1 stage)"
+		"EFFECT_DECREASEGRAVITY_NAME": "-{0:P0} Gravity (Lasts 1 stage)",
+		"EFFECT_GIVERANDOMELITEASPECT_NAME": "Give Random Elite Aspect"
 	}
 }

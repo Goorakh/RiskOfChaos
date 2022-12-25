@@ -6,7 +6,7 @@ Heavily inspired by the "Chaos Mod" series of GTA games.
 
 Only the host needs to have the mod, though it is recommended everyone have the mod installed anyway (certain visuals won't appear for players without the mod)
 
-Currently includes 20 different effects.
+Currently includes 21 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -31,6 +31,7 @@ Currently includes 20 different effects.
 * Scrap Random Item: Turns a random scrappable item in every players inventory into the corresponding scrap
 * Increase Gravity: Increases gravity by a configurable amount (default +50%), lasts until the end of the current stage
 * Decrease Gravity: Decreases gravity by a configurable amount (default -50%), lasts until the end of the current stage
+* Give Random Elite Aspect: Gives all players a random elite aspect (drops on the ground if they don't have any empty equipment slots)
 </details>
 
 FAQ:
