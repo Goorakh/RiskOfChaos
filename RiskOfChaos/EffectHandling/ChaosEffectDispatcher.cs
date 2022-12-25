@@ -1,11 +1,8 @@
-﻿using HG;
-using RiskOfChaos.EffectDefinitions;
-using RiskOfChaos.Utility;
+﻿using RiskOfChaos.EffectDefinitions;
+using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.Audio;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling

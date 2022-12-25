@@ -1,12 +1,9 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.Utility;
+using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {

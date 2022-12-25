@@ -1,14 +1,9 @@
-﻿using Newtonsoft.Json.Linq;
-using R2API;
+﻿using R2API;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.Utility;
+using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.CharacterAI;
-using RoR2.Navigation;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;

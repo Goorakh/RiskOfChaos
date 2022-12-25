@@ -1,6 +1,6 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.Utility;
+using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;

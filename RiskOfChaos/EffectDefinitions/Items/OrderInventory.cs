@@ -1,9 +1,6 @@
 ﻿using RiskOfChaos.EffectHandling;
-using RiskOfChaos.Utility;
+using RiskOfChaos.Utilities;
 using RoR2;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Items

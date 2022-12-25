@@ -2,7 +2,7 @@
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities.Extensions;
-using RiskOfChaos.Utility;
+using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.Skills;
 using RoR2.Stats;
