@@ -8,7 +8,7 @@ using System.Linq;
 using RiskOfOptions.OptionConfigs;
 using System.Runtime.CompilerServices;
 
-namespace RiskOfChaos.EffectDefinitions
+namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect(EFFECT_ID)]
     public class EnableRandomArtifact : BaseEffect

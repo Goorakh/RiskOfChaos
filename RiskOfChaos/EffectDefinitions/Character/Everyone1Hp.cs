@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
-namespace RiskOfChaos.EffectDefinitions
+namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("Everyone1Hp")]
     public class Everyone1Hp : BaseEffect

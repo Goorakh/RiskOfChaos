@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
-namespace RiskOfChaos.EffectDefinitions
+namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("ActivateStageTeleporter")]
     public class ActivateStageTeleporter : BaseEffect

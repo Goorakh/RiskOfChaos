@@ -6,7 +6,7 @@ using System.Text;
 using UnityEngine.Networking;
 using UnityEngine;
 
-namespace RiskOfChaos.EffectDefinitions
+namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("Meteor")]
     public class Meteor : BaseEffect

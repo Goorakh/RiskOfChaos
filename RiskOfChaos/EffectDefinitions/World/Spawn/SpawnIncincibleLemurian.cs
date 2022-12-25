@@ -13,7 +13,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions
+namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("SpawnInvincibleLemurian", EffectRepetitionWeightExponent = 15f)]
     public class SpawnIncincibleLemurian : BaseEffect
@@ -27,7 +27,7 @@ namespace RiskOfChaos.EffectDefinitions
         {
             if (_hooksApplied)
                 return;
-            
+
             On.RoR2.HealthComponent.TakeDamage += static (orig, self, damageInfo) =>
             {
                 if (NetworkServer.active &&

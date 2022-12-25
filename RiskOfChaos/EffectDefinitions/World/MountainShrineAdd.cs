@@ -6,7 +6,7 @@ using RiskOfOptions.Options;
 using RoR2;
 using UnityEngine;
 
-namespace RiskOfChaos.EffectDefinitions
+namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect(EFFECT_ID, ConfigName = "Add Mountain Shrine")]
     public class MountainShrineAdd : BaseEffect

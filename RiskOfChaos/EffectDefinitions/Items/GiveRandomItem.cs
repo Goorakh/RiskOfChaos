@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
-namespace RiskOfChaos.EffectDefinitions
+namespace RiskOfChaos.EffectDefinitions.Items
 {
     [ChaosEffect(EFFECT_ID, EffectRepetitionWeightExponent = 0f)]
     public class GiveRandomItem : BaseEffect

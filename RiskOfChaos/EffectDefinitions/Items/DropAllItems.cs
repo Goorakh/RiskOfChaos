@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace RiskOfChaos.EffectDefinitions
+namespace RiskOfChaos.EffectDefinitions.Items
 {
     [ChaosEffect("DropAllItems")]
     public class DropAllItems : BaseEffect
@@ -27,7 +27,7 @@ namespace RiskOfChaos.EffectDefinitions
                 List<PickupIndex> pickupsToDrop = getPickupsToDrop(playerBody, true).ToList();
 
                 float angle = 360f / pickupsToDrop.Count;
-                Vector3 dropVelocity = Quaternion.AngleAxis(UnityEngine.Random.Range(0f, 360f), Vector3.up) * ((Vector3.up * 40f) + (Vector3.forward * 5f));
+                Vector3 dropVelocity = Quaternion.AngleAxis(UnityEngine.Random.Range(0f, 360f), Vector3.up) * (Vector3.up * 40f + Vector3.forward * 5f);
                 Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.up);
 
                 foreach (PickupIndex pickup in pickupsToDrop)
@@ -44,7 +44,7 @@ namespace RiskOfChaos.EffectDefinitions
             Inventory inventory = playerBody.inventory;
             if (!inventory)
                 yield break;
-            
+
             for (ItemIndex i = 0; i < (ItemIndex)ItemCatalog.itemCount; i++)
             {
                 ItemDef itemDef = ItemCatalog.GetItemDef(i);

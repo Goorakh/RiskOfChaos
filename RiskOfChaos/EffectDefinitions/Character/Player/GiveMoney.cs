@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RiskOfChaos.EffectDefinitions
+namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
     [ChaosEffect("GiveMoney", EffectRepetitionWeightExponent = 0f)]
     public class GiveMoney : BaseEffect

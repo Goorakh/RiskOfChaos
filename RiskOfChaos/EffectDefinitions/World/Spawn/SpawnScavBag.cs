@@ -8,7 +8,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
-namespace RiskOfChaos.EffectDefinitions
+namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("SpawnScavBag", DefaultSelectionWeight = 0.6f)]
     public class SpawnScavBag : BaseEffect

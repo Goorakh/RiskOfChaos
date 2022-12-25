@@ -6,7 +6,7 @@ using System.Collections.ObjectModel;
 using System.Text;
 using UnityEngine;
 
-namespace RiskOfChaos.EffectDefinitions
+namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("DuplicateAllCharacters", EffectRepetitionWeightExponent = 75f)]
     public class DuplicateAllCharacters : BaseEffect
@@ -26,7 +26,7 @@ namespace RiskOfChaos.EffectDefinitions
                 CharacterMaster master = body.master;
                 if (!master)
                     continue;
-                
+
                 duplicateMaster(master);
             }
         }
@@ -54,7 +54,7 @@ namespace RiskOfChaos.EffectDefinitions
             };
 
             DirectorCore.instance.TrySpawnObject(spawnRequest);
-            GameObject.Destroy(copySpawnCard);
+            UnityEngine.Object.Destroy(copySpawnCard);
         }
     }
 }

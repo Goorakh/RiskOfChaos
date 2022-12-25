@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RiskOfChaos.EffectDefinitions
+namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("RandomPortalOrb")]
     public class SpawnRandomPortalOrb : BaseEffect

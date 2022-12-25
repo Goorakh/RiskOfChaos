@@ -5,13 +5,13 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
-namespace RiskOfChaos.EffectDefinitions
+namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect(EFFECT_ID, EffectRepetitionWeightExponent = 50f)]
     public class IncreaseDirectorCredits : BaseEffect
     {
         const string EFFECT_ID = "IncreaseDirectorCredits";
-        
+
         const float CREDIT_MULTIPLIER = 1.5f;
 
         static int _effectIndex;

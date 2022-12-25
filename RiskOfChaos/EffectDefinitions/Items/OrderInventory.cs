@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
-namespace RiskOfChaos.EffectDefinitions
+namespace RiskOfChaos.EffectDefinitions.Items
 {
     [ChaosEffect("OrderInventory", DefaultSelectionWeight = 0.2f, EffectRepetitionWeightExponent = 100f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
     public class OrderInventory : BaseEffect

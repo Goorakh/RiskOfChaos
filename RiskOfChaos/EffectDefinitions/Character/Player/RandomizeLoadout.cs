@@ -4,7 +4,7 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utility;
 using RoR2;
 
-namespace RiskOfChaos.EffectDefinitions
+namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
     [ChaosEffect("RandomizeLoadout", DefaultSelectionWeight = 0.7f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
     public class RandomizeLoadout : BaseEffect

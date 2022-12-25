@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RiskOfChaos.EffectDefinitions
+namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("FreezeAll")]
     public class FreezeAll : BaseEffect

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace RiskOfChaos.EffectDefinitions
+namespace RiskOfChaos.EffectDefinitions.Items
 {
     [ChaosEffect("ScrapRandomItem", DefaultSelectionWeight = 0.8f, EffectRepetitionWeightExponent = 15f)]
     public class ScrapRandomItem : BaseEffect
