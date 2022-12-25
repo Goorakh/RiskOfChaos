@@ -46,6 +46,14 @@ If you have any feedback or bug reports, please open a [GitHub issue](https://gi
 
 ## Changelog
 
+**0.2.0 Changes:**
+
+* Added effect: Give Random Elite Aspect
+* Fixed Randomize Loadout forcing players out of the intro pod
+* Fixed Randomize Loadout giving players skills or skins they didn't have unlocked
+* Give Random Item: If giving equipment, it will now search all equipment slots for an empty one instead of just the active one, and if none are found, the equipment will be dropped at the players feet instead.
+* Payday: Added config options to control how much money is given and if it should scale the amount given with interactible prices
+
 **0.1.8 Changes:**
 
 * Removed (now unnecessary) R2API.Networking dependency
