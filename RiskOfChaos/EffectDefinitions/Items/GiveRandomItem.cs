@@ -1,13 +1,9 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.Utilities.Extensions;
-using RiskOfChaos.Utility;
+using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Items
@@ -106,32 +102,10 @@ namespace RiskOfChaos.EffectDefinitions.Items
         {
             const string LOG_PREFIX = $"{nameof(GiveRandomItem)}.{nameof(OnStart)} ";
 
-            PickupIndex pickupIndex = _dropTable.GenerateDrop(RNG);
-            PickupDef pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
-
+            PickupDef pickupDef = PickupCatalog.GetPickupDef(_dropTable.GenerateDrop(RNG));
             foreach (CharacterMaster playerMaster in PlayerUtils.GetAllPlayerMasters(false))
             {
-                Inventory inventory = playerMaster.inventory;
-                if (inventory && inventory.TryGrant(pickupDef))
-                {
-                    GenericPickupController.SendPickupMessage(playerMaster, pickupIndex);
-                }
-                else
-                {
-                    CharacterBody playerBody = playerMaster.GetBody();
-                    if (playerBody)
-                    {
-                        GenericPickupController.CreatePickup(new GenericPickupController.CreatePickupInfo
-                        {
-                            pickupIndex = pickupIndex,
-                            position = playerBody.footPosition
-                        });
-                    }
-                    else
-                    {
-                        Log.Warning(LOG_PREFIX + $"unable to spawn pickup {pickupIndex} at {playerMaster}: Null body");
-                    }
-                }
+                PickupUtils.GrantOrDropPickupAt(pickupDef, playerMaster);
             }
         }
     }
