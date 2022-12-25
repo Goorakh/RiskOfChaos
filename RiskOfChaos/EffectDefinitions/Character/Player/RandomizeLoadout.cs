@@ -1,8 +1,12 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using HG;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utility;
 using RoR2;
+using RoR2.Skills;
+using RoR2.Stats;
+using System;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
@@ -13,6 +17,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
         {
             foreach (CharacterMaster playerMaster in PlayerUtils.GetAllPlayerMasters(false))
             {
+                StatSheet playerStatSheet = PlayerStatsComponent.FindMasterStatSheet(playerMaster);
+
                 CharacterBody playerBody = playerMaster.GetBody();
 
                 Loadout loadout = playerMaster.loadout;
@@ -23,7 +29,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
                 for (BodyIndex bodyIndex = 0; bodyIndex < (BodyIndex)BodyCatalog.bodyCount; bodyIndex++)
                 {
-                    bool anyChangesForThisBodyIndex = randomizeLoadoutForBodyIndex(bodyLoadoutManager, bodyIndex);
+                    bool anyChangesForThisBodyIndex = randomizeLoadoutForBodyIndex(bodyLoadoutManager, playerStatSheet, bodyIndex);
                     anyChanges |= anyChangesForThisBodyIndex;
 
                     if (anyChangesForThisBodyIndex && bodyIndex == playerBody.bodyIndex)
@@ -31,7 +37,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                         changedCurrentBody = true;
                     }
                 }
-
+                
                 if (anyChanges)
                 {
                     // Set dirty bit
@@ -70,28 +76,31 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             }
         }
 
-        bool randomizeLoadoutForBodyIndex(Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex)
+        bool randomizeLoadoutForBodyIndex(Loadout.BodyLoadoutManager bodyLoadoutManager, StatSheet playerStatSheet, BodyIndex bodyIndex)
         {
-            return randomizeLoadoutSkills(bodyLoadoutManager, bodyIndex) | randomizeLoadoutSkin(bodyLoadoutManager, bodyIndex);
+            return randomizeLoadoutSkills(bodyLoadoutManager, playerStatSheet, bodyIndex) | randomizeLoadoutSkin(bodyLoadoutManager, playerStatSheet, bodyIndex);
         }
 
-        static WeightedSelection<uint> getWeightedIndexSelection(int count, uint currentIndex)
+        static WeightedSelection<uint> getWeightedIndexSelection(int count, uint currentIndex, Predicate<uint> canSelectIndex)
         {
             WeightedSelection<uint> skinIndexSelection = new WeightedSelection<uint>(count);
             for (uint skinIndex = 0; skinIndex < count; skinIndex++)
             {
-                skinIndexSelection.AddChoice(skinIndex, skinIndex == currentIndex ? 0.7f : 1f);
+                if (canSelectIndex == null || canSelectIndex(skinIndex))
+                {
+                    skinIndexSelection.AddChoice(skinIndex, skinIndex == currentIndex ? 0.7f : 1f);
+                }
             }
 
             return skinIndexSelection;
         }
 
-        uint evaluateWeightedIndexSelection(int count, uint currentIndex)
+        uint evaluateWeightedIndexSelection(int count, uint currentIndex, Predicate<uint> canSelectIndex)
         {
-            return getWeightedIndexSelection(count, currentIndex).Evaluate(RNG.nextNormalizedFloat);
+            return getWeightedIndexSelection(count, currentIndex, canSelectIndex).Evaluate(RNG.nextNormalizedFloat);
         }
 
-        bool randomizeLoadoutSkills(Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex)
+        bool randomizeLoadoutSkills(Loadout.BodyLoadoutManager bodyLoadoutManager, StatSheet playerStatSheet, BodyIndex bodyIndex)
         {
             bool anyChanges = false;
 
@@ -101,12 +110,21 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
             for (int skillSlotIndex = 0; skillSlotIndex < bodyInfo.skillSlotCount; skillSlotIndex++)
             {
-                int variantsCount = bodyInfo.prefabSkillSlots[skillSlotIndex].skillFamily.variants.Length;
+                SkillFamily.Variant[] skillVariants = bodyInfo.prefabSkillSlots[skillSlotIndex].skillFamily.variants;
+
+                int variantsCount = skillVariants.Length;
                 if (variantsCount > 1) // Only 1: No other options, don't bother trying to randomize it
                 {
                     uint currentSkillVariantIndex = bodyLoadoutManager.GetSkillVariant(bodyIndex, skillSlotIndex);
 
-                    uint newSkillVariantIndex = evaluateWeightedIndexSelection(variantsCount, currentSkillVariantIndex);
+                    uint newSkillVariantIndex = evaluateWeightedIndexSelection(variantsCount, currentSkillVariantIndex, skillIndex =>
+                    {
+                        if (!ArrayUtils.IsInBounds(skillVariants, skillIndex))
+                            return false;
+
+                        SkillFamily.Variant variant = skillVariants[skillIndex];
+                        return !variant.unlockableDef || (playerStatSheet != null && playerStatSheet.HasUnlockable(variant.unlockableDef));
+                    });
 
                     if (currentSkillVariantIndex != newSkillVariantIndex)
                     {
@@ -120,7 +138,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             return anyChanges;
         }
 
-        bool randomizeLoadoutSkin(Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex)
+        bool randomizeLoadoutSkin(Loadout.BodyLoadoutManager bodyLoadoutManager, StatSheet playerStatSheet, BodyIndex bodyIndex)
         {
             bool anyChanges = false;
 
@@ -129,7 +147,11 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             {
                 uint currentSkinIndex = bodyLoadoutManager.GetSkinIndex(bodyIndex);
 
-                uint newSkinIndex = evaluateWeightedIndexSelection(bodySkinCount, currentSkinIndex);
+                uint newSkinIndex = evaluateWeightedIndexSelection(bodySkinCount, currentSkinIndex, skinIndex =>
+                {
+                    SkinDef skinDef = SkinCatalog.GetBodySkinDef(bodyIndex, (int)skinIndex);
+                    return skinDef && (!skinDef.unlockableDef || (playerStatSheet != null && playerStatSheet.HasUnlockable(skinDef.unlockableDef)));
+                });
 
                 if (currentSkinIndex != newSkinIndex)
                 {
