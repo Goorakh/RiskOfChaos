@@ -224,12 +224,12 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
-        ref ChaosEffectActivationCounter getEffectActivationCounterUncheckedRef(int effectIndex)
+        static ref ChaosEffectActivationCounter getEffectActivationCounterUncheckedRef(int effectIndex)
         {
             return ref _effectActivationCounts[effectIndex];
         }
 
-        ChaosEffectActivationCounter getEffectActivationCounter(int effectIndex)
+        static ChaosEffectActivationCounter getEffectActivationCounter(int effectIndex)
         {
             if (effectIndex < 0 || effectIndex >= _effectActivationCounts.Length)
                 return ChaosEffectActivationCounter.EmptyCounter;
@@ -239,18 +239,12 @@ namespace RiskOfChaos.EffectHandling
 
         public static int GetTotalRunEffectActivationCount(int effectIndex)
         {
-            if (!_instance)
-                return 0;
-
-            return _instance.getEffectActivationCounter(effectIndex).RunActivations;
+            return getEffectActivationCounter(effectIndex).RunActivations;
         }
 
         public static int GetTotalStageEffectActivationCount(int effectIndex)
         {
-            if (!_instance)
-                return 0;
-
-            return _instance.getEffectActivationCounter(effectIndex).StageActivations;
+            return getEffectActivationCounter(effectIndex).StageActivations;
         }
 
         public static int GetEffectActivationCount(int effectIndex, EffectActivationCountMode mode)
