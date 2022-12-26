@@ -1,10 +1,11 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectDefinitions;
-using RiskOfOptions;
+using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -91,12 +92,13 @@ namespace RiskOfChaos.EffectHandling
                 else
                 {
                     const BindingFlags FLAGS = BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public;
+                    IEnumerable<MethodInfo> allMethods = effectType.GetAllMethodsRecursive(FLAGS);
 
-                    _canActivateMethods = effectType.GetMethods(FLAGS).Where(m => m.GetParameters().Length == 0 && m.GetCustomAttribute<EffectCanActivateAttribute>() != null).ToArray();
+                    _canActivateMethods = allMethods.WithAttribute<MethodInfo, EffectCanActivateAttribute>().ToArray();
 
-                    _weightMultSelectorMethods = effectType.GetMethods(FLAGS).Where(m => m.GetCustomAttribute<EffectWeightMultiplierSelectorAttribute>() != null).ToArray();
+                    _weightMultSelectorMethods = allMethods.WithAttribute<MethodInfo, EffectWeightMultiplierSelectorAttribute>().ToArray();
 
-                    _getEffectNameFormatArgsMethod = effectType.GetMethods(FLAGS).Where(m => m.GetCustomAttribute<EffectNameFormatArgsAttribute>() != null).FirstOrDefault();
+                    _getEffectNameFormatArgsMethod = allMethods.WithAttribute<MethodInfo, EffectNameFormatArgsAttribute>().FirstOrDefault();
                 }
             }
             else
