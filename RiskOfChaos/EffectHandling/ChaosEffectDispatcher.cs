@@ -239,11 +239,17 @@ namespace RiskOfChaos.EffectHandling
 
         public static int GetTotalRunEffectActivationCount(int effectIndex)
         {
+            if (!_instance)
+                return 0;
+
             return _instance.getEffectActivationCounter(effectIndex).RunActivations;
         }
 
         public static int GetTotalStageEffectActivationCount(int effectIndex)
         {
+            if (!_instance)
+                return 0;
+
             return _instance.getEffectActivationCounter(effectIndex).StageActivations;
         }
 
