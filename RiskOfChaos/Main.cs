@@ -2,6 +2,7 @@ using BepInEx;
 using BepInEx.Configuration;
 using R2API.Utils;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.Networking;
 using RiskOfOptions;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
@@ -9,9 +10,10 @@ using System.Diagnostics;
 
 namespace RiskOfChaos
 {
-    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
+    [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
     [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInDependency(R2API.RecalculateStatsAPI.PluginGUID)]
+    [BepInDependency(R2API.Networking.NetworkingAPI.PluginGUID)]
     [BepInDependency("com.rune580.riskofoptions")]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     public class Main : BaseUnityPlugin
@@ -37,6 +39,8 @@ namespace RiskOfChaos
             LanguageFileHandler.Init();
 
             MidRunArtifactsHandler.PatchEnemyInfoPanel();
+
+            NetworkMessageManager.RegisterMessages();
 
             initConfigs();
 

@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.EffectHandling;
+using RiskOfChaos.Networking;
 using RoR2;
 using System;
 using System.Collections.Generic;
@@ -46,17 +47,34 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
                 Log.Debug($"{nameof(GenericMultiplyGravityEffect)} resetting gravity");
 #endif
 
+                // Don't network this setter, since it's either called at run destroy, or end of start (in which case it might get received too late and override the stage gravity), _hasGravityChangedThisStage is networked anyway
                 Physics.gravity = new Vector3(0f, Run.baseGravity, 0f);
 
                 _hasGravityChangedThisStage = false;
             }
         }
 
-        public override void OnStart()
+        static void onGravityChanged()
         {
-            Physics.gravity *= multiplier;
             _hasGravityChangedThisStage = true;
             tryAddRestoreEventListener();
+        }
+
+        public override void OnStart()
+        {
+            SyncSetGravity.NetworkedGravity *= multiplier;
+            onGravityChanged();
+        }
+
+        [SystemInitializer]
+        static void InitNetworkEventListener()
+        {
+            SyncSetGravity.OnReceive += SyncSetGravity_OnReceive;
+        }
+
+        static void SyncSetGravity_OnReceive(in Vector3 newGravity)
+        {
+            onGravityChanged();
         }
 
         static SceneIndex[] _invalidOnScenes;
