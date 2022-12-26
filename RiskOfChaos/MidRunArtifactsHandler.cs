@@ -30,6 +30,10 @@ namespace RiskOfChaos
                     {
                         onEnigmaEnabled();
                     }
+                    else if (artifactDef == RoR2Content.Artifacts.glassArtifactDef)
+                    {
+                        onGlassEnabled();
+                    }
 
                     CharacterMaster localPlayerMaster = PlayerUtils.GetLocalUserMaster();
                     if (localPlayerMaster)
@@ -99,6 +103,17 @@ namespace RiskOfChaos
                 // Give equipment if missing
                 EnigmaArtifactManager.OnPlayerCharacterBodyStartServer(playerBody);
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
+            }
+        }
+
+        static void onGlassEnabled()
+        {
+            if (!NetworkServer.active)
+                return;
+
+            foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
+            {
+                playerBody.MarkAllStatsDirty();
             }
         }
     }
