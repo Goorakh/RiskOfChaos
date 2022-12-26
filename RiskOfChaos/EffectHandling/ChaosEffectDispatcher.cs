@@ -3,15 +3,29 @@ using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.Audio;
 using System;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling
 {
-    public static class ChaosEffectDispatcher
+    public class ChaosEffectDispatcher : MonoBehaviour
     {
-        static float _nextEffectDispatchTime = float.PositiveInfinity;
+        static GameObject _dispatcherObject;
+        static GameObject dispatcherObject
+        {
+            get
+            {
+                if (!_dispatcherObject)
+                {
+                    _dispatcherObject = new GameObject("ChaosEffectDispatcher");
+                    DontDestroyOnLoad(_dispatcherObject);
+                }
 
-        static Xoroshiro128Plus _nextEffectRNG;
+                return _dispatcherObject;
+            }
+        }
+
+        static ChaosEffectDispatcher _instance;
 
         static ChaosEffectActivationCounter[] _effectActivationCounts;
 
@@ -25,35 +39,9 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
-        [SystemInitializer]
-        static void InitEventListeners()
+        static void resetAllEffectActivationCounters()
         {
-            RoR2Application.onFixedUpdate += RoR2Application_onFixedUpdate;
-
-            Run.onRunStartGlobal += Run_onRunStartGlobal;
-            Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
-
-            Stage.onServerStageComplete += Stage_onServerStageComplete;
-        }
-
-        static void Run_onRunStartGlobal(Run run)
-        {
-            if (NetworkServer.active)
-            {
-                _nextEffectRNG = new Xoroshiro128Plus(run.runRNG.nextUlong);
-                _nextEffectDispatchTime = 0f;
-            }
-            else
-            {
-                _nextEffectDispatchTime = float.PositiveInfinity;
-            }
-        }
-
-        static void Run_onRunDestroyGlobal(Run run)
-        {
-            const string LOG_PREFIX = $"{nameof(ChaosEffectDispatcher)}.{nameof(Run_onRunDestroyGlobal)} ";
-
-            _nextEffectRNG = null;
+            const string LOG_PREFIX = $"{nameof(ChaosEffectDispatcher)}.{nameof(resetAllEffectActivationCounters)} ";
 
             for (int i = 0; i < _effectActivationCounts.Length; i++)
             {
@@ -67,9 +55,9 @@ namespace RiskOfChaos.EffectHandling
 #endif
         }
 
-        static void Stage_onServerStageComplete(Stage stage)
+        static void resetStageEffectActivationCounters()
         {
-            const string LOG_PREFIX = $"{nameof(ChaosEffectDispatcher)}.{nameof(Stage_onServerStageComplete)} ";
+            const string LOG_PREFIX = $"{nameof(ChaosEffectDispatcher)}.{nameof(resetStageEffectActivationCounters)} ";
 
             for (int i = 0; i < _effectActivationCounts.Length; i++)
             {
@@ -82,13 +70,81 @@ namespace RiskOfChaos.EffectHandling
 #endif
         }
 
-        static void RoR2Application_onFixedUpdate()
+        float _nextEffectDispatchTime = float.PositiveInfinity;
+
+        Xoroshiro128Plus _nextEffectRNG;
+
+        void OnEnable()
         {
-            if (!NetworkServer.active || !Run.instance || !Stage.instance)
+            SingletonHelper.Assign(ref _instance, this);
+
+            _nextEffectDispatchTime = 0f;
+            _nextEffectRNG = new Xoroshiro128Plus(Run.instance.runRNG.nextUlong);
+
+            Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
+
+            Stage.onServerStageComplete += Stage_onServerStageComplete;
+
+            resetAllEffectActivationCounters();
+        }
+
+        void OnDisable()
+        {
+            SingletonHelper.Unassign(ref _instance, this);
+
+            Run.onRunDestroyGlobal -= Run_onRunDestroyGlobal;
+
+            Stage.onServerStageComplete -= Stage_onServerStageComplete;
+
+            resetAllEffectActivationCounters();
+        }
+
+        void Run_onRunDestroyGlobal(Run run)
+        {
+            enabled = false;
+        }
+
+        static void Stage_onServerStageComplete(Stage stage)
+        {
+            resetStageEffectActivationCounters();
+        }
+
+        [SystemInitializer]
+        static void InitEventListeners()
+        {
+            Run.onRunStartGlobal += static _ =>
+            {
+                if (!NetworkServer.active)
+                    return;
+                
+                GameObject dispatcherObj = dispatcherObject;
+
+                if (dispatcherObj.TryGetComponent<ChaosEffectDispatcher>(out ChaosEffectDispatcher effectDispatcher))
+                {
+                    if (effectDispatcher.enabled)
+                    {
+                        Log.Warning("Starting run, but effect dispatcher is already enabled!");
+                    }
+
+                    effectDispatcher.enabled = true;
+                }
+                else
+                {
+                    dispatcherObj.AddComponent<ChaosEffectDispatcher>();
+                }
+            };
+        }
+
+        void Update()
+        {
+            Run run = Run.instance;
+            Stage stage = Stage.instance;
+
+            if (!run || run.isRunStopwatchPaused || !stage)
                 return;
 
             const float STAGE_START_OFFSET = 2f;
-            if (Run.instance.GetRunStopwatch() >= _nextEffectDispatchTime && Stage.instance.entryTime.timeSince > STAGE_START_OFFSET)
+            if (run.GetRunStopwatch() >= _nextEffectDispatchTime && stage.entryTime.timeSince > STAGE_START_OFFSET)
             {
                 dispatchRandomEffect();
 
@@ -99,13 +155,13 @@ namespace RiskOfChaos.EffectHandling
         [ConCommand(commandName = "roc_startrandom", flags = ConVarFlags.SenderMustBeServer, helpText = "Dispatches a random effect")]
         static void CCDispatchRandomEffect(ConCommandArgs args)
         {
-            if (!Run.instance)
+            if (!Run.instance || !_instance)
                 return;
 
-            dispatchRandomEffect();
+            _instance.dispatchRandomEffect();
         }
 
-        static void dispatchRandomEffect()
+        void dispatchRandomEffect()
         {
             WeightedSelection<ChaosEffectInfo> weightedSelection = ChaosEffectCatalog.GetAllActivatableEffects();
             if (weightedSelection.Count > 0)
@@ -122,17 +178,17 @@ namespace RiskOfChaos.EffectHandling
         [ConCommand(commandName = "roc_start", flags = ConVarFlags.SenderMustBeServer, helpText = "Dispatches an effect")]
         static void CCDispatchEffect(ConCommandArgs args)
         {
-            if (!Run.instance)
+            if (!Run.instance || !_instance)
                 return;
 
             int index = ChaosEffectCatalog.FindEffectIndex(args[0], false);
             if (index >= 0)
             {
-                dispatchEffect(ChaosEffectCatalog.GetEffectInfo((uint)index));
+                _instance.dispatchEffect(ChaosEffectCatalog.GetEffectInfo((uint)index));
             }
         }
 
-        static void dispatchEffect(in ChaosEffectInfo effect)
+        void dispatchEffect(in ChaosEffectInfo effect)
         {
             const string LOG_PREFIX = $"{nameof(ChaosEffectDispatcher)}.{nameof(dispatchEffect)} ";
 
@@ -168,12 +224,12 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
-        static ref ChaosEffectActivationCounter getEffectActivationCounterUncheckedRef(int effectIndex)
+        ref ChaosEffectActivationCounter getEffectActivationCounterUncheckedRef(int effectIndex)
         {
             return ref _effectActivationCounts[effectIndex];
         }
 
-        static ChaosEffectActivationCounter getEffectActivationCounter(int effectIndex)
+        ChaosEffectActivationCounter getEffectActivationCounter(int effectIndex)
         {
             if (effectIndex < 0 || effectIndex >= _effectActivationCounts.Length)
                 return ChaosEffectActivationCounter.EmptyCounter;
@@ -183,12 +239,12 @@ namespace RiskOfChaos.EffectHandling
 
         public static int GetTotalRunEffectActivationCount(int effectIndex)
         {
-            return getEffectActivationCounter(effectIndex).RunActivations;
+            return _instance.getEffectActivationCounter(effectIndex).RunActivations;
         }
 
         public static int GetTotalStageEffectActivationCount(int effectIndex)
         {
-            return getEffectActivationCounter(effectIndex).StageActivations;
+            return _instance.getEffectActivationCounter(effectIndex).StageActivations;
         }
 
         public static int GetEffectActivationCount(int effectIndex, EffectActivationCountMode mode)
