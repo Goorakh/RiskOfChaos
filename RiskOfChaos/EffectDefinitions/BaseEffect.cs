@@ -8,8 +8,6 @@ namespace RiskOfChaos.EffectDefinitions
     {
         public Xoroshiro128Plus RNG;
 
-        public virtual void OnStart()
-        {
-        }
+        public abstract void OnStart();
     }
 }
