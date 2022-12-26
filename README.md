@@ -1,12 +1,10 @@
 # Risk of Chaos
 
-Every minute, a random effect happens. Multiplayer combatible!
+Every minute, a random effect happens. Multiplayer combatible! Every player needs to have the mod installed.
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Only the host needs to have the mod, though it is recommended everyone have the mod installed anyway (certain visuals won't appear for players without the mod)
-
-Currently includes 21 different effects.
+Currently includes 22 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -19,7 +17,7 @@ Currently includes 21 different effects.
 * Give Random Item: Gives all players a random item
 * One Hit KO: Sets everything on the stage to 1 HP
 * Freeze!: Freezes every character on the stage for 4 seconds
-* Payday: Gives all players an amount of money equivalent to 4 large chests.
+* Payday: Gives all players an amount of money equivalent to 4 large chests. (Amount can be configured)
 * +50% Director Credits: Increases director credits for the rest of the current stage
 * Sequence All Players: Activates a shrine of order on all players
 * Spawn Scavenger Bag: Spawns a scavenger bag near a random player
@@ -32,6 +30,7 @@ Currently includes 21 different effects.
 * Increase Gravity: Increases gravity by a configurable amount (default +50%), lasts until the end of the current stage
 * Decrease Gravity: Decreases gravity by a configurable amount (default -50%), lasts until the end of the current stage
 * Give Random Elite Aspect: Gives all players a random elite aspect (drops on the ground if they don't have any empty equipment slots)
+* Corrupt Random Item: Converts a random item in every player's inventory to the void variant
 </details>
 
 FAQ:
@@ -45,6 +44,19 @@ A: I failed art class __(If you have a better design in mind please let me know,
 If you have any feedback or bug reports, please open a [GitHub issue](https://github.com/Goorakh/RiskOfChaos/issues/new)
 
 ## Changelog
+
+**0.3.0 Changes:**
+
+* Added effect: Corrupt Random Item
+
+* The mod now requires every player to have the mod installed in multiplayer
+  * This will make it much easier to add new (and more complex) effects in the future.
+
+* Fixed Gravity effects not applying properly to non-host players.
+
+* Fixed Enable Random Artifact not immediately applying health and damage stat changes when Artifact of Glass was selected
+
+* Fixed Randomize Loadout only giving default skills and skins
 
 **0.2.0 Changes:**
 
