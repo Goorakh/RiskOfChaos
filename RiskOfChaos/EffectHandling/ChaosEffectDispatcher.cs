@@ -146,9 +146,9 @@ namespace RiskOfChaos.EffectHandling
             const float STAGE_START_OFFSET = 2f;
             if (run.GetRunStopwatch() >= _nextEffectDispatchTime && stage.entryTime.timeSince > STAGE_START_OFFSET)
             {
-                dispatchRandomEffect();
-
                 _nextEffectDispatchTime += Main.TimeBetweenEffects.Value;
+
+                dispatchRandomEffect();
             }
         }
 
