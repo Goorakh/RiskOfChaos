@@ -65,8 +65,6 @@ namespace RiskOfChaos.EffectHandling
 
         static int findEffectIndex(string identifier, StringComparison comparisonMode)
         {
-            const string LOG_PREFIX = $"{nameof(ChaosEffectCatalog)}.{nameof(findEffectIndex)} ";
-
             for (int i = 0; i < _effects.Length; i++)
             {
                 if (string.Equals(_effects[i].Identifier, identifier, comparisonMode))
@@ -75,19 +73,17 @@ namespace RiskOfChaos.EffectHandling
                 }
             }
 
-            Log.Warning(LOG_PREFIX + $"unable to find effect index for identifier '{identifier}'");
+            Log.Warning($"unable to find effect index for identifier '{identifier}'");
 
             return -1;
         }
 
         internal static string GetConfigSectionName(string effectIdentifier)
         {
-            const string LOG_PREFIX = $"{nameof(ChaosEffectCatalog)}.{nameof(GetConfigSectionName)} ";
-
             int index = FindEffectIndex(effectIdentifier);
             if (index < 0)
             {
-                Log.Error(LOG_PREFIX + $"unable to find index for identifier {effectIdentifier}");
+                Log.Error($"unable to find index for identifier {effectIdentifier}");
                 return "UNKNOWN";
             }
 

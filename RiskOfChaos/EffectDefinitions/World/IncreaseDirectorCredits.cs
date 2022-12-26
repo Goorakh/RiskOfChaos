@@ -77,8 +77,6 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         static void tryMultiplyDirectorCredits(CombatDirector director, float multiplier)
         {
-            const string LOG_PREFIX = $"{nameof(IncreaseDirectorCredits)}.{nameof(tryMultiplyDirectorCredits)} ";
-
             if (_appliedToDirectors.Add(director))
             {
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
@@ -89,7 +87,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 }
 
 #if DEBUG
-                Log.Debug(LOG_PREFIX + $"multiplied {nameof(CombatDirector)} {director} ({director.customName}) credits by {multiplier}");
+                Log.Debug($"multiplied {nameof(CombatDirector)} {director} ({director.customName}) credits by {multiplier}");
 #endif
             }
         }

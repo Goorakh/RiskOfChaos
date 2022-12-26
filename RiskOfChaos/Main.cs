@@ -44,7 +44,7 @@ namespace RiskOfChaos
 
             initConfigs();
 
-            Log.Info($"Initialized in {stopwatch.Elapsed.TotalSeconds:F2} seconds");
+            Log.Info($"Initialized in {stopwatch.Elapsed.TotalSeconds:F2} seconds", false);
             stopwatch.Stop();
         }
 

@@ -33,8 +33,6 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         static PortalInfo GetPortalInfo(int index)
         {
-            const string LOG_PREFIX = $"{nameof(SpawnRandomPortalOrb)}.{nameof(GetPortalInfo)} ";
-
             if (index < 0)
                 return PortalInfo.Invalid;
 
@@ -51,7 +49,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                     case 2:
                         return new PortalInfo(() => tpInteraction.shouldAttemptToSpawnMSPortal, v => tpInteraction.shouldAttemptToSpawnMSPortal = v);
                     default:
-                        Log.Error(LOG_PREFIX + $"Unimplemented spawn property index {index}");
+                        Log.Error($"Unimplemented spawn property index {index}");
                         return PortalInfo.Invalid;
                 }
             }
@@ -62,7 +60,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             }
             else
             {
-                Log.Error(LOG_PREFIX + $"Unimplemented index {index}");
+                Log.Error($"Unimplemented index {index}");
                 return PortalInfo.Invalid;
             }
         }

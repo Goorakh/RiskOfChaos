@@ -11,8 +11,6 @@ namespace RiskOfChaos.Utilities
     {
         public static void GrantOrDropPickupAt(PickupDef pickup, CharacterMaster master)
         {
-            const string LOG_PREFIX = $"{nameof(PickupUtils)}.{nameof(GrantOrDropPickupAt)} ";
-
             Inventory inventory = master.inventory;
             if (inventory && inventory.TryGrant(pickup))
             {
@@ -31,7 +29,7 @@ namespace RiskOfChaos.Utilities
                 }
                 else
                 {
-                    Log.Warning(LOG_PREFIX + $"unable to spawn pickup {pickup.pickupIndex} at {master}: Null body");
+                    Log.Warning($"unable to spawn pickup {pickup.pickupIndex} at {master}: Null body");
                 }
             }
         }

@@ -51,12 +51,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
         static void respawnPlayerBody(CharacterMaster playerMaster, CharacterBody playerBody)
         {
-            const string LOG_PREFIX = $"{nameof(RandomizeLoadout)}.{nameof(respawnPlayerBody)} ";
-
             VehicleSeat oldVehicleSeat = playerBody.currentVehicle;
 
 #if DEBUG
-            Log.Debug(LOG_PREFIX + $"seat={oldVehicleSeat}");
+            Log.Debug($"seat={oldVehicleSeat}");
 #endif
 
             if (oldVehicleSeat)

@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using System.Runtime.CompilerServices;
 
 namespace RiskOfChaos
 {
@@ -12,12 +13,12 @@ namespace RiskOfChaos
         }
 
 #if DEBUG
-        internal static void Debug(object data) => _logSource.LogDebug(data);
+        internal static void Debug(object data, bool includeCallerInfo = true, [CallerFilePath] string callerPath = default, [CallerLineNumber] int callerLineNumber = -1) => _logSource.LogDebug(includeCallerInfo ? $"{callerPath}:{callerLineNumber} {data}" : data);
 #endif
-        internal static void Error(object data) => _logSource.LogError(data);
-        internal static void Fatal(object data) => _logSource.LogFatal(data);
-        internal static void Info(object data) => _logSource.LogInfo(data);
-        internal static void Message(object data) => _logSource.LogMessage(data);
-        internal static void Warning(object data) => _logSource.LogWarning(data);
+        internal static void Error(object data, bool includeCallerInfo = true, [CallerFilePath] string callerPath = default, [CallerLineNumber] int callerLineNumber = -1) => _logSource.LogError(includeCallerInfo ? $"{callerPath}:{callerLineNumber} {data}" : data);
+        internal static void Fatal(object data, bool includeCallerInfo = true, [CallerFilePath] string callerPath = default, [CallerLineNumber] int callerLineNumber = -1) => _logSource.LogFatal(includeCallerInfo ? $"{callerPath}:{callerLineNumber} {data}" : data);
+        internal static void Info(object data, bool includeCallerInfo = true, [CallerFilePath] string callerPath = default, [CallerLineNumber] int callerLineNumber = -1) => _logSource.LogInfo(includeCallerInfo ? $"{callerPath}:{callerLineNumber} {data}" : data);
+        internal static void Message(object data, bool includeCallerInfo = true, [CallerFilePath] string callerPath = default, [CallerLineNumber] int callerLineNumber = -1) => _logSource.LogMessage(includeCallerInfo ? $"{callerPath}:{callerLineNumber} {data}" : data);
+        internal static void Warning(object data, bool includeCallerInfo = true, [CallerFilePath] string callerPath = default, [CallerLineNumber] int callerLineNumber = -1) => _logSource.LogWarning(includeCallerInfo ? $"{callerPath}:{callerLineNumber} {data}" : data);
     }
 }

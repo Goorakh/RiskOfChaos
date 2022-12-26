@@ -23,12 +23,10 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             public ArtifactConfig(ArtifactIndex artifactIndex)
             {
-                const string LOG_PREFIX = $"{nameof(EnableRandomArtifact)}+{nameof(ArtifactConfig)}..ctor ";
-
                 ArtifactDef artifactDef = ArtifactCatalog.GetArtifactDef(artifactIndex);
                 if (!artifactDef)
                 {
-                    Log.Error(LOG_PREFIX + $"Invalid artifact index {artifactIndex}");
+                    Log.Error($"Invalid artifact index {artifactIndex}");
                     return;
                 }
 

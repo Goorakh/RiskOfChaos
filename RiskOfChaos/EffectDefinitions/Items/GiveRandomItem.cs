@@ -31,10 +31,8 @@ namespace RiskOfChaos.EffectDefinitions.Items
 
         static void regenerateDropTable()
         {
-            const string LOG_PREFIX = $"{nameof(GiveRandomItem)}.{nameof(regenerateDropTable)} ";
-
 #if DEBUG
-            Log.Debug(LOG_PREFIX + $"regenerating drop table...");
+            Log.Debug("regenerating drop table...");
 #endif
 
             if (!_dropTable)

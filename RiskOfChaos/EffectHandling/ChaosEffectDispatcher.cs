@@ -41,8 +41,6 @@ namespace RiskOfChaos.EffectHandling
 
         static void resetAllEffectActivationCounters()
         {
-            const string LOG_PREFIX = $"{nameof(ChaosEffectDispatcher)}.{nameof(resetAllEffectActivationCounters)} ";
-
             for (int i = 0; i < _effectActivationCounts.Length; i++)
             {
                 ref ChaosEffectActivationCounter activationCounter = ref _effectActivationCounts[i];
@@ -51,14 +49,12 @@ namespace RiskOfChaos.EffectHandling
             }
 
 #if DEBUG
-            Log.Debug(LOG_PREFIX + $"reset all effect activation counters");
+            Log.Debug("reset all effect activation counters");
 #endif
         }
 
         static void resetStageEffectActivationCounters()
         {
-            const string LOG_PREFIX = $"{nameof(ChaosEffectDispatcher)}.{nameof(resetStageEffectActivationCounters)} ";
-
             for (int i = 0; i < _effectActivationCounts.Length; i++)
             {
                 ref ChaosEffectActivationCounter activationCounter = ref _effectActivationCounts[i];
@@ -66,7 +62,7 @@ namespace RiskOfChaos.EffectHandling
             }
 
 #if DEBUG
-            Log.Debug(LOG_PREFIX + $"reset effect stage activation counters");
+            Log.Debug("reset effect stage activation counters");
 #endif
         }
 
@@ -190,8 +186,6 @@ namespace RiskOfChaos.EffectHandling
 
         void dispatchEffect(in ChaosEffectInfo effect)
         {
-            const string LOG_PREFIX = $"{nameof(ChaosEffectDispatcher)}.{nameof(dispatchEffect)} ";
-
             Chat.SendBroadcastChat(new Chat.SimpleChatMessage { baseToken = effect.GetActivationMessage() });
 
             BaseEffect effectInstance = effect.InstantiateEffect(new Xoroshiro128Plus(_nextEffectRNG.nextUlong));
@@ -204,12 +198,12 @@ namespace RiskOfChaos.EffectHandling
                 activationCounter.RunActivations++;
 
 #if DEBUG
-                Log.Debug(LOG_PREFIX + $"increased effect activation counter: {activationCounter}");
+                Log.Debug($"increased effect activation counter: {activationCounter}");
 #endif
             }
             catch (IndexOutOfRangeException ex)
             {
-                Log.Error(LOG_PREFIX + $"{nameof(IndexOutOfRangeException)} in {nameof(getEffectActivationCounterUncheckedRef)}, invalid effect index? {nameof(effect.EffectIndex)}={effect.EffectIndex}: {ex}");
+                Log.Error($"{nameof(IndexOutOfRangeException)} in {nameof(getEffectActivationCounterUncheckedRef)}, invalid effect index? {nameof(effect.EffectIndex)}={effect.EffectIndex}: {ex}");
             }
 
             playEffectActivatedSoundOnAllPlayerBodies();

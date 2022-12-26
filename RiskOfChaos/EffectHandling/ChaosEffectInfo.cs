@@ -73,8 +73,6 @@ namespace RiskOfChaos.EffectHandling
 
         public ChaosEffectInfo(int effectIndex, ChaosEffectAttribute attribute)
         {
-            const string LOG_PREFIX = $"{nameof(ChaosEffectInfo)}..ctor ";
-
             EffectIndex = effectIndex;
             Identifier = attribute.Identifier;
 
@@ -87,7 +85,7 @@ namespace RiskOfChaos.EffectHandling
 
                 if (!typeof(BaseEffect).IsAssignableFrom(effectType))
                 {
-                    Log.Error(LOG_PREFIX + $"effect type {effectType.FullName} is not {nameof(BaseEffect)}");
+                    Log.Error($"effect type {effectType.FullName} is not {nameof(BaseEffect)}");
                 }
                 else
                 {
@@ -103,7 +101,7 @@ namespace RiskOfChaos.EffectHandling
             }
             else
             {
-                Log.Error(LOG_PREFIX + $"attribute target is not a Type ({attribute.target})");
+                Log.Error($"attribute target is not a Type ({attribute.target})");
             }
 
             EffectRepetitionWeightExponentMultiplier = attribute.EffectRepetitionWeightExponent / 100f;

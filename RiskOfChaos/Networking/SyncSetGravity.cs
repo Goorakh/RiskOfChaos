@@ -57,10 +57,8 @@ namespace RiskOfChaos.Networking
 
         void INetMessage.OnReceived()
         {
-            const string LOG_PREFIX = $"{nameof(SyncSetGravity)}.{nameof(INetMessage.OnReceived)} ";
-
 #if DEBUG
-            Log.Debug(LOG_PREFIX + "Received");
+            Log.Debug($"new gravity: {_newGravity}");
 #endif
 
             Physics.gravity = _newGravity;

@@ -30,8 +30,6 @@ namespace RiskOfChaos.Utilities.Extensions
 
         public static bool TryGrant(this Inventory inventory, PickupDef pickup)
         {
-            const string LOG_PREFIX = $"{nameof(InventoryExtensions)}.{nameof(TryGrant)} ";
-
             if (!inventory)
                 return false;
 
@@ -54,7 +52,7 @@ namespace RiskOfChaos.Utilities.Extensions
             }
             else
             {
-                Log.Warning(LOG_PREFIX + $"unhandled pickup index {pickup.pickupIndex}");
+                Log.Warning($"unhandled pickup index {pickup.pickupIndex}");
                 return false;
             }
         }

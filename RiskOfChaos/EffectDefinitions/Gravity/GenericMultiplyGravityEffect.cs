@@ -22,7 +22,7 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
                 return;
 
 #if DEBUG
-            Log.Debug($"{nameof(GenericMultiplyGravityEffect)} adding reset gravity event listener");
+            Log.Debug("adding reset gravity event listener");
 #endif
 
             Stage.onServerStageComplete += static _ =>
@@ -44,7 +44,7 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
             if (_hasGravityChangedThisStage)
             {
 #if DEBUG
-                Log.Debug($"{nameof(GenericMultiplyGravityEffect)} resetting gravity");
+                Log.Debug("resetting gravity");
 #endif
 
                 // Don't network this setter, since it's either called at run destroy, or end of start (in which case it might get received too late and override the stage gravity), _hasGravityChangedThisStage is networked anyway
