@@ -44,7 +44,7 @@ namespace RiskOfChaos
 
             initConfigs();
 
-            Log.Info($"Initialized in {stopwatch.Elapsed.TotalSeconds:F2} seconds", false);
+            Log.Info_NoCallerPrefix($"Initialized in {stopwatch.Elapsed.TotalSeconds:F2} seconds");
             stopwatch.Stop();
         }
 
