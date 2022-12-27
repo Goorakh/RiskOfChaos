@@ -16,10 +16,17 @@ namespace RiskOfChaos.Utilities.Extensions
                 return false;
             }
 
+            byte activeEquipmentSlot = inventory.activeEquipmentSlot;
+            if (inventory.GetEquipment(activeEquipmentSlot).equipmentIndex == EquipmentIndex.None)
+            {
+                slotIndex = activeEquipmentSlot;
+                return true;
+            }
+
             int slotCount = inventory.GetEquipmentSlotCount();
             for (slotIndex = 0; slotIndex < slotCount; slotIndex++)
             {
-                if (inventory.GetEquipment(slotIndex).equipmentIndex == EquipmentIndex.None)
+                if (slotIndex != activeEquipmentSlot && inventory.GetEquipment(slotIndex).equipmentIndex == EquipmentIndex.None)
                 {
                     return true;
                 }
