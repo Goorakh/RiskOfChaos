@@ -4,6 +4,7 @@ using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Items
@@ -61,6 +62,17 @@ namespace RiskOfChaos.EffectDefinitions.Items
                 _dropTable.Regenerate(run);
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
             }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            static void addCustomPickupToDropTable(PickupIndex pickup, float weight)
+            {
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                _dropTable.selector.AddChoice(pickup, weight);
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+            }
+
+            addCustomPickupToDropTable(PickupCatalog.FindPickupIndex(RoR2Content.Items.CaptainDefenseMatrix.itemIndex), _tier3Weight.Value);
+            addCustomPickupToDropTable(PickupCatalog.FindPickupIndex(DLC1Content.Equipment.BossHunterConsumed.equipmentIndex), _equipmentWeight.Value);
         }
 
         [SystemInitializer(typeof(ChaosEffectCatalog))]
