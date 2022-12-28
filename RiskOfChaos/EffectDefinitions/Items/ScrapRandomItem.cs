@@ -25,7 +25,8 @@ namespace RiskOfChaos.EffectDefinitions.Items
                         ItemTierDef itemTierDef = ItemTierCatalog.GetItemTierDef(itemDef.tier);
                         if (!itemDef.hidden &&
                             itemDef.canRemove &&
-                            (!itemTierDef || itemTierDef.canScrap) &&
+                            itemTierDef &&
+                            itemTierDef.canScrap &&
                             itemDef.DoesNotContainTag(ItemTag.Scrap))
                         {
                             for (int i = 0; i < itemCount; i++)
