@@ -104,7 +104,11 @@ namespace RiskOfChaos.EffectDefinitions.Items
             _voidTier2Weight = addWeightConfig("Uncommon Void Items", 0.35f);
             _voidTier3Weight = addWeightConfig("Legendary Void Items", 0.3f);
             _voidBossWeight = addWeightConfig("Void Boss Items", 0.3f);
+        }
 
+        [SystemInitializer(typeof(ItemCatalog), typeof(EquipmentCatalog))]
+        static void InitDropTable()
+        {
             regenerateDropTable();
         }
 
