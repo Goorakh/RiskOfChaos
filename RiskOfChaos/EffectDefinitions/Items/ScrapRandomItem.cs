@@ -77,6 +77,8 @@ namespace RiskOfChaos.EffectDefinitions.Items
             inventory.GiveItem(scrapPickup.itemIndex, 1);
 
             CharacterMasterNotificationQueue.PushItemTransformNotification(characterMaster, itemToScrap.itemIndex, scrapPickup.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+
+            GenericPickupController.SendPickupMessage(characterMaster, scrapPickup.pickupIndex);
         }
 
         static PickupDef getScrapPickupForItemTier(ItemTier tier)
