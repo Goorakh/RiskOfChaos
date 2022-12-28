@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer combatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently includes 22 different effects.
+Currently includes 23 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -31,6 +31,7 @@ Currently includes 22 different effects.
 * Decrease Gravity: Decreases gravity by a configurable amount (default -50%), lasts until the end of the current stage
 * Give Random Elite Aspect: Gives all players a random elite aspect (drops on the ground if they don't have any empty equipment slots)
 * Corrupt Random Item: Converts a random item in every player's inventory to the void variant
+* Warbanner: Spawns a warbanner on every character
 </details>
 
 FAQ:
@@ -44,6 +45,14 @@ A: I failed art class __(If you have a better design in mind please let me know,
 If you have any feedback or bug reports, please open a [GitHub issue](https://github.com/Goorakh/RiskOfChaos/issues/new)
 
 ## Changelog
+
+**?.?.? Changes:**
+
+* Added Effect: Warbanner
+
+* Effects giving equipment will now prioritize the active equipment slot first, then continue looking for empty ones
+
+* Decreased likelyhood of Gravity-based effects happening several times per stage
 
 **0.3.0 Changes:**
 
