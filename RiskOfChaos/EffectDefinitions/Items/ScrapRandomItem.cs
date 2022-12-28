@@ -100,7 +100,7 @@ namespace RiskOfChaos.EffectDefinitions.Items
 
             CharacterMasterNotificationQueue.PushItemTransformNotification(characterMaster, itemToScrap.itemIndex, scrapPickup.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
 
-            GenericPickupController.SendPickupMessage(characterMaster, scrapPickup.pickupIndex);
+            Chat.AddPickupMessage(characterMaster.GetBody(), scrapPickup.nameToken, scrapPickup.baseColor, (uint)inventory.GetItemCount(scrapPickup.itemIndex));
         }
 
         static PickupDef getScrapPickupForItemTier(ItemTier tier)
