@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Gravity
 {
-    [ChaosEffect(EFFECT_ID, ConfigName = "Decrease Gravity")]
+    [ChaosEffect(EFFECT_ID, ConfigName = "Decrease Gravity", EffectRepetitionWeightExponent = 25f)]
     public class DecreaseGravity : GenericMultiplyGravityEffect
     {
         const string EFFECT_ID = "DecreaseGravity";
