@@ -4,6 +4,7 @@ using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
+using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
@@ -14,7 +15,20 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
         const int AMOUNT_TO_GIVE_DEFAULT_VALUE = 200;
         static ConfigEntry<int> _amountToGive;
-        static int amountToGive => _amountToGive?.Value ?? AMOUNT_TO_GIVE_DEFAULT_VALUE;
+        static int amountToGive
+        {
+            get
+            {
+                if (_amountToGive == null)
+                {
+                    return AMOUNT_TO_GIVE_DEFAULT_VALUE;
+                }
+                else
+                {
+                    return Mathf.Max(_amountToGive.Value, 0);
+                }
+            }
+        }
 
         const bool USE_DIFFICULTY_SCALING_DEFAULT_VALUE = true;
         static ConfigEntry<bool> _useDifficultyScaling;
@@ -25,7 +39,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             get
             {
                 int amount = amountToGive;
-                if (useDifficultyScaling && Run.instance)
+                if (amount > 0 && useDifficultyScaling && Run.instance)
                 {
                     amount = Run.instance.GetDifficultyScaledCost(amount);
                 }
@@ -53,6 +67,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
         public override void OnStart()
         {
             uint amount = scaledAmountToGive;
+            if (amount == 0)
+                return;
 
             foreach (CharacterMaster master in PlayerUtils.GetAllPlayerMasters(false))
             {
