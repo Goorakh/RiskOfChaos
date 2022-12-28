@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using HG;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.Utilities;
 using RoR2;
 using System.Collections.Generic;
@@ -9,6 +10,27 @@ namespace RiskOfChaos.EffectDefinitions.Items
     [ChaosEffect("ScrapRandomItem", DefaultSelectionWeight = 0.8f, EffectRepetitionWeightExponent = 15f)]
     public class ScrapRandomItem : BaseEffect
     {
+        static PickupIndex[] _scrapPickupByItemTier;
+
+        [SystemInitializer(typeof(PickupCatalog), typeof(ItemTierCatalog))]
+        static void InitItemScrapDict()
+        {
+            int itemTierCount = ItemTierCatalog.allItemTierDefs.Max(itd => (int)itd.tier) + 1;
+
+            _scrapPickupByItemTier = new PickupIndex[itemTierCount];
+            for (ItemTier i = 0; i < (ItemTier)itemTierCount; i++)
+            {
+                _scrapPickupByItemTier[(int)i] = i switch
+                {
+                    ItemTier.Tier1 => PickupCatalog.FindPickupIndex(RoR2Content.Items.ScrapWhite.itemIndex),
+                    ItemTier.Tier2 => PickupCatalog.FindPickupIndex(RoR2Content.Items.ScrapGreen.itemIndex),
+                    ItemTier.Tier3 => PickupCatalog.FindPickupIndex(RoR2Content.Items.ScrapRed.itemIndex),
+                    ItemTier.Boss => PickupCatalog.FindPickupIndex(RoR2Content.Items.ScrapYellow.itemIndex),
+                    _ => PickupIndex.none,
+                };
+            }
+        }
+
         static IEnumerable<ItemIndex> getAllScrappableItems(Inventory inventory)
         {
             if (!inventory)
@@ -42,7 +64,7 @@ namespace RiskOfChaos.EffectDefinitions.Items
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return PlayerUtils.GetAllPlayerMasters(false).Any(cm => getAllScrappableItems(cm.inventory).Any());
+            return _scrapPickupByItemTier != null && PlayerUtils.GetAllPlayerMasters(false).Any(cm => getAllScrappableItems(cm.inventory).Any());
         }
 
         public override void OnStart()
@@ -83,26 +105,7 @@ namespace RiskOfChaos.EffectDefinitions.Items
 
         static PickupDef getScrapPickupForItemTier(ItemTier tier)
         {
-            PickupIndex scrapPickupIndex;
-            switch (tier)
-            {
-                case ItemTier.Tier1:
-                    scrapPickupIndex = PickupCatalog.FindPickupIndex("ItemIndex.ScrapWhite");
-                    break;
-                case ItemTier.Tier2:
-                    scrapPickupIndex = PickupCatalog.FindPickupIndex("ItemIndex.ScrapGreen");
-                    break;
-                case ItemTier.Tier3:
-                    scrapPickupIndex = PickupCatalog.FindPickupIndex("ItemIndex.ScrapRed");
-                    break;
-                case ItemTier.Boss:
-                    scrapPickupIndex = PickupCatalog.FindPickupIndex("ItemIndex.ScrapYellow");
-                    break;
-                default:
-                    return null;
-            }
-
-            return PickupCatalog.GetPickupDef(scrapPickupIndex);
+            return PickupCatalog.GetPickupDef(ArrayUtils.GetSafe(_scrapPickupByItemTier, (int)tier, PickupIndex.none));
         }
     }
 }
