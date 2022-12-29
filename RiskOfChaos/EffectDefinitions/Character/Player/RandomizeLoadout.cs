@@ -98,6 +98,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
         bool randomizeLoadoutSkills(Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex)
         {
+            // TODO: Find a proper solution for client players in multiplayer
+            UserProfile userProfile = LocalUserManager.GetFirstLocalUser()?.userProfile;
+
             bool anyChanges = false;
 
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
@@ -113,7 +116,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                 {
                     uint currentSkillVariantIndex = bodyLoadoutManager.GetSkillVariant(bodyIndex, skillSlotIndex);
 
-                    UserProfile userProfile = LocalUserManager.GetFirstLocalUser()?.userProfile;
                     uint newSkillVariantIndex = evaluateWeightedIndexSelection(variantsCount, currentSkillVariantIndex, skillIndex =>
                     {
                         if (!ArrayUtils.IsInBounds(skillVariants, skillIndex))
