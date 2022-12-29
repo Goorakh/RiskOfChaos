@@ -139,13 +139,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
         bool randomizeLoadoutSkin(Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex)
         {
-            bool anyChanges = false;
-
             int bodySkinCount = BodyCatalog.GetBodySkins(bodyIndex).Length;
             if (bodySkinCount > 1) // Only 1: No other options, don't bother trying to randomize it
             {
                 uint currentSkinIndex = bodyLoadoutManager.GetSkinIndex(bodyIndex);
 
+                // TODO: Find a proper solution for client players in multiplayer
                 UserProfile userProfile = LocalUserManager.GetFirstLocalUser()?.userProfile;
                 uint newSkinIndex = evaluateWeightedIndexSelection(bodySkinCount, currentSkinIndex, skinIndex =>
                 {
@@ -155,13 +154,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
                 if (currentSkinIndex != newSkinIndex)
                 {
-                    anyChanges = true;
-
                     bodyLoadoutManager.SetSkinIndex(bodyIndex, newSkinIndex);
+                    return true;
                 }
             }
 
-            return anyChanges;
+            return false;
         }
     }
 }
