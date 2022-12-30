@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect(EFFECT_ID, EffectRepetitionWeightExponent = 50f)]
+    [ChaosEffect(EFFECT_ID, EffectRepetitionWeightExponent = 35f)]
     public class IncreaseDirectorCredits : BaseEffect
     {
         const string EFFECT_ID = "IncreaseDirectorCredits";
@@ -22,7 +22,8 @@ namespace RiskOfChaos.EffectDefinitions.World
             _effectIndex = ChaosEffectCatalog.FindEffectIndex(EFFECT_ID);
         }
 
-        static readonly HashSet<CombatDirector> _appliedToDirectors = new HashSet<CombatDirector>();
+        // Would've just used a simple component on the same object for this instead if it wasn't for multiple directors being on the same object in some cases
+        static readonly Dictionary<CombatDirector, int> _directorAppliedCounts = new Dictionary<CombatDirector, int>();
 
         static bool _appliedPatch = false;
         static void applyPatchIfNeeded()
@@ -33,12 +34,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             On.RoR2.CombatDirector.OnEnable += static (orig, self) =>
             {
                 orig(self);
-
-                int numActivationsThisStage = ChaosEffectDispatcher.GetTotalStageEffectActivationCount(_effectIndex);
-                if (numActivationsThisStage > 0)
-                {
-                    tryMultiplyDirectorCredits(self, Mathf.Pow(CREDIT_MULTIPLIER, numActivationsThisStage));
-                }
+                tryMultiplyDirectorCredits(self);
             };
 
             Stage.onServerStageComplete += static _ =>
@@ -56,7 +52,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         static void clearAppliedToDirectors()
         {
-            _appliedToDirectors.Clear();
+            _directorAppliedCounts.Clear();
         }
 
         [EffectCanActivate]
@@ -69,27 +65,43 @@ namespace RiskOfChaos.EffectDefinitions.World
         {
             foreach (CombatDirector director in CombatDirector.instancesList)
             {
-                tryMultiplyDirectorCredits(director, CREDIT_MULTIPLIER);
+                tryMultiplyDirectorCredits(director);
             }
 
             applyPatchIfNeeded();
         }
 
-        static void tryMultiplyDirectorCredits(CombatDirector director, float multiplier)
-        {
-            if (_appliedToDirectors.Add(director))
-            {
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                foreach (CombatDirector.DirectorMoneyWave moneyWave in director.moneyWaves)
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-                {
-                    moneyWave.multiplier *= multiplier;
-                }
+        static void tryMultiplyDirectorCredits(CombatDirector director)
+        {
+            if (!director || director.moneyWaves == null)
+                return;
+
+            int numActivationsThisStage = ChaosEffectDispatcher.GetTotalStageEffectActivationCount(_effectIndex);
+            if (numActivationsThisStage <= 0)
+                return;
+
+            int totalAppliedToCount;
+            if (!_directorAppliedCounts.TryGetValue(director, out totalAppliedToCount))
+                totalAppliedToCount = 0;
+
+            int missingApplyCount = numActivationsThisStage - totalAppliedToCount;
+            if (missingApplyCount <= 0)
+                return;
+
+            float totalMultiplier = Mathf.Pow(CREDIT_MULTIPLIER, missingApplyCount);
+
+            foreach (CombatDirector.DirectorMoneyWave moneyWave in director.moneyWaves)
+            {
+                moneyWave.multiplier *= totalMultiplier;
+            }
+
+            _directorAppliedCounts[director] = numActivationsThisStage;
 
 #if DEBUG
-                Log.Debug($"multiplied {nameof(CombatDirector)} {director} ({director.customName}) credits by {multiplier}");
+            Log.Debug($"multiplied {nameof(CombatDirector)} {director} ({director.customName}) credits by {totalMultiplier} (missed {missingApplyCount} activations)");
 #endif
-            }
         }
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
     }
 }

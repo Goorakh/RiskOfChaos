@@ -54,6 +54,8 @@ If you have any feedback or bug reports, please open a [GitHub issue](https://gi
 
 * Decreased likelyhood of Gravity-based effects happening several times per stage
 
+* Fixed +50% Director Credits not properly applying more than once per stage
+
 **0.3.0 Changes:**
 
 * Added effect: Corrupt Random Item
