@@ -3,6 +3,7 @@ using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine;
 
 namespace RiskOfChaos.Utilities.Extensions
 {
@@ -35,32 +36,47 @@ namespace RiskOfChaos.Utilities.Extensions
             return false;
         }
 
-        public static bool TryGrant(this Inventory inventory, PickupDef pickup)
+        public static PickupTryGrantResult TryGrant(this Inventory inventory, PickupDef pickup, bool replaceExisting)
         {
             if (!inventory)
-                return false;
+                return PickupTryGrantResult.Failed;
 
             if (pickup.itemIndex != ItemIndex.None)
             {
                 inventory.GiveItem(pickup.itemIndex, 1);
-                return true;
+                return PickupTryGrantResult.CompleteSuccess;
             }
             else if (pickup.equipmentIndex != EquipmentIndex.None)
             {
                 if (inventory.TryGetFreeEquipmentSlot(out uint freeSlot))
                 {
                     inventory.SetEquipmentIndexForSlot(pickup.equipmentIndex, freeSlot);
-                    return true;
+                    return PickupTryGrantResult.CompleteSuccess;
+                }
+                else if (replaceExisting)
+                {
+                    EquipmentIndex previousEquipmentIndex = inventory.currentEquipmentIndex;
+                    inventory.SetEquipmentIndex(pickup.equipmentIndex);
+
+                    if (previousEquipmentIndex != EquipmentIndex.None)
+                    {
+                        return PickupTryGrantResult.PartialSuccess(PickupCatalog.FindPickupIndex(previousEquipmentIndex));
+                    }
+                    else
+                    {
+                        Log.Warning($"{nameof(TryGetFreeEquipmentSlot)} failed, but current equipment index is None, this should never be able to happen");
+                        return PickupTryGrantResult.CompleteSuccess; // Success because the current equipment was set
+                    }
                 }
                 else
                 {
-                    return false;
+                    return PickupTryGrantResult.Failed;
                 }
             }
             else
             {
                 Log.Warning($"unhandled pickup index {pickup.pickupIndex}");
-                return false;
+                return PickupTryGrantResult.Failed;
             }
         }
     }
