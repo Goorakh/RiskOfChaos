@@ -188,12 +188,19 @@ namespace RiskOfChaos.EffectHandling
         {
             Chat.SendBroadcastChat(new Chat.SimpleChatMessage { baseToken = effect.GetActivationMessage() });
 
+            incrementEffectActivationCounter(effect.EffectIndex);
+
             BaseEffect effectInstance = effect.InstantiateEffect(new Xoroshiro128Plus(_nextEffectRNG.nextUlong));
             effectInstance?.OnStart();
 
+            playEffectActivatedSoundOnAllPlayerBodies();
+        }
+
+        static void incrementEffectActivationCounter(int effectIndex)
+        {
             try
             {
-                ref ChaosEffectActivationCounter activationCounter = ref getEffectActivationCounterUncheckedRef(effect.EffectIndex);
+                ref ChaosEffectActivationCounter activationCounter = ref getEffectActivationCounterUncheckedRef(effectIndex);
                 activationCounter.StageActivations++;
                 activationCounter.RunActivations++;
 
@@ -203,10 +210,8 @@ namespace RiskOfChaos.EffectHandling
             }
             catch (IndexOutOfRangeException ex)
             {
-                Log.Error($"{nameof(IndexOutOfRangeException)} in {nameof(getEffectActivationCounterUncheckedRef)}, invalid effect index? {nameof(effect.EffectIndex)}={effect.EffectIndex}: {ex}");
+                Log.Error($"{nameof(IndexOutOfRangeException)} in {nameof(getEffectActivationCounterUncheckedRef)}, invalid effect index? {nameof(effectIndex)}={effectIndex}: {ex}");
             }
-
-            playEffectActivatedSoundOnAllPlayerBodies();
         }
 
         static void playEffectActivatedSoundOnAllPlayerBodies()
