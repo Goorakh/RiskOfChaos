@@ -71,10 +71,16 @@ namespace RiskOfChaos.EffectDefinitions.World
             applyPatchIfNeeded();
         }
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
         static void tryMultiplyDirectorCredits(CombatDirector director)
         {
-            if (!director || director.moneyWaves == null)
+            if (!director)
+                return;
+
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+            CombatDirector.DirectorMoneyWave[] moneyWaves = director.moneyWaves;
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+
+            if (moneyWaves == null || moneyWaves.Length <= 0)
                 return;
 
             int numActivationsThisStage = ChaosEffectDispatcher.GetTotalStageEffectActivationCount(_effectIndex);
@@ -91,7 +97,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             float totalMultiplier = Mathf.Pow(CREDIT_MULTIPLIER, missingApplyCount);
 
-            foreach (CombatDirector.DirectorMoneyWave moneyWave in director.moneyWaves)
+            foreach (CombatDirector.DirectorMoneyWave moneyWave in moneyWaves)
             {
                 moneyWave.multiplier *= totalMultiplier;
             }
@@ -99,9 +105,8 @@ namespace RiskOfChaos.EffectDefinitions.World
             _directorAppliedCounts[director] = numActivationsThisStage;
 
 #if DEBUG
-            Log.Debug($"multiplied {nameof(CombatDirector)} {director} ({director.customName}) credits by {totalMultiplier} (missed {missingApplyCount} activations)");
+            Log.Debug($"multiplied {nameof(CombatDirector)} {director} ({director.customName}) credits by {totalMultiplier} (applied {missingApplyCount} effect activations)");
 #endif
         }
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
     }
 }
