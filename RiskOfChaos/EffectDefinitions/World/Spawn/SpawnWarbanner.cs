@@ -9,6 +9,7 @@ using UnityEngine.AddressableAssets;
 using BepInEx.Configuration;
 using RiskOfOptions.Options;
 using RiskOfOptions.OptionConfigs;
+using System.Collections;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
@@ -56,10 +57,39 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             return _warbannerPrefab;
         }
 
+        readonly struct WarbannerSpawnData
+        {
+            public readonly CharacterBody Owner;
+            public readonly float Radius;
+
+            public WarbannerSpawnData(CharacterBody owner, float radius)
+            {
+                Owner = owner;
+                Radius = radius;
+            }
+
+            public readonly void Spawn()
+            {
+                if (!Owner)
+                    return;
+
+                TeamComponent teamComponent = Owner.teamComponent;
+                if (!teamComponent)
+                    return;
+
+                GameObject warbannerObj = GameObject.Instantiate<GameObject>(_warbannerPrefab, Owner.footPosition, Quaternion.identity);
+                warbannerObj.GetComponent<TeamFilter>().teamIndex = teamComponent.teamIndex;
+                warbannerObj.GetComponent<BuffWard>().Networkradius = Radius;
+                NetworkServer.Spawn(warbannerObj);
+            }
+        }
+
         public override void OnStart()
         {
             int itemCount = warbannerItemCount;
+            float radius = 8f + (8f * itemCount);
 
+            List<WarbannerSpawnData> warbannerSpawnQueue = new List<WarbannerSpawnData>();
             foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
             {
                 if (!body || (body.bodyFlags & CharacterBody.BodyFlags.Masterless) != 0)
@@ -69,11 +99,22 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 if (!teamComponent)
                     continue;
 
-                GameObject warbannerObj = GameObject.Instantiate<GameObject>(_warbannerPrefab, body.footPosition, Quaternion.identity);
-                warbannerObj.GetComponent<TeamFilter>().teamIndex = teamComponent.teamIndex;
-                warbannerObj.GetComponent<BuffWard>().Networkradius = 8f + (8f * itemCount);
-                NetworkServer.Spawn(warbannerObj);
+                warbannerSpawnQueue.Add(new WarbannerSpawnData(body, radius));
             }
+
+            IEnumerator spawnWarbanners()
+            {
+                const int MAX_SPAWNS_PER_FRAME = 2;
+                for (int i = 0; i < warbannerSpawnQueue.Count; i++)
+                {
+                    warbannerSpawnQueue[i].Spawn();
+
+                    if ((i + 1) % MAX_SPAWNS_PER_FRAME == 0)
+                        yield return 0;
+                }
+            }
+
+            Main.Instance.StartCoroutine(spawnWarbanners());
         }
     }
 }
