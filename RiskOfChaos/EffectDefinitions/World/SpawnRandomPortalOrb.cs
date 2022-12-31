@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("RandomPortalOrb")]
+    [ChaosEffect("RandomPortalOrb", EffectRepetitionWeightExponent = 10f)]
     public class SpawnRandomPortalOrb : BaseEffect
     {
         const int NUM_SHOULD_ATTEMPT_SPAWN_PROPERTIES = 3;
@@ -75,12 +75,6 @@ namespace RiskOfChaos.EffectDefinitions.World
         {
             TeleporterInteraction tpInteraction = TeleporterInteraction.instance;
             return tpInteraction && tpInteraction.activationState < TeleporterInteraction.ActivationState.Charged && getAllPortalInfos().Any(p => !p.WillSpawn);
-        }
-
-        [EffectWeightMultiplierSelector]
-        static float GetWeightMult()
-        {
-            return RoCMath.CalcReductionWeight(getAllPortalInfos().Count(p => !p.WillSpawn), 3.5f);
         }
 
         public override void OnStart()

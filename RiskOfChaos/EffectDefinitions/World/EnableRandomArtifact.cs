@@ -10,7 +10,7 @@ using System.Runtime.CompilerServices;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect(EFFECT_ID)]
+    [ChaosEffect(EFFECT_ID, EffectRepetitionWeightExponent = 20f)]
     public class EnableRandomArtifact : BaseEffect
     {
         const string EFFECT_ID = "EnableRandomArtifact";
@@ -114,12 +114,6 @@ namespace RiskOfChaos.EffectDefinitions.World
         static bool CanActivate()
         {
             return RunArtifactManager.instance && getAllAvailableArtifactIndices().Any();
-        }
-
-        [EffectWeightMultiplierSelector]
-        static float WeightMultSelector()
-        {
-            return RoCMath.CalcReductionWeight(_artifactsToDisableNextStage.Count, 3.5f);
         }
 
         public override void OnStart()

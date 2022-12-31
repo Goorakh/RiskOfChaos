@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect(EFFECT_ID, ConfigName = "Add Mountain Shrine")]
+    [ChaosEffect(EFFECT_ID, ConfigName = "Add Mountain Shrine", EffectRepetitionWeightExponent = 20f)]
     public class MountainShrineAdd : BaseEffect
     {
         const string EFFECT_ID = "MountainShrineAdd";
@@ -36,12 +36,6 @@ namespace RiskOfChaos.EffectDefinitions.World
         {
             TeleporterInteraction instance = TeleporterInteraction.instance;
             return instance && instance.activationState <= TeleporterInteraction.ActivationState.IdleToCharging;
-        }
-
-        [EffectWeightMultiplierSelector]
-        static float GetWeight()
-        {
-            return RoCMath.CalcReductionWeight(TeleporterInteraction.instance.shrineBonusStacks, 2f);
         }
 
         [EffectNameFormatArgs]
