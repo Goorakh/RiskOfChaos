@@ -41,10 +41,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             DirectorPlacementRule placement = new DirectorPlacementRule
             {
-                placementMode = DirectorPlacementRule.PlacementMode.NearestNode,
-                position = body.footPosition,
-                minDistance = 0f,
-                maxDistance = float.PositiveInfinity
+                placementMode = DirectorPlacementRule.PlacementMode.Direct,
+                position = body.footPosition
             };
 
             DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(copySpawnCard, placement, new Xoroshiro128Plus(RNG.nextUlong))

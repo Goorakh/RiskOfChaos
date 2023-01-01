@@ -70,10 +70,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             DirectorPlacementRule placement = new DirectorPlacementRule
             {
-                placementMode = DirectorPlacementRule.PlacementMode.NearestNode,
-                position = SpawnUtils.GetRandomSpawnPosition(RNG, false) ?? Vector3.zero,
-                minDistance = 0f,
-                maxDistance = float.PositiveInfinity
+                placementMode = SpawnUtils.GetBestValidRandomPlacementType()
             };
 
             DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_cscLemurian, placement, new Xoroshiro128Plus(RNG.nextUlong))
