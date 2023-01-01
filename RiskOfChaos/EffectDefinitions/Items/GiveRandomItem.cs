@@ -72,7 +72,10 @@ namespace RiskOfChaos.EffectDefinitions.Items
             }
 
             addCustomPickupToDropTable(PickupCatalog.FindPickupIndex(RoR2Content.Items.CaptainDefenseMatrix.itemIndex), _tier3Weight.Value);
+
             addCustomPickupToDropTable(PickupCatalog.FindPickupIndex(DLC1Content.Equipment.BossHunterConsumed.equipmentIndex), _equipmentWeight.Value);
+            addCustomPickupToDropTable(PickupCatalog.FindPickupIndex(RoR2Content.Equipment.QuestVolatileBattery.equipmentIndex), _equipmentWeight.Value);
+            addCustomPickupToDropTable(PickupCatalog.FindPickupIndex(DLC1Content.Equipment.LunarPortalOnUse.equipmentIndex), _equipmentWeight.Value);
         }
 
         [SystemInitializer(typeof(ChaosEffectCatalog))]
