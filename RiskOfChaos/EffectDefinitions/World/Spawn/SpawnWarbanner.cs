@@ -86,8 +86,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         public override void OnStart()
         {
-            int itemCount = warbannerItemCount;
-            float radius = 8f + (8f * itemCount);
+            float radius = 8f + (8f * warbannerItemCount);
 
             List<WarbannerSpawnData> warbannerSpawnQueue = new List<WarbannerSpawnData>();
             foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
@@ -110,7 +109,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     warbannerSpawnQueue[i].Spawn();
 
                     if ((i + 1) % MAX_SPAWNS_PER_FRAME == 0)
-                        yield return 0;
+                    {
+                        yield return new WaitForSecondsRealtime(1f / 15f);
+                    }
                 }
             }
 
