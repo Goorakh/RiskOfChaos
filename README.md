@@ -52,6 +52,8 @@ If you have any feedback or bug reports, please open a [GitHub issue](https://gi
 * Added Effect: Warbanner
 * Added Effect: Spawn Doppelganger
 
+* Give Random Item: Fuel Cell and Elegy of Exctinction have been added the the equipment pool
+
 * Effects giving equipment will now prioritize the active equipment slot first, then continue looking for empty ones. If no empty slots are found, the current equipment slot is overriden (old equipment is dropped at the player's feet)
 
 * Decreased likelyhood of Gravity-based effects happening several times per stage
