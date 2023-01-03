@@ -17,6 +17,8 @@ namespace RiskOfChaos.EffectHandling
 
         public EffectActivationCountMode EffectRepetitionWeightCalculationMode { get; set; } = EffectActivationCountMode.PerStage;
 
+        public int EffectActivationCountHardCap { get; set; } = -1;
+
         public ChaosEffectAttribute(string identifier)
         {
             Identifier = identifier;

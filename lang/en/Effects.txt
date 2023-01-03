@@ -28,5 +28,6 @@
 		"EFFECT_SPAWNWARBANNER_NAME": "Warbanner",
 		"EFFECT_SPAWN_DOPPELGANGER_NAME": "Spawn Doppelganger",
 		"EFFECT_SPAWN_POTS_NAME": "Potrolling",
+		"EFFECT_EVERYTHING_SLIPPERY_NAME": "Wet Floor",
 	}
 }

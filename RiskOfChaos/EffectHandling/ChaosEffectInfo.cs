@@ -29,18 +29,47 @@ namespace RiskOfChaos.EffectHandling
         public readonly ConfigEntry<float> SelectionWeightConfig;
 
         readonly MethodInfo[] _canActivateMethods;
-        public bool CanActivate => _canActivateMethods != null && (_canActivateMethods.Length == 0 || _canActivateMethods.All(m => (bool)m.Invoke(null, null)));
+        public bool CanActivate
+        {
+            get
+            {
+                if (_canActivateMethods == null)
+                {
+                    Log.Warning($"effect {Identifier} has null {nameof(_canActivateMethods)} array");
+                    return false;
+                }
+
+                if (HasHardActivationCountCap && ActivationCount >= HardActivationCountCap)
+                {
+#if DEBUG
+                    Log.Debug($"effect {Identifier} cannot activate due to activation cap of {HardActivationCountCap} reached ({ActivationCount} activations)");
+#endif
+                    return false;
+                }
+
+                if (_canActivateMethods.Length != 0 && _canActivateMethods.Any(m => (bool)m.Invoke(null, null) == false))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+        }
 
         public readonly float EffectRepetitionWeightExponentMultiplier;
         public readonly EffectActivationCountMode EffectRepetitionWeightCalculationMode;
+
+        public readonly int HardActivationCountCap;
+        public readonly bool HasHardActivationCountCap => HardActivationCountCap >= 0;
+
+        public int ActivationCount => ChaosEffectDispatcher.GetEffectActivationCount(EffectIndex, EffectRepetitionWeightCalculationMode);
 
         readonly MethodInfo[] _weightMultSelectorMethods;
         public float TotalSelectionWeight
         {
             get
             {
-                int activationCount = ChaosEffectDispatcher.GetEffectActivationCount(EffectIndex, EffectRepetitionWeightCalculationMode);
-                float weight = Mathf.Exp(-activationCount * EffectRepetitionWeightExponentMultiplier) * SelectionWeightConfig.Value;
+                float weight = Mathf.Exp(-ActivationCount * EffectRepetitionWeightExponentMultiplier) * SelectionWeightConfig.Value;
 
                 if (_weightMultSelectorMethods != null)
                 {
@@ -106,6 +135,8 @@ namespace RiskOfChaos.EffectHandling
 
             EffectRepetitionWeightExponentMultiplier = attribute.EffectRepetitionWeightExponent / 100f;
             EffectRepetitionWeightCalculationMode = attribute.EffectRepetitionWeightCalculationMode;
+
+            HardActivationCountCap = attribute.EffectActivationCountHardCap;
 
             ConfigSectionName = "Effect: " + (attribute.ConfigName ?? Language.GetString(NameToken, "en"));
 

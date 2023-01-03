@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer combatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently includes 25 different effects.
+Currently includes 26 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -34,6 +34,7 @@ Currently includes 25 different effects.
 * Warbanner: Spawns a warbanner on every character
 * Spawn Doppelganger: Triggers the Artifact of Vengeance event
 * Potrolling: Spawns a bunch of nice pots for you to roll
+* Wet Floor: Every surface is slippery. Lasts until end of current stage
 </details>
 
 FAQ:
@@ -51,6 +52,7 @@ If you have any feedback or bug reports, please open a [GitHub issue](https://gi
 **(Next Version) Changes:**
 
 * Added Effect: Potrolling
+* Added Effect: Wet Floor
 
 **0.4.0 Changes:**
 
