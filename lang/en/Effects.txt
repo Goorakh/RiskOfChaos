@@ -26,6 +26,7 @@
 		"EFFECT_GIVERANDOMELITEASPECT_NAME": "Give Random Elite Aspect",
 		"EFFECT_CORRUPTRANDOMITEM_NAME": "Corrupt Random Item",
 		"EFFECT_SPAWNWARBANNER_NAME": "Warbanner",
-		"EFFECT_SPAWN_DOPPELGANGER_NAME": "Spawn Doppelganger"
+		"EFFECT_SPAWN_DOPPELGANGER_NAME": "Spawn Doppelganger",
+		"EFFECT_SPAWN_POTS_NAME": "Potrolling",
 	}
 }

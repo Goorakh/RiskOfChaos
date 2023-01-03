@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer combatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently includes 24 different effects.
+Currently includes 25 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -33,6 +33,7 @@ Currently includes 24 different effects.
 * Corrupt Random Item: Converts a random item in every player's inventory to the void variant
 * Warbanner: Spawns a warbanner on every character
 * Spawn Doppelganger: Triggers the Artifact of Vengeance event
+* Potrolling: Spawns a bunch of nice pots for you to roll
 </details>
 
 FAQ:
@@ -51,6 +52,7 @@ If you have any feedback or bug reports, please open a [GitHub issue](https://gi
 
 * Added Effect: Warbanner
 * Added Effect: Spawn Doppelganger
+* Added Effect: Potrolling
 
 * Give Random Item: Fuel Cell and Elegy of Exctinction have been added the the equipment pool
 
