@@ -48,11 +48,14 @@ If you have any feedback or bug reports, please open a [GitHub issue](https://gi
 
 ## Changelog
 
+**(Next Version) Changes:**
+
+* Added Effect: Potrolling
+
 **0.4.0 Changes:**
 
 * Added Effect: Warbanner
 * Added Effect: Spawn Doppelganger
-* Added Effect: Potrolling
 
 * Give Random Item: Fuel Cell and Elegy of Exctinction have been added the the equipment pool
 
