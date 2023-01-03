@@ -22,7 +22,7 @@ namespace RiskOfChaos.Utilities.Extensions
         {
             float u = rng.nextNormalizedFloat;
             float v = rng.nextNormalizedFloat;
-            float theta = u * 2f * Mathf.PI;
+            float theta = u * (2f * Mathf.PI);
             float phi = Mathf.Acos((2f * v) - 1f);
             float r = Mathf.Pow(rng.nextNormalizedFloat, 1 / 3f);
             float sinTheta = Mathf.Sin(theta);
