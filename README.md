@@ -48,7 +48,7 @@ If you have any feedback or bug reports, please open a [GitHub issue](https://gi
 
 ## Changelog
 
-**(Next Version) Changes:**
+**0.4.0 Changes:**
 
 * Added Effect: Warbanner
 * Added Effect: Spawn Doppelganger
