@@ -7,6 +7,7 @@ using RiskOfOptions;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using System.Diagnostics;
+using UnityEngine;
 
 namespace RiskOfChaos
 {
@@ -25,7 +26,23 @@ namespace RiskOfChaos
 
         internal static Main Instance;
 
-        public static ConfigEntry<float> TimeBetweenEffects { get; private set; }
+        static ConfigEntry<float> _timeBetweenEffects;
+        const float TIME_BETWEEN_EFFECTS_MIN_VALUE = 5f;
+        const float TIME_BETWEEN_EFFECTS_DEFAULT_VALUE = 60f;
+        public static float TimeBetweenEffects
+        {
+            get
+            {
+                if (_timeBetweenEffects != null)
+                {
+                    return Mathf.Max(_timeBetweenEffects.Value, TIME_BETWEEN_EFFECTS_MIN_VALUE);
+                }
+                else
+                {
+                    return TIME_BETWEEN_EFFECTS_DEFAULT_VALUE;
+                }
+            }
+        }
 
         void Awake()
         {
@@ -57,12 +74,12 @@ namespace RiskOfChaos
                 const string GUID = $"RoC_Config_{SECTION_NAME}";
                 const string NAME = $"Risk of Chaos: {SECTION_NAME}";
 
-                TimeBetweenEffects = Instance.Config.Bind(new ConfigDefinition(SECTION_NAME, "Effect Timer"), 60f, new ConfigDescription($"How often new effects should happen"));
-                ModSettingsManager.AddOption(new StepSliderOption(TimeBetweenEffects, new StepSliderConfig
+                _timeBetweenEffects = Instance.Config.Bind(new ConfigDefinition(SECTION_NAME, "Effect Timer"), TIME_BETWEEN_EFFECTS_DEFAULT_VALUE, new ConfigDescription($"How often new effects should happen"));
+                ModSettingsManager.AddOption(new StepSliderOption(_timeBetweenEffects, new StepSliderConfig
                 {
                     formatString = "{0:F0}s",
-                    increment = 1f,
-                    min = 5f,
+                    increment = 5f,
+                    min = TIME_BETWEEN_EFFECTS_MIN_VALUE,
                     max = 60f * 5f
                 }), GUID, NAME);
 
