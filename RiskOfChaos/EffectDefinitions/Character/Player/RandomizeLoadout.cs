@@ -15,6 +15,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
     {
         public override void OnStart()
         {
+            bool isMetamorphosisActive = RunArtifactManager.instance && RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.randomSurvivorOnRespawnArtifactDef);
+
             foreach (CharacterMaster playerMaster in PlayerUtils.GetAllPlayerMasters(false))
             {
                 CharacterBody playerBody = playerMaster.GetBody();
@@ -43,13 +45,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
                     if (changedCurrentBody && !playerMaster.IsDeadAndOutOfLivesServer())
                     {
-                        respawnPlayerBody(playerMaster, playerBody);
+                        respawnPlayerBody(playerMaster, playerBody, isMetamorphosisActive);
                     }
                 }
             }
         }
 
-        static void respawnPlayerBody(CharacterMaster playerMaster, CharacterBody playerBody)
+        static void respawnPlayerBody(CharacterMaster playerMaster, CharacterBody playerBody, bool preventMetamorphosisRespawn)
         {
             VehicleSeat oldVehicleSeat = playerBody.currentVehicle;
 
@@ -62,7 +64,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                 oldVehicleSeat.EjectPassenger();
             }
 
-            PreventMetamorphosisRespawn.PreventionEnabled = true;
+            PreventMetamorphosisRespawn.PreventionEnabled = preventMetamorphosisRespawn;
             playerBody = playerMaster.Respawn(playerBody.footPosition, playerBody.GetRotation());
             PreventMetamorphosisRespawn.PreventionEnabled = false;
 
