@@ -163,7 +163,13 @@ namespace RiskOfChaos.EffectHandling
             WeightedSelection<ChaosEffectInfo> weightedSelection = ChaosEffectCatalog.GetAllActivatableEffects();
             if (weightedSelection.Count > 0)
             {
-                ChaosEffectInfo effect = weightedSelection.Evaluate(_nextEffectRNG.nextNormalizedFloat);
+                float nextNormalizedFloat = _nextEffectRNG.nextNormalizedFloat;
+                ChaosEffectInfo effect = weightedSelection.Evaluate(nextNormalizedFloat);
+
+#if DEBUG
+                Log.Debug($"effect {effect.Identifier} selected, weight={weightedSelection.GetChoice(weightedSelection.EvaluateToChoiceIndex(nextNormalizedFloat)).weight}");
+#endif
+
                 dispatchEffect(effect);
             }
             else
