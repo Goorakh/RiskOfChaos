@@ -26,6 +26,7 @@ namespace RiskOfChaos.EffectHandling
         }
 
         static ChaosEffectDispatcher _instance;
+        public static ChaosEffectDispatcher Instance => _instance;
 
         static ChaosEffectActivationCounter[] _effectActivationCounts;
 

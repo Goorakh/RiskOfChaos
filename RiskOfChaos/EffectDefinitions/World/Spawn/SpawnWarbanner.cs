@@ -14,7 +14,7 @@ using System.Collections;
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect(EFFECT_ID, EffectRepetitionWeightExponent = 20f)]
-    public class SpawnWarbanner : BaseEffect
+    public class SpawnWarbanner : CoroutineEffect
     {
         const string EFFECT_ID = "SpawnWarbanner";
 
@@ -84,7 +84,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             }
         }
 
-        public override void OnStart()
+        protected override IEnumerator onStart()
         {
             float radius = 8f + (8f * warbannerItemCount);
 
@@ -101,21 +101,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 warbannerSpawnQueue.Add(new WarbannerSpawnData(body, radius));
             }
 
-            IEnumerator spawnWarbanners()
+            const int MAX_SPAWNS_PER_FRAME = 2;
+            for (int i = 0; i < warbannerSpawnQueue.Count; i++)
             {
-                const int MAX_SPAWNS_PER_FRAME = 2;
-                for (int i = 0; i < warbannerSpawnQueue.Count; i++)
-                {
-                    warbannerSpawnQueue[i].Spawn();
+                warbannerSpawnQueue[i].Spawn();
 
-                    if ((i + 1) % MAX_SPAWNS_PER_FRAME == 0)
-                    {
-                        yield return new WaitForSecondsRealtime(1f / 15f);
-                    }
+                if ((i + 1) % MAX_SPAWNS_PER_FRAME == 0)
+                {
+                    yield return new WaitForSecondsRealtime(1f / 15f);
                 }
             }
-
-            Main.Instance.StartCoroutine(spawnWarbanners());
         }
     }
 }
