@@ -68,6 +68,7 @@ namespace RiskOfChaos.EffectHandling
 #endif
         }
 
+        float _lastEffectDispatchTime = -1f;
         float _nextEffectDispatchTime = float.PositiveInfinity;
 
         Xoroshiro128Plus _nextEffectRNG;
@@ -76,12 +77,15 @@ namespace RiskOfChaos.EffectHandling
         {
             SingletonHelper.Assign(ref _instance, this);
 
+            _lastEffectDispatchTime = -1f;
             _nextEffectDispatchTime = 0f;
             _nextEffectRNG = new Xoroshiro128Plus(Run.instance.runRNG.nextUlong);
 
             Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
 
             Stage.onServerStageComplete += Stage_onServerStageComplete;
+
+            Configs.General.OnTimeBetweenEffectsChanged += onTimeBetweenEffectsConfigChanged;
 
             resetAllEffectActivationCounters();
         }
@@ -93,6 +97,8 @@ namespace RiskOfChaos.EffectHandling
             Run.onRunDestroyGlobal -= Run_onRunDestroyGlobal;
 
             Stage.onServerStageComplete -= Stage_onServerStageComplete;
+
+            Configs.General.OnTimeBetweenEffectsChanged -= onTimeBetweenEffectsConfigChanged;
 
             resetAllEffectActivationCounters();
         }
@@ -134,6 +140,25 @@ namespace RiskOfChaos.EffectHandling
             };
         }
 
+        void onTimeBetweenEffectsConfigChanged()
+        {
+            if (!NetworkServer.active)
+                return;
+
+            if (_lastEffectDispatchTime < 0f)
+                return;
+
+#if DEBUG
+            float oldNextEffectTime = _nextEffectDispatchTime;
+#endif
+
+            _nextEffectDispatchTime = _lastEffectDispatchTime + Configs.General.TimeBetweenEffects;
+
+#if DEBUG
+            Log.Debug($"{nameof(onTimeBetweenEffectsConfigChanged)} {nameof(_nextEffectDispatchTime)}: {oldNextEffectTime} -> {_nextEffectDispatchTime}");
+#endif
+        }
+
         void Update()
         {
             Run run = Run.instance;
@@ -147,8 +172,9 @@ namespace RiskOfChaos.EffectHandling
 
             if (run.GetRunStopwatch() >= _nextEffectDispatchTime)
             {
+                _lastEffectDispatchTime = _nextEffectDispatchTime;
                 _nextEffectDispatchTime += Configs.General.TimeBetweenEffects;
-
+                
                 dispatchRandomEffect();
             }
         }
