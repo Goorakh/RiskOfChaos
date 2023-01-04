@@ -121,6 +121,7 @@ namespace RiskOfChaos.EffectHandling
                     if (effectDispatcher.enabled)
                     {
                         Log.Warning("Starting run, but effect dispatcher is already enabled!");
+                        effectDispatcher.enabled = false;
                     }
 
                     effectDispatcher.enabled = true;
@@ -135,13 +136,15 @@ namespace RiskOfChaos.EffectHandling
         void Update()
         {
             Run run = Run.instance;
+            if (!run || run.isRunStopwatchPaused)
+                return;
+            
+            const float STAGE_START_OFFSET = 2f;
             Stage stage = Stage.instance;
-
-            if (!run || run.isRunStopwatchPaused || !stage)
+            if (!stage || stage.entryTime.timeSince < STAGE_START_OFFSET)
                 return;
 
-            const float STAGE_START_OFFSET = 2f;
-            if (run.GetRunStopwatch() >= _nextEffectDispatchTime && stage.entryTime.timeSince > STAGE_START_OFFSET)
+            if (run.GetRunStopwatch() >= _nextEffectDispatchTime)
             {
                 _nextEffectDispatchTime += Main.TimeBetweenEffects;
 
