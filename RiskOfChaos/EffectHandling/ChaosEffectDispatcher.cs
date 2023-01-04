@@ -170,7 +170,8 @@ namespace RiskOfChaos.EffectHandling
                 ChaosEffectInfo effect = weightedSelection.Evaluate(nextNormalizedFloat);
 
 #if DEBUG
-                Log.Debug($"effect {effect.Identifier} selected, weight={weightedSelection.GetChoice(weightedSelection.EvaluateToChoiceIndex(nextNormalizedFloat)).weight}");
+                float effectWeight = weightedSelection.GetChoice(weightedSelection.EvaluateToChoiceIndex(nextNormalizedFloat)).weight;
+                Log.Debug($"effect {effect.Identifier} selected, weight={effectWeight} ({effectWeight / weightedSelection.totalWeight:P} chance)");
 #endif
 
                 dispatchEffect(effect);
