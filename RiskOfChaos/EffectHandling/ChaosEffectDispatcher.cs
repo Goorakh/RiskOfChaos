@@ -182,7 +182,7 @@ namespace RiskOfChaos.EffectHandling
         [ConCommand(commandName = "roc_startrandom", flags = ConVarFlags.SenderMustBeServer, helpText = "Dispatches a random effect")]
         static void CCDispatchRandomEffect(ConCommandArgs args)
         {
-            if (!Run.instance || !_instance)
+            if (!NetworkServer.active || !Run.instance || !_instance || !_instance.enabled)
                 return;
 
             _instance.dispatchRandomEffect();
@@ -212,7 +212,7 @@ namespace RiskOfChaos.EffectHandling
         [ConCommand(commandName = "roc_start", flags = ConVarFlags.SenderMustBeServer, helpText = "Dispatches an effect")]
         static void CCDispatchEffect(ConCommandArgs args)
         {
-            if (!Run.instance || !_instance)
+            if (!NetworkServer.active || !Run.instance || !_instance || !_instance.enabled)
                 return;
 
             int index = ChaosEffectCatalog.FindEffectIndex(args[0], false);
