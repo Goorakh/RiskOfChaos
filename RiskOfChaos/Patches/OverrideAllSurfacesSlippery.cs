@@ -42,6 +42,8 @@ namespace RiskOfChaos.Patches
         {
             SyncOverrideEverythingSlippery.OnReceive += SyncOverrideEverythingSlippery_OnReceive;
             On.RoR2.CharacterMotor.OnGroundHit += CharacterMotor_OnGroundHit;
+
+            Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
         }
 
         static void SyncOverrideEverythingSlippery_OnReceive(bool overrideIsSlippery)
@@ -50,6 +52,11 @@ namespace RiskOfChaos.Patches
                 return;
 
             _isActive = overrideIsSlippery;
+        }
+
+        static void Run_onRunDestroyGlobal(Run _)
+        {
+            _isActive = false;
         }
 
         static void CharacterMotor_OnGroundHit(On.RoR2.CharacterMotor.orig_OnGroundHit orig, CharacterMotor self, Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, ref HitStabilityReport hitStabilityReport)
