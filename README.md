@@ -49,10 +49,12 @@ If you have any feedback or bug reports, please open a [GitHub issue](https://gi
 
 ## Changelog
 
-**(Next Version) Changes:**
+**0.5.0 Changes:**
 
 * Added Effect: Potrolling
 * Added Effect: Wet Floor
+
+* Fixed changing the time between effects config mid-run not applying properly
 
 **0.4.0 Changes:**
 
