@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectDefinitions;
+﻿using RiskOfChaos.Config;
+using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.Audio;
@@ -146,7 +147,7 @@ namespace RiskOfChaos.EffectHandling
 
             if (run.GetRunStopwatch() >= _nextEffectDispatchTime)
             {
-                _nextEffectDispatchTime += Main.TimeBetweenEffects;
+                _nextEffectDispatchTime += Configs.General.TimeBetweenEffects;
 
                 dispatchRandomEffect();
             }

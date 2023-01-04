@@ -1,13 +1,9 @@
 using BepInEx;
-using BepInEx.Configuration;
 using R2API.Utils;
+using RiskOfChaos.Config;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.Networking;
-using RiskOfOptions;
-using RiskOfOptions.OptionConfigs;
-using RiskOfOptions.Options;
 using System.Diagnostics;
-using UnityEngine;
 
 namespace RiskOfChaos
 {
@@ -25,24 +21,6 @@ namespace RiskOfChaos
         public const string PluginVersion = "0.4.0";
 
         internal static Main Instance;
-
-        static ConfigEntry<float> _timeBetweenEffects;
-        const float TIME_BETWEEN_EFFECTS_MIN_VALUE = 5f;
-        const float TIME_BETWEEN_EFFECTS_DEFAULT_VALUE = 60f;
-        public static float TimeBetweenEffects
-        {
-            get
-            {
-                if (_timeBetweenEffects != null)
-                {
-                    return Mathf.Max(_timeBetweenEffects.Value, TIME_BETWEEN_EFFECTS_MIN_VALUE);
-                }
-                else
-                {
-                    return TIME_BETWEEN_EFFECTS_DEFAULT_VALUE;
-                }
-            }
-        }
 
         void Awake()
         {
@@ -65,27 +43,9 @@ namespace RiskOfChaos
             stopwatch.Stop();
         }
 
-        static void initConfigs()
+        void initConfigs()
         {
-            // General
-            {
-                const string SECTION_NAME = "General";
-
-                const string GUID = $"RoC_Config_{SECTION_NAME}";
-                const string NAME = $"Risk of Chaos: {SECTION_NAME}";
-
-                _timeBetweenEffects = Instance.Config.Bind(new ConfigDefinition(SECTION_NAME, "Effect Timer"), TIME_BETWEEN_EFFECTS_DEFAULT_VALUE, new ConfigDescription($"How often new effects should happen"));
-                ModSettingsManager.AddOption(new StepSliderOption(_timeBetweenEffects, new StepSliderConfig
-                {
-                    formatString = "{0:F0}s",
-                    increment = 5f,
-                    min = TIME_BETWEEN_EFFECTS_MIN_VALUE,
-                    max = 60f * 5f
-                }), GUID, NAME);
-
-                // ModSettingsManager.SetModIcon(general_icon, GUID, NAME);
-                ModSettingsManager.SetModDescription("General config options for Risk of Chaos", GUID, NAME);
-            }
+            Configs.General.Init(Config);
 
             ChaosEffectCatalog.InitConfig();
         }
