@@ -10,6 +10,7 @@ namespace RiskOfChaos.Networking
         public static void RegisterMessages()
         {
             NetworkingAPI.RegisterMessageType<SyncSetGravity>();
+            NetworkingAPI.RegisterMessageType<SyncOverrideEverythingSlippery>();
         }
     }
 }
