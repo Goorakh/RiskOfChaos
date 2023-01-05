@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer combatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently includes 26 different effects.
+Currently includes 28 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -35,6 +35,8 @@ Currently includes 26 different effects.
 * Spawn Doppelganger: Triggers the Artifact of Vengeance event
 * Potrolling: Spawns a bunch of nice pots for you to roll
 * Wet Floor: Every surface is slippery. Lasts until end of current stage
+* Increase Chest Prices: Increases the cost of all interactables by a configurable amount (default +25%)
+* Decrease Chest Prices: decreases the cost of all interactables by a configurable amount (default -25%)
 </details>
 
 FAQ:
@@ -48,6 +50,11 @@ A: I failed art class __(If you have a better design in mind please let me know,
 If you have any feedback or bug reports, please open a [GitHub issue](https://github.com/Goorakh/RiskOfChaos/issues/new)
 
 ## Changelog
+
+**(Next Version) Changes:**
+
+* Added Effect: Increase Chest Prices
+* Added Effect: Decrease Chest Prices
 
 **0.5.0 Changes:**
 
