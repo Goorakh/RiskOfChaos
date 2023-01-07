@@ -1,7 +1,4 @@
 ﻿using RoR2;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 
 namespace RiskOfChaos.Trackers
@@ -24,6 +21,7 @@ namespace RiskOfChaos.Trackers
         }
 
         HealthComponent _healthComponent;
+        public HealthComponent HealthComponent => _healthComponent;
 
         void Awake()
         {
@@ -32,12 +30,12 @@ namespace RiskOfChaos.Trackers
 
         void OnEnable()
         {
-            InstanceTracker.Add(_healthComponent);
+            InstanceTracker.Add(this);
         }
 
         void OnDisable()
         {
-            InstanceTracker.Remove(_healthComponent);
+            InstanceTracker.Remove(this);
         }
     }
 }
