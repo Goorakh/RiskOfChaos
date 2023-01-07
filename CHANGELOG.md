@@ -4,6 +4,7 @@
 
 * Added Effect: Increase Chest Prices
 * Added Effect: Decrease Chest Prices
+* Added Effect: Spawn Void Implosion
 
 **0.5.0 Changes:**
 

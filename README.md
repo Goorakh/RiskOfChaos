@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer combatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently includes 28 different effects.
+Currently includes 29 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -36,7 +36,8 @@ Currently includes 28 different effects.
 * Potrolling: Spawns a bunch of nice pots for you to roll
 * Wet Floor: Every surface is slippery. Lasts until end of current stage
 * Increase Chest Prices: Increases the cost of all interactables by a configurable amount (default +25%)
-* Decrease Chest Prices: decreases the cost of all interactables by a configurable amount (default -25%)
+* Decrease Chest Prices: Decreases the cost of all interactables by a configurable amount (default -25%)
+* Spawn Void Implosion: Spawns a random void implosion on every player
 </details>
 
 FAQ:
