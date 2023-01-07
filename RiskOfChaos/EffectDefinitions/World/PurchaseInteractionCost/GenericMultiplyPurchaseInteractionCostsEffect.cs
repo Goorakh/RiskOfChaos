@@ -21,6 +21,10 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
                     case CostTypeIndex.LunarCoin:
                     case CostTypeIndex.VoidCoin:
                         purchaseInteraction.ScaleCost(multiplier);
+
+                        if (purchaseInteraction.cost <= 0)
+                            purchaseInteraction.Networkcost = 1;
+                        
                         break;
                 }
             }
