@@ -31,7 +31,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             {
                 foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
                 {
-                    Vector3 randomOffset = RNG.PointInUnitSphere() * RNG.RangeFloat(1f, 4f);
+                    Vector3 randomOffset = RNG.PointOnUnitSphere() * RNG.RangeFloat(0f, 4f);
                     GameObject pot = GameObject.Instantiate(_potPrefab, playerBody.corePosition + spawnPositionOffset + randomOffset, RNG.RandomRotation());
                     NetworkServer.Spawn(pot);
                 }
