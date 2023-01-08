@@ -1,11 +1,9 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using HG;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -33,7 +31,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             {
                 foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
                 {
-                    Vector3 randomOffset = RNG.RandomPointInUnitSphere() * RNG.RangeFloat(1f, 4f);
+                    Vector3 randomOffset = RNG.PointInUnitSphere() * RNG.RangeFloat(1f, 4f);
                     GameObject pot = GameObject.Instantiate(_potPrefab, playerBody.corePosition + spawnPositionOffset + randomOffset, RNG.RandomRotation());
                     NetworkServer.Spawn(pot);
                 }
