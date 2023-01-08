@@ -32,5 +32,6 @@
 		"EFFECT_INCREASE_INTERACTABLE_COSTS_NAME": "+{0:P0} Chest Prices",
 		"EFFECT_DECREASE_INTERACTABLE_COSTS_NAME": "-{0:P0} Chest Prices",
 		"EFFECT_SPAWN_VOID_IMPLOSION_NAME": "Spawn Void Implosion",
+		"EFFECT_LAUNCH_EVERYONE_NAME": "Launch Everyone in Random Directions",
 	}
 }

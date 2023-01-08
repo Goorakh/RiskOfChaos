@@ -5,6 +5,7 @@
 * Added Effect: Increase Chest Prices
 * Added Effect: Decrease Chest Prices
 * Added Effect: Spawn Void Implosion
+* Added Effect: Launch Everyone in Random Directions
 
 * Drop All Items: Decreased chance of the effect happening many times per run
 
