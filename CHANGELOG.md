@@ -6,6 +6,8 @@
 * Added Effect: Decrease Chest Prices
 * Added Effect: Spawn Void Implosion
 
+* Drop All Items: Decreased chance of the effect happening many times per run
+
 **0.5.0 Changes:**
 
 * Added Effect: Potrolling
