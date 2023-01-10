@@ -23,8 +23,10 @@ namespace RiskOfChaos.EffectDefinitions.World
             if (!body)
                 return;
 
+            CharacterMotor characterMotor = body.characterMotor;
+
             Vector3 direction;
-            if (body.isFlying)
+            if (!characterMotor || characterMotor.isFlying || !characterMotor.isGrounded)
             {
                 direction = RNG.PointOnUnitSphere();
             }
