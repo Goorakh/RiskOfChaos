@@ -254,7 +254,7 @@ namespace RiskOfChaos.EffectHandling
 
         static void playEffectActivatedSoundOnAllPlayerBodies()
         {
-            uint soundEventID = AkSoundEngine.GetIDFromString("Play_env_hiddenLab_laptop_sequence_fail");
+            AkEventIdArg soundEventID = AkSoundEngine.GetIDFromString("Play_env_hiddenLab_laptop_sequence_fail");
             foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
             {
                 EntitySoundManager.EmitSoundServer(soundEventID, playerBody.gameObject);
