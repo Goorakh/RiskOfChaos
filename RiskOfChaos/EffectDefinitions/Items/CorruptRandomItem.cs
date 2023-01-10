@@ -17,7 +17,7 @@ namespace RiskOfChaos.EffectDefinitions.Items
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return ExpansionUtils.IsExpansionEnabled(ExpansionUtils.DLC1_NAME) && PlayerUtils.GetAllPlayerMasters(false).Any(m => getAllCorruptableItems(m.inventory).Any());
+            return ExpansionUtils.DLC1Enabled && PlayerUtils.GetAllPlayerMasters(false).Any(m => getAllCorruptableItems(m.inventory).Any());
         }
 
         static IEnumerable<ItemIndex> getAllCorruptableItems(Inventory inventory)

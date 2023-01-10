@@ -19,12 +19,12 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return _nullifierDeathBombProjectilePrefab && (_megaCrabDeathBombProjectilePrefab || !ExpansionUtils.IsExpansionEnabled(ExpansionUtils.DLC1_NAME));
+            return _nullifierDeathBombProjectilePrefab && (_megaCrabDeathBombProjectilePrefab || !ExpansionUtils.DLC1Enabled);
         }
 
         public override void OnStart()
         {
-            bool dlc1Enabled = ExpansionUtils.IsExpansionEnabled(ExpansionUtils.DLC1_NAME);
+            bool dlc1Enabled = ExpansionUtils.DLC1Enabled;
 
             foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
             {

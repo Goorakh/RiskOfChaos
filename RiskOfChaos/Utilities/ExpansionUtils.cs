@@ -2,6 +2,7 @@
 using RoR2.ExpansionManagement;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace RiskOfChaos.Utilities
@@ -9,6 +10,12 @@ namespace RiskOfChaos.Utilities
     public static class ExpansionUtils
     {
         public const string DLC1_NAME = "DLC1";
+
+        public static bool DLC1Enabled
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => IsExpansionEnabled(DLC1_NAME);
+        }
 
         public static ExpansionDef FindExpansionDef(string name)
         {
