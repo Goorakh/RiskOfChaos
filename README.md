@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer combatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently includes 30 different effects.
+Currently includes 31 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -39,6 +39,7 @@ Currently includes 30 different effects.
 * Decrease Chest Prices: Decreases the cost of all interactables by a configurable amount (default -25%)
 * Spawn Void Implosion: Spawns a random void implosion on every player
 * Launch Everyone in Random Directions: Launches all characters in a random direction with a random force
+* Touch Void: Makes every non-player on the stage into a voidtouched elite (including allies)
 </details>
 
 FAQ:
