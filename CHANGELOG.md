@@ -9,6 +9,8 @@
 
 * Drop All Items: Decreased chance of the effect happening many times per run
 
+* Added config entries for effect weight reduction per activation (decrease likelihood of effect activating many times)
+
 **0.5.0 Changes:**
 
 * Added Effect: Potrolling
