@@ -56,7 +56,7 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
-        public readonly float EffectWeightReductionPerActivation;
+        public readonly float EffectWeightMultiplierPerActivation;
         public readonly EffectActivationCountMode EffectRepetitionWeightCalculationMode;
 
         public readonly int HardActivationCountCap;
@@ -69,7 +69,7 @@ namespace RiskOfChaos.EffectHandling
         {
             get
             {
-                float weight = Mathf.Pow(EffectWeightReductionPerActivation, ActivationCount) * SelectionWeightConfig.Value;
+                float weight = Mathf.Pow(EffectWeightMultiplierPerActivation, ActivationCount) * SelectionWeightConfig.Value;
 
                 if (_weightMultSelectorMethods != null)
                 {
@@ -133,7 +133,7 @@ namespace RiskOfChaos.EffectHandling
                 Log.Error($"attribute target is not a Type ({attribute.target})");
             }
 
-            EffectWeightReductionPerActivation = 1f - (attribute.EffectWeightReductionPercentagePerActivation / 100f);
+            EffectWeightMultiplierPerActivation = 1f - (attribute.EffectWeightReductionPercentagePerActivation / 100f);
             EffectRepetitionWeightCalculationMode = attribute.EffectRepetitionWeightCalculationMode;
 
             HardActivationCountCap = attribute.EffectActivationCountHardCap;
