@@ -13,7 +13,7 @@ namespace RiskOfChaos.EffectHandling
 
         public float DefaultSelectionWeight { get; set; } = 1f;
 
-        public float EffectRepetitionWeightExponent { get; set; } = 7f;
+        public float EffectWeightReductionPercentagePerActivation { get; set; } = 5f;
 
         public EffectActivationCountMode EffectRepetitionWeightCalculationMode { get; set; } = EffectActivationCountMode.PerStage;
 

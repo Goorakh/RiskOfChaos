@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
-    [ChaosEffect(EFFECT_ID, EffectRepetitionWeightExponent = 0f)]
+    [ChaosEffect(EFFECT_ID, EffectWeightReductionPercentagePerActivation = 0f)]
     public class GiveMoney : BaseEffect
     {
         const string EFFECT_ID = "GiveMoney";

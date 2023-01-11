@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Items
 {
-    [ChaosEffect("DropAllItems", EffectRepetitionWeightExponent = 12f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
+    [ChaosEffect("DropAllItems", EffectWeightReductionPercentagePerActivation = 12f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
     public class DropAllItems : BaseEffect
     {
         [EffectCanActivate]

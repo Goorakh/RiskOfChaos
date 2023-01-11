@@ -10,7 +10,7 @@ using System.Runtime.CompilerServices;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect(EFFECT_ID, EffectRepetitionWeightExponent = 20f)]
+    [ChaosEffect(EFFECT_ID, EffectWeightReductionPercentagePerActivation = 20f)]
     public class EnableRandomArtifact : BaseEffect
     {
         const string EFFECT_ID = "EnableRandomArtifact";

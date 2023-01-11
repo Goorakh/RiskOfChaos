@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Items
 {
-    [ChaosEffect(EFFECT_ID, EffectRepetitionWeightExponent = 0f)]
+    [ChaosEffect(EFFECT_ID, EffectWeightReductionPercentagePerActivation = 0f)]
     public class GiveRandomItem : BaseEffect
     {
         const string EFFECT_ID = "GiveRandomItem";

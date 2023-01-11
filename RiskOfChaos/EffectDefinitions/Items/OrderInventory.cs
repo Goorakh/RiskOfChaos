@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Items
 {
-    [ChaosEffect("OrderInventory", DefaultSelectionWeight = 0.2f, EffectRepetitionWeightExponent = 100f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
+    [ChaosEffect("OrderInventory", DefaultSelectionWeight = 0.2f, EffectWeightReductionPercentagePerActivation = 60f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
     public class OrderInventory : BaseEffect
     {
         [EffectCanActivate]

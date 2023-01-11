@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect(EFFECT_ID, ConfigName = "Add Mountain Shrine", EffectRepetitionWeightExponent = 20f)]
+    [ChaosEffect(EFFECT_ID, ConfigName = "Add Mountain Shrine", EffectWeightReductionPercentagePerActivation = 20f)]
     public class MountainShrineAdd : BaseEffect
     {
         const string EFFECT_ID = "MountainShrineAdd";

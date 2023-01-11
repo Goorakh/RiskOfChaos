@@ -13,7 +13,7 @@ using System.Collections;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
-    [ChaosEffect(EFFECT_ID, EffectRepetitionWeightExponent = 20f)]
+    [ChaosEffect(EFFECT_ID, EffectWeightReductionPercentagePerActivation = 20f)]
     public class SpawnWarbanner : CoroutineEffect
     {
         const string EFFECT_ID = "SpawnWarbanner";

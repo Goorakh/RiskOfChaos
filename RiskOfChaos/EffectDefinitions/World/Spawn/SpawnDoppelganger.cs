@@ -6,7 +6,7 @@ using System.Text;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
-    [ChaosEffect("spawn_doppelganger", DefaultSelectionWeight = 0.8f, EffectRepetitionWeightExponent = 30f)]
+    [ChaosEffect("spawn_doppelganger", DefaultSelectionWeight = 0.8f, EffectWeightReductionPercentagePerActivation = 30f)]
     public class SpawnDoppelganger : BaseEffect
     {
         public override void OnStart()

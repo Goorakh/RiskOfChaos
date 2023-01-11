@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect(EFFECT_ID, EffectRepetitionWeightExponent = 35f)]
+    [ChaosEffect(EFFECT_ID, EffectWeightReductionPercentagePerActivation = 35f)]
     public class IncreaseDirectorCredits : BaseEffect
     {
         const string EFFECT_ID = "IncreaseDirectorCredits";
