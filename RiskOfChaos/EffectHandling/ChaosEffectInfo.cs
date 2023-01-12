@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectHandling
@@ -69,7 +70,11 @@ namespace RiskOfChaos.EffectHandling
         public readonly int HardActivationCountCap;
         public readonly bool HasHardActivationCountCap => HardActivationCountCap >= 0;
 
-        public int ActivationCount => ChaosEffectDispatcher.GetEffectActivationCount(EffectIndex, EffectRepetitionCountMode);
+        public int ActivationCount
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => GetActivationCount(EffectRepetitionCountMode);
+        }
 
         readonly MethodInfo[] _weightMultSelectorMethods;
         public float TotalSelectionWeight
@@ -153,6 +158,12 @@ namespace RiskOfChaos.EffectHandling
 
             _effectRepetitionCountModeDefaultValue = attribute.EffectRepetitionWeightCalculationMode;
             _effectRepetitionCountMode = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Repetition Count Mode"), _effectRepetitionCountModeDefaultValue, new ConfigDescription($"Controls how the Reduction Percentage will be applied.\n\n{nameof(EffectActivationCountMode.PerStage)}: Only the activations on the current stage are considered, and the weight reduction is reset on stage start.\n\n{nameof(EffectActivationCountMode.PerRun)}: All activations during the current run are considered."));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly int GetActivationCount(EffectActivationCountMode countMode)
+        {
+            return ChaosEffectDispatcher.GetEffectActivationCount(EffectIndex, countMode);
         }
 
         public readonly void AddRiskOfOptionsEntries()
