@@ -7,6 +7,7 @@
 * Added Effect: Spawn Void Implosion
 * Added Effect: Launch Everyone in Random Directions
 * Added Effect: Touch Void
+* Added Effect: Duplicate Random Item Stack
 
 * Drop All Items: Decreased chance of the effect happening many times per run
 
