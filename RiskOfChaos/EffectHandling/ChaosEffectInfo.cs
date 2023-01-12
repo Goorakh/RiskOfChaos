@@ -20,7 +20,6 @@ namespace RiskOfChaos.EffectHandling
         public readonly string Identifier;
 
         public readonly string NameToken;
-        // public readonly string DescriptionToken;
 
         public readonly Type EffectType;
 
@@ -118,7 +117,6 @@ namespace RiskOfChaos.EffectHandling
             Identifier = attribute.Identifier;
 
             NameToken = $"EFFECT_{Identifier.ToUpper()}_NAME";
-            // DescriptionToken = attribute.HasDescription ? $"EFFECT_{Identifier.ToUpper()}_DESC" : null;
 
             if (attribute.target is Type effectType)
             {

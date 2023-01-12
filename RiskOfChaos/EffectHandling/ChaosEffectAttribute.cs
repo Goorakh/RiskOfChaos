@@ -9,8 +9,6 @@ namespace RiskOfChaos.EffectHandling
 
         public string ConfigName { get; set; } = null;
 
-        // public bool HasDescription { get; set; }
-
         public float DefaultSelectionWeight { get; set; } = 1f;
 
         public float EffectWeightReductionPercentagePerActivation { get; set; } = 5f;
