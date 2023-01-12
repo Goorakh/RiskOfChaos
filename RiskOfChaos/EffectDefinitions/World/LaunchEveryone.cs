@@ -48,7 +48,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             {
                 PhysForceInfo physForceInfo = PhysForceInfo.Create();
                 physForceInfo.force = force;
-                physForceInfo.disableAirControlUntilCollision = true;
+                physForceInfo.disableAirControlUntilCollision = false;
                 physForceInfo.ignoreGroundStick = true;
                 physForceInfo.massIsOne = true;
 
