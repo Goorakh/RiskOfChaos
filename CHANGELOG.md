@@ -1,6 +1,6 @@
 ## Changelog
 
-**(Next Version) Changes:**
+**0.6.0 Changes:**
 
 * Added Effect: Increase Chest Prices
 * Added Effect: Decrease Chest Prices
@@ -11,7 +11,7 @@
 
 * Drop All Items: Decreased chance of the effect happening many times per run
 
-* Added config entries for effect weight reduction per activation (decrease likelihood of effect activating many times)
+* Added config entries for effect weight reduction per activation (decrease likelyhood of effect activating many times)
 
 **0.5.0 Changes:**
 
