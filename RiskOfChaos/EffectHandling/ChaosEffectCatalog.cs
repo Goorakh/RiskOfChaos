@@ -34,7 +34,7 @@ namespace RiskOfChaos.EffectHandling
         {
             _effects = HG.Reflection.SearchableAttribute.GetInstances<ChaosEffectAttribute>()
                                                         .Cast<ChaosEffectAttribute>()
-                                                        .OrderBy(static e => e.Identifier)
+                                                        .OrderBy(static e => e.Identifier, StringComparer.OrdinalIgnoreCase)
                                                         .Select(static (e, i) => e.BuildEffectInfo(i))
                                                         .ToArray();
 
@@ -44,6 +44,31 @@ namespace RiskOfChaos.EffectHandling
             {
                 effectInfo.AddRiskOfOptionsEntries();
             }
+
+#if DEBUG
+            for (uint i = 0; i < _effectCount; i++)
+            {
+                ChaosEffectInfo effectInfo = GetEffectInfo(i);
+
+                if (FindEffectIndex(effectInfo.Identifier) == i)
+                {
+                    Log.Debug($"Effect Find Test: {effectInfo.Identifier} passed case-sensitive check");
+                }
+                else
+                {
+                    Log.Error($"Effect Find Test: {effectInfo.Identifier} failed case-sensitive check");
+                }
+
+                if (FindEffectIndex(effectInfo.Identifier.ToLower()) == i)
+                {
+                    Log.Debug($"Effect Find Test: {effectInfo.Identifier} passed case-insensitive check");
+                }
+                else
+                {
+                    Log.Error($"Effect Find Test: {effectInfo.Identifier} failed case-insensitive check");
+                }
+            }
+#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -58,24 +83,16 @@ namespace RiskOfChaos.EffectHandling
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int FindEffectIndex(string identifier, bool caseSensitive = true)
+        public static int FindEffectIndex(string identifier)
         {
-            return findEffectIndex(identifier, caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
-        }
+            int index = Array.BinarySearch(_effects, identifier, new ChaosEffectInfoIdentityComparer());
 
-        static int findEffectIndex(string identifier, StringComparison comparisonMode)
-        {
-            for (int i = 0; i < _effects.Length; i++)
+            if (index < 0)
             {
-                if (string.Equals(_effects[i].Identifier, identifier, comparisonMode))
-                {
-                    return i;
-                }
+                Log.Warning($"unable to find effect index for identifier '{identifier}'");
             }
 
-            Log.Warning($"unable to find effect index for identifier '{identifier}'");
-
-            return -1;
+            return index;
         }
 
         internal static string GetConfigSectionName(string effectIdentifier)

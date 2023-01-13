@@ -216,7 +216,7 @@ namespace RiskOfChaos.EffectHandling
             if (!NetworkServer.active || !Run.instance || !_instance || !_instance.enabled)
                 return;
 
-            int index = ChaosEffectCatalog.FindEffectIndex(args[0], false);
+            int index = ChaosEffectCatalog.FindEffectIndex(args[0]);
             if (index >= 0)
             {
                 _instance.dispatchEffect(ChaosEffectCatalog.GetEffectInfo((uint)index));
