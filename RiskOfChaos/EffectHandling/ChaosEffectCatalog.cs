@@ -77,12 +77,12 @@ namespace RiskOfChaos.EffectHandling
             return new T[_effectCount];
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ChaosEffectInfo GetEffectInfo(uint effectIndex)
         {
             return ArrayUtils.GetSafe(_effects, (int)effectIndex);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int FindEffectIndex(string identifier)
         {
             int index = Array.BinarySearch(_effects, identifier, new ChaosEffectInfoIdentityComparer());
