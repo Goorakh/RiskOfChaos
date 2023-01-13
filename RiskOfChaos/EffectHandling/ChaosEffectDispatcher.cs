@@ -193,22 +193,21 @@ namespace RiskOfChaos.EffectHandling
         void dispatchRandomEffect()
         {
             WeightedSelection<ChaosEffectInfo> weightedSelection = ChaosEffectCatalog.GetAllActivatableEffects();
-            if (weightedSelection.Count > 0)
-            {
-                float nextNormalizedFloat = _nextEffectRNG.nextNormalizedFloat;
-                ChaosEffectInfo effect = weightedSelection.Evaluate(nextNormalizedFloat);
-
-#if DEBUG
-                float effectWeight = weightedSelection.GetChoice(weightedSelection.EvaluateToChoiceIndex(nextNormalizedFloat)).weight;
-                Log.Debug($"effect {effect.Identifier} selected, weight={effectWeight} ({effectWeight / weightedSelection.totalWeight:P} chance)");
-#endif
-
-                dispatchEffect(effect);
-            }
-            else
+            if (weightedSelection.Count <= 0)
             {
                 Log.Error("No activatable effect!");
+                return;
             }
+
+            float nextNormalizedFloat = _nextEffectRNG.nextNormalizedFloat;
+            ChaosEffectInfo effect = weightedSelection.Evaluate(nextNormalizedFloat);
+
+#if DEBUG
+            float effectWeight = weightedSelection.GetChoice(weightedSelection.EvaluateToChoiceIndex(nextNormalizedFloat)).weight;
+            Log.Debug($"effect {effect.Identifier} selected, weight={effectWeight} ({effectWeight / weightedSelection.totalWeight:P} chance)");
+#endif
+
+            dispatchEffect(effect);
         }
 
         [ConCommand(commandName = "roc_start", flags = ConVarFlags.SenderMustBeServer, helpText = "Dispatches an effect")]
