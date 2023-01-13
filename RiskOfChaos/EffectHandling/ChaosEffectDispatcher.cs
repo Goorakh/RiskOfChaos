@@ -31,6 +31,8 @@ namespace RiskOfChaos.EffectHandling
 
         static ChaosEffectActivationCounter[] _effectActivationCounts;
 
+        static readonly AkEventIdArg _effectActivationSoundEventID = AkSoundEngine.GetIDFromString("Play_env_hiddenLab_laptop_sequence_fail");
+
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void InitEffectActivationCounter()
         {
@@ -254,10 +256,9 @@ namespace RiskOfChaos.EffectHandling
 
         static void playEffectActivatedSoundOnAllPlayerBodies()
         {
-            AkEventIdArg soundEventID = AkSoundEngine.GetIDFromString("Play_env_hiddenLab_laptop_sequence_fail");
             foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
             {
-                EntitySoundManager.EmitSoundServer(soundEventID, playerBody.gameObject);
+                EntitySoundManager.EmitSoundServer(_effectActivationSoundEventID, playerBody.gameObject);
             }
         }
 
