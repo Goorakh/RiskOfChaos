@@ -204,5 +204,10 @@ namespace RiskOfChaos.EffectHandling
         {
             return Language.GetStringFormatted("CHAOS_EFFECT_ACTIVATE", DisplayName);
         }
+
+        public override readonly string ToString()
+        {
+            return Identifier;
+        }
     }
 }
