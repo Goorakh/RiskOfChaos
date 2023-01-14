@@ -23,7 +23,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 #if DEBUG
         static SpawnWarbanner()
         {
-            Log.Debug($".cctor called, {nameof(_warbannerPrefab)}={_warbannerPrefab}");
+            Log.Debug($"{nameof(_warbannerPrefab)}={_warbannerPrefab}");
         }
 #endif
 
