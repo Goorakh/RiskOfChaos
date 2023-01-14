@@ -50,20 +50,12 @@ namespace RiskOfChaos.EffectHandling
             {
                 ChaosEffectInfo effectInfo = GetEffectInfo(i);
 
-                if (FindEffectIndex(effectInfo.Identifier) == i)
-                {
-                    Log.Debug($"Effect Find Test: {effectInfo.Identifier} passed case-sensitive check");
-                }
-                else
+                if (FindEffectIndex(effectInfo.Identifier) != i)
                 {
                     Log.Error($"Effect Find Test: {effectInfo.Identifier} failed case-sensitive check");
                 }
 
-                if (FindEffectIndex(effectInfo.Identifier.ToLower()) == i)
-                {
-                    Log.Debug($"Effect Find Test: {effectInfo.Identifier} passed case-insensitive check");
-                }
-                else
+                if (FindEffectIndex(effectInfo.Identifier.ToLower()) != i)
                 {
                     Log.Error($"Effect Find Test: {effectInfo.Identifier} failed case-insensitive check");
                 }
