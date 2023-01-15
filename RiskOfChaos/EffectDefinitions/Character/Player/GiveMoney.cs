@@ -51,17 +51,22 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void InitConfig()
         {
-            string configSectionName = ChaosEffectCatalog.GetConfigSectionName(EFFECT_ID);
+            string configSectionName = getConfigSectionName(EFFECT_ID);
+            if (string.IsNullOrEmpty(configSectionName))
+            {
+                Log.Error(ERROR_INVALID_CONFIG_SECTION_NAME);
+                return;
+            }
 
             _amountToGive = Main.Instance.Config.Bind(new ConfigDefinition(configSectionName, "Base Amount to Give"), AMOUNT_TO_GIVE_DEFAULT_VALUE, new ConfigDescription("The base amount of money to give to all players"));
-            ChaosEffectCatalog.AddEffectConfigOption(new IntSliderOption(_amountToGive, new IntSliderConfig
+            addConfigOption(new IntSliderOption(_amountToGive, new IntSliderConfig
             {
                 min = 0,
                 max = 1000
             }));
 
             _useDifficultyScaling = Main.Instance.Config.Bind(new ConfigDefinition(configSectionName, "Scale Amount with Difficulty"), USE_DIFFICULTY_SCALING_DEFAULT_VALUE, new ConfigDescription("If the amount given should be scaled by difficulty. If this option is enabled, setting the amount to 25 will always give enough money for a regular chest for example"));
-            ChaosEffectCatalog.AddEffectConfigOption(new CheckBoxOption(_useDifficultyScaling));
+            addConfigOption(new CheckBoxOption(_useDifficultyScaling));
         }
 
         public override void OnStart()

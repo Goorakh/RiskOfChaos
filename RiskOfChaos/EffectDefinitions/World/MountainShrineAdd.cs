@@ -13,18 +13,21 @@ namespace RiskOfChaos.EffectDefinitions.World
     {
         const string EFFECT_ID = "MountainShrineAdd";
 
-        static string _configSectionName;
-
         static ConfigEntry<int> _numShrinesPerActivation;
         static int numShrinesPerActivation => _numShrinesPerActivation?.Value ?? 2;
 
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            _configSectionName = ChaosEffectCatalog.GetConfigSectionName(EFFECT_ID);
+            string configSectionName = getConfigSectionName(EFFECT_ID);
+            if (string.IsNullOrEmpty(configSectionName))
+            {
+                Log.Error(ERROR_INVALID_CONFIG_SECTION_NAME);
+                return;
+            }
 
-            _numShrinesPerActivation = Main.Instance.Config.Bind(new ConfigDefinition(_configSectionName, "Shrines per Activation"), 2, new ConfigDescription("The amount of mountain shrines to activate each time this effect is activated"));
-            ChaosEffectCatalog.AddEffectConfigOption(new IntSliderOption(_numShrinesPerActivation, new IntSliderConfig
+            _numShrinesPerActivation = Main.Instance.Config.Bind(new ConfigDefinition(configSectionName, "Shrines per Activation"), 2, new ConfigDescription("The amount of mountain shrines to activate each time this effect is activated"));
+            addConfigOption(new IntSliderOption(_numShrinesPerActivation, new IntSliderConfig
             {
                 min = 1,
                 max = 10

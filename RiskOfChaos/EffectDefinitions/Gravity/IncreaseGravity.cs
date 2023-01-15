@@ -16,8 +16,6 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
     {
         const string EFFECT_ID = "IncreaseGravity";
 
-        static string _configSectionName;
-
         const float GRAVITY_INCREASE_DEFAULT_VALUE = 0.5f;
 
         static ConfigEntry<float> _gravityIncrease;
@@ -26,10 +24,15 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void InitConfigs()
         {
-            _configSectionName = ChaosEffectCatalog.GetConfigSectionName(EFFECT_ID);
+            string configSectionName = getConfigSectionName(EFFECT_ID);
+            if (string.IsNullOrEmpty(configSectionName))
+            {
+                Log.Error(ERROR_INVALID_CONFIG_SECTION_NAME);
+                return;
+            }
 
-            _gravityIncrease = Main.Instance.Config.Bind(new ConfigDefinition(_configSectionName, "Increase per Activation"), GRAVITY_INCREASE_DEFAULT_VALUE, new ConfigDescription("How much gravity should increase per effect activation, 50% means the gravity is multiplied by 1.5, 100% means the gravity is multiplied by 2, etc."));
-            ChaosEffectCatalog.AddEffectConfigOption(new StepSliderOption(_gravityIncrease, new StepSliderConfig
+            _gravityIncrease = Main.Instance.Config.Bind(new ConfigDefinition(configSectionName, "Increase per Activation"), GRAVITY_INCREASE_DEFAULT_VALUE, new ConfigDescription("How much gravity should increase per effect activation, 50% means the gravity is multiplied by 1.5, 100% means the gravity is multiplied by 2, etc."));
+            addConfigOption(new StepSliderOption(_gravityIncrease, new StepSliderConfig
             {
                 min = 0f,
                 max = 1f,

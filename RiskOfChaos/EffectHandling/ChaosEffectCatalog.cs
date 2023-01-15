@@ -96,7 +96,7 @@ namespace RiskOfChaos.EffectHandling
             if (index < 0)
             {
                 Log.Error($"unable to find index for identifier {effectIdentifier}");
-                return "UNKNOWN";
+                return null;
             }
 
             return GetEffectInfo((uint)index).ConfigSectionName;

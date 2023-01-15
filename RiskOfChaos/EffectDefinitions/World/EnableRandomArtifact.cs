@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using RiskOfOptions.OptionConfigs;
 using System.Runtime.CompilerServices;
+using System;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
@@ -33,7 +34,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 string artifactName = Language.GetString(artifactDef.nameToken, "en");
 
                 SelectionWeight = Main.Instance.Config.Bind(new ConfigDefinition(_configSectionName, $"{artifactName} Weight"), 1f, new ConfigDescription($"How likely the {artifactName} is to be picked, higher value means more likely, lower value means less likely.\n\nA value of 0 will exclude it completely"));
-                ChaosEffectCatalog.AddEffectConfigOption(new StepSliderOption(SelectionWeight, new StepSliderConfig
+                addConfigOption(new StepSliderOption(SelectionWeight, new StepSliderConfig
                 {
                     formatString = "{0:F1}",
                     increment = 0.1f,
@@ -55,7 +56,13 @@ namespace RiskOfChaos.EffectDefinitions.World
         [SystemInitializer(typeof(ArtifactCatalog), typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            _configSectionName = ChaosEffectCatalog.GetConfigSectionName(EFFECT_ID);
+            _configSectionName = getConfigSectionName(EFFECT_ID);
+            if (string.IsNullOrEmpty(_configSectionName))
+            {
+                _artifactConfigs = Array.Empty<ArtifactConfig>();
+                Log.Error(ERROR_INVALID_CONFIG_SECTION_NAME);
+                return;
+            }
 
             _artifactConfigs = new ArtifactConfig[ArtifactCatalog.artifactCount];
             for (int i = 0; i < ArtifactCatalog.artifactCount; i++)

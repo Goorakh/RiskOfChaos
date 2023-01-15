@@ -15,8 +15,6 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
     {
         const string EFFECT_ID = "DecreaseGravity";
 
-        static string _configSectionName;
-
         const float GRAVITY_DECREASE_DEFAULT_VALUE = 0.5f;
 
         static ConfigEntry<float> _gravityDecrease;
@@ -25,10 +23,15 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            _configSectionName = ChaosEffectCatalog.GetConfigSectionName(EFFECT_ID);
+            string configSectionName = getConfigSectionName(EFFECT_ID);
+            if (string.IsNullOrEmpty(configSectionName))
+            {
+                Log.Error(ERROR_INVALID_CONFIG_SECTION_NAME);
+                return;
+            }
 
-            _gravityDecrease = Main.Instance.Config.Bind(new ConfigDefinition(_configSectionName, "Decrease per Activation"), GRAVITY_DECREASE_DEFAULT_VALUE, new ConfigDescription("How much gravity should decrease per effect activation, 50% means the gravity is multiplied by 0.5, 100% means the gravity is reduced to 0, 0% means gravity doesn't change at all. etc."));
-            ChaosEffectCatalog.AddEffectConfigOption(new StepSliderOption(_gravityDecrease, new StepSliderConfig
+            _gravityDecrease = Main.Instance.Config.Bind(new ConfigDefinition(configSectionName, "Decrease per Activation"), GRAVITY_DECREASE_DEFAULT_VALUE, new ConfigDescription("How much gravity should decrease per effect activation, 50% means the gravity is multiplied by 0.5, 100% means the gravity is reduced to 0, 0% means gravity doesn't change at all. etc."));
+            addConfigOption(new StepSliderOption(_gravityDecrease, new StepSliderConfig
             {
                 min = 0f,
                 max = 1f,
