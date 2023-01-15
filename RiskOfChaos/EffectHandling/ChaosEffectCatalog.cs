@@ -40,27 +40,30 @@ namespace RiskOfChaos.EffectHandling
 
             _effectCount = _effects.Length;
 
-            foreach (ChaosEffectInfo effectInfo in _effects.OrderBy(ei => ei.ConfigSectionName))
+            checkFindEffectIndex();
+
+            foreach (ChaosEffectInfo effectInfo in _effects.OrderBy(ei => ei.ConfigSectionName, StringComparer.OrdinalIgnoreCase))
             {
                 effectInfo.AddRiskOfOptionsEntries();
             }
+        }
 
-#if DEBUG
-            for (uint i = 0; i < _effectCount; i++)
+        static void checkFindEffectIndex()
+        {
+            for (uint effectIndex = 0; effectIndex < _effectCount; effectIndex++)
             {
-                ChaosEffectInfo effectInfo = GetEffectInfo(i);
+                ChaosEffectInfo effectInfo = GetEffectInfo(effectIndex);
 
-                if (FindEffectIndex(effectInfo.Identifier) != i)
+                if (FindEffectIndex(effectInfo.Identifier) != effectIndex)
                 {
                     Log.Error($"Effect Find Test: {effectInfo.Identifier} failed case-sensitive check");
                 }
 
-                if (FindEffectIndex(effectInfo.Identifier.ToLower()) != i)
+                if (FindEffectIndex(effectInfo.Identifier.ToUpper()) != effectIndex)
                 {
                     Log.Error($"Effect Find Test: {effectInfo.Identifier} failed case-insensitive check");
                 }
             }
-#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
