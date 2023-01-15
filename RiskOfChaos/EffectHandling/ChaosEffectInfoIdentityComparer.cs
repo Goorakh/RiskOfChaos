@@ -5,6 +5,12 @@ namespace RiskOfChaos.EffectHandling
 {
     public class ChaosEffectInfoIdentityComparer : IComparer
     {
+        public static readonly ChaosEffectInfoIdentityComparer Instance = new ChaosEffectInfoIdentityComparer();
+
+        ChaosEffectInfoIdentityComparer()
+        {
+        }
+
         public int Compare(object x, object y)
         {
             if (x is ChaosEffectInfo effectInfo)

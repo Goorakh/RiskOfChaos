@@ -77,7 +77,7 @@ namespace RiskOfChaos.EffectHandling
 
         public static int FindEffectIndex(string identifier)
         {
-            int index = Array.BinarySearch(_effects, identifier, new ChaosEffectInfoIdentityComparer());
+            int index = Array.BinarySearch(_effects, identifier, ChaosEffectInfoIdentityComparer.Instance);
 
             if (index < 0)
             {
