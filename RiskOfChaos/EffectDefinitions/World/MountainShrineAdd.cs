@@ -14,7 +14,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         const string EFFECT_ID = "MountainShrineAdd";
 
         static ConfigEntry<int> _numShrinesPerActivation;
-        static int numShrinesPerActivation => _numShrinesPerActivation?.Value ?? 2;
+        static int numShrinesPerActivation => Mathf.Max(1, _numShrinesPerActivation?.Value ?? 2);
 
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void Init()
