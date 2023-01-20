@@ -10,12 +10,17 @@ namespace RiskOfChaos.EffectDefinitions
 
         public abstract void OnStart();
 
-        protected const string ERROR_INVALID_CONFIG_SECTION_NAME = "Failed to bind effect config values: null or empty config section name";
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected static string getConfigSectionName(string effectIdentifier)
+        protected static bool tryGetConfigSectionName(string effectIdentifier, out string configSectionName)
         {
-            return ChaosEffectCatalog.GetConfigSectionName(effectIdentifier);
+            configSectionName = ChaosEffectCatalog.GetConfigSectionName(effectIdentifier);
+            if (string.IsNullOrEmpty(configSectionName))
+            {
+                Log.Error($"null or empty config section name for {effectIdentifier}");
+                configSectionName = null;
+                return false;
+            }
+
+            return true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

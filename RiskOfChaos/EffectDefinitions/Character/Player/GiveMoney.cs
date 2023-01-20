@@ -51,12 +51,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void InitConfig()
         {
-            string configSectionName = getConfigSectionName(EFFECT_ID);
-            if (string.IsNullOrEmpty(configSectionName))
-            {
-                Log.Error(ERROR_INVALID_CONFIG_SECTION_NAME);
+            if (!tryGetConfigSectionName(EFFECT_ID, out string configSectionName))
                 return;
-            }
 
             _amountToGive = Main.Instance.Config.Bind(new ConfigDefinition(configSectionName, "Base Amount to Give"), AMOUNT_TO_GIVE_DEFAULT_VALUE, new ConfigDescription("The base amount of money to give to all players"));
             addConfigOption(new IntSliderOption(_amountToGive, new IntSliderConfig

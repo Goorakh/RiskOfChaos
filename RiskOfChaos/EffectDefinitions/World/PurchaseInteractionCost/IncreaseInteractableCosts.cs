@@ -35,12 +35,8 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            string configSectionName = getConfigSectionName(EFFECT_ID);
-            if (string.IsNullOrEmpty(configSectionName))
-            {
-                Log.Error(ERROR_INVALID_CONFIG_SECTION_NAME);
+            if (!tryGetConfigSectionName(EFFECT_ID, out string configSectionName))
                 return;
-            }
 
             _increaseAmount = Main.Instance.Config.Bind(new ConfigDefinition(configSectionName, "Increase Amount"), INCREASE_AMOUNT_DEFAULT_VALUE, new ConfigDescription("The amount to increase costs by"));
             addConfigOption(new StepSliderOption(_increaseAmount, new StepSliderConfig

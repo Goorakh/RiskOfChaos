@@ -56,11 +56,9 @@ namespace RiskOfChaos.EffectDefinitions.World
         [SystemInitializer(typeof(ArtifactCatalog), typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            _configSectionName = getConfigSectionName(EFFECT_ID);
-            if (string.IsNullOrEmpty(_configSectionName))
+            if (!tryGetConfigSectionName(EFFECT_ID, out _configSectionName))
             {
                 _artifactConfigs = Array.Empty<ArtifactConfig>();
-                Log.Error(ERROR_INVALID_CONFIG_SECTION_NAME);
                 return;
             }
 

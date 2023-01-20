@@ -14,8 +14,6 @@ namespace RiskOfChaos.EffectDefinitions.Items
     {
         const string EFFECT_ID = "GiveRandomItem";
 
-        static string _configSectionName;
-
         static BasicPickupDropTable _dropTable;
 
         static ConfigEntry<float> _tier1Weight;
@@ -81,16 +79,12 @@ namespace RiskOfChaos.EffectDefinitions.Items
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            _configSectionName = getConfigSectionName(EFFECT_ID);
-            if (string.IsNullOrEmpty(_configSectionName))
-            {
-                Log.Error(ERROR_INVALID_CONFIG_SECTION_NAME);
+            if (!tryGetConfigSectionName(EFFECT_ID, out string configSectionName))
                 return;
-            }
 
-            static ConfigEntry<float> addWeightConfig(string name, float defaultValue)
+            ConfigEntry<float> addWeightConfig(string name, float defaultValue)
             {
-                ConfigEntry<float> config = Main.Instance.Config.Bind(new ConfigDefinition(_configSectionName, $"Weight: {name}"), defaultValue, new ConfigDescription($"Controls how likely {name} are to be given\n\nA value of 0 means items from this tier will never be given"));
+                ConfigEntry<float> config = Main.Instance.Config.Bind(new ConfigDefinition(configSectionName, $"Weight: {name}"), defaultValue, new ConfigDescription($"Controls how likely {name} are to be given\n\nA value of 0 means items from this tier will never be given"));
                 addConfigOption(new StepSliderOption(config, new StepSliderConfig
                 {
                     formatString = "{0:F2}",

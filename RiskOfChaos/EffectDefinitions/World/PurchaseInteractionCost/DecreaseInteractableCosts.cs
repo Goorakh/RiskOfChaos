@@ -31,12 +31,8 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            string configSectionName = getConfigSectionName(EFFECT_ID);
-            if (string.IsNullOrEmpty(configSectionName))
-            {
-                Log.Error(ERROR_INVALID_CONFIG_SECTION_NAME);
+            if (!tryGetConfigSectionName(EFFECT_ID, out string configSectionName))
                 return;
-            }
 
             _decreaseAmount = Main.Instance.Config.Bind(new ConfigDefinition(configSectionName, "Decrease Amount"), DECREASE_AMOUNT_DEFAULT_VALUE, new ConfigDescription("The amount to decrease costs by"));
             addConfigOption(new StepSliderOption(_decreaseAmount, new StepSliderConfig
