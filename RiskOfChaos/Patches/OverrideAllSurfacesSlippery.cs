@@ -3,9 +3,7 @@ using R2API.Networking;
 using R2API.Networking.Interfaces;
 using RiskOfChaos.Networking;
 using RoR2;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -13,13 +11,32 @@ namespace RiskOfChaos.Patches
 {
     static class OverrideAllSurfacesSlippery
     {
+        static bool _hasAppliedPatches;
+
         static bool _isActive;
+        static bool isActive
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _isActive;
+            set
+            {
+                if (_isActive == value)
+                    return;
+
+                _isActive = value;
+
+                if (_isActive && !_hasAppliedPatches)
+                {
+                    On.RoR2.CharacterMotor.OnGroundHit += CharacterMotor_OnGroundHit;
+                    Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
+
+                    _hasAppliedPatches = true;
+                }
+            }
+        }
+
         public static bool NetworkIsActive
         {
-            get
-            {
-                return _isActive;
-            }
             set
             {
                 if (!NetworkServer.active)
@@ -28,10 +45,9 @@ namespace RiskOfChaos.Patches
                     return;
                 }
 
-                if (_isActive != value)
+                if (isActive != value)
                 {
-                    _isActive = value;
-                    new SyncOverrideEverythingSlippery(_isActive).Send(NetworkDestination.Clients);
+                    new SyncOverrideEverythingSlippery(value).Send(NetworkDestination.Clients | NetworkDestination.Server);
                 }
             }
         }
@@ -41,29 +57,23 @@ namespace RiskOfChaos.Patches
         static void Init()
         {
             SyncOverrideEverythingSlippery.OnReceive += SyncOverrideEverythingSlippery_OnReceive;
-            On.RoR2.CharacterMotor.OnGroundHit += CharacterMotor_OnGroundHit;
-
-            Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
         }
 
         static void SyncOverrideEverythingSlippery_OnReceive(bool overrideIsSlippery)
         {
-            if (NetworkServer.active)
-                return;
-
-            _isActive = overrideIsSlippery;
+            isActive = overrideIsSlippery;
         }
 
         static void Run_onRunDestroyGlobal(Run _)
         {
-            _isActive = false;
+            isActive = false;
         }
 
         static void CharacterMotor_OnGroundHit(On.RoR2.CharacterMotor.orig_OnGroundHit orig, CharacterMotor self, Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, ref HitStabilityReport hitStabilityReport)
         {
             orig(self, hitCollider, hitNormal, hitPoint, ref hitStabilityReport);
 
-            if (_isActive)
+            if (isActive)
             {
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 // For some reason this is how ice gets slippery???
