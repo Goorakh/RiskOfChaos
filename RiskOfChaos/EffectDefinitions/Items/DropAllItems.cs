@@ -24,15 +24,14 @@ namespace RiskOfChaos.EffectDefinitions.Items
 
                 List<PickupIndex> pickupsToDrop = getPickupsToDrop(playerBody, true).ToList();
 
-                float angle = 360f / pickupsToDrop.Count;
-                Vector3 dropVelocity = Quaternion.AngleAxis(UnityEngine.Random.Range(0f, 360f), Vector3.up) * (Vector3.up * 40f + Vector3.forward * 5f);
-                Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.up);
+                Vector3 dropVelocity = Quaternion.AngleAxis(UnityEngine.Random.Range(0f, 360f), Vector3.up) * ((Vector3.up * 40f) + (Vector3.forward * 5f));
+                Quaternion rotationPerDrop = Quaternion.AngleAxis(360f / pickupsToDrop.Count, Vector3.up);
 
                 foreach (PickupIndex pickup in pickupsToDrop)
                 {
                     PickupDropletController.CreatePickupDroplet(pickup, bodyPosition, dropVelocity);
 
-                    dropVelocity = rotation * dropVelocity;
+                    dropVelocity = rotationPerDrop * dropVelocity;
                 }
             }
         }
