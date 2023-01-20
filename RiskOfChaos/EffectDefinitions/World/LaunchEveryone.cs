@@ -14,11 +14,11 @@ namespace RiskOfChaos.EffectDefinitions.World
         {
             foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
             {
-                tryAttractToPlayers(body);
+                launchInRandomDirection(body);
             }
         }
 
-        void tryAttractToPlayers(CharacterBody body)
+        void launchInRandomDirection(CharacterBody body)
         {
             if (!body)
                 return;
