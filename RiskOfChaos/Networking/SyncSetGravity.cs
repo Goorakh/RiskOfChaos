@@ -39,10 +39,13 @@ namespace RiskOfChaos.Networking
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SetGravityNetworked(in Vector3 newGravity)
         {
-            if (NetworkClient.active)
+            if (!NetworkServer.active)
             {
-                new SyncSetGravity(newGravity).Send(NetworkDestination.Clients | NetworkDestination.Server);
+                Log.Warning("Called on client");
+                return;
             }
+
+            new SyncSetGravity(newGravity).Send(NetworkDestination.Clients | NetworkDestination.Server);
         }
 
         void ISerializableObject.Serialize(NetworkWriter writer)
