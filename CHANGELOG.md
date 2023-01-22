@@ -1,5 +1,9 @@
 ## Changelog
 
+**(Next Version) Changes:**
+
+* Added Effect: Teleport to Random Location
+
 **0.6.0 Changes:**
 
 * Added Effect: Increase Chest Prices
