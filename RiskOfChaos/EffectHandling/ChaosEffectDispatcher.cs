@@ -70,8 +70,28 @@ namespace RiskOfChaos.EffectHandling
 #endif
         }
 
-        float _lastEffectDispatchTime = -1f;
-        float _nextEffectDispatchTime = float.PositiveInfinity;
+        bool _wasRunStopwatchPausedLastUpdate = false;
+
+        EffectDispatchTimer _unpausedEffectDispatchTimer = new EffectDispatchTimer(EffectDispatchTimerType.Unpaused);
+        EffectDispatchTimer _pausedEffectDispatchTimer = new EffectDispatchTimer(EffectDispatchTimerType.Paused);
+
+        ref EffectDispatchTimer currentEffectDispatchTimer
+        {
+            get
+            {
+                Run run = Run.instance;
+                if (!run)
+                {
+                    Log.Warning("No run instance, using unpaused timer");
+                }
+                else if (run.isRunStopwatchPaused)
+                {
+                    return ref _pausedEffectDispatchTimer;
+                }
+
+                return ref _unpausedEffectDispatchTimer;
+            }
+        }
 
         Xoroshiro128Plus _nextEffectRNG;
 
@@ -79,8 +99,11 @@ namespace RiskOfChaos.EffectHandling
         {
             SingletonHelper.Assign(ref _instance, this);
 
-            _lastEffectDispatchTime = -1f;
-            _nextEffectDispatchTime = 0f;
+            _unpausedEffectDispatchTimer.Reset();
+            _pausedEffectDispatchTimer.Reset();
+
+            _wasRunStopwatchPausedLastUpdate = false;
+
             _nextEffectRNG = new Xoroshiro128Plus(Run.instance.runRNG.nextUlong);
 
             Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
@@ -142,42 +165,66 @@ namespace RiskOfChaos.EffectHandling
             };
         }
 
+        static bool canDispatchEffects
+        {
+            get
+            {
+                if (PauseManager.isPaused && NetworkServer.dontListen)
+                    return false;
+
+                Run run = Run.instance;
+                if (!run || run.isGameOverServer)
+                    return false;
+
+                const float STAGE_START_OFFSET = 2f;
+                Stage stage = Stage.instance;
+                if (!stage || stage.entryTime.timeSince < STAGE_START_OFFSET)
+                    return false;
+
+                return true;
+            }
+        }
+
         void onTimeBetweenEffectsConfigChanged()
         {
             if (!NetworkServer.active)
                 return;
 
-            if (_lastEffectDispatchTime < 0f)
-                return;
-
-#if DEBUG
-            float oldNextEffectTime = _nextEffectDispatchTime;
-#endif
-
-            _nextEffectDispatchTime = _lastEffectDispatchTime + Configs.General.TimeBetweenEffects;
-
-#if DEBUG
-            Log.Debug($"{nameof(onTimeBetweenEffectsConfigChanged)} {nameof(_nextEffectDispatchTime)}: {oldNextEffectTime} -> {_nextEffectDispatchTime}");
-#endif
+            _pausedEffectDispatchTimer.OnTimeBetweenEffectsChanged();
+            _unpausedEffectDispatchTimer.OnTimeBetweenEffectsChanged();
         }
 
         void Update()
         {
-            Run run = Run.instance;
-            if (!run || run.isRunStopwatchPaused)
-                return;
-            
-            const float STAGE_START_OFFSET = 2f;
-            Stage stage = Stage.instance;
-            if (!stage || stage.entryTime.timeSince < STAGE_START_OFFSET)
+            if (!canDispatchEffects)
                 return;
 
-            if (run.GetRunStopwatch() >= _nextEffectDispatchTime)
+            ref EffectDispatchTimer dispatchTimer = ref currentEffectDispatchTimer;
+
+            updateStopwatchPaused(ref dispatchTimer);
+
+            if (dispatchTimer.ShouldActivate())
             {
-                _lastEffectDispatchTime = _nextEffectDispatchTime;
-                _nextEffectDispatchTime += Configs.General.TimeBetweenEffects;
-                
+                dispatchTimer.ScheduleNextDispatch();
                 dispatchRandomEffect();
+            }
+        }
+
+        void updateStopwatchPaused(ref EffectDispatchTimer dispatchTimer)
+        {
+            bool isStopwatchPaused = Run.instance.isRunStopwatchPaused;
+            if (_wasRunStopwatchPausedLastUpdate != isStopwatchPaused)
+            {
+                _wasRunStopwatchPausedLastUpdate = isStopwatchPaused;
+
+                if (isStopwatchPaused)
+                {
+                    // Skip all the effect dispatches that should have already happened, but didn't since this timer hasn't updated
+                    while (dispatchTimer.ShouldActivate())
+                    {
+                        dispatchTimer.ScheduleNextDispatch();
+                    }
+                }
             }
         }
 
@@ -230,7 +277,17 @@ namespace RiskOfChaos.EffectHandling
             incrementEffectActivationCounter(effect.EffectIndex);
 
             BaseEffect effectInstance = effect.InstantiateEffect(new Xoroshiro128Plus(_nextEffectRNG.nextUlong));
-            effectInstance?.OnStart();
+            if (effectInstance != null)
+            {
+                try
+                {
+                    effectInstance.OnStart();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Caught exception in {effect} {nameof(BaseEffect.OnStart)}: {ex}");
+                }
+            }
 
             playEffectActivatedSoundOnAllPlayerBodies();
         }

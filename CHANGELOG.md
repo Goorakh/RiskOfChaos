@@ -2,6 +2,9 @@
 
 **(Next Version) Changes:**
 
+* Fixed effects not activating in stages that pause the run timer.
+* Fixed effects being able to activate while the game is paused if the time between effects config value is changed
+
 * Added Effect: Teleport to Random Location
 
 **0.6.0 Changes:**
