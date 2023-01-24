@@ -8,6 +8,7 @@ using System.Linq;
 using RiskOfOptions.OptionConfigs;
 using System.Runtime.CompilerServices;
 using System;
+using RiskOfChaos.Utilities.Extensions;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
@@ -33,7 +34,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
                 string artifactName = Language.GetString(artifactDef.nameToken, "en");
 
-                SelectionWeight = Main.Instance.Config.Bind(new ConfigDefinition(_configSectionName, $"{artifactName} Weight"), 1f, new ConfigDescription($"How likely the {artifactName} is to be picked, higher value means more likely, lower value means less likely.\n\nA value of 0 will exclude it completely"));
+                SelectionWeight = Main.Instance.Config.Bind(new ConfigDefinition(_configSectionName, $"{artifactName.FilterConfigKey()} Weight"), 1f, new ConfigDescription($"How likely the {artifactName} is to be picked, higher value means more likely, lower value means less likely.\n\nA value of 0 will exclude it completely"));
                 addConfigOption(new StepSliderOption(SelectionWeight, new StepSliderConfig
                 {
                     formatString = "{0:F1}",
