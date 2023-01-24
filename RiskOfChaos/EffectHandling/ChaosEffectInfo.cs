@@ -145,7 +145,7 @@ namespace RiskOfChaos.EffectHandling
 
             HardActivationCountCap = attribute.EffectActivationCountHardCap;
 
-            ConfigSectionName = "Effect: " + (attribute.ConfigName ?? Language.GetString(NameToken, "en"));
+            ConfigSectionName = "Effect: " + (attribute.ConfigName ?? Language.GetString(NameToken, "en")).FilterConfigKey();
 
             IsEnabledConfig = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Enabled"), true, new ConfigDescription("If the effect should be able to be picked"));
 
