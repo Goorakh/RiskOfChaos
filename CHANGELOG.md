@@ -6,6 +6,7 @@
 * Fixed effects being able to activate while the game is paused if the time between effects config value is changed
 
 * Added Effect: Teleport to Random Location
+* Added Effect: Activate Random Equipment
 
 **0.6.0 Changes:**
 
