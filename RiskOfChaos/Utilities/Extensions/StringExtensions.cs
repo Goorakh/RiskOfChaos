@@ -25,17 +25,17 @@ namespace RiskOfChaos.Utilities.Extensions
             return _stringBuilder.ToString();
         }
 
-        static readonly char[] _invalidConfigChars = (char[])AccessTools.DeclaredField(typeof(ConfigDefinition), "_invalidConfigChars")?.GetValue(null);
+        static readonly char[] _invalidConfigDefinitionChars = (char[])AccessTools.DeclaredField(typeof(ConfigDefinition), "_invalidConfigChars")?.GetValue(null);
 
         public static string FilterConfigKey(this string key)
         {
-            if (_invalidConfigChars == null)
+            if (_invalidConfigDefinitionChars == null)
             {
-                Log.Error($"{nameof(_invalidConfigChars)} is null");
+                Log.Error($"{nameof(_invalidConfigDefinitionChars)} is null");
                 return key;
             }
 
-            return key.FilterChars(_invalidConfigChars);
+            return key.FilterChars(_invalidConfigDefinitionChars);
         }
     }
 }
