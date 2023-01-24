@@ -172,6 +172,9 @@ namespace RiskOfChaos.EffectHandling
                 if (PauseManager.isPaused && NetworkServer.dontListen)
                     return false;
 
+                if (SceneExitController.isRunning)
+                    return false;
+
                 Run run = Run.instance;
                 if (!run || run.isGameOverServer)
                     return false;
