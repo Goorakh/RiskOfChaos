@@ -8,21 +8,21 @@ namespace RiskOfChaos.Utilities.Extensions
 {
     public static class StringExtensions
     {
-        static readonly StringBuilder _stringBuilder = new StringBuilder();
-
         public static string FilterChars(this string str, char[] invalidChars)
         {
-            _stringBuilder.Clear();
+            StringBuilder sb = HG.StringBuilderPool.RentStringBuilder();
 
             foreach (char c in str)
             {
                 if (Array.IndexOf(invalidChars, c) == -1)
                 {
-                    _stringBuilder.Append(c);
+                    sb.Append(c);
                 }
             }
 
-            return _stringBuilder.ToString();
+            string result = sb.ToString();
+            HG.StringBuilderPool.ReturnStringBuilder(sb);
+            return result;
         }
 
         static readonly char[] _invalidConfigDefinitionChars = (char[])AccessTools.DeclaredField(typeof(ConfigDefinition), "_invalidConfigChars")?.GetValue(null);
