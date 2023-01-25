@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer combatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently includes 33 different effects.
+Currently includes 34 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -42,6 +42,7 @@ Currently includes 33 different effects.
 * Touch Void: Makes every non-player on the stage into a voidtouched elite (including allies)
 * Duplicate Random Item Stack: Duplicates a random item stack for every player
 * Teleport to Random Location: Teleports every player to a random location on the current stage
+* Activate Random Equipment: Activates a random activatable equipment on all players
 </details>
 
 FAQ:
