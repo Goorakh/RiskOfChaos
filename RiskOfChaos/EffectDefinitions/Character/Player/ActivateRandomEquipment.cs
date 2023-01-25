@@ -136,6 +136,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
         void activateRandomEquipment(CharacterBody body)
         {
+            EquipmentSlot equipmentSlot = body.equipmentSlot;
+            if (!equipmentSlot)
+                return;
+
             Xoroshiro128Plus rng = new Xoroshiro128Plus(RNG.nextUlong);
 
             WeightedSelection<EquipmentDef> equipmentSelector = new WeightedSelection<EquipmentDef>(_availableEquipmentsCount);
