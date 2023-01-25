@@ -4,7 +4,7 @@ using RoR2;
 using System.Linq;
 using UnityEngine;
 
-namespace RiskOfChaos.EffectDefinitions.Items
+namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
     [ChaosEffect("OrderInventory", DefaultSelectionWeight = 0.2f, EffectWeightReductionPercentagePerActivation = 60f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
     public class OrderInventory : BaseEffect

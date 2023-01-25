@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace RiskOfChaos.EffectDefinitions.Items
+namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
     [ChaosEffect("DropAllItems", EffectWeightReductionPercentagePerActivation = 15f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
     public class DropAllItems : BaseEffect

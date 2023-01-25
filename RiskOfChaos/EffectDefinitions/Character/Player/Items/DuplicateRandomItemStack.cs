@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace RiskOfChaos.EffectDefinitions.Items
+namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
     [ChaosEffect("duplicate_random_item_stack", EffectWeightReductionPercentagePerActivation = 0f)]
     public class DuplicateRandomItemStack : BaseEffect
