@@ -155,14 +155,29 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                 equipmentSelector.RemoveChoice(choiceIndex);
 
                 if (Run.instance.IsEquipmentExpansionLocked(equipment.equipmentIndex))
+                {
+#if DEBUG
+                    Log.Debug($"{Language.GetString(equipment.nameToken)} is expansion locked");
+#endif
                     continue;
+                }
 
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                if (body.equipmentSlot.PerformEquipmentAction(equipment))
+                bool equipmentSuccessfullyPerformed = equipmentSlot.PerformEquipmentAction(equipment);
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+                if (equipmentSuccessfullyPerformed)
                 {
+#if DEBUG
+                    Log.Debug($"Activated equipment \"{Language.GetString(equipment.nameToken)}\"");
+#endif
                     return;
                 }
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+#if DEBUG
+                else
+                {
+                    Log.Debug($"{Language.GetString(equipment.nameToken)} was not activatable for {body}");
+                }
+#endif
             }
 
             Log.Warning($"no equipment was activatable for {body}");
