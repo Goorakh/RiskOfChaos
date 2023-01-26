@@ -7,6 +7,7 @@
 
 * Added Effect: Teleport to Random Location
 * Added Effect: Activate Random Equipment
+* Added Effect: Change Difficulty
 
 **0.6.0 Changes:**
 

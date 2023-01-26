@@ -11,6 +11,7 @@ namespace RiskOfChaos.Networking
         {
             NetworkingAPI.RegisterMessageType<SyncSetGravity>();
             NetworkingAPI.RegisterMessageType<SyncOverrideEverythingSlippery>();
+            NetworkingAPI.RegisterMessageType<RefreshDifficultyIconsMessage>();
         }
     }
 }

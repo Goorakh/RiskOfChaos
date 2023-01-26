@@ -37,5 +37,6 @@
 		"EFFECT_DUPLICATE_RANDOM_ITEM_STACK_NAME": "Duplicate Random Item Stack",
 		"EFFECT_TP_RANDOM_LOCATION_NAME": "Teleport to Random Location",
 		"EFFECT_ACTIVATE_RANDOM_EQUIPMENT_NAME": "Activate Random Equipment",
+		"EFFECT_RANDOM_DIFFICULTY_NAME": "Change Difficulty",
 	}
 }

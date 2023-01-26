@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer combatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently includes 34 different effects.
+Currently includes 35 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -43,6 +43,7 @@ Currently includes 34 different effects.
 * Duplicate Random Item Stack: Duplicates a random item stack for every player
 * Teleport to Random Location: Teleports every player to a random location on the current stage
 * Activate Random Equipment: Activates a random activatable equipment on all players
+* Change Difficulty: Sets the current difficulty to a random one for the rest of the run
 </details>
 
 FAQ:
