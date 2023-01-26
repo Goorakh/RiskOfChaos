@@ -1,6 +1,6 @@
 ## Changelog
 
-**(Next Version) Changes:**
+**0.7.0 Changes:**
 
 * Effects will now activate in stages with the run timer paused
 * Fixed effects being able to activate while the game is paused if the time between effects config value is changed
