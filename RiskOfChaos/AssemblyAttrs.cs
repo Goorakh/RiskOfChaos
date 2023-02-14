@@ -1,3 +1,1 @@
-﻿using R2API.Utils;
-
-[assembly: HG.Reflection.SearchableAttribute.OptIn]
+﻿[assembly: HG.Reflection.SearchableAttribute.OptIn]
