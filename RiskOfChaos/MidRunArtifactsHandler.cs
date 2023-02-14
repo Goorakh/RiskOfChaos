@@ -11,51 +11,63 @@ namespace RiskOfChaos
 {
     static class MidRunArtifactsHandler
     {
-        [SystemInitializer]
-        static void Init()
+        internal static void InitListeners()
         {
-            RunArtifactManager.onArtifactEnabledGlobal += static (runArtifactManager, artifactDef) =>
-            {
-                if (Stage.instance)
-                {
-                    if (artifactDef == RoR2Content.Artifacts.sacrificeArtifactDef)
-                    {
-                        onSacrificeEnabled();
-                    }
-                    else if (artifactDef == RoR2Content.Artifacts.randomSurvivorOnRespawnArtifactDef)
-                    {
-                        onMetamorphosisEnabled();
-                    }
-                    else if (artifactDef == RoR2Content.Artifacts.enigmaArtifactDef)
-                    {
-                        onEnigmaEnabled();
-                    }
-                    else if (artifactDef == RoR2Content.Artifacts.glassArtifactDef)
-                    {
-                        onGlassEnabled();
-                    }
-
-                    CharacterMaster localPlayerMaster = PlayerUtils.GetLocalUserMaster();
-                    if (localPlayerMaster)
-                    {
-                        CharacterMasterNotificationQueue.PushArtifactNotification(localPlayerMaster, artifactDef);
-                    }
-                }
-            };
+            RunArtifactManager.onArtifactEnabledGlobal += RunArtifactManager_onArtifactEnabledGlobal;
+            RunArtifactManager.onArtifactDisabledGlobal += RunArtifactManager_onArtifactDisabledGlobal;
         }
 
-        // FIXES: Enabling/Disabling an artifact doesn't refresh the info panel, so Artifact of Kin doesn't display properly if it's enabled mid-run
-        internal static void PatchEnemyInfoPanel()
+        static void RunArtifactManager_onArtifactEnabledGlobal(RunArtifactManager runArtifactManager, ArtifactDef artifactDef)
         {
-            On.RoR2.UI.EnemyInfoPanel.Init += static orig =>
+            if (Stage.instance)
             {
-                orig();
+                if (artifactDef == RoR2Content.Artifacts.sacrificeArtifactDef)
+                {
+                    onSacrificeEnabled();
+                }
+                else if (artifactDef == RoR2Content.Artifacts.randomSurvivorOnRespawnArtifactDef)
+                {
+                    onMetamorphosisEnabled();
+                }
+                else if (artifactDef == RoR2Content.Artifacts.enigmaArtifactDef)
+                {
+                    onEnigmaEnabled();
+                }
+                else if (artifactDef == RoR2Content.Artifacts.glassArtifactDef)
+                {
+                    onGlassEnabled();
+                }
+                else if (artifactDef == RoR2Content.Artifacts.singleMonsterTypeArtifactDef)
+                {
+                    onKinEnabledOrDisabled();
+                }
+
+                CharacterMaster localPlayerMaster = PlayerUtils.GetLocalUserMaster();
+                if (localPlayerMaster)
+                {
+                    CharacterMasterNotificationQueue.PushArtifactNotification(localPlayerMaster, artifactDef);
+                }
+            }
+        }
+
+        static void RunArtifactManager_onArtifactDisabledGlobal(RunArtifactManager runArtifactManager, ArtifactDef artifactDef)
+        {
+            if (Stage.instance)
+            {
+                if (artifactDef == RoR2Content.Artifacts.singleMonsterTypeArtifactDef)
+                {
+                    onKinEnabledOrDisabled();
+                }
+            }
+        }
+
+        static void onKinEnabledOrDisabled()
+        {
+            // Enabling/Disabling an artifact doesn't refresh the info panel, so Artifact of Kin doesn't display properly if it's enabled or disabled mid-run
 
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                RunArtifactManager.onArtifactEnabledGlobal += static (runArtifactManager, artifactDef) => EnemyInfoPanel.MarkDirty();
-                RunArtifactManager.onArtifactDisabledGlobal += static (runArtifactManager, artifactDef) => EnemyInfoPanel.MarkDirty();
+            EnemyInfoPanel.MarkDirty();
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
-            };
         }
 
         static void onSacrificeEnabled()

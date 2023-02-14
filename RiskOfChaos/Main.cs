@@ -33,7 +33,7 @@ namespace RiskOfChaos
 
             LanguageFileHandler.Init();
 
-            MidRunArtifactsHandler.PatchEnemyInfoPanel();
+            MidRunArtifactsHandler.InitListeners();
 
             NetworkMessageManager.RegisterMessages();
 
