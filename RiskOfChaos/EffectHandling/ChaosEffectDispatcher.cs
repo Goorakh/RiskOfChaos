@@ -83,13 +83,17 @@ namespace RiskOfChaos.EffectHandling
                 if (!run)
                 {
                     Log.Warning("No run instance, using unpaused timer");
+                    return ref _unpausedEffectDispatchTimer;
                 }
-                else if (run.isRunStopwatchPaused)
+
+                if (run.isRunStopwatchPaused)
                 {
                     return ref _pausedEffectDispatchTimer;
                 }
-
-                return ref _unpausedEffectDispatchTimer;
+                else
+                {
+                    return ref _unpausedEffectDispatchTimer;
+                }
             }
         }
 
