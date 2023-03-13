@@ -213,7 +213,7 @@ namespace RiskOfChaos.EffectHandling
             if (dispatchTimer.ShouldActivate())
             {
                 dispatchTimer.ScheduleNextDispatch();
-                dispatchRandomEffect();
+                DispatchRandomEffect();
             }
         }
 
@@ -241,10 +241,10 @@ namespace RiskOfChaos.EffectHandling
             if (!NetworkServer.active || !Run.instance || !_instance || !_instance.enabled)
                 return;
 
-            _instance.dispatchRandomEffect();
+            _instance.DispatchRandomEffect();
         }
 
-        void dispatchRandomEffect()
+        public void DispatchRandomEffect(bool playSound = true)
         {
             WeightedSelection<ChaosEffectInfo> weightedSelection = ChaosEffectCatalog.GetAllActivatableEffects();
             if (weightedSelection.Count <= 0)
@@ -261,7 +261,7 @@ namespace RiskOfChaos.EffectHandling
             Log.Debug($"effect {effect.Identifier} selected, weight={effectWeight} ({effectWeight / weightedSelection.totalWeight:P} chance)");
 #endif
 
-            dispatchEffect(effect);
+            dispatchEffect(effect, playSound);
         }
 
         [ConCommand(commandName = "roc_start", flags = ConVarFlags.SenderMustBeServer, helpText = "Dispatches an effect")]
@@ -277,7 +277,7 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
-        void dispatchEffect(in ChaosEffectInfo effect)
+        void dispatchEffect(in ChaosEffectInfo effect, bool playSound = true)
         {
             Chat.SendBroadcastChat(new Chat.SimpleChatMessage { baseToken = effect.GetActivationMessage() });
 
@@ -296,7 +296,10 @@ namespace RiskOfChaos.EffectHandling
                 }
             }
 
-            playEffectActivatedSoundOnAllPlayerBodies();
+            if (playSound)
+            {
+                playEffectActivatedSoundOnAllPlayerBodies();
+            }
         }
 
         static void incrementEffectActivationCounter(int effectIndex)
