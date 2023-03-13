@@ -34,6 +34,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     Vector3 randomOffset = RNG.PointOnUnitSphere() * RNG.RangeFloat(0f, 4f);
                     GameObject pot = GameObject.Instantiate(_potPrefab, playerBody.corePosition + spawnPositionOffset + randomOffset, RNG.RandomRotation());
                     NetworkServer.Spawn(pot);
+
+                    CharacterBody body = pot.GetComponent<CharacterBody>();
+                    if (body)
+                    {
+                        body.AddTimedBuff(RoR2Content.Buffs.HiddenInvincibility, 1f);
+                    }
+                    else
+                    {
+                        Log.Warning("Pot has no body component");
+                    }
                 }
 
                 yield return new WaitForSeconds(WAIT_BETWEEN_POT_SPAWNS);
