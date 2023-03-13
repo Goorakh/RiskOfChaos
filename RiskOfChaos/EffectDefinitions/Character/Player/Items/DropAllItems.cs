@@ -45,7 +45,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             for (ItemIndex i = 0; i < (ItemIndex)ItemCatalog.itemCount; i++)
             {
                 ItemDef itemDef = ItemCatalog.GetItemDef(i);
-                if (itemDef && !itemDef.hidden && itemDef.canRemove)
+                if (itemDef && !itemDef.hidden && itemDef.canRemove && itemDef.pickupModelPrefab)
                 {
                     int itemCount = inventory.GetItemCount(itemDef);
                     if (itemCount > 0)
@@ -70,11 +70,15 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 EquipmentState equipmentState = inventory.GetEquipment(i);
                 if (equipmentState.equipmentIndex != EquipmentIndex.None)
                 {
-                    yield return PickupCatalog.FindPickupIndex(equipmentState.equipmentIndex);
-
-                    if (remove)
+                    EquipmentDef equipmentDef = EquipmentCatalog.GetEquipmentDef(equipmentState.equipmentIndex);
+                    if (equipmentDef && equipmentDef.pickupModelPrefab)
                     {
-                        inventory.SetEquipmentIndexForSlot(EquipmentIndex.None, i);
+                        yield return PickupCatalog.FindPickupIndex(equipmentState.equipmentIndex);
+
+                        if (remove)
+                        {
+                            inventory.SetEquipmentIndexForSlot(EquipmentIndex.None, i);
+                        }
                     }
                 }
             }
