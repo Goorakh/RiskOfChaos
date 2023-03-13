@@ -39,5 +39,6 @@
 		"EFFECT_ACTIVATE_RANDOM_EQUIPMENT_NAME": "Activate Random Equipment",
 		"EFFECT_RANDOM_DIFFICULTY_NAME": "Change Difficulty",
 		"EFFECT_ACTIVATE_SEVERAL_EFFECTS_NAME": "Combo",
+		"EFFECT_ALL_CHANCE_SHRINES_NAME": "Gambling Addiction",
 	}
 }
