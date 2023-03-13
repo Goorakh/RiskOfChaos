@@ -101,12 +101,6 @@ namespace RiskOfChaos.EffectDefinitions.World
                 return false;
             }
 
-            if (!dropTable)
-            {
-                Log.Warning($"null dropTable for interactable {interactableObject}, it will not be replaced");
-                return false;
-            }
-
             DirectorPlacementRule placementRule = new DirectorPlacementRule
             {
                 placementMode = DirectorPlacementRule.PlacementMode.Direct
@@ -116,7 +110,14 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             if (spawnResult.success && spawnResult.spawnedInstance && spawnResult.spawnedInstance.TryGetComponent(out ShrineChanceBehavior shrineChanceBehavior))
             {
-                shrineChanceBehavior.dropTable = dropTable;
+                if (dropTable)
+                {
+                    shrineChanceBehavior.dropTable = dropTable;
+                }
+                else
+                {
+                    Log.Warning($"null dropTable for interactable {interactableObject}, not overriding");
+                }
 
                 if (purchaseInteraction && shrineChanceBehavior.TryGetComponent(out PurchaseInteraction shrinePurchaseInteraction))
                 {
