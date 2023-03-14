@@ -40,5 +40,6 @@
 		"EFFECT_RANDOM_DIFFICULTY_NAME": "Change Difficulty",
 		"EFFECT_ACTIVATE_SEVERAL_EFFECTS_NAME": "Combo",
 		"EFFECT_ALL_CHANCE_SHRINES_NAME": "Gambling Addiction",
+		"EFFECT_GIVE_TONIC_AFFLICTION_NAME": "Give Tonic Affliction",
 	}
 }
