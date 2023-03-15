@@ -42,5 +42,6 @@
 		"EFFECT_ALL_CHANCE_SHRINES_NAME": "Gambling Addiction",
 		"EFFECT_GIVE_TONIC_AFFLICTION_NAME": "Give Tonic Affliction",
 		"EFFECT_SPAWN_RANDOM_BOSS_NAME": "Spawn Random Boss",
+		"EFFECT_MAX_COOLDOWNS_NAME": "Max All Cooldowns",
 	}
 }
