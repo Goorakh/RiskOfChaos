@@ -12,7 +12,7 @@ namespace RiskOfChaos.EffectDefinitions.Meta
         {
             for (int i = 0; i < 2; i++)
             {
-                ChaosEffectDispatcher.Instance.DispatchRandomEffect(false);
+                ChaosEffectDispatcher.Instance.DispatchRandomEffect(EffectDispatchFlags.DontPlaySound | EffectDispatchFlags.DontStopTimedEffects);
             }
         }
     }

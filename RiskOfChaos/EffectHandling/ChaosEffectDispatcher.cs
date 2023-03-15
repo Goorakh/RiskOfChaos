@@ -4,6 +4,7 @@ using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.Audio;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -30,6 +31,8 @@ namespace RiskOfChaos.EffectHandling
         public static ChaosEffectDispatcher Instance => _instance;
 
         static ChaosEffectActivationCounter[] _effectActivationCounts;
+
+        static readonly List<TimedEffect> _activeTimedEffects = new List<TimedEffect>();
 
         static readonly AkEventIdArg _effectActivationSoundEventID = AkSoundEngine.GetIDFromString("Play_env_hiddenLab_laptop_sequence_fail");
 
@@ -130,6 +133,8 @@ namespace RiskOfChaos.EffectHandling
             Configs.General.OnTimeBetweenEffectsChanged -= onTimeBetweenEffectsConfigChanged;
 
             resetAllEffectActivationCounters();
+
+            endAllTimedEffects();
         }
 
         void Run_onRunDestroyGlobal(Run run)
@@ -241,10 +246,10 @@ namespace RiskOfChaos.EffectHandling
             if (!NetworkServer.active || !Run.instance || !_instance || !_instance.enabled)
                 return;
 
-            _instance.DispatchRandomEffect();
+            _instance.DispatchRandomEffect(EffectDispatchFlags.DontStopTimedEffects);
         }
 
-        public void DispatchRandomEffect(bool playSound = true)
+        public void DispatchRandomEffect(EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None)
         {
             WeightedSelection<ChaosEffectInfo> weightedSelection = ChaosEffectCatalog.GetAllActivatableEffects();
             if (weightedSelection.Count <= 0)
@@ -261,7 +266,7 @@ namespace RiskOfChaos.EffectHandling
             Log.Debug($"effect {effect.Identifier} selected, weight={effectWeight} ({effectWeight / weightedSelection.totalWeight:P} chance)");
 #endif
 
-            dispatchEffect(effect, playSound);
+            dispatchEffect(effect, dispatchFlags);
         }
 
         [ConCommand(commandName = "roc_start", flags = ConVarFlags.SenderMustBeServer, helpText = "Dispatches an effect")]
@@ -273,11 +278,11 @@ namespace RiskOfChaos.EffectHandling
             int index = ChaosEffectCatalog.FindEffectIndex(args[0]);
             if (index >= 0)
             {
-                _instance.dispatchEffect(ChaosEffectCatalog.GetEffectInfo((uint)index));
+                _instance.dispatchEffect(ChaosEffectCatalog.GetEffectInfo((uint)index), EffectDispatchFlags.DontStopTimedEffects);
             }
         }
 
-        void dispatchEffect(in ChaosEffectInfo effect, bool playSound = true)
+        void dispatchEffect(in ChaosEffectInfo effect, EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None)
         {
             Chat.SendBroadcastChat(new Chat.SimpleChatMessage { baseToken = effect.GetActivationMessage() });
 
@@ -286,6 +291,11 @@ namespace RiskOfChaos.EffectHandling
             BaseEffect effectInstance = effect.InstantiateEffect(new Xoroshiro128Plus(_nextEffectRNG.nextUlong));
             if (effectInstance != null)
             {
+                if ((dispatchFlags & EffectDispatchFlags.DontStopTimedEffects) == 0)
+                {
+                    endAllTimedEffects();
+                }
+
                 try
                 {
                     effectInstance.OnStart();
@@ -294,12 +304,39 @@ namespace RiskOfChaos.EffectHandling
                 {
                     Log.Error($"Caught exception in {effect} {nameof(BaseEffect.OnStart)}: {ex}");
                 }
+
+                if (effectInstance is TimedEffect timedEffectInstance)
+                {
+                    registerTimedEffect(timedEffectInstance);
+                }
             }
 
-            if (playSound)
+            if ((dispatchFlags & EffectDispatchFlags.DontPlaySound) == 0)
             {
                 playEffectActivatedSoundOnAllPlayerBodies();
             }
+        }
+
+        static void endAllTimedEffects()
+        {
+            foreach (TimedEffect timedEffect in _activeTimedEffects)
+            {
+                try
+                {
+                    timedEffect.OnEnd();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Caught exception in {ChaosEffectCatalog.GetEffectInfo(timedEffect.EffectIndex)} {nameof(TimedEffect.OnEnd)}: {ex}");
+                }
+            }
+
+            _activeTimedEffects.Clear();
+        }
+
+        static void registerTimedEffect(TimedEffect instance)
+        {
+            _activeTimedEffects.Add(instance);
         }
 
         static void incrementEffectActivationCounter(int effectIndex)

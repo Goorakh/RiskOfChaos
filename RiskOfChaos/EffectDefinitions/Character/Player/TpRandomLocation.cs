@@ -101,12 +101,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                 playerBody.currentVehicle.EjectPassenger();
             }
 
-            TeleportHelper.TeleportBody(playerBody, targetPosition);
-            GameObject teleportEffectPrefab = Run.instance.GetTeleportEffectPrefab(playerBody.gameObject);
-            if (teleportEffectPrefab)
-            {
-                EffectManager.SimpleEffect(teleportEffectPrefab, targetPosition, Quaternion.identity, true);
-            }
+            TeleportUtils.TeleportBody(playerBody, targetPosition);
         }
     }
 }
