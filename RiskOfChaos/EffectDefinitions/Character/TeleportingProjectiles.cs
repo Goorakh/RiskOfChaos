@@ -7,7 +7,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("teleporting_projectiles", DefaultSelectionWeight = 0.8f, EffectActivationCountHardCap = 1)]
+    [ChaosEffect("teleporting_projectiles", DefaultSelectionWeight = 0.7f, EffectActivationCountHardCap = 1)]
     public class TeleportingProjectiles : TimedEffect
     {
         static bool _appliedPatches = false;
