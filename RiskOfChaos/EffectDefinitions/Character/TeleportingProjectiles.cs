@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json.Utilities;
-using RiskOfChaos.EffectHandling;
+﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.Utilities;
 using RoR2;
 using System;
