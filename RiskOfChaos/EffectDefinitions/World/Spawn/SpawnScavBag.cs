@@ -20,24 +20,17 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         public override void OnStart()
         {
-            DirectorPlacementRule placementRule = new DirectorPlacementRule();
+            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_iscScavBackpack, SpawnUtils.GetPlacementRule_AtRandomPlayerDirect(RNG), new Xoroshiro128Plus(RNG.nextUlong));
 
-            CharacterBody[] playerBodies = PlayerUtils.GetAllPlayerBodies(true).ToArray();
-            if (playerBodies.Length > 0)
+            if (!DirectorCore.instance.TrySpawnObject(spawnRequest))
             {
-                CharacterBody selectedPlayer = RNG.NextElementUniform(playerBodies);
+                spawnRequest.placementRule = new DirectorPlacementRule
+                {
+                    placementMode = SpawnUtils.GetBestValidRandomPlacementType()
+                };
 
-                placementRule.placementMode = DirectorPlacementRule.PlacementMode.NearestNode;
-                placementRule.position = selectedPlayer.footPosition;
-                placementRule.minDistance = 50f;
-                placementRule.maxDistance = float.PositiveInfinity;
+                DirectorCore.instance.TrySpawnObject(spawnRequest);
             }
-            else
-            {
-                placementRule.placementMode = SpawnUtils.GetBestValidRandomPlacementType();
-            }
-            
-            DirectorCore.instance.TrySpawnObject(new DirectorSpawnRequest(_iscScavBackpack, placementRule, new Xoroshiro128Plus(RNG.nextUlong)));
         }
     }
 }
