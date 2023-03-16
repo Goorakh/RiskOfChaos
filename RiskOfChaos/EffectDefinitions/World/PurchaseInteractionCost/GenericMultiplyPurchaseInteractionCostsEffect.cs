@@ -19,7 +19,18 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
                 purchaseInteraction.ScaleCost(multiplier);
 
                 if (purchaseInteraction.cost <= 0)
-                    purchaseInteraction.Networkcost = 1;
+                {
+                    switch (purchaseInteraction.costType)
+                    {
+                        case CostTypeIndex.Money:
+                        case CostTypeIndex.PercentHealth:
+                            purchaseInteraction.Networkcost = 0;
+                            break;
+                        default:
+                            purchaseInteraction.Networkcost = 1;
+                            break;
+                    }
+                }
 
                 if (purchaseInteraction.TryGetComponent(out ShopTerminalBehavior shopTerminalBehavior) && shopTerminalBehavior.serverMultiShopController)
                 {
