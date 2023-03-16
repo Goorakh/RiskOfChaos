@@ -252,19 +252,31 @@ namespace RiskOfChaos.EffectHandling
         public void DispatchRandomEffect(EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None)
         {
             WeightedSelection<ChaosEffectInfo> weightedSelection = ChaosEffectCatalog.GetAllActivatableEffects();
-            if (weightedSelection.Count <= 0)
-            {
-                Log.Error("No activatable effect!");
-                return;
-            }
 
-            float nextNormalizedFloat = _nextEffectRNG.nextNormalizedFloat;
-            ChaosEffectInfo effect = weightedSelection.Evaluate(nextNormalizedFloat);
+            ChaosEffectInfo effect;
+            if (weightedSelection.Count > 0)
+            {
+                float nextNormalizedFloat = _nextEffectRNG.nextNormalizedFloat;
+                effect = weightedSelection.Evaluate(nextNormalizedFloat);
 
 #if DEBUG
-            float effectWeight = weightedSelection.GetChoice(weightedSelection.EvaluateToChoiceIndex(nextNormalizedFloat)).weight;
-            Log.Debug($"effect {effect.Identifier} selected, weight={effectWeight} ({effectWeight / weightedSelection.totalWeight:P} chance)");
+                float effectWeight = weightedSelection.GetChoice(weightedSelection.EvaluateToChoiceIndex(nextNormalizedFloat)).weight;
+                Log.Debug($"effect {effect.Identifier} selected, weight={effectWeight} ({effectWeight / weightedSelection.totalWeight:P} chance)");
 #endif
+            }
+            else
+            {
+                Log.Warning("No activatable effects, defaulting to Nothing");
+
+                int nothingEffectIndex = ChaosEffectCatalog.FindEffectIndex(Nothing.EFFECT_ID);
+                if (nothingEffectIndex < 0)
+                {
+                    Log.Error("Unable to find Nothing effect index, no effect can be dispatched");
+                    return;
+                }
+
+                effect = ChaosEffectCatalog.GetEffectInfo((uint)nothingEffectIndex);
+            }
 
             dispatchEffect(effect, dispatchFlags);
         }

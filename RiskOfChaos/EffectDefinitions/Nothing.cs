@@ -5,9 +5,11 @@ using System.Text;
 
 namespace RiskOfChaos.EffectDefinitions
 {
-    [ChaosEffect("Nothing", DefaultSelectionWeight = 0.5f, EffectWeightReductionPercentagePerActivation = 0f)]
+    [ChaosEffect(EFFECT_ID, DefaultSelectionWeight = 0.5f, EffectWeightReductionPercentagePerActivation = 0f)]
     public class Nothing : BaseEffect
     {
+        public const string EFFECT_ID = "Nothing";
+
         public override void OnStart()
         {
         }
