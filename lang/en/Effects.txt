@@ -44,5 +44,6 @@
 		"EFFECT_SPAWN_RANDOM_BOSS_NAME": "Spawn Random Boss",
 		"EFFECT_MAX_COOLDOWNS_NAME": "Max All Cooldowns",
 		"EFFECT_TELEPORTING_PROJECTILES_NAME": "Teleporting Attacks (Lasts until next effect)",
+		"EFFECT_UNCORRUPT_RANDOM_ITEM_NAME": "Uncorrupt Random Item",
 	}
 }
