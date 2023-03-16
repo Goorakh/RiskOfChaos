@@ -39,6 +39,14 @@ namespace RiskOfChaos.EffectHandling
                     return false;
                 }
 
+                if (IsEnabledConfig != null && !IsEnabledConfig.Value)
+                {
+#if DEBUG
+                    Log.Debug($"effect {Identifier} cannot activate due to: Disabled in config");
+#endif
+                    return false;
+                }
+
                 if (HasHardActivationCountCap && ActivationCount >= HardActivationCountCap)
                 {
 #if DEBUG
