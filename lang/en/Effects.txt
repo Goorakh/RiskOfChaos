@@ -45,5 +45,6 @@
 		"EFFECT_MAX_COOLDOWNS_NAME": "Max All Cooldowns",
 		"EFFECT_TELEPORTING_PROJECTILES_NAME": "Teleporting Attacks (Lasts until next effect)",
 		"EFFECT_UNCORRUPT_RANDOM_ITEM_NAME": "Uncorrupt Random Item",
+		"EFFECT_REMOVE_ALL_MONEY_NAME": "Poverty",
 	}
 }
