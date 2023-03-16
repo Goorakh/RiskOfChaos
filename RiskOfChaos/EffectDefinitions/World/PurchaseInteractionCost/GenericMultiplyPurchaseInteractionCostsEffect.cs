@@ -12,20 +12,21 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
 
         public override void OnStart()
         {
+            HashSet<MultiShopController> modifiedMultiShopControllers = new HashSet<MultiShopController>();
+
             foreach (PurchaseInteraction purchaseInteraction in InstanceTracker.GetInstancesList<PurchaseInteraction>())
             {
-                switch (purchaseInteraction.costType)
-                {
-                    case CostTypeIndex.Money:
-                    case CostTypeIndex.PercentHealth:
-                    case CostTypeIndex.LunarCoin:
-                    case CostTypeIndex.VoidCoin:
-                        purchaseInteraction.ScaleCost(multiplier);
+                purchaseInteraction.ScaleCost(multiplier);
 
-                        if (purchaseInteraction.cost <= 0)
-                            purchaseInteraction.Networkcost = 1;
-                        
-                        break;
+                if (purchaseInteraction.cost <= 0)
+                    purchaseInteraction.Networkcost = 1;
+
+                if (purchaseInteraction.TryGetComponent(out ShopTerminalBehavior shopTerminalBehavior) && shopTerminalBehavior.serverMultiShopController)
+                {
+                    if (modifiedMultiShopControllers.Add(shopTerminalBehavior.serverMultiShopController))
+                    {
+                        shopTerminalBehavior.serverMultiShopController.Networkcost = purchaseInteraction.cost;
+                    }
                 }
             }
         }
