@@ -7,6 +7,8 @@ using RoR2;
 using RoR2.Skills;
 using RoR2.Stats;
 using System;
+using UnityEngine;
+using RoR2.UI;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
@@ -16,6 +18,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
         public override void OnStart()
         {
             bool isMetamorphosisActive = RunArtifactManager.instance && RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.randomSurvivorOnRespawnArtifactDef);
+
+            CharacterMaster localUserMaster = LocalUserManager.GetFirstLocalUser()?.cachedMaster;
 
             foreach (CharacterMaster playerMaster in PlayerUtils.GetAllPlayerMasters(false))
             {
@@ -46,6 +50,22 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                     if (changedCurrentBody && !playerMaster.IsDeadAndOutOfLivesServer())
                     {
                         respawnPlayerBody(playerMaster, playerBody, isMetamorphosisActive);
+
+                        if (playerMaster == localUserMaster)
+                        {
+                            // Fix the chat
+                            ChatBox chatBox = GameObject.FindObjectOfType<ChatBox>();
+                            if (chatBox)
+                            {
+                                chatBox.ScrollToBottom();
+                            }
+                            else
+                            {
+#if DEBUG
+                                Log.Debug("no chatbox instance");
+#endif
+                            }
+                        }
                     }
                 }
             }
