@@ -19,7 +19,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
     {
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;
-        
+
         readonly struct ActivatableEquipment
         {
             readonly EquipmentDef _equipmentDef;
@@ -150,6 +150,14 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                 int choiceIndex = equipmentSelector.EvaluateToChoiceIndex(rng.nextNormalizedFloat);
                 EquipmentDef equipment = equipmentSelector.GetChoice(choiceIndex).value;
                 equipmentSelector.RemoveChoice(choiceIndex);
+
+                if (!Run.instance.IsEquipmentAvailable(equipment.equipmentIndex))
+                {
+#if DEBUG
+                    Log.Debug($"{Language.GetString(equipment.nameToken)} is not available in the current run");
+#endif
+                    continue;
+                }
 
                 if (Run.instance.IsEquipmentExpansionLocked(equipment.equipmentIndex))
                 {
