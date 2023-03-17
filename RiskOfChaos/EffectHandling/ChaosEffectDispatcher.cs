@@ -339,7 +339,7 @@ namespace RiskOfChaos.EffectHandling
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"Caught exception in {ChaosEffectCatalog.GetEffectInfo(timedEffect.EffectIndex)} {nameof(TimedEffect.OnEnd)}: {ex}");
+                    Log.Error($"Caught exception in {timedEffect} {nameof(TimedEffect.OnEnd)}: {ex}");
                 }
             }
 

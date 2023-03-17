@@ -207,7 +207,6 @@ namespace RiskOfChaos.EffectHandling
 
             BaseEffect effectInstance = (BaseEffect)Activator.CreateInstance(EffectType);
             effectInstance.RNG = effectRNG;
-            effectInstance.EffectIndex = (uint)EffectIndex;
             return effectInstance;
         }
 

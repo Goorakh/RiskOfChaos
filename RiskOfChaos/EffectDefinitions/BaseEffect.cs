@@ -7,7 +7,6 @@ namespace RiskOfChaos.EffectDefinitions
     public abstract class BaseEffect
     {
         public Xoroshiro128Plus RNG;
-        public uint EffectIndex;
 
         public abstract void OnStart();
 
