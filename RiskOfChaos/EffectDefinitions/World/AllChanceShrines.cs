@@ -23,8 +23,8 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         public override void OnStart()
         {
-            List<InteractableTracker> interactables = new List<InteractableTracker>(InstanceTracker.GetInstancesList<InteractableTracker>());
-            foreach (InteractableTracker interactable in interactables)
+            List<PurchaseInteraction> interactables = new List<PurchaseInteraction>(InstanceTracker.GetInstancesList<PurchaseInteraction>());
+            foreach (PurchaseInteraction interactable in interactables)
             {
                 tryReplaceInteractable(interactable.gameObject);
             }
