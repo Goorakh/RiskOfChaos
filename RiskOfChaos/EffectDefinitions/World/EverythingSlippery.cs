@@ -1,9 +1,6 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Patches;
 using RoR2;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {

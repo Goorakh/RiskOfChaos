@@ -1,14 +1,14 @@
 ﻿using HG;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Patches;
-using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Skills;
-using RoR2.Stats;
+using RoR2.UI;
 using System;
 using UnityEngine;
-using RoR2.UI;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {

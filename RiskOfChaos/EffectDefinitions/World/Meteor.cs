@@ -1,10 +1,7 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RoR2;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using UnityEngine.Networking;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {

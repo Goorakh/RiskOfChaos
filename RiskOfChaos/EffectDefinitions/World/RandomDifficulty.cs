@@ -1,12 +1,11 @@
 ﻿using R2API.Networking;
 using R2API.Networking.Interfaces;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Networking;
 using RoR2;
-using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Text;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World

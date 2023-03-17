@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RiskOfChaos.EffectHandling
+namespace RiskOfChaos.EffectHandling.EffectClassAttributes
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
     public sealed class ChaosEffectAttribute : HG.Reflection.SearchableAttribute

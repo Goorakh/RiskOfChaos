@@ -1,15 +1,15 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using BepInEx.Configuration;
+using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfOptions.OptionConfigs;
+using RiskOfOptions.Options;
 using RoR2;
-using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Text;
-using UnityEngine.Networking;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using BepInEx.Configuration;
-using RiskOfOptions.Options;
-using RiskOfOptions.OptionConfigs;
-using System.Collections;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {

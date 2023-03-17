@@ -1,8 +1,6 @@
 ﻿using HG;
-using RiskOfChaos.EffectHandling;
-using RiskOfChaos.Utilities;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RoR2;
-using System.Linq;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World

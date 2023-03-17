@@ -1,13 +1,11 @@
 ﻿using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RoR2;
-using RoR2.EntitlementManagement;
-using RoR2.ExpansionManagement;
 using RoR2.Items;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {

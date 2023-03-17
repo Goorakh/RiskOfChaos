@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
@@ -122,8 +123,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
         public override void OnStart()
         {
-            const string LOG_PREFIX = $"{nameof(GiveRandomItem)}.{nameof(OnStart)} ";
-
             PickupDef pickupDef = PickupCatalog.GetPickupDef(_dropTable.GenerateDrop(RNG));
             foreach (CharacterMaster playerMaster in PlayerUtils.GetAllPlayerMasters(false))
             {

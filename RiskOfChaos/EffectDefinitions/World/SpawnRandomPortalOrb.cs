@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RoR2;
 using System;
 using System.Collections.Generic;

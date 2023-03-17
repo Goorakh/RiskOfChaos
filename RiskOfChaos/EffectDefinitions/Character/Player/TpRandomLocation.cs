@@ -1,14 +1,10 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.Navigation;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {

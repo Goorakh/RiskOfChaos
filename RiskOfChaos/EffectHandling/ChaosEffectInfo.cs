@@ -1,5 +1,7 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectDefinitions;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;

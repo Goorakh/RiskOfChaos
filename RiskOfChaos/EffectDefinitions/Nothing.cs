@@ -1,7 +1,4 @@
-﻿using RiskOfChaos.EffectHandling;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 
 namespace RiskOfChaos.EffectDefinitions
 {

@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Trackers;
 using RoR2;
 using System.Collections.Generic;

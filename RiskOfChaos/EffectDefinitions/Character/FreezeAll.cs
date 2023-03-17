@@ -1,8 +1,5 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RoR2;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {

@@ -1,14 +1,16 @@
 ﻿using BepInEx.Configuration;
 using HG;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.Utilities.Extensions;
+using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using RiskOfOptions.OptionConfigs;
 using System.Runtime.CompilerServices;
-using System;
-using RiskOfChaos.Utilities.Extensions;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {

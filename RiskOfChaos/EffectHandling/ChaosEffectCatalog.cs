@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using HG;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfOptions;
 using RiskOfOptions.Options;
 using RoR2;
