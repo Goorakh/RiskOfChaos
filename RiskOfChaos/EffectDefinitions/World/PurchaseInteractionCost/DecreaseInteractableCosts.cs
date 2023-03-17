@@ -1,6 +1,7 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
@@ -9,10 +10,11 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
 {
-    [ChaosEffect(EFFECT_ID, DefaultSelectionWeight = 0.8f, ConfigName = "Decrease Chest Prices")]
+    [ChaosEffect("decrease_interactable_costs", DefaultSelectionWeight = 0.8f, ConfigName = "Decrease Chest Prices")]
     public sealed class DecreaseInteractableCosts : GenericMultiplyPurchaseInteractionCostsEffect
     {
-        const string EFFECT_ID = "decrease_interactable_costs";
+        [InitEffectInfo]
+        static readonly ChaosEffectInfo _effectInfo;
 
         static ConfigEntry<float> _decreaseAmount;
         const float DECREASE_AMOUNT_DEFAULT_VALUE = 0.25f;
@@ -33,10 +35,7 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            if (!tryGetConfigSectionName(EFFECT_ID, out string configSectionName))
-                return;
-
-            _decreaseAmount = Main.Instance.Config.Bind(new ConfigDefinition(configSectionName, "Decrease Amount"), DECREASE_AMOUNT_DEFAULT_VALUE, new ConfigDescription("The amount to decrease costs by"));
+            _decreaseAmount = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Decrease Amount"), DECREASE_AMOUNT_DEFAULT_VALUE, new ConfigDescription("The amount to decrease costs by"));
             addConfigOption(new StepSliderOption(_decreaseAmount, new StepSliderConfig
             {
                 formatString = "-{0:P0}",

@@ -1,6 +1,7 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
@@ -9,10 +10,11 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Gravity
 {
-    [ChaosEffect(EFFECT_ID, ConfigName = "Increase Gravity", EffectWeightReductionPercentagePerActivation = 25f)]
+    [ChaosEffect("IncreaseGravity", ConfigName = "Increase Gravity", EffectWeightReductionPercentagePerActivation = 25f)]
     public class IncreaseGravity : GenericMultiplyGravityEffect
     {
-        const string EFFECT_ID = "IncreaseGravity";
+        [InitEffectInfo]
+        static readonly ChaosEffectInfo _effectInfo;
 
         const float GRAVITY_INCREASE_DEFAULT_VALUE = 0.5f;
 
@@ -22,10 +24,7 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void InitConfigs()
         {
-            if (!tryGetConfigSectionName(EFFECT_ID, out string configSectionName))
-                return;
-
-            _gravityIncrease = Main.Instance.Config.Bind(new ConfigDefinition(configSectionName, "Increase per Activation"), GRAVITY_INCREASE_DEFAULT_VALUE, new ConfigDescription("How much gravity should increase per effect activation, 50% means the gravity is multiplied by 1.5, 100% means the gravity is multiplied by 2, etc."));
+            _gravityIncrease = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Increase per Activation"), GRAVITY_INCREASE_DEFAULT_VALUE, new ConfigDescription("How much gravity should increase per effect activation, 50% means the gravity is multiplied by 1.5, 100% means the gravity is multiplied by 2, etc."));
             addConfigOption(new StepSliderOption(_gravityIncrease, new StepSliderConfig
             {
                 min = 0f,

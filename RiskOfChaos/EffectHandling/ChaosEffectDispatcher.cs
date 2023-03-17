@@ -268,14 +268,7 @@ namespace RiskOfChaos.EffectHandling
             {
                 Log.Warning("No activatable effects, defaulting to Nothing");
 
-                int nothingEffectIndex = ChaosEffectCatalog.FindEffectIndex(Nothing.EFFECT_ID);
-                if (nothingEffectIndex < 0)
-                {
-                    Log.Error("Unable to find Nothing effect index, no effect can be dispatched");
-                    return;
-                }
-
-                effect = ChaosEffectCatalog.GetEffectInfo((uint)nothingEffectIndex);
+                effect = Nothing.EffectInfo;
             }
 
             dispatchEffect(effect, dispatchFlags);

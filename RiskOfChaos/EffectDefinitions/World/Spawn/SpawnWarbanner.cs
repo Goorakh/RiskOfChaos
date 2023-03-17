@@ -1,6 +1,7 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
@@ -13,10 +14,11 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
-    [ChaosEffect(EFFECT_ID, EffectWeightReductionPercentagePerActivation = 20f)]
+    [ChaosEffect("SpawnWarbanner", EffectWeightReductionPercentagePerActivation = 20f)]
     public class SpawnWarbanner : CoroutineEffect
     {
-        const string EFFECT_ID = "SpawnWarbanner";
+        [InitEffectInfo]
+        static readonly ChaosEffectInfo _effectInfo;
 
         static readonly GameObject _warbannerPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/WardOnLevel/WarbannerWard.prefab").WaitForCompletion();
 
@@ -41,10 +43,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void InitConfigs()
         {
-            if (!tryGetConfigSectionName(EFFECT_ID, out string configSectionName))
-                return;
-
-            _warbannerItemCount = Main.Instance.Config.Bind<int>(new ConfigDefinition(configSectionName, "Item Stack Count"), WARBANNER_ITEM_COUNT_DEFAULT_VALUE, new ConfigDescription("The amount of item stacks to mimic when spawning a warbanner"));
+            _warbannerItemCount = Main.Instance.Config.Bind<int>(new ConfigDefinition(_effectInfo.ConfigSectionName, "Item Stack Count"), WARBANNER_ITEM_COUNT_DEFAULT_VALUE, new ConfigDescription("The amount of item stacks to mimic when spawning a warbanner"));
             addConfigOption(new IntSliderOption(_warbannerItemCount, new IntSliderConfig
             {
                 min = 1,

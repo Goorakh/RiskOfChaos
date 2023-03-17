@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RoR2;
 using System.Collections.Generic;
@@ -7,20 +8,13 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect(EFFECT_ID, EffectWeightReductionPercentagePerActivation = 35f)]
+    [ChaosEffect("IncreaseDirectorCredits", EffectWeightReductionPercentagePerActivation = 35f)]
     public class IncreaseDirectorCredits : BaseEffect
     {
-        const string EFFECT_ID = "IncreaseDirectorCredits";
+        [InitEffectInfo]
+        static readonly ChaosEffectInfo _effectInfo;
 
         const float CREDIT_MULTIPLIER = 1.5f;
-
-        static int _effectIndex;
-
-        [SystemInitializer(typeof(ChaosEffectCatalog))]
-        static void Init()
-        {
-            _effectIndex = ChaosEffectCatalog.FindEffectIndex(EFFECT_ID);
-        }
 
         // Would've just used a simple component on the same object for this instead if it wasn't for multiple directors being on the same object in some cases
         static readonly Dictionary<CombatDirector, int> _directorAppliedCounts = new Dictionary<CombatDirector, int>();
@@ -83,7 +77,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             if (moneyWaves == null || moneyWaves.Length <= 0)
                 return;
 
-            int numActivationsThisStage = ChaosEffectDispatcher.GetTotalStageEffectActivationCount(_effectIndex);
+            int numActivationsThisStage = ChaosEffectDispatcher.GetTotalStageEffectActivationCount(_effectInfo.EffectIndex);
             if (numActivationsThisStage <= 0)
                 return;
 

@@ -10,19 +10,6 @@ namespace RiskOfChaos.EffectDefinitions
 
         public abstract void OnStart();
 
-        protected static bool tryGetConfigSectionName(string effectIdentifier, out string configSectionName)
-        {
-            configSectionName = ChaosEffectCatalog.GetConfigSectionName(effectIdentifier);
-            if (string.IsNullOrEmpty(configSectionName))
-            {
-                Log.Error($"null or empty config section name for {effectIdentifier}");
-                configSectionName = null;
-                return false;
-            }
-
-            return true;
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected static void addConfigOption(BaseOption baseOption)
         {

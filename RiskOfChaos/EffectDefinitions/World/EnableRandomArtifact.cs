@@ -2,24 +2,23 @@
 using HG;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect(EFFECT_ID, EffectWeightReductionPercentagePerActivation = 20f)]
+    [ChaosEffect("EnableRandomArtifact", EffectWeightReductionPercentagePerActivation = 20f)]
     public class EnableRandomArtifact : BaseEffect
     {
-        const string EFFECT_ID = "EnableRandomArtifact";
-
-        static string _configSectionName;
+        [InitEffectInfo]
+        static readonly ChaosEffectInfo _effectInfo;
 
         readonly struct ArtifactConfig
         {
@@ -36,7 +35,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
                 string artifactName = Language.GetString(artifactDef.nameToken, "en");
 
-                SelectionWeight = Main.Instance.Config.Bind(new ConfigDefinition(_configSectionName, $"{artifactName.FilterConfigKey()} Weight"), 1f, new ConfigDescription($"How likely the {artifactName} is to be picked, higher value means more likely, lower value means less likely.\n\nA value of 0 will exclude it completely"));
+                SelectionWeight = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, $"{artifactName.FilterConfigKey()} Weight"), 1f, new ConfigDescription($"How likely the {artifactName} is to be picked, higher value means more likely, lower value means less likely.\n\nA value of 0 will exclude it completely"));
                 addConfigOption(new StepSliderOption(SelectionWeight, new StepSliderConfig
                 {
                     formatString = "{0:F1}",
@@ -59,12 +58,6 @@ namespace RiskOfChaos.EffectDefinitions.World
         [SystemInitializer(typeof(ArtifactCatalog), typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            if (!tryGetConfigSectionName(EFFECT_ID, out _configSectionName))
-            {
-                _artifactConfigs = Array.Empty<ArtifactConfig>();
-                return;
-            }
-
             _artifactConfigs = new ArtifactConfig[ArtifactCatalog.artifactCount];
             for (int i = 0; i < ArtifactCatalog.artifactCount; i++)
             {

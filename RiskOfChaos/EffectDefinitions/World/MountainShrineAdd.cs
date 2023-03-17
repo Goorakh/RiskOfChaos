@@ -1,6 +1,7 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
@@ -10,10 +11,11 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect(EFFECT_ID, ConfigName = "Add Mountain Shrine", EffectWeightReductionPercentagePerActivation = 20f)]
+    [ChaosEffect("MountainShrineAdd", ConfigName = "Add Mountain Shrine", EffectWeightReductionPercentagePerActivation = 20f)]
     public class MountainShrineAdd : BaseEffect
     {
-        const string EFFECT_ID = "MountainShrineAdd";
+        [InitEffectInfo]
+        static readonly ChaosEffectInfo _effectInfo;
 
         static ConfigEntry<int> _numShrinesPerActivation;
         static int numShrinesPerActivation => Mathf.Max(1, _numShrinesPerActivation?.Value ?? 2);
@@ -21,10 +23,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            if (!tryGetConfigSectionName(EFFECT_ID, out string configSectionName))
-                return;
-
-            _numShrinesPerActivation = Main.Instance.Config.Bind(new ConfigDefinition(configSectionName, "Shrines per Activation"), 2, new ConfigDescription("The amount of mountain shrines to activate each time this effect is activated"));
+            _numShrinesPerActivation = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Shrines per Activation"), 2, new ConfigDescription("The amount of mountain shrines to activate each time this effect is activated"));
             addConfigOption(new IntSliderOption(_numShrinesPerActivation, new IntSliderConfig
             {
                 min = 1,

@@ -1,6 +1,7 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
@@ -9,10 +10,11 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
 {
-    [ChaosEffect(EFFECT_ID, DefaultSelectionWeight = 0.8f, ConfigName = "Increase Chest Prices")]
+    [ChaosEffect("increase_interactable_costs", DefaultSelectionWeight = 0.8f, ConfigName = "Increase Chest Prices")]
     public sealed class IncreaseInteractableCosts : GenericMultiplyPurchaseInteractionCostsEffect
     {
-        const string EFFECT_ID = "increase_interactable_costs";
+        [InitEffectInfo]
+        static readonly ChaosEffectInfo _effectInfo;
 
         static ConfigEntry<float> _increaseAmount;
         const float INCREASE_AMOUNT_DEFAULT_VALUE = 0.25f;
@@ -34,10 +36,7 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            if (!tryGetConfigSectionName(EFFECT_ID, out string configSectionName))
-                return;
-
-            _increaseAmount = Main.Instance.Config.Bind(new ConfigDefinition(configSectionName, "Increase Amount"), INCREASE_AMOUNT_DEFAULT_VALUE, new ConfigDescription("The amount to increase costs by"));
+            _increaseAmount = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Increase Amount"), INCREASE_AMOUNT_DEFAULT_VALUE, new ConfigDescription("The amount to increase costs by"));
             addConfigOption(new StepSliderOption(_increaseAmount, new StepSliderConfig
             {
                 formatString = "+{0:P0}",

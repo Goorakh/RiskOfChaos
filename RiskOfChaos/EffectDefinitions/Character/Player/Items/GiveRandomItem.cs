@@ -1,6 +1,7 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
@@ -10,10 +11,11 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
-    [ChaosEffect(EFFECT_ID, EffectWeightReductionPercentagePerActivation = 0f)]
+    [ChaosEffect("GiveRandomItem", EffectWeightReductionPercentagePerActivation = 0f)]
     public class GiveRandomItem : BaseEffect
     {
-        const string EFFECT_ID = "GiveRandomItem";
+        [InitEffectInfo]
+        static readonly ChaosEffectInfo _effectInfo;
 
         static BasicPickupDropTable _dropTable;
 
@@ -80,12 +82,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            if (!tryGetConfigSectionName(EFFECT_ID, out string configSectionName))
-                return;
-
             ConfigEntry<float> addWeightConfig(string name, float defaultValue)
             {
-                ConfigEntry<float> config = Main.Instance.Config.Bind(new ConfigDefinition(configSectionName, $"Weight: {name}"), defaultValue, new ConfigDescription($"Controls how likely {name} are to be given\n\nA value of 0 means items from this tier will never be given"));
+                ConfigEntry<float> config = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, $"Weight: {name}"), defaultValue, new ConfigDescription($"Controls how likely {name} are to be given\n\nA value of 0 means items from this tier will never be given"));
                 addConfigOption(new StepSliderOption(config, new StepSliderConfig
                 {
                     formatString = "{0:F2}",

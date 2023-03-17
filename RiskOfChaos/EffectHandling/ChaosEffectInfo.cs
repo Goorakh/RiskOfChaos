@@ -1,6 +1,7 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
@@ -166,6 +167,15 @@ namespace RiskOfChaos.EffectHandling
 
             _effectRepetitionCountModeDefaultValue = attribute.EffectRepetitionWeightCalculationMode;
             _effectRepetitionCountMode = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Repetition Count Mode"), _effectRepetitionCountModeDefaultValue, new ConfigDescription($"Controls how the Reduction Percentage will be applied.\n\n{nameof(EffectActivationCountMode.PerStage)}: Only the activations on the current stage are considered, and the weight reduction is reset on stage start.\n\n{nameof(EffectActivationCountMode.PerRun)}: All activations during the current run are considered."));
+
+            foreach (MemberInfo member in EffectType.GetMembers(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly)
+                                                    .WithAttribute<MemberInfo, InitEffectMemberAttribute>())
+            {
+                foreach (InitEffectMemberAttribute initEffectMember in member.GetCustomAttributes<InitEffectMemberAttribute>())
+                {
+                    initEffectMember.ApplyTo(member, this);
+                }
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

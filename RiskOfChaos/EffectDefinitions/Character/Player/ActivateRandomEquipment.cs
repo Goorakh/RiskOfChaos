@@ -1,6 +1,7 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
@@ -13,10 +14,11 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
-    [ChaosEffect(EFFECT_ID)]
+    [ChaosEffect("activate_random_equipment")]
     public class ActivateRandomEquipment : BaseEffect
     {
-        const string EFFECT_ID = "activate_random_equipment";
+        [InitEffectInfo]
+        static readonly ChaosEffectInfo _effectInfo;
         
         readonly struct ActivatableEquipment
         {
@@ -42,7 +44,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
                 string equipmentName = Language.GetString(equipmentDef.nameToken, "en");
 
-                _equipmentWeightConfig = Main.Instance.Config.Bind(new ConfigDefinition(_configSectionName, $"{equipmentName.FilterConfigKey()} Weight"), 1f, new ConfigDescription($"How likely {equipmentName} is to be selected"));
+                _equipmentWeightConfig = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, $"{equipmentName.FilterConfigKey()} Weight"), 1f, new ConfigDescription($"How likely {equipmentName} is to be selected"));
 
                 addConfigOption(new StepSliderOption(_equipmentWeightConfig, new StepSliderConfig
                 {
@@ -59,17 +61,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             }
         }
 
-        static string _configSectionName;
-
         static ActivatableEquipment[] _availableEquipments;
         static int _availableEquipmentsCount;
 
         [SystemInitializer(typeof(EquipmentCatalog), typeof(EliteCatalog), typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            if (!tryGetConfigSectionName(EFFECT_ID, out _configSectionName))
-                return;
-
             _availableEquipments = Array.ConvertAll(getAllActivatableEquipmentDefs(), static ed => new ActivatableEquipment(ed));
             _availableEquipmentsCount = _availableEquipments.Length;
         }

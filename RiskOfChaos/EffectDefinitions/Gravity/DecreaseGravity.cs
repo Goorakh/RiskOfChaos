@@ -1,6 +1,7 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
@@ -9,10 +10,11 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Gravity
 {
-    [ChaosEffect(EFFECT_ID, ConfigName = "Decrease Gravity", EffectWeightReductionPercentagePerActivation = 25f)]
+    [ChaosEffect("DecreaseGravity", ConfigName = "Decrease Gravity", EffectWeightReductionPercentagePerActivation = 25f)]
     public class DecreaseGravity : GenericMultiplyGravityEffect
     {
-        const string EFFECT_ID = "DecreaseGravity";
+        [InitEffectInfo]
+        static readonly ChaosEffectInfo _effectInfo;
 
         const float GRAVITY_DECREASE_DEFAULT_VALUE = 0.5f;
 
@@ -22,10 +24,7 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            if (!tryGetConfigSectionName(EFFECT_ID, out string configSectionName))
-                return;
-
-            _gravityDecrease = Main.Instance.Config.Bind(new ConfigDefinition(configSectionName, "Decrease per Activation"), GRAVITY_DECREASE_DEFAULT_VALUE, new ConfigDescription("How much gravity should decrease per effect activation, 50% means the gravity is multiplied by 0.5, 100% means the gravity is reduced to 0, 0% means gravity doesn't change at all. etc."));
+            _gravityDecrease = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Decrease per Activation"), GRAVITY_DECREASE_DEFAULT_VALUE, new ConfigDescription("How much gravity should decrease per effect activation, 50% means the gravity is multiplied by 0.5, 100% means the gravity is reduced to 0, 0% means gravity doesn't change at all. etc."));
             addConfigOption(new StepSliderOption(_gravityDecrease, new StepSliderConfig
             {
                 min = 0f,

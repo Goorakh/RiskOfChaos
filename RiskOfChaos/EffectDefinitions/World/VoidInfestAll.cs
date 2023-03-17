@@ -7,11 +7,9 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect(EFFECT_ID, DefaultSelectionWeight = 0.6f, EffectWeightReductionPercentagePerActivation = 20f)]
+    [ChaosEffect("void_infest_all", DefaultSelectionWeight = 0.6f, EffectWeightReductionPercentagePerActivation = 20f)]
     public class VoidInfestAll : BaseEffect
     {
-        const string EFFECT_ID = "void_infest_all";
-
         [EffectCanActivate]
         static bool CanActivate()
         {
