@@ -1,5 +1,27 @@
 ## Changelog
 
+**0.8.0 Changes:**
+
+* Potrolling: Pots now have invincibility for 1 second after spawning, so they can no longer explode immediately
+
+* Randomize Loadout: Fixed an issue with the in-game chat after the effect activates.
+
+* Increase/Decrease Chest Prices:
+  * All cost types are now changed by these effects.
+  * Gold and Health costs can now reach 0 with enough decrease.
+
+* Added 10 new effects:
+  * Combo: Activates 2 other random effects
+  * Gambling Addiction: Replaces every source of loot on the map with a chance shrine
+  * Give Tonic Affliction
+  * Spawn Random Boss
+  * Max All Cooldowns: Sets all skill and equipment cooldowns to their maximum value (as if you just used them)
+  * Teleporting Attacks: Teleports the attacker to where their attacks impact
+  * Uncorrupt Random Item: Converts all of a random item into its non-void variant
+  * Poverty: Sets all players' money to 0
+  * +5 Minutes: Adds 5 minutes to the run timer
+  * Trigger Random Family Event: Activates a random family event for the rest of the current stage
+
 **0.7.0 Changes:**
 
 * Effects will now activate in stages with the run timer paused

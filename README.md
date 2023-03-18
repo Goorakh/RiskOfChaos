@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer combatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently includes 35 different effects.
+Currently includes 45 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -44,14 +44,21 @@ Currently includes 35 different effects.
 * Teleport to Random Location: Teleports every player to a random location on the current stage
 * Activate Random Equipment: Activates a random activatable equipment on all players
 * Change Difficulty: Sets the current difficulty to a random one for the rest of the run
+* Combo: Activates 2 other random effects
+* Gambling Addiction: Replaces every source of loot on the map with a chance shrine
+* Give Tonic Affliction: Gives all players one Tonic Affliction
+* Spawn Random Boss: Spawns a random boss
+* Max All Cooldowns: Sets all skill and equipment cooldowns to their maximum value (as if you just used them)
+* Teleporting Attacks: Teleports the attacker to where their attacks impact
+* Uncorrupt Random Item: Converts all of a random item into its non-void variant
+* Poverty: Sets all players' money to 0
+* +5 Minutes: Adds 5 minutes to the run timer
+* Trigger Random Family Event: Activates a random family event for the rest of the current stage
 </details>
 
 FAQ:
 
 Q: The icon looks like shit<br/>
 A: That's not a question
-
-Q: Why does the icon look like shit?<br/>
-A: I failed art class __(If you have a better design in mind please let me know, I'll take any excuse to get rid of that abomination)__
 
 If you have any feedback or bug reports, please open a [GitHub issue](https://github.com/Goorakh/RiskOfChaos/issues/new)
