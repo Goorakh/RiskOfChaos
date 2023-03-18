@@ -71,7 +71,7 @@ namespace RiskOfChaos.Networking
                 while (!(resolvedObject = NetworkServer.active ? NetworkServer.FindLocalObject(netId)
                                                                : ClientScene.FindLocalObject(netId)))
                 {
-                    yield break;
+                    yield return 0;
                 }
 
 #if DEBUG
