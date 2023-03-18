@@ -225,11 +225,7 @@ namespace RiskOfChaos.EffectHandling
             if (Configs.General.DebugDisable)
                 return;
 
-            ref EffectDispatchTimer dispatchTimer = ref currentEffectDispatchTimer;
-            while (dispatchTimer.ShouldActivate())
-            {
-                dispatchTimer.ScheduleNextDispatch();
-            }
+            SkipAllScheduledEffects();
         }
 #endif
 
@@ -264,6 +260,15 @@ namespace RiskOfChaos.EffectHandling
                         dispatchTimer.ScheduleNextDispatch();
                     }
                 }
+            }
+        }
+
+        public static void SkipAllScheduledEffects()
+        {
+            ref EffectDispatchTimer dispatchTimer = ref Instance.currentEffectDispatchTimer;
+            while (dispatchTimer.ShouldActivate())
+            {
+                dispatchTimer.ScheduleNextDispatch();
             }
         }
 
