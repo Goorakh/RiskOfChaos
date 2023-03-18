@@ -17,6 +17,12 @@ namespace RiskOfChaos.Utilities
             get => IsExpansionEnabled(DLC1_NAME);
         }
 
+        public static ExpansionDef DLC1
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => FindExpansionDef(DLC1_NAME);
+        }
+
         public static ExpansionDef FindExpansionDef(string name)
         {
             foreach (ExpansionDef expansion in ExpansionCatalog.expansionDefs)
