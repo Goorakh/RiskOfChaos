@@ -64,7 +64,7 @@ namespace RiskOfChaos.Config
 
 #if DEBUG
                 _debugDisable = file.Bind(new ConfigDefinition(SECTION_NAME, "Debug Disable"), DEBUG_DISABLE_DEFAULT_VALUE);
-                ModSettingsManager.AddOption(new CheckBoxOption(_debugDisable));
+                ModSettingsManager.AddOption(new CheckBoxOption(_debugDisable), GUID, NAME);
 
                 _debugDisable.SettingChanged += static (s, e) =>
                 {
