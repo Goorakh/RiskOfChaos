@@ -119,6 +119,10 @@ namespace RiskOfChaos.EffectHandling
 
             Configs.General.OnTimeBetweenEffectsChanged += onTimeBetweenEffectsConfigChanged;
 
+#if DEBUG
+            Configs.General.OnDebugDisabledChanged += onDebugDisabledConfigChanged;
+#endif
+
             resetAllEffectActivationCounters();
         }
 
@@ -131,6 +135,10 @@ namespace RiskOfChaos.EffectHandling
             Stage.onServerStageComplete -= Stage_onServerStageComplete;
 
             Configs.General.OnTimeBetweenEffectsChanged -= onTimeBetweenEffectsConfigChanged;
+
+#if DEBUG
+            Configs.General.OnDebugDisabledChanged -= onDebugDisabledConfigChanged;
+#endif
 
             resetAllEffectActivationCounters();
 
@@ -178,6 +186,11 @@ namespace RiskOfChaos.EffectHandling
         {
             get
             {
+#if DEBUG
+                if (Configs.General.DebugDisable)
+                    return false;
+#endif
+
                 if (PauseManager.isPaused && NetworkServer.dontListen)
                     return false;
 
@@ -205,6 +218,20 @@ namespace RiskOfChaos.EffectHandling
             _pausedEffectDispatchTimer.OnTimeBetweenEffectsChanged();
             _unpausedEffectDispatchTimer.OnTimeBetweenEffectsChanged();
         }
+
+#if DEBUG
+        void onDebugDisabledConfigChanged()
+        {
+            if (Configs.General.DebugDisable)
+                return;
+
+            ref EffectDispatchTimer dispatchTimer = ref currentEffectDispatchTimer;
+            while (dispatchTimer.ShouldActivate())
+            {
+                dispatchTimer.ScheduleNextDispatch();
+            }
+        }
+#endif
 
         void Update()
         {

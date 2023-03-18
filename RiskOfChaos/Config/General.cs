@@ -33,6 +33,14 @@ namespace RiskOfChaos.Config
 
             public static event Action OnTimeBetweenEffectsChanged;
 
+#if DEBUG
+            static ConfigEntry<bool> _debugDisable;
+            const bool DEBUG_DISABLE_DEFAULT_VALUE = false;
+            public static bool DebugDisable => _debugDisable?.Value ?? DEBUG_DISABLE_DEFAULT_VALUE;
+
+            public static event Action OnDebugDisabledChanged;
+#endif
+
             internal static void Init(ConfigFile file)
             {
                 const string SECTION_NAME = "General";
@@ -53,6 +61,16 @@ namespace RiskOfChaos.Config
                 {
                     OnTimeBetweenEffectsChanged?.Invoke();
                 };
+
+#if DEBUG
+                _debugDisable = file.Bind(new ConfigDefinition(SECTION_NAME, "Debug Disable"), DEBUG_DISABLE_DEFAULT_VALUE);
+                ModSettingsManager.AddOption(new CheckBoxOption(_debugDisable));
+
+                _debugDisable.SettingChanged += static (s, e) =>
+                {
+                    OnDebugDisabledChanged?.Invoke();
+                };
+#endif
 
                 // ModSettingsManager.SetModIcon(general_icon, GUID, NAME);
                 ModSettingsManager.SetModDescription("General config options for Risk of Chaos", GUID, NAME);
