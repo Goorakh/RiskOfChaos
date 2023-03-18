@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("spawn_pots")]
-    public class SpawnPots : CoroutineEffect
+    public sealed class SpawnPots : CoroutineEffect
     {
         static readonly GameObject _potPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/ExplosivePotDestructible/ExplosivePotDestructibleBody.prefab").WaitForCompletion();
 

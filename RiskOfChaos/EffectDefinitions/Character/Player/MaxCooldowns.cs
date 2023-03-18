@@ -6,7 +6,7 @@ using RoR2;
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
     [ChaosEffect("max_cooldowns", DefaultSelectionWeight = 0.6f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun, EffectWeightReductionPercentagePerActivation = 20f)]
-    public class MaxCooldowns : BaseEffect
+    public sealed class MaxCooldowns : BaseEffect
     {
         public override void OnStart()
         {

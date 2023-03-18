@@ -8,7 +8,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("Everyone1Hp")]
-    public class Everyone1Hp : BaseEffect
+    public sealed class Everyone1Hp : BaseEffect
     {
         public override void OnStart()
         {

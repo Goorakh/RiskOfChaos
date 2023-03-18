@@ -5,7 +5,7 @@ using RoR2;
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("everything_slippery", EffectActivationCountHardCap = 1)]
-    public class EverythingSlippery : BaseEffect
+    public sealed class EverythingSlippery : BaseEffect
     {
         public override void OnStart()
         {

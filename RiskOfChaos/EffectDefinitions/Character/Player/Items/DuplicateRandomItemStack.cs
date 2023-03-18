@@ -8,7 +8,7 @@ using System.Linq;
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
     [ChaosEffect("duplicate_random_item_stack", EffectWeightReductionPercentagePerActivation = 0f)]
-    public class DuplicateRandomItemStack : BaseEffect
+    public sealed class DuplicateRandomItemStack : BaseEffect
     {
         readonly struct ItemStack
         {

@@ -9,7 +9,7 @@ using UnityEngine.AddressableAssets;
 namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
 {
     [ChaosEffect("spawn_void_implosion")]
-    public class SpawnVoidImplosion : BaseEffect
+    public sealed class SpawnVoidImplosion : BaseEffect
     {
         static readonly GameObject _nullifierDeathBombProjectilePrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Nullifier/NullifierDeathBombProjectile.prefab").WaitForCompletion();
         static readonly GameObject _megaCrabDeathBombProjectilePrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/VoidMegaCrab/VoidMegaCrabDeathBombProjectile.prefab").WaitForCompletion();

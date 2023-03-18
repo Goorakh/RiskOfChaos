@@ -4,7 +4,7 @@ using RoR2;
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("FreezeAll")]
-    public class FreezeAll : BaseEffect
+    public sealed class FreezeAll : BaseEffect
     {
         public override void OnStart()
         {

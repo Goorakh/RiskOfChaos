@@ -9,7 +9,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
     [ChaosEffect("tp_random_location")]
-    public class TpRandomLocation : BaseEffect
+    public sealed class TpRandomLocation : BaseEffect
     {
         static readonly SpawnCard _positionSelectorSpawnCard;
 

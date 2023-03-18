@@ -7,7 +7,7 @@ using UnityEngine.AddressableAssets;
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("SpawnScavBag", DefaultSelectionWeight = 0.6f)]
-    public class SpawnScavBag : BaseEffect
+    public sealed class SpawnScavBag : BaseEffect
     {
         static readonly SpawnCard _iscScavBackpack = Addressables.LoadAssetAsync<InteractableSpawnCard>("RoR2/Base/Scav/iscScavBackpack.asset").WaitForCompletion();
 

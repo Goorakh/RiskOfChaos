@@ -9,7 +9,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
     [ChaosEffect("OrderInventory", DefaultSelectionWeight = 0.2f, EffectWeightReductionPercentagePerActivation = 60f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
-    public class OrderInventory : BaseEffect
+    public sealed class OrderInventory : BaseEffect
     {
         [EffectCanActivate]
         static bool CanActivate()

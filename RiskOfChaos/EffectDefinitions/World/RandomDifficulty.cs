@@ -11,7 +11,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("random_difficulty", DefaultSelectionWeight = 0.2f, EffectWeightReductionPercentagePerActivation = 75f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
-    public class RandomDifficulty : BaseEffect
+    public sealed class RandomDifficulty : BaseEffect
     {
         static int difficultiesCount
         {

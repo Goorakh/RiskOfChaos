@@ -6,7 +6,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("Meteor")]
-    public class Meteor : BaseEffect
+    public sealed class Meteor : BaseEffect
     {
         public override void OnStart()
         {

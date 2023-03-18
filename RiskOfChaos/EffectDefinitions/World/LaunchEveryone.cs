@@ -6,7 +6,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("launch_everyone")]
-    public class LaunchEveryone : BaseEffect
+    public sealed class LaunchEveryone : BaseEffect
     {
         public override void OnStart()
         {

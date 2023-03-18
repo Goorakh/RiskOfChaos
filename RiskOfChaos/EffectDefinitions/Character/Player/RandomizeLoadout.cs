@@ -13,7 +13,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
     [ChaosEffect("RandomizeLoadout", DefaultSelectionWeight = 0.7f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
-    public class RandomizeLoadout : BaseEffect
+    public sealed class RandomizeLoadout : BaseEffect
     {
         public override void OnStart()
         {

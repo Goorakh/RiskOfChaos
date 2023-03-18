@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("all_chance_shrines", DefaultSelectionWeight = 0.7f, EffectActivationCountHardCap = 1)]
-    public class AllChanceShrines : BaseEffect
+    public sealed class AllChanceShrines : BaseEffect
     {
         static readonly InteractableSpawnCard _iscChanceShrine = Addressables.LoadAssetAsync<InteractableSpawnCard>("RoR2/Base/ShrineChance/iscShrineChance.asset").WaitForCompletion();
 

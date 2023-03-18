@@ -10,7 +10,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.Meta
 {
     [ChaosEffect("ACTIVATE_SEVERAL_EFFECTS", DefaultSelectionWeight = 0.5f, EffectWeightReductionPercentagePerActivation = 15f)]
-    public class ActivateSeveralEffects : BaseEffect
+    public sealed class ActivateSeveralEffects : BaseEffect
     {
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;

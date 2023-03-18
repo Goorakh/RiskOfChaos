@@ -9,7 +9,7 @@ using System.Linq;
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
     [ChaosEffect("ScrapRandomItem", DefaultSelectionWeight = 0.8f, EffectWeightReductionPercentagePerActivation = 15f)]
-    public class ScrapRandomItem : BaseEffect
+    public sealed class ScrapRandomItem : BaseEffect
     {
         static PickupIndex[] _scrapPickupByItemTier;
 

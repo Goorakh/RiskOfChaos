@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("spawn_random_boss", DefaultSelectionWeight = 0.8f)]
-    public class SpawnRandomBoss : BaseEffect
+    public sealed class SpawnRandomBoss : BaseEffect
     {
         static readonly WeightedSelection<CharacterSpawnCard> _bossSelector;
 

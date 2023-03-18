@@ -15,7 +15,7 @@ using System.Runtime.CompilerServices;
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("EnableRandomArtifact", EffectWeightReductionPercentagePerActivation = 20f)]
-    public class EnableRandomArtifact : BaseEffect
+    public sealed class EnableRandomArtifact : BaseEffect
     {
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;

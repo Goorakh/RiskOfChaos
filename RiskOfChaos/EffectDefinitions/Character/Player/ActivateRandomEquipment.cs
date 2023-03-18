@@ -15,7 +15,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
     [ChaosEffect("activate_random_equipment")]
-    public class ActivateRandomEquipment : BaseEffect
+    public sealed class ActivateRandomEquipment : BaseEffect
     {
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;

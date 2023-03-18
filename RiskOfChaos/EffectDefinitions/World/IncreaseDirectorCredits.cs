@@ -9,7 +9,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("IncreaseDirectorCredits", EffectWeightReductionPercentagePerActivation = 35f)]
-    public class IncreaseDirectorCredits : BaseEffect
+    public sealed class IncreaseDirectorCredits : BaseEffect
     {
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;

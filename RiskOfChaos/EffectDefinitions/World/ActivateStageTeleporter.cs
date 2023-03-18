@@ -7,7 +7,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("ActivateStageTeleporter")]
-    public class ActivateStageTeleporter : BaseEffect
+    public sealed class ActivateStageTeleporter : BaseEffect
     {
         [EffectCanActivate]
         static bool CanActivate()

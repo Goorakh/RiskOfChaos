@@ -12,7 +12,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("MountainShrineAdd", ConfigName = "Add Mountain Shrine", EffectWeightReductionPercentagePerActivation = 20f)]
-    public class MountainShrineAdd : BaseEffect
+    public sealed class MountainShrineAdd : BaseEffect
     {
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;
