@@ -57,7 +57,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                             ChatBox chatBox = GameObject.FindObjectOfType<ChatBox>();
                             if (chatBox)
                             {
-                                chatBox.ScrollToBottom();
+                                chatBox.Invoke(nameof(ChatBox.ScrollToBottom), 0.1f);
                             }
                             else
                             {
