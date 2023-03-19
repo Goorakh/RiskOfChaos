@@ -52,13 +52,15 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             {
                 GameObject beacon = GameObject.Instantiate(beaconPrefab, playerBody.footPosition, playerBody.GetRotation());
 
-                beacon.GetComponent<TeamFilter>().teamIndex = TeamIndex.None;
+                beacon.GetComponent<TeamFilter>().teamIndex = playerBody.teamComponent.teamIndex;
+                beacon.GetComponent<GenericOwnership>().ownerObject = playerBody.gameObject;
 
-                ProjectileDamage component2 = beacon.GetComponent<ProjectileDamage>();
-                component2.damage = RNG.RangeFloat(1f, 100f) * CallSupplyDropBase.impactDamageCoefficient;
-                component2.damageColorIndex = DamageColorIndex.Default;
-                component2.force = CallSupplyDropBase.impactDamageForce;
-                component2.damageType = DamageType.Generic;
+                ProjectileDamage damage = beacon.GetComponent<ProjectileDamage>();
+                damage.crit = playerBody.RollCrit();
+                damage.damage = playerBody.damage * CallSupplyDropBase.impactDamageCoefficient;
+                damage.damageColorIndex = DamageColorIndex.Default;
+                damage.force = CallSupplyDropBase.impactDamageForce;
+                damage.damageType = DamageType.Generic;
 
                 NetworkServer.Spawn(beacon);
             }
