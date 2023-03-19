@@ -122,24 +122,36 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(bossCard, placementRule, RNG);
             spawnRequest.teamIndexOverride = TeamIndex.Monster;
 
-            GameObject spawnedObject = DirectorCore.instance.TrySpawnObject(spawnRequest);
-            if (!spawnedObject)
-            {
-                spawnRequest.placementRule = SpawnUtils.GetBestValidRandomPlacementRule();
-                spawnedObject = DirectorCore.instance.TrySpawnObject(spawnRequest);
-            }
-
-            if (spawnedObject && _bossCombatSquadPrefab && !InstanceTracker.Any<BossGroup>() && spawnedObject.TryGetComponent(out CharacterMaster spawnedMaster))
+            CombatSquad bossCombatSquad;
+            if (_bossCombatSquadPrefab)
             {
                 GameObject bossCombatSquadObj = GameObject.Instantiate(_bossCombatSquadPrefab);
 
                 BossGroup bossGroup = bossCombatSquadObj.GetComponent<BossGroup>();
                 bossGroup.dropPosition = null; // Don't drop an item
 
-                CombatSquad combatSquad = bossCombatSquadObj.GetComponent<CombatSquad>();
-                combatSquad.AddMember(spawnedMaster);
+                bossCombatSquad = bossCombatSquadObj.GetComponent<CombatSquad>();
 
                 NetworkServer.Spawn(bossCombatSquadObj);
+            }
+            else
+            {
+                bossCombatSquad = null;
+            }
+
+            spawnRequest.onSpawnedServer = result =>
+            {
+                if (!result.success || !bossCombatSquad)
+                    return;
+
+                bossCombatSquad.AddMember(result.spawnedInstance.GetComponent<CharacterMaster>());
+            };
+
+            GameObject spawnedObject = DirectorCore.instance.TrySpawnObject(spawnRequest);
+            if (!spawnedObject)
+            {
+                spawnRequest.placementRule = SpawnUtils.GetBestValidRandomPlacementRule();
+                spawnedObject = DirectorCore.instance.TrySpawnObject(spawnRequest);
             }
         }
     }
