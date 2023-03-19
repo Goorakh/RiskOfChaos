@@ -13,6 +13,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             foreach (CharacterMaster master in PlayerUtils.GetAllPlayerMasters(false))
             {
                 master.inventory.GiveItem(RoR2Content.Items.TonicAffliction);
+                GenericPickupController.SendPickupMessage(master, PickupCatalog.FindPickupIndex(RoR2Content.Items.TonicAffliction.itemIndex));
             }
         }
     }
