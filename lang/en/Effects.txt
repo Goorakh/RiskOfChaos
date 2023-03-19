@@ -48,5 +48,6 @@
 		"EFFECT_REMOVE_ALL_MONEY_NAME": "Poverty",
 		"EFFECT_ADVANCE_RUN_TIMER_NAME": "+{0} Minutes",
 		"EFFECT_RANDOM_FAMILY_EVENT_NAME": "Trigger Random Family Event",
+		"EFFECT_SPAWN_RANDOM_BEACON_NAME": "Spawn Random Beacon",
 	}
 }
