@@ -13,7 +13,7 @@ namespace RiskOfChaos.Utilities
             if (!body.hasEffectiveAuthority)
             {
 #if DEBUG
-                Log.Debug($"No authority over {body} sending net message");
+                Log.Debug($"No authority over {body}, sending net message");
 #endif
 
                 NetworkIdentity bodyNetIdentity = body.networkIdentity;
