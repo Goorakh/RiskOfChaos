@@ -13,6 +13,7 @@ namespace RiskOfChaos.Networking
             NetworkingAPI.RegisterMessageType<SyncOverrideEverythingSlippery>();
             NetworkingAPI.RegisterMessageType<RefreshDifficultyIconsMessage>();
             NetworkingAPI.RegisterMessageType<SyncPurchaseInteractionCostType>();
+            NetworkingAPI.RegisterMessageType<TeleportBodyMessage>();
         }
     }
 }
