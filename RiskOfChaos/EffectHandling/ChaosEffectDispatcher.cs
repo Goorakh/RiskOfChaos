@@ -143,6 +143,9 @@ namespace RiskOfChaos.EffectHandling
             resetAllEffectActivationCounters();
 
             endAllTimedEffects();
+
+            // Stop all running CoroutineEffects
+            StopAllCoroutines();
         }
 
         void Run_onRunDestroyGlobal(Run run)

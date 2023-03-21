@@ -4,6 +4,7 @@ using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.Navigation;
 using System.Linq;
+using System.Threading;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
@@ -11,25 +12,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
     [ChaosEffect("tp_random_location")]
     public sealed class TpRandomLocation : BaseEffect
     {
-        static readonly SpawnCard _positionSelectorSpawnCard;
-
-        static TpRandomLocation()
-        {
-            _positionSelectorSpawnCard = ScriptableObject.CreateInstance<SpawnCard>();
-
-            const string HELPER_PREFAB_PATH = "SpawnCards/HelperPrefab";
-            _positionSelectorSpawnCard.prefab = LegacyResourcesAPI.Load<GameObject>(HELPER_PREFAB_PATH);
-
-            if (!_positionSelectorSpawnCard.prefab)
-            {
-                Log.Error($"{HELPER_PREFAB_PATH} is null");
-            }
-        }
-
         [EffectCanActivate]
         static bool CanSelect()
         {
-            return DirectorCore.instance && _positionSelectorSpawnCard.prefab && PlayerUtils.GetAllPlayerBodies(true).Any();
+            return DirectorCore.instance && PlayerUtils.GetAllPlayerBodies(true).Any();
         }
 
         public override void OnStart()
@@ -44,13 +30,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
         void teleportToRandomLocation(CharacterBody playerBody, DirectorPlacementRule.PlacementMode targetPositionPlacementMode)
         {
-            if (tryGetTargetPosition(playerBody, targetPositionPlacementMode, out Vector3 targetPosition))
-            {
-                teleportToPosition(playerBody, targetPosition);
-            }
+            teleportToPosition(playerBody, generateTargetPosition(playerBody, targetPositionPlacementMode));
         }
 
-        bool tryGetTargetPosition(CharacterBody playerBody, DirectorPlacementRule.PlacementMode targetPositionPlacementMode, out Vector3 targetPosition)
+        Vector3 generateTargetPosition(CharacterBody playerBody, DirectorPlacementRule.PlacementMode targetPositionPlacementMode)
         {
             DirectorPlacementRule positionSelectorPlacementRule = new DirectorPlacementRule
             {
@@ -59,8 +42,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                 minDistance = 50f
             };
 
-            _positionSelectorSpawnCard.hullSize = playerBody.hullClassification;
-
             WeightedSelection<MapNodeGroup.GraphType> graphTypeSelection = new WeightedSelection<MapNodeGroup.GraphType>();
 
             const float OPPOSITE_GRAPH_TYPE_WEIGHT = 0.5f;
@@ -68,26 +49,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             graphTypeSelection.AddChoice(MapNodeGroup.GraphType.Air, isFlying ? 1f : OPPOSITE_GRAPH_TYPE_WEIGHT);
             graphTypeSelection.AddChoice(MapNodeGroup.GraphType.Ground, !isFlying ? 1f : OPPOSITE_GRAPH_TYPE_WEIGHT);
 
-            _positionSelectorSpawnCard.nodeGraphType = graphTypeSelection.Evaluate(RNG.nextNormalizedFloat);
-
-            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_positionSelectorSpawnCard, positionSelectorPlacementRule, new Xoroshiro128Plus(RNG.nextUlong));
-
-            GameObject targetPositionMarker = DirectorCore.instance.TrySpawnObject(spawnRequest);
-            if (targetPositionMarker)
-            {
-                targetPosition = targetPositionMarker.transform.position;
-
-                GameObject.Destroy(targetPositionMarker);
-
-                return true;
-            }
-            else
-            {
-                Log.Warning($"Failed to get target position for {playerBody}: target position marker could not be spawned");
-
-                targetPosition = Vector3.zero;
-                return false;
-            }
+            return positionSelectorPlacementRule.EvaluateToPosition(RNG, playerBody.hullClassification, graphTypeSelection.Evaluate(RNG.nextNormalizedFloat));
         }
 
         static void teleportToPosition(CharacterBody playerBody, Vector3 targetPosition)
