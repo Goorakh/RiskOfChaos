@@ -22,7 +22,7 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly override string ToString()
         {
-            return $"{EffectIndex} ({ChaosEffectCatalog.GetEffectInfo((uint)EffectIndex).Identifier}): {nameof(StageActivations)}={StageActivations}, {nameof(RunActivations)}={RunActivations}";
+            return $"{ChaosEffectCatalog.GetEffectInfo((uint)EffectIndex).Identifier} (Index {EffectIndex}): {nameof(StageActivations)}={StageActivations}, {nameof(RunActivations)}={RunActivations}";
         }
     }
 }
