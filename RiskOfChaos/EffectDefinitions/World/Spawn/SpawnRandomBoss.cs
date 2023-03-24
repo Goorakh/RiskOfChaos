@@ -3,58 +3,153 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.ExpansionManagement;
+using System;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("spawn_random_boss", DefaultSelectionWeight = 0.8f)]
     public sealed class SpawnRandomBoss : BaseEffect
     {
-        static readonly WeightedSelection<CharacterSpawnCard> _bossSelector;
-
-        static readonly GameObject _bossCombatSquadPrefab;
-
-        static SpawnRandomBoss()
+        readonly struct BossSelection
         {
-            _bossCombatSquadPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Core/BossCombatSquad.prefab").WaitForCompletion();
+            readonly CharacterSpawnCard[] _spawnCards;
 
-            _bossSelector = new WeightedSelection<CharacterSpawnCard>();
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Base/Beetle/cscBeetleQueen.asset").WaitForCompletion(), 1f);
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Base/Brother/cscBrother.asset").WaitForCompletion(), 0.5f);
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Base/Brother/cscBrotherHurt.asset").WaitForCompletion(), 0.4f);
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Base/ClayBoss/cscClayBoss.asset").WaitForCompletion(), 1f);
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Base/ElectricWorm/cscElectricWorm.asset").WaitForCompletion(), 0.75f);
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Base/Grandparent/cscGrandparent.asset").WaitForCompletion(), 1f);
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Base/Gravekeeper/cscGravekeeper.asset").WaitForCompletion(), 1f);
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Base/ImpBoss/cscImpBoss.asset").WaitForCompletion(), 1f);
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Base/MagmaWorm/cscMagmaWorm.asset").WaitForCompletion(), 0.85f);
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Base/RoboBallBoss/cscRoboBallBoss.asset").WaitForCompletion(), 1f);
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Base/RoboBallBoss/cscSuperRoboBallBoss.asset").WaitForCompletion(), 1f);
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Base/Scav/cscScavBoss.asset").WaitForCompletion(), 0.9f);
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Base/ScavLunar/cscScavLunar.asset").WaitForCompletion(), 0.8f);
+            public BossSelection(CharacterSpawnCard[] spawnCards)
+            {
+                _spawnCards = spawnCards;
+            }
 
-            const float TITAN_WEIGHT_TOTAL = 1.5f;
-            const int TITAN_CARD_COUNT = 4;
-            const float TITAN_CARD_WEIGHT = TITAN_WEIGHT_TOTAL / TITAN_CARD_COUNT;
+            public BossSelection(CharacterSpawnCard spawnCard)
+            {
+                _spawnCards = new CharacterSpawnCard[] { spawnCard };
+            }
 
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Base/Titan/cscTitanBlackBeach.asset").WaitForCompletion(), TITAN_CARD_WEIGHT);
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Base/Titan/cscTitanDampCave.asset").WaitForCompletion(), TITAN_CARD_WEIGHT);
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Base/Titan/cscTitanGolemPlains.asset").WaitForCompletion(), TITAN_CARD_WEIGHT);
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Base/Titan/cscTitanGooLake.asset").WaitForCompletion(), TITAN_CARD_WEIGHT);
+            public readonly CharacterSpawnCard GetSpawnCard(Xoroshiro128Plus rng)
+            {
+                return rng.NextElementUniform(_spawnCards.Where(canSelectBoss).ToList());
+            }
 
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Base/Titan/cscTitanGold.asset").WaitForCompletion(), 0.9f);
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Base/Vagrant/cscVagrant.asset").WaitForCompletion(), 1f);
+            public readonly bool CanBeSelected()
+            {
+                return _spawnCards.Any(canSelectBoss);
+            }
 
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Junk/BrotherGlass/cscBrotherGlass.asset").WaitForCompletion(), 0.7f);
+            static bool canSelectBossPrefab(GameObject prefab)
+            {
+                if (!prefab)
+                    return false;
 
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/DLC1/MajorAndMinorConstruct/cscMegaConstruct.asset").WaitForCompletion(), 1f);
+                if (prefab.TryGetComponent(out ExpansionRequirementComponent expansionRequirement))
+                {
+                    Run run = Run.instance;
+                    if (run && expansionRequirement.requiredExpansion && !run.IsExpansionEnabled(expansionRequirement.requiredExpansion))
+                    {
+                        return false;
+                    }
+                }
 
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase1.asset").WaitForCompletion(), 0.1f);
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase2.asset").WaitForCompletion(), 0.1f);
-            _bossSelector.AddChoice(Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase3.asset").WaitForCompletion(), 0.05f);
+                return true;
+            }
+
+            static bool canSelectBoss(CharacterSpawnCard card)
+            {
+                if (!card)
+                    return false;
+
+                if (card is MultiCharacterSpawnCard multiCard)
+                {
+                    return multiCard.masterPrefabs.All(canSelectBossPrefab);
+                }
+                else
+                {
+                    return canSelectBossPrefab(card.prefab);
+                }
+            }
+        }
+
+        static readonly WeightedSelection<BossSelection> _bossSelector = new WeightedSelection<BossSelection>();
+
+        static readonly GameObject _bossCombatSquadPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Core/BossCombatSquad.prefab").WaitForCompletion();
+
+        [SystemInitializer]
+        static void Init()
+        {
+            static void loadBossPrefab(string assetPath, float weight)
+            {
+                AsyncOperationHandle<CharacterSpawnCard> bossPrefabLoadAssetHandle = Addressables.LoadAssetAsync<CharacterSpawnCard>(assetPath);
+                bossPrefabLoadAssetHandle.Completed += handle =>
+                {
+                    _bossSelector.AddChoice(new BossSelection(handle.Result), weight);
+                };
+            }
+
+            static void loadBossPrefabs(string[] assetPaths, float weight)
+            {
+                int cardCount = assetPaths.Length;
+
+                CharacterSpawnCard[] spawnCards = new CharacterSpawnCard[cardCount];
+
+                void onAllCardsLoaded()
+                {
+                    _bossSelector.AddChoice(new BossSelection(spawnCards), weight);
+                }
+
+                int loadsInCompleted = 0;
+
+                for (int i = 0; i < cardCount; i++)
+                {
+                    void loadPrefabIntoArray(string path, int i)
+                    {
+                        AsyncOperationHandle<CharacterSpawnCard> bossPrefabLoadAssetHandle = Addressables.LoadAssetAsync<CharacterSpawnCard>(path);
+                        bossPrefabLoadAssetHandle.Completed += handle =>
+                        {
+                            spawnCards[i] = handle.Result;
+
+                            if (++loadsInCompleted == cardCount)
+                            {
+                                onAllCardsLoaded();
+                            }
+                        };
+                    }
+
+                    loadPrefabIntoArray(assetPaths[i], i);
+                }
+            }
+
+            loadBossPrefab("RoR2/Base/Beetle/cscBeetleQueen.asset", 1f);
+            loadBossPrefab("RoR2/Base/Brother/cscBrother.asset", 0.5f);
+            loadBossPrefab("RoR2/Base/Brother/cscBrotherHurt.asset", 0.4f);
+            loadBossPrefab("RoR2/Base/ClayBoss/cscClayBoss.asset", 1f);
+            loadBossPrefab("RoR2/Base/ElectricWorm/cscElectricWorm.asset", 0.75f);
+            loadBossPrefab("RoR2/Base/Grandparent/cscGrandparent.asset", 1f);
+            loadBossPrefab("RoR2/Base/Gravekeeper/cscGravekeeper.asset", 1f);
+            loadBossPrefab("RoR2/Base/ImpBoss/cscImpBoss.asset", 1f);
+            loadBossPrefab("RoR2/Base/MagmaWorm/cscMagmaWorm.asset", 0.85f);
+            loadBossPrefab("RoR2/Base/RoboBallBoss/cscRoboBallBoss.asset", 1f);
+            loadBossPrefab("RoR2/Base/RoboBallBoss/cscSuperRoboBallBoss.asset", 1f);
+            loadBossPrefab("RoR2/Base/Scav/cscScavBoss.asset", 0.9f);
+            loadBossPrefab("RoR2/Base/ScavLunar/cscScavLunar.asset", 0.8f);
+
+            loadBossPrefabs(new string[]
+            {
+                "RoR2/Base/Titan/cscTitanBlackBeach.asset",
+                "RoR2/Base/Titan/cscTitanDampCave.asset",
+                "RoR2/Base/Titan/cscTitanGolemPlains.asset",
+                "RoR2/Base/Titan/cscTitanGooLake.asset"
+            }, 1f);
+
+            loadBossPrefab("RoR2/Base/Titan/cscTitanGold.asset", 0.9f);
+            loadBossPrefab("RoR2/Base/Vagrant/cscVagrant.asset", 1f);
+            loadBossPrefab("RoR2/Junk/BrotherGlass/cscBrotherGlass.asset", 0.7f);
+            loadBossPrefab("RoR2/DLC1/MajorAndMinorConstruct/cscMegaConstruct.asset", 1f);
+            loadBossPrefab("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase1.asset", 0.1f);
+            loadBossPrefab("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase2.asset", 0.1f);
+            loadBossPrefab("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase3.asset", 0.075f);
         }
 
         [EffectCanActivate]
@@ -64,7 +159,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             {
                 for (int i = 0; i < _bossSelector.Count; i++)
                 {
-                    if (canSelectBoss(_bossSelector.GetChoice(i).value))
+                    if (_bossSelector.GetChoice(i).value.CanBeSelected())
                     {
                         return true;
                     }
@@ -76,50 +171,18 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             return DirectorCore.instance && isAnyBossAvailable();
         }
 
-        static bool canSelectBossPrefab(GameObject prefab)
-        {
-            if (!prefab)
-                return false;
-
-            if (prefab.TryGetComponent(out ExpansionRequirementComponent expansionRequirement))
-            {
-                Run run = Run.instance;
-                if (run && expansionRequirement.requiredExpansion && !run.IsExpansionEnabled(expansionRequirement.requiredExpansion))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        static bool canSelectBoss(CharacterSpawnCard card)
-        {
-            if (!card)
-                return false;
-
-            if (card is MultiCharacterSpawnCard multiCard)
-            {
-                return multiCard.masterPrefabs.All(canSelectBossPrefab);
-            }
-            else
-            {
-                return canSelectBossPrefab(card.prefab);
-            }
-        }
-
         public override void OnStart()
         {
-            CharacterSpawnCard bossCard;
+            BossSelection bossCardSelection;
 
             do
             {
-                bossCard = _bossSelector.Evaluate(RNG.nextNormalizedFloat);
-            } while (!canSelectBoss(bossCard));
+                bossCardSelection = _bossSelector.Evaluate(RNG.nextNormalizedFloat);
+            } while (!bossCardSelection.CanBeSelected());
 
             DirectorPlacementRule placementRule = SpawnUtils.GetPlacementRule_AtRandomPlayerApproximate(RNG, 30f, 50f);
 
-            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(bossCard, placementRule, RNG);
+            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(bossCardSelection.GetSpawnCard(RNG), placementRule, RNG);
             spawnRequest.teamIndexOverride = TeamIndex.Monster;
 
             CombatSquad bossCombatSquad;

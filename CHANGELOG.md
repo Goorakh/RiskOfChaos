@@ -25,6 +25,8 @@
 
 * Randomize Loadout: Fixed an issue with the in-game chat after the effect activates.
 
+* Misc: Minor performance improvements
+
 * Increase/Decrease Chest Prices:
   * All cost types are now changed by these effects.
   * Gold and Health costs can now reach 0 with enough decrease.
