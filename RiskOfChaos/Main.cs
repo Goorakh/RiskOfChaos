@@ -1,4 +1,5 @@
 using BepInEx;
+using HarmonyLib;
 using R2API.Utils;
 using RiskOfChaos.Config;
 using RiskOfChaos.EffectHandling;
@@ -36,6 +37,9 @@ namespace RiskOfChaos
             MidRunArtifactsHandler.InitListeners();
 
             NetworkMessageManager.RegisterMessages();
+
+            Harmony harmony = new Harmony(PluginGUID);
+            harmony.PatchAll();
 
             initConfigs();
 

@@ -50,5 +50,6 @@
 		"EFFECT_RANDOM_FAMILY_EVENT_NAME": "Trigger Random Family Event",
 		"EFFECT_SPAWN_RANDOM_BEACON_NAME": "Spawn Random Beacon",
 		"EFFECT_SPAWN_AIRSTRIKES_NAME": "Orbital Bombardment",
+		"EFFECT_VOID_CLOVER_UPGRADE_RANDOM_ITEM_NAME": "Benthic Transform Random Item",
 	}
 }
