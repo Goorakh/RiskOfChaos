@@ -8,7 +8,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("teleporting_projectiles", DefaultSelectionWeight = 0.7f, EffectActivationCountHardCap = 1)]
+    [ChaosEffect("teleporting_projectiles", DefaultSelectionWeight = 0.7f)]
     public sealed class TeleportingProjectiles : TimedEffect
     {
         static MasterCatalog.MasterIndex[] _teleportBlacklist = Array.Empty<MasterCatalog.MasterIndex>();
