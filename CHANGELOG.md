@@ -1,5 +1,24 @@
 ## Changelog
 
+**0.8.1 Changes:**
+
+* Added 5 new effects:
+  * Spawn Random Beacon: Spawns a random captain beacon on every player
+  * Orbital Bombardment: Spawns Diablo Strikes all over the map
+  * Benthic Transform Random Item: Upgrades the tier of 1 random item
+  * Kill All (Non-Boss) Enemies: Kills all non-boss enemies on the map
+  * Random Gravity Direction: Changes the direction of gravity
+
+* Randomize Loadout: Fixed chat issues (for real this time)
+
+* Give Tonic Affliction: Now prints a chat pickup message
+
+* Spawn Random Boss: Now supports Artifact of Swarms properly
+
+* Fixed player teleporting effects not working on clients
+
+* Fixed "Teleporting Attacks" not being able to activate more than once per stage
+
 **0.8.0 Changes:**
 
 * Potrolling: Pots now have invincibility for 1 second after spawning, so they can no longer explode immediately

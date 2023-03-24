@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer combatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently includes 45 different effects.
+Currently includes 50 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -54,6 +54,11 @@ Currently includes 45 different effects.
 * Poverty: Sets all players' money to 0
 * +5 Minutes: Adds 5 minutes to the run timer
 * Trigger Random Family Event: Activates a random family event for the rest of the current stage
+* Spawn Random Beacon: Spawns a random captain beacon on every player
+* Orbital Bombardment: Spawns Diablo Strikes all over the map
+* Benthic Transform Random Item: Upgrades the tier of 1 random item
+* Kill All (Non-Boss) Enemies: Kills all non-boss enemies on the map
+* Random Gravity Direction: Changes the direction of gravity
 </details>
 
 FAQ:
