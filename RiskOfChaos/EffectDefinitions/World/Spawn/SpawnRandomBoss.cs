@@ -99,7 +99,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     _bossSelector.AddChoice(new BossSelection(spawnCards), weight);
                 }
 
-                int loadsInCompleted = 0;
+                int loadsCompleted = 0;
 
                 for (int i = 0; i < cardCount; i++)
                 {
@@ -110,7 +110,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                         {
                             spawnCards[i] = handle.Result;
 
-                            if (++loadsInCompleted == cardCount)
+                            if (++loadsCompleted == cardCount)
                             {
                                 onAllCardsLoaded();
                             }
