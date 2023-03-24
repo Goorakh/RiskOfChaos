@@ -91,7 +91,7 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
                 }
                 else
                 {
-                    return Mathf.Clamp(MAX_DEVITATION_MIN_VALUE, MAX_DEVITATION_MAX_VALUE, _maxDeviationConfig.Value);
+                    return Mathf.Clamp(_maxDeviationConfig.Value, MAX_DEVITATION_MIN_VALUE, MAX_DEVITATION_MAX_VALUE);
                 }
             }
         }
