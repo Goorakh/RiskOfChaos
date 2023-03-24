@@ -52,5 +52,6 @@
 		"EFFECT_SPAWN_AIRSTRIKES_NAME": "Orbital Bombardment",
 		"EFFECT_VOID_CLOVER_UPGRADE_RANDOM_ITEM_NAME": "Benthic Transform Random Item",
 		"EFFECT_KILL_ALL_NAME": "Kill All (Non-Boss) Enemies",
+		"EFFECT_ROTATE_GRAVITY_NAME": "Random Gravity Direction (Lasts 1 stage)",
 	}
 }
