@@ -14,7 +14,7 @@ namespace RiskOfChaos.Patches
         static bool _hasAppliedPatches;
 
         static bool _isActive;
-        static bool isActive
+        public static bool IsActive
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _isActive;
@@ -25,55 +25,32 @@ namespace RiskOfChaos.Patches
 
                 _isActive = value;
 
-                if (_isActive && !_hasAppliedPatches)
+                if (_isActive)
                 {
-                    On.RoR2.CharacterMotor.OnGroundHit += CharacterMotor_OnGroundHit;
-                    Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
-
-                    _hasAppliedPatches = true;
+                    tryApplyPatches();
                 }
+
+#if DEBUG
+                Log.Debug($"Patch active: {_isActive}");
+#endif
             }
         }
 
-        public static bool NetworkIsActive
+        static void tryApplyPatches()
         {
-            set
-            {
-                if (!NetworkServer.active)
-                {
-                    Log.Warning($"set_{nameof(NetworkIsActive)} called on client");
-                    return;
-                }
+            if (_hasAppliedPatches)
+                return;
 
-                if (isActive != value)
-                {
-                    new SyncOverrideEverythingSlippery(value).Send(NetworkDestination.Clients | NetworkDestination.Server);
-                }
-            }
-        }
+            On.RoR2.CharacterMotor.OnGroundHit += CharacterMotor_OnGroundHit;
 
-        // Not using cctor because this needs to be initialized on both server and all clients
-        [SystemInitializer]
-        static void Init()
-        {
-            SyncOverrideEverythingSlippery.OnReceive += SyncOverrideEverythingSlippery_OnReceive;
-        }
-
-        static void SyncOverrideEverythingSlippery_OnReceive(bool overrideIsSlippery)
-        {
-            isActive = overrideIsSlippery;
-        }
-
-        static void Run_onRunDestroyGlobal(Run _)
-        {
-            isActive = false;
+            _hasAppliedPatches = true;
         }
 
         static void CharacterMotor_OnGroundHit(On.RoR2.CharacterMotor.orig_OnGroundHit orig, CharacterMotor self, Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, ref HitStabilityReport hitStabilityReport)
         {
             orig(self, hitCollider, hitNormal, hitPoint, ref hitStabilityReport);
 
-            if (isActive)
+            if (IsActive)
             {
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 // For some reason this is how ice gets slippery???

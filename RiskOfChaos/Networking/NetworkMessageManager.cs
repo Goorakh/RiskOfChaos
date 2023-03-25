@@ -10,7 +10,6 @@ namespace RiskOfChaos.Networking
             NetworkingAPI.RegisterMessageType<StageCompleteMessage>();
 
             NetworkingAPI.RegisterMessageType<SyncSetGravity>();
-            NetworkingAPI.RegisterMessageType<SyncOverrideEverythingSlippery>();
             NetworkingAPI.RegisterMessageType<RefreshDifficultyIconsMessage>();
             NetworkingAPI.RegisterMessageType<SyncPurchaseInteractionCostType>();
             NetworkingAPI.RegisterMessageType<TeleportBodyMessage>();
