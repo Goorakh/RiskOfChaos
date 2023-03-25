@@ -9,7 +9,6 @@ namespace RiskOfChaos.Networking
             NetworkingAPI.RegisterMessageType<NetworkedEffectDispatchedMessage>();
             NetworkingAPI.RegisterMessageType<StageCompleteMessage>();
 
-            NetworkingAPI.RegisterMessageType<SyncSetGravity>();
             NetworkingAPI.RegisterMessageType<RefreshDifficultyIconsMessage>();
             NetworkingAPI.RegisterMessageType<SyncPurchaseInteractionCostType>();
             NetworkingAPI.RegisterMessageType<TeleportBodyMessage>();

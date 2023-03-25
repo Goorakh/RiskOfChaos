@@ -9,10 +9,11 @@ using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Gravity
 {
-    [ChaosEffect("rotate_gravity", DefaultSelectionWeight = 0.8f, EffectWeightReductionPercentagePerActivation = 20f)]
+    [ChaosEffect("rotate_gravity", DefaultSelectionWeight = 0.8f, EffectWeightReductionPercentagePerActivation = 20f, IsNetworked = true)]
     public sealed class RotateGravity : GenericGravityEffect
     {
         static bool _hasAppliedPatches = false;
@@ -119,14 +120,17 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
 
         public override void OnStart()
         {
-            tryApplyPatches();
-
-            float maxDeviation = RotateGravity.maxDeviation;
-            _gravityRotation = Quaternion.Euler(RNG.RangeFloat(-maxDeviation, maxDeviation),
-                                                RNG.RangeFloat(-maxDeviation, maxDeviation),
-                                                RNG.RangeFloat(-maxDeviation, maxDeviation));
+            if (NetworkServer.active)
+            {
+                float maxDeviation = RotateGravity.maxDeviation;
+                _gravityRotation = Quaternion.Euler(RNG.RangeFloat(-maxDeviation, maxDeviation),
+                                                    RNG.RangeFloat(-maxDeviation, maxDeviation),
+                                                    RNG.RangeFloat(-maxDeviation, maxDeviation));
+            }
 
             base.OnStart();
+
+            tryApplyPatches();
         }
     }
 }

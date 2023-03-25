@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Gravity
 {
-    [ChaosEffect("IncreaseGravity", ConfigName = "Increase Gravity", EffectWeightReductionPercentagePerActivation = 25f)]
+    [ChaosEffect("IncreaseGravity", ConfigName = "Increase Gravity", EffectWeightReductionPercentagePerActivation = 25f, IsNetworked = true)]
     public sealed class IncreaseGravity : GenericMultiplyGravityEffect
     {
         [InitEffectInfo]

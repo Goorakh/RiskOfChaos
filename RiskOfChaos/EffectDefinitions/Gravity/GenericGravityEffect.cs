@@ -4,6 +4,7 @@ using RoR2;
 using System;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Gravity
 {
@@ -11,70 +12,67 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
     {
         protected abstract Vector3 modifyGravity(Vector3 originalGravity);
 
-        static bool _hasGravityChangedThisStage = false;
+        static bool _hasGravityOverride = false;
 
-        public static bool AnyGravityChangeActive => _hasGravityChangedThisStage;
+        public static bool AnyGravityChangeActive => _hasGravityOverride;
 
-        static bool _hasRestoreEvent = false;
-        static void tryAddRestoreEventListener()
+        static void tryRestoreGravity()
         {
-            if (_hasRestoreEvent)
+            if (!_hasGravityOverride)
                 return;
 
 #if DEBUG
-            Log.Debug("adding reset gravity event listener");
+            Log.Debug("Restoring gravity");
 #endif
 
-            Stage.onServerStageComplete += static _ =>
-            {
-                tryResetGravity();
-            };
-
-            // onServerStageComplete doesn't happen if the run is lost or exited prematurely, so make sure to reset the gravity regardless of how the stage ends
-            Run.onRunDestroyGlobal += static _ =>
-            {
-                tryResetGravity();
-            };
-
-            _hasRestoreEvent = true;
+            Physics.gravity = new Vector3(0f, Run.baseGravity, 0f);
+            _hasGravityOverride = false;
         }
 
-        static void tryResetGravity()
+        static bool _hasAddedEventListeners = false;
+        static void tryAddEventListeners()
         {
-            if (_hasGravityChangedThisStage)
+            if (_hasAddedEventListeners)
+                return;
+
+            Run.onRunDestroyGlobal += _ =>
             {
-#if DEBUG
-                Log.Debug("resetting gravity");
-#endif
+                tryRestoreGravity();
+            };
 
-                // Don't network this setter, since it's either called at run destroy, or end of start (in which case it might get received too late and override the stage gravity), _hasGravityChangedThisStage is networked anyway
-                Physics.gravity = new Vector3(0f, Run.baseGravity, 0f);
+            StageCompleteMessage.OnReceive += _ =>
+            {
+                tryRestoreGravity();
+            };
 
-                _hasGravityChangedThisStage = false;
-            }
+            _hasAddedEventListeners = true;
         }
 
-        static void onGravityChanged()
+        Vector3 _overrideGravity;
+
+        public override void Serialize(NetworkWriter writer)
         {
-            _hasGravityChangedThisStage = true;
-            tryAddRestoreEventListener();
+            base.Serialize(writer);
+            writer.Write(_overrideGravity);
+        }
+
+        public override void Deserialize(NetworkReader reader)
+        {
+            base.Deserialize(reader);
+            _overrideGravity = reader.ReadVector3();
         }
 
         public override void OnStart()
         {
-            SyncSetGravity.NetworkedGravity = modifyGravity(SyncSetGravity.NetworkedGravity);
-            onGravityChanged();
-        }
+            if (NetworkServer.active)
+            {
+                _overrideGravity = modifyGravity(Physics.gravity);
+            }
 
-        [SystemInitializer]
-        static void InitNetworkEventListener()
-        {
-            SyncSetGravity.OnReceive += SyncSetGravity_OnReceive;
-        }
+            Physics.gravity = _overrideGravity;
+            _hasGravityOverride = true;
 
-        static void SyncSetGravity_OnReceive(in Vector3 newGravity)
-        {
-            onGravityChanged();
+            tryAddEventListeners();
         }
 
         static SceneIndex[] _invalidOnScenes;
