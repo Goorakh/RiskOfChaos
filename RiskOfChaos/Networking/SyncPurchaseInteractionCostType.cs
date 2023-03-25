@@ -1,17 +1,13 @@
 ﻿using R2API.Networking;
 using R2API.Networking.Interfaces;
 using RoR2;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.Networking
 {
-    public class SyncPurchaseInteractionCostType : INetMessage
+    public sealed class SyncPurchaseInteractionCostType : INetMessage
     {
         NetworkInstanceId _purchaseInteractionNetIdentity;
         CostTypeIndex _costType;

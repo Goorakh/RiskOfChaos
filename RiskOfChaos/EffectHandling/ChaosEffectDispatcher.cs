@@ -1,5 +1,8 @@
-﻿using RiskOfChaos.Config;
+﻿using R2API.Networking;
+using R2API.Networking.Interfaces;
+using RiskOfChaos.Config;
 using RiskOfChaos.EffectDefinitions;
+using RiskOfChaos.Networking;
 using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.Audio;
@@ -48,6 +51,9 @@ namespace RiskOfChaos.EffectHandling
 
         static void resetAllEffectActivationCounters()
         {
+            if (!NetworkServer.active)
+                return;
+
             for (int i = 0; i < _effectActivationCounts.Length; i++)
             {
                 ref ChaosEffectActivationCounter activationCounter = ref _effectActivationCounts[i];
@@ -62,6 +68,9 @@ namespace RiskOfChaos.EffectHandling
 
         static void resetStageEffectActivationCounters()
         {
+            if (!NetworkServer.active)
+                return;
+
             for (int i = 0; i < _effectActivationCounts.Length; i++)
             {
                 ref ChaosEffectActivationCounter activationCounter = ref _effectActivationCounts[i];
@@ -106,16 +115,21 @@ namespace RiskOfChaos.EffectHandling
         {
             SingletonHelper.Assign(ref _instance, this);
 
-            _unpausedEffectDispatchTimer.Reset();
-            _pausedEffectDispatchTimer.Reset();
+            if (NetworkServer.active)
+            {
+                _unpausedEffectDispatchTimer.Reset();
+                _pausedEffectDispatchTimer.Reset();
 
-            _wasRunStopwatchPausedLastUpdate = false;
+                _wasRunStopwatchPausedLastUpdate = false;
 
-            _nextEffectRNG = new Xoroshiro128Plus(Run.instance.runRNG.nextUlong);
+                _nextEffectRNG = new Xoroshiro128Plus(Run.instance.runRNG.nextUlong);
+            }
 
             Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
 
             Stage.onServerStageComplete += Stage_onServerStageComplete;
+
+            NetworkedEffectDispatchedMessage.OnReceive += NetworkedEffectDispatchedMessage_OnReceive;
 
             Configs.General.OnTimeBetweenEffectsChanged += onTimeBetweenEffectsConfigChanged;
 
@@ -133,6 +147,8 @@ namespace RiskOfChaos.EffectHandling
             Run.onRunDestroyGlobal -= Run_onRunDestroyGlobal;
 
             Stage.onServerStageComplete -= Stage_onServerStageComplete;
+
+            NetworkedEffectDispatchedMessage.OnReceive -= NetworkedEffectDispatchedMessage_OnReceive;
 
             Configs.General.OnTimeBetweenEffectsChanged -= onTimeBetweenEffectsConfigChanged;
 
@@ -163,9 +179,6 @@ namespace RiskOfChaos.EffectHandling
         {
             Run.onRunStartGlobal += static _ =>
             {
-                if (!NetworkServer.active)
-                    return;
-                
                 GameObject dispatcherObj = dispatcherObject;
 
                 if (dispatcherObj.TryGetComponent<ChaosEffectDispatcher>(out ChaosEffectDispatcher effectDispatcher))
@@ -194,19 +207,20 @@ namespace RiskOfChaos.EffectHandling
                     return false;
 #endif
 
+                if (!NetworkServer.active)
+                    return false;
+
                 if (PauseManager.isPaused && NetworkServer.dontListen)
                     return false;
 
                 if (SceneExitController.isRunning)
                     return false;
 
-                Run run = Run.instance;
-                if (!run || run.isGameOverServer)
+                if (!Run.instance || Run.instance.isGameOverServer)
                     return false;
 
                 const float STAGE_START_OFFSET = 2f;
-                Stage stage = Stage.instance;
-                if (!stage || stage.entryTime.timeSince < STAGE_START_OFFSET)
+                if (!Stage.instance || Stage.instance.entryTime.timeSince < STAGE_START_OFFSET)
                     return false;
 
                 return true;
@@ -225,6 +239,9 @@ namespace RiskOfChaos.EffectHandling
 #if DEBUG
         void onDebugDisabledConfigChanged()
         {
+            if (!NetworkServer.active)
+                return;
+
             if (Configs.General.DebugDisable)
                 return;
 
@@ -286,6 +303,12 @@ namespace RiskOfChaos.EffectHandling
 
         public void DispatchRandomEffect(EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None)
         {
+            if (!NetworkServer.active)
+            {
+                Log.Warning("Called on client");
+                return;
+            }
+
             WeightedSelection<ChaosEffectInfo> weightedSelection = ChaosEffectCatalog.GetAllActivatableEffects();
 
             ChaosEffectInfo effect;
@@ -309,6 +332,32 @@ namespace RiskOfChaos.EffectHandling
             dispatchEffect(effect, dispatchFlags);
         }
 
+        void NetworkedEffectDispatchedMessage_OnReceive(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, byte[] serializedEffectData)
+        {
+            if (NetworkServer.active)
+                return;
+
+            BaseEffect effectInstance = dispatchEffect(effectInfo, dispatchFlags | EffectDispatchFlags.DontStart);
+            if (effectInstance != null)
+            {
+                NetworkReader networkReader = new NetworkReader(serializedEffectData);
+                effectInstance.Deserialize(networkReader);
+
+                try
+                {
+                    effectInstance.OnStart();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Caught exception in {effectInfo} {nameof(BaseEffect.OnStart)}: {ex}");
+                }
+
+#if DEBUG
+                Log.Debug($"Started networked effect {effectInfo}");
+#endif
+            }
+        }
+
         [ConCommand(commandName = "roc_start", flags = ConVarFlags.SenderMustBeServer, helpText = "Dispatches an effect")]
         static void CCDispatchEffect(ConCommandArgs args)
         {
@@ -322,43 +371,92 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
-        void dispatchEffect(in ChaosEffectInfo effect, EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None)
+        BaseEffect dispatchEffect(in ChaosEffectInfo effect, EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None)
         {
-            Chat.SendBroadcastChat(new Chat.SimpleChatMessage { baseToken = effect.GetActivationMessage() });
+            bool isServer = NetworkServer.active;
+            if (!isServer && !effect.IsNetworked)
+            {
+                Log.Error($"Attempting to dispatch non-networked effect {effect} as client");
+                return null;
+            }
 
-            incrementEffectActivationCounter(effect.EffectIndex);
+            if (isServer)
+            {
+                Chat.SendBroadcastChat(new Chat.SimpleChatMessage { baseToken = effect.GetActivationMessage() });
 
-            BaseEffect effectInstance = effect.InstantiateEffect(new Xoroshiro128Plus(_nextEffectRNG.nextUlong));
+                incrementEffectActivationCounter(effect.EffectIndex);
+            }
+
+            Xoroshiro128Plus effectRNG;
+            if (isServer)
+            {
+                effectRNG = new Xoroshiro128Plus(_nextEffectRNG.nextUlong);
+            }
+            else
+            {
+                // Clients won't (and shouldn't) do anything rng related anyway
+                effectRNG = null;
+            }
+
+            BaseEffect effectInstance = effect.InstantiateEffect(effectRNG);
             if (effectInstance != null)
             {
-                if ((dispatchFlags & EffectDispatchFlags.DontStopTimedEffects) == 0)
+                if (isServer)
                 {
-                    endAllTimedEffects();
+                    if ((dispatchFlags & EffectDispatchFlags.DontStopTimedEffects) == 0)
+                    {
+                        endAllTimedEffects();
+                    }
                 }
 
-                try
+                if ((dispatchFlags & EffectDispatchFlags.DontStart) == 0)
                 {
-                    effectInstance.OnStart();
-                }
-                catch (Exception ex)
-                {
-                    Log.Error($"Caught exception in {effect} {nameof(BaseEffect.OnStart)}: {ex}");
+                    try
+                    {
+                        effectInstance.OnStart();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error($"Caught exception in {effect} {nameof(BaseEffect.OnStart)}: {ex}");
+                    }
                 }
 
-                if (effectInstance is TimedEffect timedEffectInstance)
+                if (effect.IsNetworked)
                 {
-                    registerTimedEffect(timedEffectInstance);
+                    if (isServer)
+                    {
+                        NetworkWriter networkWriter = new NetworkWriter();
+                        effectInstance.Serialize(networkWriter);
+
+                        new NetworkedEffectDispatchedMessage(effect, dispatchFlags, networkWriter.AsArray()).Send(NetworkDestination.Clients);
+                    }
+                }
+
+                if (isServer)
+                {
+                    if (effectInstance is TimedEffect timedEffectInstance)
+                    {
+                        registerTimedEffect(timedEffectInstance);
+                    }
                 }
             }
 
-            if ((dispatchFlags & EffectDispatchFlags.DontPlaySound) == 0)
+            if (isServer)
             {
-                playEffectActivatedSoundOnAllPlayerBodies();
+                if ((dispatchFlags & EffectDispatchFlags.DontPlaySound) == 0)
+                {
+                    playEffectActivatedSoundOnAllPlayerBodies();
+                }
             }
+
+            return effectInstance;
         }
 
         static void endAllTimedEffects()
         {
+            if (!NetworkServer.active)
+                return;
+
             foreach (TimedEffect timedEffect in _activeTimedEffects)
             {
                 try

@@ -1,7 +1,4 @@
 ﻿using R2API.Networking;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace RiskOfChaos.Networking
 {
@@ -9,6 +6,9 @@ namespace RiskOfChaos.Networking
     {
         public static void RegisterMessages()
         {
+            NetworkingAPI.RegisterMessageType<NetworkedEffectDispatchedMessage>();
+            NetworkingAPI.RegisterMessageType<StageCompleteMessage>();
+
             NetworkingAPI.RegisterMessageType<SyncSetGravity>();
             NetworkingAPI.RegisterMessageType<SyncOverrideEverythingSlippery>();
             NetworkingAPI.RegisterMessageType<RefreshDifficultyIconsMessage>();

@@ -1,7 +1,4 @@
 ﻿using R2API.Networking.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.Networking

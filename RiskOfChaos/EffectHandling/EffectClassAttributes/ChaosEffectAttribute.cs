@@ -17,6 +17,8 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes
 
         public int EffectActivationCountHardCap { get; set; } = -1;
 
+        public bool IsNetworked { get; set; } = false;
+
         public ChaosEffectAttribute(string identifier)
         {
             Identifier = identifier;

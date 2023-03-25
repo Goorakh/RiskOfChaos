@@ -122,6 +122,8 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
+        public readonly bool IsNetworked;
+
         public ChaosEffectInfo(int effectIndex, ChaosEffectAttribute attribute)
         {
             EffectIndex = effectIndex;
@@ -155,6 +157,8 @@ namespace RiskOfChaos.EffectHandling
             }
 
             HardActivationCountCap = attribute.EffectActivationCountHardCap;
+
+            IsNetworked = attribute.IsNetworked;
 
             ConfigSectionName = "Effect: " + (attribute.ConfigName ?? Language.GetString(NameToken, "en")).FilterConfigKey();
 
@@ -216,7 +220,7 @@ namespace RiskOfChaos.EffectHandling
             }
 
             BaseEffect effectInstance = (BaseEffect)Activator.CreateInstance(EffectType);
-            effectInstance.RNG = effectRNG;
+            effectInstance.Initialize(effectRNG);
             return effectInstance;
         }
 
