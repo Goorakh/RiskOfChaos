@@ -4,6 +4,7 @@ using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.CharacterAI;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
@@ -46,6 +47,12 @@ namespace RiskOfChaos.EffectDefinitions.World
                 {
                     baseAI.enemyAttention = 0f;
                     baseAI.ForceAcquireNearestEnemyIfNoCurrentEnemy();
+                }
+
+                // Make sure void infested allies don't stay until the next stage
+                if (Util.IsDontDestroyOnLoad(master.gameObject))
+                {
+                    SceneManager.MoveGameObjectToScene(master.gameObject, SceneManager.GetActiveScene());
                 }
 
                 if (EntityStates.VoidInfestor.Infest.successfulInfestEffectPrefab)
