@@ -1,12 +1,9 @@
 ﻿using HarmonyLib;
 using HG;
 using MonoMod.RuntimeDetour;
-using R2API.Networking;
-using R2API.Networking.Interfaces;
 using RiskOfChaos.Networking;
 using RoR2;
 using RoR2.Skills;
-using System;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -25,8 +22,6 @@ namespace RiskOfChaos.Patches
         [SystemInitializer]
         static void Init()
         {
-            SyncLockedPlayerSkillSlots.OnReceive += SyncLockedPlayerSkillSlots_OnReceive;
-
             AsyncOperationHandle<CaptainSupplyDropSkillDef> loadPrepSupplyDropHandle = Addressables.LoadAssetAsync<CaptainSupplyDropSkillDef>("RoR2/Base/Captain/PrepSupplyDrop.asset");
             loadPrepSupplyDropHandle.Completed += handle =>
             {
@@ -46,23 +41,7 @@ namespace RiskOfChaos.Patches
                 return;
             }
 
-            ref bool isLocked = ref _lockedSlots[(int)skillSlot];
-            if (!isLocked)
-            {
-                isLocked = true;
-                netSyncLockedSlots();
-            }
-        }
-
-        static void netSyncLockedSlots()
-        {
-            new SyncLockedPlayerSkillSlots(_lockedSlots).Send(NetworkDestination.Server | NetworkDestination.Clients);
-        }
-
-        static void SyncLockedPlayerSkillSlots_OnReceive(bool[] lockedSkillSlots)
-        {
-            Array.Copy(lockedSkillSlots, _lockedSlots, SKILL_SLOT_COUNT);
-
+            _lockedSlots[(int)skillSlot] = true;
             tryApplyPatches();
         }
 
@@ -90,10 +69,9 @@ namespace RiskOfChaos.Patches
                 resetLockedSlots();
             };
 
-            Stage.onServerStageComplete += _ =>
+            StageCompleteMessage.OnReceive += _ =>
             {
                 resetLockedSlots();
-                netSyncLockedSlots();
             };
 
             _hasAppliedPatches = true;

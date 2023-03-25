@@ -14,7 +14,6 @@ namespace RiskOfChaos.Networking
             NetworkingAPI.RegisterMessageType<RefreshDifficultyIconsMessage>();
             NetworkingAPI.RegisterMessageType<SyncPurchaseInteractionCostType>();
             NetworkingAPI.RegisterMessageType<TeleportBodyMessage>();
-            NetworkingAPI.RegisterMessageType<SyncLockedPlayerSkillSlots>();
         }
     }
 }
