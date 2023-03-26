@@ -387,18 +387,18 @@ namespace RiskOfChaos.EffectHandling
                 incrementEffectActivationCounter(effect.EffectIndex);
             }
 
-            Xoroshiro128Plus effectRNG;
+            ulong effectRNGSeed;
             if (isServer)
             {
-                effectRNG = new Xoroshiro128Plus(_nextEffectRNG.nextUlong);
+                effectRNGSeed = _nextEffectRNG.nextUlong;
             }
             else
             {
-                // Clients won't (and shouldn't) do anything rng related anyway
-                effectRNG = null;
+                // Clients will get the seed from the server in Deserialize
+                effectRNGSeed = 0UL;
             }
 
-            BaseEffect effectInstance = effect.InstantiateEffect(effectRNG);
+            BaseEffect effectInstance = effect.InstantiateEffect(effectRNGSeed);
             if (effectInstance != null)
             {
                 if (isServer)

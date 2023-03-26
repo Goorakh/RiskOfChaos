@@ -9,9 +9,16 @@ namespace RiskOfChaos.EffectDefinitions
     {
         bool _isInitialized;
 
-        protected Xoroshiro128Plus RNG;
+        ulong _rngSeed;
 
-        public void Initialize(Xoroshiro128Plus rng)
+        protected readonly Xoroshiro128Plus RNG = new Xoroshiro128Plus(0UL);
+
+        void initializeRNG()
+        {
+            RNG.ResetSeed(_rngSeed);
+        }
+
+        public void Initialize(ulong rngSeed)
         {
             if (_isInitialized)
             {
@@ -19,21 +26,25 @@ namespace RiskOfChaos.EffectDefinitions
                 return;
             }
 
-            RNG = rng;
+            _rngSeed = rngSeed;
 
             _isInitialized = true;
         }
 
         public virtual void OnPreStartServer()
         {
+            initializeRNG();
         }
 
         public virtual void Serialize(NetworkWriter writer)
         {
+            writer.WritePackedUInt64(_rngSeed);
         }
 
         public virtual void Deserialize(NetworkReader reader)
         {
+            _rngSeed = reader.ReadPackedUInt64();
+            initializeRNG();
         }
 
         public abstract void OnStart();

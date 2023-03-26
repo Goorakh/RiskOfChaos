@@ -211,7 +211,7 @@ namespace RiskOfChaos.EffectHandling
             ChaosEffectCatalog.AddEffectConfigOption(new ChoiceOption(_effectRepetitionCountMode));
         }
 
-        public readonly BaseEffect InstantiateEffect(Xoroshiro128Plus effectRNG)
+        public readonly BaseEffect InstantiateEffect(ulong effectRNGSeed)
         {
             if (EffectType == null)
             {
@@ -220,7 +220,7 @@ namespace RiskOfChaos.EffectHandling
             }
 
             BaseEffect effectInstance = (BaseEffect)Activator.CreateInstance(EffectType);
-            effectInstance.Initialize(effectRNG);
+            effectInstance.Initialize(effectRNGSeed);
             return effectInstance;
         }
 
