@@ -55,5 +55,6 @@
 		"EFFECT_ROTATE_GRAVITY_NAME": "Random Gravity Direction (Lasts 1 stage)",
 		"EFFECT_LOCK_RANDOM_SKILL_NAME": "Disable Random Skill (Lasts 1 stage)",
 		"EFFECT_SPAWN_AHOY_DRONES_NAME": "Ahoy!",
+		"EFFECT_INCREASE_KNOCKBACK_NAME": "{0}x Knockback (Lasts 1 stage)",
 	}
 }
