@@ -62,13 +62,15 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
             _overrideGravity = reader.ReadVector3();
         }
 
+        public override void OnPreStartServer()
+        {
+            base.OnPreStartServer();
+
+            _overrideGravity = modifyGravity(Physics.gravity);
+        }
+
         public override void OnStart()
         {
-            if (NetworkServer.active)
-            {
-                _overrideGravity = modifyGravity(Physics.gravity);
-            }
-
             Physics.gravity = _overrideGravity;
             _hasGravityOverride = true;
 

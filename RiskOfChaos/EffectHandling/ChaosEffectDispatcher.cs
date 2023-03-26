@@ -409,6 +409,19 @@ namespace RiskOfChaos.EffectHandling
                     }
                 }
 
+                if (isServer)
+                {
+                    effectInstance.OnPreStartServer();
+
+                    if (effect.IsNetworked)
+                    {
+                        NetworkWriter networkWriter = new NetworkWriter();
+                        effectInstance.Serialize(networkWriter);
+
+                        new NetworkedEffectDispatchedMessage(effect, dispatchFlags, networkWriter.AsArray()).Send(NetworkDestination.Clients);
+                    }
+                }
+
                 if ((dispatchFlags & EffectDispatchFlags.DontStart) == 0)
                 {
                     try
@@ -418,17 +431,6 @@ namespace RiskOfChaos.EffectHandling
                     catch (Exception ex)
                     {
                         Log.Error($"Caught exception in {effect} {nameof(BaseEffect.OnStart)}: {ex}");
-                    }
-                }
-
-                if (effect.IsNetworked)
-                {
-                    if (isServer)
-                    {
-                        NetworkWriter networkWriter = new NetworkWriter();
-                        effectInstance.Serialize(networkWriter);
-
-                        new NetworkedEffectDispatchedMessage(effect, dispatchFlags, networkWriter.AsArray()).Send(NetworkDestination.Clients);
                     }
                 }
 

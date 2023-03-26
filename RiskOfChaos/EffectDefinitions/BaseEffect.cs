@@ -24,6 +24,10 @@ namespace RiskOfChaos.EffectDefinitions
             _isInitialized = true;
         }
 
+        public virtual void OnPreStartServer()
+        {
+        }
+
         public virtual void Serialize(NetworkWriter writer)
         {
         }

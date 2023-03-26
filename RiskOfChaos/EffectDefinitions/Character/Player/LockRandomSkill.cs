@@ -42,13 +42,15 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             _lockedSkillSlot = (SkillSlot)reader.ReadSByte();
         }
 
+        public override void OnPreStartServer()
+        {
+            base.OnPreStartServer();
+
+            _lockedSkillSlot = RNG.NextElementUniform(getNonLockedSlots().ToList());
+        }
+
         public override void OnStart()
         {
-            if (NetworkServer.active)
-            {
-                _lockedSkillSlot = RNG.NextElementUniform(getNonLockedSlots().ToList());
-            }
-
             ForceLockPlayerSkillSlot.SetSkillSlotLocked(_lockedSkillSlot);
         }
     }
