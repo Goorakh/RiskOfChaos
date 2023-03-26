@@ -58,7 +58,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         {
             if (_totalMultiplier.HasValue)
             {
-                if (NetworkServer.active || hasAuthority)
+                if (hasAuthority)
                 {
                     forceInfo.force *= _totalMultiplier.Value;
                 }
