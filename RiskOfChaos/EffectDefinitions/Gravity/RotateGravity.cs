@@ -118,16 +118,18 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
             return _gravityRotation * originalGravity;
         }
 
+        public override void OnPreStartServer()
+        {
+            float maxDeviation = RotateGravity.maxDeviation;
+            _gravityRotation = Quaternion.Euler(RNG.RangeFloat(-maxDeviation, maxDeviation),
+                                                RNG.RangeFloat(-maxDeviation, maxDeviation),
+                                                RNG.RangeFloat(-maxDeviation, maxDeviation));
+
+            base.OnPreStartServer();
+        }
+
         public override void OnStart()
         {
-            if (NetworkServer.active)
-            {
-                float maxDeviation = RotateGravity.maxDeviation;
-                _gravityRotation = Quaternion.Euler(RNG.RangeFloat(-maxDeviation, maxDeviation),
-                                                    RNG.RangeFloat(-maxDeviation, maxDeviation),
-                                                    RNG.RangeFloat(-maxDeviation, maxDeviation));
-            }
-
             base.OnStart();
 
             tryApplyPatches();
