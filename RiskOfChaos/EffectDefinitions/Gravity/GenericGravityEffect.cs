@@ -72,6 +72,11 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
         public override void OnStart()
         {
             Physics.gravity = _overrideGravity;
+
+#if DEBUG
+            Log.Debug($"New gravity: {_overrideGravity}");
+#endif
+
             _hasGravityOverride = true;
 
             tryAddEventListeners();
