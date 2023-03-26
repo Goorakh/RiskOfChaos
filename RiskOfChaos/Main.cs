@@ -12,6 +12,7 @@ namespace RiskOfChaos
     [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInDependency(R2API.RecalculateStatsAPI.PluginGUID)]
     [BepInDependency(R2API.Networking.NetworkingAPI.PluginGUID)]
+    [BepInDependency(R2API.PrefabAPI.PluginGUID)]
     [BepInDependency("com.rune580.riskofoptions")]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     public class Main : BaseUnityPlugin
@@ -37,6 +38,8 @@ namespace RiskOfChaos
             MidRunArtifactsHandler.InitListeners();
 
             NetworkMessageManager.RegisterMessages();
+
+            NetPrefabs.InitializeAll();
 
             Harmony harmony = new Harmony(PluginGUID);
             harmony.PatchAll();
