@@ -17,7 +17,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("monster_inventory_give_random_item", DefaultSelectionWeight = 0.9f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun, EffectWeightReductionPercentagePerActivation = 20f, IsNetworked = true)]
+    [ChaosEffect("monster_inventory_give_random_item", EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun, EffectWeightReductionPercentagePerActivation = 15f, IsNetworked = true)]
     public sealed class MonsterInventoryGiveRandomItem : BaseEffect
     {
         [InitEffectInfo]
