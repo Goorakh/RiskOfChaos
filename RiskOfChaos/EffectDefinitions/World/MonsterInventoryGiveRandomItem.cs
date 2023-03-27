@@ -1,23 +1,19 @@
 ﻿using BepInEx.Configuration;
-using R2API;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
-using RoR2.UI;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("monster_inventory_give_random_item", EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun, EffectWeightReductionPercentagePerActivation = 15f, IsNetworked = true)]
+    [ChaosEffect("monster_inventory_give_random_item", EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun, EffectWeightReductionPercentagePerActivation = 15f)]
     public sealed class MonsterInventoryGiveRandomItem : BaseEffect
     {
         [InitEffectInfo]
@@ -183,35 +179,28 @@ namespace RiskOfChaos.EffectDefinitions.World
             return _dropTable && _monsterInventory;
         }
 
-        PickupDef _pickupDef;
-
-        public override void OnPreStartServer()
-        {
-            base.OnPreStartServer();
-
-            _pickupDef = PickupCatalog.GetPickupDef(_dropTable.GenerateDrop(RNG));
-            _monsterInventory.TryGrant(_pickupDef, true);
-        }
-
-        public override void Serialize(NetworkWriter writer)
-        {
-            base.Serialize(writer);
-            writer.Write(_pickupDef.pickupIndex);
-        }
-
-        public override void Deserialize(NetworkReader reader)
-        {
-            base.Deserialize(reader);
-            _pickupDef = PickupCatalog.GetPickupDef(reader.ReadPickupIndex());
-        }
-
         public override void OnStart()
         {
-            CharacterMaster localPlayerMaster = PlayerUtils.GetLocalUserMaster();
-            if (localPlayerMaster)
+            PickupDef pickupDef = PickupCatalog.GetPickupDef(_dropTable.GenerateDrop(RNG));
+            _monsterInventory.TryGrant(pickupDef, true);
+
+            uint pickupCount;
+            if (pickupDef.itemIndex != ItemIndex.None)
             {
-                CharacterMasterNotificationQueue.PushPickupNotification(localPlayerMaster, _pickupDef.pickupIndex);
+                pickupCount = (uint)_monsterInventory.GetItemCount(pickupDef.itemIndex);
             }
+            else
+            {
+                pickupCount = 1;
+            }
+
+            Chat.SendBroadcastChat(new Chat.PlayerPickupChatMessage
+            {
+                baseToken = "MONSTER_INVENTORY_ADD_ITEM",
+                pickupToken = pickupDef.nameToken,
+                pickupColor = pickupDef.baseColor,
+                pickupQuantity = pickupCount
+            });
         }
     }
 }
