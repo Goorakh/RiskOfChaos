@@ -2,7 +2,7 @@
 	"name": "RiskOfChaos",
 	"authorName": "Gorakh",
 	"displayName": "Risk of Chaos",
-	"version_number": "0.8.1",
+	"version_number": "0.9.0",
 	"website_url": "https://github.com/Goorakh/RiskOfChaos",
 	"description": "Every minute, a random effect happens. Heavily inspired by the \"Chaos Mod\" series of GTA games.",
 	"dependencies": [

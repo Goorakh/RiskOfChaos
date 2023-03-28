@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer combatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently includes 50 different effects.
+Currently includes 54 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -59,6 +59,10 @@ Currently includes 50 different effects.
 * Benthic Transform Random Item: Upgrades the tier of 1 random item
 * Kill All (Non-Boss) Enemies: Kills all non-boss enemies on the map
 * Random Gravity Direction: Changes the direction of gravity
+* Disable Random Skill: Disables a random skill slot (Lasts 1 stage)
+* Ahoy!: Spawns 3 equipment drones with a Consumed Trophy Hunter's Tricorn
+* Increase Knockback: Multiplies all knockback by 3 (configurable), lasts 1 stage
+* Add Random Item to Monster Inventory: Permanently adds a random item to all enemies
 </details>
 
 FAQ:

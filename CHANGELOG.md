@@ -1,5 +1,19 @@
 ## Changelog
 
+**0.9.0 Changes:**
+
+* Added 4 new effects:
+  * Disable Random Skill: Disables a random skill slot (Lasts 1 stage)
+  * Ahoy!: Spawns 3 equipment drones with a Consumed Trophy Hunter's Tricorn
+  * Increase Knockback: Multiplies all knockback by 3 (configurable), lasts 1 stage
+  * Add Random Item to Monster Inventory: Permanently adds a random item to all enemies
+
+* Touch Void:
+  * Void infested allies no longer stay across stage transitions
+
+* Multiplayer:
+  * Fixed various server-client desync issues
+
 **0.8.1 Changes:**
 
 * Added 5 new effects:
@@ -19,13 +33,13 @@
 
 * Fixed "Teleporting Attacks" not being able to activate more than once per stage
 
+* Misc: Minor performance improvements
+
 **0.8.0 Changes:**
 
 * Potrolling: Pots now have invincibility for 1 second after spawning, so they can no longer explode immediately
 
 * Randomize Loadout: Fixed an issue with the in-game chat after the effect activates.
-
-* Misc: Minor performance improvements
 
 * Increase/Decrease Chest Prices:
   * All cost types are now changed by these effects.
