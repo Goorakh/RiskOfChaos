@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
-    [ChaosEffect("GiveMoney", EffectWeightReductionPercentagePerActivation = 0f)]
+    [ChaosEffect("give_money", EffectWeightReductionPercentagePerActivation = 0f)]
     public sealed class GiveMoney : BaseEffect
     {
         [InitEffectInfo]

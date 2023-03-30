@@ -14,7 +14,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
-    [ChaosEffect("SpawnWarbanner", EffectWeightReductionPercentagePerActivation = 20f)]
+    [ChaosEffect("spawn_warbanner", EffectWeightReductionPercentagePerActivation = 20f)]
     public sealed class SpawnWarbanner : CoroutineEffect
     {
         [InitEffectInfo]

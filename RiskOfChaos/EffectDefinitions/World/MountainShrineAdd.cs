@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("MountainShrineAdd", ConfigName = "Add Mountain Shrine", EffectWeightReductionPercentagePerActivation = 20f)]
+    [ChaosEffect("mountain_shrine_add", ConfigName = "Add Mountain Shrine", EffectWeightReductionPercentagePerActivation = 20f)]
     public sealed class MountainShrineAdd : BaseEffect
     {
         [InitEffectInfo]

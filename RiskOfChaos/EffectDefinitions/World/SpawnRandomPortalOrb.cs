@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("RandomPortalOrb", EffectWeightReductionPercentagePerActivation = 10f)]
+    [ChaosEffect("random_portal_orb", EffectWeightReductionPercentagePerActivation = 10f)]
     public sealed class SpawnRandomPortalOrb : BaseEffect
     {
         const int NUM_SHOULD_ATTEMPT_SPAWN_PROPERTIES = 3;

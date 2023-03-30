@@ -182,6 +182,25 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
+        internal readonly void Validate()
+        {
+            string displayName = DisplayName;
+            if (string.IsNullOrWhiteSpace(displayName))
+            {
+                Log.Error($"{this}: Null or empty display name");
+            }
+
+            if (displayName == NameToken)
+            {
+                Log.Error($"{this}: Invalid name token");
+            }
+
+            if (Identifier.Any(char.IsUpper))
+            {
+                Log.Warning($"{this}: Effect identifier has uppercase characters");
+            }
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int GetActivationCount(EffectActivationCountMode countMode)
         {

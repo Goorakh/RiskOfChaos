@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
-    [ChaosEffect("CorruptRandomItem", DefaultSelectionWeight = 0.6f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
+    [ChaosEffect("corrupt_random_item", DefaultSelectionWeight = 0.6f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
     public sealed class CorruptRandomItem : BaseEffect
     {
         [EffectCanActivate]

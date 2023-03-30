@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
-    [ChaosEffect("GiveRandomItem", EffectWeightReductionPercentagePerActivation = 0f)]
+    [ChaosEffect("give_random_item", EffectWeightReductionPercentagePerActivation = 0f)]
     public sealed class GiveRandomItem : BaseEffect
     {
         [InitEffectInfo]

@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("DuplicateAllCharacters", EffectWeightReductionPercentagePerActivation = 50f)]
+    [ChaosEffect("duplicate_all_characters", EffectWeightReductionPercentagePerActivation = 50f)]
     public sealed class DuplicateAllCharacters : BaseEffect
     {
         public override void OnStart()

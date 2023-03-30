@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
-    [ChaosEffect("SpawnInvincibleLemurian", EffectWeightReductionPercentagePerActivation = 15f)]
+    [ChaosEffect("spawn_invincible_lemurian", EffectWeightReductionPercentagePerActivation = 15f)]
     public sealed class SpawnIncincibleLemurian : BaseEffect
     {
         static readonly SpawnCard _cscLemurian = Addressables.LoadAssetAsync<SpawnCard>("RoR2/Base/Lemurian/cscLemurian.asset").WaitForCompletion();

@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
-    [ChaosEffect("GiveRandomEliteAspect", DefaultSelectionWeight = 0.6f)]
+    [ChaosEffect("give_random_elite_aspect", DefaultSelectionWeight = 0.6f)]
     public sealed class GiveRandomEliteAspect : BaseEffect
     {
         static EquipmentDef[] _eliteAspects;

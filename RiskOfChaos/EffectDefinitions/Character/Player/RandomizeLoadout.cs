@@ -10,7 +10,7 @@ using System;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
-    [ChaosEffect("RandomizeLoadout", DefaultSelectionWeight = 0.7f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
+    [ChaosEffect("randomize_loadout", DefaultSelectionWeight = 0.7f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
     public sealed class RandomizeLoadout : BaseEffect
     {
         public override void OnStart()
