@@ -101,16 +101,16 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
         static WeightedSelection<uint> getWeightedIndexSelection(int count, uint currentIndex, Predicate<uint> canSelectIndex)
         {
-            WeightedSelection<uint> skinIndexSelection = new WeightedSelection<uint>(count);
-            for (uint skinIndex = 0; skinIndex < count; skinIndex++)
+            WeightedSelection<uint> indexSelection = new WeightedSelection<uint>(count);
+            for (uint index = 0; index < count; index++)
             {
-                if (canSelectIndex == null || canSelectIndex(skinIndex))
+                if (canSelectIndex == null || canSelectIndex(index))
                 {
-                    skinIndexSelection.AddChoice(skinIndex, skinIndex == currentIndex ? 0.7f : 1f);
+                    indexSelection.AddChoice(index, index == currentIndex ? 0.7f : 1f);
                 }
             }
 
-            return skinIndexSelection;
+            return indexSelection;
         }
 
         uint evaluateWeightedIndexSelection(int count, uint currentIndex, Predicate<uint> canSelectIndex)
