@@ -115,6 +115,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         }
 
         static Inventory _monsterInventory;
+        static TeamFilter _monsterTeamFilter;
 
         [SystemInitializer]
         static void InitInventoryListeners()
@@ -131,7 +132,9 @@ namespace RiskOfChaos.EffectDefinitions.World
                 }
 
                 _monsterInventory = GameObject.Instantiate(NetPrefabs.GenericTeamInventoryPrefab).GetComponent<Inventory>();
-                _monsterInventory.GetComponent<TeamFilter>().teamIndex = TeamIndex.Monster;
+
+                _monsterTeamFilter = _monsterInventory.GetComponent<TeamFilter>();
+                _monsterTeamFilter.teamIndex = TeamIndex.Monster;
 
                 NetworkServer.Spawn(_monsterInventory.gameObject);
             };
@@ -151,6 +154,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 }
 
                 _monsterInventory = null;
+                _monsterTeamFilter = null;
             };
 
             SpawnCard.onSpawnedServerGlobal += result =>
@@ -165,7 +169,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 if (!spawnedMaster)
                     return;
 
-                if (spawnedMaster.teamIndex != TeamIndex.Monster)
+                if (spawnedMaster.teamIndex != _monsterTeamFilter.teamIndex)
                     return;
 
                 spawnedMaster.inventory.AddItemsFrom(_monsterInventory);
