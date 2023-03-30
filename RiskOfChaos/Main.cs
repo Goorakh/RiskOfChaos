@@ -4,6 +4,7 @@ using R2API.Utils;
 using RiskOfChaos.Config;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.Networking;
+using RiskOfChaos.Patches;
 using System.Diagnostics;
 
 namespace RiskOfChaos
@@ -32,6 +33,8 @@ namespace RiskOfChaos
             Log.Init(Logger);
 
             Instance = this;
+
+            FixPlayerChatOnRespawn.Apply();
 
             LanguageFileHandler.Init();
 
