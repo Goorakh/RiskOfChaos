@@ -1,4 +1,5 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities.Extensions;
+using RoR2;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -11,7 +12,7 @@ namespace RiskOfChaos.Utilities
             return from playerMasterController in PlayerCharacterMasterController.instances
                    where playerMasterController
                    let playerMaster = playerMasterController.master
-                   where playerMaster && (!requireAlive || !playerMaster.IsDeadAndOutOfLivesServer())
+                   where playerMaster && (!requireAlive || playerMaster.IsAlive())
                    select playerMaster;
         }
 
