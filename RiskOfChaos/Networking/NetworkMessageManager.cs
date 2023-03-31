@@ -7,6 +7,7 @@ namespace RiskOfChaos.Networking
         public static void RegisterMessages()
         {
             NetworkingAPI.RegisterMessageType<NetworkedEffectDispatchedMessage>();
+            NetworkingAPI.RegisterMessageType<NetworkedTimedEffectEndMessage>();
             NetworkingAPI.RegisterMessageType<StageCompleteMessage>();
 
             NetworkingAPI.RegisterMessageType<RefreshDifficultyIconsMessage>();

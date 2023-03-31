@@ -16,7 +16,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectHandling
 {
-    public readonly struct ChaosEffectInfo
+    public readonly struct ChaosEffectInfo : IEquatable<ChaosEffectInfo>
     {
         public readonly int EffectIndex;
 
@@ -251,6 +251,31 @@ namespace RiskOfChaos.EffectHandling
         public override readonly string ToString()
         {
             return Identifier;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is ChaosEffectInfo info && Equals(info);
+        }
+
+        public bool Equals(ChaosEffectInfo other)
+        {
+            return EffectIndex == other.EffectIndex;
+        }
+
+        public override int GetHashCode()
+        {
+            return -865576688 + EffectIndex.GetHashCode();
+        }
+
+        public static bool operator ==(ChaosEffectInfo left, ChaosEffectInfo right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(ChaosEffectInfo left, ChaosEffectInfo right)
+        {
+            return !(left == right);
         }
     }
 }

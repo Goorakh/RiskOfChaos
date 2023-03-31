@@ -35,7 +35,44 @@ namespace RiskOfChaos.EffectHandling
 
         static ChaosEffectActivationCounter[] _effectActivationCounts;
 
-        static readonly List<TimedEffect> _activeTimedEffects = new List<TimedEffect>();
+        readonly struct TimedEffectInfo
+        {
+            public readonly ChaosEffectInfo EffectInfo;
+            public readonly TimedEffect EffectInstance;
+
+            public TimedEffectInfo(ChaosEffectInfo effectInfo, TimedEffect effectInstance)
+            {
+                EffectInfo = effectInfo;
+                EffectInstance = effectInstance;
+            }
+
+            public readonly void End(bool sendClientMessage = true)
+            {
+                try
+                {
+                    EffectInstance.OnEnd();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Caught exception in {EffectInfo} {nameof(TimedEffect.OnEnd)}: {ex}");
+                }
+
+                if (NetworkServer.active)
+                {
+                    if (EffectInfo.IsNetworked && sendClientMessage)
+                    {
+                        new NetworkedTimedEffectEndMessage(EffectInfo).Send(NetworkDestination.Clients);
+                    }
+                }
+            }
+
+            public override readonly string ToString()
+            {
+                return EffectInfo.ToString();
+            }
+        }
+
+        static readonly List<TimedEffectInfo> _activeTimedEffects = new List<TimedEffectInfo>();
 
         static readonly AkEventIdArg _effectActivationSoundEventID = AkSoundEngine.GetIDFromString("Play_env_hiddenLab_laptop_sequence_fail");
 
@@ -130,6 +167,7 @@ namespace RiskOfChaos.EffectHandling
             Stage.onServerStageComplete += Stage_onServerStageComplete;
 
             NetworkedEffectDispatchedMessage.OnReceive += NetworkedEffectDispatchedMessage_OnReceive;
+            NetworkedTimedEffectEndMessage.OnReceive += NetworkedTimedEffectEndMessage_OnReceive;
 
             Configs.General.OnTimeBetweenEffectsChanged += onTimeBetweenEffectsConfigChanged;
 
@@ -149,6 +187,7 @@ namespace RiskOfChaos.EffectHandling
             Stage.onServerStageComplete -= Stage_onServerStageComplete;
 
             NetworkedEffectDispatchedMessage.OnReceive -= NetworkedEffectDispatchedMessage_OnReceive;
+            NetworkedTimedEffectEndMessage.OnReceive -= NetworkedTimedEffectEndMessage_OnReceive;
 
             Configs.General.OnTimeBetweenEffectsChanged -= onTimeBetweenEffectsConfigChanged;
 
@@ -158,7 +197,7 @@ namespace RiskOfChaos.EffectHandling
 
             resetAllEffectActivationCounters();
 
-            endAllTimedEffects();
+            endAllTimedEffects(false);
 
             // Stop all running CoroutineEffects
             StopAllCoroutines();
@@ -434,12 +473,9 @@ namespace RiskOfChaos.EffectHandling
                     }
                 }
 
-                if (isServer)
+                if (effectInstance is TimedEffect timedEffectInstance)
                 {
-                    if (effectInstance is TimedEffect timedEffectInstance)
-                    {
-                        registerTimedEffect(timedEffectInstance);
-                    }
+                    registerTimedEffect(new TimedEffectInfo(effect, timedEffectInstance));
                 }
             }
 
@@ -454,29 +490,43 @@ namespace RiskOfChaos.EffectHandling
             return effectInstance;
         }
 
-        static void endAllTimedEffects()
+        static void endAllTimedEffects(bool sendClientMessage = true)
         {
-            if (!NetworkServer.active)
-                return;
-
-            foreach (TimedEffect timedEffect in _activeTimedEffects)
+            foreach (TimedEffectInfo timedEffect in _activeTimedEffects)
             {
-                try
-                {
-                    timedEffect.OnEnd();
-                }
-                catch (Exception ex)
-                {
-                    Log.Error($"Caught exception in {timedEffect} {nameof(TimedEffect.OnEnd)}: {ex}");
-                }
+                timedEffect.End(sendClientMessage);
             }
 
             _activeTimedEffects.Clear();
         }
 
-        static void registerTimedEffect(TimedEffect instance)
+        static void NetworkedTimedEffectEndMessage_OnReceive(in ChaosEffectInfo effectInfo)
         {
-            _activeTimedEffects.Add(instance);
+            if (NetworkServer.active)
+                return;
+
+            for (int i = 0; i < _activeTimedEffects.Count; i++)
+            {
+                TimedEffectInfo timedEffect = _activeTimedEffects[i];
+                if (timedEffect.EffectInfo == effectInfo)
+                {
+                    timedEffect.End(false);
+                    _activeTimedEffects.RemoveAt(i);
+
+#if DEBUG
+                    Log.Debug($"Timed effect {effectInfo} ended");
+#endif
+
+                    return;
+                }
+            }
+
+            Log.Warning($"{effectInfo} is not registered as a timed effect");
+        }
+
+        static void registerTimedEffect(TimedEffectInfo effectInfo)
+        {
+            _activeTimedEffects.Add(effectInfo);
         }
 
         static void incrementEffectActivationCounter(int effectIndex)
