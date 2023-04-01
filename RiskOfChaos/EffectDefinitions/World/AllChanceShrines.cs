@@ -120,7 +120,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
                 if (purchaseInteraction && shrineChanceBehavior.TryGetComponent(out PurchaseInteraction shrinePurchaseInteraction))
                 {
-                    shrinePurchaseInteraction.cost = purchaseInteraction.cost;
+                    shrinePurchaseInteraction.Networkcost = purchaseInteraction.cost;
                     SyncPurchaseInteractionCostType.SetCostTypeNetworked(shrinePurchaseInteraction, purchaseInteraction.costType);
                 }
 
