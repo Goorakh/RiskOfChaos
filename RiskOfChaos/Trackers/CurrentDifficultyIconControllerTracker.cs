@@ -1,9 +1,6 @@
-﻿using RiskOfChaos.Networking;
+﻿using RiskOfChaos.Patches;
 using RoR2;
 using RoR2.UI;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 
 namespace RiskOfChaos.Trackers
@@ -31,17 +28,17 @@ namespace RiskOfChaos.Trackers
         {
             InstanceTracker.Add(this);
 
-            RefreshDifficultyIconsMessage.OnReceived += RefreshDifficultyIconsMessage_OnReceived;
+            DifficultyChangedHook.OnRunDifficultyChanged += OnRunDifficultyChanged;
         }
 
         void OnDisable()
         {
             InstanceTracker.Remove(this);
 
-            RefreshDifficultyIconsMessage.OnReceived -= RefreshDifficultyIconsMessage_OnReceived;
+            DifficultyChangedHook.OnRunDifficultyChanged -= OnRunDifficultyChanged;
         }
 
-        void RefreshDifficultyIconsMessage_OnReceived()
+        void OnRunDifficultyChanged()
         {
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
             // Refreshes the icon based on the current difficulty

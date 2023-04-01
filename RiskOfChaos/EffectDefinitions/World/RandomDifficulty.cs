@@ -57,8 +57,6 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             Log.Debug($"Selected difficulty: {choiceInfo.value} (\"{(selectedDifficultyDef != null ? Language.GetString(selectedDifficultyDef.nameToken) : "NULL")}\"), weight={choiceInfo.weight} ({choiceInfo.weight / newDifficultySelection.totalWeight:P2} chance)");
 #endif
-
-            new RefreshDifficultyIconsMessage().Send(NetworkDestination.Clients | NetworkDestination.Server);
         }
     }
 }
