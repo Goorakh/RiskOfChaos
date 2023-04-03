@@ -6,20 +6,54 @@ using RoR2.ExpansionManagement;
 using System;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("random_family_event", DefaultSelectionWeight = 0.4f)]
     public sealed class RandomFamilyEvent : BaseEffect
     {
-        static readonly DccsPool _allFamilyEventsPool;
+        static readonly DccsPool _allFamilyEventsPool = ScriptableObject.CreateInstance<DccsPool>();
 
-        static RandomFamilyEvent()
+        [SystemInitializer(typeof(ExpansionCatalog))]
+        static void Init()
         {
-            _allFamilyEventsPool = ScriptableObject.CreateInstance<DccsPool>();
-
             ExpansionDef dlc1 = ExpansionUtils.DLC1;
             ExpansionDef[] dlc1Expansions = new ExpansionDef[] { dlc1 };
+
+            static void loadAndSetPoolEntryDccs(DccsPool.PoolEntry poolEntry, string assetKey)
+            {
+                AsyncOperationHandle<FamilyDirectorCardCategorySelection> loadAssetHandle = Addressables.LoadAssetAsync<FamilyDirectorCardCategorySelection>(assetKey);
+                loadAssetHandle.Completed += handle =>
+                {
+                    poolEntry.dccs = handle.Result;
+                };
+            }
+
+            static DccsPool.PoolEntry getPoolEntry(string assetKey, float weight = 1f)
+            {
+                DccsPool.PoolEntry poolEntry = new DccsPool.PoolEntry
+                {
+                    weight = weight
+                };
+
+                loadAndSetPoolEntryDccs(poolEntry, assetKey);
+
+                return poolEntry;
+            }
+
+            static DccsPool.ConditionalPoolEntry getConditionalPoolEntry(string assetKey, ExpansionDef[] requiredExpansions, float weight = 1f)
+            {
+                DccsPool.ConditionalPoolEntry poolEntry = new DccsPool.ConditionalPoolEntry
+                {
+                    weight = weight,
+                    requiredExpansions = requiredExpansions
+                };
+
+                loadAndSetPoolEntryDccs(poolEntry, assetKey);
+
+                return poolEntry;
+            }
 
             DccsPool.Category category = new DccsPool.Category
             {
@@ -27,78 +61,22 @@ namespace RiskOfChaos.EffectDefinitions.World
                 categoryWeight = 1f,
                 alwaysIncluded = new DccsPool.PoolEntry[]
                 {
-                    new DccsPool.PoolEntry
-                    {
-                        dccs = Addressables.LoadAssetAsync<FamilyDirectorCardCategorySelection>("RoR2/Base/Common/dccsBeetleFamily.asset").WaitForCompletion(),
-                        weight = 1f
-                    },
-                    new DccsPool.PoolEntry
-                    {
-                        dccs = Addressables.LoadAssetAsync<FamilyDirectorCardCategorySelection>("RoR2/Base/Common/dccsGolemFamily.asset").WaitForCompletion(),
-                        weight = 1f
-                    },
-                    new DccsPool.PoolEntry
-                    {
-                        dccs = Addressables.LoadAssetAsync<FamilyDirectorCardCategorySelection>("RoR2/Base/Common/dccsImpFamily.asset").WaitForCompletion(),
-                        weight = 1f
-                    },
-                    new DccsPool.PoolEntry
-                    {
-                        dccs = Addressables.LoadAssetAsync<FamilyDirectorCardCategorySelection>("RoR2/Base/Common/dccsJellyfishFamily.asset").WaitForCompletion(),
-                        weight = 1f
-                    },
-                    new DccsPool.PoolEntry
-                    {
-                        dccs = Addressables.LoadAssetAsync<FamilyDirectorCardCategorySelection>("RoR2/Base/Common/dccsLemurianFamily.asset").WaitForCompletion(),
-                        weight = 1f
-                    },
-                    new DccsPool.PoolEntry
-                    {
-                        dccs = Addressables.LoadAssetAsync<FamilyDirectorCardCategorySelection>("RoR2/Base/Common/dccsLunarFamily.asset").WaitForCompletion(),
-                        weight = 1f
-                    },
-                    new DccsPool.PoolEntry
-                    {
-                        dccs = Addressables.LoadAssetAsync<FamilyDirectorCardCategorySelection>("RoR2/Base/Common/dccsMushroomFamily.asset").WaitForCompletion(),
-                        weight = 1f
-                    },
-                    new DccsPool.PoolEntry
-                    {
-                        dccs = Addressables.LoadAssetAsync<FamilyDirectorCardCategorySelection>("RoR2/Base/Common/dccsParentFamily.asset").WaitForCompletion(),
-                        weight = 1f
-                    },
-                    new DccsPool.PoolEntry
-                    {
-                        dccs = Addressables.LoadAssetAsync<FamilyDirectorCardCategorySelection>("RoR2/Base/Common/dccsWispFamily.asset").WaitForCompletion(),
-                        weight = 1f
-                    }
+                    getPoolEntry("RoR2/Base/Common/dccsBeetleFamily.asset"),
+                    getPoolEntry("RoR2/Base/Common/dccsGolemFamily.asset"),
+                    getPoolEntry("RoR2/Base/Common/dccsImpFamily.asset"),
+                    getPoolEntry("RoR2/Base/Common/dccsJellyfishFamily.asset"),
+                    getPoolEntry("RoR2/Base/Common/dccsLemurianFamily.asset"),
+                    getPoolEntry("RoR2/Base/Common/dccsLunarFamily.asset"),
+                    getPoolEntry("RoR2/Base/Common/dccsMushroomFamily.asset"),
+                    getPoolEntry("RoR2/Base/Common/dccsParentFamily.asset"),
+                    getPoolEntry("RoR2/Base/Common/dccsWispFamily.asset")
                 },
                 includedIfConditionsMet = new DccsPool.ConditionalPoolEntry[]
                 {
-                    new DccsPool.ConditionalPoolEntry
-                    {
-                        dccs = Addressables.LoadAssetAsync<FamilyDirectorCardCategorySelection>("RoR2/Base/Common/dccsGupFamily.asset").WaitForCompletion(),
-                        weight = 1f,
-                        requiredExpansions = dlc1Expansions
-                    },
-                    new DccsPool.ConditionalPoolEntry
-                    {
-                        dccs = Addressables.LoadAssetAsync<FamilyDirectorCardCategorySelection>("RoR2/DLC1/Common/dccsAcidLarvaFamily.asset").WaitForCompletion(),
-                        weight = 1f,
-                        requiredExpansions = dlc1Expansions
-                    },
-                    new DccsPool.ConditionalPoolEntry
-                    {
-                        dccs = Addressables.LoadAssetAsync<FamilyDirectorCardCategorySelection>("RoR2/DLC1/Common/dccsConstructFamily.asset").WaitForCompletion(),
-                        weight = 1f,
-                        requiredExpansions = dlc1Expansions
-                    },
-                    new DccsPool.ConditionalPoolEntry
-                    {
-                        dccs = Addressables.LoadAssetAsync<FamilyDirectorCardCategorySelection>("RoR2/DLC1/Common/dccsVoidFamily.asset").WaitForCompletion(),
-                        weight = 1f,
-                        requiredExpansions = dlc1Expansions
-                    }
+                    getConditionalPoolEntry("RoR2/Base/Common/dccsGupFamily.asset", dlc1Expansions),
+                    getConditionalPoolEntry("RoR2/DLC1/Common/dccsAcidLarvaFamily.asset", dlc1Expansions),
+                    getConditionalPoolEntry("RoR2/DLC1/Common/dccsConstructFamily.asset", dlc1Expansions),
+                    getConditionalPoolEntry("RoR2/DLC1/Common/dccsVoidFamily.asset", dlc1Expansions)
                 },
                 includedIfNoConditionsMet = Array.Empty<DccsPool.PoolEntry>()
             };
