@@ -4,6 +4,7 @@ using MonoMod.RuntimeDetour;
 using RiskOfChaos.Networking;
 using RoR2;
 using RoR2.Skills;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -16,6 +17,29 @@ namespace RiskOfChaos.Patches
         public const int SKILL_SLOT_COUNT = (int)SkillSlot.Special + 1;
 
         static readonly bool[] _lockedSlots = new bool[SKILL_SLOT_COUNT];
+
+        public static SkillSlot[] LockedSlotTypes { get; private set; }
+
+        public static SkillSlot[] NonLockedSlotTypes { get; private set; }
+
+        static ForceLockPlayerSkillSlot()
+        {
+            refreshLockedSlotTypes();
+        }
+
+        static void refreshLockedSlotTypes()
+        {
+            List<SkillSlot> lockedSlotTypes = new List<SkillSlot>(SKILL_SLOT_COUNT);
+            List<SkillSlot> nonLockedSlotTypes = new List<SkillSlot>(SKILL_SLOT_COUNT);
+
+            for (int i = 0; i < SKILL_SLOT_COUNT; i++)
+            {
+                (_lockedSlots[i] ? lockedSlotTypes : nonLockedSlotTypes).Add((SkillSlot)i);
+            }
+
+            LockedSlotTypes = lockedSlotTypes.ToArray();
+            NonLockedSlotTypes = nonLockedSlotTypes.ToArray();
+        }
 
         static Sprite _lockedSkillIcon;
 
@@ -42,12 +66,14 @@ namespace RiskOfChaos.Patches
             }
 
             _lockedSlots[(int)skillSlot] = true;
+            refreshLockedSlotTypes();
             tryApplyPatches();
         }
 
         static void resetLockedSlots()
         {
             ArrayUtils.SetAll(_lockedSlots, false);
+            refreshLockedSlotTypes();
         }
 
         static bool _hasAppliedPatches = false;

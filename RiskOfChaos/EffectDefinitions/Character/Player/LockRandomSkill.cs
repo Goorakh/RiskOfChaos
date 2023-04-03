@@ -14,18 +14,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return getNonLockedSlots().Any();
-        }
-
-        static IEnumerable<SkillSlot> getNonLockedSlots()
-        {
-            for (SkillSlot i = 0; i < (SkillSlot)ForceLockPlayerSkillSlot.SKILL_SLOT_COUNT; i++)
-            {
-                if (!ForceLockPlayerSkillSlot.IsSkillSlotLocked(i))
-                {
-                    yield return i;
-                }
-            }
+            return ForceLockPlayerSkillSlot.NonLockedSlotTypes.Length > 0;
         }
 
         SkillSlot _lockedSkillSlot;
@@ -46,7 +35,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
         {
             base.OnPreStartServer();
 
-            _lockedSkillSlot = RNG.NextElementUniform(getNonLockedSlots().ToList());
+            _lockedSkillSlot = RNG.NextElementUniform(ForceLockPlayerSkillSlot.NonLockedSlotTypes);
         }
 
         public override void OnStart()
