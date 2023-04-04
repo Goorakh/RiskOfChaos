@@ -2,9 +2,7 @@
 using R2API.Networking.Interfaces;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.Networking;
-using RiskOfChaos.Utilities;
 using RoR2;
-using RoR2.Audio;
 using System;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -14,28 +12,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
     [ChaosController(false)]
     public class ChaosEffectDispatcher : MonoBehaviour
     {
-        static AkEventIdArg? _effectActivationSoundEventID = null;
-        public static AkEventIdArg EffectActivationSoundEventID
-        {
-            get
-            {
-                if (!_effectActivationSoundEventID.HasValue)
-                {
-                    if (AkSoundEngine.IsInitialized())
-                    {
-                        _effectActivationSoundEventID = AkSoundEngine.GetIDFromString("Play_env_hiddenLab_laptop_sequence_fail");
-                    }
-                    else
-                    {
-                        Log.Error("Sound engine not initialized");
-                        return default;
-                    }
-                }
-
-                return _effectActivationSoundEventID.Value;
-            }
-        }
-
         static ChaosEffectDispatcher _instance;
         public static ChaosEffectDispatcher Instance => _instance;
 
@@ -239,14 +215,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 }
             }
 
-            if (isServer)
-            {
-                if ((dispatchFlags & EffectDispatchFlags.DontPlaySound) == 0)
-                {
-                    playEffectActivatedSoundOnAllPlayerBodies();
-                }
-            }
-
             return effectInstance;
         }
 
@@ -262,14 +230,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
 
             OnEffectDispatched?.Invoke(effectInfo, dispatchFlags, effectInstance);
-        }
-
-        static void playEffectActivatedSoundOnAllPlayerBodies()
-        {
-            foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
-            {
-                EntitySoundManager.EmitSoundServer(EffectActivationSoundEventID, playerBody.gameObject);
-            }
         }
     }
 }
