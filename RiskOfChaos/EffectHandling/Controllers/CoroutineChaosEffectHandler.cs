@@ -7,7 +7,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectHandling.Controllers
 {
     [ChaosController(false)]
-    public class CoroutineChaosEffectHandler : MonoBehaviour, IOnAllChaosManagersCreatedListener
+    public class CoroutineChaosEffectHandler : MonoBehaviour
     {
         ChaosEffectDispatcher _effectDispatcher;
 
@@ -90,7 +90,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         readonly List<ActiveCoroutineEffect> _activeCoroutineEffects = new List<ActiveCoroutineEffect>();
 
-        public void OnAllChaosManagersCreated()
+        void Awake()
         {
             _effectDispatcher = GetComponent<ChaosEffectDispatcher>();
         }

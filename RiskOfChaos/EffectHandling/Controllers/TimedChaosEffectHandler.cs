@@ -10,7 +10,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectHandling.Controllers
 {
     [ChaosController(false)]
-    public class TimedChaosEffectHandler : MonoBehaviour, IOnAllChaosManagersCreatedListener
+    public class TimedChaosEffectHandler : MonoBehaviour
     {
         readonly struct TimedEffectInfo
         {
@@ -53,7 +53,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         ChaosEffectDispatcher _effectDispatcher;
 
-        public void OnAllChaosManagersCreated()
+        void Awake()
         {
             _effectDispatcher = GetComponent<ChaosEffectDispatcher>();
         }

@@ -50,7 +50,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void OnEnable()
         {
-            RoR2Application.onUpdate += update;
             Configs.General.OnTimeBetweenEffectsChanged += onTimeBetweenEffectsConfigChanged;
 
             resetState();
@@ -63,7 +62,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void OnDisable()
         {
-            RoR2Application.onUpdate -= update;
             Configs.General.OnTimeBetweenEffectsChanged -= onTimeBetweenEffectsConfigChanged;
 
             resetState();
@@ -114,7 +112,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        void update()
+        void Update()
         {
             if (!canDispatchEffects)
                 return;

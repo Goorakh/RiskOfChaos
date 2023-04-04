@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectHandling.Controllers
 {
     [ChaosController(false)]
-    public class ChaosEffectDispatcher : MonoBehaviour, IOnAllChaosManagersCreatedListener
+    public class ChaosEffectDispatcher : MonoBehaviour
     {
         static AkEventIdArg? _effectActivationSoundEventID = null;
         public static AkEventIdArg EffectActivationSoundEventID
@@ -47,7 +47,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         Xoroshiro128Plus _effectRNG;
 
-        public void OnAllChaosManagersCreated()
+        void Awake()
         {
             _effectActivationSignalers = GetComponents<IChaosEffectActivationSignaler>();
 

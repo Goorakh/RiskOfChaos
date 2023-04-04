@@ -48,14 +48,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 _behaviour = behaviour;
                 _controllerAttribute = controllerAttribute;
             }
-
-            public void OnAllManagersAdded()
-            {
-                if (_behaviour is IOnAllChaosManagersCreatedListener onAllManagersCreatedListener)
-                {
-                    onAllManagersCreatedListener.OnAllChaosManagersCreated();
-                }
-            }
         }
 
         ManagerComponent[] _managerComponents;
@@ -77,11 +69,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
                                                          .Cast<ChaosControllerAttribute>()
                                                          .Select(s => new ManagerComponent((Behaviour)gameObject.AddComponent((Type)s.target), s))
                                                          .ToArray();
-
-            foreach (ManagerComponent manager in _managerComponents)
-            {
-                manager.OnAllManagersAdded();
-            }
 
             setManagersActive(Run.instance);
 
