@@ -91,7 +91,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
         }
 
-        void Destroy()
+        void OnDestroy()
         {
             SingletonHelper.Unassign(ref _instance, this);
 
