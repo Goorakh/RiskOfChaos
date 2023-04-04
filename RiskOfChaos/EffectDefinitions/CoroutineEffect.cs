@@ -1,4 +1,4 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using RiskOfChaos.EffectHandling.Controllers;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,11 +8,14 @@ namespace RiskOfChaos.EffectDefinitions
 {
     public abstract class CoroutineEffect : BaseEffect
     {
-        public sealed override void OnStart()
+        public override void OnStart()
         {
-            ChaosEffectDispatcher.Instance.StartCoroutine(onStart());
         }
 
-        protected abstract IEnumerator onStart();
+        public abstract IEnumerator OnStartCoroutine();
+
+        public virtual void OnForceStopped()
+        {
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -70,7 +71,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             Run run = Run.instance;
             run.SetRunStopwatch(run.GetRunStopwatch() + numSecondsToAdd);
 
-            ChaosEffectDispatcher.SkipAllScheduledEffects();
+            ChaosEffectDispatcher.Instance?.SkipAllScheduledEffects();
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectDefinitions;
+using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -204,7 +205,11 @@ namespace RiskOfChaos.EffectHandling
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int GetActivationCount(EffectActivationCountMode countMode)
         {
-            return ChaosEffectDispatcher.GetEffectActivationCount(EffectIndex, countMode);
+            ChaosEffectActivationCounterHandler effectActivationCounterHandler = ChaosEffectActivationCounterHandler.Instance;
+            if (!effectActivationCounterHandler)
+                return 0;
+
+            return effectActivationCounterHandler.GetEffectActivationCount(this, countMode);
         }
 
         public readonly void AddRiskOfOptionsEntries()

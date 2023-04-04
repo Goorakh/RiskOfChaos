@@ -84,7 +84,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             }
         }
 
-        protected override IEnumerator onStart()
+        public override IEnumerator OnStartCoroutine()
         {
             float radius = 8f + (8f * warbannerItemCount);
 

@@ -1,14 +1,12 @@
-﻿using BepInEx.Configuration;
-using HG;
+﻿using HG;
+using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfOptions;
 using RiskOfOptions.Options;
 using RoR2;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace RiskOfChaos.EffectHandling
 {
@@ -18,6 +16,8 @@ namespace RiskOfChaos.EffectHandling
 
         const string CONFIG_MOD_GUID = $"RoC_Config_{CONFIG_SECTION_NAME}";
         const string CONFIG_MOD_NAME = $"Risk of Chaos: {CONFIG_SECTION_NAME}";
+
+        public static ResourceAvailability Availability = new ResourceAvailability();
 
         static ChaosEffectInfo[] _effects;
 
@@ -50,6 +50,8 @@ namespace RiskOfChaos.EffectHandling
             }
 
             Log.Info($"Registered {_effectCount} effects");
+
+            Availability.MakeAvailable();
         }
 
         static void checkFindEffectIndex()
@@ -125,6 +127,31 @@ namespace RiskOfChaos.EffectHandling
             }
 
             return weightedSelection;
+        }
+
+        public static ChaosEffectInfo PickActivatableEffect(Xoroshiro128Plus rng)
+        {
+            WeightedSelection<ChaosEffectInfo> weightedSelection = GetAllActivatableEffects();
+
+            ChaosEffectInfo effect;
+            if (weightedSelection.Count > 0)
+            {
+                float nextNormalizedFloat = rng.nextNormalizedFloat;
+                effect = weightedSelection.Evaluate(nextNormalizedFloat);
+
+#if DEBUG
+                float effectWeight = weightedSelection.GetChoice(weightedSelection.EvaluateToChoiceIndex(nextNormalizedFloat)).weight;
+                Log.Debug($"effect {effect.Identifier} selected, weight={effectWeight} ({effectWeight / weightedSelection.totalWeight:P} chance)");
+#endif
+            }
+            else
+            {
+                Log.Warning("No activatable effects, defaulting to Nothing");
+
+                effect = Nothing.EffectInfo;
+            }
+
+            return effect;
         }
     }
 }

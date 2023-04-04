@@ -31,7 +31,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
             return _diabloStrikePrefab && DirectorCore.instance && ProjectileManager.instance;
         }
 
-        protected override IEnumerator onStart()
+        public override IEnumerator OnStartCoroutine()
         {
             const int NUM_SPAWNS = 50;
 

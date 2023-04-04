@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfOptions.OptionConfigs;
@@ -51,7 +52,8 @@ namespace RiskOfChaos.EffectDefinitions.Meta
             int numEffects = numEffectsToActivate;
             for (int i = 0; i < numEffects; i++)
             {
-                ChaosEffectDispatcher.Instance.DispatchRandomEffect(EffectDispatchFlags.DontPlaySound | EffectDispatchFlags.DontStopTimedEffects);
+                ChaosEffectInfo effectInfo = ChaosEffectCatalog.PickActivatableEffect(RNG);
+                ChaosEffectDispatcher.Instance.DispatchEffect(effectInfo, EffectDispatchFlags.DontPlaySound | EffectDispatchFlags.DontStopTimedEffects);
             }
         }
     }

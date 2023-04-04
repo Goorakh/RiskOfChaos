@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -77,7 +78,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             if (moneyWaves == null || moneyWaves.Length <= 0)
                 return;
 
-            int numActivationsThisStage = ChaosEffectDispatcher.GetTotalStageEffectActivationCount(_effectInfo.EffectIndex);
+            int numActivationsThisStage = _effectInfo.GetActivationCount(EffectActivationCountMode.PerStage);
             if (numActivationsThisStage <= 0)
                 return;
 

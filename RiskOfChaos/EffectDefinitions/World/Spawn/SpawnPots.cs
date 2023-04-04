@@ -22,7 +22,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             return _potPrefab;
         }
 
-        protected override IEnumerator onStart()
+        public override IEnumerator OnStartCoroutine()
         {
             const float WAIT_BETWEEN_POT_SPAWNS = 0.1f;
             const int POT_COUNT = 50;
