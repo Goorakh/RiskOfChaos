@@ -57,7 +57,7 @@ namespace RiskOfChaos
 
         void initConfigs()
         {
-            Configs.General.Init(Config);
+            Configs.Init(Config);
 
             ChaosEffectCatalog.InitConfig();
         }
