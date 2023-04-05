@@ -1,7 +1,6 @@
 using BepInEx;
 using HarmonyLib;
 using R2API.Utils;
-using RiskOfChaos.Config;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.Networking;

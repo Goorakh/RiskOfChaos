@@ -1,5 +1,4 @@
-﻿using RiskOfChaos.Config;
-using RoR2;
+﻿using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -87,11 +86,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
         {
             get
             {
-#if DEBUG
-                if (Configs.General.DebugDisable)
-                    return false;
-#endif
-
                 if (!NetworkServer.active)
                     return false;
 

@@ -1,5 +1,4 @@
-﻿using RiskOfChaos.Config;
-using RoR2;
+﻿using RoR2;
 using System;
 
 namespace RiskOfChaos.EffectHandling
