@@ -117,7 +117,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             if (dispatchTimer.ShouldActivate())
             {
+                do
+                {
                 dispatchTimer.ScheduleNextDispatch();
+                } while (dispatchTimer.ShouldActivate());
+
                 dispatchRandomEffect();
             }
         }
