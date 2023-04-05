@@ -22,9 +22,9 @@ namespace RiskOfChaos
 
             internal static void Init(ConfigFile file)
             {
-                const string DEBUG_SECTION_NAME = "Debug";
+                const string SECTION_NAME = "Debug";
 
-                _debugDisable = file.Bind(new ConfigDefinition(DEBUG_SECTION_NAME, "Debug Disable"), DEBUG_DISABLE_DEFAULT_VALUE);
+                _debugDisable = file.Bind(new ConfigDefinition(SECTION_NAME, "Debug Disable"), DEBUG_DISABLE_DEFAULT_VALUE);
                 ModSettingsManager.AddOption(new CheckBoxOption(_debugDisable), CONFIG_GUID, CONFIG_NAME);
 
                 _debugDisable.SettingChanged += static (s, e) =>
@@ -32,7 +32,7 @@ namespace RiskOfChaos
                     OnDebugDisabledChanged?.Invoke();
                 };
 
-                _useLocalhostConnect = file.Bind(new ConfigDefinition(DEBUG_SECTION_NAME, "Use Localhost Connect"), USE_LOCALHOST_CONNECT_DEFAULT_VALUE);
+                _useLocalhostConnect = file.Bind(new ConfigDefinition(SECTION_NAME, "Use Localhost Connect"), USE_LOCALHOST_CONNECT_DEFAULT_VALUE);
                 ModSettingsManager.AddOption(new CheckBoxOption(_useLocalhostConnect), CONFIG_GUID, CONFIG_NAME);
 
                 On.RoR2.Networking.NetworkManagerSystem.ClientSendAuth += (orig, self, conn) =>
