@@ -44,5 +44,23 @@ namespace RiskOfChaos
 
         internal static void Warning(object data, [CallerFilePath] string callerPath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1) => _logSource.LogWarning(getLogPrefix(callerPath, callerMemberName, callerLineNumber) + data);
         internal static void Warning_NoCallerPrefix(object data) => _logSource.LogWarning(data);
+
+        internal static bool ShouldLog(LogLevel logLevel)
+        {
+#if !DEBUG
+            if ((logLevel & LogLevel.Debug) != 0)
+                return false;
+#endif
+
+            return logLevel > LogLevel.None;
+        }
+
+        internal static void LogType(LogLevel logLevel, object data)
+        {
+            if (!ShouldLog(logLevel))
+                return;
+
+            _logSource.Log(logLevel, data);
+        }
     }
 }

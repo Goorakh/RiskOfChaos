@@ -12,6 +12,8 @@ namespace RiskOfChaos
         {
             General.Init(file);
 
+            ChatVoting.Init(file);
+
 #if DEBUG
             Debug.Init(file);
 #endif

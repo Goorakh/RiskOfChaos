@@ -4,8 +4,8 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling.Controllers
 {
-    [ChaosController(true)]
-    public class ChaosEffectTimerActivationSignaler : MonoBehaviour, IChaosEffectActivationSignaler
+    [ChaosEffectActivationSignaler(Configs.ChatVoting.ChatVotingMode.None)]
+    public class ChaosEffectActivationSignaler_Timer : MonoBehaviour, IChaosEffectActivationSignaler
     {
         public event IChaosEffectActivationSignaler.SignalShouldDispatchEffectDelegate SignalShouldDispatchEffect;
 
@@ -119,7 +119,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 do
                 {
-                dispatchTimer.ScheduleNextDispatch();
+                    dispatchTimer.ScheduleNextDispatch();
                 } while (dispatchTimer.ShouldActivate());
 
                 dispatchRandomEffect();
