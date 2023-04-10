@@ -18,14 +18,17 @@ namespace RiskOfChaos.EffectHandling.Controllers
         public delegate void EffectDispatchedDelegate(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, BaseEffect effectInstance);
         public event EffectDispatchedDelegate OnEffectDispatched;
 
-        IChaosEffectActivationSignaler[] _effectActivationSignalers;
+        public delegate void EffectAboutToDispatchDelegate(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags);
+        public event EffectAboutToDispatchDelegate OnEffectAboutToDispatchServer;
+
+        ChaosEffectActivationSignaler[] _effectActivationSignalers;
         ChaosEffectActivationCounterHandler _effectActivationCounterHandler;
 
         Xoroshiro128Plus _effectRNG;
 
         void Awake()
         {
-            _effectActivationSignalers = GetComponents<IChaosEffectActivationSignaler>();
+            _effectActivationSignalers = GetComponents<ChaosEffectActivationSignaler>();
 
             _effectActivationCounterHandler = GetComponent<ChaosEffectActivationCounterHandler>();
         }
@@ -36,7 +39,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             if (NetworkServer.active)
             {
-                foreach (IChaosEffectActivationSignaler activationSignaler in _effectActivationSignalers)
+                foreach (ChaosEffectActivationSignaler activationSignaler in _effectActivationSignalers)
                 {
                     activationSignaler.SignalShouldDispatchEffect += DispatchEffect;
                 }
@@ -54,7 +57,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         {
             SingletonHelper.Unassign(ref _instance, this);
 
-            foreach (IChaosEffectActivationSignaler activationSignaler in _effectActivationSignalers)
+            foreach (ChaosEffectActivationSignaler activationSignaler in _effectActivationSignalers)
             {
                 activationSignaler.SignalShouldDispatchEffect -= DispatchEffect;
             }
@@ -72,7 +75,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 return;
             }
 
-            foreach (IChaosEffectActivationSignaler activationSignaler in _effectActivationSignalers)
+            foreach (ChaosEffectActivationSignaler activationSignaler in _effectActivationSignalers)
             {
                 if (activationSignaler is Behaviour behaviour)
                 {
@@ -121,7 +124,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             if (!NetworkServer.active || !Run.instance || !_instance || !_instance.enabled)
                 return;
 
-            _instance.dispatchEffect(ChaosEffectCatalog.PickActivatableEffect(RoR2Application.rng), EffectDispatchFlags.DontStopTimedEffects);
+            _instance.dispatchEffect(ChaosEffectCatalog.PickActivatableEffect(RoR2Application.rng, EffectCanActivateContext.Now), EffectDispatchFlags.DontStopTimedEffects);
         }
 
         [ConCommand(commandName = "roc_start", flags = ConVarFlags.SenderMustBeServer, helpText = "Dispatches an effect")]
@@ -170,6 +173,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 {
                     _effectActivationCounterHandler.IncrementEffectActivationCounter(effect);
                 }
+
+                OnEffectAboutToDispatchServer?.Invoke(effect, dispatchFlags);
             }
 
             ulong effectRNGSeed;
@@ -181,6 +186,15 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 // Clients will get the seed from the server in Deserialize
                 effectRNGSeed = 0UL;
+            }
+
+            if (isServer && (dispatchFlags & EffectDispatchFlags.CheckCanActivate) != 0 && !effect.CanActivate(EffectCanActivateContext.Now))
+            {
+#if DEBUG
+                Log.Debug($"{effect} is not activatable, not starting");
+#endif
+
+                return null;
             }
 
             BaseEffect effectInstance = effect.InstantiateEffect(effectRNGSeed);

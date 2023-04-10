@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RoR2;
@@ -10,14 +11,14 @@ namespace RiskOfChaos.EffectDefinitions.World
     public sealed class ActivateStageTeleporter : BaseEffect
     {
         [EffectCanActivate]
-        static bool CanActivate()
+        static bool CanActivate(EffectCanActivateContext context)
         {
             Interactor localUserInteractor = PlayerUtils.GetLocalUserInteractor();
             if (!localUserInteractor)
                 return false;
 
             TeleporterInteraction tpInteraction = TeleporterInteraction.instance;
-            return tpInteraction && tpInteraction.GetInteractability(localUserInteractor) >= Interactability.Available;
+            return tpInteraction && (!context.IsNow || tpInteraction.GetInteractability(localUserInteractor) >= Interactability.Available);
         }
 
         [EffectWeightMultiplierSelector]

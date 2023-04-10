@@ -10,6 +10,9 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
         const string LOGIN_FILE_NAME = "twitch_login.txt";
         static readonly string _saveFilePath = Path.Combine(new FileInfo(Main.Instance.Info.Location).Directory.FullName, LOGIN_FILE_NAME);
 
+        const string FILE_USERNAME_PREFIX = "username:";
+        const string FILE_OAUTH_PREFIX = "oauth:";
+
         public readonly string Username;
         public readonly string OAuth;
 
@@ -41,16 +44,13 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 
             foreach (string line in fileContents)
             {
-                const string USERNAME_PREFIX = "username:";
-                const string OAUTH_PREFIX = "oauth:";
-
-                if (line.StartsWith(USERNAME_PREFIX))
+                if (line.StartsWith(FILE_USERNAME_PREFIX))
                 {
-                    Username = line.Substring(USERNAME_PREFIX.Length);
+                    Username = line.Substring(FILE_USERNAME_PREFIX.Length);
                 }
-                else if (line.StartsWith(OAUTH_PREFIX))
+                else if (line.StartsWith(FILE_OAUTH_PREFIX))
                 {
-                    OAuth = formatOAuthToken(line.Substring(OAUTH_PREFIX.Length));
+                    OAuth = formatOAuthToken(line.Substring(FILE_OAUTH_PREFIX.Length));
                 }
             }
         }
@@ -89,8 +89,8 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
         {
             File.WriteAllLines(_saveFilePath, new string[]
             {
-                $"username:{Username}",
-                $"oauth:{OAuth}"
+                FILE_USERNAME_PREFIX + Username,
+                FILE_OAUTH_PREFIX + OAuth
             });
         }
     }

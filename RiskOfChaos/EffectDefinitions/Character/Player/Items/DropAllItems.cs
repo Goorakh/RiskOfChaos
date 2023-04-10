@@ -13,9 +13,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
     public sealed class DropAllItems : BaseEffect
     {
         [EffectCanActivate]
-        static bool CanActivate()
+        static bool CanActivate(EffectCanActivateContext context)
         {
-            return PlayerUtils.GetAllPlayerBodies(true).Any(b => getPickupsToDrop(b, false).Any());
+            return !context.IsNow || PlayerUtils.GetAllPlayerBodies(true).Any(b => getPickupsToDrop(b, false).Any());
         }
 
         public override void OnStart()

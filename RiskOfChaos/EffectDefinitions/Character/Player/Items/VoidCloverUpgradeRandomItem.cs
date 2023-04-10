@@ -59,9 +59,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         }
 
         [EffectCanActivate]
-        static bool CanActivate()
+        static bool CanActivate(EffectCanActivateContext context)
         {
-            return ExpansionUtils.DLC1Enabled && PlayerUtils.GetAllPlayerMasters(true).Any(m => m.inventory.HasAtLeastXTotalItemsOfTier(ItemTier.Tier1, 1) || m.inventory.HasAtLeastXTotalItemsOfTier(ItemTier.Tier2, 1));
+            return ExpansionUtils.DLC1Enabled && (!context.IsNow || PlayerUtils.GetAllPlayerMasters(true).Any(m => m.inventory.HasAtLeastXTotalItemsOfTier(ItemTier.Tier1, 1) || m.inventory.HasAtLeastXTotalItemsOfTier(ItemTier.Tier2, 1)));
         }
 
         public override void OnStart()

@@ -32,10 +32,10 @@ namespace RiskOfChaos.EffectDefinitions.World
         }
 
         [EffectCanActivate]
-        static bool CanActivate()
+        static bool CanActivate(EffectCanActivateContext context)
         {
             TeleporterInteraction instance = TeleporterInteraction.instance;
-            return instance && instance.activationState <= TeleporterInteraction.ActivationState.IdleToCharging;
+            return instance && (!context.IsNow || instance.activationState <= TeleporterInteraction.ActivationState.IdleToCharging);
         }
 
         [EffectNameFormatArgs]

@@ -1,6 +1,6 @@
 ﻿namespace RiskOfChaos.EffectHandling
 {
-    public enum EffectDispatchTimerType : sbyte
+    public enum RunTimerType : sbyte
     {
         Unpaused,
         Paused

@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using RiskOfChaos.EffectHandling.Controllers.ChatVoting;
 using RiskOfOptions;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
@@ -14,32 +15,19 @@ namespace RiskOfChaos
         {
             public enum ChatVotingMode
             {
-                None,
+                Disabled,
                 Twitch
             }
 
             static ConfigEntry<ChatVotingMode> _votingMode;
-            const ChatVotingMode VOTING_MODE_DEFAULT_VALUE = ChatVotingMode.None;
+            const ChatVotingMode VOTING_MODE_DEFAULT_VALUE = ChatVotingMode.Disabled;
 
-            public static ChatVotingMode VotingMode
-            {
-                get
-                {
-                    if (_votingMode == null)
-                    {
-                        return VOTING_MODE_DEFAULT_VALUE;
-                    }
-                    else
-                    {
-                        return _votingMode.Value;
-                    }
-                }
-            }
+            public static ChatVotingMode VotingMode => _votingMode?.Value ?? VOTING_MODE_DEFAULT_VALUE;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static bool IsVotingDisabled()
             {
-                return VotingMode == ChatVotingMode.None;
+                return VotingMode == ChatVotingMode.Disabled;
             }
 
             static ConfigEntry<int> _numEffectOptionsConfig;
@@ -66,15 +54,16 @@ namespace RiskOfChaos
             static ConfigEntry<bool> _includeRandomEffectInVoteConfig;
             const bool INCLUDE_RANDOM_EFFECT_IN_VOTE_DEFAULT_VALUE = true;
 
-            public static bool IncludeRandomEffectInVote
-            {
-                get
-                {
-                    return _includeRandomEffectInVoteConfig?.Value ?? INCLUDE_RANDOM_EFFECT_IN_VOTE_DEFAULT_VALUE;
-                }
-            }
+            public static bool IncludeRandomEffectInVote => _includeRandomEffectInVoteConfig?.Value ?? INCLUDE_RANDOM_EFFECT_IN_VOTE_DEFAULT_VALUE;
 
             public static event Action OnIncludeRandomEffectInVoteChanged;
+
+            static ConfigEntry<VoteWinnerSelectionMode> _voteWinnerSelectionModeConfig;
+            const VoteWinnerSelectionMode VOTE_WINNER_SELECTION_MODE_DEFAULT_VALUE = VoteWinnerSelectionMode.MostVotes;
+
+            public static VoteWinnerSelectionMode WinnerSelectionMode => _voteWinnerSelectionModeConfig?.Value ?? VOTE_WINNER_SELECTION_MODE_DEFAULT_VALUE;
+
+            public static event Action OnWinnerSelectionModeChanged;
 
             internal static void Init(ConfigFile file)
             {
@@ -106,6 +95,18 @@ namespace RiskOfChaos
                 };
 
                 ModSettingsManager.AddOption(new CheckBoxOption(_includeRandomEffectInVoteConfig, new CheckBoxConfig
+                {
+                    checkIfDisabled = IsVotingDisabled
+                }), CONFIG_GUID, CONFIG_NAME);
+
+                _voteWinnerSelectionModeConfig = file.Bind(new ConfigDefinition(SECTION_NAME, "Vote Winner Selection Mode"), VOTE_WINNER_SELECTION_MODE_DEFAULT_VALUE, new ConfigDescription($"How the winner of any vote should be selected.\n\n{VoteWinnerSelectionMode.MostVotes} (Default): The vote with the most votes will be selected, if there is a tie, a random tied option is selected\n{VoteWinnerSelectionMode.RandomProportional}: Every option has a chance to be selected, weighted by the number of votes. Ex. an option with 70% of the votes will have a 70% chance to be selected."));
+
+                _voteWinnerSelectionModeConfig.SettingChanged += (s, e) =>
+                {
+                    OnWinnerSelectionModeChanged?.Invoke();
+                };
+
+                ModSettingsManager.AddOption(new ChoiceOption(_voteWinnerSelectionModeConfig, new ChoiceConfig
                 {
                     checkIfDisabled = IsVotingDisabled
                 }), CONFIG_GUID, CONFIG_NAME);

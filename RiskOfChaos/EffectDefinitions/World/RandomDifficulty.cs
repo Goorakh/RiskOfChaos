@@ -24,12 +24,6 @@ namespace RiskOfChaos.EffectDefinitions.World
             }
         }
 
-        [EffectCanActivate]
-        static bool CanActivate()
-        {
-            return Run.instance;
-        }
-
         public override void OnStart()
         {
             DifficultyIndex currentDifficulty = Run.instance.selectedDifficulty;

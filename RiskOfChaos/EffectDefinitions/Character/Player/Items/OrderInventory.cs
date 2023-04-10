@@ -12,9 +12,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
     public sealed class OrderInventory : BaseEffect
     {
         [EffectCanActivate]
-        static bool CanActivate()
+        static bool CanActivate(EffectCanActivateContext context)
         {
-            return PlayerUtils.GetAllPlayerMasters(false).Any(m => ItemTierCatalog.allItemTierDefs.Any(itd => itd.canRestack && hasAtLeastXUniqueItemsInTier(m.inventory, itd.tier, 2)));
+            return !context.IsNow || PlayerUtils.GetAllPlayerMasters(false).Any(m => ItemTierCatalog.allItemTierDefs.Any(itd => itd.canRestack && hasAtLeastXUniqueItemsInTier(m.inventory, itd.tier, 2)));
         }
 
         static bool hasAtLeastXUniqueItemsInTier(Inventory inventory, ItemTier itemTier, int count)

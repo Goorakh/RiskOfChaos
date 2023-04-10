@@ -4,54 +4,25 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling.Controllers
 {
-    [ChaosEffectActivationSignaler(Configs.ChatVoting.ChatVotingMode.None)]
-    public class ChaosEffectActivationSignaler_Timer : MonoBehaviour, IChaosEffectActivationSignaler
+    [ChaosEffectActivationSignaler(Configs.ChatVoting.ChatVotingMode.Disabled)]
+    public class ChaosEffectActivationSignaler_Timer : ChaosEffectActivationSignaler
     {
-        public event IChaosEffectActivationSignaler.SignalShouldDispatchEffectDelegate SignalShouldDispatchEffect;
+        public override event SignalShouldDispatchEffectDelegate SignalShouldDispatchEffect;
 
-        bool _wasRunStopwatchPausedLastUpdate = false;
-
-        EffectDispatchTimer _unpausedEffectDispatchTimer = new EffectDispatchTimer(EffectDispatchTimerType.Unpaused);
-        EffectDispatchTimer _pausedEffectDispatchTimer = new EffectDispatchTimer(EffectDispatchTimerType.Paused);
-
-        public void SkipAllScheduledEffects()
-        {
-            ref EffectDispatchTimer dispatchTimer = ref currentEffectDispatchTimer;
-            while (dispatchTimer.ShouldActivate())
-            {
-                dispatchTimer.ScheduleNextDispatch();
-            }
-        }
-
-        ref EffectDispatchTimer currentEffectDispatchTimer
-        {
-            get
-            {
-                Run run = Run.instance;
-                if (!run)
-                {
-                    Log.Warning("No run instance, using unpaused timer");
-                    return ref _unpausedEffectDispatchTimer;
-                }
-
-                if (run.isRunStopwatchPaused)
-                {
-                    return ref _pausedEffectDispatchTimer;
-                }
-                else
-                {
-                    return ref _unpausedEffectDispatchTimer;
-                }
-            }
-        }
-
+        CompletePeriodicRunTimer _effectDispatchTimer;
         Xoroshiro128Plus _nextEffectRNG;
+
+        public override void SkipAllScheduledEffects()
+        {
+            _effectDispatchTimer?.SkipAllScheduledActivations();
+        }
 
         void OnEnable()
         {
             Configs.General.OnTimeBetweenEffectsChanged += onTimeBetweenEffectsConfigChanged;
 
-            resetState();
+            _effectDispatchTimer = new CompletePeriodicRunTimer(Configs.General.TimeBetweenEffects);
+            _effectDispatchTimer.OnActivate += dispatchRandomEffect;
 
             if (Run.instance)
             {
@@ -63,47 +34,18 @@ namespace RiskOfChaos.EffectHandling.Controllers
         {
             Configs.General.OnTimeBetweenEffectsChanged -= onTimeBetweenEffectsConfigChanged;
 
-            resetState();
+            if (_effectDispatchTimer != null)
+            {
+                _effectDispatchTimer.OnActivate -= dispatchRandomEffect;
+                _effectDispatchTimer = null;
+            }
 
             _nextEffectRNG = null;
         }
 
-        void resetState()
-        {
-            _unpausedEffectDispatchTimer.Reset();
-            _pausedEffectDispatchTimer.Reset();
-
-            _wasRunStopwatchPausedLastUpdate = false;
-        }
-
         void onTimeBetweenEffectsConfigChanged()
         {
-            _pausedEffectDispatchTimer.OnTimeBetweenEffectsChanged();
-            _unpausedEffectDispatchTimer.OnTimeBetweenEffectsChanged();
-        }
-
-        bool canDispatchEffects
-        {
-            get
-            {
-                if (!NetworkServer.active)
-                    return false;
-
-                if (PauseManager.isPaused && NetworkServer.dontListen)
-                    return false;
-
-                if (SceneExitController.isRunning)
-                    return false;
-
-                if (!Run.instance || Run.instance.isGameOverServer)
-                    return false;
-
-                const float STAGE_START_OFFSET = 2f;
-                if (!Stage.instance || Stage.instance.entryTime.timeSince < STAGE_START_OFFSET)
-                    return false;
-
-                return true;
-            }
+            _effectDispatchTimer.Period = Configs.General.TimeBetweenEffects;
         }
 
         void Update()
@@ -111,40 +53,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
             if (!canDispatchEffects)
                 return;
 
-            ref EffectDispatchTimer dispatchTimer = ref currentEffectDispatchTimer;
-
-            updateStopwatchPaused(ref dispatchTimer);
-
-            if (dispatchTimer.ShouldActivate())
-            {
-                do
-                {
-                    dispatchTimer.ScheduleNextDispatch();
-                } while (dispatchTimer.ShouldActivate());
-
-                dispatchRandomEffect();
-            }
+            _effectDispatchTimer.Update();
         }
 
-        void updateStopwatchPaused(ref EffectDispatchTimer dispatchTimer)
-        {
-            bool isStopwatchPaused = Run.instance.isRunStopwatchPaused;
-            if (_wasRunStopwatchPausedLastUpdate != isStopwatchPaused)
-            {
-                _wasRunStopwatchPausedLastUpdate = isStopwatchPaused;
-
-                if (isStopwatchPaused)
-                {
-                    // Skip all the effect dispatches that should have already happened, but didn't since this timer hasn't updated
-                    while (dispatchTimer.ShouldActivate())
-                    {
-                        dispatchTimer.ScheduleNextDispatch();
-                    }
-                }
-            }
-        }
-
-        void dispatchRandomEffect(EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None)
+        void dispatchRandomEffect()
         {
             if (!NetworkServer.active)
             {
@@ -152,7 +64,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 return;
             }
 
-            SignalShouldDispatchEffect?.Invoke(ChaosEffectCatalog.PickActivatableEffect(_nextEffectRNG), dispatchFlags);
+            SignalShouldDispatchEffect?.Invoke(ChaosEffectCatalog.PickActivatableEffect(_nextEffectRNG, EffectCanActivateContext.Now));
         }
     }
 }

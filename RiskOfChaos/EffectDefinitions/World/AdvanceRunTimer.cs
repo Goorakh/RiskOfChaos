@@ -54,12 +54,6 @@ namespace RiskOfChaos.EffectDefinitions.World
             }));
         }
 
-        [EffectCanActivate]
-        static bool CanActivate()
-        {
-            return Run.instance;
-        }
-
         [EffectNameFormatArgs]
         static object[] GetEffectNameFormatArgs()
         {

@@ -9,15 +9,22 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 {
     public abstract class VoteSelection<TVoteResult>
     {
-        protected struct VoteOption
+        public struct VoteOption
         {
+            public readonly int VoteIndex;
             public readonly TVoteResult Value;
             public int NumVotes;
 
-            public VoteOption(TVoteResult value)
+            public VoteOption(int voteIndex, TVoteResult value)
             {
+                VoteIndex = voteIndex;
                 Value = value;
                 NumVotes = 0;
+            }
+
+            public override readonly string ToString()
+            {
+                return $"{VoteIndex + 1}: {Value}";
             }
         }
 
@@ -66,26 +73,16 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             VoteOption winningOption;
             switch (WinnerSelectionMode)
             {
-                case VoteWinnerSelectionMode.MostVotes:
-                    if (tryGetWinner_MostVotes(out winningOption))
-                    {
-                        result = winningOption.Value;
-                        return true;
-                    }
+                case VoteWinnerSelectionMode.MostVotes when tryGetWinner_MostVotes(out winningOption):
+                case VoteWinnerSelectionMode.RandomProportional when tryGetWinner_Proportional(out winningOption):
+                    EndVote();
 
-                    break;
-                case VoteWinnerSelectionMode.RandomProportional:
-                    if (tryGetWinner_Proportional(out winningOption))
-                    {
-                        result = winningOption.Value;
-                        return true;
-                    }
-
-                    break;
+                    result = winningOption.Value;
+                    return true;
+                default:
+                    result = default;
+                    return false;
             }
-
-            result = default;
-            return false;
         }
 
         bool tryGetWinner_MostVotes(out VoteOption result)
@@ -162,7 +159,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
             for (int i = 0; i < _numOptions; i++)
             {
-                _options[i] = new VoteOption(newOptions[i]);
+                _options[i] = new VoteOption(i, newOptions[i]);
             }
 
             IsVoteActive = true;
@@ -171,7 +168,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsValidOptionIndex(int optionIndex)
         {
-            return optionIndex > 0 && optionIndex < _numOptions;
+            return optionIndex >= 0 && optionIndex < _numOptions;
         }
 
         protected void checkOptionIndex(int optionIndex)
@@ -185,6 +182,18 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
         protected ref VoteOption getOption(int optionIndex)
         {
             return ref _options[optionIndex];
+        }
+
+        public bool TryGetOption(int optionIndex, out VoteOption result)
+        {
+            if (!IsValidOptionIndex(optionIndex))
+            {
+                result = default;
+                return false;
+            }
+
+            result = getOption(optionIndex);
+            return true;
         }
 
         protected virtual void resetState()

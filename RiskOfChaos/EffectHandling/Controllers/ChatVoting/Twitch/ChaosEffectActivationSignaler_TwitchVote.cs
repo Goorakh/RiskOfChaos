@@ -1,5 +1,6 @@
 ﻿using RoR2;
 using System;
+using System.Linq;
 using TwitchLib.Client;
 using TwitchLib.Client.Enums;
 using TwitchLib.Client.Events;
@@ -55,30 +56,15 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
                 _client.Initialize(credentials, _loginCredentials.Username);
                 _client.RemoveChatCommandIdentifier('!');
 
-                _client.OnMessageReceived += (s, e) =>
-                {
-                    onChatMessageReceived(e.ChatMessage.UserId, e.ChatMessage.Message);
-                };
+                _client.OnMessageReceived += onMessageReceived;
 
-                _client.OnConnected += (s, e) =>
-                {
-                    Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-                    {
-                        baseToken = "TWITCH_EFFECT_VOTING_LOGIN_SUCCESS",
-                        paramTokens = new string[] { _loginCredentials.Username }
-                    });
-                };
+                _client.OnConnected += onConnected;
 
-                _client.OnConnectionError += (s, e) =>
-                {
-                    Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-                    {
-                        baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
-                        paramTokens = new string[] { e.Error.Message }
-                    });
-                };
+                _client.OnConnectionError += onConnectionError;
 
                 _client.Connect();
+
+                OnVotingStarted += onVotingStarted;
             }
             else
             {
@@ -90,14 +76,76 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             }
         }
 
+        void onMessageReceived(object s, OnMessageReceivedArgs e)
+        {
+            onChatMessageReceived(e.ChatMessage.UserId, e.ChatMessage.Message);
+        }
+
+        static void onConnected(object s, OnConnectedArgs e)
+        {
+            Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+            {
+                baseToken = "TWITCH_EFFECT_VOTING_LOGIN_SUCCESS",
+                paramTokens = new string[] { _loginCredentials.Username }
+            });
+        }
+
+        static void onConnectionError(object s, OnConnectionErrorArgs e)
+        {
+            Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+            {
+                baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
+                paramTokens = new string[] { e.Error.Message }
+            });
+        }
+
         protected override void OnDisable()
         {
             base.OnDisable();
 
             if (_client != null)
             {
+                foreach (JoinedChannel channel in _client.JoinedChannels)
+                {
+                    _client.LeaveChannel(channel);
+                }
+
                 _client.Disconnect();
+
+                _client.OnMessageReceived -= onMessageReceived;
+                _client.OnConnected -= onConnected;
+                _client.OnConnectionError -= onConnectionError;
+
+                // TwitchClient keeps auto-reconnecting, so this crime needs to be done.
+                _client.OnConnected += (s, e) =>
+                {
+                    ((TwitchClient)s).Disconnect();
+                };
+
                 _client = null;
+            }
+
+            OnVotingStarted -= onVotingStarted;
+        }
+
+        void onVotingStarted()
+        {
+            if (_client == null)
+                return;
+
+            JoinedChannel channel = _client.JoinedChannels.FirstOrDefault();
+            if (channel == null)
+            {
+                Log.Warning("No joined channel");
+                return;
+            }
+
+            for (int i = 0; i < _effectVoteSelection.NumOptions; i++)
+            {
+                if (_effectVoteSelection.TryGetOption(i, out VoteSelection<EffectVoteHolder>.VoteOption voteOption))
+                {
+                    _client.SendMessage(channel, voteOption.ToString());
+                }
             }
         }
     }

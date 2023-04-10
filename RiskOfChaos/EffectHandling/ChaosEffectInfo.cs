@@ -32,40 +32,38 @@ namespace RiskOfChaos.EffectHandling
         public readonly ConfigEntry<bool> IsEnabledConfig;
         public readonly ConfigEntry<float> SelectionWeightConfig;
 
-        readonly MethodInfo[] _canActivateMethods;
-        public bool CanActivate
+        readonly ChaosEffectCanActivateMethod[] _canActivateMethods;
+
+        public readonly bool CanActivate(EffectCanActivateContext context)
         {
-            get
+            if (_canActivateMethods == null)
             {
-                if (_canActivateMethods == null)
-                {
-                    Log.Warning($"effect {Identifier} has null {nameof(_canActivateMethods)} array");
-                    return false;
-                }
-
-                if (IsEnabledConfig != null && !IsEnabledConfig.Value)
-                {
-#if DEBUG
-                    Log.Debug($"effect {Identifier} cannot activate due to: Disabled in config");
-#endif
-                    return false;
-                }
-
-                if (HasHardActivationCountCap && ActivationCount >= HardActivationCountCap)
-                {
-#if DEBUG
-                    Log.Debug($"effect {Identifier} cannot activate due to activation cap of {HardActivationCountCap} reached ({ActivationCount} activations)");
-#endif
-                    return false;
-                }
-
-                if (_canActivateMethods.Length != 0 && _canActivateMethods.Any(m => (bool)m.Invoke(null, null) == false))
-                {
-                    return false;
-                }
-
-                return true;
+                Log.Warning($"effect {Identifier} has null {nameof(_canActivateMethods)} array");
+                return false;
             }
+
+            if (IsEnabledConfig != null && !IsEnabledConfig.Value)
+            {
+#if DEBUG
+                Log.Debug($"effect {Identifier} cannot activate due to: Disabled in config");
+#endif
+                return false;
+            }
+
+            if (HasHardActivationCountCap && ActivationCount >= HardActivationCountCap)
+            {
+#if DEBUG
+                Log.Debug($"effect {Identifier} cannot activate due to activation cap of {HardActivationCountCap} reached ({ActivationCount} activations)");
+#endif
+                return false;
+            }
+
+            if (_canActivateMethods.Length != 0 && _canActivateMethods.Any(m => m.Invoke(context) == false))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         readonly ConfigEntry<float> _weightReductionPerActivation;
@@ -145,7 +143,7 @@ namespace RiskOfChaos.EffectHandling
                     const BindingFlags FLAGS = BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public;
                     IEnumerable<MethodInfo> allMethods = effectType.GetAllMethodsRecursive(FLAGS);
 
-                    _canActivateMethods = allMethods.WithAttribute<MethodInfo, EffectCanActivateAttribute>().ToArray();
+                    _canActivateMethods = allMethods.WithAttribute<MethodInfo, EffectCanActivateAttribute>().Select(m => new ChaosEffectCanActivateMethod(m)).ToArray();
 
                     _weightMultSelectorMethods = allMethods.WithAttribute<MethodInfo, EffectWeightMultiplierSelectorAttribute>().ToArray();
 

@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RoR2;
@@ -13,9 +14,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
     public sealed class TpRandomLocation : BaseEffect
     {
         [EffectCanActivate]
-        static bool CanSelect()
+        static bool CanSelect(EffectCanActivateContext context)
         {
-            return DirectorCore.instance && PlayerUtils.GetAllPlayerBodies(true).Any();
+            return !context.IsNow || (DirectorCore.instance && PlayerUtils.GetAllPlayerBodies(true).Any());
         }
 
         public override void OnStart()
