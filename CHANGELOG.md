@@ -1,5 +1,13 @@
 ## Changelog
 
+**1.0.0 Changes:**
+
+* Twitch Integration:
+  * Added Twitch Integration
+
+* Performance:
+  * Fixed a significant lagspike when a random effect is selected for the first time
+
 **0.9.0 Changes:**
 
 * Added 4 new effects:

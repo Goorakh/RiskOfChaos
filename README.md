@@ -6,6 +6,12 @@ Heavily inspired by the "Chaos Mod" series of GTA games.
 
 Currently includes 54 different effects.
 
+### Twitch Integration:
+
+Twitch integration allows viewers to vote for the next effect.
+
+To set up Twitch voting, set the General->Streamer Integration->Voting Mode config to "Twitch", then open the console, and use the command "roc_twitch_login" then provide your channel name and oauth token (ex. "roc_twitch_login goorakh oauth:yourtokengoeshere"). Note: Login info is saved between game restarts, but you will have to re-enter it after updating the mod.
+
 <details>
 	<summary>Full list of effects</summary>
 
