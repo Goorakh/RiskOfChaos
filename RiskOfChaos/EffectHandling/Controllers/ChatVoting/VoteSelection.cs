@@ -13,13 +13,34 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
         {
             public readonly int VoteIndex;
             public readonly TVoteResult Value;
-            public int NumVotes;
+
+            int _numVotes;
+
+            public int NumVotes
+            {
+                get
+                {
+                    return _numVotes;
+                }
+                set
+                {
+                    if (_numVotes == value)
+                        return;
+
+                    _numVotes = value;
+
+                    if (Value is IOnVoteCountChangedListener voteCountChangedListener)
+                    {
+                        voteCountChangedListener.OnVoteCountChanged(_numVotes);
+                    }
+                }
+            }
 
             public VoteOption(int voteIndex, TVoteResult value)
             {
                 VoteIndex = voteIndex;
                 Value = value;
-                NumVotes = 0;
+                _numVotes = 0;
             }
 
             public override readonly string ToString()
@@ -121,10 +142,16 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
         bool tryGetWinner_Proportional(out VoteOption result)
         {
-            if (_numOptions <= 0 || TotalVotes <= 0)
+            if (_numOptions <= 0)
             {
                 result = default;
                 return false;
+            }
+
+            if (TotalVotes <= 0)
+            {
+                result = _options[RoR2Application.rng.RangeInt(0, NumOptions)];
+                return true;
             }
 
             WeightedSelection<VoteOption> voteOptionSelection = new WeightedSelection<VoteOption>(_numOptions);
@@ -194,6 +221,18 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
             result = getOption(optionIndex);
             return true;
+        }
+
+        public TVoteResult[] GetVoteOptions()
+        {
+            int numOptions = NumOptions;
+            TVoteResult[] options = new TVoteResult[numOptions];
+            for (int i = 0; i < numOptions; i++)
+            {
+                options[i] = getOption(i).Value;
+            }
+
+            return options;
         }
 
         protected virtual void resetState()

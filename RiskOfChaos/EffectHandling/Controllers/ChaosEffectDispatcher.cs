@@ -22,15 +22,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
         public event EffectAboutToDispatchDelegate OnEffectAboutToDispatchServer;
 
         ChaosEffectActivationSignaler[] _effectActivationSignalers;
-        ChaosEffectActivationCounterHandler _effectActivationCounterHandler;
 
         Xoroshiro128Plus _effectRNG;
 
         void Awake()
         {
             _effectActivationSignalers = GetComponents<ChaosEffectActivationSignaler>();
-
-            _effectActivationCounterHandler = GetComponent<ChaosEffectActivationCounterHandler>();
         }
 
         void OnEnable()
@@ -169,12 +166,16 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 Chat.SendBroadcastChat(new Chat.SimpleChatMessage { baseToken = effect.GetActivationMessage() });
 
-                if (_effectActivationCounterHandler)
-                {
-                    _effectActivationCounterHandler.IncrementEffectActivationCounter(effect);
-                }
-
                 OnEffectAboutToDispatchServer?.Invoke(effect, dispatchFlags);
+
+                if ((dispatchFlags & EffectDispatchFlags.CheckCanActivate) != 0 && !effect.CanActivate(EffectCanActivateContext.Now))
+                {
+#if DEBUG
+                    Log.Debug($"{effect} is not activatable, not starting");
+#endif
+
+                    return null;
+                }
             }
 
             ulong effectRNGSeed;
@@ -186,15 +187,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 // Clients will get the seed from the server in Deserialize
                 effectRNGSeed = 0UL;
-            }
-
-            if (isServer && (dispatchFlags & EffectDispatchFlags.CheckCanActivate) != 0 && !effect.CanActivate(EffectCanActivateContext.Now))
-            {
-#if DEBUG
-                Log.Debug($"{effect} is not activatable, not starting");
-#endif
-
-                return null;
             }
 
             BaseEffect effectInstance = effect.InstantiateEffect(effectRNGSeed);

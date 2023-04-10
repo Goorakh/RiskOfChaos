@@ -5,6 +5,7 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.Networking;
 using RiskOfChaos.Patches;
+using RiskOfChaos.UI;
 using System.Diagnostics;
 
 namespace RiskOfChaos
@@ -45,6 +46,8 @@ namespace RiskOfChaos
             NetworkMessageManager.RegisterMessages();
 
             NetPrefabs.InitializeAll();
+
+            ChaosUIController.Initialize();
 
             Harmony harmony = new Harmony(PluginGUID);
             harmony.PatchAll();

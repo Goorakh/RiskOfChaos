@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using TwitchLib.Client.Models;
+using TwitchLib.Client.Models.Builders;
 
 namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 {
-    public readonly struct TwitchLoginCredentials
+    public readonly struct TwitchLoginCredentials : IEquatable<TwitchLoginCredentials>
     {
         public static readonly TwitchLoginCredentials Empty = new TwitchLoginCredentials(string.Empty, string.Empty);
 
@@ -69,7 +72,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
                 }
                 catch (Exception e)
                 {
-                    Log.Error($"Unable to read {LOGIN_FILE_NAME}: {e}");
+                    Log.Error_NoCallerPrefix($"Unable to read {LOGIN_FILE_NAME}: {e}");
                 }
             }
 
@@ -87,11 +90,55 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 
         public readonly void WriteToFile()
         {
-            File.WriteAllLines(_saveFilePath, new string[]
+            try
             {
-                FILE_USERNAME_PREFIX + Username,
-                FILE_OAUTH_PREFIX + OAuth
-            });
+                File.WriteAllLines(_saveFilePath, new string[]
+                {
+                    FILE_USERNAME_PREFIX + Username,
+                    FILE_OAUTH_PREFIX + OAuth
+                });
+            }
+            catch (Exception e)
+            {
+                Log.Error_NoCallerPrefix($"Unable to save twitch login info: {e}");
+            }
+        }
+
+        public readonly ConnectionCredentials BuildConnectionCredentials()
+        {
+            return ConnectionCredentialsBuilder.Create()
+                                               .WithTwitchUsername(Username)
+                                               .WithTwitchOAuth(OAuth)
+                                               .Build();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is TwitchLoginCredentials credentials && Equals(credentials);
+        }
+
+        public bool Equals(TwitchLoginCredentials other)
+        {
+            return Username == other.Username &&
+                   OAuth == other.OAuth;
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 388668885;
+            hashCode = (hashCode * -1521134295) + EqualityComparer<string>.Default.GetHashCode(Username);
+            hashCode = (hashCode * -1521134295) + EqualityComparer<string>.Default.GetHashCode(OAuth);
+            return hashCode;
+        }
+
+        public static bool operator ==(TwitchLoginCredentials left, TwitchLoginCredentials right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(TwitchLoginCredentials left, TwitchLoginCredentials right)
+        {
+            return !(left == right);
         }
     }
 }

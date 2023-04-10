@@ -6,6 +6,7 @@ using TwitchLib.Client.Enums;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
 using TwitchLib.Communication.Clients;
+using TwitchLib.Communication.Events;
 using TwitchLib.Communication.Models;
 using UnityEngine;
 
@@ -36,37 +37,33 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 
             args.CheckArgumentCount(2);
 
-            _loginCredentials = new TwitchLoginCredentials(args[0], args[1]);
-            _loginCredentials.WriteToFile();
+            TwitchLoginCredentials newLoginCredentials = new TwitchLoginCredentials(args[0], args[1]);
+            if (_loginCredentials != newLoginCredentials)
+            {
+                _loginCredentials = newLoginCredentials;
+                _loginCredentials.WriteToFile();
+
+                onClientCredentialsChanged();
+            }
         }
 
-        TwitchClient _client;
-
-        protected override void OnEnable()
+        static TwitchClient _client;
+        static void createClient()
         {
-            base.OnEnable();
-
             if (_loginCredentials.IsValid())
             {
-                ConnectionCredentials credentials = new ConnectionCredentials(_loginCredentials.Username, _loginCredentials.OAuth);
-
                 WebSocketClient socketClient = new WebSocketClient();
 
                 _client = new TwitchClient(socketClient, ClientProtocol.WebSocket, new BepInExLogger<TwitchClient>());
-                _client.Initialize(credentials, _loginCredentials.Username);
+                _client.Initialize(_loginCredentials.BuildConnectionCredentials(), _loginCredentials.Username);
                 _client.RemoveChatCommandIdentifier('!');
 
-                _client.OnMessageReceived += onMessageReceived;
-
-                _client.OnConnected += onConnected;
-
-                _client.OnConnectionError += onConnectionError;
-
-                _client.Connect();
-
-                OnVotingStarted += onVotingStarted;
+                if (!_client.Connect())
+                {
+                    Log.Warning("Twitch client failed to connect");
+                }
             }
-            else
+            else if (Run.instance)
             {
                 Chat.SendBroadcastChat(new Chat.SimpleChatMessage
                 {
@@ -76,13 +73,63 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             }
         }
 
+        static void onClientCredentialsChanged()
+        {
+            if (_client == null)
+                return;
+
+            bool wasConnected = false;
+            if (_client.IsConnected)
+            {
+                _client.Disconnect();
+                wasConnected = true;
+            }
+
+            _client.SetConnectionCredentials(_loginCredentials.BuildConnectionCredentials());
+
+            if (wasConnected)
+            {
+                _client.Reconnect();
+            }
+        }
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+
+            if (_client == null)
+            {
+                createClient();
+            }
+            else if (_client.IsConnected)
+            {
+                onTwitchClientConnected();
+            }
+
+            _client.OnConnected += onConnected;
+            _client.OnConnectionError += onConnectionError;
+            _client.OnDisconnected += onDisconnected;
+        }
+
         void onMessageReceived(object s, OnMessageReceivedArgs e)
         {
             onChatMessageReceived(e.ChatMessage.UserId, e.ChatMessage.Message);
         }
 
-        static void onConnected(object s, OnConnectedArgs e)
+        void onConnected(object s, OnConnectedArgs e)
         {
+            onTwitchClientConnected();
+        }
+
+        void onDisconnected(object sender, OnDisconnectedEventArgs e)
+        {
+            _client.OnMessageReceived -= onMessageReceived;
+        }
+
+        void onTwitchClientConnected()
+        {
+            _client.OnMessageReceived += onMessageReceived;
+
             Chat.SendBroadcastChat(new Chat.SimpleChatMessage
             {
                 baseToken = "TWITCH_EFFECT_VOTING_LOGIN_SUCCESS",
@@ -90,8 +137,10 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             });
         }
 
-        static void onConnectionError(object s, OnConnectionErrorArgs e)
+        void onConnectionError(object s, OnConnectionErrorArgs e)
         {
+            _client.OnMessageReceived -= onMessageReceived;
+
             Chat.SendBroadcastChat(new Chat.SimpleChatMessage
             {
                 baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
@@ -105,47 +154,9 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 
             if (_client != null)
             {
-                foreach (JoinedChannel channel in _client.JoinedChannels)
-                {
-                    _client.LeaveChannel(channel);
-                }
-
-                _client.Disconnect();
-
                 _client.OnMessageReceived -= onMessageReceived;
                 _client.OnConnected -= onConnected;
                 _client.OnConnectionError -= onConnectionError;
-
-                // TwitchClient keeps auto-reconnecting, so this crime needs to be done.
-                _client.OnConnected += (s, e) =>
-                {
-                    ((TwitchClient)s).Disconnect();
-                };
-
-                _client = null;
-            }
-
-            OnVotingStarted -= onVotingStarted;
-        }
-
-        void onVotingStarted()
-        {
-            if (_client == null)
-                return;
-
-            JoinedChannel channel = _client.JoinedChannels.FirstOrDefault();
-            if (channel == null)
-            {
-                Log.Warning("No joined channel");
-                return;
-            }
-
-            for (int i = 0; i < _effectVoteSelection.NumOptions; i++)
-            {
-                if (_effectVoteSelection.TryGetOption(i, out VoteSelection<EffectVoteHolder>.VoteOption voteOption))
-                {
-                    _client.SendMessage(channel, voteOption.ToString());
-                }
             }
         }
     }
