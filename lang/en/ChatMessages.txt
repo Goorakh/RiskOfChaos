@@ -1,6 +1,13 @@
 {
 	strings:
 	{
+		"TWITCH_EFFECT_VOTING_LOGIN_FAIL_FORMAT": "<style=cWorldEvent>[Risk of Chaos]: Unable to connect to Twitch channel: {0}</style>",
+		"TWITCH_LOGIN_FAIL_NOT_LOGGED_IN": "Not logged in, please check the oauth.txt file or use the roc_twitch_login console command",
+
+		"TWITCH_EFFECT_VOTING_CONNECTION_ERROR": "<style=cWorldEvent>[Risk of Chaos]: Connection error: {0}</style>",
+
+		"TWITCH_EFFECT_VOTING_LOGIN_SUCCESS": "<style=cWorldEvent>[Risk of Chaos]: Successfully connected to Twitch channel: {0}</style>",
+
 		"MONSTER_INVENTORY_ADD_ITEM": "<style=cWorldEvent><b>{1}</b> was added to monster inventory</style> {2}",
 	}
 }

@@ -51,9 +51,9 @@ namespace RiskOfChaos.EffectDefinitions.World
         }
 
         [EffectCanActivate]
-        static bool CanActivate()
+        static bool CanActivate(EffectCanActivateContext context)
         {
-            return CombatDirector.instancesList.Count > 0;
+            return !context.IsNow || CombatDirector.instancesList.Count > 0;
         }
 
         public override void OnStart()

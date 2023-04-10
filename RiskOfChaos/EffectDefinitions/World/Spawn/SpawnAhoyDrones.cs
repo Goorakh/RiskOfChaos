@@ -89,9 +89,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         }
 
         [EffectCanActivate]
-        static bool CanActivate()
+        static bool CanActivate(EffectCanActivateContext context)
         {
-            return ExpansionUtils.DLC1Enabled && DirectorCore.instance && _equipmentDroneSpawnCard.prefab && PlayerUtils.GetAllPlayerBodies(true).Any();
+            return ExpansionUtils.DLC1Enabled && DirectorCore.instance && _equipmentDroneSpawnCard.prefab && (!context.IsNow || PlayerUtils.GetAllPlayerBodies(true).Any());
         }
 
         public override void OnStart()

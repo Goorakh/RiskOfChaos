@@ -1,4 +1,5 @@
 ﻿using HG;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
@@ -63,9 +64,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         }
 
         [EffectCanActivate]
-        static bool CanActivate()
+        static bool CanActivate(EffectCanActivateContext context)
         {
-            return _scrapPickupByItemTier != null && PlayerUtils.GetAllPlayerMasters(false).Any(cm => getAllScrappableItems(cm.inventory).Any());
+            return _scrapPickupByItemTier != null && (!context.IsNow || PlayerUtils.GetAllPlayerMasters(false).Any(cm => getAllScrappableItems(cm.inventory).Any()));
         }
 
         public override void OnStart()

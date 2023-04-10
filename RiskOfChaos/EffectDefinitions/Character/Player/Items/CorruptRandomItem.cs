@@ -13,9 +13,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
     public sealed class CorruptRandomItem : BaseEffect
     {
         [EffectCanActivate]
-        static bool CanActivate()
+        static bool CanActivate(EffectCanActivateContext context)
         {
-            return ExpansionUtils.DLC1Enabled && PlayerUtils.GetAllPlayerMasters(false).Any(m => getAllCorruptableItems(m.inventory).Any());
+            return (!context.IsNow && ExpansionUtils.DLC1Enabled) || PlayerUtils.GetAllPlayerMasters(false).Any(m => getAllCorruptableItems(m.inventory).Any());
         }
 
         static IEnumerable<ItemIndex> getAllCorruptableItems(Inventory inventory)
@@ -24,13 +24,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             if (!run || !inventory)
                 yield break;
 
-            foreach (ItemIndex item in ItemCatalog.allItems)
+            foreach (ItemIndex item in inventory.itemAcquisitionOrder)
             {
                 if (inventory.GetItemCount(item) <= 0)
                     continue;
 
                 ItemIndex transformedItem = ContagiousItemManager.GetTransformedItemIndex(item);
-                if (transformedItem == ItemIndex.None || !run.IsItemAvailable(transformedItem))
+                if (transformedItem == ItemIndex.None || !run.IsItemAvailable(transformedItem) || run.IsItemExpansionLocked(transformedItem))
                     continue;
                 
                 yield return item;

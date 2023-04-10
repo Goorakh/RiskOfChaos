@@ -5,6 +5,7 @@ using RiskOfOptions;
 using RiskOfOptions.Options;
 using RoR2;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -114,13 +115,13 @@ namespace RiskOfChaos.EffectHandling
             ModSettingsManager.AddOption(option, CONFIG_MOD_GUID, CONFIG_MOD_NAME);
         }
 
-        public static WeightedSelection<ChaosEffectInfo> GetAllActivatableEffects()
+        public static WeightedSelection<ChaosEffectInfo> GetAllActivatableEffects(in EffectCanActivateContext context, HashSet<ChaosEffectInfo> excludeEffects = null)
         {
             WeightedSelection<ChaosEffectInfo> weightedSelection = new WeightedSelection<ChaosEffectInfo>(_effectCount);
 
             foreach (ChaosEffectInfo effect in _effects)
             {
-                if (effect.CanActivate)
+                if (effect.CanActivate(context) && (excludeEffects == null || !excludeEffects.Contains(effect)))
                 {
                     weightedSelection.AddChoice(effect, effect.TotalSelectionWeight);
                 }
@@ -129,9 +130,9 @@ namespace RiskOfChaos.EffectHandling
             return weightedSelection;
         }
 
-        public static ChaosEffectInfo PickActivatableEffect(Xoroshiro128Plus rng)
+        public static ChaosEffectInfo PickActivatableEffect(Xoroshiro128Plus rng, in EffectCanActivateContext context, HashSet<ChaosEffectInfo> excludeEffects = null)
         {
-            WeightedSelection<ChaosEffectInfo> weightedSelection = GetAllActivatableEffects();
+            WeightedSelection<ChaosEffectInfo> weightedSelection = GetAllActivatableEffects(context, excludeEffects);
 
             ChaosEffectInfo effect;
             if (weightedSelection.Count > 0)

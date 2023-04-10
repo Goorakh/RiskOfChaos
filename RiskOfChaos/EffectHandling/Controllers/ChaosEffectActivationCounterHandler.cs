@@ -13,8 +13,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
         static ChaosEffectActivationCounterHandler _instance;
         public static ChaosEffectActivationCounterHandler Instance => _instance;
 
+        ChaosEffectDispatcher _effectDispatcher;
+
         void Awake()
         {
+            _effectDispatcher = GetComponent<ChaosEffectDispatcher>();
+
             ChaosEffectCatalog.Availability.CallWhenAvailable(() =>
             {
 #if DEBUG
@@ -35,6 +39,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             Stage.onServerStageComplete += Stage_onServerStageComplete;
 
+            _effectDispatcher.OnEffectAboutToDispatchServer += onEffectAboutToDispatchServer;
+
             resetAllCounters();
         }
 
@@ -43,6 +49,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
             SingletonHelper.Unassign(ref _instance, this);
 
             Stage.onServerStageComplete -= Stage_onServerStageComplete;
+
+            _effectDispatcher.OnEffectAboutToDispatchServer -= onEffectAboutToDispatchServer;
 
             resetAllCounters();
         }
@@ -79,14 +87,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
 #endif
         }
 
-        public void IncrementEffectActivationCounter(in ChaosEffectInfo effectInfo)
+        void onEffectAboutToDispatchServer(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags)
         {
-            if (!NetworkServer.active)
-            {
-                Log.Warning("Called on client");
-                return;
-            }
-
             try
             {
                 ref ChaosEffectActivationCounter activationCounter = ref getEffectActivationCounterUncheckedRef(effectInfo);

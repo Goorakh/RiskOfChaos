@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Networking;
 using RiskOfChaos.Trackers;
@@ -16,9 +17,9 @@ namespace RiskOfChaos.EffectDefinitions.World
         static readonly InteractableSpawnCard _iscChanceShrine = Addressables.LoadAssetAsync<InteractableSpawnCard>("RoR2/Base/ShrineChance/iscShrineChance.asset").WaitForCompletion();
 
         [EffectCanActivate]
-        static bool CanActivate()
+        static bool CanActivate(EffectCanActivateContext context)
         {
-            return _iscChanceShrine && InstanceTracker.GetInstancesList<InteractableTracker>().Count > 0;
+            return _iscChanceShrine && (!context.IsNow || InstanceTracker.GetInstancesList<InteractableTracker>().Count > 0);
         }
 
         public override void OnStart()

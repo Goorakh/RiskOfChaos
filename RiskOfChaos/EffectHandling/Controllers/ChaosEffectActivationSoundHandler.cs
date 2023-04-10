@@ -56,15 +56,15 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void OnEnable()
         {
-            _effectDispatcher.OnEffectDispatched += onEffectDispatched;
+            _effectDispatcher.OnEffectAboutToDispatchServer += onEffectAboutToDispatchServer;
         }
 
         void OnDisable()
         {
-            _effectDispatcher.OnEffectDispatched -= onEffectDispatched;
+            _effectDispatcher.OnEffectAboutToDispatchServer -= onEffectAboutToDispatchServer;
         }
 
-        static void onEffectDispatched(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, BaseEffect effectInstance)
+        static void onEffectAboutToDispatchServer(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags)
         {
             if ((dispatchFlags & EffectDispatchFlags.DontPlaySound) == 0)
             {

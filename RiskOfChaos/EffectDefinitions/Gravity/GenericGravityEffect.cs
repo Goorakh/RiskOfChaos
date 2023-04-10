@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+﻿using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Networking;
 using RoR2;
 using System;
@@ -96,8 +97,11 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
         }
 
         [EffectCanActivate]
-        static bool CanActivate()
+        static bool CanActivate(EffectCanActivateContext context)
         {
+            if (!context.IsNow)
+                return true;
+
             SceneDef currentScene = SceneCatalog.GetSceneDefForCurrentScene();
             return currentScene && Array.BinarySearch(_invalidOnScenes, currentScene.sceneDefIndex) < 0;
         }
