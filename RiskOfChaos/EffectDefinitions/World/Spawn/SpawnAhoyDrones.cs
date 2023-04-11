@@ -110,9 +110,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             DirectorPlacementRule placementRule = new DirectorPlacementRule
             {
                 position = ownerBody.footPosition,
-                placementMode = DirectorPlacementRule.PlacementMode.Approximate,
-                minDistance = 5f,
-                maxDistance = 20f
+                placementMode = DirectorPlacementRule.PlacementMode.NearestNode
             };
 
             DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_equipmentDroneSpawnCard, placementRule, rng)
