@@ -3,6 +3,7 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
@@ -63,24 +64,40 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 _dropTable.Regenerate(run);
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
             }
+        }
 
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            static void addCustomPickupToDropTable(PickupIndex pickup, float weight)
+        [SystemInitializer]
+        static void InitHooks()
+        {
+            On.RoR2.BasicPickupDropTable.GenerateWeightedSelection += (orig, self, run) =>
             {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                _dropTable.selector.AddChoice(pickup, weight);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-            }
+                orig(self, run);
 
-            addCustomPickupToDropTable(PickupCatalog.FindPickupIndex(RoR2Content.Items.CaptainDefenseMatrix.itemIndex), _tier3Weight.Value);
+                if (!_dropTable || self != _dropTable)
+                    return;
 
-            addCustomPickupToDropTable(PickupCatalog.FindPickupIndex(DLC1Content.Equipment.BossHunterConsumed.equipmentIndex), _equipmentWeight.Value);
-            addCustomPickupToDropTable(PickupCatalog.FindPickupIndex(RoR2Content.Equipment.QuestVolatileBattery.equipmentIndex), _equipmentWeight.Value);
-            addCustomPickupToDropTable(PickupCatalog.FindPickupIndex(DLC1Content.Equipment.LunarPortalOnUse.equipmentIndex), _equipmentWeight.Value);
+                self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.ArtifactKey.itemIndex), _bossWeight.Value);
+                self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.CaptainDefenseMatrix.itemIndex), _tier3Weight.Value);
+                self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.ExtraLifeConsumed.itemIndex), _tier3Weight.Value);
+                self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.TonicAffliction.itemIndex), _lunarItemWeight.Value);
+
+                self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Equipment.QuestVolatileBattery.equipmentIndex), _equipmentWeight.Value);
+
+                if (run.IsExpansionEnabled(ExpansionUtils.DLC1))
+                {
+                    self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(DLC1Content.Items.ExtraLifeVoidConsumed.itemIndex), _voidTier3Weight.Value);
+                    self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(DLC1Content.Items.FragileDamageBonusConsumed.itemIndex), _tier1Weight.Value);
+                    self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(DLC1Content.Items.HealingPotionConsumed.itemIndex), _tier1Weight.Value);
+                    self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(DLC1Content.Items.RegeneratingScrapConsumed.itemIndex), _tier2Weight.Value);
+
+                    self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(DLC1Content.Equipment.BossHunterConsumed.equipmentIndex), _equipmentWeight.Value);
+                    self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(DLC1Content.Equipment.LunarPortalOnUse.equipmentIndex), _equipmentWeight.Value);
+                }
+            };
         }
 
         [SystemInitializer(typeof(ChaosEffectCatalog))]
-        static void Init()
+        static void InitConfig()
         {
             ConfigEntry<float> addWeightConfig(string name, float defaultValue)
             {
