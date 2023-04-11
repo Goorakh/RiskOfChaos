@@ -58,5 +58,6 @@
 		"EFFECT_SPAWN_AHOY_DRONES_NAME": "Ahoy!",
 		"EFFECT_INCREASE_KNOCKBACK_NAME": "{0}x Knockback (Lasts 1 stage)",
 		"EFFECT_MONSTER_INVENTORY_GIVE_RANDOM_ITEM_NAME": "Add Random Item to Monster Inventory",
+		"EFFECT_SPAWN_VOID_SEED_NAME": "Spawn Void Seed",
 	}
 }
