@@ -2,7 +2,6 @@
 using System;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling.Controllers
 {
@@ -13,33 +12,22 @@ namespace RiskOfChaos.EffectHandling.Controllers
         static ChaosEffectManager _instance;
         public static ChaosEffectManager Instance => _instance;
 
-        readonly struct ManagerComponent
+        class ManagerComponent : IDisposable
         {
             readonly Behaviour _behaviour;
             readonly ChaosControllerAttribute _controllerAttribute;
 
-            public readonly bool IsEnabled
+            bool _isEnabled;
+            public bool IsEnabled
             {
                 get
                 {
-                    return _behaviour.enabled;
+                    return _isEnabled;
                 }
                 set
                 {
-                    if (!_controllerAttribute.CanBeActive())
-                    {
-#if DEBUG
-                        if (value)
-                        {
-                            Log.Debug($"Not enabling manager {_behaviour.GetType().Name}");
-                        }
-#endif
-
-                        _behaviour.enabled = false;
-                        return;
-                    }
-
-                    _behaviour.enabled = value;
+                    _isEnabled = value;
+                    refreshComponentEnabledState();
                 }
             }
 
@@ -47,6 +35,25 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 _behaviour = behaviour;
                 _controllerAttribute = controllerAttribute;
+
+                _controllerAttribute.OnShouldRefreshEnabledState += refreshComponentEnabledState;
+            }
+
+            public void Dispose()
+            {
+                _controllerAttribute.OnShouldRefreshEnabledState -= refreshComponentEnabledState;
+            }
+
+            void refreshComponentEnabledState()
+            {
+                _behaviour.enabled = _isEnabled && _controllerAttribute.CanBeActive();
+
+#if DEBUG
+                if (_isEnabled && !_controllerAttribute.CanBeActive())
+                {
+                    Log.Debug($"Not enabling manager {_behaviour.GetType().Name}");
+                }
+#endif
             }
         }
 
@@ -81,6 +88,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
         void OnDestroy()
         {
             SingletonHelper.Unassign(ref _instance, this);
+
+            foreach (ManagerComponent manager in _managerComponents)
+            {
+                manager.Dispose();
+            }
 
             Run.onRunStartGlobal -= Run_onRunStartGlobal;
             Run.onRunDestroyGlobal -= Run_onRunDestroyGlobal;

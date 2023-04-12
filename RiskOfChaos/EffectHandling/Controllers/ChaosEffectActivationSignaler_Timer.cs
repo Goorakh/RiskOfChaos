@@ -26,6 +26,18 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             if (Run.instance)
             {
+#if DEBUG
+                Log.Debug($"Run stopwatch: {Run.instance.GetRunStopwatch()}");
+#endif
+                if (Run.instance.GetRunStopwatch() > MIN_STAGE_TIME_REQUIRED_TO_DISPATCH)
+                {
+#if DEBUG
+                    Log.Debug($"Skipping {_effectDispatchTimer.GetNumScheduledActivations()} effect activation(s)");
+#endif
+
+                    _effectDispatchTimer.SkipAllScheduledActivations();
+                }
+
                 _nextEffectRNG = new Xoroshiro128Plus(Run.instance.runRNG.nextUlong);
             }
         }

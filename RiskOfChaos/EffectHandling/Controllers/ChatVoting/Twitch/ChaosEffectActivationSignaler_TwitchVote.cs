@@ -99,6 +99,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             }
         }
 
+        float _timeEnabled;
         bool _hasAttemptedJoinChannel;
 
         string _joinedChannel;
@@ -119,13 +120,14 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             }
 
             _hasAttemptedJoinChannel = false;
+            _timeEnabled = Time.time;
         }
 
         protected override void Update()
         {
             base.Update();
 
-            if (!_hasAttemptedJoinChannel && canDispatchEffects)
+            if (!_hasAttemptedJoinChannel && Time.time >= _timeEnabled + 1.5f)
             {
                 _hasAttemptedJoinChannel = true;
 

@@ -2,7 +2,7 @@
 {
     public enum RunTimerType : sbyte
     {
-        Unpaused,
-        Paused
+        Stopwatch,
+        Realtime
     }
 }

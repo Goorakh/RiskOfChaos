@@ -24,6 +24,8 @@ namespace RiskOfChaos
 
             public static ChatVotingMode VotingMode => _votingMode?.Value ?? VOTING_MODE_DEFAULT_VALUE;
 
+            public static event Action OnVotingModeChanged;
+
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static bool IsVotingDisabled()
             {
@@ -72,6 +74,11 @@ namespace RiskOfChaos
                 _votingMode = file.Bind(new ConfigDefinition(SECTION_NAME, "Voting Mode"), VOTING_MODE_DEFAULT_VALUE);
 
                 ModSettingsManager.AddOption(new ChoiceOption(_votingMode), CONFIG_GUID, CONFIG_NAME);
+
+                _votingMode.SettingChanged += (s, e) =>
+                {
+                    OnVotingModeChanged?.Invoke();
+                };
 
                 _numEffectOptionsConfig = file.Bind(new ConfigDefinition(SECTION_NAME, "Num Effect Options"), NUM_EFFECT_OPTIONS_DEFAULT_VALUE, new ConfigDescription("The number of effects viewers can pick from during voting"));
 

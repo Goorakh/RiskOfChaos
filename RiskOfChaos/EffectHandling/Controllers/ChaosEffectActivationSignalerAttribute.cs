@@ -10,6 +10,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
         public ChaosEffectActivationSignalerAttribute(Configs.ChatVoting.ChatVotingMode requiredVotingMode) : base(true)
         {
             _requiredVotingMode = requiredVotingMode;
+
+            Configs.ChatVoting.OnVotingModeChanged += invokeShouldRefreshEnabledState;
         }
 
         public override bool CanBeActive()

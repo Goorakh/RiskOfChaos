@@ -1,7 +1,5 @@
 ﻿using RoR2;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace RiskOfChaos.EffectHandling
 {
@@ -11,8 +9,8 @@ namespace RiskOfChaos.EffectHandling
 
         bool _wasRunStopwatchPausedLastUpdate = false;
 
-        PeriodicRunTimer _unpausedEffectDispatchTimer;
-        PeriodicRunTimer _pausedEffectDispatchTimer;
+        PeriodicRunTimer _stopwatchEffectDispatchTimer;
+        PeriodicRunTimer _realtimeEffectDispatchTimer;
 
         ref PeriodicRunTimer currentTimer
         {
@@ -22,16 +20,16 @@ namespace RiskOfChaos.EffectHandling
                 if (!run)
                 {
                     Log.Warning("No run instance, using unpaused timer");
-                    return ref _unpausedEffectDispatchTimer;
+                    return ref _stopwatchEffectDispatchTimer;
                 }
 
                 if (run.isRunStopwatchPaused)
                 {
-                    return ref _pausedEffectDispatchTimer;
+                    return ref _realtimeEffectDispatchTimer;
                 }
                 else
                 {
-                    return ref _unpausedEffectDispatchTimer;
+                    return ref _stopwatchEffectDispatchTimer;
                 }
             }
         }
@@ -44,24 +42,32 @@ namespace RiskOfChaos.EffectHandling
             }
             set
             {
-                _unpausedEffectDispatchTimer.Period = value;
-                _pausedEffectDispatchTimer.Period = value;
+                _stopwatchEffectDispatchTimer.Period = value;
+                _realtimeEffectDispatchTimer.Period = value;
             }
         }
 
         public CompletePeriodicRunTimer(float period)
         {
-            _unpausedEffectDispatchTimer = new PeriodicRunTimer(RunTimerType.Unpaused, period);
-            _pausedEffectDispatchTimer = new PeriodicRunTimer(RunTimerType.Paused, period);
+            _stopwatchEffectDispatchTimer = new PeriodicRunTimer(RunTimerType.Stopwatch, period);
+            _realtimeEffectDispatchTimer = new PeriodicRunTimer(RunTimerType.Realtime, period);
         }
 
         public void SkipAllScheduledActivations()
         {
             ref PeriodicRunTimer timer = ref currentTimer;
-            while (timer.ShouldActivate())
-            {
-                timer.ScheduleNextActivation();
-            }
+            timer.SkipAllScheduledActivations();
+        }
+
+        public int GetNumScheduledActivations()
+        {
+            ref PeriodicRunTimer timer = ref currentTimer;
+            return timer.GetNumScheduledActivations();
+        }
+
+        public void SkipActivations(int numActivationsToSkip)
+        {
+            currentTimer.SkipActivations(numActivationsToSkip);
         }
 
         public void Update()
@@ -72,10 +78,7 @@ namespace RiskOfChaos.EffectHandling
 
             if (timer.ShouldActivate())
             {
-                do
-                {
-                    timer.ScheduleNextActivation();
-                } while (timer.ShouldActivate());
+                timer.SkipAllScheduledActivations();
 
                 OnActivate?.Invoke();
             }

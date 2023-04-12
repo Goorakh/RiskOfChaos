@@ -1,5 +1,6 @@
 ﻿using RoR2;
 using System;
+using UnityEngine;
 
 namespace RiskOfChaos.EffectHandling
 {
@@ -20,8 +21,8 @@ namespace RiskOfChaos.EffectHandling
 
                 return TimeType switch
                 {
-                    RunTimerType.Unpaused => run.GetRunStopwatch(),
-                    RunTimerType.Paused => run.fixedTime,
+                    RunTimerType.Stopwatch => run.GetRunStopwatch(),
+                    RunTimerType.Realtime => run.fixedTime,
                     _ => throw new NotImplementedException($"Timer type {TimeType} is not implemented")
                 };
             }
@@ -33,7 +34,7 @@ namespace RiskOfChaos.EffectHandling
         float _period;
         public float Period
         {
-            get => _period;
+            readonly get => _period;
             set
             {
                 if (_period == value)
@@ -60,6 +61,7 @@ namespace RiskOfChaos.EffectHandling
         {
             TimeType = timerType;
             Period = period;
+
             Reset();
         }
 
@@ -72,11 +74,34 @@ namespace RiskOfChaos.EffectHandling
         public void ScheduleNextActivation()
         {
             _lastActivationTime = _nextActivationTime;
-            _nextActivationTime += _period;
+            _nextActivationTime += Period;
 
 #if DEBUG
             Log.Debug($"{nameof(_lastActivationTime)}={_lastActivationTime}, {nameof(_nextActivationTime)}={_nextActivationTime}");
 #endif
+        }
+
+        public void SkipActivations(int numActivationsToSkip)
+        {
+            _nextActivationTime += numActivationsToSkip * Period;
+            _lastActivationTime = _nextActivationTime - Period;
+
+#if DEBUG
+            Log.Debug($"{nameof(_lastActivationTime)}={_lastActivationTime}, {nameof(_nextActivationTime)}={_nextActivationTime}");
+#endif
+        }
+
+        public readonly int GetNumScheduledActivations()
+        {
+            if (!ShouldActivate())
+                return 0;
+
+            return Mathf.CeilToInt((currentTime - _nextActivationTime) / Period);
+        }
+
+        public void SkipAllScheduledActivations()
+        {
+            SkipActivations(GetNumScheduledActivations());
         }
 
         public readonly bool ShouldActivate()

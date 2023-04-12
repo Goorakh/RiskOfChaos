@@ -12,6 +12,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         public abstract void SkipAllScheduledEffects();
 
+        protected const float MIN_STAGE_TIME_REQUIRED_TO_DISPATCH = 2f;
         protected virtual bool canDispatchEffects
         {
             get
@@ -28,8 +29,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 if (!Run.instance || Run.instance.isGameOverServer)
                     return false;
 
-                const float STAGE_START_OFFSET = 2f;
-                if (!Stage.instance || Stage.instance.entryTime.timeSince < STAGE_START_OFFSET)
+                if (!Stage.instance || Stage.instance.entryTime.timeSince < MIN_STAGE_TIME_REQUIRED_TO_DISPATCH)
                     return false;
 
                 return true;

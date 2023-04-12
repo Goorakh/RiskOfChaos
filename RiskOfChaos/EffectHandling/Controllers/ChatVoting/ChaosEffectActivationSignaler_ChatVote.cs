@@ -135,6 +135,15 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             _rng = null;
             _effectVoteSelection.EndVote();
 
+            if (ChaosUIController.Instance)
+            {
+                ChaosEffectVoteDisplayController effectVoteDisplayController = ChaosUIController.Instance.EffectVoteDisplayController;
+                if (effectVoteDisplayController)
+                {
+                    effectVoteDisplayController.RemoveAllVoteDisplays();
+                }
+            }
+
             ChaosEffectVoteDisplayController.OnDisplayControllerCreated -= onEffectDisplayControllerCreated;
         }
 
