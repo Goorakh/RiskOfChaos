@@ -36,7 +36,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             _voteTimer?.SkipAllScheduledActivations();
         }
 
-        protected void onChatMessageReceived(string userId, string message)
+        protected void processVoteMessage(string userId, string message)
         {
             if (_effectVoteSelection.IsVoteActive &&
                 int.TryParse(message, out int voteOptionIndex))
@@ -73,7 +73,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             ChaosEffectVoteDisplayController.OnDisplayControllerCreated += onEffectDisplayControllerCreated;
         }
 
-        void Update()
+        protected virtual void Update()
         {
             if (_voteOptionsDirty)
             {
