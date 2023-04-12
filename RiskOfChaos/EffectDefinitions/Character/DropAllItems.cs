@@ -1,13 +1,12 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.Utilities;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
+namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("drop_all_items", EffectWeightReductionPercentagePerActivation = 15f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
     public sealed class DropAllItems : BaseEffect
@@ -15,18 +14,18 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         [EffectCanActivate]
         static bool CanActivate(EffectCanActivateContext context)
         {
-            return !context.IsNow || PlayerUtils.GetAllPlayerBodies(true).Any(b => getPickupsToDrop(b, false).Any());
+            return !context.IsNow || CharacterBody.readOnlyInstancesList.Any(b => getPickupsToDrop(b, false).Any());
         }
 
         public override void OnStart()
         {
-            foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
+            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
             {
-                Vector3 bodyPosition = playerBody.corePosition;
+                Vector3 bodyPosition = body.corePosition;
 
-                List<PickupIndex> pickupsToDrop = getPickupsToDrop(playerBody, true).ToList();
+                List<PickupIndex> pickupsToDrop = getPickupsToDrop(body, true).ToList();
 
-                Vector3 dropVelocity = Quaternion.AngleAxis(UnityEngine.Random.Range(0f, 360f), Vector3.up) * ((Vector3.up * 40f) + (Vector3.forward * 5f));
+                Vector3 dropVelocity = Quaternion.AngleAxis(Random.Range(0f, 360f), Vector3.up) * ((Vector3.up * 40f) + (Vector3.forward * 5f));
                 Quaternion rotationPerDrop = Quaternion.AngleAxis(360f / pickupsToDrop.Count, Vector3.up);
 
                 foreach (PickupIndex pickup in pickupsToDrop)
