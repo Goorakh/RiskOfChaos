@@ -28,11 +28,6 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
                         return;
 
                     _numVotes = value;
-
-                    if (Value is IOnVoteCountChangedListener voteCountChangedListener)
-                    {
-                        voteCountChangedListener.OnVoteCountChanged(_numVotes);
-                    }
                 }
             }
 
