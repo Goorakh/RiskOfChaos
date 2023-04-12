@@ -1,17 +1,16 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
-using RiskOfChaos.Utilities;
 using RoR2;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.Character.Player
+namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("max_cooldowns", DefaultSelectionWeight = 0.6f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun, EffectWeightReductionPercentagePerActivation = 20f, IsNetworked = true)]
     public sealed class MaxCooldowns : BaseEffect
     {
         public override void OnStart()
         {
-            foreach (CharacterBody body in PlayerUtils.GetAllPlayerBodies(true))
+            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
             {
                 if (body.hasAuthority)
                 {
