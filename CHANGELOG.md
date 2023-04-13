@@ -1,5 +1,39 @@
 ## Changelog
 
+**1.1.0 Changes:**
+
+* Added 1 new effect:
+  * Spawn Void Seed: Spawns a void seed somewhere on the map
+
+* Twitch Integration:
+  * Voting mode can now be changed at any time during a run
+
+* Ahoy!
+  * Fixed an issue where the effect would frequently spawn less drones than it was supposed to
+
+* Drop All Items:
+  * Now drops items from all active characters, not just players
+
+* Max All Cooldowns:
+  * Now affects all characters, and not just players
+
+* Give Random Item & Add Random Item to Monster Inventory:
+  * Added Items to Pool:
+    * Artifact Key
+    * Defensive Microbots
+    * Tonic Affliction
+    * All Consumed Items
+
+* You and a super intelligent Lemurian...:
+  * Can no longer target non-player controlled characters (no more hiding behind your drones)
+  * Fixed an issue where the lemurian would sometimes not have complete vision of the entire map
+
+* Spawn Void Implosion:
+  * Added Void Jailer implosion
+
+* Spawn Random Boss:
+  * Fixed DLC bosses being able to spawn without SOTV enabled
+
 **1.0.0 Changes:**
 
 * Twitch Integration:

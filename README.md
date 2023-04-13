@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer combatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently includes 54 different effects.
+Currently includes 55 different effects.
 
 ### Twitch Integration:
 
@@ -27,7 +27,7 @@ To set up Twitch voting, set the General->Streamer Integration->Voting Mode conf
 * +50% Director Credits: Increases director credits for the rest of the current stage
 * Sequence All Players: Activates a shrine of order on all players
 * Spawn Scavenger Bag: Spawns a scavenger bag near a random player
-* Drop All Items: Drops all players' items and equipment on the ground
+* Drop All Items: Drops all characters' items and equipment on the ground
 * Meteor Shower: Activates the glowing meteorite equipment
 * Randomize Loadout: Randomizes all player's loadouts (skills and skins)
 * You and a super intelligent Lemurian...: Spawns an invincible Lemurian in a random location on the map with an infinite damage stat (instantly die if you touch it)
@@ -69,6 +69,7 @@ To set up Twitch voting, set the General->Streamer Integration->Voting Mode conf
 * Ahoy!: Spawns 3 equipment drones with a Consumed Trophy Hunter's Tricorn
 * Increase Knockback: Multiplies all knockback by 3 (configurable), lasts 1 stage
 * Add Random Item to Monster Inventory: Permanently adds a random item to all enemies
+* Spawn Void Seed: Spawns a void seed somewhere on the map
 </details>
 
 FAQ:
