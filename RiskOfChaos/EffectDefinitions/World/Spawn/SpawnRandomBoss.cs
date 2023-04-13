@@ -2,13 +2,12 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RoR2;
-using RoR2.ExpansionManagement;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
@@ -17,16 +16,17 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
     {
         readonly struct BossSelection
         {
+            public readonly float Weight;
             readonly CharacterSpawnCard[] _spawnCards;
 
-            public BossSelection(CharacterSpawnCard[] spawnCards)
+            public BossSelection(CharacterSpawnCard[] spawnCards, float weight)
             {
                 _spawnCards = spawnCards;
+                Weight = weight;
             }
 
-            public BossSelection(CharacterSpawnCard spawnCard)
+            public BossSelection(CharacterSpawnCard spawnCard, float weight) : this(new CharacterSpawnCard[] { spawnCard }, weight)
             {
-                _spawnCards = new CharacterSpawnCard[] { spawnCard };
             }
 
             public readonly CharacterSpawnCard GetSpawnCard(Xoroshiro128Plus rng)
@@ -41,19 +41,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
             static bool canSelectBossPrefab(GameObject prefab)
             {
-                if (!prefab)
-                    return false;
-
-                if (prefab.TryGetComponent(out ExpansionRequirementComponent expansionRequirement))
-                {
-                    Run run = Run.instance;
-                    if (run && expansionRequirement.requiredExpansion && !run.IsExpansionEnabled(expansionRequirement.requiredExpansion))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
+                return prefab && ExpansionUtils.IsCharacterMasterExpansionAvailable(prefab);
             }
 
             static bool canSelectBoss(CharacterSpawnCard card)
@@ -72,7 +60,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             }
         }
 
-        static readonly WeightedSelection<BossSelection> _bossSelector = new WeightedSelection<BossSelection>();
+        static readonly List<BossSelection> _allBossSelections = new List<BossSelection>();
 
         static readonly GameObject _bossCombatSquadPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Core/BossCombatSquad.prefab").WaitForCompletion();
 
@@ -81,44 +69,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             static void loadBossPrefab(string assetPath, float weight)
             {
-                AsyncOperationHandle<CharacterSpawnCard> bossPrefabLoadAssetHandle = Addressables.LoadAssetAsync<CharacterSpawnCard>(assetPath);
-                bossPrefabLoadAssetHandle.Completed += handle =>
-                {
-                    _bossSelector.AddChoice(new BossSelection(handle.Result), weight);
-                };
+                _allBossSelections.Add(new BossSelection(Addressables.LoadAssetAsync<CharacterSpawnCard>(assetPath).WaitForCompletion(), weight));
             }
 
             static void loadBossPrefabs(string[] assetPaths, float weight)
             {
-                int cardCount = assetPaths.Length;
-
-                CharacterSpawnCard[] spawnCards = new CharacterSpawnCard[cardCount];
-
-                void onAllCardsLoaded()
-                {
-                    _bossSelector.AddChoice(new BossSelection(spawnCards), weight);
-                }
-
-                int loadsCompleted = 0;
-
-                for (int i = 0; i < cardCount; i++)
-                {
-                    void loadPrefabIntoArray(string path, int i)
-                    {
-                        AsyncOperationHandle<CharacterSpawnCard> bossPrefabLoadAssetHandle = Addressables.LoadAssetAsync<CharacterSpawnCard>(path);
-                        bossPrefabLoadAssetHandle.Completed += handle =>
-                        {
-                            spawnCards[i] = handle.Result;
-
-                            if (++loadsCompleted == cardCount)
-                            {
-                                onAllCardsLoaded();
-                            }
-                        };
-                    }
-
-                    loadPrefabIntoArray(assetPaths[i], i);
-                }
+                CharacterSpawnCard[] spawnCards = Array.ConvertAll(assetPaths, path => Addressables.LoadAssetAsync<CharacterSpawnCard>(path).WaitForCompletion());
+                _allBossSelections.Add(new BossSelection(spawnCards, weight));
             }
 
             loadBossPrefab("RoR2/Base/Beetle/cscBeetleQueen.asset", 1f);
@@ -155,30 +112,26 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [EffectCanActivate]
         static bool CanActivate()
         {
-            static bool isAnyBossAvailable()
-            {
-                for (int i = 0; i < _bossSelector.Count; i++)
-                {
-                    if (_bossSelector.GetChoice(i).value.CanBeSelected())
-                    {
-                        return true;
-                    }
-                }
+            return DirectorCore.instance && _allBossSelections.Any(b => b.CanBeSelected());
+        }
 
-                return false;
+        static WeightedSelection<BossSelection> getWeightedBossSelection()
+        {
+            WeightedSelection<BossSelection> selector = new WeightedSelection<BossSelection>(_allBossSelections.Count);
+            foreach (BossSelection bossSelection in _allBossSelections)
+            {
+                if (bossSelection.CanBeSelected())
+                {
+                    selector.AddChoice(bossSelection, bossSelection.Weight);
+                }
             }
 
-            return DirectorCore.instance && isAnyBossAvailable();
+            return selector;
         }
 
         public override void OnStart()
         {
-            BossSelection bossCardSelection;
-
-            do
-            {
-                bossCardSelection = _bossSelector.Evaluate(RNG.nextNormalizedFloat);
-            } while (!bossCardSelection.CanBeSelected());
+            BossSelection bossCardSelection = getWeightedBossSelection().Evaluate(RNG.nextNormalizedFloat);
 
             DirectorPlacementRule placementRule = SpawnUtils.GetPlacementRule_AtRandomPlayerApproximate(RNG, 30f, 50f);
 

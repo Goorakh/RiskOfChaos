@@ -52,5 +52,19 @@ namespace RiskOfChaos.Utilities
                 return !requirement.requiredExpansion || Run.instance.IsExpansionEnabled(requirement.requiredExpansion);
             });
         }
+
+        public static bool IsCharacterMasterExpansionAvailable(GameObject masterPrefabObj)
+        {
+            if (!IsObjectExpansionAvailable(masterPrefabObj))
+                return false;
+
+            if (!masterPrefabObj.TryGetComponent(out CharacterMaster masterPrefab))
+            {
+                Log.Warning($"Object {masterPrefabObj} has no CharacterMaster component");
+                return false;
+            }
+
+            return IsObjectExpansionAvailable(masterPrefab.bodyPrefab);
+        }
     }
 }
