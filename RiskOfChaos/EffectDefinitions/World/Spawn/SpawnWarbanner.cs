@@ -22,13 +22,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         static readonly GameObject _warbannerPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/WardOnLevel/WarbannerWard.prefab").WaitForCompletion();
 
-#if DEBUG
-        static SpawnWarbanner()
-        {
-            Log.Debug($"{nameof(_warbannerPrefab)}={_warbannerPrefab}");
-        }
-#endif
-
         static ConfigEntry<int> _warbannerItemCount;
         const int WARBANNER_ITEM_COUNT_DEFAULT_VALUE = 2;
 
