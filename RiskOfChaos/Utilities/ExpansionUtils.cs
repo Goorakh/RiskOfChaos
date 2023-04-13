@@ -2,8 +2,10 @@
 using RoR2.ExpansionManagement;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using UnityEngine;
 
 namespace RiskOfChaos.Utilities
 {
@@ -38,6 +40,17 @@ namespace RiskOfChaos.Utilities
         {
             ExpansionDef expansionDef = FindExpansionDef(name);
             return expansionDef && Run.instance && Run.instance.IsExpansionEnabled(expansionDef);
+        }
+
+        public static bool IsObjectExpansionAvailable(GameObject obj)
+        {
+            if (!obj || !Run.instance)
+                return false;
+
+            return obj.GetComponents<ExpansionRequirementComponent>().All(requirement =>
+            {
+                return !requirement.requiredExpansion || Run.instance.IsExpansionEnabled(requirement.requiredExpansion);
+            });
         }
     }
 }
