@@ -1,6 +1,7 @@
 using BepInEx;
 using HarmonyLib;
 using R2API.Utils;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.Networking;
@@ -22,9 +23,11 @@ namespace RiskOfChaos
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Gorakh";
         public const string PluginName = "RiskOfChaos";
-        public const string PluginVersion = "0.9.0";
+        public const string PluginVersion = "1.0.0";
 
         internal static Main Instance { get; private set; }
+
+        public ContentPackProvider ContentPackProvider;
 
         void Awake()
         {
@@ -34,6 +37,8 @@ namespace RiskOfChaos
             Log.Init(Logger);
 
             Instance = this;
+
+            ContentPackProvider = new ContentPackProvider();
 
             ChaosEffectManager.InitializeObject();
 
