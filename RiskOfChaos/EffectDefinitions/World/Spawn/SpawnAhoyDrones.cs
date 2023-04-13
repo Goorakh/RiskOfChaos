@@ -21,20 +21,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;
 
-        static readonly CharacterSpawnCard _equipmentDroneSpawnCard;
-
-        static SpawnAhoyDrones()
-        {
-            _equipmentDroneSpawnCard = ScriptableObject.CreateInstance<CharacterSpawnCard>();
-
-            _equipmentDroneSpawnCard.sendOverNetwork = true;
-            _equipmentDroneSpawnCard.nodeGraphType = MapNodeGroup.GraphType.Air;
-            _equipmentDroneSpawnCard.forbiddenFlags = NodeFlags.NoCharacterSpawn;
-            _equipmentDroneSpawnCard.eliteRules = SpawnCard.EliteRules.ArtifactOnly;
-
-            _equipmentDroneSpawnCard.noElites = true;
-            _equipmentDroneSpawnCard.forbiddenAsBoss = true;
-        }
+        static CharacterSpawnCard _equipmentDroneSpawnCard;
 
         [SystemInitializer]
         static void InitSpawnCardPrefab()
@@ -42,10 +29,25 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             AsyncOperationHandle<GameObject> loadEquipmentDronePrefabHandle = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Drones/EquipmentDroneMaster.prefab");
             loadEquipmentDronePrefabHandle.Completed += handle =>
             {
+                if (!handle.Result)
+                {
+                    Log.Error("Failed to load equipment drone prefab");
+                    return;
+                }
+
+                _equipmentDroneSpawnCard = ScriptableObject.CreateInstance<CharacterSpawnCard>();
+
+                _equipmentDroneSpawnCard.sendOverNetwork = true;
+                _equipmentDroneSpawnCard.nodeGraphType = MapNodeGroup.GraphType.Air;
+                _equipmentDroneSpawnCard.forbiddenFlags = NodeFlags.NoCharacterSpawn;
+                _equipmentDroneSpawnCard.eliteRules = SpawnCard.EliteRules.ArtifactOnly;
+
+                _equipmentDroneSpawnCard.noElites = true;
+                _equipmentDroneSpawnCard.forbiddenAsBoss = true;
+
                 _equipmentDroneSpawnCard.prefab = handle.Result;
 
-                if (handle.Result &&
-                    handle.Result.TryGetComponent(out CharacterMaster masterPrefab) &&
+                if (handle.Result.TryGetComponent(out CharacterMaster masterPrefab) &&
                     masterPrefab.bodyPrefab &&
                     masterPrefab.bodyPrefab.TryGetComponent(out CharacterBody bodyPrefab))
                 {
@@ -54,6 +56,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 #if DEBUG
                     Log.Debug($"Set SpawnCard hull size to: {_equipmentDroneSpawnCard.hullSize}");
 #endif
+                }
+                else
+                {
+                    Log.Warning("Failed to get equipment drone hull size");
                 }
             };
         }
@@ -91,7 +97,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [EffectCanActivate]
         static bool CanActivate(EffectCanActivateContext context)
         {
-            return ExpansionUtils.DLC1Enabled && DirectorCore.instance && _equipmentDroneSpawnCard.prefab && (!context.IsNow || PlayerUtils.GetAllPlayerBodies(true).Any());
+            return ExpansionUtils.DLC1Enabled && DirectorCore.instance && _equipmentDroneSpawnCard && (!context.IsNow || PlayerUtils.GetAllPlayerBodies(true).Any());
         }
 
         public override void OnStart()
