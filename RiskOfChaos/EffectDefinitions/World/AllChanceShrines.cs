@@ -13,7 +13,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("all_chance_shrines", DefaultSelectionWeight = 0.7f, EffectActivationCountHardCap = 1)]
+    [ChaosEffect("all_chance_shrines", DefaultSelectionWeight = 0.7f)]
     public sealed class AllChanceShrines : BaseEffect
     {
         static InteractableSpawnCard _iscChanceShrine;
