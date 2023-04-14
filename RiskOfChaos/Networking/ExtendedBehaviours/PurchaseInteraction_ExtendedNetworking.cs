@@ -104,33 +104,6 @@ namespace RiskOfChaos.Networking.ExtendedBehaviours
 #endif
                 }
             };
-
-            static void addComponentTo(string assetPath)
-            {
-                GameObject prefab = Addressables.LoadAssetAsync<GameObject>(assetPath).WaitForCompletion();
-                if (!prefab)
-                {
-                    Log.Warning($"Failed to load prefab at path {assetPath}");
-                    return;
-                }
-
-                PurchaseInteraction purchaseInteraction = prefab.GetComponentInChildren<PurchaseInteraction>();
-                if (!purchaseInteraction)
-                {
-                    Log.Warning($"No {nameof(PurchaseInteraction)} component found on {prefab} ({assetPath})");
-                    return;
-                }
-
-                purchaseInteraction.gameObject.AddComponent<PurchaseInteraction_ExtendedNetworking>();
-
-#if DEBUG
-                Log.Debug($"Added component to {prefab} ({assetPath})");
-#endif
-            }
-
-            // addComponentTo("RoR2/Base/ShrineChance/ShrineChance.prefab");
-            // addComponentTo("RoR2/Base/ShrineChance/ShrineChanceSandy Variant.prefab");
-            // addComponentTo("RoR2/Base/ShrineChance/ShrineChanceSnowy Variant.prefab");
         }
     }
 }
