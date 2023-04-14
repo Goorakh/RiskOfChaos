@@ -4,9 +4,9 @@ using MonoMod.Cil;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.Trackers;
 using RoR2;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -81,120 +81,142 @@ namespace RiskOfChaos.EffectDefinitions.World
             };
         }
 
+        readonly struct ShrineReplacementData
+        {
+            public readonly GameObject OriginalObject;
+            public readonly Transform OriginalObjectTransform;
+            public readonly PickupDropTable DropTable;
+
+            public readonly bool ShouldSpawnShrine;
+
+            ShrineReplacementData(GameObject originalObject, PickupDropTable dropTable, bool shouldSpawnShrine)
+            {
+                OriginalObject = originalObject;
+                OriginalObjectTransform = OriginalObject.transform;
+                DropTable = dropTable;
+                ShouldSpawnShrine = shouldSpawnShrine;
+            }
+
+            public void PerformReplacement(Xoroshiro128Plus rng)
+            {
+                if (!ShouldSpawnShrine)
+                {
+                    NetworkServer.Destroy(OriginalObject);
+                    return;
+                }
+
+                DirectorPlacementRule placementRule = new DirectorPlacementRule
+                {
+                    placementMode = DirectorPlacementRule.PlacementMode.Direct
+                };
+
+                SpawnCard.SpawnResult spawnResult = _iscChanceShrine.DoSpawn(OriginalObjectTransform.position, OriginalObjectTransform.rotation, new DirectorSpawnRequest(_iscChanceShrine, placementRule, rng));
+
+                if (spawnResult.success && spawnResult.spawnedInstance && spawnResult.spawnedInstance.TryGetComponent(out ShrineChanceBehavior shrineChanceBehavior))
+                {
+                    if (DropTable)
+                    {
+                        shrineChanceBehavior.dropTable = DropTable;
+                    }
+                    else
+                    {
+                        Log.Warning($"null dropTable for interactable {OriginalObject}, not overriding");
+                    }
+
+                    if (OriginalObject.TryGetComponent(out PurchaseInteraction purchaseInteraction) &&
+                        shrineChanceBehavior.TryGetComponent(out PurchaseInteraction shrinePurchaseInteraction))
+                    {
+                        shrinePurchaseInteraction.Networkcost = purchaseInteraction.cost;
+                        shrinePurchaseInteraction.costType = purchaseInteraction.costType;
+                    }
+
+                    NetworkServer.Destroy(OriginalObject);
+                }
+            }
+
+            public static IEnumerable<ShrineReplacementData> GetReplacementDatasFor(PurchaseInteraction purchaseInteraction)
+            {
+                return GetReplacementDatasFor(purchaseInteraction.gameObject);
+            }
+
+            public static IEnumerable<ShrineReplacementData> GetReplacementDatasFor(GameObject interactableObject)
+            {
+                if (interactableObject.TryGetComponent(out EntityStateMachine esm))
+                {
+                    if (esm.state is EntityStates.Barrel.Opened)
+                    {
+#if DEBUG
+                        Log.Debug($"Skipping opened chest {interactableObject}");
+#endif
+                        yield break;
+                    }
+                }
+
+                PurchaseInteraction purchaseInteraction = interactableObject.GetComponent<PurchaseInteraction>();
+
+                PickupDropTable dropTable;
+
+                if (interactableObject.TryGetComponent(out ChestBehavior chestBehavior))
+                {
+                    dropTable = chestBehavior.dropTable;
+                }
+                else if (interactableObject.TryGetComponent(out RouletteChestController rouletteChestController))
+                {
+                    dropTable = rouletteChestController.dropTable;
+                }
+                else if (interactableObject.TryGetComponent(out ShopTerminalBehavior shopTerminalBehavior))
+                {
+                    if (!shopTerminalBehavior.NetworkpickupIndex.isValid)
+                    {
+#if DEBUG
+                        Log.Debug($"Skipping closed shop terminal {interactableObject}");
+#endif
+                        yield break;
+                    }
+
+                    dropTable = shopTerminalBehavior.dropTable;
+
+                    if (shopTerminalBehavior.serverMultiShopController)
+                    {
+                        yield return new ShrineReplacementData(shopTerminalBehavior.serverMultiShopController.gameObject, null, false);
+                    }
+                }
+                else if (interactableObject.TryGetComponent(out OptionChestBehavior optionChestBehavior))
+                {
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                    dropTable = optionChestBehavior.dropTable;
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+                }
+                else
+                {
+#if DEBUG
+                    Log.Debug($"No usable component found on interactable {interactableObject}");
+#endif
+                    yield break;
+                }
+
+                yield return new ShrineReplacementData(interactableObject, dropTable, true);
+            }
+        }
+
+        static IEnumerable<ShrineReplacementData> getAllReplacementsData()
+        {
+            // HACK: ToArray is used to avoid an InvalidOperationException due to foreach modifying the collection by destroying the purchase interactions
+            return InstanceTracker.GetInstancesList<PurchaseInteraction>().ToArray().SelectMany(ShrineReplacementData.GetReplacementDatasFor);
+        }
+
         [EffectCanActivate]
         static bool CanActivate(EffectCanActivateContext context)
         {
-            return _iscChanceShrine && (!context.IsNow || InstanceTracker.GetInstancesList<InteractableTracker>().Count > 0);
+            return _iscChanceShrine && (!context.IsNow || getAllReplacementsData().Any());
         }
 
         public override void OnStart()
         {
-            List<PurchaseInteraction> interactables = new List<PurchaseInteraction>(InstanceTracker.GetInstancesList<PurchaseInteraction>());
-            foreach (PurchaseInteraction interactable in interactables)
+            foreach (ShrineReplacementData replacementData in getAllReplacementsData())
             {
-                tryReplaceInteractable(interactable.gameObject);
+                replacementData.PerformReplacement(new Xoroshiro128Plus(RNG.nextUlong));
             }
-        }
-
-        bool tryReplaceInteractable(GameObject interactableObject)
-        {
-            if (interactableObject.TryGetComponent(out EntityStateMachine esm))
-            {
-                if (esm.state is EntityStates.Barrel.Opened)
-                {
-#if DEBUG
-                    Log.Debug($"Skipping opened chest {interactableObject}");
-#endif
-                    return false;
-                }
-            }
-
-            PurchaseInteraction purchaseInteraction = interactableObject.GetComponent<PurchaseInteraction>();
-
-            PickupDropTable dropTable;
-
-            if (interactableObject.TryGetComponent(out ChestBehavior chestBehavior))
-            {
-                dropTable = chestBehavior.dropTable;
-            }
-            else if (interactableObject.TryGetComponent(out RouletteChestController rouletteChestController))
-            {
-                dropTable = rouletteChestController.dropTable;
-            }
-            else if (interactableObject.TryGetComponent(out ShopTerminalBehavior shopTerminalBehavior))
-            {
-                if (!shopTerminalBehavior.NetworkpickupIndex.isValid)
-                {
-#if DEBUG
-                    Log.Debug($"Skipping closed shop terminal {interactableObject}");
-#endif
-                    return false;
-                }
-
-                dropTable = shopTerminalBehavior.dropTable;
-            }
-            else if (interactableObject.TryGetComponent(out OptionChestBehavior optionChestBehavior))
-            {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                dropTable = optionChestBehavior.dropTable;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-            }
-            else if (interactableObject.TryGetComponent(out MultiShopController multiShopController))
-            {
-                bool allReplaced = true;
-                bool anyReplaced = false;
-
-                foreach (GameObject terminalObject in multiShopController.terminalGameObjects)
-                {
-                    bool replaced = tryReplaceInteractable(terminalObject);
-                    allReplaced &= replaced;
-                    anyReplaced |= replaced;
-                }
-
-                if (allReplaced)
-                {
-                    NetworkServer.Destroy(interactableObject);
-                }
-
-                return anyReplaced;
-            }
-            else
-            {
-#if DEBUG
-                Log.Debug($"No usable component found on interactable {interactableObject}");
-#endif
-                return false;
-            }
-
-            DirectorPlacementRule placementRule = new DirectorPlacementRule
-            {
-                placementMode = DirectorPlacementRule.PlacementMode.Direct
-            };
-
-            SpawnCard.SpawnResult spawnResult = _iscChanceShrine.DoSpawn(interactableObject.transform.position, interactableObject.transform.rotation, new DirectorSpawnRequest(_iscChanceShrine, placementRule, RNG));
-
-            if (spawnResult.success && spawnResult.spawnedInstance && spawnResult.spawnedInstance.TryGetComponent(out ShrineChanceBehavior shrineChanceBehavior))
-            {
-                if (dropTable)
-                {
-                    shrineChanceBehavior.dropTable = dropTable;
-                }
-                else
-                {
-                    Log.Warning($"null dropTable for interactable {interactableObject}, not overriding");
-                }
-
-                if (purchaseInteraction && shrineChanceBehavior.TryGetComponent(out PurchaseInteraction shrinePurchaseInteraction))
-                {
-                    shrinePurchaseInteraction.Networkcost = purchaseInteraction.cost;
-                    shrinePurchaseInteraction.costType = purchaseInteraction.costType;
-                }
-
-                NetworkServer.Destroy(interactableObject);
-                return true;
-            }
-
-            return false;
         }
     }
 }
