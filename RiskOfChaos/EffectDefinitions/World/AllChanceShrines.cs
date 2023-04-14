@@ -1,7 +1,9 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using HarmonyLib;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.Networking;
 using RiskOfChaos.Trackers;
 using RoR2;
 using System.Collections.Generic;
@@ -14,7 +16,70 @@ namespace RiskOfChaos.EffectDefinitions.World
     [ChaosEffect("all_chance_shrines", DefaultSelectionWeight = 0.7f, EffectActivationCountHardCap = 1)]
     public sealed class AllChanceShrines : BaseEffect
     {
-        static readonly InteractableSpawnCard _iscChanceShrine = Addressables.LoadAssetAsync<InteractableSpawnCard>("RoR2/Base/ShrineChance/iscShrineChance.asset").WaitForCompletion();
+        static InteractableSpawnCard _iscChanceShrine;
+
+        [SystemInitializer]
+        static void Init()
+        {
+            InteractableSpawnCard iscChanceShrine = Addressables.LoadAssetAsync<InteractableSpawnCard>("RoR2/Base/ShrineChance/iscShrineChance.asset").WaitForCompletion();
+
+            // Make new instance of the spawn card so that settings can safely be changed without messing with the original behavior
+            _iscChanceShrine = ScriptableObject.Instantiate(iscChanceShrine);
+            
+            // Make sure it'll always spawn no matter what
+            _iscChanceShrine.skipSpawnWhenSacrificeArtifactEnabled = false;
+
+            // Make sure the shrine will be spawned at the exact position and rotation given
+            _iscChanceShrine.orientToFloor = false;
+            _iscChanceShrine.slightlyRandomizeOrientation = false;
+
+            // Prevent random rotation around local y axis
+            IL.RoR2.InteractableSpawnCard.Spawn += il =>
+            {
+                ILCursor c = new ILCursor(il);
+
+                ILLabel patchLocationLbl = null;
+                if (c.TryGotoNext(MoveType.After,
+                                  x => x.MatchLdfld<InteractableSpawnCard>(nameof(InteractableSpawnCard.orientToFloor)),
+                                  x => x.MatchBrfalse(out patchLocationLbl)))
+                {
+                    c.Goto(patchLocationLbl.Target, MoveType.Before);
+
+                    int beforeDelegateIndex = c.Index;
+
+                    c.Emit(OpCodes.Ldarg_0);
+                    c.EmitDelegate((InteractableSpawnCard instance) =>
+                    {
+                        return instance != _iscChanceShrine;
+                    });
+
+                    ILLabel afterRotateLbl = c.DefineLabel();
+
+                    c.Emit(OpCodes.Brfalse, afterRotateLbl);
+
+                    int afterDelegateIndex = c.Index;
+
+                    c.Goto(beforeDelegateIndex, MoveType.Before);
+                    patchLocationLbl.Target = c.Next;
+
+                    c.Index = afterDelegateIndex;
+
+                    if (c.TryGotoNext(MoveType.After,
+                                      x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<Transform>(_ => _.Rotate(default(Vector3), default, default)))))
+                    {
+                        afterRotateLbl.Target = c.Next;
+                    }
+                    else
+                    {
+                        Log.Error($"Failed to find {nameof(afterRotateLbl)} target location");
+                    }
+                }
+                else
+                {
+                    Log.Warning("Failed to find patch location");
+                }
+            };
+        }
 
         [EffectCanActivate]
         static bool CanActivate(EffectCanActivateContext context)
@@ -61,7 +126,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 if (!shopTerminalBehavior.NetworkpickupIndex.isValid)
                 {
 #if DEBUG
-                    Log.Debug($"Skipping likely closed shop terminal {interactableObject}");
+                    Log.Debug($"Skipping closed shop terminal {interactableObject}");
 #endif
                     return false;
                 }
