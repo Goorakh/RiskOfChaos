@@ -10,7 +10,6 @@ namespace RiskOfChaos.Networking
             NetworkingAPI.RegisterMessageType<NetworkedTimedEffectEndMessage>();
             NetworkingAPI.RegisterMessageType<StageCompleteMessage>();
 
-            NetworkingAPI.RegisterMessageType<SyncPurchaseInteractionCostType>();
             NetworkingAPI.RegisterMessageType<TeleportBodyMessage>();
         }
     }
