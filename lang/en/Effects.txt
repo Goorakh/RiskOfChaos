@@ -60,5 +60,6 @@
 		"EFFECT_MONSTER_INVENTORY_GIVE_RANDOM_ITEM_NAME": "Add Random Item to Monster Inventory",
 		"EFFECT_SPAWN_VOID_SEED_NAME": "Spawn Void Seed",
 		"EFFECT_ALL_VOID_POTENTIALS_NAME": "All Items Are Void Potentials (Lasts 1 stage)",
+		"EFFECT_ALL_SKILLS_AGILE_NAME": "All Skills are Agile (Lasts 1 stage)",
 	}
 }
