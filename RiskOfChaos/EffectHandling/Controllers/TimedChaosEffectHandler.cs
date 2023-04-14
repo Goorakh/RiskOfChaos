@@ -2,6 +2,7 @@
 using R2API.Networking.Interfaces;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.Networking;
+using RoR2;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -12,15 +13,36 @@ namespace RiskOfChaos.EffectHandling.Controllers
     [ChaosController(false)]
     public class TimedChaosEffectHandler : MonoBehaviour
     {
+        static TimedChaosEffectHandler _instance;
+        public static TimedChaosEffectHandler Instance => _instance;
+
+        [Flags]
+        enum TimedEffectFlags
+        {
+            None = 0,
+            UntilNextEffect = 1 << TimedEffectType.UntilNextEffect,
+            UntilStageEnd = 1 << TimedEffectType.UntilStageEnd,
+            All = ~0b0
+        }
+
         readonly struct TimedEffectInfo
         {
             public readonly ChaosEffectInfo EffectInfo;
             public readonly TimedEffect EffectInstance;
 
-            public TimedEffectInfo(ChaosEffectInfo effectInfo, TimedEffect effectInstance)
+            public readonly TimedEffectType TimedType;
+
+            public TimedEffectInfo(in ChaosEffectInfo effectInfo, TimedEffect effectInstance)
             {
                 EffectInfo = effectInfo;
                 EffectInstance = effectInstance;
+
+                TimedType = effectInstance.TimedType;
+            }
+
+            public readonly bool MatchesFlag(TimedEffectFlags flags)
+            {
+                return (flags & (TimedEffectFlags)(1 << (byte)TimedType)) != 0;
             }
 
             public readonly void End(bool sendClientMessage = true)
@@ -60,28 +82,34 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void OnEnable()
         {
+            SingletonHelper.Assign(ref _instance, this);
+
             NetworkedTimedEffectEndMessage.OnReceive += NetworkedTimedEffectEndMessage_OnReceive;
 
             _effectDispatcher.OnEffectDispatched += onEffectDispatched;
+
+            Stage.onServerStageComplete += onServerStageComplete;
         }
 
         void OnDisable()
         {
+            SingletonHelper.Unassign(ref _instance, this);
+
             NetworkedTimedEffectEndMessage.OnReceive -= NetworkedTimedEffectEndMessage_OnReceive;
 
             _effectDispatcher.OnEffectDispatched -= onEffectDispatched;
 
-            endAllTimedEffects(false);
+            Stage.onServerStageComplete -= onServerStageComplete;
+
+            endTimedEffects(TimedEffectFlags.All, false);
+            _activeTimedEffects.Clear();
         }
 
         void onEffectDispatched(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, BaseEffect effectInstance)
         {
-            if (!NetworkServer.active)
-                return;
-
-            if ((dispatchFlags & EffectDispatchFlags.DontStopTimedEffects) == 0)
+            if (NetworkServer.active && (dispatchFlags & EffectDispatchFlags.DontStopTimedEffects) == 0)
             {
-                endAllTimedEffects();
+                endTimedEffects(TimedEffectFlags.UntilNextEffect);
             }
 
             if (effectInstance is TimedEffect timedEffectInstance)
@@ -90,14 +118,29 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        void endAllTimedEffects(bool sendClientMessage = true)
+        void onServerStageComplete(Stage stage)
         {
-            foreach (TimedEffectInfo timedEffect in _activeTimedEffects)
-            {
-                timedEffect.End(sendClientMessage);
-            }
+            if (!NetworkServer.active)
+                return;
 
-            _activeTimedEffects.Clear();
+            endTimedEffects(TimedEffectFlags.UntilStageEnd);
+        }
+
+        void endTimedEffects(TimedEffectFlags flags, bool sendClientMessage = true)
+        {
+            for (int i = _activeTimedEffects.Count - 1; i >= 0; i--)
+            {
+                TimedEffectInfo timedEffect = _activeTimedEffects[i];
+                if (timedEffect.MatchesFlag(flags))
+                {
+#if DEBUG
+                    Log.Debug($"Ending timed effect {timedEffect.EffectInfo} (i={i})");
+#endif
+
+                    timedEffect.End(sendClientMessage);
+                    _activeTimedEffects.RemoveAt(i);
+                }
+            }
         }
 
         void NetworkedTimedEffectEndMessage_OnReceive(in ChaosEffectInfo effectInfo)
@@ -114,7 +157,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     _activeTimedEffects.RemoveAt(i);
 
 #if DEBUG
-                    Log.Debug($"Timed effect {effectInfo} ended");
+                    Log.Debug($"Timed effect {effectInfo} (i={i}) ended");
 #endif
 
                     return;
@@ -124,9 +167,27 @@ namespace RiskOfChaos.EffectHandling.Controllers
             Log.Warning($"{effectInfo} is not registered as a timed effect");
         }
 
-        void registerTimedEffect(TimedEffectInfo effectInfo)
+        void registerTimedEffect(in TimedEffectInfo effectInfo)
         {
             _activeTimedEffects.Add(effectInfo);
+        }
+
+        public bool IsTimedEffectActive(in ChaosEffectInfo effectInfo)
+        {
+            foreach (TimedEffectInfo timedEffect in _activeTimedEffects)
+            {
+                if (timedEffect.EffectInfo == effectInfo)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool IsEffectCurrentlyActive(in ChaosEffectInfo effectInfo)
+        {
+            return Instance && Instance.IsTimedEffectActive(effectInfo);
         }
     }
 }

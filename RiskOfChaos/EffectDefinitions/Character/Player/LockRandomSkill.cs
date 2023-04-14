@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Patches;
 using RoR2;
@@ -9,13 +10,15 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
     [ChaosEffect("lock_random_skill", DefaultSelectionWeight = 0.3f, EffectWeightReductionPercentagePerActivation = 80f, IsNetworked = true)]
-    public sealed class LockRandomSkill : BaseEffect
+    public sealed class LockRandomSkill : TimedEffect
     {
         [EffectCanActivate]
         static bool CanActivate()
         {
             return ForceLockPlayerSkillSlot.NonLockedSlotTypes.Length > 0;
         }
+
+        public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
 
         SkillSlot _lockedSkillSlot;
 
@@ -40,7 +43,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
         public override void OnStart()
         {
-            ForceLockPlayerSkillSlot.SetSkillSlotLocked(_lockedSkillSlot);
+            ForceLockPlayerSkillSlot.SetSkillSlotLocked(_lockedSkillSlot, true);
+        }
+
+        public override void OnEnd()
+        {
+            ForceLockPlayerSkillSlot.SetSkillSlotLocked(_lockedSkillSlot, false);
         }
     }
 }

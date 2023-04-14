@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.Networking;
 using RoR2;
 using System;
 using System.Linq;
@@ -9,7 +8,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Gravity
 {
-    public abstract class GenericGravityEffect : BaseEffect
+    public abstract class GenericGravityEffect : TimedEffect
     {
         protected abstract Vector3 modifyGravity(Vector3 originalGravity);
 
@@ -30,26 +29,9 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
             _hasGravityOverride = false;
         }
 
-        static bool _hasAddedEventListeners = false;
-        static void tryAddEventListeners()
-        {
-            if (_hasAddedEventListeners)
-                return;
-
-            Run.onRunDestroyGlobal += _ =>
-            {
-                tryRestoreGravity();
-            };
-
-            StageCompleteMessage.OnReceive += _ =>
-            {
-                tryRestoreGravity();
-            };
-
-            _hasAddedEventListeners = true;
-        }
-
         Vector3 _overrideGravity;
+
+        public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
 
         public override void Serialize(NetworkWriter writer)
         {
@@ -79,8 +61,11 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
 #endif
 
             _hasGravityOverride = true;
+        }
 
-            tryAddEventListeners();
+        public override void OnEnd()
+        {
+            tryRestoreGravity();
         }
 
         static SceneIndex[] _invalidOnScenes;

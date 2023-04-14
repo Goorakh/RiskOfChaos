@@ -58,22 +58,16 @@ namespace RiskOfChaos.Patches
             return ArrayUtils.GetSafe(_lockedSlots, (int)skillSlot);
         }
 
-        public static void SetSkillSlotLocked(SkillSlot skillSlot)
+        public static void SetSkillSlotLocked(SkillSlot skillSlot, bool locked)
         {
             if (!ArrayUtils.IsInBounds(_lockedSlots, (int)skillSlot))
             {
                 return;
             }
 
-            _lockedSlots[(int)skillSlot] = true;
+            _lockedSlots[(int)skillSlot] = locked;
             refreshLockedSlotTypes();
             tryApplyPatches();
-        }
-
-        static void resetLockedSlots()
-        {
-            ArrayUtils.SetAll(_lockedSlots, false);
-            refreshLockedSlotTypes();
         }
 
         static bool _hasAppliedPatches = false;
@@ -89,16 +83,6 @@ namespace RiskOfChaos.Patches
             On.RoR2.GenericSkill.CanExecute += GenericSkill_CanExecute;
             On.RoR2.GenericSkill.IsReady += GenericSkill_IsReady;
             new Hook(AccessTools.DeclaredPropertyGetter(typeof(GenericSkill), nameof(GenericSkill.icon)), GenericSkill_get_icon);
-
-            Run.onRunDestroyGlobal += _ =>
-            {
-                resetLockedSlots();
-            };
-
-            StageCompleteMessage.OnReceive += _ =>
-            {
-                resetLockedSlots();
-            };
 
             _hasAppliedPatches = true;
         }

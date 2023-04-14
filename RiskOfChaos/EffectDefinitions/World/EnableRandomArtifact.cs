@@ -15,7 +15,7 @@ using System.Runtime.CompilerServices;
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("enable_random_artifact", EffectWeightReductionPercentagePerActivation = 20f)]
-    public sealed class EnableRandomArtifact : BaseEffect
+    public sealed class EnableRandomArtifact : TimedEffect
     {
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;
@@ -47,14 +47,6 @@ namespace RiskOfChaos.EffectDefinitions.World
         }
         static ArtifactConfig[] _artifactConfigs;
 
-        static readonly HashSet<ArtifactIndex> _artifactsToDisableNextStage = new HashSet<ArtifactIndex>();
-
-        static EnableRandomArtifact()
-        {
-            Stage.onServerStageComplete += Stage_onServerStageComplete;
-            Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
-        }
-
         [SystemInitializer(typeof(ArtifactCatalog), typeof(ChaosEffectCatalog))]
         static void Init()
         {
@@ -63,24 +55,6 @@ namespace RiskOfChaos.EffectDefinitions.World
             {
                 _artifactConfigs[i] = new ArtifactConfig((ArtifactIndex)i);
             }
-        }
-
-        static void Stage_onServerStageComplete(Stage stage)
-        {
-            if (_artifactsToDisableNextStage.Count > 0)
-            {
-                foreach (ArtifactIndex artifactIndex in _artifactsToDisableNextStage)
-                {
-                    RunArtifactManager.instance.SetArtifactEnabledServer(ArtifactCatalog.GetArtifactDef(artifactIndex), false);
-                }
-
-                _artifactsToDisableNextStage.Clear();
-            }
-        }
-
-        static void Run_onRunDestroyGlobal(Run run)
-        {
-            _artifactsToDisableNextStage.Clear();
         }
 
         static ArtifactConfig? getArtifactConfig(ArtifactIndex index)
@@ -117,6 +91,10 @@ namespace RiskOfChaos.EffectDefinitions.World
             return RunArtifactManager.instance && getAllAvailableArtifactIndices().Any();
         }
 
+        ArtifactDef _enabledArtifact;
+
+        public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
+
         public override void OnStart()
         {
             WeightedSelection<ArtifactIndex> artifactIndexSelection = new WeightedSelection<ArtifactIndex>(ArtifactCatalog.artifactCount);
@@ -126,11 +104,16 @@ namespace RiskOfChaos.EffectDefinitions.World
                 artifactIndexSelection.AddChoice(index, getArtifactSelectionWeight(index));
             }
 
-            ArtifactIndex artifactIndex = artifactIndexSelection.Evaluate(RNG.nextNormalizedFloat);
+            _enabledArtifact = ArtifactCatalog.GetArtifactDef(artifactIndexSelection.Evaluate(RNG.nextNormalizedFloat));
+            RunArtifactManager.instance.SetArtifactEnabledServer(_enabledArtifact, true);
+        }
 
-            RunArtifactManager.instance.SetArtifactEnabledServer(ArtifactCatalog.GetArtifactDef(artifactIndex), true);
-
-            _artifactsToDisableNextStage.Add(artifactIndex);
+        public override void OnEnd()
+        {
+            if (!RunArtifactManager.instance)
+                return;
+            
+            RunArtifactManager.instance.SetArtifactEnabledServer(_enabledArtifact, false);
         }
     }
 }

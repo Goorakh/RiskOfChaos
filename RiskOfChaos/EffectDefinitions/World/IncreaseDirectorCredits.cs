@@ -1,5 +1,4 @@
 ﻿using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -10,7 +9,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("increase_director_credits", EffectWeightReductionPercentagePerActivation = 35f)]
-    public sealed class IncreaseDirectorCredits : BaseEffect
+    public sealed class IncreaseDirectorCredits : TimedEffect
     {
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;
@@ -32,22 +31,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 tryMultiplyDirectorCredits(self);
             };
 
-            Stage.onServerStageComplete += static _ =>
-            {
-                clearAppliedToDirectors();
-            };
-
-            Run.onRunDestroyGlobal += static _ =>
-            {
-                clearAppliedToDirectors();
-            };
-
             _appliedPatch = true;
-        }
-
-        static void clearAppliedToDirectors()
-        {
-            _directorAppliedCounts.Clear();
         }
 
         [EffectCanActivate]
@@ -55,6 +39,8 @@ namespace RiskOfChaos.EffectDefinitions.World
         {
             return !context.IsNow || CombatDirector.instancesList.Count > 0;
         }
+
+        public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
 
         public override void OnStart()
         {
@@ -64,6 +50,11 @@ namespace RiskOfChaos.EffectDefinitions.World
             }
 
             applyPatchIfNeeded();
+        }
+
+        public override void OnEnd()
+        {
+            _directorAppliedCounts.Clear();
         }
 
         static void tryMultiplyDirectorCredits(CombatDirector director)

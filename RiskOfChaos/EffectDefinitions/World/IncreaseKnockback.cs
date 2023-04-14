@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -13,15 +14,14 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("increase_knockback", ConfigName = "Increase Knockback", EffectWeightReductionPercentagePerActivation = 30f, IsNetworked = true)]
-    public sealed class IncreaseKnockback : BaseEffect
+    public sealed class IncreaseKnockback : TimedEffect
     {
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;
 
+        static float _totalMultiplier = 1f;
+
         static bool _hasAppliedPatches = false;
-
-        static float? _totalMultiplier = null;
-
         static void tryApplyPatches()
         {
             if (_hasAppliedPatches)
@@ -41,26 +41,16 @@ namespace RiskOfChaos.EffectDefinitions.World
                 orig(self, ref forceInfo);
             };
 
-            Run.onRunDestroyGlobal += _ =>
-            {
-                resetMultiplier();
-            };
-
-            StageCompleteMessage.OnReceive += _ =>
-            {
-                resetMultiplier();
-            };
-
             _hasAppliedPatches = true;
         }
 
         static void tryMultiplyForce(bool hasAuthority, ref PhysForceInfo forceInfo)
         {
-            if (_totalMultiplier.HasValue)
+            if (TimedChaosEffectHandler.IsEffectCurrentlyActive(_effectInfo))
             {
                 if (hasAuthority)
                 {
-                    forceInfo.force *= _totalMultiplier.Value;
+                    forceInfo.force *= _totalMultiplier;
                 }
                 else
                 {
@@ -69,18 +59,6 @@ namespace RiskOfChaos.EffectDefinitions.World
 #endif
                 }
             }
-        }
-
-        static void resetMultiplier()
-        {
-            if (!_totalMultiplier.HasValue)
-                return;
-
-            _totalMultiplier = null;
-
-#if DEBUG
-            Log.Debug("Reset force multiplier");
-#endif
         }
 
         static ConfigEntry<float> _knockbackMultiplierConfig;
@@ -124,38 +102,35 @@ namespace RiskOfChaos.EffectDefinitions.World
             return new object[] { knockbackMultiplier };
         }
 
-        float _newTotalMultiplier;
-
         public override void OnPreStartServer()
         {
             base.OnPreStartServer();
 
-            if (_totalMultiplier.HasValue)
-            {
-                _newTotalMultiplier = _totalMultiplier.Value * knockbackMultiplier;
-            }
-            else
-            {
-                _newTotalMultiplier = knockbackMultiplier;
-            }
+            _totalMultiplier *= knockbackMultiplier;
         }
 
         public override void Serialize(NetworkWriter writer)
         {
             base.Serialize(writer);
-            writer.Write(_newTotalMultiplier);
+            writer.Write(_totalMultiplier);
         }
 
         public override void Deserialize(NetworkReader reader)
         {
             base.Deserialize(reader);
-            _newTotalMultiplier = reader.ReadSingle();
+            _totalMultiplier = reader.ReadSingle();
         }
+
+        public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
 
         public override void OnStart()
         {
-            _totalMultiplier = _newTotalMultiplier;
             tryApplyPatches();
+        }
+
+        public override void OnEnd()
+        {
+            _totalMultiplier = 1f;
         }
     }
 }

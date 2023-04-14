@@ -1,4 +1,7 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Controllers;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
 using RoR2;
 using System;
@@ -11,6 +14,9 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [ChaosEffect("teleporting_projectiles", DefaultSelectionWeight = 0.7f)]
     public sealed class TeleportingProjectiles : TimedEffect
     {
+        [InitEffectInfo]
+        static readonly ChaosEffectInfo _effectInfo;
+
         static MasterCatalog.MasterIndex[] _teleportBlacklist = Array.Empty<MasterCatalog.MasterIndex>();
 
         [SystemInitializer(typeof(MasterCatalog))]
@@ -25,7 +31,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
         }
 
         static bool _appliedPatches = false;
-        static bool _effectActive = false;
 
         static void tryApplyPatches()
         {
@@ -39,7 +44,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (!NetworkServer.active)
                     return;
 
-                if (!_effectActive)
+                if (!TimedChaosEffectHandler.IsEffectCurrentlyActive(_effectInfo))
                     return;
 
                 GameObject attackerObj = damageInfo.attacker;
@@ -60,15 +65,15 @@ namespace RiskOfChaos.EffectDefinitions.Character
             _appliedPatches = true;
         }
 
+        public override TimedEffectType TimedType => TimedEffectType.UntilNextEffect;
+
         public override void OnStart()
         {
             tryApplyPatches();
-            _effectActive = true;
         }
 
         public override void OnEnd()
         {
-            _effectActive = false;
         }
     }
 }
