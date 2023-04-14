@@ -20,10 +20,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
         public event Action OnVotingStarted;
 
-        protected readonly UniqueVoteSelection<string, EffectVoteInfo> _effectVoteSelection = new UniqueVoteSelection<string, EffectVoteInfo>(numVoteOptions)
-        {
-            WinnerSelectionMode = Configs.ChatVoting.WinnerSelectionMode
-        };
+        protected UniqueVoteSelection<string, EffectVoteInfo> _effectVoteSelection;
 
         bool _voteOptionsDirty = false;
 
@@ -64,11 +61,16 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
                 _rng = new Xoroshiro128Plus(Run.instance.runRNG.nextUlong);
             }
 
-            Configs.General.OnTimeBetweenEffectsChanged += onTimeBetweenEffectsChanged;
-            Configs.ChatVoting.OnWinnerSelectionModeChanged += onVoteWinnerSelectionModeChanged;
+            _effectVoteSelection = new UniqueVoteSelection<string, EffectVoteInfo>(numVoteOptions)
+            {
+                WinnerSelectionMode = Configs.ChatVoting.WinnerSelectionMode
+            };
 
             _voteTimer = new CompletePeriodicRunTimer(Configs.General.TimeBetweenEffects);
             _voteTimer.OnActivate += onVoteEnd;
+
+            Configs.General.OnTimeBetweenEffectsChanged += onTimeBetweenEffectsChanged;
+            Configs.ChatVoting.OnWinnerSelectionModeChanged += onVoteWinnerSelectionModeChanged;
 
             ChaosEffectVoteDisplayController.OnDisplayControllerCreated += onEffectDisplayControllerCreated;
         }
@@ -132,8 +134,13 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
                 _voteTimer = null;
             }
 
+            if (_effectVoteSelection != null)
+            {
+                _effectVoteSelection.EndVote();
+                _effectVoteSelection = null;
+            }
+
             _rng = null;
-            _effectVoteSelection.EndVote();
 
             if (ChaosUIController.Instance)
             {
