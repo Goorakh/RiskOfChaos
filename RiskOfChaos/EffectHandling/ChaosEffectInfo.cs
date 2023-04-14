@@ -29,9 +29,6 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly string ConfigSectionName;
 
-        public readonly ConfigEntry<bool> IsEnabledConfig;
-        public readonly ConfigEntry<float> SelectionWeightConfig;
-
         readonly ChaosEffectCanActivateMethod[] _canActivateMethods;
 
         public readonly bool CanActivate(EffectCanActivateContext context)
@@ -42,7 +39,7 @@ namespace RiskOfChaos.EffectHandling
                 return false;
             }
 
-            if (IsEnabledConfig != null && !IsEnabledConfig.Value)
+            if (_isEnabledConfig != null && !_isEnabledConfig.Value)
             {
 #if DEBUG
                 Log.Debug($"effect {Identifier} cannot activate due to: Disabled in config");
@@ -65,6 +62,9 @@ namespace RiskOfChaos.EffectHandling
 
             return true;
         }
+
+        readonly ConfigEntry<bool> _isEnabledConfig;
+        readonly ConfigEntry<float> _selectionWeightConfig;
 
         readonly ConfigEntry<float> _weightReductionPerActivation;
         readonly float _weightReductionPerActivationDefaultValue;
@@ -90,7 +90,7 @@ namespace RiskOfChaos.EffectHandling
         {
             get
             {
-                float weight = Mathf.Pow(EffectWeightMultiplierPerActivation, ActivationCount) * SelectionWeightConfig.Value;
+                float weight = Mathf.Pow(EffectWeightMultiplierPerActivation, ActivationCount) * _selectionWeightConfig.Value;
 
                 if (_weightMultSelectorMethods != null)
                 {
@@ -161,15 +161,20 @@ namespace RiskOfChaos.EffectHandling
 
             ConfigSectionName = "Effect: " + (attribute.ConfigName ?? Language.GetString(NameToken, "en")).FilterConfigKey();
 
-            IsEnabledConfig = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Enabled"), true, new ConfigDescription("If the effect should be able to be picked"));
+            _isEnabledConfig = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Enabled"), true, new ConfigDescription("If the effect should be able to be picked"));
 
-            SelectionWeightConfig = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Weight"), attribute.DefaultSelectionWeight, new ConfigDescription("How likely the effect is to be picked, higher value means more likely, lower value means less likely"));
+            _selectionWeightConfig = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Weight"), attribute.DefaultSelectionWeight, new ConfigDescription("How likely the effect is to be picked, higher value means more likely, lower value means less likely"));
 
             _weightReductionPerActivationDefaultValue = attribute.EffectWeightReductionPercentagePerActivation / 100f;
-            _weightReductionPerActivation = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Repetition Reduction Percentage"), _weightReductionPerActivationDefaultValue, new ConfigDescription("The percentage reduction to apply to the weight value per activation, setting this to any value above 0 will make the effect less likely to happen several times"));
 
             _effectRepetitionCountModeDefaultValue = attribute.EffectRepetitionWeightCalculationMode;
-            _effectRepetitionCountMode = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Repetition Count Mode"), _effectRepetitionCountModeDefaultValue, new ConfigDescription($"Controls how the Reduction Percentage will be applied.\n\n{nameof(EffectActivationCountMode.PerStage)}: Only the activations on the current stage are considered, and the weight reduction is reset on stage start.\n\n{nameof(EffectActivationCountMode.PerRun)}: All activations during the current run are considered."));
+
+            if (!HasHardActivationCountCap)
+            {
+                _weightReductionPerActivation = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Repetition Reduction Percentage"), _weightReductionPerActivationDefaultValue, new ConfigDescription("The percentage reduction to apply to the weight value per activation, setting this to any value above 0 will make the effect less likely to happen several times"));
+
+                _effectRepetitionCountMode = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Repetition Count Mode"), _effectRepetitionCountModeDefaultValue, new ConfigDescription($"Controls how the Reduction Percentage will be applied.\n\n{nameof(EffectActivationCountMode.PerStage)}: Only the activations on the current stage are considered, and the weight reduction is reset on stage start.\n\n{nameof(EffectActivationCountMode.PerRun)}: All activations during the current run are considered."));
+            }
 
             foreach (MemberInfo member in EffectType.GetMembers(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly)
                                                     .WithAttribute<MemberInfo, InitEffectMemberAttribute>())
@@ -212,25 +217,37 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly void AddRiskOfOptionsEntries()
         {
-            ChaosEffectCatalog.AddEffectConfigOption(new CheckBoxOption(IsEnabledConfig));
-
-            ChaosEffectCatalog.AddEffectConfigOption(new StepSliderOption(SelectionWeightConfig, new StepSliderConfig
+            if (_isEnabledConfig != null)
             {
-                formatString = "{0:F1}",
-                increment = 0.1f,
-                min = 0f,
-                max = 2.5f
-            }));
+                ChaosEffectCatalog.AddEffectConfigOption(new CheckBoxOption(_isEnabledConfig));
+            }
 
-            ChaosEffectCatalog.AddEffectConfigOption(new StepSliderOption(_weightReductionPerActivation, new StepSliderConfig
+            if (_selectionWeightConfig != null)
             {
-                formatString = "-{0:P0}",
-                increment = 0.01f,
-                min = 0f,
-                max = 1f
-            }));
+                ChaosEffectCatalog.AddEffectConfigOption(new StepSliderOption(_selectionWeightConfig, new StepSliderConfig
+                {
+                    formatString = "{0:F1}",
+                    increment = 0.1f,
+                    min = 0f,
+                    max = 2.5f
+                }));
+            }
 
-            ChaosEffectCatalog.AddEffectConfigOption(new ChoiceOption(_effectRepetitionCountMode));
+            if (_weightReductionPerActivation != null)
+            {
+                ChaosEffectCatalog.AddEffectConfigOption(new StepSliderOption(_weightReductionPerActivation, new StepSliderConfig
+                {
+                    formatString = "-{0:P0}",
+                    increment = 0.01f,
+                    min = 0f,
+                    max = 1f
+                }));
+            }
+
+            if (_effectRepetitionCountMode != null)
+            {
+                ChaosEffectCatalog.AddEffectConfigOption(new ChoiceOption(_effectRepetitionCountMode));
+            }
         }
 
         public readonly BaseEffect InstantiateEffect(ulong effectRNGSeed)
