@@ -8,11 +8,10 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.World
+namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("monster_inventory_give_random_item", EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun, EffectWeightReductionPercentagePerActivation = 15f)]
     public sealed class MonsterInventoryGiveRandomItem : BaseEffect
@@ -78,15 +77,12 @@ namespace RiskOfChaos.EffectDefinitions.World
 
                 self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.ArtifactKey.itemIndex), _bossWeight.Value);
                 self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.CaptainDefenseMatrix.itemIndex), _tier3Weight.Value);
-                self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.ExtraLifeConsumed.itemIndex), _tier3Weight.Value);
+                self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.Pearl.itemIndex), _bossWeight.Value);
+                self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.ShinyPearl.itemIndex), _bossWeight.Value);
                 self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.TonicAffliction.itemIndex), _lunarItemWeight.Value);
 
                 if (run.IsExpansionEnabled(ExpansionUtils.DLC1))
                 {
-                    self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(DLC1Content.Items.ExtraLifeVoidConsumed.itemIndex), _voidTier3Weight.Value);
-                    self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(DLC1Content.Items.FragileDamageBonusConsumed.itemIndex), _tier1Weight.Value);
-                    self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(DLC1Content.Items.HealingPotionConsumed.itemIndex), _tier1Weight.Value);
-                    self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(DLC1Content.Items.RegeneratingScrapConsumed.itemIndex), _tier2Weight.Value);
                 }
             };
         }

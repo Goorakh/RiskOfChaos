@@ -7,7 +7,6 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
@@ -78,18 +77,14 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                 self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.ArtifactKey.itemIndex), _bossWeight.Value);
                 self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.CaptainDefenseMatrix.itemIndex), _tier3Weight.Value);
-                self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.ExtraLifeConsumed.itemIndex), _tier3Weight.Value);
+                self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.Pearl.itemIndex), _bossWeight.Value);
+                self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.ShinyPearl.itemIndex), _bossWeight.Value);
                 self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.TonicAffliction.itemIndex), _lunarItemWeight.Value);
 
                 self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Equipment.QuestVolatileBattery.equipmentIndex), _equipmentWeight.Value);
 
                 if (run.IsExpansionEnabled(ExpansionUtils.DLC1))
                 {
-                    self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(DLC1Content.Items.ExtraLifeVoidConsumed.itemIndex), _voidTier3Weight.Value);
-                    self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(DLC1Content.Items.FragileDamageBonusConsumed.itemIndex), _tier1Weight.Value);
-                    self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(DLC1Content.Items.HealingPotionConsumed.itemIndex), _tier1Weight.Value);
-                    self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(DLC1Content.Items.RegeneratingScrapConsumed.itemIndex), _tier2Weight.Value);
-
                     self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(DLC1Content.Equipment.BossHunterConsumed.equipmentIndex), _equipmentWeight.Value);
                     self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(DLC1Content.Equipment.LunarPortalOnUse.equipmentIndex), _equipmentWeight.Value);
                 }
