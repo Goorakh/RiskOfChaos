@@ -3,6 +3,7 @@
     public enum TimedEffectType : byte
     {
         UntilNextEffect,
-        UntilStageEnd
+        UntilStageEnd,
+        FixedDuration,
     }
 }

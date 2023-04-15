@@ -22,6 +22,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             None = 0,
             UntilNextEffect = 1 << TimedEffectType.UntilNextEffect,
             UntilStageEnd = 1 << TimedEffectType.UntilStageEnd,
+            FixedDuration = 1 << TimedEffectType.FixedDuration,
             All = ~0b0
         }
 
@@ -89,6 +90,29 @@ namespace RiskOfChaos.EffectHandling.Controllers
             _effectDispatcher.OnEffectDispatched += onEffectDispatched;
 
             Stage.onServerStageComplete += onServerStageComplete;
+        }
+
+        void Update()
+        {
+            if (NetworkServer.active)
+            {
+                for (int i = _activeTimedEffects.Count - 1; i >= 0; i--)
+                {
+                    TimedEffectInfo timedEffectInfo = _activeTimedEffects[i];
+                    if (!timedEffectInfo.MatchesFlag(TimedEffectFlags.FixedDuration))
+                        continue;
+
+                    if (timedEffectInfo.EffectInstance.TimeRemaining <= 0f)
+                    {
+#if DEBUG
+                        Log.Debug($"Ending fixed duration timed effect {timedEffectInfo.EffectInfo} (i={i})");
+#endif
+
+                        timedEffectInfo.End();
+                        _activeTimedEffects.RemoveAt(i);
+                    }
+                }
+            }
         }
 
         void OnDisable()

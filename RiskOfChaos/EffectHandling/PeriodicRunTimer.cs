@@ -1,5 +1,5 @@
-﻿using RoR2;
-using System;
+﻿using RiskOfChaos.Utilities.Extensions;
+using RoR2;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectHandling
@@ -19,12 +19,7 @@ namespace RiskOfChaos.EffectHandling
                     return 0f;
                 }
 
-                return TimeType switch
-                {
-                    RunTimerType.Stopwatch => run.GetRunStopwatch(),
-                    RunTimerType.Realtime => run.fixedTime,
-                    _ => throw new NotImplementedException($"Timer type {TimeType} is not implemented")
-                };
+                return run.GetRunTime(TimeType);
             }
         }
 
