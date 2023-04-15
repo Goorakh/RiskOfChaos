@@ -1,5 +1,8 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using BepInEx.Configuration;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfOptions.OptionConfigs;
+using RiskOfOptions.Options;
 using RoR2;
 using System;
 using UnityEngine.Networking;
@@ -8,6 +11,15 @@ namespace RiskOfChaos.EffectDefinitions
 {
     public abstract class TimedEffect : BaseEffect
     {
+        protected static ConfigEntry<float> bindEffectDurationConfig(ChaosEffectInfo effectInfo, float defaultDuration, StepSliderConfig stepSliderConfig)
+        {
+            ConfigEntry<float> entry = Main.Instance.Config.Bind(new ConfigDefinition(effectInfo.ConfigSectionName, "Effect Duration"), defaultDuration, new ConfigDescription("How long the effect should last (in seconds)"));
+
+            addConfigOption(new StepSliderOption(entry, stepSliderConfig));
+
+            return entry;
+        }
+
         public abstract TimedEffectType TimedType { get; }
 
         protected virtual TimeSpan duration => TimeSpan.Zero;
