@@ -61,5 +61,7 @@
 		"EFFECT_SPAWN_VOID_SEED_NAME": "Spawn Void Seed",
 		"EFFECT_ALL_VOID_POTENTIALS_NAME": "All Items Are Void Potentials (Lasts 1 stage)",
 		"EFFECT_ALL_SKILLS_AGILE_NAME": "All Skills are Agile (Lasts 1 stage)",
+		"EFFECT_RANDOM_BUFF_NAME": "Give Everyone a Random Buff (Lasts 1 stage)",
+		"EFFECT_RANDOM_DEBUFF_NAME": "Give Everyone a Random Debuff (Lasts 1 stage)",
 	}
 }
