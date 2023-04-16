@@ -208,5 +208,20 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             return false;
         }
+
+        public int GetEffectActiveCount(in ChaosEffectInfo effectInfo)
+        {
+            int count = 0;
+
+            foreach (TimedEffectInfo timedEffect in _activeTimedEffects)
+            {
+                if (timedEffect.EffectInfo == effectInfo)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
     }
 }
