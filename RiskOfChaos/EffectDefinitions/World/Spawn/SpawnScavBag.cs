@@ -7,27 +7,33 @@ using UnityEngine.AddressableAssets;
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("spawn_scav_bag", DefaultSelectionWeight = 0.6f)]
-    public sealed class SpawnScavBag : BaseEffect
+    public sealed class SpawnScavBag : GenericDirectorSpawnEffect<InteractableSpawnCard>
     {
-        static readonly SpawnCard _iscScavBackpack = Addressables.LoadAssetAsync<InteractableSpawnCard>("RoR2/Base/Scav/iscScavBackpack.asset").WaitForCompletion();
+        static SpawnCardEntry[] _spawnEntries;
+
+        [SystemInitializer]
+        static void Init()
+        {
+            _spawnEntries = new SpawnCardEntry[]
+            {
+                new SpawnCardEntry(Addressables.LoadAssetAsync<InteractableSpawnCard>("RoR2/Base/Scav/iscScavBackpack.asset").WaitForCompletion(), 1f),
+                new SpawnCardEntry(Addressables.LoadAssetAsync<InteractableSpawnCard>("RoR2/Base/Scav/iscScavLunarBackpack.asset").WaitForCompletion(), 0.25f)
+            };
+        }
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return _iscScavBackpack && DirectorCore.instance;
+            return areAnyAvailable(_spawnEntries);
         }
 
         public override void OnStart()
         {
-            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_iscScavBackpack, SpawnUtils.GetPlacementRule_AtRandomPlayerNearestNode(RNG), new Xoroshiro128Plus(RNG.nextUlong));
+            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(getItemToSpawn(_spawnEntries, RNG), SpawnUtils.GetPlacementRule_AtRandomPlayerNearestNode(RNG), new Xoroshiro128Plus(RNG.nextUlong));
 
             if (!DirectorCore.instance.TrySpawnObject(spawnRequest))
             {
-                spawnRequest.placementRule = new DirectorPlacementRule
-                {
-                    placementMode = SpawnUtils.GetBestValidRandomPlacementType()
-                };
-
+                spawnRequest.placementRule = SpawnUtils.GetBestValidRandomPlacementRule();
                 DirectorCore.instance.TrySpawnObject(spawnRequest);
             }
         }
