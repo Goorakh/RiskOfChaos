@@ -64,5 +64,6 @@
 		"EFFECT_RANDOM_BUFF_NAME": "Give Everyone a Random Buff (Lasts 1 stage)",
 		"EFFECT_RANDOM_DEBUFF_NAME": "Give Everyone a Random Debuff (Lasts 1 stage)",
 		"EFFECT_SPAWN_BROTHER_HAUNT_NAME": "Moon Detonation",
+		"EFFECT_SPAWN_RANDOM_INTERACTABLE_NAME": "Spawn Random Interactable",
 	}
 }
