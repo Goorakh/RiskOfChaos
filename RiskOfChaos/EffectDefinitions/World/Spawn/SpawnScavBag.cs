@@ -19,7 +19,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         public override void OnStart()
         {
-            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_iscScavBackpack, SpawnUtils.GetPlacementRule_AtRandomPlayerDirect(RNG), new Xoroshiro128Plus(RNG.nextUlong));
+            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_iscScavBackpack, SpawnUtils.GetPlacementRule_AtRandomPlayerNearestNode(RNG), new Xoroshiro128Plus(RNG.nextUlong));
 
             if (!DirectorCore.instance.TrySpawnObject(spawnRequest))
             {

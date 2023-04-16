@@ -87,7 +87,25 @@ namespace RiskOfChaos.Utilities
 
         public static DirectorPlacementRule GetPlacementRule_AtRandomPlayerDirect(Xoroshiro128Plus rng)
         {
+            CharacterBody[] playerBodies = PlayerUtils.GetAllPlayerBodies(true).ToArray();
+            if (playerBodies.Length > 0)
+            {
+                CharacterBody selectedPlayer = rng.NextElementUniform(playerBodies);
 
+                return new DirectorPlacementRule
+                {
+                    placementMode = DirectorPlacementRule.PlacementMode.Direct,
+                    position = selectedPlayer.footPosition
+                };
+            }
+            else
+            {
+                return GetBestValidRandomPlacementRule();
+            }
+        }
+
+        public static DirectorPlacementRule GetPlacementRule_AtRandomPlayerNearestNode(Xoroshiro128Plus rng)
+        {
             CharacterBody[] playerBodies = PlayerUtils.GetAllPlayerBodies(true).ToArray();
             if (playerBodies.Length > 0)
             {
