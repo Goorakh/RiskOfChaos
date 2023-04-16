@@ -15,38 +15,37 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("spawn_random_beacon")]
-    public sealed class SpawnRandomBeacon : BaseEffect
+    public sealed class SpawnRandomBeacon : GenericSpawnEffect<GameObject>
     {
-        static readonly List<GameObject> _beaconPrefabs = new List<GameObject>();
+        static SpawnEntry[] _beaconSpawnEntries;
 
         [SystemInitializer]
         static void Init()
         {
-            static void loadBeaconPrefab(string path)
+            static SpawnEntry loadBeaconEntry(string path, float weight = 1f)
             {
-                AsyncOperationHandle<GameObject> loadBeaconHandle = Addressables.LoadAssetAsync<GameObject>(path);
-                loadBeaconHandle.Completed += handle =>
-                {
-                    _beaconPrefabs.Add(handle.Result);
-                };
+                return new SpawnEntry(Addressables.LoadAssetAsync<GameObject>(path).WaitForCompletion(), weight);
             }
 
-            loadBeaconPrefab("RoR2/Base/Captain/CaptainSupplyDrop, EquipmentRestock.prefab");
-            loadBeaconPrefab("RoR2/Base/Captain/CaptainSupplyDrop, Hacking.prefab");
-            loadBeaconPrefab("RoR2/Base/Captain/CaptainSupplyDrop, Healing.prefab");
-            loadBeaconPrefab("RoR2/Base/Captain/CaptainSupplyDrop, Plating.prefab");
-            loadBeaconPrefab("RoR2/Base/Captain/CaptainSupplyDrop, Shocking.prefab");
+            _beaconSpawnEntries = new SpawnEntry[]
+            {
+                loadBeaconEntry("RoR2/Base/Captain/CaptainSupplyDrop, EquipmentRestock.prefab"),
+                loadBeaconEntry("RoR2/Base/Captain/CaptainSupplyDrop, Hacking.prefab"),
+                loadBeaconEntry("RoR2/Base/Captain/CaptainSupplyDrop, Healing.prefab"),
+                loadBeaconEntry("RoR2/Base/Captain/CaptainSupplyDrop, Plating.prefab"),
+                loadBeaconEntry("RoR2/Base/Captain/CaptainSupplyDrop, Shocking.prefab")
+            };
         }
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return _beaconPrefabs != null && _beaconPrefabs.Count > 0;
+            return areAnyAvailable(_beaconSpawnEntries);
         }
 
         public override void OnStart()
         {
-            GameObject beaconPrefab = RNG.NextElementUniform(_beaconPrefabs);
+            GameObject beaconPrefab = getItemToSpawn(_beaconSpawnEntries, RNG);
 
             foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
             {
