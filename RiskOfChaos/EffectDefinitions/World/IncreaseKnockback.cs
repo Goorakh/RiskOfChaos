@@ -4,7 +4,6 @@ using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.Networking;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
@@ -18,8 +17,6 @@ namespace RiskOfChaos.EffectDefinitions.World
     {
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;
-
-        static float _totalMultiplier = 1f;
 
         static bool _hasAppliedPatches = false;
         static void tryApplyPatches()
@@ -46,19 +43,19 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         static void tryMultiplyForce(bool hasAuthority, ref PhysForceInfo forceInfo)
         {
-            if (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(_effectInfo))
+            if (!hasAuthority)
             {
-                if (hasAuthority)
-                {
-                    forceInfo.force *= _totalMultiplier;
-                }
-                else
-                {
 #if DEBUG
-                    Log.Debug($"Not multiplying force, NetworkServer.active={NetworkServer.active}, {nameof(hasAuthority)}={hasAuthority}");
+                Log.Debug($"Not multiplying force, NetworkServer.active={NetworkServer.active}, {nameof(hasAuthority)}={hasAuthority}");
 #endif
-                }
+                return;
             }
+
+            if (!TimedChaosEffectHandler.Instance)
+                return;
+
+            int activationCount = TimedChaosEffectHandler.Instance.GetEffectActiveCount(_effectInfo);
+            forceInfo.force *= Mathf.Pow(_knockbackMultiplierServer, activationCount);
         }
 
         static ConfigEntry<float> _knockbackMultiplierConfig;
@@ -102,23 +99,25 @@ namespace RiskOfChaos.EffectDefinitions.World
             return new object[] { knockbackMultiplier };
         }
 
+        static float _knockbackMultiplierServer;
+
         public override void OnPreStartServer()
         {
             base.OnPreStartServer();
 
-            _totalMultiplier *= knockbackMultiplier;
+            _knockbackMultiplierServer = knockbackMultiplier;
         }
 
         public override void Serialize(NetworkWriter writer)
         {
             base.Serialize(writer);
-            writer.Write(_totalMultiplier);
+            writer.Write(_knockbackMultiplierServer);
         }
 
         public override void Deserialize(NetworkReader reader)
         {
             base.Deserialize(reader);
-            _totalMultiplier = reader.ReadSingle();
+            _knockbackMultiplierServer = reader.ReadSingle();
         }
 
         public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
@@ -130,7 +129,6 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         public override void OnEnd()
         {
-            _totalMultiplier = 1f;
         }
     }
 }
