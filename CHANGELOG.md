@@ -1,5 +1,32 @@
 ## Changelog
 
+**1.2.0 Changes:**
+
+* Added 8 new effects:
+  * All Items Are Void Potentials: All dropped items become Void Potentials. The original item is always guaranteed to be an option to prevent potential softlocks. Lasts 1 stage.
+  * All Skills are Agile: Allows every skill to be used while sprinting. Lasts 1 stage.
+  * Give Everyone a Random Buff: Gives every character on the map a random buff for the rest of the current stage.
+  * Give Everyone a Random Debuff: Gives every character on the map a random debuff for the rest of the current stage.
+  * Moon Detonation: Starts the moon escape sequence. Lasts 45 seconds (configurable)
+  * Spawn Random Interactable: Spawns a random interactable at a random player
+  * Spawn Random Portal: Spawns a random portal at a random player
+  * Increase Proc Coefficients: Multiplies all proc coefficients by 2 (configurable)
+
+* Twitch Voting:
+  * Fixed "Vote Winner Selection Mode" setting not applying when changed from in-game
+  * Added config for changing vote display scale.
+  * Slightly decreased default size of vote display.
+
+* Config:
+  * Removed "Effect Repetition Reduction Percentage" and "Effect Repetition Count Mode" configs for effects that can only activate once per stage
+
+* Give Random Item & Add Random Item to Monster Inventory:
+  * Removed Consumed items
+  * Added Pearl and Irradiant Pearl
+
+* Spawn Scavenger Bag
+  * Now has a 1/5 chance of spawning a Lunar Scavenger bag
+
 **1.1.0 Changes:**
 
 * Added 1 new effect:

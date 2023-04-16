@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer combatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently includes 55 different effects.
+Currently features 63 different effects.
 
 ### Twitch Integration:
 
@@ -70,6 +70,14 @@ To set up Twitch voting, set the General->Streamer Integration->Voting Mode conf
 * Increase Knockback: Multiplies all knockback by 3 (configurable), lasts 1 stage
 * Add Random Item to Monster Inventory: Permanently adds a random item to all enemies
 * Spawn Void Seed: Spawns a void seed somewhere on the map
+* All Items Are Void Potentials: All dropped items become Void Potentials. The original item is always guaranteed to be an option to prevent potential softlocks. Lasts 1 stage
+* All Skills are Agile: Allows every skill to be used while sprinting. Lasts 1 stage
+* Give Everyone a Random Buff: Gives every character on the map a random buff for the rest of the current stage.
+* Give Everyone a Random Debuff: Gives every character on the map a random debuff for the rest of the current stage.
+* Moon Detonation: Starts the moon escape sequence. Lasts 45 seconds (configurable)
+* Spawn Random Interactable: Spawns a random interactable at a random player
+* Spawn Random Portal: Spawns a random portal at a random player
+* Increase Proc Coefficients: Multiplies all proc coefficients by 2 (configurable)
 </details>
 
 FAQ:
