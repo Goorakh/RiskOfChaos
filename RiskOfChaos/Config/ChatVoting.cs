@@ -67,6 +67,26 @@ namespace RiskOfChaos
 
             public static event Action OnWinnerSelectionModeChanged;
 
+            static ConfigEntry<float> _voteDisplayScaleMultiplierConfig;
+            const float VOTE_DISPLAY_SCALE_MULTIPLIER_DEFAULT_VALUE = 1f;
+
+            public static float VoteDisplayScaleMultiplier
+            {
+                get
+                {
+                    if (_voteDisplayScaleMultiplierConfig == null)
+                    {
+                        return VOTE_DISPLAY_SCALE_MULTIPLIER_DEFAULT_VALUE;
+                    }
+                    else
+                    {
+                        return Mathf.Max(_voteDisplayScaleMultiplierConfig.Value, 0f);
+                    }
+                }
+            }
+
+            public static event Action OnVoteDisplayScaleMultiplierChanged;
+
             internal static void Init(ConfigFile file)
             {
                 const string SECTION_NAME = "Streamer Integration";
@@ -115,6 +135,22 @@ namespace RiskOfChaos
 
                 ModSettingsManager.AddOption(new ChoiceOption(_voteWinnerSelectionModeConfig, new ChoiceConfig
                 {
+                    checkIfDisabled = IsVotingDisabled
+                }), CONFIG_GUID, CONFIG_NAME);
+
+                _voteDisplayScaleMultiplierConfig = file.Bind(new ConfigDefinition(SECTION_NAME, "Vote Display UI Scale"), VOTE_DISPLAY_SCALE_MULTIPLIER_DEFAULT_VALUE);
+
+                _voteDisplayScaleMultiplierConfig.SettingChanged += (s, e) =>
+                {
+                    OnVoteDisplayScaleMultiplierChanged?.Invoke();
+                };
+
+                ModSettingsManager.AddOption(new StepSliderOption(_voteDisplayScaleMultiplierConfig, new StepSliderConfig
+                {
+                    formatString = "{0:F2}",
+                    min = 0f,
+                    max = 2.5f,
+                    increment = 0.05f,
                     checkIfDisabled = IsVotingDisabled
                 }), CONFIG_GUID, CONFIG_NAME);
             }

@@ -86,12 +86,11 @@ namespace RiskOfChaos.UI.ChatVoting
             }
 
             GameObject chaosEffectVoteDisplay = new GameObject("ChaosEffectVoteDisplay");
-            chaosEffectVoteDisplay.transform.SetParent(leftCluster, false);
-
-            chaosEffectVoteDisplay.transform.localScale = Vector3.one * 0.8f;
 
             RectTransform rectTransform = chaosEffectVoteDisplay.AddComponent<RectTransform>();
+            rectTransform.SetParent(leftCluster, false);
             rectTransform.anchoredPosition = new Vector2(100f, 50f);
+            rectTransform.localScale = Vector3.one * 0.7f;
 
             VerticalLayoutGroup layoutGroup = chaosEffectVoteDisplay.AddComponent<VerticalLayoutGroup>();
             layoutGroup.childAlignment = TextAnchor.MiddleLeft;
@@ -114,9 +113,29 @@ namespace RiskOfChaos.UI.ChatVoting
 
         ChaosEffectVoteItemController[] _effectVoteItemControllers = Array.Empty<ChaosEffectVoteItemController>();
 
+        Vector3 _defaultScale;
+
         void Awake()
         {
+            _defaultScale = transform.localScale;
+        }
+
+        void OnEnable()
+        {
             OnDisplayControllerCreated?.Invoke(this);
+
+            Configs.ChatVoting.OnVoteDisplayScaleMultiplierChanged += refreshScale;
+            refreshScale();
+        }
+
+        void OnDisable()
+        {
+            Configs.ChatVoting.OnVoteDisplayScaleMultiplierChanged -= refreshScale;
+        }
+
+        void refreshScale()
+        {
+            transform.localScale = _defaultScale * Configs.ChatVoting.VoteDisplayScaleMultiplier;
         }
 
         public void RemoveAllVoteDisplays()
