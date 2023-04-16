@@ -44,7 +44,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (!NetworkServer.active)
                     return;
 
-                if (!TimedChaosEffectHandler.IsEffectCurrentlyActive(_effectInfo))
+                if (!TimedChaosEffectHandler.Instance || !TimedChaosEffectHandler.Instance.IsTimedEffectActive(_effectInfo))
                     return;
 
                 GameObject attackerObj = damageInfo.attacker;

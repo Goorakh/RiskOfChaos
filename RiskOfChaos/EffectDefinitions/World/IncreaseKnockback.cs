@@ -46,7 +46,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         static void tryMultiplyForce(bool hasAuthority, ref PhysForceInfo forceInfo)
         {
-            if (TimedChaosEffectHandler.IsEffectCurrentlyActive(_effectInfo))
+            if (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(_effectInfo))
             {
                 if (hasAuthority)
                 {

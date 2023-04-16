@@ -208,10 +208,5 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             return false;
         }
-
-        public static bool IsEffectCurrentlyActive(in ChaosEffectInfo effectInfo)
-        {
-            return Instance && Instance.IsTimedEffectActive(effectInfo);
-        }
     }
 }
