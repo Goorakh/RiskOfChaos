@@ -1,5 +1,4 @@
-﻿using RiskOfChaos.EffectHandling;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
@@ -44,7 +43,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         protected static bool areAnyAvailable<TSpawnEntry>(TSpawnEntry[] entries) where TSpawnEntry : SpawnEntry
         {
-            return entries != null && entries.Length > 0 && entries.Any(e => e.IsAvailable());
+            return entries != null && Array.Exists(entries, e => e.IsAvailable());
         }
 
         protected static WeightedSelection<TSpawnEntry> getWeightedEntrySelection<TSpawnEntry>(TSpawnEntry[] entries) where TSpawnEntry : SpawnEntry
