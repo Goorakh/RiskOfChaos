@@ -103,15 +103,19 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             {
                 const float START_FADE_TIME = 2.5f;
 
-                float voteTimeRemaining = _voteTimer.GetTimeRemaining();
-                if (voteTimeRemaining <= START_FADE_TIME)
+                if (ChaosUIController.Instance)
                 {
-                    if (ChaosUIController.Instance)
+                    ChaosEffectVoteDisplayController effectVoteDisplayController = ChaosUIController.Instance.EffectVoteDisplayController;
+                    if (effectVoteDisplayController)
                     {
-                        ChaosEffectVoteDisplayController effectVoteDisplayController = ChaosUIController.Instance.EffectVoteDisplayController;
-                        if (effectVoteDisplayController)
+                        float voteTimeRemaining = _voteTimer.GetTimeRemaining();
+                        if (voteTimeRemaining <= START_FADE_TIME)
                         {
                             effectVoteDisplayController.SetVoteDisplayAlpha(Util.Remap(voteTimeRemaining, 0f, START_FADE_TIME, 0f, 1f));
+                        }
+                        else
+                        {
+                            effectVoteDisplayController.SetVoteDisplayAlpha(1f);
                         }
                     }
                 }
