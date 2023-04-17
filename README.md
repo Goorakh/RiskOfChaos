@@ -75,7 +75,7 @@ To set up Twitch voting, set the General->Streamer Integration->Voting Mode conf
 * Give Everyone a Random Buff: Gives every character on the map a random buff for the rest of the current stage.
 * Give Everyone a Random Debuff: Gives every character on the map a random debuff for the rest of the current stage.
 * Moon Detonation: Starts the moon escape sequence. Lasts 45 seconds (configurable)
-* Spawn Random Interactable: Spawns a random interactable at a random player
+* Spawn Random Interactable: Spawns a random interactable at every player
 * Spawn Random Portal: Spawns a random portal at a random player
 * Increase Proc Coefficients: Multiplies all proc coefficients by 2 (configurable)
 </details>

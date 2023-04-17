@@ -1,5 +1,17 @@
 ## Changelog
 
+**1.2.1 Changes:**
+
+* Twitch Voting:
+  * Fixed certain effects never being able to activate when effect voting was enabled
+  * Fixed a few cases where the vote display would not appear when entering a new stage until the next vote starts
+
+* Spawn Random Interactable:
+  * Now spawns one interactable per player instead of just at one random player
+
+* Increase Proc Coefficients:
+  * Fixed missing duration to display name
+
 **1.2.0 Changes:**
 
 * Added 8 new effects:
