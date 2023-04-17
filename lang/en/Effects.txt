@@ -66,6 +66,6 @@
 		"EFFECT_SPAWN_BROTHER_HAUNT_NAME": "Moon Detonation",
 		"EFFECT_SPAWN_RANDOM_INTERACTABLE_NAME": "Spawn Random Interactable",
 		"EFFECT_SPAWN_RANDOM_PORTAL_NAME": "Spawn Random Portal",
-		"EFFECT_INCREASE_PROC_COEFFICIENTS_NAME": "{0}x Proc Coefficients",
+		"EFFECT_INCREASE_PROC_COEFFICIENTS_NAME": "{0}x Proc Coefficients (Lasts 1 stage)",
 	}
 }
