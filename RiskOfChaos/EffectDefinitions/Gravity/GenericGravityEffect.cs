@@ -82,11 +82,8 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
         }
 
         [EffectCanActivate]
-        static bool CanActivate(EffectCanActivateContext context)
+        static bool CanActivate()
         {
-            if (!context.IsNow)
-                return true;
-
             SceneDef currentScene = SceneCatalog.GetSceneDefForCurrentScene();
             return currentScene && Array.BinarySearch(_invalidOnScenes, currentScene.sceneDefIndex) < 0;
         }
