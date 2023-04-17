@@ -18,7 +18,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         public delegate void EffectDispatchedDelegate(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, BaseEffect effectInstance);
         public event EffectDispatchedDelegate OnEffectDispatched;
 
-        public delegate void EffectAboutToDispatchDelegate(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags);
+        public delegate void EffectAboutToDispatchDelegate(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, bool willStart);
         public event EffectAboutToDispatchDelegate OnEffectAboutToDispatchServer;
 
         ChaosEffectActivationSignaler[] _effectActivationSignalers;
@@ -166,9 +166,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 Chat.SendBroadcastChat(new Chat.SimpleChatMessage { baseToken = effect.GetActivationMessage() });
 
-                OnEffectAboutToDispatchServer?.Invoke(effect, dispatchFlags);
+                bool canActivate = (dispatchFlags & EffectDispatchFlags.CheckCanActivate) == 0 || effect.CanActivate(EffectCanActivateContext.Now);
 
-                if ((dispatchFlags & EffectDispatchFlags.CheckCanActivate) != 0 && !effect.CanActivate(EffectCanActivateContext.Now))
+                OnEffectAboutToDispatchServer?.Invoke(effect, dispatchFlags, canActivate);
+
+                if (!canActivate)
                 {
 #if DEBUG
                     Log.Debug($"{effect} is not activatable, not starting");

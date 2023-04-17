@@ -87,8 +87,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
 #endif
         }
 
-        void onEffectAboutToDispatchServer(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags)
+        void onEffectAboutToDispatchServer(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, bool willStart)
         {
+            if (!willStart)
+                return;
+
             try
             {
                 ref ChaosEffectActivationCounter activationCounter = ref getEffectActivationCounterUncheckedRef(effectInfo);
