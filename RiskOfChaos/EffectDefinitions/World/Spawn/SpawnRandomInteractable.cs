@@ -157,13 +157,23 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         public override void OnStart()
         {
-            DirectorPlacementRule placementRule = SpawnUtils.GetPlacementRule_AtRandomPlayerNearestNode(new Xoroshiro128Plus(RNG.nextUlong));
-            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(getItemToSpawn(_spawnCards, RNG), placementRule, new Xoroshiro128Plus(RNG.nextUlong));
+            InteractableSpawnCard spawnCard = getItemToSpawn(_spawnCards, RNG);
 
-            if (!DirectorCore.instance.TrySpawnObject(spawnRequest))
+            foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
             {
-                spawnRequest.placementRule = SpawnUtils.GetBestValidRandomPlacementRule();
-                DirectorCore.instance.TrySpawnObject(spawnRequest);
+                DirectorPlacementRule placementRule = new DirectorPlacementRule
+                {
+                    position = playerBody.footPosition,
+                    placementMode = DirectorPlacementRule.PlacementMode.NearestNode
+                };
+
+                DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(spawnCard, placementRule, new Xoroshiro128Plus(RNG.nextUlong));
+
+                if (!DirectorCore.instance.TrySpawnObject(spawnRequest))
+                {
+                    spawnRequest.placementRule = SpawnUtils.GetBestValidRandomPlacementRule();
+                    DirectorCore.instance.TrySpawnObject(spawnRequest);
+                }
             }
         }
     }
