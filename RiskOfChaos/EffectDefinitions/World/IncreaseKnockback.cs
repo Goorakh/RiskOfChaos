@@ -55,6 +55,9 @@ namespace RiskOfChaos.EffectDefinitions.World
                 return;
 
             int activationCount = TimedChaosEffectHandler.Instance.GetEffectActiveCount(_effectInfo);
+            if (activationCount <= 0)
+                return;
+
             forceInfo.force *= Mathf.Pow(_knockbackMultiplierServer, activationCount);
         }
 
