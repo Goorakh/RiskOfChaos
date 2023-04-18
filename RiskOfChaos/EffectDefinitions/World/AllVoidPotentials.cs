@@ -10,7 +10,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("all_void_potentials", EffectActivationCountHardCap = 1)]
+    [ChaosEffect("all_void_potentials", EffectStageActivationCountHardCap = 1)]
     public sealed class AllVoidPotentials : TimedEffect
     {
         static readonly GameObject _optionPickupPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/OptionPickup/OptionPickup.prefab").WaitForCompletion();

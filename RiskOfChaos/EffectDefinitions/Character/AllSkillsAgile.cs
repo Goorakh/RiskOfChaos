@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("all_skills_agile", EffectActivationCountHardCap = 1, IsNetworked = true)]
+    [ChaosEffect("all_skills_agile", EffectStageActivationCountHardCap = 1, IsNetworked = true)]
     public sealed class AllSkillsAgile : TimedEffect
     {
         readonly struct SkillDefIsAgileOverride

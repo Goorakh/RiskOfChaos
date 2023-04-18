@@ -47,10 +47,10 @@ namespace RiskOfChaos.EffectHandling
                 return false;
             }
 
-            if (HasHardActivationCountCap && ActivationCount >= HardActivationCountCap)
+            if (HasHardStageActivationCountCap && GetActivationCount(EffectActivationCountMode.PerStage) >= HardStageActivationCountCap)
             {
 #if DEBUG
-                Log.Debug($"effect {Identifier} cannot activate due to activation cap of {HardActivationCountCap} reached ({ActivationCount} activations)");
+                Log.Debug($"effect {Identifier} cannot activate due to stage activation cap of {HardStageActivationCountCap} reached ({GetActivationCount(EffectActivationCountMode.PerStage)} activations)");
 #endif
                 return false;
             }
@@ -76,8 +76,8 @@ namespace RiskOfChaos.EffectHandling
 
         public EffectActivationCountMode EffectRepetitionCountMode => _effectRepetitionCountMode?.Value ?? _effectRepetitionCountModeDefaultValue;
 
-        public readonly int HardActivationCountCap;
-        public readonly bool HasHardActivationCountCap => HardActivationCountCap >= 0;
+        public readonly int HardStageActivationCountCap;
+        public readonly bool HasHardStageActivationCountCap => HardStageActivationCountCap >= 0;
 
         public int ActivationCount
         {
@@ -155,7 +155,7 @@ namespace RiskOfChaos.EffectHandling
                 Log.Error($"attribute target is not a Type ({attribute.target})");
             }
 
-            HardActivationCountCap = attribute.EffectActivationCountHardCap;
+            HardStageActivationCountCap = attribute.EffectStageActivationCountHardCap;
 
             IsNetworked = attribute.IsNetworked;
 
@@ -166,15 +166,10 @@ namespace RiskOfChaos.EffectHandling
             _selectionWeightConfig = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Weight"), attribute.DefaultSelectionWeight, new ConfigDescription("How likely the effect is to be picked, higher value means more likely, lower value means less likely"));
 
             _weightReductionPerActivationDefaultValue = attribute.EffectWeightReductionPercentagePerActivation / 100f;
+            _weightReductionPerActivation = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Repetition Reduction Percentage"), _weightReductionPerActivationDefaultValue, new ConfigDescription("The percentage reduction to apply to the weight value per activation, setting this to any value above 0 will make the effect less likely to happen several times"));
 
             _effectRepetitionCountModeDefaultValue = attribute.EffectRepetitionWeightCalculationMode;
-
-            if (!HasHardActivationCountCap)
-            {
-                _weightReductionPerActivation = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Repetition Reduction Percentage"), _weightReductionPerActivationDefaultValue, new ConfigDescription("The percentage reduction to apply to the weight value per activation, setting this to any value above 0 will make the effect less likely to happen several times"));
-
-                _effectRepetitionCountMode = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Repetition Count Mode"), _effectRepetitionCountModeDefaultValue, new ConfigDescription($"Controls how the Reduction Percentage will be applied.\n\n{nameof(EffectActivationCountMode.PerStage)}: Only the activations on the current stage are considered, and the weight reduction is reset on stage start.\n\n{nameof(EffectActivationCountMode.PerRun)}: All activations during the current run are considered."));
-            }
+            _effectRepetitionCountMode = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Repetition Count Mode"), _effectRepetitionCountModeDefaultValue, new ConfigDescription($"Controls how the Reduction Percentage will be applied.\n\n{nameof(EffectActivationCountMode.PerStage)}: Only the activations on the current stage are considered, and the weight reduction is reset on stage start.\n\n{nameof(EffectActivationCountMode.PerRun)}: All activations during the current run are considered."));
 
             foreach (MemberInfo member in EffectType.GetMembers(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly)
                                                     .WithAttribute<MemberInfo, InitEffectMemberAttribute>())

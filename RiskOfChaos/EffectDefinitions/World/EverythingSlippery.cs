@@ -4,7 +4,7 @@ using RiskOfChaos.Patches;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("everything_slippery", EffectActivationCountHardCap = 1, IsNetworked = true)]
+    [ChaosEffect("everything_slippery", EffectStageActivationCountHardCap = 1, IsNetworked = true)]
     public sealed class EverythingSlippery : TimedEffect
     {
         public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
