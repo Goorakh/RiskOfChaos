@@ -16,16 +16,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
         static TimedChaosEffectHandler _instance;
         public static TimedChaosEffectHandler Instance => _instance;
 
-        [Flags]
-        enum TimedEffectFlags
-        {
-            None = 0,
-            UntilNextEffect = 1 << TimedEffectType.UntilNextEffect,
-            UntilStageEnd = 1 << TimedEffectType.UntilStageEnd,
-            FixedDuration = 1 << TimedEffectType.FixedDuration,
-            All = ~0b0
-        }
-
         readonly struct TimedEffectInfo
         {
             public readonly ChaosEffectInfo EffectInfo;
