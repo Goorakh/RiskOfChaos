@@ -67,5 +67,6 @@
 		"EFFECT_SPAWN_RANDOM_INTERACTABLE_NAME": "Spawn Random Interactable",
 		"EFFECT_SPAWN_RANDOM_PORTAL_NAME": "Spawn Random Portal",
 		"EFFECT_INCREASE_PROC_COEFFICIENTS_NAME": "{0}x Proc Coefficients (Lasts 1 stage)",
+		"EFFECT_GUARANTEED_CHANCE_ROLLS_NAME": "Guaranteed Chance Effects (Lasts 1 stage)",
 	}
 }
