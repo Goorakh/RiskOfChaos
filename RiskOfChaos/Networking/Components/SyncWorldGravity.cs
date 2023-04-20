@@ -40,13 +40,13 @@ namespace RiskOfChaos.Networking.Components
         {
             base.OnStartClient();
 
-            setGravity(NetworkGravity);
+            setGravity(_gravity);
         }
 
         void FixedUpdate()
         {
             Vector3 currentGravity = Physics.gravity;
-            if (NetworkGravity != currentGravity)
+            if (_gravity != currentGravity)
             {
                 if (NetworkServer.active)
                 {
@@ -54,7 +54,7 @@ namespace RiskOfChaos.Networking.Components
                 }
                 else if (NetworkClient.active)
                 {
-                    Physics.gravity = NetworkGravity;
+                    Physics.gravity = _gravity;
                 }
             }
         }
@@ -100,7 +100,7 @@ namespace RiskOfChaos.Networking.Components
         {
             if (initialState)
             {
-                setGravity(reader.ReadVector3());
+                _gravity = reader.ReadVector3();
                 return;
             }
 

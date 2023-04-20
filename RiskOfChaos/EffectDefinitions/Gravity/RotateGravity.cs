@@ -13,67 +13,9 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Gravity
 {
-    // Networked in order to apply patches for clients aswell
-    [ChaosEffect("rotate_gravity", DefaultSelectionWeight = 0.8f, EffectWeightReductionPercentagePerActivation = 20f, IsNetworked = true)]
+    [ChaosEffect("rotate_gravity", DefaultSelectionWeight = 0.8f, EffectWeightReductionPercentagePerActivation = 20f)]
     public sealed class RotateGravity : GenericGravityEffect
     {
-        static bool _hasAppliedPatches = false;
-
-        static void tryApplyPatches()
-        {
-            if (_hasAppliedPatches)
-                return;
-
-            IL.RoR2.CharacterMotor.PreMove += il =>
-            {
-                ILCursor c = new ILCursor(il);
-
-                ILCursor[] foundCursors;
-                if (c.TryFindNext(out foundCursors,
-                                  x => x.MatchLdarg(0),
-                                  x => x.MatchCall(AccessTools.DeclaredPropertyGetter(typeof(CharacterMotor), nameof(CharacterMotor.useGravity))),
-                                  x => x.MatchBrfalse(out _)))
-                {
-                    ILCursor cursor = foundCursors[2];
-                    cursor.Index++;
-
-                    cursor.Emit(OpCodes.Ldarg_0);
-                    cursor.Emit(OpCodes.Ldarg_1);
-                    cursor.EmitDelegate((CharacterMotor instance, float deltaTime) =>
-                    {
-                        if (!GravityModificationManager.Instance || !GravityModificationManager.Instance.AnyGravityModificationActive)
-                            return;
-
-                        Vector3 xzGravity = new Vector3(Physics.gravity.x, 0f, Physics.gravity.z);
-                        instance.velocity += xzGravity * deltaTime;
-                    });
-                }
-            };
-
-            IL.RoR2.ModelLocator.UpdateTargetNormal += il =>
-            {
-                ILCursor c = new ILCursor(il);
-
-                while (c.TryGotoNext(MoveType.After,
-                                     x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertyGetter(typeof(Vector3), nameof(Vector3.up)))))
-                {
-                    c.EmitDelegate((Vector3 up) =>
-                    {
-                        if (GravityModificationManager.Instance && GravityModificationManager.Instance.AnyGravityModificationActive)
-                        {
-                            return -Physics.gravity.normalized;
-                        }
-                        else
-                        {
-                            return up;
-                        }
-                    });
-                }
-            };
-
-            _hasAppliedPatches = true;
-        }
-
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;
 
@@ -121,13 +63,6 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
                                                           RNG.RangeFloat(-maxDeviation, maxDeviation));
 
             gravity = gravityRotation * gravity;
-        }
-
-        public override void OnStart()
-        {
-            base.OnStart();
-
-            tryApplyPatches();
         }
     }
 }
