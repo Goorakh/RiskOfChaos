@@ -9,25 +9,41 @@ namespace RiskOfChaos.Utilities
     {
         CharacterBody _body;
 
-        public BuffIndex Buff = BuffIndex.None;
-        public int StackCount = 1;
+        public BuffIndex BuffIndex = BuffIndex.None;
+        public int BuffStackCount = 1;
 
         void Awake()
         {
             _body = GetComponent<CharacterBody>();
         }
 
+        void OnEnable()
+        {
+            InstanceTracker.Add(this);
+        }
+
+        void OnDisable()
+        {
+            InstanceTracker.Remove(this);
+        }
+
         void FixedUpdate()
         {
-            if (Buff == BuffIndex.None)
+            if (BuffIndex == BuffIndex.None)
                 return;
 
-            int currentBuffCount = _body.GetBuffCount(Buff);
-            if (currentBuffCount < StackCount)
+            if (BuffStackCount <= 0)
             {
-                for (int i = 0; i < StackCount - currentBuffCount; i++)
+                Destroy(this);
+                return;
+            }
+
+            int currentBuffCount = _body.GetBuffCount(BuffIndex);
+            if (currentBuffCount < BuffStackCount)
+            {
+                for (int i = 0; i < BuffStackCount - currentBuffCount; i++)
                 {
-                    _body.AddBuff(Buff);
+                    _body.AddBuff(BuffIndex);
                 }
             }
         }
@@ -38,19 +54,19 @@ namespace RiskOfChaos.Utilities
             if (!buffDef)
                 return;
 
-            KeepBuff existingComponent = body.GetComponents<KeepBuff>().FirstOrDefault(kb => kb.Buff == buff);
+            KeepBuff existingComponent = body.GetComponents<KeepBuff>().FirstOrDefault(kb => kb.BuffIndex == buff);
             if (existingComponent)
             {
                 if (buffDef.canStack)
                 {
-                    existingComponent.StackCount++;
+                    existingComponent.BuffStackCount++;
                 }
 
                 return;
             }
 
             KeepBuff keepBuff = body.gameObject.AddComponent<KeepBuff>();
-            keepBuff.Buff = buff;
+            keepBuff.BuffIndex = buff;
         }
     }
 }

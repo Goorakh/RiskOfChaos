@@ -61,7 +61,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return _availableBuffIndices != null && _availableBuffIndices.Length > 0;
+            return _availableBuffIndices != null && filterSelectableBuffs(_availableBuffIndices).Any();
         }
 
         public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
@@ -70,7 +70,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 
         protected override BuffIndex getBuffIndexToApply()
         {
-            BuffIndex selectedBuff = RNG.NextElementUniform(_availableBuffIndices);
+            BuffIndex selectedBuff = RNG.NextElementUniform(filterSelectableBuffs(_availableBuffIndices).ToList());
             // selectedBuff = _availableBuffIndices[_debugIndex++ % _availableBuffIndices.Length];
 
 #if DEBUG

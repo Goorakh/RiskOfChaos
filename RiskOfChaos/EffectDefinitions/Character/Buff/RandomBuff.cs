@@ -1,4 +1,7 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using HarmonyLib;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RoR2;
@@ -9,6 +12,79 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
     [ChaosEffect("random_buff")]
     public sealed class RandomBuff : ApplyBuffEffect
     {
+        static bool _hasAppliedPatches = false;
+        static void tryApplyPatches()
+        {
+            if (_hasAppliedPatches)
+                return;
+
+            // Buffs that spawn another character on death should be added here to prevent infinite respawning of that character type
+            IL.RoR2.GlobalEventManager.OnCharacterDeath += il =>
+            {
+                ILCursor c = new ILCursor(il);
+
+                int victimBodyLocalIndex = -1;
+                if (c.TryGotoNext(MoveType.After,
+                                  x => x.MatchLdloc(out victimBodyLocalIndex),
+                                  x => x.MatchLdsfld(typeof(RoR2Content.Buffs), nameof(RoR2Content.Buffs.AffixPoison)),
+                                  x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<CharacterBody>(_ => _.HasBuff(default(BuffDef))))))
+                {
+                    c.Emit(OpCodes.Ldloc, victimBodyLocalIndex);
+                    c.EmitDelegate((CharacterBody victimBody) =>
+                    {
+                        return victimBody && victimBody.bodyIndex != BodyCatalog.FindBodyIndex("UrchinTurretBody");
+                    });
+                    c.Emit(OpCodes.And);
+                }
+                else
+                {
+                    Log.Warning("Failed to find malachite urchin patch location");
+                }
+
+                c.Index = 0;
+                if (c.TryGotoNext(MoveType.After,
+                                  x => x.MatchLdloc(out victimBodyLocalIndex),
+                                  x => x.MatchLdsfld(typeof(DLC1Content.Buffs), nameof(DLC1Content.Buffs.EliteEarth)),
+                                  x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<CharacterBody>(_ => _.HasBuff(default(BuffDef))))))
+                {
+                    c.Emit(OpCodes.Ldloc, victimBodyLocalIndex);
+                    c.EmitDelegate((CharacterBody victimBody) =>
+                    {
+                        return victimBody && victimBody.bodyIndex != BodyCatalog.FindBodyIndex("AffixEarthHealerBody");
+                    });
+                    c.Emit(OpCodes.And);
+                }
+                else
+                {
+                    Log.Warning("Failed to find healing core patch location");
+                }
+
+                c.Index = 0;
+                if (c.TryGotoNext(MoveType.After,
+                                  x => x.MatchLdloc(out victimBodyLocalIndex),
+                                  x => x.MatchLdsfld(typeof(DLC1Content.Buffs), nameof(DLC1Content.Buffs.EliteVoid)),
+                                  x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<CharacterBody>(_ => _.HasBuff(default(BuffDef))))))
+                {
+                    c.Emit(OpCodes.Ldloc, victimBodyLocalIndex);
+                    c.EmitDelegate((CharacterBody victimBody) =>
+                    {
+                        return victimBody && victimBody.bodyIndex != BodyCatalog.FindBodyIndex("VoidInfestorBody");
+                    });
+                    c.Emit(OpCodes.And);
+                }
+                else
+                {
+                    Log.Warning("Failed to find void infestor patch location");
+                }
+
+#if DEBUG
+                Log.Debug(il);
+#endif
+            };
+
+            _hasAppliedPatches = true;
+        }
+
         static BuffIndex[] _availableBuffIndices;
 
         [SystemInitializer(typeof(BuffCatalog), typeof(DotController))]
@@ -81,16 +157,22 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return _availableBuffIndices != null && _availableBuffIndices.Length > 0;
+            return _availableBuffIndices != null && filterSelectableBuffs(_availableBuffIndices).Any();
         }
 
         public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
+
+        public override void OnPreStartServer()
+        {
+            base.OnPreStartServer();
+            tryApplyPatches();
+        }
 
         static int _debugIndex = 0;
 
         protected override BuffIndex getBuffIndexToApply()
         {
-            BuffIndex selectedBuff = RNG.NextElementUniform(_availableBuffIndices);
+            BuffIndex selectedBuff = RNG.NextElementUniform(filterSelectableBuffs(_availableBuffIndices).ToList());
             //selectedBuff = _availableBuffIndices[_debugIndex++ % _availableBuffIndices.Length];
 
 #if DEBUG
