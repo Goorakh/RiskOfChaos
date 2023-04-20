@@ -67,7 +67,7 @@ namespace RiskOfChaos.Networking.Components
         void setGravity(in Vector3 gravity)
         {
 #if DEBUG
-            if (Physics.gravity != gravity)
+            if (_gravity != gravity)
             {
                 Log.Debug($"New gravity: {gravity}");
             }
