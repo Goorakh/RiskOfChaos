@@ -54,15 +54,22 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
             }));
         }
 
-        public override void ModifyGravity(ref Vector3 gravity)
+        Quaternion _gravityRotation;
+
+        public override void OnPreStartServer()
         {
+            base.OnPreStartServer();
+
             float maxDeviation = RotateGravity.maxDeviation;
 
-            Quaternion gravityRotation = Quaternion.Euler(RNG.RangeFloat(-maxDeviation, maxDeviation),
-                                                          RNG.RangeFloat(-maxDeviation, maxDeviation),
-                                                          RNG.RangeFloat(-maxDeviation, maxDeviation));
+            _gravityRotation = Quaternion.Euler(RNG.RangeFloat(-maxDeviation, maxDeviation),
+                                                RNG.RangeFloat(-maxDeviation, maxDeviation),
+                                                RNG.RangeFloat(-maxDeviation, maxDeviation));
+        }
 
-            gravity = gravityRotation * gravity;
+        public override void ModifyGravity(ref Vector3 gravity)
+        {
+            gravity = _gravityRotation * gravity;
         }
     }
 }
