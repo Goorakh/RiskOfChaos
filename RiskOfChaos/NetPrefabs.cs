@@ -1,4 +1,6 @@
 ﻿using R2API;
+using RiskOfChaos.Components;
+using RiskOfChaos.Networking.Components;
 using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -9,22 +11,29 @@ namespace RiskOfChaos
     {
         public static GameObject GenericTeamInventoryPrefab { get; private set; }
 
+        public static GameObject GravityNetSyncerPrefab { get; private set; }
+
+        static GameObject createPrefabObject(string name, bool networked = true)
+        {
+            GameObject tmp = new GameObject(name);
+            GameObject prefab = tmp.InstantiateClone(Main.PluginGUID + "_" + name, networked);
+            GameObject.Destroy(tmp);
+
+            return prefab;
+        }
+
         internal static void InitializeAll()
         {
             // GenericTeamInventoryPrefab
             {
-                const string INVENTORY_PREFAB_NAME = Main.PluginGUID + "_GenericTeamInventory";
+                GenericTeamInventoryPrefab = createPrefabObject("GenericTeamInventory");
 
-                GameObject inventoryPrefab = new GameObject(INVENTORY_PREFAB_NAME);
-
-                inventoryPrefab.AddComponent<NetworkIdentity>();
-                inventoryPrefab.AddComponent<SetDontDestroyOnLoad>();
-                inventoryPrefab.AddComponent<TeamFilter>();
-                inventoryPrefab.AddComponent<Inventory>();
-                inventoryPrefab.AddComponent<EnemyInfoPanelInventoryProvider>();
-
-                GenericTeamInventoryPrefab = inventoryPrefab.InstantiateClone(INVENTORY_PREFAB_NAME);
-                GameObject.Destroy(inventoryPrefab);
+                GenericTeamInventoryPrefab.AddComponent<NetworkIdentity>();
+                GenericTeamInventoryPrefab.AddComponent<SetDontDestroyOnLoad>();
+                GenericTeamInventoryPrefab.AddComponent<TeamFilter>();
+                GenericTeamInventoryPrefab.AddComponent<Inventory>();
+                GenericTeamInventoryPrefab.AddComponent<EnemyInfoPanelInventoryProvider>();
+                GenericTeamInventoryPrefab.AddComponent<DestroyOnRunEnd>();
             }
         }
     }

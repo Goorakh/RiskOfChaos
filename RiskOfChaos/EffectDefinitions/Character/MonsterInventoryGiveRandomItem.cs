@@ -151,24 +151,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 NetworkServer.Spawn(_monsterInventory.gameObject);
             };
 
-            Run.onRunDestroyGlobal += _ =>
-            {
-                if (NetworkServer.active)
-                {
-                    if (_monsterInventory)
-                    {
-                        NetworkServer.Destroy(_monsterInventory.gameObject);
-                    }
-                    else
-                    {
-                        Log.Warning("Ending run as server, but monster inventory doesn't exist, was it not spawned?");
-                    }
-                }
-
-                _monsterInventory = null;
-                _monsterTeamFilter = null;
-            };
-
             CharacterMaster.onStartGlobal += tryGiveItems;
         }
 
