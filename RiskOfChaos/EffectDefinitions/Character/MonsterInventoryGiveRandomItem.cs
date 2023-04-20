@@ -212,7 +212,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 if (canGiveItems(master))
                 {
-                    PickupUtils.GrantOrDropPickupAt(pickupDef, master);
+                    master.inventory.TryGrant(pickupDef, true);
                 }
             }
         }
