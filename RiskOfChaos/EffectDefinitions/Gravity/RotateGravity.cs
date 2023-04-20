@@ -5,14 +5,15 @@ using MonoMod.Cil;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using RiskOfChaos.GravityModifier;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Gravity
 {
+    // Networked in order to apply patches for clients aswell
     [ChaosEffect("rotate_gravity", DefaultSelectionWeight = 0.8f, EffectWeightReductionPercentagePerActivation = 20f, IsNetworked = true)]
     public sealed class RotateGravity : GenericGravityEffect
     {
@@ -40,7 +41,7 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
                     cursor.Emit(OpCodes.Ldarg_1);
                     cursor.EmitDelegate((CharacterMotor instance, float deltaTime) =>
                     {
-                        if (!AnyGravityChangeActive)
+                        if (!GravityModificationManager.Instance || !GravityModificationManager.Instance.AnyGravityModificationActive)
                             return;
 
                         Vector3 xzGravity = new Vector3(Physics.gravity.x, 0f, Physics.gravity.z);
@@ -58,7 +59,7 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
                 {
                     c.EmitDelegate((Vector3 up) =>
                     {
-                        if (AnyGravityChangeActive)
+                        if (GravityModificationManager.Instance && GravityModificationManager.Instance.AnyGravityModificationActive)
                         {
                             return -Physics.gravity.normalized;
                         }
@@ -111,7 +112,7 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
             }));
         }
 
-        protected override Vector3 modifyGravity(Vector3 originalGravity)
+        public override void ModifyGravity(ref Vector3 gravity)
         {
             float maxDeviation = RotateGravity.maxDeviation;
 
@@ -119,7 +120,7 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
                                                           RNG.RangeFloat(-maxDeviation, maxDeviation),
                                                           RNG.RangeFloat(-maxDeviation, maxDeviation));
 
-            return gravityRotation * originalGravity;
+            gravity = gravityRotation * gravity;
         }
 
         public override void OnStart()

@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.GravityModifier;
 using RoR2;
 using System;
 using System.Linq;
@@ -8,66 +9,8 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Gravity
 {
-    public abstract class GenericGravityEffect : TimedEffect
+    public abstract class GenericGravityEffect : TimedEffect, IGravityModificationProvider
     {
-        protected abstract Vector3 modifyGravity(Vector3 originalGravity);
-
-        static bool _hasGravityOverride = false;
-
-        public static bool AnyGravityChangeActive => _hasGravityOverride;
-
-        static void tryRestoreGravity()
-        {
-            if (!_hasGravityOverride)
-                return;
-
-#if DEBUG
-            Log.Debug("Restoring gravity");
-#endif
-
-            Physics.gravity = new Vector3(0f, Run.baseGravity, 0f);
-            _hasGravityOverride = false;
-        }
-
-        Vector3 _overrideGravity;
-
-        public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
-
-        public override void Serialize(NetworkWriter writer)
-        {
-            base.Serialize(writer);
-            writer.Write(_overrideGravity);
-        }
-
-        public override void Deserialize(NetworkReader reader)
-        {
-            base.Deserialize(reader);
-            _overrideGravity = reader.ReadVector3();
-        }
-
-        public override void OnPreStartServer()
-        {
-            base.OnPreStartServer();
-
-            _overrideGravity = modifyGravity(Physics.gravity);
-        }
-
-        public override void OnStart()
-        {
-            Physics.gravity = _overrideGravity;
-
-#if DEBUG
-            Log.Debug($"New gravity: {_overrideGravity}");
-#endif
-
-            _hasGravityOverride = true;
-        }
-
-        public override void OnEnd()
-        {
-            tryRestoreGravity();
-        }
-
         static SceneIndex[] _invalidOnScenes;
 
         [SystemInitializer(typeof(SceneCatalog))]
@@ -86,6 +29,26 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
         {
             SceneDef currentScene = SceneCatalog.GetSceneDefForCurrentScene();
             return currentScene && Array.BinarySearch(_invalidOnScenes, currentScene.sceneDefIndex) < 0;
+        }
+
+        public abstract void ModifyGravity(ref Vector3 gravity);
+
+        public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
+
+        public override void OnStart()
+        {
+            if (NetworkServer.active && GravityModificationManager.Instance)
+            {
+                GravityModificationManager.Instance.RegisterModificationProvider(this);
+            }
+        }
+
+        public override void OnEnd()
+        {
+            if (NetworkServer.active && GravityModificationManager.Instance)
+            {
+                GravityModificationManager.Instance.UnregisterModificationProvider(this);
+            }
         }
     }
 }
