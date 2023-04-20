@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace RiskOfChaos.GravityModifier
+namespace RiskOfChaos.ModifierController.Gravity
 {
     public interface IGravityModificationProvider
     {

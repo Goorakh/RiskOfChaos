@@ -1,11 +1,7 @@
 ﻿using BepInEx.Configuration;
-using HarmonyLib;
-using Mono.Cecil.Cil;
-using MonoMod.Cil;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
-using RiskOfChaos.GravityModifier;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;

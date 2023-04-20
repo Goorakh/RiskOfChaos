@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.GravityModifier
+namespace RiskOfChaos.ModifierController.Gravity
 {
     public class GravityModificationManager : NetworkBehaviour
     {

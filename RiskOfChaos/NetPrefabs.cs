@@ -1,6 +1,6 @@
 ﻿using R2API;
 using RiskOfChaos.Components;
-using RiskOfChaos.GravityModifier;
+using RiskOfChaos.ModifierController.Gravity;
 using RiskOfChaos.Networking.Components;
 using RoR2;
 using UnityEngine;
