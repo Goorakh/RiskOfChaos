@@ -28,6 +28,9 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
         Xoroshiro128Plus _rng;
 
+        int _voteStartCount;
+        bool _offsetVoteNumbers;
+
         public override void SkipAllScheduledEffects()
         {
             _voteTimer?.SkipAllScheduledActivations();
@@ -38,6 +41,11 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             if (_effectVoteSelection.IsVoteActive &&
                 int.TryParse(message, out int voteOptionIndex))
             {
+                if (_offsetVoteNumbers)
+                {
+                    voteOptionIndex -= _effectVoteSelection.NumOptions;
+                }
+
                 // 1-indexed to 0-indexed
                 voteOptionIndex--;
 
@@ -176,6 +184,8 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
         void beginNextVote()
         {
+            _offsetVoteNumbers = _voteStartCount++ % 2 != 0;
+
             int numOptions = numVoteOptions;
             _effectVoteSelection.NumOptions = numOptions;
 
@@ -185,7 +195,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             EffectVoteInfo[] voteOptions = new EffectVoteInfo[numOptions];
             for (int i = 0; i < numOptions; i++)
             {
-                int voteNumber = i + 1;
+                int voteNumber = (_offsetVoteNumbers ? numOptions : 0) + i + 1;
 
                 if (Configs.ChatVoting.IncludeRandomEffectInVote && i == numOptions - 1)
                 {
