@@ -169,24 +169,28 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 _monsterTeamFilter = null;
             };
 
-            SpawnCard.onSpawnedServerGlobal += result =>
+            CharacterMaster.onStartGlobal += tryGiveItems;
+        }
+
+        static void tryGiveItems(CharacterMaster master)
+        {
+            if (!_monsterInventory)
+                return;
+
+            switch (master.teamIndex)
             {
-                if (!NetworkServer.active || !_monsterInventory)
+                case TeamIndex.None:
+                case TeamIndex.Neutral:
+                case TeamIndex.Player:
                     return;
+            }
 
-                if (!result.success || !result.spawnedInstance)
-                    return;
+            Inventory inventory = master.inventory;
+            if (!inventory)
+                return;
 
-                CharacterMaster spawnedMaster = result.spawnedInstance.GetComponent<CharacterMaster>();
-                if (!spawnedMaster)
-                    return;
-
-                if (spawnedMaster.teamIndex != _monsterTeamFilter.teamIndex)
-                    return;
-
-                spawnedMaster.inventory.AddItemsFrom(_monsterInventory);
-                spawnedMaster.inventory.CopyEquipmentFrom(_monsterInventory);
-            };
+            inventory.AddItemsFrom(_monsterInventory);
+            inventory.CopyEquipmentFrom(_monsterInventory);
         }
 
         [EffectCanActivate]
@@ -217,6 +221,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 pickupColor = pickupDef.baseColor,
                 pickupQuantity = pickupCount
             });
+
+            foreach (CharacterMaster master in CharacterMaster.readOnlyInstancesList)
+            {
+                tryGiveItems(master);
+            }
         }
     }
 }
