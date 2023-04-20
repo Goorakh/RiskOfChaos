@@ -1,0 +1,64 @@
+﻿using BepInEx.Configuration;
+using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfOptions.OptionConfigs;
+using RiskOfOptions.Options;
+using RoR2;
+using UnityEngine;
+
+namespace RiskOfChaos.EffectDefinitions.World.ProjectileSpeed
+{
+    [ChaosEffect("decrease_projectile_speed", ConfigName = "Decrease Projectile Speed", IsNetworked = true)]
+    public sealed class DecreaseProjectileSpeed : GenericProjectileSpeedEffect
+    {
+        [InitEffectInfo]
+        static readonly ChaosEffectInfo _effectInfo;
+
+        static ConfigEntry<float> _projectileSpeedDecreaseConfig;
+        const float PROJECTILE_SPEED_DECREASE_DEFAULT_VALUE = 0.5f;
+
+        static float projectileSpeedDecrease
+        {
+            get
+            {
+                if (_projectileSpeedDecreaseConfig == null)
+                {
+                    return PROJECTILE_SPEED_DECREASE_DEFAULT_VALUE;
+                }
+                else
+                {
+                    return Mathf.Clamp01(_projectileSpeedDecreaseConfig.Value);
+                }
+            }
+        }
+
+        [SystemInitializer(typeof(ChaosEffectCatalog))]
+        static void InitConfigs()
+        {
+            _projectileSpeedDecreaseConfig = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Projectile Speed Decrease"), PROJECTILE_SPEED_DECREASE_DEFAULT_VALUE);
+
+            addConfigOption(new StepSliderOption(_projectileSpeedDecreaseConfig, new StepSliderConfig
+            {
+                formatString = "-{0:P0}",
+                min = 0f,
+                max = 1f,
+                increment = 0.01f
+            }));
+        }
+
+        [EffectNameFormatArgs]
+        static object[] GetDisplayNameFormatArgs()
+        {
+            return new object[]
+            {
+                projectileSpeedDecrease
+            };
+        }
+
+        public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
+
+        protected override float speedMultiplier => 1f - projectileSpeedDecrease;
+    }
+}

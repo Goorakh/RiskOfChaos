@@ -213,5 +213,16 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             return count;
         }
+
+        public IEnumerable<TEffect> GetActiveEffectInstancesOfType<TEffect>() where TEffect : TimedEffect
+        {
+            foreach (TimedEffectInfo timedEffect in _activeTimedEffects)
+            {
+                if (timedEffect.EffectInstance is TEffect instance)
+                {
+                    yield return instance;
+                }
+            }
+        }
     }
 }
