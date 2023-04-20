@@ -172,25 +172,29 @@ namespace RiskOfChaos.EffectDefinitions.Character
             CharacterMaster.onStartGlobal += tryGiveItems;
         }
 
-        static void tryGiveItems(CharacterMaster master)
+        static bool canGiveItems(CharacterMaster master)
         {
-            if (!_monsterInventory)
-                return;
+            if (!_monsterInventory || !master || !master.inventory)
+                return false;
 
             switch (master.teamIndex)
             {
                 case TeamIndex.None:
                 case TeamIndex.Neutral:
                 case TeamIndex.Player:
-                    return;
+                    return false;
             }
 
-            Inventory inventory = master.inventory;
-            if (!inventory)
+            return true;
+        }
+
+        static void tryGiveItems(CharacterMaster master)
+        {
+            if (!canGiveItems(master))
                 return;
 
-            inventory.AddItemsFrom(_monsterInventory);
-            inventory.CopyEquipmentFrom(_monsterInventory);
+            master.inventory.AddItemsFrom(_monsterInventory);
+            master.inventory.CopyEquipmentFrom(_monsterInventory);
         }
 
         [EffectCanActivate]
@@ -224,7 +228,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             foreach (CharacterMaster master in CharacterMaster.readOnlyInstancesList)
             {
-                tryGiveItems(master);
+                if (canGiveItems(master))
+                {
+                    PickupUtils.GrantOrDropPickupAt(pickupDef, master);
+                }
             }
         }
     }
