@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using HG;
 using MonoMod.RuntimeDetour;
+using RiskOfChaos.ModifierController.SkillSlots;
 using RiskOfChaos.Networking;
 using RoR2;
 using RoR2.Skills;
@@ -14,33 +15,6 @@ namespace RiskOfChaos.Patches
 {
     static class ForceLockPlayerSkillSlot
     {
-        public const int SKILL_SLOT_COUNT = (int)SkillSlot.Special + 1;
-
-        static readonly bool[] _lockedSlots = new bool[SKILL_SLOT_COUNT];
-
-        public static SkillSlot[] LockedSlotTypes { get; private set; }
-
-        public static SkillSlot[] NonLockedSlotTypes { get; private set; }
-
-        static ForceLockPlayerSkillSlot()
-        {
-            refreshLockedSlotTypes();
-        }
-
-        static void refreshLockedSlotTypes()
-        {
-            List<SkillSlot> lockedSlotTypes = new List<SkillSlot>(SKILL_SLOT_COUNT);
-            List<SkillSlot> nonLockedSlotTypes = new List<SkillSlot>(SKILL_SLOT_COUNT);
-
-            for (int i = 0; i < SKILL_SLOT_COUNT; i++)
-            {
-                (_lockedSlots[i] ? lockedSlotTypes : nonLockedSlotTypes).Add((SkillSlot)i);
-            }
-
-            LockedSlotTypes = lockedSlotTypes.ToArray();
-            NonLockedSlotTypes = nonLockedSlotTypes.ToArray();
-        }
-
         static Sprite _lockedSkillIcon;
 
         [SystemInitializer]
@@ -51,49 +25,22 @@ namespace RiskOfChaos.Patches
             {
                 _lockedSkillIcon = handle.Result.exhaustedIcon;
             };
-        }
-
-        public static bool IsSkillSlotLocked(SkillSlot skillSlot)
-        {
-            return ArrayUtils.GetSafe(_lockedSlots, (int)skillSlot);
-        }
-
-        public static void SetSkillSlotLocked(SkillSlot skillSlot, bool locked)
-        {
-            if (!ArrayUtils.IsInBounds(_lockedSlots, (int)skillSlot))
-            {
-                return;
-            }
-
-            _lockedSlots[(int)skillSlot] = locked;
-            refreshLockedSlotTypes();
-            tryApplyPatches();
-        }
-
-        static bool _hasAppliedPatches = false;
-
-        static void tryApplyPatches()
-        {
-            if (_hasAppliedPatches)
-                return;
-
-            if (!_lockedSlots.Any(l => l))
-                return;
 
             On.RoR2.GenericSkill.CanExecute += GenericSkill_CanExecute;
             On.RoR2.GenericSkill.IsReady += GenericSkill_IsReady;
             new Hook(AccessTools.DeclaredPropertyGetter(typeof(GenericSkill), nameof(GenericSkill.icon)), GenericSkill_get_icon);
-
-            _hasAppliedPatches = true;
         }
 
         static bool isSkillLocked(GenericSkill skill)
         {
+            if (!skill)
+                return false;
+
             CharacterBody body = skill.characterBody;
             if (!body)
                 return false;
 
-            return IsSkillSlotLocked(body.skillLocator.FindSkillSlot(skill));
+            return SkillSlotModificationManager.Instance && SkillSlotModificationManager.Instance.IsSkillSlotLocked(body.skillLocator.FindSkillSlot(skill));
         }
 
         static bool GenericSkill_IsReady(On.RoR2.GenericSkill.orig_IsReady orig, GenericSkill self)

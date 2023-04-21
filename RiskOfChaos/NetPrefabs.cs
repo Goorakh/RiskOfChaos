@@ -1,6 +1,7 @@
 ﻿using R2API;
 using RiskOfChaos.Components;
 using RiskOfChaos.ModifierController.Gravity;
+using RiskOfChaos.ModifierController.SkillSlots;
 using RiskOfChaos.Networking.Components;
 using RoR2;
 using UnityEngine;
@@ -13,6 +14,8 @@ namespace RiskOfChaos
         public static GameObject GenericTeamInventoryPrefab { get; private set; }
 
         public static GameObject GravityControllerPrefab { get; private set; }
+
+        public static GameObject SkillSlotModificationControllerPrefab { get; private set; }
 
         static GameObject createPrefabObject(string name, bool networked = true)
         {
@@ -52,6 +55,15 @@ namespace RiskOfChaos
                 GravityControllerPrefab.AddComponent<GravityModificationManager>();
             }
 
+            // SkillSlotModificationControllerPrefab
+            {
+                SkillSlotModificationControllerPrefab = createPrefabObject("SkillSlotModificationController");
+
+                SkillSlotModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
+                SkillSlotModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
+                SkillSlotModificationControllerPrefab.AddComponent<SkillSlotModificationManager>();
+            }
+
             Run.onRunStartGlobal += onRunStart;
         }
 
@@ -60,8 +72,8 @@ namespace RiskOfChaos
             if (!NetworkServer.active)
                 return;
 
-            GameObject networkGravityController = GameObject.Instantiate(GravityControllerPrefab);
-            NetworkServer.Spawn(networkGravityController);
+            NetworkServer.Spawn(GameObject.Instantiate(GravityControllerPrefab));
+            NetworkServer.Spawn(GameObject.Instantiate(SkillSlotModificationControllerPrefab));
         }
     }
 }
