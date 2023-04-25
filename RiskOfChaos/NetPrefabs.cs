@@ -2,6 +2,7 @@
 using RiskOfChaos.Components;
 using RiskOfChaos.ModifierController.Gravity;
 using RiskOfChaos.ModifierController.Knockback;
+using RiskOfChaos.ModifierController.Projectile;
 using RiskOfChaos.ModifierController.SkillSlots;
 using RiskOfChaos.Networking.Components;
 using RoR2;
@@ -19,6 +20,8 @@ namespace RiskOfChaos
         public static GameObject SkillSlotModificationControllerPrefab { get; private set; }
 
         public static GameObject KnockbackModificationControllerPrefab { get; private set; }
+
+        public static GameObject ProjectileModificationControllerPrefab { get; private set; }
 
         static GameObject createPrefabObject(string name, bool networked = true)
         {
@@ -76,6 +79,15 @@ namespace RiskOfChaos
                 KnockbackModificationControllerPrefab.AddComponent<KnockbackModificationManager>();
             }
 
+            // ProjectileModificationControllerPrefab
+            {
+                ProjectileModificationControllerPrefab = createPrefabObject("ProjectileModificationController");
+
+                ProjectileModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
+                ProjectileModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
+                ProjectileModificationControllerPrefab.AddComponent<ProjectileModificationManager>();
+            }
+
             Run.onRunStartGlobal += onRunStart;
         }
 
@@ -87,6 +99,7 @@ namespace RiskOfChaos
             NetworkServer.Spawn(GameObject.Instantiate(GravityControllerPrefab));
             NetworkServer.Spawn(GameObject.Instantiate(SkillSlotModificationControllerPrefab));
             NetworkServer.Spawn(GameObject.Instantiate(KnockbackModificationControllerPrefab));
+            NetworkServer.Spawn(GameObject.Instantiate(ProjectileModificationControllerPrefab));
         }
     }
 }
