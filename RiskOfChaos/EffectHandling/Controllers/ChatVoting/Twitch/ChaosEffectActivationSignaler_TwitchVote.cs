@@ -60,14 +60,6 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
                     Log.Warning("Twitch client failed to connect");
                 }
             }
-            else if (Run.instance)
-            {
-                Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-                {
-                    baseToken = "TWITCH_EFFECT_VOTING_LOGIN_FAIL_FORMAT",
-                    paramTokens = new string[] { "TWITCH_LOGIN_FAIL_NOT_LOGGED_IN" }
-                });
-            }
         }
 
         static void onConnectionError(object s, OnConnectionErrorArgs e)
@@ -99,8 +91,14 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             }
         }
 
-        float _timeEnabled;
-        bool _hasAttemptedJoinChannel;
+        float _scheduledAttemptJoinChannelTime;
+        bool _channelJoinAttemptScheduled;
+
+        void scheduleAttemptJoinChannel(float waitTime)
+        {
+            _channelJoinAttemptScheduled = true;
+            _scheduledAttemptJoinChannelTime = Time.time + waitTime;
+        }
 
         string _joinedChannel;
 
@@ -119,35 +117,52 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
                 _client.OnMessageReceived += onMessageReceived;
             }
 
-            _hasAttemptedJoinChannel = false;
-            _timeEnabled = Time.time;
+            scheduleAttemptJoinChannel(1.5f);
+
+            Configs.ChatVoting.OnReconnectButtonPressed += onReconnectButtonPressed;
         }
 
         protected override void Update()
         {
             base.Update();
 
-            if (!_hasAttemptedJoinChannel && Time.time >= _timeEnabled + 1.5f)
+            if (_channelJoinAttemptScheduled && Time.time >= _scheduledAttemptJoinChannelTime)
             {
-                _hasAttemptedJoinChannel = true;
+                _channelJoinAttemptScheduled = false;
 
-                if (_client.IsConnected)
+                if (!_loginCredentials.IsValid())
                 {
-                    _client.JoinChannel(_loginCredentials.Username);
+                    Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                    {
+                        baseToken = "TWITCH_EFFECT_VOTING_LOGIN_FAIL_FORMAT",
+                        paramTokens = new string[] { Language.GetString("TWITCH_LOGIN_FAIL_NOT_LOGGED_IN") }
+                    });
                 }
-                else
+                else if (_client != null)
                 {
-                    _client.OnConnected += onConnected;
+                    if (_client.IsConnected)
+                    {
+                        _client.JoinChannel(_loginCredentials.Username);
+                    }
+                    else
+                    {
+                        scheduleAttemptJoinChannel(2f);
+                    }
                 }
             }
         }
 
-        void onConnected(object sender, OnConnectedArgs e)
+        void onReconnectButtonPressed()
         {
-            if (sender is TwitchClient client)
+            if (_client == null)
+                return;
+
+            string channel = _joinedChannel;
+            if (channel != null)
             {
-                client.JoinChannel(_loginCredentials.Username);
-                client.OnConnected -= onConnected;
+                _client.LeaveChannel(channel);
+
+                scheduleAttemptJoinChannel(1f);
             }
         }
 
@@ -173,7 +188,6 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 
             if (_client != null)
             {
-                _client.OnConnected -= onConnected;
                 _client.OnJoinedChannel -= onJoinedChannel;
                 _client.OnMessageReceived -= onMessageReceived;
             }
@@ -183,6 +197,8 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
                 _client.LeaveChannel(_joinedChannel);
                 _joinedChannel = null;
             }
+
+            Configs.ChatVoting.OnReconnectButtonPressed -= onReconnectButtonPressed;
         }
     }
 }

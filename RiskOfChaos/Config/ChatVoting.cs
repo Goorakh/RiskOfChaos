@@ -32,6 +32,8 @@ namespace RiskOfChaos
                 return VotingMode == ChatVotingMode.Disabled;
             }
 
+            public static event Action OnReconnectButtonPressed;
+
             static ConfigEntry<int> _numEffectOptionsConfig;
             const int NUM_EFFECT_OPTIONS_MIN_VALUE = 2;
             const int NUM_EFFECT_OPTIONS_DEFAULT_VALUE = 3;
@@ -99,6 +101,11 @@ namespace RiskOfChaos
                 {
                     OnVotingModeChanged?.Invoke();
                 };
+
+                ModSettingsManager.AddOption(new GenericButtonOption("Manual reconnect", SECTION_NAME, "Use this to manually reconnect the mod to your channel if connection is lost", "Reconnect", () =>
+                {
+                    OnReconnectButtonPressed?.Invoke();
+                }), CONFIG_GUID, CONFIG_NAME);
 
                 _numEffectOptionsConfig = file.Bind(new ConfigDefinition(SECTION_NAME, "Num Effect Options"), NUM_EFFECT_OPTIONS_DEFAULT_VALUE, new ConfigDescription("The number of effects viewers can pick from during voting"));
 
