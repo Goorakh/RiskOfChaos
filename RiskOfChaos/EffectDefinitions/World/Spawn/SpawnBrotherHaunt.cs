@@ -78,16 +78,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             if (_nextRespawnAttemptTime >= TimeElapsed)
             {
-                if (!_spawnedMaster)
+                if (!_spawnedMaster || _spawnedMaster.IsDeadAndOutOfLivesServer())
                 {
 #if DEBUG
-                    Log.Debug("Spawned master is null, respawning...");
+                    Log.Debug("Spawned master is null or dead, respawning...");
 #endif
 
                     _spawnedMaster = _brotherHauntSummon.Perform();
                 }
 
-                _nextRespawnAttemptTime = TimeElapsed + 3f;
+                _nextRespawnAttemptTime += 3f;
             }
         }
 
