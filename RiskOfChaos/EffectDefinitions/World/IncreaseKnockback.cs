@@ -1,65 +1,22 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.ModifierController.Knockback;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
+using System;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("increase_knockback", ConfigName = "Increase Knockback", EffectWeightReductionPercentagePerActivation = 30f, IsNetworked = true)]
-    public sealed class IncreaseKnockback : TimedEffect
+    [ChaosEffect("increase_knockback", ConfigName = "Increase Knockback", EffectWeightReductionPercentagePerActivation = 30f)]
+    public sealed class IncreaseKnockback : TimedEffect, IKnockbackModificationProvider
     {
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;
-
-        static bool _hasAppliedPatches = false;
-        static void tryApplyPatches()
-        {
-            if (_hasAppliedPatches)
-                return;
-
-            On.RoR2.CharacterMotor.ApplyForceImpulse += (On.RoR2.CharacterMotor.orig_ApplyForceImpulse orig, CharacterMotor self, ref PhysForceInfo forceInfo) =>
-            {
-                tryMultiplyForce(self.hasEffectiveAuthority, ref forceInfo);
-
-                orig(self, ref forceInfo);
-            };
-
-            On.RoR2.RigidbodyMotor.ApplyForceImpulse += (On.RoR2.RigidbodyMotor.orig_ApplyForceImpulse orig, RigidbodyMotor self, ref PhysForceInfo forceInfo) =>
-            {
-                tryMultiplyForce(self.hasEffectiveAuthority, ref forceInfo);
-
-                orig(self, ref forceInfo);
-            };
-
-            _hasAppliedPatches = true;
-        }
-
-        static void tryMultiplyForce(bool hasAuthority, ref PhysForceInfo forceInfo)
-        {
-            if (!hasAuthority)
-            {
-#if DEBUG
-                Log.Debug($"Not multiplying force, NetworkServer.active={NetworkServer.active}, {nameof(hasAuthority)}={hasAuthority}");
-#endif
-                return;
-            }
-
-            if (!TimedChaosEffectHandler.Instance)
-                return;
-
-            int activationCount = TimedChaosEffectHandler.Instance.GetEffectActiveCount(_effectInfo);
-            if (activationCount <= 0)
-                return;
-
-            forceInfo.force *= Mathf.Pow(_knockbackMultiplierServer, activationCount);
-        }
 
         static ConfigEntry<float> _knockbackMultiplierConfig;
         const float KNOCKBACK_MULTIPLIER_DEFAULT_VALUE = 3f;
@@ -96,42 +53,38 @@ namespace RiskOfChaos.EffectDefinitions.World
             }));
         }
 
+        [EffectCanActivate]
+        static bool CanActivate()
+        {
+            return KnockbackModificationManager.Instance;
+        }
+
         [EffectNameFormatArgs]
         static object[] GetEffectNameFormatArgs()
         {
             return new object[] { knockbackMultiplier };
         }
 
-        static float _knockbackMultiplierServer;
+        public event Action OnValueDirty;
 
-        public override void OnPreStartServer()
+        public void ModifyValue(ref float value)
         {
-            base.OnPreStartServer();
-
-            _knockbackMultiplierServer = knockbackMultiplier;
-        }
-
-        public override void Serialize(NetworkWriter writer)
-        {
-            base.Serialize(writer);
-            writer.Write(_knockbackMultiplierServer);
-        }
-
-        public override void Deserialize(NetworkReader reader)
-        {
-            base.Deserialize(reader);
-            _knockbackMultiplierServer = reader.ReadSingle();
+            value *= knockbackMultiplier;
         }
 
         public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
 
         public override void OnStart()
         {
-            tryApplyPatches();
+            KnockbackModificationManager.Instance.RegisterModificationProvider(this);
         }
 
         public override void OnEnd()
         {
+            if (KnockbackModificationManager.Instance)
+            {
+                KnockbackModificationManager.Instance.UnregisterModificationProvider(this);
+            }
         }
     }
 }
