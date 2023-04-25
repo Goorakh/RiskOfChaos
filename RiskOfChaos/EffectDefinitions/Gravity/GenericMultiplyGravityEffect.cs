@@ -6,7 +6,7 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
     {
         protected abstract float multiplier { get; }
 
-        public override void ModifyGravity(ref Vector3 gravity)
+        public override void ModifyValue(ref Vector3 gravity)
         {
             gravity *= multiplier;
         }

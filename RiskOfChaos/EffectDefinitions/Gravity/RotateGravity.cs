@@ -63,7 +63,7 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
                                                 RNG.RangeFloat(-maxDeviation, maxDeviation));
         }
 
-        public override void ModifyGravity(ref Vector3 gravity)
+        public override void ModifyValue(ref Vector3 gravity)
         {
             gravity = _gravityRotation * gravity;
         }

@@ -31,7 +31,9 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
             return currentScene && Array.BinarySearch(_invalidOnScenes, currentScene.sceneDefIndex) < 0;
         }
 
-        public abstract void ModifyGravity(ref Vector3 gravity);
+        public event Action OnValueDirty;
+
+        public abstract void ModifyValue(ref Vector3 gravity);
 
         public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
 

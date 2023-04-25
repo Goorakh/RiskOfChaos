@@ -5,16 +5,14 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.SkillSlots
 {
-    public class SkillSlotModificationManager : NetworkBehaviour
+    public class SkillSlotModificationManager : ValueModificationManager<ISkillSlotModificationProvider, SkillSlotModificationData>
     {
         static SkillSlotModificationManager _instance;
         public static SkillSlotModificationManager Instance => _instance;
 
         public const int SKILL_SLOT_COUNT = (int)SkillSlot.Special + 1;
 
-        readonly HashSet<ISkillSlotModificationProvider> _modificationProviders = new HashSet<ISkillSlotModificationProvider>();
-
-        const uint LOCKED_SKILL_SLOTS_DIRTY_BIT = 1 << 0;
+        const uint LOCKED_SKILL_SLOTS_DIRTY_BIT = 1 << 1;
 
         uint _lockedSkillSlotsMask;
         public uint NetworkLockedSkillSlotsMask
@@ -92,35 +90,7 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             SingletonHelper.Unassign(ref _instance, this);
         }
 
-        public void RegisterModificationProvider(ISkillSlotModificationProvider provider)
-        {
-            if (!NetworkServer.active)
-            {
-                Log.Warning("Called on client");
-                return;
-            }
-
-            if (_modificationProviders.Add(provider))
-            {
-                updateSlotModifications();
-            }
-        }
-
-        public void UnregisterModificationProvider(ISkillSlotModificationProvider provider)
-        {
-            if (!NetworkServer.active)
-            {
-                Log.Warning("Called on client");
-                return;
-            }
-
-            if (_modificationProviders.Remove(provider))
-            {
-                updateSlotModifications();
-            }
-        }
-
-        void updateSlotModifications()
+        protected override void updateValueModifications()
         {
             if (!NetworkServer.active)
             {
@@ -131,15 +101,7 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             SkillSlotModificationData[] modificationDatas = new SkillSlotModificationData[SKILL_SLOT_COUNT];
             for (int i = 0; i < SKILL_SLOT_COUNT; i++)
             {
-                modificationDatas[i] = new SkillSlotModificationData((SkillSlot)i);
-            }
-
-            foreach (ISkillSlotModificationProvider modificationProvider in _modificationProviders)
-            {
-                for (int i = 0; i < SKILL_SLOT_COUNT; i++)
-                {
-                    modificationProvider.ModifySkillSlot(ref modificationDatas[i]);
-                }
+                modificationDatas[i] = getModifiedValue(new SkillSlotModificationData((SkillSlot)i));
             }
 
             uint forceLockedSkillSlotsMask = 0;
@@ -157,16 +119,14 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             NetworkLockedSkillSlotsMask = forceLockedSkillSlotsMask;
         }
 
-        public override bool OnSerialize(NetworkWriter writer, bool initialState)
+        protected override bool serialize(NetworkWriter writer, bool initialState, uint dirtyBits)
         {
+            bool result = base.serialize(writer, initialState, dirtyBits);
             if (initialState)
             {
                 writer.WritePackedUInt32(_lockedSkillSlotsMask);
-                return true;
+                return result;
             }
-
-            uint dirtyBits = syncVarDirtyBits;
-            writer.WritePackedUInt32(dirtyBits);
 
             bool anythingWritten = false;
 
@@ -176,18 +136,18 @@ namespace RiskOfChaos.ModifierController.SkillSlots
                 anythingWritten = true;
             }
 
-            return anythingWritten;
+            return result || anythingWritten;
         }
 
-        public override void OnDeserialize(NetworkReader reader, bool initialState)
+        protected override void deserialize(NetworkReader reader, bool initialState, uint dirtyBits)
         {
+            base.deserialize(reader, initialState, dirtyBits);
+
             if (initialState)
             {
                 _lockedSkillSlotsMask = reader.ReadPackedUInt32();
                 return;
             }
-
-            uint dirtyBits = reader.ReadPackedUInt32();
 
             if ((dirtyBits & LOCKED_SKILL_SLOTS_DIRTY_BIT) != 0)
             {

@@ -2,8 +2,7 @@
 
 namespace RiskOfChaos.ModifierController.Gravity
 {
-    public interface IGravityModificationProvider
+    public interface IGravityModificationProvider : IValueModificationProvider<Vector3>
     {
-        void ModifyGravity(ref Vector3 gravity);
     }
 }

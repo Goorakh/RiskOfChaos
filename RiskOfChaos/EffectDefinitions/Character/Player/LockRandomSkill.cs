@@ -3,6 +3,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.ModifierController.SkillSlots;
 using RoR2;
+using System;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
@@ -19,7 +20,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
         SkillSlot _lockedSkillSlot;
 
-        public void ModifySkillSlot(ref SkillSlotModificationData modification)
+        public event Action OnValueDirty;
+
+        public void ModifyValue(ref SkillSlotModificationData modification)
         {
             if (modification.SlotIndex == _lockedSkillSlot)
             {
