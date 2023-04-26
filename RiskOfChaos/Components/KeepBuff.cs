@@ -2,7 +2,7 @@
 using System.Linq;
 using UnityEngine;
 
-namespace RiskOfChaos.Utilities
+namespace RiskOfChaos.Components
 {
     [RequireComponent(typeof(CharacterBody))]
     public sealed class KeepBuff : MonoBehaviour

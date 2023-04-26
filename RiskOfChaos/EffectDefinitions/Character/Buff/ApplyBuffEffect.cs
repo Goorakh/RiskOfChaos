@@ -1,5 +1,5 @@
 ﻿using HG;
-using RiskOfChaos.Utilities;
+using RiskOfChaos.Components;
 using RoR2;
 using System;
 using System.Collections.Generic;
