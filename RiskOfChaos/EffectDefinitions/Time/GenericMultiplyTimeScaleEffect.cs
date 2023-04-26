@@ -28,6 +28,7 @@ namespace RiskOfChaos.EffectDefinitions.Time
             TimeScaleModificationManager.Instance.RegisterModificationProvider(this);
 
             On.RoR2.CharacterBody.RecalculateStats += CharacterBody_RecalculateStats;
+            markAllPlayerStatsDirty();
         }
 
         public override void OnEnd()
@@ -38,6 +39,18 @@ namespace RiskOfChaos.EffectDefinitions.Time
             }
 
             On.RoR2.CharacterBody.RecalculateStats -= CharacterBody_RecalculateStats;
+            markAllPlayerStatsDirty();
+        }
+
+        static void markAllPlayerStatsDirty()
+        {
+            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
+            {
+                if (body && body.isPlayerControlled)
+                {
+                    body.MarkAllStatsDirty();
+                }
+            }
         }
 
         void CharacterBody_RecalculateStats(On.RoR2.CharacterBody.orig_RecalculateStats orig, CharacterBody self)
