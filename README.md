@@ -4,13 +4,14 @@ Every minute, a random effect happens. Multiplayer combatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 63 different effects.
+Currently features 68 different effects.
 
 ### Twitch Integration:
 
 Twitch integration allows viewers to vote for the next effect.
 
 To set up Twitch voting, set the General->Streamer Integration->Voting Mode config to "Twitch", then open the console, and use the command "roc_twitch_login" then provide your channel name and oauth token (ex. "roc_twitch_login goorakh oauth:yourtokengoeshere"). Note: Login info is saved between game restarts, but you will have to re-enter it after updating the mod.
+If the game loses connection to your channel, it will automatically attempt to reconnect, if this doesn't work however, you can manually make it reconnect in the Streamer Integration options menu by pressing the Reconnect button
 
 <details>
 	<summary>Full list of effects</summary>
@@ -78,6 +79,11 @@ To set up Twitch voting, set the General->Streamer Integration->Voting Mode conf
 * Spawn Random Interactable: Spawns a random interactable at every player
 * Spawn Random Portal: Spawns a random portal at a random player
 * Increase Proc Coefficients: Multiplies all proc coefficients by 2 (configurable)
+* Guaranteed Chance Effects: All percent-chance effects are guaranteed to happen (effectively infinite luck stat on everything), lasts 1 stage
+* Increase Projectile Speed: Increases the speed of all projectiles, lasts 1 stage (+50% by default, configurable)
+* Decrease Projectile Speed: Decreases the speed of all projectiles, lasts 1 stage (-50% by default, configurable)
+* Increase World Speed: Increases the game speed, but compensates all players to be slower, gives the illusion of everything else being faster, lasts 1 stage (+50% by default, configurable)
+* Decrease World Speed: Decreases the game speed, but compensates all players to be faster, gives the illusion of everything else being slower, lasts 1 stage (-50% by default, configurable)
 </details>
 
 FAQ:

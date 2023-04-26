@@ -1,5 +1,28 @@
 ## Changelog
 
+**1.3.0 Changes:**
+
+* Added 5 new effects:
+  * Guaranteed Chance Effects: All percent-chance effects are guaranteed to happen (effectively infinite luck stat on everything), lasts 1 stage
+  * Increase Projectile Speed: Increases the speed of all projectiles, lasts 1 stage (+50% by default, configurable)
+  * Decrease Projectile Speed: Decreases the speed of all projectiles, lasts 1 stage (-50% by default, configurable)
+  * Increase World Speed: Increases the game speed, but compensates all players to be slower, gives the illusion of everything else being faster, lasts 1 stage (+50% by default, configurable)
+  * Decrease World Speed: Decreases the game speed, but compensates all players to be faster, gives the illusion of everything else being slower, lasts 1 stage (-50% by default, configurable)
+
+* Add Random Item to Monster Inventory:
+  * Fixed effect not giving items to void or lunar enemies
+  * Now gives items to all active enemies when the effect activates, not just future spawned ones
+
+* Give Everyone a Random Buff (& Debuff):
+  * Fixed buffs that cannot be stacked being applied several times if effect activates several times per stage.
+
+* Multiplayer:
+  * Fixed various potential server-client desync issues
+
+* Twitch Voting:
+  * Votes will now alternate being offset by vote option amount to prevent identical vote chat messages being blocked (for example, by default, every other vote will be 1-4 and 5-8)
+  * Added "Manual Reconnect" button in Streamer Integration config. Which can be used to reconnect the mod to your Twitch channel in case it gets disconnected and is unable to automatically reconnect.
+
 **1.2.1 Changes:**
 
 * Twitch Voting:
@@ -10,7 +33,7 @@
   * Now spawns one interactable per player instead of just at one random player
 
 * Increase Proc Coefficients:
-  * Fixed missing duration to display name
+  * Fixed missing duration in display name
 
 **1.2.0 Changes:**
 
