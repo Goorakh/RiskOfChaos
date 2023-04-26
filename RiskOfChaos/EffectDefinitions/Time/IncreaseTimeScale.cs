@@ -37,7 +37,7 @@ namespace RiskOfChaos.EffectDefinitions.Time
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            _timeScaleIncreaseConfig = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Game Speed Increase"), TIME_SCALE_INCREASE_DEFAULT_VALUE);
+            _timeScaleIncreaseConfig = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "World Speed Increase"), TIME_SCALE_INCREASE_DEFAULT_VALUE);
 
             addConfigOption(new StepSliderOption(_timeScaleIncreaseConfig, new StepSliderConfig
             {

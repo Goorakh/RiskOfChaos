@@ -37,7 +37,7 @@ namespace RiskOfChaos.EffectDefinitions.Time
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            _timeScaleDecreaseConfig = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Game Speed Decrease"), TIME_SCALE_DECREASE_DEFAULT_VALUE);
+            _timeScaleDecreaseConfig = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "World Speed Decrease"), TIME_SCALE_DECREASE_DEFAULT_VALUE);
 
             addConfigOption(new StepSliderOption(_timeScaleDecreaseConfig, new StepSliderConfig
             {
