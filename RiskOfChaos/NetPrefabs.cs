@@ -4,6 +4,7 @@ using RiskOfChaos.ModifierController.Gravity;
 using RiskOfChaos.ModifierController.Knockback;
 using RiskOfChaos.ModifierController.Projectile;
 using RiskOfChaos.ModifierController.SkillSlots;
+using RiskOfChaos.ModifierController.TimeScale;
 using RiskOfChaos.Networking.Components;
 using RoR2;
 using UnityEngine;
@@ -22,6 +23,8 @@ namespace RiskOfChaos
         public static GameObject KnockbackModificationControllerPrefab { get; private set; }
 
         public static GameObject ProjectileModificationControllerPrefab { get; private set; }
+
+        public static GameObject TimeScaleModificationControllerPrefab { get; private set; }
 
         static GameObject createPrefabObject(string name, bool networked = true)
         {
@@ -88,6 +91,16 @@ namespace RiskOfChaos
                 ProjectileModificationControllerPrefab.AddComponent<ProjectileModificationManager>();
             }
 
+            // TimeScaleModificationControllerPrefab
+            {
+                TimeScaleModificationControllerPrefab = createPrefabObject("TimeScaleModificationController");
+
+                TimeScaleModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
+                TimeScaleModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
+                TimeScaleModificationControllerPrefab.AddComponent<SyncTimeScale>();
+                TimeScaleModificationControllerPrefab.AddComponent<TimeScaleModificationManager>();
+            }
+
             Run.onRunStartGlobal += onRunStart;
         }
 
@@ -100,6 +113,7 @@ namespace RiskOfChaos
             NetworkServer.Spawn(GameObject.Instantiate(SkillSlotModificationControllerPrefab));
             NetworkServer.Spawn(GameObject.Instantiate(KnockbackModificationControllerPrefab));
             NetworkServer.Spawn(GameObject.Instantiate(ProjectileModificationControllerPrefab));
+            NetworkServer.Spawn(GameObject.Instantiate(TimeScaleModificationControllerPrefab));
         }
     }
 }

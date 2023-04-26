@@ -47,7 +47,7 @@ namespace RiskOfChaos.ModifierController
 
         bool _modificationProvidersDirty;
 
-        void onModificationProviderDirty()
+        protected void onModificationProviderDirty()
         {
             if (!NetworkServer.active)
             {
