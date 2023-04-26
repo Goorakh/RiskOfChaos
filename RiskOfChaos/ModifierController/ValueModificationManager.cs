@@ -49,6 +49,12 @@ namespace RiskOfChaos.ModifierController
 
         void onModificationProviderDirty()
         {
+            if (!NetworkServer.active)
+            {
+                Log.Warning("Called on client");
+                return;
+            }
+
             if (_modificationProvidersDirty)
                 return;
 
