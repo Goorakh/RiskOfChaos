@@ -16,12 +16,12 @@ namespace RiskOfChaos.ModifierController.TimeScale
         {
             SingletonHelper.Unassign(ref _instance, this);
 
-            TimeUtils.CurrentTimeScale = 1f;
+            TimeUtils.UnpausedTimeScale = 1f;
         }
 
         protected override void updateValueModifications()
         {
-            TimeUtils.CurrentTimeScale = getModifiedValue(1f);
+            TimeUtils.UnpausedTimeScale = getModifiedValue(1f);
         }
     }
 }

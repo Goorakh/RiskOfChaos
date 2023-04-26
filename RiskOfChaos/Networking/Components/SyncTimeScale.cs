@@ -33,12 +33,12 @@ namespace RiskOfChaos.Networking.Components
         void syncTimeScale(float value)
         {
             NetworkedTimeScale = value;
-            TimeUtils.CurrentTimeScale = value;
+            TimeUtils.UnpausedTimeScale = value;
         }
 
         void Awake()
         {
-            _timeScale = TimeUtils.CurrentTimeScale;
+            _timeScale = TimeUtils.UnpausedTimeScale;
         }
 
         public override void OnStartClient()
@@ -52,12 +52,12 @@ namespace RiskOfChaos.Networking.Components
         {
             base.OnStartAuthority();
 
-            NetworkedTimeScale = TimeUtils.CurrentTimeScale;
+            NetworkedTimeScale = TimeUtils.UnpausedTimeScale;
         }
 
         void FixedUpdate()
         {
-            float timeScale = TimeUtils.CurrentTimeScale;
+            float timeScale = TimeUtils.UnpausedTimeScale;
             if (_timeScale != timeScale)
             {
                 if (hasAuthority)
@@ -66,7 +66,7 @@ namespace RiskOfChaos.Networking.Components
                 }
                 else
                 {
-                    TimeUtils.CurrentTimeScale = _timeScale;
+                    TimeUtils.UnpausedTimeScale = _timeScale;
                 }
             }
         }

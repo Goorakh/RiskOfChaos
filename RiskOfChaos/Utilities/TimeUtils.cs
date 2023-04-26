@@ -5,7 +5,7 @@ namespace RiskOfChaos.Utilities
 {
     public static class TimeUtils
     {
-        public static float CurrentTimeScale
+        public static float UnpausedTimeScale
         {
             get
             {
