@@ -48,11 +48,11 @@ namespace RiskOfChaos.Networking.Components
             Vector3 currentGravity = Physics.gravity;
             if (_gravity != currentGravity)
             {
-                if (NetworkServer.active)
+                if (hasAuthority)
                 {
                     NetworkGravity = currentGravity;
                 }
-                else if (NetworkClient.active)
+                else
                 {
                     Physics.gravity = _gravity;
                 }
