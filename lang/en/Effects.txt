@@ -72,5 +72,6 @@
 		"EFFECT_DECREASE_PROJECTILE_SPEED_NAME": "-{0:P0} Projectile Speed (Lasts 1 stage)",
 		"EFFECT_INCREASE_TIME_SCALE_NAME": "+{0:P0} World Speed (Lasts 1 stage)",
 		"EFFECT_DECREASE_TIME_SCALE_NAME": "-{0:P0} World Speed (Lasts 1 stage)",
+		"EFFECT_ALL_COSTS_HEALTH_NAME": "Blood Money (Lasts 1 stage)",
 	}
 }
