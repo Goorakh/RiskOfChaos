@@ -1,7 +1,5 @@
 ﻿using RoR2;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
@@ -29,6 +27,13 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
                         default:
                             purchaseInteraction.Networkcost = 1;
                             break;
+                    }
+                }
+                else
+                {
+                    if (purchaseInteraction.costType == CostTypeIndex.PercentHealth)
+                    {
+                        purchaseInteraction.Networkcost = Mathf.Min(purchaseInteraction.Networkcost, 99);
                     }
                 }
 
