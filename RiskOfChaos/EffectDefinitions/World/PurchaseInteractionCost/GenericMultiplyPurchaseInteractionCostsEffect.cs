@@ -16,27 +16,6 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
             {
                 purchaseInteraction.ScaleCost(multiplier);
 
-                if (purchaseInteraction.cost <= 0)
-                {
-                    switch (purchaseInteraction.costType)
-                    {
-                        case CostTypeIndex.Money:
-                        case CostTypeIndex.PercentHealth:
-                            purchaseInteraction.Networkcost = 0;
-                            break;
-                        default:
-                            purchaseInteraction.Networkcost = 1;
-                            break;
-                    }
-                }
-                else
-                {
-                    if (purchaseInteraction.costType == CostTypeIndex.PercentHealth)
-                    {
-                        purchaseInteraction.Networkcost = Mathf.Min(purchaseInteraction.Networkcost, 99);
-                    }
-                }
-
                 if (purchaseInteraction.TryGetComponent(out ShopTerminalBehavior shopTerminalBehavior) && shopTerminalBehavior.serverMultiShopController)
                 {
                     if (modifiedMultiShopControllers.Add(shopTerminalBehavior.serverMultiShopController))
