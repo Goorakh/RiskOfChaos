@@ -90,6 +90,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 getBossEntrySingle("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase1.asset", 0.1f),
                 getBossEntrySingle("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase2.asset", 0.1f),
                 getBossEntrySingle("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase3.asset", 0.075f),
+                getBossEntrySingle("RoR2/DLC1/VoidMegaCrab/cscVoidMegaCrab.asset", 0.5f),
             };
         }
 
