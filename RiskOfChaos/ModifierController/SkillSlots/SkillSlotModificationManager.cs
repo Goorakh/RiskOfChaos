@@ -1,5 +1,7 @@
 ﻿using RoR2;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine.Networking;
 
@@ -11,6 +13,24 @@ namespace RiskOfChaos.ModifierController.SkillSlots
         public static SkillSlotModificationManager Instance => _instance;
 
         public const int SKILL_SLOT_COUNT = (int)SkillSlot.Special + 1;
+
+        static uint getSlotBitMask(SkillSlot skillSlot)
+        {
+            sbyte skillSlotLockedBit = (sbyte)skillSlot;
+            if (skillSlotLockedBit < 0 || skillSlotLockedBit >= sizeof(uint) * 8)
+                return 0U;
+
+            return 1U << skillSlotLockedBit;
+        }
+
+        static bool isSkillSlotBitSet(uint mask, SkillSlot skillSlot)
+        {
+            uint lockedBitMask = getSlotBitMask(skillSlot);
+            if (lockedBitMask == 0U)
+                return false;
+
+            return (mask & lockedBitMask) != 0;
+        }
 
         const uint LOCKED_SKILL_SLOTS_DIRTY_BIT = 1 << 1;
 
@@ -36,13 +56,25 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             }
         }
 
-        public SkillSlot[] NonLockedSkillSlots { get; private set; }
+        SkillSlot[] _nonLockedSkillSlots = Array.Empty<SkillSlot>();
+        public SkillSlot[] NonLockedSkillSlots
+        {
+            get
+            {
+                return _nonLockedSkillSlots;
+            }
+            private set
+            {
+                _nonLockedSkillSlots = value;
+                refreshNonLockedNonForceActivatedSkillSlots();
+            }
+        }
 
         void syncLockedSkillSlots(uint lockedSkillSlotsMask)
         {
             NetworkLockedSkillSlotsMask = lockedSkillSlotsMask;
 
-            List<SkillSlot> nonLockedSkillSlots = new List<SkillSlot>();
+            List<SkillSlot> nonLockedSkillSlots = new List<SkillSlot>(SKILL_SLOT_COUNT);
 
             for (SkillSlot i = 0; i < (SkillSlot)SKILL_SLOT_COUNT; i++)
             {
@@ -55,22 +87,77 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             NonLockedSkillSlots = nonLockedSkillSlots.ToArray();
         }
 
-        static uint getLockedBitMask(SkillSlot skillSlot)
-        {
-            sbyte skillSlotLockedBit = (sbyte)skillSlot;
-            if (skillSlotLockedBit < 0 || skillSlotLockedBit >= sizeof(uint) * 8)
-                return 0U;
-
-            return 1U << skillSlotLockedBit;
-        }
-
         public bool IsSkillSlotLocked(SkillSlot skillSlot)
         {
-            uint lockedBitMask = getLockedBitMask(skillSlot);
-            if (lockedBitMask == 0U)
-                return false;
+            return isSkillSlotBitSet(_lockedSkillSlotsMask, skillSlot);
+        }
 
-            return (_lockedSkillSlotsMask & lockedBitMask) != 0;
+        const uint FORCE_ACTIVATE_SKILL_SLOTS_MASK_DIRTY_BIT = 1u << 2;
+
+        uint _forceActivateSkillSlotsMask;
+
+        public uint NetworkForceActivateSkillSlotsMask
+        {
+            get
+            {
+                return _forceActivateSkillSlotsMask;
+            }
+
+            [param: In]
+            set
+            {
+                if (NetworkServer.localClientActive && !syncVarHookGuard)
+                {
+                    syncVarHookGuard = true;
+                    syncForceActivatedSkillSlots(value);
+                    syncVarHookGuard = false;
+                }
+
+                SetSyncVar(value, ref _forceActivateSkillSlotsMask, FORCE_ACTIVATE_SKILL_SLOTS_MASK_DIRTY_BIT);
+            }
+        }
+
+        SkillSlot[] _nonForceActivatedSkillSlots = Array.Empty<SkillSlot>();
+        public SkillSlot[] NonForceActivatedSkillSlots
+        {
+            get
+            {
+                return _nonForceActivatedSkillSlots;
+            }
+            private set
+            {
+                _nonForceActivatedSkillSlots = value;
+                refreshNonLockedNonForceActivatedSkillSlots();
+            }
+        }
+
+        void syncForceActivatedSkillSlots(uint forceActivatedSkillSlotsMask)
+        {
+            NetworkForceActivateSkillSlotsMask = forceActivatedSkillSlotsMask;
+
+            List<SkillSlot> nonForceActivatedSkillSlots = new List<SkillSlot>(SKILL_SLOT_COUNT);
+
+            for (SkillSlot i = 0; i < (SkillSlot)SKILL_SLOT_COUNT; i++)
+            {
+                if (!IsSkillSlotForceActivated(i))
+                {
+                    nonForceActivatedSkillSlots.Add(i);
+                }
+            }
+
+            NonForceActivatedSkillSlots = nonForceActivatedSkillSlots.ToArray();
+        }
+
+        public bool IsSkillSlotForceActivated(SkillSlot skillSlot)
+        {
+            return isSkillSlotBitSet(_forceActivateSkillSlotsMask, skillSlot);
+        }
+
+        public SkillSlot[] NonLockedNonForceActivatedSkillSlots { get; private set; } = Array.Empty<SkillSlot>();
+
+        void refreshNonLockedNonForceActivatedSkillSlots()
+        {
+            NonLockedNonForceActivatedSkillSlots = NonLockedSkillSlots.Intersect(NonForceActivatedSkillSlots).ToArray();
         }
 
         public override void OnStartClient()
@@ -78,6 +165,7 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             base.OnStartClient();
 
             syncLockedSkillSlots(_lockedSkillSlotsMask);
+            syncForceActivatedSkillSlots(_forceActivateSkillSlotsMask);
         }
 
         void OnEnable()
@@ -105,18 +193,27 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             }
 
             uint forceLockedSkillSlotsMask = 0;
+            uint forceActivateSkillSlotsMask = 0;
 
             for (int i = 0; i < SKILL_SLOT_COUNT; i++)
             {
                 SkillSlotModificationData modificationData = modificationDatas[i];
 
+                uint maskBit = getSlotBitMask(modificationData.SlotIndex);
+
                 if (modificationData.ForceIsLocked)
                 {
-                    forceLockedSkillSlotsMask |= 1U << i;
+                    forceLockedSkillSlotsMask |= maskBit;
+                }
+
+                if (modificationData.ForceActivate)
+                {
+                    forceActivateSkillSlotsMask |= maskBit;
                 }
             }
 
             NetworkLockedSkillSlotsMask = forceLockedSkillSlotsMask;
+            NetworkForceActivateSkillSlotsMask = forceActivateSkillSlotsMask;
         }
 
         protected override bool serialize(NetworkWriter writer, bool initialState, uint dirtyBits)
@@ -125,6 +222,7 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             if (initialState)
             {
                 writer.WritePackedUInt32(_lockedSkillSlotsMask);
+                writer.WritePackedUInt32(_forceActivateSkillSlotsMask);
                 return result;
             }
 
@@ -133,6 +231,12 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             if ((dirtyBits & LOCKED_SKILL_SLOTS_DIRTY_BIT) != 0)
             {
                 writer.WritePackedUInt32(_lockedSkillSlotsMask);
+                anythingWritten = true;
+            }
+
+            if ((dirtyBits & FORCE_ACTIVATE_SKILL_SLOTS_MASK_DIRTY_BIT) != 0)
+            {
+                writer.WritePackedUInt32(_forceActivateSkillSlotsMask);
                 anythingWritten = true;
             }
 
@@ -146,12 +250,18 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             if (initialState)
             {
                 _lockedSkillSlotsMask = reader.ReadPackedUInt32();
+                _forceActivateSkillSlotsMask = reader.ReadPackedUInt32();
                 return;
             }
 
             if ((dirtyBits & LOCKED_SKILL_SLOTS_DIRTY_BIT) != 0)
             {
                 syncLockedSkillSlots(reader.ReadPackedUInt32());
+            }
+
+            if ((dirtyBits & FORCE_ACTIVATE_SKILL_SLOTS_MASK_DIRTY_BIT) != 0)
+            {
+                syncForceActivatedSkillSlots(reader.ReadPackedUInt32());
             }
         }
     }
