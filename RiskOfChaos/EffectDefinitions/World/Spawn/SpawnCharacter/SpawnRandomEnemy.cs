@@ -10,13 +10,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
     [ChaosEffect("spawn_random_enemy")]
     public sealed class SpawnRandomEnemy : GenericSpawnCombatCharacterEffect
     {
-        static int _debugIndex;
-
         public override void OnStart()
         {
             CharacterMaster enemySpawnPrefab = getItemToSpawn(_spawnEntries, RNG);
-
-            enemySpawnPrefab = _spawnEntries[_debugIndex++ % _spawnEntries.Length].GetItem(RNG);
 
             foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
             {
