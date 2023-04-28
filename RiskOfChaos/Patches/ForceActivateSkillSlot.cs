@@ -16,24 +16,24 @@ namespace RiskOfChaos.Patches
             IL.RoR2.CharacterAI.BaseAI.UpdateBodyInputs += hookPushInputState;
         }
 
-        static bool tryGetSkillSlotIndex(string fieldName, out int slotIndex)
+        static bool tryGetSkillSlotIndex(string fieldName, out SkillSlot slotIndex)
         {
             switch (fieldName)
             {
                 case nameof(InputBankTest.skill1):
-                    slotIndex = (int)SkillSlot.Primary;
+                    slotIndex = SkillSlot.Primary;
                     return true;
                 case nameof(InputBankTest.skill2):
-                    slotIndex = (int)SkillSlot.Secondary;
+                    slotIndex = SkillSlot.Secondary;
                     return true;
                 case nameof(InputBankTest.skill3):
-                    slotIndex = (int)SkillSlot.Utility;
+                    slotIndex = SkillSlot.Utility;
                     return true;
                 case nameof(InputBankTest.skill4):
-                    slotIndex = (int)SkillSlot.Special;
+                    slotIndex = SkillSlot.Special;
                     return true;
                 default:
-                    slotIndex = -1;
+                    slotIndex = SkillSlot.None;
                     return false;
             }
         }
@@ -48,13 +48,13 @@ namespace RiskOfChaos.Patches
                                  x => x.MatchCallOrCallvirt<InputBankTest.ButtonState>(nameof(InputBankTest.ButtonState.PushState))))
             {
                 FieldReference buttonField = foundCursors[0].Next.Operand as FieldReference;
-                if (tryGetSkillSlotIndex(buttonField.Name, out int slotIndex))
+                if (tryGetSkillSlotIndex(buttonField.Name, out SkillSlot slotIndex))
                 {
                     ILCursor cursor = foundCursors[1];
-                    cursor.Emit(OpCodes.Ldc_I4, slotIndex);
-                    cursor.EmitDelegate((bool buttonState, int skillSlot) =>
+                    cursor.Emit(OpCodes.Ldc_I4, (int)slotIndex);
+                    cursor.EmitDelegate((bool buttonState, SkillSlot skillSlot) =>
                     {
-                        if (SkillSlotModificationManager.Instance && SkillSlotModificationManager.Instance.IsSkillSlotForceActivated((SkillSlot)skillSlot))
+                        if (SkillSlotModificationManager.Instance && SkillSlotModificationManager.Instance.IsSkillSlotForceActivated(skillSlot))
                         {
                             // Don't actually have it active *all* the time, since some skills require the key to not be held
                             return RoR2Application.rng.nextNormalizedFloat > 0.2f;
