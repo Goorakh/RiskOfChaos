@@ -75,7 +75,7 @@ namespace RiskOfChaos.Utilities
             if (!positionMarkerObject)
             {
                 Log.Warning("Unable to spawn position marker object");
-                return Vector3.zero;
+                return placementRule.targetPosition;
             }
 
             Vector3 position = positionMarkerObject.transform.position;
