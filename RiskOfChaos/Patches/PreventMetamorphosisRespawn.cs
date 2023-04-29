@@ -2,10 +2,7 @@
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RoR2;
-using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 
 namespace RiskOfChaos.Patches
 {
@@ -38,14 +35,15 @@ namespace RiskOfChaos.Patches
         {
             ILCursor c = new ILCursor(il);
 
+            ILLabel afterIfLbl = null;
+
             ILCursor[] foundCursors;
             if (c.TryFindNext(out foundCursors,
                               x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertyGetter(typeof(RoR2Content.Artifacts), nameof(RoR2Content.Artifacts.randomSurvivorOnRespawnArtifactDef))),
                               x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<RunArtifactManager>(_ => _.IsArtifactEnabled(default(ArtifactDef)))),
-                              x => x.MatchBrfalse(out _)))
+                              x => x.MatchBrfalse(out afterIfLbl)))
             {
                 ILCursor cursor = foundCursors[2];
-                cursor.Next.MatchBrfalse(out ILLabel afterIfLbl);
                 cursor.Index++;
 
                 cursor.Emit(OpCodes.Ldsfld, _preventionEnabled_FI);
