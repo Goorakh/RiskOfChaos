@@ -1,7 +1,8 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RoR2;
-using System;
+using System.Linq;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
@@ -9,6 +10,35 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
     [ChaosEffect("spawn_random_ally")]
     public sealed class SpawnRandomAlly : GenericSpawnCombatCharacterEffect
     {
+        static CharacterSpawnEntry[] _spawnEntries;
+
+        [SystemInitializer(typeof(MasterCatalog))]
+        static void Init()
+        {
+            _spawnEntries = getAllValidMasterPrefabs().Select(master =>
+            {
+                CharacterBody bodyPrefab = master.bodyPrefab.GetComponent<CharacterBody>();
+
+                float weight;
+                if (bodyPrefab.isChampion)
+                {
+                    weight = 0.5f;
+                }
+                else
+                {
+                    weight = 1f;
+                }
+
+                return new CharacterSpawnEntry(master, weight);
+            }).ToArray();
+        }
+
+        [EffectCanActivate]
+        static bool CanActivate()
+        {
+            return areAnyAvailable(_spawnEntries);
+        }
+
         public override void OnStart()
         {
             CharacterMaster enemySpawnPrefab = getItemToSpawn(_spawnEntries, RNG);

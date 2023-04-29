@@ -3,7 +3,7 @@ using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.Navigation;
 using RoR2.Skills;
-using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -27,12 +27,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
             }
         }
 
-        protected static CharacterSpawnEntry[] _spawnEntries;
-
-        [SystemInitializer(typeof(MasterCatalog))]
-        static void Init()
+        protected static IEnumerable<CharacterMaster> getAllValidMasterPrefabs()
         {
-            _spawnEntries = MasterCatalog.allMasters.Where(masterPrefab =>
+            return MasterCatalog.allMasters.Where(masterPrefab =>
             {
                 if (!masterPrefab)
                     return false;
@@ -41,15 +38,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                 {
 #if DEBUG
                     Log.Debug($"Excluding master {masterPrefab}: null body");
-#endif
-                    return false;
-                }
-
-                // Exclude bosses from being spawned, there is already an effect for that after all
-                if (bodyPrefab.isChampion)
-                {
-#if DEBUG
-                    Log.Debug($"Excluding master {masterPrefab}: boss");
 #endif
                     return false;
                 }
@@ -108,20 +96,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 #endif
 
                 return true;
-            }).Select(masterPrefab =>
-            {
-                return new CharacterSpawnEntry(masterPrefab, 1f);
-            }).ToArray();
-
-#if DEBUG
-            Log.Debug($"Including {_spawnEntries.Length} character prefabs");
-#endif
-        }
-
-        [EffectCanActivate]
-        static bool CanActivate()
-        {
-            return areAnyAvailable(_spawnEntries);
+            });
         }
 
         protected static Vector3 getProperSpawnPosition(Vector3 startSpawnPosition, CharacterMaster masterPrefab, Xoroshiro128Plus rng)
