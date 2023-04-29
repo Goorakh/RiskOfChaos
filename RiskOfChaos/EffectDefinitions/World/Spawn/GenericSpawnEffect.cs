@@ -30,6 +30,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 return rng.NextElementUniform(_items.Where(isItemAvailable).ToArray());
             }
 
+            public bool ContainsItem(TSpawnType item)
+            {
+                return Array.IndexOf(_items, item) >= 0;
+            }
+
             protected virtual bool isItemAvailable(TSpawnType item)
             {
                 return true;
