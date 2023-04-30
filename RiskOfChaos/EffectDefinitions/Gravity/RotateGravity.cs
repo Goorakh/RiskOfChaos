@@ -10,6 +10,8 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.Gravity
 {
     [ChaosEffect("rotate_gravity", DefaultSelectionWeight = 0.8f, EffectWeightReductionPercentagePerActivation = 20f)]
+    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [EffectConfigBackwardsCompatibility("Effect: Random Gravity Direction (Lasts 1 stage)")]
     public sealed class RotateGravity : GenericGravityEffect
     {
         [InitEffectInfo]
@@ -39,7 +41,7 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void InitConfig()
         {
-            _maxDeviationConfig = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Max Rotation Angle"), MAX_DEVITATION_DEFAULT_VALUE, new ConfigDescription("The maximum amount of deviation (in degrees) that can be applied to the gravity direction"));
+            _maxDeviationConfig = _effectInfo.BindConfig("Max Rotation Angle", MAX_DEVITATION_DEFAULT_VALUE, new ConfigDescription("The maximum amount of deviation (in degrees) that can be applied to the gravity direction"));
 
             addConfigOption(new StepSliderOption(_maxDeviationConfig, new StepSliderConfig
             {

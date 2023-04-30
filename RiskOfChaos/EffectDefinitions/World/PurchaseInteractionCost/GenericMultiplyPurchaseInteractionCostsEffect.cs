@@ -1,28 +1,39 @@
 ﻿using RoR2;
-using System.Collections.Generic;
-using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
 {
-    public abstract class GenericMultiplyPurchaseInteractionCostsEffect : BaseEffect
+    public abstract class GenericMultiplyPurchaseInteractionCostsEffect : TimedEffect
     {
         protected abstract float multiplier { get; }
 
         public override void OnStart()
         {
-            HashSet<MultiShopController> modifiedMultiShopControllers = new HashSet<MultiShopController>();
-
             foreach (PurchaseInteraction purchaseInteraction in InstanceTracker.GetInstancesList<PurchaseInteraction>())
             {
-                purchaseInteraction.ScaleCost(multiplier);
+                multiplyCost(purchaseInteraction);
+            }
 
-                if (purchaseInteraction.TryGetComponent(out ShopTerminalBehavior shopTerminalBehavior) && shopTerminalBehavior.serverMultiShopController)
-                {
-                    if (modifiedMultiShopControllers.Add(shopTerminalBehavior.serverMultiShopController))
-                    {
-                        shopTerminalBehavior.serverMultiShopController.Networkcost = purchaseInteraction.cost;
-                    }
-                }
+            On.RoR2.PurchaseInteraction.Awake += PurchaseInteraction_Awake;
+        }
+
+        public override void OnEnd()
+        {
+            On.RoR2.PurchaseInteraction.Awake -= PurchaseInteraction_Awake;
+        }
+
+        void PurchaseInteraction_Awake(On.RoR2.PurchaseInteraction.orig_Awake orig, PurchaseInteraction self)
+        {
+            orig(self);
+            multiplyCost(self);
+        }
+
+        void multiplyCost(PurchaseInteraction purchaseInteraction)
+        {
+            purchaseInteraction.ScaleCost(multiplier);
+
+            if (purchaseInteraction.TryGetComponent(out ShopTerminalBehavior shopTerminalBehavior) && shopTerminalBehavior.serverMultiShopController)
+            {
+                shopTerminalBehavior.serverMultiShopController.Networkcost = purchaseInteraction.cost;
             }
         }
     }

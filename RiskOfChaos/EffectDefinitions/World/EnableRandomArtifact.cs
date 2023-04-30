@@ -15,6 +15,8 @@ using System.Runtime.CompilerServices;
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("enable_random_artifact", EffectWeightReductionPercentagePerActivation = 20f)]
+    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [EffectConfigBackwardsCompatibility("Effect: Enable Random Artifact (Lasts 1 Stage)")]
     public sealed class EnableRandomArtifact : TimedEffect
     {
         [InitEffectInfo]
@@ -35,7 +37,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
                 string artifactName = Language.GetString(artifactDef.nameToken, "en");
 
-                SelectionWeight = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, $"{artifactName.FilterConfigKey()} Weight"), 1f, new ConfigDescription($"How likely the {artifactName} is to be picked, higher value means more likely, lower value means less likely.\n\nA value of 0 will exclude it completely"));
+                SelectionWeight = _effectInfo.BindConfig($"{artifactName.FilterConfigKey()} Weight", 1f, new ConfigDescription($"How likely the {artifactName} is to be picked, higher value means more likely, lower value means less likely.\n\nA value of 0 will exclude it completely"));
                 addConfigOption(new StepSliderOption(SelectionWeight, new StepSliderConfig
                 {
                     formatString = "{0:F1}",
@@ -92,8 +94,6 @@ namespace RiskOfChaos.EffectDefinitions.World
         }
 
         ArtifactDef _enabledArtifact;
-
-        public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
 
         public override void OnStart()
         {

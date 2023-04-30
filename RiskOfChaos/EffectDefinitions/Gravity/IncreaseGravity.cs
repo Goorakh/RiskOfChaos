@@ -11,6 +11,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.Gravity
 {
     [ChaosEffect("increase_gravity", ConfigName = "Increase Gravity", EffectWeightReductionPercentagePerActivation = 25f)]
+    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
     public sealed class IncreaseGravity : GenericMultiplyGravityEffect
     {
         [InitEffectInfo]
@@ -24,7 +25,7 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void InitConfigs()
         {
-            _gravityIncrease = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Increase per Activation"), GRAVITY_INCREASE_DEFAULT_VALUE, new ConfigDescription("How much gravity should increase per effect activation, 50% means the gravity is multiplied by 1.5, 100% means the gravity is multiplied by 2, etc."));
+            _gravityIncrease = _effectInfo.BindConfig("Increase per Activation", GRAVITY_INCREASE_DEFAULT_VALUE, new ConfigDescription("How much gravity should increase per effect activation, 50% means the gravity is multiplied by 1.5, 100% means the gravity is multiplied by 2, etc."));
             addConfigOption(new StepSliderOption(_gravityIncrease, new StepSliderConfig
             {
                 min = 0f,

@@ -13,6 +13,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("increase_proc_coefficients", ConfigName = "Increase Proc Coefficients")]
+    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
     public sealed class IncreaseProcCoefficients : TimedEffect
     {
         [InitEffectInfo]
@@ -39,7 +40,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void InitConfigs()
         {
-            _multiplierPerActivationConfig = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Proc Multiplier"), MULTIPLIER_PER_ACTIVATION_DEFAULT_VALUE);
+            _multiplierPerActivationConfig = _effectInfo.BindConfig("Proc Multiplier", MULTIPLIER_PER_ACTIVATION_DEFAULT_VALUE, null);
 
             addConfigOption(new StepSliderOption(_multiplierPerActivationConfig, new StepSliderConfig
             {
@@ -58,8 +59,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 multiplierPerActivation
             };
         }
-
-        public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
 
         static bool _hasAppliedPatches = false;
         static void tryApplyPatches()

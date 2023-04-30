@@ -164,7 +164,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             if (isServer)
             {
-                Chat.SendBroadcastChat(new Chat.SimpleChatMessage { baseToken = effect.GetActivationMessage() });
+                Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                {
+                    baseToken = "CHAOS_EFFECT_ACTIVATE",
+                    paramTokens = new string[] { ChaosEffectCatalog.GetEffectDisplayName(effect) }
+                });
 
                 bool canActivate = (dispatchFlags & EffectDispatchFlags.CheckCanActivate) == 0 || effect.CanActivate(EffectCanActivateContext.Now);
 
@@ -191,7 +195,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 effectRNGSeed = 0UL;
             }
 
-            BaseEffect effectInstance = effect.InstantiateEffect(effectRNGSeed);
+            BaseEffect effectInstance = ChaosEffectCatalog.CreateEffectInstance(effect, new CreateEffectInstanceArgs(effectRNGSeed));
             if (effectInstance != null)
             {
                 if (isServer)

@@ -11,6 +11,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
 {
     [ChaosEffect("increase_interactable_costs", DefaultSelectionWeight = 0.8f, ConfigName = "Increase Chest Prices")]
+    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
     public sealed class IncreaseInteractableCosts : GenericMultiplyPurchaseInteractionCostsEffect
     {
         [InitEffectInfo]
@@ -36,7 +37,7 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            _increaseAmount = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Increase Amount"), INCREASE_AMOUNT_DEFAULT_VALUE, new ConfigDescription("The amount to increase costs by"));
+            _increaseAmount = _effectInfo.BindConfig("Increase Amount", INCREASE_AMOUNT_DEFAULT_VALUE, new ConfigDescription("The amount to increase costs by"));
             addConfigOption(new StepSliderOption(_increaseAmount, new StepSliderConfig
             {
                 formatString = "+{0:P0}",

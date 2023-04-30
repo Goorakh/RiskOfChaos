@@ -6,6 +6,8 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("guaranteed_chance_rolls", DefaultSelectionWeight = 0.9f, EffectStageActivationCountHardCap = 1, IsNetworked = true)]
+    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [EffectConfigBackwardsCompatibility("Effect: Guaranteed Chance Effects (Lasts 1 stage)")]
     public sealed class GuaranteedChanceRolls : TimedEffect
     {
         [InitEffectInfo]
@@ -26,8 +28,6 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             _hasAppliedPatches = true;
         }
-
-        public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
 
         public override void OnStart()
         {

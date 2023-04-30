@@ -44,7 +44,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
                 string equipmentName = Language.GetString(equipmentDef.nameToken, "en");
 
-                _equipmentWeightConfig = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, $"{equipmentName.FilterConfigKey()} Weight"), 1f, new ConfigDescription($"How likely {equipmentName} is to be selected"));
+                _equipmentWeightConfig = _effectInfo.BindConfig($"{equipmentName.FilterConfigKey()} Weight", 1f, new ConfigDescription($"How likely {equipmentName} is to be selected"));
 
                 addConfigOption(new StepSliderOption(_equipmentWeightConfig, new StepSliderConfig
                 {

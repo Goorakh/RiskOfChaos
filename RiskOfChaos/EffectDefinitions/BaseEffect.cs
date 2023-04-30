@@ -18,7 +18,7 @@ namespace RiskOfChaos.EffectDefinitions
             RNG.ResetSeed(_rngSeed);
         }
 
-        public void Initialize(ulong rngSeed)
+        public void Initialize(in CreateEffectInstanceArgs args)
         {
             if (_isInitialized)
             {
@@ -26,7 +26,7 @@ namespace RiskOfChaos.EffectDefinitions
                 return;
             }
 
-            _rngSeed = rngSeed;
+            _rngSeed = args.RNGSeed;
 
             _isInitialized = true;
         }

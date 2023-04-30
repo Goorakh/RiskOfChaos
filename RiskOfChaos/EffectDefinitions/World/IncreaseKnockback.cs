@@ -13,6 +13,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("increase_knockback", ConfigName = "Increase Knockback", EffectWeightReductionPercentagePerActivation = 30f)]
+    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
     public sealed class IncreaseKnockback : TimedEffect, IKnockbackModificationProvider
     {
         [InitEffectInfo]
@@ -42,7 +43,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void InitConfigs()
         {
-            _knockbackMultiplierConfig = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Knockback Multiplier"), KNOCKBACK_MULTIPLIER_DEFAULT_VALUE, new ConfigDescription("The multiplier used to increase knockback while the effect is active"));
+            _knockbackMultiplierConfig = _effectInfo.BindConfig("Knockback Multiplier", KNOCKBACK_MULTIPLIER_DEFAULT_VALUE, new ConfigDescription("The multiplier used to increase knockback while the effect is active"));
 
             addConfigOption(new StepSliderOption(_knockbackMultiplierConfig, new StepSliderConfig
             {
@@ -71,8 +72,6 @@ namespace RiskOfChaos.EffectDefinitions.World
         {
             value *= knockbackMultiplier;
         }
-
-        public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
 
         public override void OnStart()
         {

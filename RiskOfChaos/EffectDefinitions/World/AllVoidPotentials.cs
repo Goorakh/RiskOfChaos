@@ -11,6 +11,8 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("all_void_potentials", EffectStageActivationCountHardCap = 1)]
+    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [EffectConfigBackwardsCompatibility("Effect: All Items Are Void Potentials (Lasts 1 stage)")]
     public sealed class AllVoidPotentials : TimedEffect
     {
         static readonly GameObject _optionPickupPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/OptionPickup/OptionPickup.prefab").WaitForCompletion();
@@ -20,8 +22,6 @@ namespace RiskOfChaos.EffectDefinitions.World
         {
             return _optionPickupPrefab;
         }
-
-        public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
 
         public override void OnStart()
         {

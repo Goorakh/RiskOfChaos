@@ -85,7 +85,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void InitConfigs()
         {
-            _spawnCountConfig = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Spawn Count"), SPAWN_COUNT_DEFAULT_VALUE, new ConfigDescription("How many drones should be spawned"));
+            _spawnCountConfig = _effectInfo.BindConfig("Spawn Count", SPAWN_COUNT_DEFAULT_VALUE, new ConfigDescription("How many drones should be spawned"));
 
             addConfigOption(new IntSliderOption(_spawnCountConfig, new IntSliderConfig
             {

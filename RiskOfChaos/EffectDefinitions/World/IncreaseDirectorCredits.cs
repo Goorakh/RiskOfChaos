@@ -9,6 +9,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("increase_director_credits", EffectWeightReductionPercentagePerActivation = 35f)]
+    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
     public sealed class IncreaseDirectorCredits : TimedEffect
     {
         [InitEffectInfo]
@@ -39,8 +40,6 @@ namespace RiskOfChaos.EffectDefinitions.World
         {
             return !context.IsNow || CombatDirector.instancesList.Count > 0;
         }
-
-        public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
 
         public override void OnStart()
         {

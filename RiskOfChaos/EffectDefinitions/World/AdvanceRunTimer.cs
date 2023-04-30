@@ -45,7 +45,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void InitConfig()
         {
-            _numMinutesToAdd = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Minutes To Add"), NUM_MINUTES_TO_ADD_DEFAULT_VALUE, new ConfigDescription("The amount of minutes to advance the run timer by"));
+            _numMinutesToAdd = _effectInfo.BindConfig("Minutes To Add", NUM_MINUTES_TO_ADD_DEFAULT_VALUE, new ConfigDescription("The amount of minutes to advance the run timer by"));
 
             addConfigOption(new IntSliderOption(_numMinutesToAdd, new IntSliderConfig
             {

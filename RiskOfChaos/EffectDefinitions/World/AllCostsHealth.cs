@@ -6,10 +6,10 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("all_costs_health", DefaultSelectionWeight = 0.8f, EffectStageActivationCountHardCap = 1)]
+    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [EffectConfigBackwardsCompatibility("Effect: Blood Money (Lasts 1 stage)")]
     public sealed class AllCostsHealth : TimedEffect
     {
-        public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
-
         public override void OnStart()
         {
             foreach (PurchaseInteraction purchaseInteraction in InstanceTracker.GetInstancesList<PurchaseInteraction>())

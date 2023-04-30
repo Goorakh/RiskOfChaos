@@ -10,6 +10,8 @@ using System.Linq;
 namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
     [ChaosEffect("random_buff")]
+    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [EffectConfigBackwardsCompatibility("Effect: Give Everyone a Random Buff (Lasts 1 stage)")]
     public sealed class RandomBuff : ApplyBuffEffect
     {
         static bool _hasAppliedPatches = false;
@@ -159,8 +161,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         {
             return _availableBuffIndices != null && filterSelectableBuffs(_availableBuffIndices).Any();
         }
-
-        public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
 
         public override void OnPreStartServer()
         {

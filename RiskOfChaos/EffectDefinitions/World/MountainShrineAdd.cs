@@ -23,7 +23,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            _numShrinesPerActivation = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Shrines per Activation"), 2, new ConfigDescription("The amount of mountain shrines to activate each time this effect is activated"));
+            _numShrinesPerActivation = _effectInfo.BindConfig("Shrines per Activation", 2, new ConfigDescription("The amount of mountain shrines to activate each time this effect is activated"));
             addConfigOption(new IntSliderOption(_numShrinesPerActivation, new IntSliderConfig
             {
                 min = 1,

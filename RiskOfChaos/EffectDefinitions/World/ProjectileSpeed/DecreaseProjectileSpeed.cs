@@ -11,6 +11,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.World.ProjectileSpeed
 {
     [ChaosEffect("decrease_projectile_speed", ConfigName = "Decrease Projectile Speed")]
+    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
     public sealed class DecreaseProjectileSpeed : GenericProjectileSpeedEffect
     {
         [InitEffectInfo]
@@ -37,7 +38,7 @@ namespace RiskOfChaos.EffectDefinitions.World.ProjectileSpeed
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void InitConfigs()
         {
-            _projectileSpeedDecreaseConfig = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Projectile Speed Decrease"), PROJECTILE_SPEED_DECREASE_DEFAULT_VALUE);
+            _projectileSpeedDecreaseConfig = _effectInfo.BindConfig("Projectile Speed Decrease", PROJECTILE_SPEED_DECREASE_DEFAULT_VALUE, null);
 
             addConfigOption(new StepSliderOption(_projectileSpeedDecreaseConfig, new StepSliderConfig
             {
@@ -56,8 +57,6 @@ namespace RiskOfChaos.EffectDefinitions.World.ProjectileSpeed
                 projectileSpeedDecrease
             };
         }
-
-        public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
 
         protected override float speedMultiplier => 1f - projectileSpeedDecrease;
     }

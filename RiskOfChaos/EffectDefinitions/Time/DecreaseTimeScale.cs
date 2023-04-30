@@ -11,6 +11,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.Time
 {
     [ChaosEffect("decrease_time_scale", ConfigName = "Decrease World Speed", EffectWeightReductionPercentagePerActivation = 20f)]
+    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
     public sealed class DecreaseTimeScale : GenericMultiplyTimeScaleEffect
     {
         [InitEffectInfo]
@@ -37,7 +38,7 @@ namespace RiskOfChaos.EffectDefinitions.Time
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            _timeScaleDecreaseConfig = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "World Speed Decrease"), TIME_SCALE_DECREASE_DEFAULT_VALUE);
+            _timeScaleDecreaseConfig = _effectInfo.BindConfig("World Speed Decrease", TIME_SCALE_DECREASE_DEFAULT_VALUE, null);
 
             addConfigOption(new StepSliderOption(_timeScaleDecreaseConfig, new StepSliderConfig
             {
@@ -47,8 +48,6 @@ namespace RiskOfChaos.EffectDefinitions.Time
                 increment = 0.01f
             }));
         }
-
-        public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
 
         protected override float multiplier => 1f - timeScaleDecrease;
 

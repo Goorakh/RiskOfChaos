@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using HG;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -123,6 +124,8 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly bool IsNetworked;
 
+        readonly string[] _previousConfigSectionNames;
+
         public ChaosEffectInfo(int effectIndex, ChaosEffectAttribute attribute)
         {
             EffectIndex = effectIndex;
@@ -133,6 +136,16 @@ namespace RiskOfChaos.EffectHandling
             if (attribute.target is Type effectType)
             {
                 EffectType = effectType;
+
+                EffectConfigBackwardsCompatibilityAttribute configBackwardsCompatibilityAttribute = EffectType.GetCustomAttribute<EffectConfigBackwardsCompatibilityAttribute>();
+                if (configBackwardsCompatibilityAttribute != null)
+                {
+                    _previousConfigSectionNames = configBackwardsCompatibilityAttribute.ConfigSectionNames;
+                }
+                else
+                {
+                    _previousConfigSectionNames = Array.Empty<string>();
+                }
 
                 if (!typeof(BaseEffect).IsAssignableFrom(effectType))
                 {
@@ -161,15 +174,24 @@ namespace RiskOfChaos.EffectHandling
 
             ConfigSectionName = "Effect: " + (attribute.ConfigName ?? Language.GetString(NameToken, "en")).FilterConfigKey();
 
-            _isEnabledConfig = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Enabled"), true, new ConfigDescription("If the effect should be able to be picked"));
+            if (_previousConfigSectionNames != null && _previousConfigSectionNames.Length > 0)
+            {
+                int index = Array.IndexOf(_previousConfigSectionNames, ConfigSectionName);
+                if (index >= 0)
+                {
+                    ArrayUtils.ArrayRemoveAtAndResize(ref _previousConfigSectionNames, index);
+                }
+            }
 
-            _selectionWeightConfig = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Weight"), attribute.DefaultSelectionWeight, new ConfigDescription("How likely the effect is to be picked, higher value means more likely, lower value means less likely"));
+            _isEnabledConfig = BindConfig("Effect Enabled", true, new ConfigDescription("If the effect should be able to be picked"));
+
+            _selectionWeightConfig = BindConfig("Effect Weight", attribute.DefaultSelectionWeight, new ConfigDescription("How likely the effect is to be picked, higher value means more likely, lower value means less likely"));
 
             _weightReductionPerActivationDefaultValue = attribute.EffectWeightReductionPercentagePerActivation / 100f;
-            _weightReductionPerActivation = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Repetition Reduction Percentage"), _weightReductionPerActivationDefaultValue, new ConfigDescription("The percentage reduction to apply to the weight value per activation, setting this to any value above 0 will make the effect less likely to happen several times"));
+            _weightReductionPerActivation = BindConfig("Effect Repetition Reduction Percentage", _weightReductionPerActivationDefaultValue, new ConfigDescription("The percentage reduction to apply to the weight value per activation, setting this to any value above 0 will make the effect less likely to happen several times"));
 
             _effectRepetitionCountModeDefaultValue = attribute.EffectRepetitionWeightCalculationMode;
-            _effectRepetitionCountMode = Main.Instance.Config.Bind(new ConfigDefinition(ConfigSectionName, "Effect Repetition Count Mode"), _effectRepetitionCountModeDefaultValue, new ConfigDescription($"Controls how the Reduction Percentage will be applied.\n\n{nameof(EffectActivationCountMode.PerStage)}: Only the activations on the current stage are considered, and the weight reduction is reset on stage start.\n\n{nameof(EffectActivationCountMode.PerRun)}: All activations during the current run are considered."));
+            _effectRepetitionCountMode = BindConfig("Effect Repetition Count Mode", _effectRepetitionCountModeDefaultValue, new ConfigDescription($"Controls how the Reduction Percentage will be applied.\n\n{nameof(EffectActivationCountMode.PerStage)}: Only the activations on the current stage are considered, and the weight reduction is reset on stage start.\n\n{nameof(EffectActivationCountMode.PerRun)}: All activations during the current run are considered."));
 
             foreach (MemberInfo member in EffectType.GetMembers(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly)
                                                     .WithAttribute<MemberInfo, InitEffectMemberAttribute>())
@@ -179,6 +201,43 @@ namespace RiskOfChaos.EffectHandling
                     initEffectMember.ApplyTo(member, this);
                 }
             }
+        }
+
+        public readonly ConfigEntry<T> BindConfig<T>(string key, T defaultValue, ConfigDescription description, IEqualityComparer<T> valueComparer = null)
+        {
+            valueComparer ??= EqualityComparer<T>.Default;
+
+            ConfigDefinition configDefinition = new ConfigDefinition(ConfigSectionName, key);
+            if (Main.Instance.Config.TryGetEntry(configDefinition, out ConfigEntry<T> existingEntry))
+                return existingEntry;
+
+            ConfigEntry<T> result = Main.Instance.Config.Bind(configDefinition, defaultValue, description);
+
+            if (_previousConfigSectionNames != null)
+            {
+                for (int i = _previousConfigSectionNames.Length - 1; i >= 0; i--)
+                {
+                    // TryGetValue only works if the config is already binded, so we have to re-bind it every time to check :(
+                    ConfigEntry<T> previousConfigEntry = Main.Instance.Config.Bind(_previousConfigSectionNames[i], key, defaultValue);
+                    if (!valueComparer.Equals(previousConfigEntry.Value, defaultValue))
+                    {
+                        result.Value = previousConfigEntry.Value;
+
+#if DEBUG
+                        Log.Debug($"Previous config entry found for {ConfigSectionName}:{key}, overriding value");
+#endif
+
+                        break;
+                    }
+                }
+
+                foreach (string configSectionName in _previousConfigSectionNames)
+                {
+                    Main.Instance.Config.Remove(new ConfigDefinition(configSectionName, key));
+                }
+            }
+
+            return result;
         }
 
         internal readonly void Validate()
@@ -243,24 +302,6 @@ namespace RiskOfChaos.EffectHandling
             {
                 ChaosEffectCatalog.AddEffectConfigOption(new ChoiceOption(_effectRepetitionCountMode));
             }
-        }
-
-        public readonly BaseEffect InstantiateEffect(ulong effectRNGSeed)
-        {
-            if (EffectType == null)
-            {
-                Log.Error($"Cannot instantiate effect {Identifier}, {nameof(EffectType)} is null!");
-                return null;
-            }
-
-            BaseEffect effectInstance = (BaseEffect)Activator.CreateInstance(EffectType);
-            effectInstance.Initialize(effectRNGSeed);
-            return effectInstance;
-        }
-
-        public readonly string GetActivationMessage()
-        {
-            return Language.GetStringFormatted("CHAOS_EFFECT_ACTIVATE", DisplayName);
         }
 
         public override readonly string ToString()

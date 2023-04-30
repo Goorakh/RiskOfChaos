@@ -35,8 +35,6 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
 
         public abstract void ModifyValue(ref Vector3 gravity);
 
-        public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
-
         public override void OnStart()
         {
             if (NetworkServer.active && GravityModificationManager.Instance)

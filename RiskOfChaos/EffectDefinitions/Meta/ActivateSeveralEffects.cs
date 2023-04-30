@@ -38,7 +38,7 @@ namespace RiskOfChaos.EffectDefinitions.Meta
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void InitConfig()
         {
-            _numEffectsToActivateConfig = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Effect Count"), NUM_EFFECTS_TO_ACTIVATE_DEFAULT_VALUE, new ConfigDescription("How many effects should be activated by this effect"));
+            _numEffectsToActivateConfig = _effectInfo.BindConfig("Effect Count", NUM_EFFECTS_TO_ACTIVATE_DEFAULT_VALUE, new ConfigDescription("How many effects should be activated by this effect"));
 
             addConfigOption(new IntSliderOption(_numEffectsToActivateConfig, new IntSliderConfig
             {

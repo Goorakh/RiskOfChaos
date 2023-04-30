@@ -92,7 +92,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             ConfigEntry<float> addWeightConfig(string name, float defaultValue)
             {
-                ConfigEntry<float> config = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, $"Weight: {name}"), defaultValue, new ConfigDescription($"Controls how likely {name} are to be given\n\nA value of 0 means items from this tier will never be given"));
+                ConfigEntry<float> config = _effectInfo.BindConfig($"Weight: {name}", defaultValue, new ConfigDescription($"Controls how likely {name} are to be given\n\nA value of 0 means items from this tier will never be given"));
+
                 addConfigOption(new StepSliderOption(config, new StepSliderConfig
                 {
                     formatString = "{0:F2}",

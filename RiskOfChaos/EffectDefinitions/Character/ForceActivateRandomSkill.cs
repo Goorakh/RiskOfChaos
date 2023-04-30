@@ -4,12 +4,12 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.ModifierController.SkillSlots;
 using RoR2;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("force_activate_random_skill", DefaultSelectionWeight = 0.3f, EffectWeightReductionPercentagePerActivation = 80f)]
+    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [EffectConfigBackwardsCompatibility("Effect: Force Activate Random Skill (Lasts 1 stage)")]
     public sealed class ForceActivateRandomSkill : TimedEffect, ISkillSlotModificationProvider
     {
         [EffectCanActivate]
@@ -17,8 +17,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             return SkillSlotModificationManager.Instance && SkillSlotModificationManager.Instance.NonLockedNonForceActivatedSkillSlots.Length > 0;
         }
-
-        public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
 
         SkillSlot _forcedSkillSlot;
 

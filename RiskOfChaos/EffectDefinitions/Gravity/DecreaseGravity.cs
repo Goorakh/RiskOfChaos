@@ -11,6 +11,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.Gravity
 {
     [ChaosEffect("decrease_gravity", ConfigName = "Decrease Gravity", EffectWeightReductionPercentagePerActivation = 25f)]
+    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
     public sealed class DecreaseGravity : GenericMultiplyGravityEffect
     {
         [InitEffectInfo]
@@ -24,7 +25,7 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            _gravityDecrease = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Decrease per Activation"), GRAVITY_DECREASE_DEFAULT_VALUE, new ConfigDescription("How much gravity should decrease per effect activation, 50% means the gravity is multiplied by 0.5, 100% means the gravity is reduced to 0, 0% means gravity doesn't change at all. etc."));
+            _gravityDecrease = _effectInfo.BindConfig("Decrease per Activation", GRAVITY_DECREASE_DEFAULT_VALUE, new ConfigDescription("How much gravity should decrease per effect activation, 50% means the gravity is multiplied by 0.5, 100% means the gravity is reduced to 0, 0% means gravity doesn't change at all. etc."));
             addConfigOption(new StepSliderOption(_gravityDecrease, new StepSliderConfig
             {
                 min = 0f,

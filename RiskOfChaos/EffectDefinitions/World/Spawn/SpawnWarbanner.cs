@@ -36,7 +36,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void InitConfigs()
         {
-            _warbannerItemCount = Main.Instance.Config.Bind<int>(new ConfigDefinition(_effectInfo.ConfigSectionName, "Item Stack Count"), WARBANNER_ITEM_COUNT_DEFAULT_VALUE, new ConfigDescription("The amount of item stacks to mimic when spawning a warbanner"));
+            _warbannerItemCount = _effectInfo.BindConfig("Item Stack Count", WARBANNER_ITEM_COUNT_DEFAULT_VALUE, new ConfigDescription("The amount of item stacks to mimic when spawning a warbanner"));
             addConfigOption(new IntSliderOption(_warbannerItemCount, new IntSliderConfig
             {
                 min = 1,

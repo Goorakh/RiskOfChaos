@@ -6,6 +6,8 @@ using System.Collections.Generic;
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("all_skills_agile", EffectStageActivationCountHardCap = 1, IsNetworked = true)]
+    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [EffectConfigBackwardsCompatibility("Effect: All Skills are Agile (Lasts 1 stage)")]
     public sealed class AllSkillsAgile : TimedEffect
     {
         readonly struct SkillDefIsAgileOverride
@@ -35,8 +37,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 SkillDef.canceledFromSprinting = OriginalCanceledFromSprinting;
             }
         }
-
-        public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
 
         readonly List<SkillDefIsAgileOverride> _skillIsAgileOverrides = new List<SkillDefIsAgileOverride>();
 

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling
 {
@@ -24,6 +25,12 @@ namespace RiskOfChaos.EffectHandling
 
         static int _effectCount;
         public static int EffectCount => _effectCount;
+
+        public delegate void EffectDisplayNameModifier(in ChaosEffectInfo effectInfo, ref string displayName);
+        public static event EffectDisplayNameModifier EffectDisplayNameModificationProvider;
+
+        public delegate void OnEffectInstantiatedDelegate(in ChaosEffectInfo effectInfo, in CreateEffectInstanceArgs args, BaseEffect instance);
+        public static event OnEffectInstantiatedDelegate OnEffectInstantiatedServer;
 
         internal static void InitConfig()
         {
@@ -71,6 +78,11 @@ namespace RiskOfChaos.EffectHandling
                     Log.Error($"Effect Find Test: {effectInfo.Identifier} failed case-insensitive check");
                 }
             }
+        }
+
+        public static IEnumerable<ChaosEffectInfo> AllEffects()
+        {
+            return Enumerable.Range(0, EffectCount).Select(i => GetEffectInfo((uint)i));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -153,6 +165,34 @@ namespace RiskOfChaos.EffectHandling
             }
 
             return effect;
+        }
+
+        public static string GetEffectDisplayName(in ChaosEffectInfo effectInfo)
+        {
+            string displayName = effectInfo.DisplayName;
+
+            EffectDisplayNameModificationProvider?.Invoke(effectInfo, ref displayName);
+
+            return displayName;
+        }
+
+        public static BaseEffect CreateEffectInstance(in ChaosEffectInfo effectInfo, in CreateEffectInstanceArgs args)
+        {
+            if (effectInfo.EffectType == null)
+            {
+                Log.Error($"Cannot instantiate effect {effectInfo}, {nameof(effectInfo.EffectType)} is null!");
+                return null;
+            }
+
+            BaseEffect effectInstance = (BaseEffect)Activator.CreateInstance(effectInfo.EffectType);
+            effectInstance.Initialize(args);
+
+            if (NetworkServer.active)
+            {
+                OnEffectInstantiatedServer?.Invoke(effectInfo, args, effectInstance);
+            }
+
+            return effectInstance;
         }
     }
 }
