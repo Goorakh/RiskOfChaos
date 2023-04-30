@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 {
-    [ChaosEffect("spawn_random_ally")]
+    [ChaosEffect("spawn_random_ally", DefaultSelectionWeight = 0.9f)]
     public sealed class SpawnRandomAlly : GenericSpawnCombatCharacterEffect
     {
         static CharacterSpawnEntry[] _spawnEntries;

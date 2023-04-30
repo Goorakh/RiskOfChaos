@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("all_costs_health", EffectStageActivationCountHardCap = 1)]
+    [ChaosEffect("all_costs_health", DefaultSelectionWeight = 0.8f, EffectStageActivationCountHardCap = 1)]
     public sealed class AllCostsHealth : TimedEffect
     {
         public override TimedEffectType TimedType => TimedEffectType.UntilStageEnd;
