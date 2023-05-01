@@ -16,7 +16,7 @@ namespace RiskOfChaos.EffectDefinitions.Time
 
         protected abstract float multiplier { get; }
 
-        public event Action OnValueDirty;
+        public abstract event Action OnValueDirty;
 
         public void ModifyValue(ref float value)
         {

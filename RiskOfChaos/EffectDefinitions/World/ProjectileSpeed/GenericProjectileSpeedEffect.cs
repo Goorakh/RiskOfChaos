@@ -14,7 +14,7 @@ namespace RiskOfChaos.EffectDefinitions.World.ProjectileSpeed
 
         protected abstract float speedMultiplier { get; }
 
-        public event Action OnValueDirty;
+        public abstract event Action OnValueDirty;
 
         public void ModifyValue(ref ProjectileModificationData value)
         {

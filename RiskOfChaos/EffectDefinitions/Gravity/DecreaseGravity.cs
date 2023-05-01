@@ -1,12 +1,15 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
+using System;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Gravity
 {
@@ -26,6 +29,18 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
         static void Init()
         {
             _gravityDecrease = _effectInfo.BindConfig("Decrease per Activation", GRAVITY_DECREASE_DEFAULT_VALUE, new ConfigDescription("How much gravity should decrease per effect activation, 50% means the gravity is multiplied by 0.5, 100% means the gravity is reduced to 0, 0% means gravity doesn't change at all. etc."));
+
+            _gravityDecrease.SettingChanged += (o, e) =>
+            {
+                if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                    return;
+
+                foreach (DecreaseGravity effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<DecreaseGravity>())
+                {
+                    effectInstance.OnValueDirty?.Invoke();
+                }
+            };
+
             addConfigOption(new StepSliderOption(_gravityDecrease, new StepSliderConfig
             {
                 min = 0f,
@@ -34,6 +49,8 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
                 formatString = "-{0:P0}"
             }));
         }
+
+        public override event Action OnValueDirty;
 
         protected override float multiplier => 1f - gravityDecrease;
 

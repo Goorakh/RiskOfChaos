@@ -1,12 +1,15 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
+using System;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Time
 {
@@ -40,6 +43,17 @@ namespace RiskOfChaos.EffectDefinitions.Time
         {
             _timeScaleIncreaseConfig = _effectInfo.BindConfig("World Speed Increase", TIME_SCALE_INCREASE_DEFAULT_VALUE, null);
 
+            _timeScaleIncreaseConfig.SettingChanged += (o, e) =>
+            {
+                if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                    return;
+
+                foreach (IncreaseTimeScale effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<IncreaseTimeScale>())
+                {
+                    effectInstance.OnValueDirty?.Invoke();
+                }
+            };
+
             addConfigOption(new StepSliderOption(_timeScaleIncreaseConfig, new StepSliderConfig
             {
                 formatString = "+{0:P0}",
@@ -48,6 +62,8 @@ namespace RiskOfChaos.EffectDefinitions.Time
                 increment = 0.01f
             }));
         }
+
+        public override event Action OnValueDirty;
 
         protected override float multiplier => 1f + timeScaleIncrease;
 

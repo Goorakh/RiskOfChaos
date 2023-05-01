@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -9,6 +10,7 @@ using RiskOfOptions.Options;
 using RoR2;
 using System;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
@@ -44,6 +46,17 @@ namespace RiskOfChaos.EffectDefinitions.World
         static void InitConfigs()
         {
             _knockbackMultiplierConfig = _effectInfo.BindConfig("Knockback Multiplier", KNOCKBACK_MULTIPLIER_DEFAULT_VALUE, new ConfigDescription("The multiplier used to increase knockback while the effect is active"));
+
+            _knockbackMultiplierConfig.SettingChanged += (o, e) =>
+            {
+                if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                    return;
+
+                foreach (IncreaseKnockback effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<IncreaseKnockback>())
+                {
+                    effectInstance.OnValueDirty?.Invoke();
+                }
+            };
 
             addConfigOption(new StepSliderOption(_knockbackMultiplierConfig, new StepSliderConfig
             {

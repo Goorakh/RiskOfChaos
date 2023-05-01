@@ -1,12 +1,15 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
+using System;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Gravity
 {
@@ -26,6 +29,18 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
         static void InitConfigs()
         {
             _gravityIncrease = _effectInfo.BindConfig("Increase per Activation", GRAVITY_INCREASE_DEFAULT_VALUE, new ConfigDescription("How much gravity should increase per effect activation, 50% means the gravity is multiplied by 1.5, 100% means the gravity is multiplied by 2, etc."));
+
+            _gravityIncrease.SettingChanged += (o, e) =>
+            {
+                if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                    return;
+
+                foreach (IncreaseGravity effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<IncreaseGravity>())
+                {
+                    effectInstance.OnValueDirty?.Invoke();
+                }
+            };
+
             addConfigOption(new StepSliderOption(_gravityIncrease, new StepSliderConfig
             {
                 min = 0f,
@@ -34,6 +49,8 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
                 formatString = "+{0:P0}"
             }));
         }
+
+        public override event Action OnValueDirty;
 
         protected override float multiplier => 1f + gravityIncrease;
 

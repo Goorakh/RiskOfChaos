@@ -5,6 +5,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
+using System;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Gravity
@@ -51,6 +52,8 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
                 increment = 0.5f
             }));
         }
+
+        public override event Action OnValueDirty;
 
         Quaternion _gravityRotation;
 

@@ -1,12 +1,15 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
+using System;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.ProjectileSpeed
 {
@@ -40,6 +43,17 @@ namespace RiskOfChaos.EffectDefinitions.World.ProjectileSpeed
         {
             _projectileSpeedIncreaseConfig = _effectInfo.BindConfig("Projectile Speed Increase", PROJECTILE_SPEED_INCREASE_DEFAULT_VALUE, null);
 
+            _projectileSpeedIncreaseConfig.SettingChanged += (o, e) =>
+            {
+                if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                    return;
+
+                foreach (IncreaseProjectileSpeed effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<IncreaseProjectileSpeed>())
+                {
+                    effectInstance.OnValueDirty?.Invoke();
+                }
+            };
+
             addConfigOption(new StepSliderOption(_projectileSpeedIncreaseConfig, new StepSliderConfig
             {
                 formatString = "+{0:P0}",
@@ -57,6 +71,8 @@ namespace RiskOfChaos.EffectDefinitions.World.ProjectileSpeed
                 projectileSpeedIncrease
             };
         }
+
+        public override event Action OnValueDirty;
 
         protected override float speedMultiplier => 1f + projectileSpeedIncrease;
     }

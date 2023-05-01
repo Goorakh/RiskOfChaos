@@ -31,7 +31,7 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
             return currentScene && Array.BinarySearch(_invalidOnScenes, currentScene.sceneDefIndex) < 0;
         }
 
-        public event Action OnValueDirty;
+        public abstract event Action OnValueDirty;
 
         public abstract void ModifyValue(ref Vector3 gravity);
 
