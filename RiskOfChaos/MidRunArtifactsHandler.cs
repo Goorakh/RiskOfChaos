@@ -35,7 +35,7 @@ namespace RiskOfChaos
                 }
                 else if (artifactDef == RoR2Content.Artifacts.glassArtifactDef)
                 {
-                    onGlassEnabled();
+                    onGlassEnabledOrDisabled();
                 }
                 else if (artifactDef == RoR2Content.Artifacts.singleMonsterTypeArtifactDef)
                 {
@@ -54,7 +54,11 @@ namespace RiskOfChaos
         {
             if (Stage.instance)
             {
-                if (artifactDef == RoR2Content.Artifacts.singleMonsterTypeArtifactDef)
+                if (artifactDef == RoR2Content.Artifacts.glassArtifactDef)
+                {
+                    onGlassEnabledOrDisabled();
+                }
+                else if (artifactDef == RoR2Content.Artifacts.singleMonsterTypeArtifactDef)
                 {
                     onKinEnabledOrDisabled();
                 }
@@ -118,14 +122,14 @@ namespace RiskOfChaos
             }
         }
 
-        static void onGlassEnabled()
+        static void onGlassEnabledOrDisabled()
         {
             if (!NetworkServer.active)
                 return;
 
-            foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
+            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
             {
-                playerBody.MarkAllStatsDirty();
+                body.MarkAllStatsDirty();
             }
         }
     }
