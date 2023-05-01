@@ -58,6 +58,10 @@ namespace RiskOfChaos.ModifierController
             if (_modificationProvidersDirty)
                 return;
 
+#if DEBUG
+            Log.Debug_NoCallerPrefix($"{name} modification marked dirty");
+#endif
+
             RoR2Application.onNextUpdate += updateValueModifiers;
 
             _modificationProvidersDirty = true;
