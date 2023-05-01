@@ -29,7 +29,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 
         protected static IEnumerable<CharacterMaster> getAllValidMasterPrefabs()
         {
-            return MasterCatalog.allMasters.Where(masterPrefab =>
+            return MasterCatalog.allAiMasters.Where(masterPrefab =>
             {
                 if (!masterPrefab)
                     return false;
