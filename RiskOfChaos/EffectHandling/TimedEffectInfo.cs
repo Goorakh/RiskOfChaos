@@ -58,8 +58,11 @@ namespace RiskOfChaos.EffectHandling
             {
                 _defaultTimedType = timedEffectAttribute.TimedType;
 
-                // Effect Duration
                 _defaultDuration = timedEffectAttribute.DurationSeconds;
+                if (TimedType == TimedEffectType.FixedDuration)
+                {
+                    _durationConfig = effectInfo.BindConfig("Effect Duration", _defaultDuration, new ConfigDescription("How long the effect should last, in seconds"));
+                }
             }
             else
             {
