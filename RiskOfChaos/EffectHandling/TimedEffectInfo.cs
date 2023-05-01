@@ -69,14 +69,20 @@ namespace RiskOfChaos.EffectHandling
 
         public string ApplyTimedTypeSuffix(string effectName)
         {
-            return Language.GetStringFormatted("TIMED_EFFECT_NAME_FORMAT", effectName, TimedType switch
+            switch (TimedType)
             {
-                TimedEffectType.UntilNextEffect => Language.GetString("TIMED_TYPE_UNTIL_NEXT_EFFECT_NAME"),
-                TimedEffectType.UntilStageEnd => Language.GetString("TIMED_TYPE_UNTIL_STAGE_END_NAME"),
-                TimedEffectType.FixedDuration => Language.GetStringFormatted("TIMED_TYPE_FIXED_DURATION_NAME", DurationSeconds),
-                TimedEffectType.Permanent => Language.GetString("TIMED_TYPE_PERMANENT_NAME"),
-                _ => throw new NotImplementedException($"{TimedType} is not implemented"),
-            });
+                case TimedEffectType.UntilNextEffect:
+                    return Language.GetStringFormatted("TIMED_TYPE_UNTIL_NEXT_EFFECT_FORMAT", effectName);
+                case TimedEffectType.UntilStageEnd:
+                    return Language.GetStringFormatted("TIMED_TYPE_UNTIL_STAGE_END_FORMAT", effectName);
+                case TimedEffectType.FixedDuration:
+                    return Language.GetStringFormatted("TIMED_TYPE_FIXED_DURATION_FORMAT", effectName, DurationSeconds);
+                case TimedEffectType.Permanent:
+                    return Language.GetStringFormatted("TIMED_TYPE_PERMANENT_FORMAT", effectName);
+                default:
+                    Log.Warning($"Timed type {TimedType} is not implemented");
+                    return effectName;
+            }
         }
 
         internal void AddRiskOfOptionsEntries()

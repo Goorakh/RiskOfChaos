@@ -4,11 +4,10 @@
 		"CHAOS_EFFECT_ACTIVATE": "<style=cWorldEvent>Effect activated: <b>{0}</b></style>",
 		"CHAOS_EFFECT_VOTING_RANDOM_OPTION_NAME": "Random Effect",
 		
-		"TIMED_EFFECT_NAME_FORMAT": "{0} {1}",
-		"TIMED_TYPE_UNTIL_NEXT_EFFECT_NAME": "(Lasts until next effect)",
-		"TIMED_TYPE_UNTIL_STAGE_END_NAME": "(Lasts 1 stage)",
-		"TIMED_TYPE_FIXED_DURATION_NAME": "",
-		"TIMED_TYPE_PERMANENT_NAME": "",
+		"TIMED_TYPE_UNTIL_NEXT_EFFECT_FORMAT": "{0} (Lasts until next effect)",
+		"TIMED_TYPE_UNTIL_STAGE_END_FORMAT": "{0} (Lasts 1 stage)",
+		"TIMED_TYPE_FIXED_DURATION_FORMAT": "{0}",
+		"TIMED_TYPE_PERMANENT_FORMAT": "{0}",
 		
 		"EFFECT_NOTHING_NAME": "Nothing",
 		"EFFECT_RANDOM_PORTAL_ORB_NAME": "Spawn Random Portal Orb",
