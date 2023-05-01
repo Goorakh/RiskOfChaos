@@ -81,30 +81,30 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                     return false;
                 }
 
+                // Required for certain effects to work properly (ex Doppelganger & Mitosis)
+                if (MasterCatalog.FindAiMasterIndexForBody(bodyPrefab.bodyIndex) == MasterCatalog.MasterIndex.none)
+                {
+#if DEBUG
+                    Log.Debug($"Excluding body {bodyPrefab}: Missing AI controller");
+#endif
+                    return false;
+                }
+
                 switch (bodyPrefab.name)
                 {
                     case "AncientWispBody": // Unfinished
                     case "ArchWispBody": // Unfinished
                     case "Assassin2Body": // Unfinished
-                    case "AssassinBody": // Unfinished
-                    case "BackupDroneOldBody": // Has no attacks
                     case "BeetleBody": // Secondary will trap you forever
                     case "BeetleCrystalBody": // Secondary will trap you forever
                     case "BeetleGuardAllyBody": // Beetle guard reskin
                     case "BeetleGuardCrystalBody": // Beetle guard reskin
                     case "BeetleQueen2Body": // Way too annoying to move, also interactor range is terrible
-                    case "BomberBody": // Unfinished
-                    case "CommandoPerformanceTestBody": // Just default commando
                     case "Drone2Body": // Healing drone, no attacks
                     case "DroneCommanderBody": // No attacks without item
-                    case "EnforcerBody": // Unfinished
                     case "EngiWalkerTurretBody": // Can't be assigned client authority
-                    case "GolemBodyInvincible": // Exactly what it sounds like
-                    case "HANDBody": // Unfinished
                     case "JellyfishBody": // Dies on attacking
                     case "NullifierAllyBody": // Ally reskin
-                    case "PaladinBody": // Unfinished
-                    case "SniperBody": // Unfinished
                     case "VoidJailerAllyBody": // Ally reskin
                     case "VoidMegaCrabAllyBody": // Ally reskin
                     case "WispSoulBody": // Dies on a timer
