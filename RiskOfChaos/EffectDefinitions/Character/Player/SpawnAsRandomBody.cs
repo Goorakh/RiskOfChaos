@@ -33,7 +33,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
         static BodyPrefabEntry[] _availableBodyPrefabs;
 
-        [SystemInitializer(typeof(BodyCatalog))]
+        [SystemInitializer(typeof(BodyCatalog), typeof(SurvivorCatalog))]
         static void Init()
         {
             _availableBodyPrefabs = BodyCatalog.allBodyPrefabs.Where(bodyPrefabObj =>
@@ -135,7 +135,11 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                 float weight;
                 if (bodyPrefab.isChampion)
                 {
-                    weight = 0.3f;
+                    weight = 0.5f;
+                }
+                else if (SurvivorCatalog.FindSurvivorDefFromBody(bodyPrefabObj))
+                {
+                    weight = 1.2f;
                 }
                 else
                 {
@@ -234,10 +238,11 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                 return;
             }
 
-            master.bodyPrefab = weightedSelection.Evaluate(rng.nextNormalizedFloat).GetItem(rng);
+            WeightedSelection<BodyPrefabEntry>.ChoiceInfo bodyPrefabChoice = weightedSelection.GetChoice(weightedSelection.EvaluateToChoiceIndex(rng.nextNormalizedFloat));
+            master.bodyPrefab = bodyPrefabChoice.value.GetItem(rng);
 
 #if DEBUG
-            Log.Debug($"Override body prefab for {Util.GetBestMasterName(master)}: {master.bodyPrefab}");
+            Log.Debug($"Override body prefab for {Util.GetBestMasterName(master)}: {master.bodyPrefab} (weight={bodyPrefabChoice.weight}, {bodyPrefabChoice.weight / weightedSelection.totalWeight:P} chance)");
 #endif
 
             if (!master.IsDeadAndOutOfLivesServer())
