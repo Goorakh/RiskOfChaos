@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer combatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 68 different effects.
+Currently features 73 different effects.
 
 ### Twitch Integration:
 
@@ -20,7 +20,7 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Spawn Random Portal Orb: Spawns a random portal orb on the stage teleporter
 * Enable Random Artifact: Enables a random artifact. Lasts until end of stage.
 * Add Mountain Shrine: Adds a number of mountain shrines to the teleporter event, number of shrines added can be configured (default is 2)
-* Activate Teleporter: Forcefully activates the stage teleporter, whether you want it to or not
+* Activate Teleporter: Forcefully activates the stage teleporter
 * Give Random Item: Gives all players a random item
 * One Hit KO: Sets everything on the stage to 1 HP
 * Freeze!: Freezes every character on the stage for 4 seconds
@@ -84,6 +84,11 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Decrease Projectile Speed: Decreases the speed of all projectiles, lasts 1 stage (-50% by default, configurable)
 * Increase World Speed: Increases the game speed, but compensates all players to be slower, gives the illusion of everything else being faster, lasts 1 stage (+50% by default, configurable)
 * Decrease World Speed: Decreases the game speed, but compensates all players to be faster, gives the illusion of everything else being slower, lasts 1 stage (-50% by default, configurable)
+* Blood Money: All interactable prices are converted into percent health cost, lasts 1 stage
+* Force Activate Random Skill: Forces a random skill to constantly activate, lasts 1 stage
+* Spawn Random Enemy: Spawns a random enemy for every player
+* Spawn Random Ally: Spawns a random ally for every player
+* Respawn As Random Character: Respawns every player as a random character
 </details>
 
 FAQ:

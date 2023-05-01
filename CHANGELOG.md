@@ -1,5 +1,26 @@
 ## Changelog
 
+**1.4.0 Changes:**
+
+* Added 5 new effects:
+  * Blood Money: All interactable prices are converted into percent health cost, lasts 1 stage
+  * Force Activate Random Skill: Forces a random skill to constantly activate, lasts 1 stage
+  * Spawn Random Enemy: Spawns a random enemy for every player
+  * Spawn Random Ally: Spawns a random ally for every player
+  * Respawn As Random Character: Respawns every player as a random character
+
+* Increase Chest Prices:
+  * Fixed percent health costs being able to go above 99%
+
+* Spawn Random Boss:
+  * Added Void Devastator to spawn pool
+
+* Enable Random Artifact:
+  * Fixed non-player controlled allies not having the effect properly applied when Artifact of Glass is enabled
+
+* Spawn Void Seed:
+  * Fixed effect being able to activate if the stage doesn't allow one to spawn
+
 **1.3.0 Changes:**
 
 * Added 5 new effects:
