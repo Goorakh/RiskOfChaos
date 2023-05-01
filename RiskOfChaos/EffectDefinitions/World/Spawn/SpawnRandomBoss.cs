@@ -27,7 +27,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 if (spawnCard is MultiCharacterSpawnCard multiCharacterSpawnCard)
                 {
                     GameObject[] masterPrefabs = multiCharacterSpawnCard.masterPrefabs;
-                    return masterPrefabs != null && masterPrefabs.Length > 0 && Array.TrueForAll(masterPrefabs, isPrefabAvailable);
+                    return masterPrefabs != null && masterPrefabs.Length > 0 && Array.TrueForAll(masterPrefabs, isPrefabAvailable) && multiCharacterSpawnCard.HasValidSpawnLocation();
                 }
                 else
                 {

@@ -16,7 +16,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return _cscLemurian && DirectorCore.instance;
+            return DirectorCore.instance && _cscLemurian.HasValidSpawnLocation();
         }
 
         public override void OnStart()

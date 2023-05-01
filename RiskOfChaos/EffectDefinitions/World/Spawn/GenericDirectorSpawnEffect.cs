@@ -21,7 +21,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
             protected override bool isItemAvailable(TSpawnCard spawnCard)
             {
-                return base.isItemAvailable(spawnCard) && spawnCard && isPrefabAvailable(spawnCard.prefab);
+                return base.isItemAvailable(spawnCard) && spawnCard.HasValidSpawnLocation() && isPrefabAvailable(spawnCard.prefab);
             }
 
             protected virtual bool isPrefabAvailable(GameObject prefab)

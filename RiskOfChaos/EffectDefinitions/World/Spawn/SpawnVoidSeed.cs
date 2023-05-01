@@ -25,7 +25,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return ExpansionUtils.DLC1Enabled && _iscVoidCamp && DirectorCore.instance;
+            return ExpansionUtils.DLC1Enabled && _iscVoidCamp && DirectorCore.instance && SpawnUtils.HasValidSpawnLocation(_iscVoidCamp);
         }
 
         public override void OnStart()
