@@ -27,13 +27,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
             _spawnCards = new SpawnCardEntry[]
             {
-                getEntrySingle("RoR2/Base/PortalGoldshores/iscGoldshoresPortal.asset"),
-                getEntrySingle("RoR2/Base/PortalMS/iscMSPortal.asset"),
-                getEntrySingle("RoR2/Base/PortalShop/iscShopPortal.asset"),
+                getEntrySingle("RoR2/Base/PortalGoldshores/iscGoldshoresPortal.asset", 1.2f),
+                getEntrySingle("RoR2/Base/PortalMS/iscMSPortal.asset", 1.2f),
+                getEntrySingle("RoR2/Base/PortalShop/iscShopPortal.asset", 1.2f),
                 getEntrySingle("RoR2/DLC1/GameModes/InfiniteTowerRun/InfiniteTowerAssets/iscInfiniteTowerPortal.asset"),
-                getEntrySingle("RoR2/DLC1/DeepVoidPortal/iscDeepVoidPortal.asset"),
-                getEntrySingle("RoR2/DLC1/PortalVoid/iscVoidPortal.asset"),
-                getEntrySingle("RoR2/DLC1/VoidOutroPortal/iscVoidOutroPortal.asset")
+                getEntrySingle("RoR2/DLC1/DeepVoidPortal/iscDeepVoidPortal.asset", 0.8f),
+                getEntrySingle("RoR2/DLC1/PortalVoid/iscVoidPortal.asset", 0.8f),
+                getEntrySingle("RoR2/DLC1/VoidOutroPortal/iscVoidOutroPortal.asset", 0.8f)
             };
         }
 
