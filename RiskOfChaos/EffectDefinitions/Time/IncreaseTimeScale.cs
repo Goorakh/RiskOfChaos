@@ -21,7 +21,7 @@ namespace RiskOfChaos.EffectDefinitions.Time
         static readonly ChaosEffectInfo _effectInfo;
 
         static ConfigEntry<float> _timeScaleIncreaseConfig;
-        const float TIME_SCALE_INCREASE_DEFAULT_VALUE = 0.5f;
+        const float TIME_SCALE_INCREASE_DEFAULT_VALUE = 0.25f;
 
         static float timeScaleIncrease
         {
