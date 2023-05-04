@@ -10,7 +10,7 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly float Delay;
 
-        public bool IsNow => Delay <= 0f;
+        public readonly bool IsNow => Delay <= 0f;
 
         public EffectCanActivateContext(float delay)
         {
