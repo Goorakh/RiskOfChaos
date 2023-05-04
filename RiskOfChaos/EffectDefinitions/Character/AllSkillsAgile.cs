@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RoR2.Skills;
 using System.Collections.Generic;
 
@@ -10,6 +11,9 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [EffectConfigBackwardsCompatibility("Effect: All Skills are Agile (Lasts 1 stage)")]
     public sealed class AllSkillsAgile : TimedEffect
     {
+        [InitEffectInfo]
+        public static readonly ChaosEffectInfo EffectInfo;
+
         readonly struct SkillDefIsAgileOverride
         {
             public readonly SkillDef SkillDef;
