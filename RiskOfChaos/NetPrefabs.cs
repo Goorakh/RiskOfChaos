@@ -8,6 +8,7 @@ using RiskOfChaos.ModifierController.TimeScale;
 using RiskOfChaos.Networking.Components;
 using RoR2;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos
@@ -15,6 +16,8 @@ namespace RiskOfChaos
     public static class NetPrefabs
     {
         public static GameObject GenericTeamInventoryPrefab { get; private set; }
+
+        public static GameObject MonsterItemStealControllerPrefab { get; private set; }
 
         public static GameObject GravityControllerPrefab { get; private set; }
 
@@ -52,6 +55,19 @@ namespace RiskOfChaos
                 GenericTeamInventoryPrefab.AddComponent<Inventory>();
                 GenericTeamInventoryPrefab.AddComponent<EnemyInfoPanelInventoryProvider>();
                 GenericTeamInventoryPrefab.AddComponent<DestroyOnRunEnd>();
+            }
+
+            // MonsterItemStealControllerPrefab
+            {
+                GameObject itemStealControllerPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Brother/ItemStealController.prefab").WaitForCompletion();
+
+                MonsterItemStealControllerPrefab = itemStealControllerPrefab.InstantiateClone(Main.PluginGUID + "_" + "MonsterItemStealController", true);
+
+                NetworkedBodyAttachment networkedBodyAttachment = MonsterItemStealControllerPrefab.GetComponent<NetworkedBodyAttachment>();
+                networkedBodyAttachment.shouldParentToAttachedBody = true;
+
+                ItemStealController itemStealController = MonsterItemStealControllerPrefab.GetComponent<ItemStealController>();
+                itemStealController.stealInterval = 0.2f;
             }
 
             // NetworkGravityControllerPrefab

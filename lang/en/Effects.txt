@@ -82,5 +82,6 @@
 		"EFFECT_SPAWN_RANDOM_ENEMY_NAME": "Spawn Random Enemy",
 		"EFFECT_SPAWN_RANDOM_ALLY_NAME": "Spawn Random Ally",
 		"EFFECT_SPAWN_AS_RANDOM_BODY_NAME": "Respawn As Random Character",
+		"EFFECT_MONSTER_ITEM_STEAL_NAME": "Steal All Player Items",
 	}
 }
