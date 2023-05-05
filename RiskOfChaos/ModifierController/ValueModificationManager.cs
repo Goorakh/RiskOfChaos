@@ -1,4 +1,5 @@
 ﻿using RoR2;
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine.Networking;
@@ -10,6 +11,8 @@ namespace RiskOfChaos.ModifierController
         protected readonly HashSet<TModificationProvider> _modificationProviders = new HashSet<TModificationProvider>();
 
         const uint ANY_MODIFICATION_ACTIVE_DIRTY_BIT = 1 << 0;
+
+        public event Action OnValueModificationUpdated;
 
         bool _anyModificationActive;
         public bool AnyModificationActive
@@ -110,6 +113,8 @@ namespace RiskOfChaos.ModifierController
             AnyModificationActive = _modificationProviders.Count > 0;
 
             updateValueModifications();
+
+            OnValueModificationUpdated?.Invoke();
         }
 
         protected abstract void updateValueModifications();

@@ -61,19 +61,7 @@ namespace RiskOfChaos.EffectDefinitions.Time
             {
                 self.moveSpeed /= multiplier;
                 self.attackSpeed /= multiplier;
-
-                void tryMultiplyCooldown(GenericSkill skill)
-                {
-                    if (skill)
-                    {
-                        skill.cooldownScale *= multiplier;
-                    }
-                }
-
-                tryMultiplyCooldown(self.skillLocator.primary);
-                tryMultiplyCooldown(self.skillLocator.secondary);
-                tryMultiplyCooldown(self.skillLocator.special);
-                tryMultiplyCooldown(self.skillLocator.utility);
+                self.acceleration /= multiplier;
             }
         }
     }
