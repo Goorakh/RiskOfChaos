@@ -4,6 +4,7 @@ using RiskOfChaos.ModifierController.TimeScale;
 using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.UI;
+using System;
 using System.Linq;
 using System.Text;
 using UnityEngine;
@@ -50,7 +51,16 @@ namespace RiskOfChaos.Patches
 
         static float GenericSkill_CalculateFinalRechargeInterval(On.RoR2.GenericSkill.orig_CalculateFinalRechargeInterval orig, GenericSkill self)
         {
-            float result = orig(self);
+            float result;
+            try
+            {
+                result = orig(self);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e, self);
+                return 0f;
+            }
 
             if (self.characterBody && self.characterBody.isPlayerControlled)
             {
