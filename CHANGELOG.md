@@ -1,5 +1,30 @@
 ## Changelog
 
+**1.4.1 Changes:**
+
+* Added 1 new effect:
+  * Steal All Player Items: Steals all items from every player and distributes them among enemies, damage the enemy that took items to gain them back (leaving the stage will also give all the items back)
+
+* All Skills are Agile:
+  * Fixed Bandit revolvers (Lights Out & Desperado) not being able to fire while sprinting
+  * Fixed Railgunner unscoping while sprinting
+  * Fixed Acrid primary not dealing damage while sprinting
+  * Fixed MUL-T Nailgun cancelling when sprinting
+  * Fixed MUL-T Power Mode cancelling when sprinting
+  * Fixed Void Fiend corrupt primary cancelling when sprinting
+
+* World Speed Effects:
+  * Increase World Speed:
+    * Change default increase amount: +50% -> +25%
+  * Decrease World Speed:
+    * Change default decrease amount: -50% -> -25%
+  * This will not change any existing configs, just the default value if you reset it
+  * Fixed extremely slidy player movement if world speed was decreased by a lot
+  * Player skills and equipment are now adjusted properly to always have the same realtime cooldown
+
+* Misc:
+  * Fixed a bug that would sometimes cause 2 effects to activate at once
+
 **1.4.0 Changes:**
 
 * Added 5 new effects:
