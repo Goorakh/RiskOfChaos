@@ -2,7 +2,7 @@
 
 namespace RiskOfChaos.ModifierController.TimeScale
 {
-    public class TimeScaleModificationManager : ValueModificationManager<ITimeScaleModificationProvider, float>
+    public class TimeScaleModificationManager : NetworkedValueModificationManager<ITimeScaleModificationProvider, float>
     {
         static TimeScaleModificationManager _instance;
         public static TimeScaleModificationManager Instance => _instance;

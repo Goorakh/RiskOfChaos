@@ -1,18 +1,47 @@
 ﻿using RoR2;
 using System;
 using System.Collections.Generic;
-using UnityEngine;
+using System.Runtime.InteropServices;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController
 {
-    public abstract class ValueModificationManager<TModificationProvider, TValue> : MonoBehaviour, IValueModificationManager<TModificationProvider, TValue> where TModificationProvider : IValueModificationProvider<TValue>
+    public abstract class NetworkedValueModificationManager<TModificationProvider, TValue> : NetworkBehaviour, IValueModificationManager<TModificationProvider, TValue> where TModificationProvider : IValueModificationProvider<TValue>
     {
         protected readonly HashSet<TModificationProvider> _modificationProviders = new HashSet<TModificationProvider>();
 
+        const uint ANY_MODIFICATION_ACTIVE_DIRTY_BIT = 1 << 0;
+
         public event Action OnValueModificationUpdated;
 
-        public bool AnyModificationActive { get; private set; }
+        bool _anyModificationActive;
+        public bool AnyModificationActive
+        {
+            get
+            {
+                return _anyModificationActive;
+            }
+
+            [param: In]
+            private set
+            {
+                if (NetworkServer.localClientActive && !syncVarHookGuard)
+                {
+                    syncVarHookGuard = true;
+                    syncAnyModificationActive(value);
+                    syncVarHookGuard = false;
+                }
+
+                SetSyncVar(value, ref _anyModificationActive, ANY_MODIFICATION_ACTIVE_DIRTY_BIT);
+            }
+        }
+
+        public override void OnStartClient()
+        {
+            base.OnStartClient();
+
+            syncAnyModificationActive(_anyModificationActive);
+        }
 
         protected virtual void syncAnyModificationActive(bool active)
         {
@@ -98,6 +127,55 @@ namespace RiskOfChaos.ModifierController
             }
 
             return baseValue;
+        }
+
+        public override sealed bool OnSerialize(NetworkWriter writer, bool initialState)
+        {
+            uint dirtyBits = syncVarDirtyBits;
+            if (!initialState)
+            {
+                writer.WritePackedUInt32(dirtyBits);
+            }
+
+            return serialize(writer, initialState, dirtyBits);
+        }
+
+        protected virtual bool serialize(NetworkWriter writer, bool initialState, uint dirtyBits)
+        {
+            if (initialState)
+            {
+                writer.Write(_anyModificationActive);
+                return true;
+            }
+
+            bool anythingWritten = false;
+
+            if ((dirtyBits & ANY_MODIFICATION_ACTIVE_DIRTY_BIT) != 0)
+            {
+                writer.Write(_anyModificationActive);
+                anythingWritten = true;
+            }
+
+            return anythingWritten;
+        }
+
+        public override sealed void OnDeserialize(NetworkReader reader, bool initialState)
+        {
+            deserialize(reader, initialState, initialState ? ~0b0U : reader.ReadPackedUInt32());
+        }
+
+        protected virtual void deserialize(NetworkReader reader, bool initialState, uint dirtyBits)
+        {
+            if (initialState)
+            {
+                _anyModificationActive = reader.ReadBoolean();
+                return;
+            }
+
+            if ((dirtyBits & ANY_MODIFICATION_ACTIVE_DIRTY_BIT) != 0)
+            {
+                syncAnyModificationActive(reader.ReadBoolean());
+            }
         }
     }
 }

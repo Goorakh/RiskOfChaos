@@ -6,7 +6,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.Projectile
 {
-    public class ProjectileModificationManager : ValueModificationManager<IProjectileModificationProvider, ProjectileModificationData>
+    public class ProjectileModificationManager : NetworkedValueModificationManager<IProjectileModificationProvider, ProjectileModificationData>
     {
         static ProjectileModificationManager _instance;
         public static ProjectileModificationManager Instance => _instance;

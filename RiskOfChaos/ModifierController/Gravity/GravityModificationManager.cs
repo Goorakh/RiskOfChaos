@@ -9,7 +9,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.Gravity
 {
-    public class GravityModificationManager : ValueModificationManager<IGravityModificationProvider, Vector3>
+    public class GravityModificationManager : NetworkedValueModificationManager<IGravityModificationProvider, Vector3>
     {
         static GravityModificationManager _instance;
         public static GravityModificationManager Instance => _instance;

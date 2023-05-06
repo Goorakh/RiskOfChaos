@@ -7,7 +7,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.SkillSlots
 {
-    public class SkillSlotModificationManager : ValueModificationManager<ISkillSlotModificationProvider, SkillSlotModificationData>
+    public class SkillSlotModificationManager : NetworkedValueModificationManager<ISkillSlotModificationProvider, SkillSlotModificationData>
     {
         static SkillSlotModificationManager _instance;
         public static SkillSlotModificationManager Instance => _instance;
