@@ -105,6 +105,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                     GameObject itemStealControllerObj = GameObject.Instantiate(NetPrefabs.MonsterItemStealControllerPrefab);
                     _itemStealController = itemStealControllerObj.GetComponent<ItemStealController>();
+
+                    _itemStealController.stealInterval = RoR2Application.rng.RangeFloat(0.3f, 0.6f);
+
                     if (!_returnStolenItems)
                     {
                         _returnStolenItems = bodyObject.GetComponent<ReturnStolenItemsOnGettingHit>();
