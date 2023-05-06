@@ -11,7 +11,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
 {
     [ChaosEffect("spawn_airstrikes", DefaultSelectionWeight = 0.9f, EffectWeightReductionPercentagePerActivation = 10f)]
-    public sealed class SpawnAirstrikes : CoroutineEffect
+    public sealed class SpawnAirstrikes : BaseEffect, ICoroutineEffect
     {
         static GameObject _diabloStrikePrefab;
 
@@ -31,7 +31,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
             return _diabloStrikePrefab && DirectorCore.instance && ProjectileManager.instance;
         }
 
-        public override IEnumerator OnStartCoroutine()
+        public override void OnStart()
+        {
+        }
+
+        public IEnumerator OnStartCoroutine()
         {
             const int NUM_SPAWNS = 50;
 
@@ -51,6 +55,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
 
                 yield return new WaitForSeconds(RNG.RangeFloat(0.05f, 0.25f));
             }
+        }
+
+        public void OnForceStopped()
+        {
         }
     }
 }

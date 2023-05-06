@@ -15,7 +15,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("spawn_warbanner", EffectWeightReductionPercentagePerActivation = 20f)]
-    public sealed class SpawnWarbanner : CoroutineEffect
+    public sealed class SpawnWarbanner : BaseEffect, ICoroutineEffect
     {
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;
@@ -77,7 +77,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             }
         }
 
-        public override IEnumerator OnStartCoroutine()
+        public override void OnStart()
+        {
+        }
+
+        public IEnumerator OnStartCoroutine()
         {
             float radius = 8f + (8f * warbannerItemCount);
 
@@ -104,6 +108,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     yield return new WaitForSecondsRealtime(1f / 15f);
                 }
             }
+        }
+
+        public void OnForceStopped()
+        {
         }
     }
 }

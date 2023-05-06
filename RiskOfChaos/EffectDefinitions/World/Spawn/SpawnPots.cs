@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("spawn_pots")]
-    public sealed class SpawnPots : CoroutineEffect
+    public sealed class SpawnPots : BaseEffect, ICoroutineEffect
     {
         static readonly GameObject _potPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/ExplosivePotDestructible/ExplosivePotDestructibleBody.prefab").WaitForCompletion();
 
@@ -22,7 +22,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             return _potPrefab;
         }
 
-        public override IEnumerator OnStartCoroutine()
+        public override void OnStart()
+        {
+        }
+
+        public IEnumerator OnStartCoroutine()
         {
             const float WAIT_BETWEEN_POT_SPAWNS = 0.1f;
             const int POT_COUNT = 50;
@@ -49,6 +53,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
                 yield return new WaitForSeconds(WAIT_BETWEEN_POT_SPAWNS);
             }
+        }
+
+        public void OnForceStopped()
+        {
         }
     }
 }

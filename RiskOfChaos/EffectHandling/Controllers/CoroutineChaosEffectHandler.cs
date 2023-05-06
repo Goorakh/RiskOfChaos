@@ -53,13 +53,13 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         class ActiveCoroutineEffect
         {
-            public readonly CoroutineEffect EffectInstance;
+            public readonly ICoroutineEffect EffectInstance;
             
             CoroutineWrapper _runningCoroutine;
 
             public event Action OnEnd;
 
-            public ActiveCoroutineEffect(CoroutineEffect effectInstance)
+            public ActiveCoroutineEffect(ICoroutineEffect effectInstance)
             {
                 EffectInstance = effectInstance;
             }
@@ -116,13 +116,13 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void onEffectDispatched(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, BaseEffect effectInstance)
         {
-            if (effectInstance is CoroutineEffect coroutineEffect)
+            if (effectInstance is ICoroutineEffect coroutineEffect)
             {
                 startCoroutineEffect(coroutineEffect);
             }
         }
 
-        void startCoroutineEffect(CoroutineEffect effect)
+        void startCoroutineEffect(ICoroutineEffect effect)
         {
             ActiveCoroutineEffect activeCoroutineEffect = new ActiveCoroutineEffect(effect);
             activeCoroutineEffect.StartCoroutineOn(this);
