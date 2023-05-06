@@ -43,7 +43,7 @@ namespace RiskOfChaos.Utilities
             };
         }
 
-        public static Vector3 EvaluateToPosition(this DirectorPlacementRule placementRule, Xoroshiro128Plus rng, HullClassification? overrideHullSize = null, MapNodeGroup.GraphType? overrideNodeGraphType = null)
+        public static Vector3 EvaluateToPosition(this DirectorPlacementRule placementRule, Xoroshiro128Plus rng, HullClassification? overrideHullSize = null, MapNodeGroup.GraphType? overrideNodeGraphType = null, NodeFlags? requiredFlags = null, NodeFlags? forbiddenFlags = null)
         {
             if (!_positionHelperSpawnCard.prefab)
             {
@@ -60,6 +60,8 @@ namespace RiskOfChaos.Utilities
 
             HullClassification originalHullSize = _positionHelperSpawnCard.hullSize;
             MapNodeGroup.GraphType originalNodeGraphType = _positionHelperSpawnCard.nodeGraphType;
+            NodeFlags originalRequiredFlags = _positionHelperSpawnCard.requiredFlags;
+            NodeFlags originalForbiddenFlags = _positionHelperSpawnCard.forbiddenFlags;
 
             if (overrideHullSize.HasValue)
                 _positionHelperSpawnCard.hullSize = overrideHullSize.Value;
@@ -67,10 +69,18 @@ namespace RiskOfChaos.Utilities
             if (overrideNodeGraphType.HasValue)
                 _positionHelperSpawnCard.nodeGraphType = overrideNodeGraphType.Value;
 
+            if (requiredFlags.HasValue)
+                _positionHelperSpawnCard.requiredFlags = requiredFlags.Value;
+
+            if (forbiddenFlags.HasValue)
+                _positionHelperSpawnCard.forbiddenFlags = forbiddenFlags.Value;
+
             GameObject positionMarkerObject = directorCore.TrySpawnObject(new DirectorSpawnRequest(_positionHelperSpawnCard, placementRule, rng));
             
             _positionHelperSpawnCard.hullSize = originalHullSize;
             _positionHelperSpawnCard.nodeGraphType = originalNodeGraphType;
+            _positionHelperSpawnCard.requiredFlags = originalRequiredFlags;
+            _positionHelperSpawnCard.forbiddenFlags = originalForbiddenFlags;
 
             if (!positionMarkerObject)
             {
