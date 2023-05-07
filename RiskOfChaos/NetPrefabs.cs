@@ -1,5 +1,6 @@
 ﻿using R2API;
 using RiskOfChaos.Components;
+using RiskOfChaos.ModifierController.DamageInfo;
 using RiskOfChaos.ModifierController.Gravity;
 using RiskOfChaos.ModifierController.Knockback;
 using RiskOfChaos.ModifierController.Projectile;
@@ -28,6 +29,8 @@ namespace RiskOfChaos
         public static GameObject ProjectileModificationControllerPrefab { get; private set; }
 
         public static GameObject TimeScaleModificationControllerPrefab { get; private set; }
+
+        public static GameObject DamageInfoModificationControllerPrefab { get; private set; }
 
         static GameObject createPrefabObject(string name, bool networked = true)
         {
@@ -117,6 +120,15 @@ namespace RiskOfChaos
                 TimeScaleModificationControllerPrefab.AddComponent<TimeScaleModificationManager>();
             }
 
+            // DamageInfoModificationControllerPrefab
+            {
+                DamageInfoModificationControllerPrefab = createPrefabObject("DamageInfoModificationController", false);
+
+                DamageInfoModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
+                DamageInfoModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
+                DamageInfoModificationControllerPrefab.AddComponent<DamageInfoModificationManager>();
+            }
+
             Run.onRunStartGlobal += onRunStart;
         }
 
@@ -130,6 +142,8 @@ namespace RiskOfChaos
             NetworkServer.Spawn(GameObject.Instantiate(KnockbackModificationControllerPrefab));
             NetworkServer.Spawn(GameObject.Instantiate(ProjectileModificationControllerPrefab));
             NetworkServer.Spawn(GameObject.Instantiate(TimeScaleModificationControllerPrefab));
+
+            GameObject.Instantiate(DamageInfoModificationControllerPrefab);
         }
     }
 }

@@ -4,17 +4,20 @@ using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.ModifierController.DamageInfo;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("increase_proc_coefficients", ConfigName = "Increase Proc Coefficients")]
     [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
-    public sealed class IncreaseProcCoefficients : TimedEffect
+    public sealed class IncreaseProcCoefficients : TimedEffect, IDamageInfoModificationProvider
     {
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;
@@ -42,6 +45,17 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             _multiplierPerActivationConfig = _effectInfo.BindConfig("Proc Multiplier", MULTIPLIER_PER_ACTIVATION_DEFAULT_VALUE, null);
 
+            _multiplierPerActivationConfig.SettingChanged += (o, e) =>
+            {
+                if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                    return;
+
+                foreach (IncreaseProcCoefficients effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<IncreaseProcCoefficients>())
+                {
+                    effectInstance.OnValueDirty?.Invoke();
+                }
+            };
+
             addConfigOption(new StepSliderOption(_multiplierPerActivationConfig, new StepSliderConfig
             {
                 formatString = "{0:F1}",
@@ -60,52 +74,30 @@ namespace RiskOfChaos.EffectDefinitions.Character
             };
         }
 
-        static bool _hasAppliedPatches = false;
-        static void tryApplyPatches()
+        [EffectCanActivate]
+        static bool CanActivate()
         {
-            if (_hasAppliedPatches)
-                return;
-
-            On.RoR2.GlobalEventManager.OnHitAll += (orig, self, damageInfo, hitObject) =>
-            {
-                tryMultiplyProcCoefficient(damageInfo);
-                orig(self, damageInfo, hitObject);
-            };
-
-            On.RoR2.GlobalEventManager.OnHitEnemy += (orig, self, damageInfo, victim) =>
-            {
-                tryMultiplyProcCoefficient(damageInfo);
-                orig(self, damageInfo, victim);
-            };
-
-            On.RoR2.HealthComponent.TakeDamage += (orig, self, damageInfo) =>
-            {
-                tryMultiplyProcCoefficient(damageInfo);
-                orig(self, damageInfo);
-            };
-
-            _hasAppliedPatches = true;
-        }
-
-        static void tryMultiplyProcCoefficient(DamageInfo damageInfo)
-        {
-            if (!TimedChaosEffectHandler.Instance)
-                return;
-
-            int effectActiveCount = TimedChaosEffectHandler.Instance.GetEffectActiveCount(_effectInfo);
-            if (effectActiveCount <= 0)
-                return;
-
-            damageInfo.procCoefficient *= Mathf.Pow(multiplierPerActivation, effectActiveCount);
+            return DamageInfoModificationManager.Instance;
         }
 
         public override void OnStart()
         {
-            tryApplyPatches();
+            DamageInfoModificationManager.Instance.RegisterModificationProvider(this);
+        }
+
+        public event Action OnValueDirty;
+
+        public void ModifyValue(ref DamageInfo value)
+        {
+            value.procCoefficient *= multiplierPerActivation;
         }
 
         public override void OnEnd()
         {
+            if (DamageInfoModificationManager.Instance)
+            {
+                DamageInfoModificationManager.Instance.UnregisterModificationProvider(this);
+            }
         }
     }
 }
