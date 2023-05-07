@@ -1,17 +1,34 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using BepInEx.Configuration;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using RiskOfOptions.Options;
 using RoR2;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("duplicate_all_characters", EffectWeightReductionPercentagePerActivation = 50f)]
     public sealed class DuplicateAllCharacters : BaseEffect
     {
+        [InitEffectInfo]
+        static readonly ChaosEffectInfo _effectInfo;
+
+        static ConfigEntry<bool> _allowDontDestroyOnLoadConfig;
+        const bool ALLOW_DONT_DESTROY_ON_LOAD_DEFAULT_VALUE = false;
+
+        static bool allowDontDestroyOnLoad => _allowDontDestroyOnLoadConfig?.Value ?? ALLOW_DONT_DESTROY_ON_LOAD_DEFAULT_VALUE;
+
+        [SystemInitializer(typeof(ChaosEffectCatalog))]
+        static void InitConfigs()
+        {
+            _allowDontDestroyOnLoadConfig = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Keep duplicated allies between stages"), ALLOW_DONT_DESTROY_ON_LOAD_DEFAULT_VALUE, new ConfigDescription("Allows duplicated allies to come with you to the next stage.\nThis is disabled by default to prevent lag by repeatedly duplicating your drones."));
+
+            addConfigOption(new CheckBoxOption(_allowDontDestroyOnLoadConfig));
+        }
+
         public override void OnStart()
         {
             ReadOnlyCollection<CharacterBody> allCharacterBodies = CharacterBody.readOnlyInstancesList;
@@ -51,6 +68,25 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 summonerBodyObject = body.gameObject,
                 teamIndexOverride = master.teamIndex,
                 ignoreTeamMemberLimit = true
+            };
+
+            spawnRequest.onSpawnedServer += result =>
+            {
+                if (!result.success || !result.spawnedInstance)
+                    return;
+
+                if (!allowDontDestroyOnLoad)
+                {
+                    if (result.spawnedInstance.GetComponent<SetDontDestroyOnLoad>())
+                    {
+                        GameObject.Destroy(result.spawnedInstance.GetComponent<SetDontDestroyOnLoad>());
+                    }
+
+                    if (Util.IsDontDestroyOnLoad(result.spawnedInstance))
+                    {
+                        SceneManager.MoveGameObjectToScene(result.spawnedInstance, SceneManager.GetActiveScene());
+                    }
+                }
             };
 
             DirectorCore.instance.TrySpawnObject(spawnRequest);
