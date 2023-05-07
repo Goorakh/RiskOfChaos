@@ -14,7 +14,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("increase_director_credits", ConfigName = "Increase Director Credits", EffectWeightReductionPercentagePerActivation = 35f)]
     [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
-    [EffectConfigBackwardsCompatibility("+50% Director Credits")]
+    [EffectConfigBackwardsCompatibility("Effect: +50% Director Credits")]
     public sealed class IncreaseDirectorCredits : TimedEffect
     {
         [InitEffectInfo]
