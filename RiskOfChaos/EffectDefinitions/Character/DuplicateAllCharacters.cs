@@ -49,6 +49,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(copySpawnCard, placement, new Xoroshiro128Plus(RNG.nextUlong))
             {
                 summonerBodyObject = body.gameObject,
+                teamIndexOverride = master.teamIndex,
                 ignoreTeamMemberLimit = true
             };
 
