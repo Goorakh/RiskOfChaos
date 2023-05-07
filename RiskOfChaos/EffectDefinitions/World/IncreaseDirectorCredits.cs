@@ -1,44 +1,139 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using BepInEx.Configuration;
+using HG;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfOptions.OptionConfigs;
+using RiskOfOptions.Options;
 using RoR2;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("increase_director_credits", EffectWeightReductionPercentagePerActivation = 35f)]
+    [ChaosEffect("increase_director_credits", ConfigName = "Increase Director Credits", EffectWeightReductionPercentagePerActivation = 35f)]
     [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [EffectConfigBackwardsCompatibility("+50% Director Credits")]
     public sealed class IncreaseDirectorCredits : TimedEffect
     {
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;
 
-        const float CREDIT_MULTIPLIER = 1.5f;
+        static ConfigEntry<float> _creditIncreaseConfig;
+        const float CREDIT_INCREASE_DEFAULT_VALUE = 0.5f;
 
-        // Would've just used a simple component on the same object for this instead if it wasn't for multiple directors being on the same object in some cases
-        static readonly Dictionary<CombatDirector, int> _directorAppliedCounts = new Dictionary<CombatDirector, int>();
-
-        static bool _appliedPatch = false;
-        static void applyPatchIfNeeded()
+        static float creditIncrease
         {
-            if (_appliedPatch)
-                return;
-
-            On.RoR2.CombatDirector.OnEnable += static (orig, self) =>
+            get
             {
-                orig(self);
-                tryMultiplyDirectorCredits(self);
-            };
+                if (_creditIncreaseConfig == null)
+                {
+                    return CREDIT_INCREASE_DEFAULT_VALUE;
+                }
+                else
+                {
+                    return Mathf.Max(0f, _creditIncreaseConfig.Value);
+                }
+            }
+        }
 
-            _appliedPatch = true;
+        static float creditMultiplier
+        {
+            get
+            {
+                return 1f + creditIncrease;
+            }
+        }
+
+        [SystemInitializer(typeof(ChaosEffectCatalog))]
+        static void InitConfigs()
+        {
+            _creditIncreaseConfig = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Credit Increase Amount"), CREDIT_INCREASE_DEFAULT_VALUE, new ConfigDescription("How much to increase director credits by"));
+
+            addConfigOption(new StepSliderOption(_creditIncreaseConfig, new StepSliderConfig
+            {
+                formatString = "+{0:P0}",
+                min = 0f,
+                max = 2f,
+                increment = 0.01f
+            }));
         }
 
         [EffectCanActivate]
         static bool CanActivate(EffectCanActivateContext context)
         {
             return !context.IsNow || CombatDirector.instancesList.Count > 0;
+        }
+
+        [EffectNameFormatArgs]
+        static object[] GetEffectNameFormatArgs()
+        {
+            return new object[]
+            {
+                creditIncrease
+            };
+        }
+
+        class DirectorCreditModificationTracker : MonoBehaviour
+        {
+            class ModificationData
+            {
+                public bool HasBeenModified;
+            }
+
+            readonly Dictionary<UnityObjectWrapperKey<CombatDirector>, ModificationData> _directorModifications = new Dictionary<UnityObjectWrapperKey<CombatDirector>, ModificationData>();
+
+            BaseEffect _effectOwner;
+
+            public static DirectorCreditModificationTracker GetModificationTracker(GameObject obj, BaseEffect owner)
+            {
+                foreach (DirectorCreditModificationTracker modificationTracker in obj.GetComponents<DirectorCreditModificationTracker>())
+                {
+                    if (modificationTracker._effectOwner == owner)
+                    {
+                        return modificationTracker;
+                    }
+                }
+
+                return null;
+            }
+
+            public static bool HasModified(CombatDirector director, BaseEffect owner)
+            {
+                if (!director || owner == null)
+                    return false;
+
+                DirectorCreditModificationTracker modificationTracker = GetModificationTracker(director.gameObject, owner);
+                if (!modificationTracker)
+                    return false;
+
+                if (!modificationTracker._directorModifications.TryGetValue(director, out ModificationData modificationData))
+                    return false;
+
+                return modificationData.HasBeenModified;
+            }
+
+            public static void MarkModified(CombatDirector director, BaseEffect owner)
+            {
+                if (!director || owner == null)
+                    return;
+
+                DirectorCreditModificationTracker modificationTracker = GetModificationTracker(director.gameObject, owner);
+                if (!modificationTracker)
+                {
+                    modificationTracker = director.gameObject.AddComponent<DirectorCreditModificationTracker>();
+                    modificationTracker._effectOwner = owner;
+                }
+
+                if (!modificationTracker._directorModifications.TryGetValue(director, out ModificationData modificationData))
+                {
+                    modificationData = new ModificationData();
+                    modificationTracker._directorModifications.Add(director, modificationData);
+                }
+
+                modificationData.HasBeenModified = true;
+            }
         }
 
         public override void OnStart()
@@ -48,15 +143,21 @@ namespace RiskOfChaos.EffectDefinitions.World
                 tryMultiplyDirectorCredits(director);
             }
 
-            applyPatchIfNeeded();
+            On.RoR2.CombatDirector.OnEnable += CombatDirector_OnEnable;
+        }
+
+        void CombatDirector_OnEnable(On.RoR2.CombatDirector.orig_OnEnable orig, CombatDirector self)
+        {
+            orig(self);
+            tryMultiplyDirectorCredits(self);
         }
 
         public override void OnEnd()
         {
-            _directorAppliedCounts.Clear();
+            On.RoR2.CombatDirector.OnEnable -= CombatDirector_OnEnable;
         }
 
-        static void tryMultiplyDirectorCredits(CombatDirector director)
+        void tryMultiplyDirectorCredits(CombatDirector director)
         {
             if (!director)
                 return;
@@ -68,30 +169,20 @@ namespace RiskOfChaos.EffectDefinitions.World
             if (moneyWaves == null || moneyWaves.Length <= 0)
                 return;
 
-            int numActivationsThisStage = _effectInfo.GetActivationCount(EffectActivationCountMode.PerStage);
-            if (numActivationsThisStage <= 0)
-                return;
-
-            int totalAppliedToCount;
-            if (!_directorAppliedCounts.TryGetValue(director, out totalAppliedToCount))
-                totalAppliedToCount = 0;
-
-            int missingApplyCount = numActivationsThisStage - totalAppliedToCount;
-            if (missingApplyCount <= 0)
-                return;
-
-            float totalMultiplier = Mathf.Pow(CREDIT_MULTIPLIER, missingApplyCount);
-
-            foreach (CombatDirector.DirectorMoneyWave moneyWave in moneyWaves)
+            if (!DirectorCreditModificationTracker.HasModified(director, this))
             {
-                moneyWave.multiplier *= totalMultiplier;
-            }
+                float multiplier = creditMultiplier;
+                foreach (CombatDirector.DirectorMoneyWave moneyWave in moneyWaves)
+                {
+                    moneyWave.multiplier *= multiplier;
+                }
 
-            _directorAppliedCounts[director] = numActivationsThisStage;
+                DirectorCreditModificationTracker.MarkModified(director, this);
 
 #if DEBUG
-            Log.Debug($"multiplied {nameof(CombatDirector)} {director} ({director.customName}) credits by {totalMultiplier} (applied {missingApplyCount} effect activations)");
+                Log.Debug($"multiplied {nameof(CombatDirector)} {director} ({director.customName}) credits by {multiplier}");
 #endif
+            }
         }
     }
 }
