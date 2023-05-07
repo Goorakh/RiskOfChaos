@@ -24,6 +24,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         ChaosEffectActivationSignaler[] _effectActivationSignalers;
 
         Xoroshiro128Plus _effectRNG;
+        ulong _effectDispatchCount;
 
         void Awake()
         {
@@ -48,6 +49,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
 
             NetworkedEffectDispatchedMessage.OnReceive += NetworkedEffectDispatchedMessage_OnReceive;
+
+            _effectDispatchCount = 0;
         }
 
         void OnDisable()
@@ -184,18 +187,18 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 }
             }
 
-            ulong effectRNGSeed;
+            CreateEffectInstanceArgs createEffectArgs;
             if (isServer)
             {
-                effectRNGSeed = _effectRNG.nextUlong;
+                createEffectArgs = new CreateEffectInstanceArgs(_effectDispatchCount++, _effectRNG.nextUlong);
             }
             else
             {
                 // Clients will get the seed from the server in Deserialize
-                effectRNGSeed = 0UL;
+                createEffectArgs = default;
             }
 
-            BaseEffect effectInstance = ChaosEffectCatalog.CreateEffectInstance(effect, new CreateEffectInstanceArgs(effectRNGSeed));
+            BaseEffect effectInstance = ChaosEffectCatalog.CreateEffectInstance(effect, createEffectArgs);
             if (effectInstance != null)
             {
                 if (isServer)

@@ -51,7 +51,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 {
                     if (EffectInfo.IsNetworked && sendClientMessage)
                     {
-                        new NetworkedTimedEffectEndMessage(EffectInfo).Send(NetworkDestination.Clients);
+                        new NetworkedTimedEffectEndMessage(EffectInstance.DispatchID).Send(NetworkDestination.Clients);
                     }
                 }
             }
@@ -148,7 +148,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 if (timedEffect.MatchesFlag(flags))
                 {
 #if DEBUG
-                    Log.Debug($"Ending timed effect {timedEffect.EffectInfo} (i={i})");
+                    Log.Debug($"Ending timed effect {timedEffect.EffectInfo} (ID={timedEffect.EffectInstance.DispatchID})");
 #endif
 
                     timedEffect.End(sendClientMessage);
@@ -157,7 +157,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        void NetworkedTimedEffectEndMessage_OnReceive(in ChaosEffectInfo effectInfo)
+        void NetworkedTimedEffectEndMessage_OnReceive(ulong effectDispatchID)
         {
             if (NetworkServer.active)
                 return;
@@ -165,27 +165,27 @@ namespace RiskOfChaos.EffectHandling.Controllers
             for (int i = 0; i < _activeTimedEffects.Count; i++)
             {
                 TimedEffectInfo timedEffect = _activeTimedEffects[i];
-                if (timedEffect.EffectInfo == effectInfo)
+                if (timedEffect.EffectInstance != null && timedEffect.EffectInstance.DispatchID == effectDispatchID)
                 {
                     timedEffect.End(false);
                     _activeTimedEffects.RemoveAt(i);
 
 #if DEBUG
-                    Log.Debug($"Timed effect {effectInfo} (i={i}) ended");
+                    Log.Debug($"Timed effect {timedEffect.EffectInfo} (ID={effectDispatchID}) ended");
 #endif
 
                     return;
                 }
             }
 
-            Log.Warning($"{effectInfo} is not registered as a timed effect");
+            Log.Warning($"No timed effect registered with ID {effectDispatchID}");
         }
 
         void registerTimedEffect(in TimedEffectInfo effectInfo)
         {
             _activeTimedEffects.Add(effectInfo);
         }
-
+        
         public bool IsTimedEffectActive(in ChaosEffectInfo effectInfo)
         {
             foreach (TimedEffectInfo timedEffect in _activeTimedEffects)

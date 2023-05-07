@@ -10,14 +10,14 @@ namespace RiskOfChaos.Networking
 {
     public sealed class NetworkedTimedEffectEndMessage : INetMessage
     {
-        public delegate void OnReceiveDelegate(in ChaosEffectInfo effectInfo);
+        public delegate void OnReceiveDelegate(ulong effectDispatchID);
         public static event OnReceiveDelegate OnReceive;
 
-        ChaosEffectInfo _effectInfo;
+        ulong _effectDispatchID;
 
-        public NetworkedTimedEffectEndMessage(ChaosEffectInfo effectInfo)
+        public NetworkedTimedEffectEndMessage(ulong effectDispatchID)
         {
-            _effectInfo = effectInfo;
+            _effectDispatchID = effectDispatchID;
         }
 
         public NetworkedTimedEffectEndMessage()
@@ -26,21 +26,17 @@ namespace RiskOfChaos.Networking
 
         void ISerializableObject.Serialize(NetworkWriter writer)
         {
-            writer.WritePackedIndex32(_effectInfo.EffectIndex);
+            writer.WritePackedUInt64(_effectDispatchID);
         }
 
         void ISerializableObject.Deserialize(NetworkReader reader)
         {
-            int effectIndex = reader.ReadPackedIndex32();
-            if (effectIndex >= 0)
-            {
-                _effectInfo = ChaosEffectCatalog.GetEffectInfo((uint)effectIndex);
-            }
+            _effectDispatchID = reader.ReadPackedUInt64();
         }
 
         void INetMessage.OnReceived()
         {
-            OnReceive?.Invoke(_effectInfo);
+            OnReceive?.Invoke(_effectDispatchID);
         }
     }
 }
