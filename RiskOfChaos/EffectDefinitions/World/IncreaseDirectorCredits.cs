@@ -114,7 +114,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 return modificationData.HasBeenModified;
             }
 
-            public static void MarkModified(CombatDirector director, BaseEffect owner)
+            public static void MarkModified(CombatDirector director, BaseEffect owner, bool modified)
             {
                 if (!director || owner == null)
                     return;
@@ -132,18 +132,49 @@ namespace RiskOfChaos.EffectDefinitions.World
                     modificationTracker._directorModifications.Add(director, modificationData);
                 }
 
-                modificationData.HasBeenModified = true;
+                modificationData.HasBeenModified = modified;
             }
         }
 
+        float _creditMultiplier;
+
         public override void OnStart()
         {
+            _creditMultiplier = creditMultiplier;
+
             foreach (CombatDirector director in CombatDirector.instancesList)
             {
                 tryMultiplyDirectorCredits(director);
             }
 
             On.RoR2.CombatDirector.OnEnable += CombatDirector_OnEnable;
+            On.RoR2.CombatDirector.OnDisable += CombatDirector_OnDisable;
+        }
+
+        public override void OnEnd()
+        {
+            foreach (CombatDirector director in CombatDirector.instancesList)
+            {
+                tryUndoMultiplication(director);
+            }
+
+            On.RoR2.CombatDirector.OnEnable -= CombatDirector_OnEnable;
+            On.RoR2.CombatDirector.OnDisable -= CombatDirector_OnDisable;
+        }
+
+        void CombatDirector_OnDisable(On.RoR2.CombatDirector.orig_OnDisable orig, CombatDirector self)
+        {
+            orig(self);
+            tryUndoMultiplication(self);
+        }
+
+        void tryUndoMultiplication(CombatDirector director)
+        {
+            if (DirectorCreditModificationTracker.HasModified(director, this))
+            {
+                multiplyCredits(director, 1f / _creditMultiplier);
+                DirectorCreditModificationTracker.MarkModified(director, this, false);
+            }
         }
 
         void CombatDirector_OnEnable(On.RoR2.CombatDirector.orig_OnEnable orig, CombatDirector self)
@@ -152,16 +183,20 @@ namespace RiskOfChaos.EffectDefinitions.World
             tryMultiplyDirectorCredits(self);
         }
 
-        public override void OnEnd()
-        {
-            On.RoR2.CombatDirector.OnEnable -= CombatDirector_OnEnable;
-        }
-
         void tryMultiplyDirectorCredits(CombatDirector director)
         {
             if (!director)
                 return;
 
+            if (!DirectorCreditModificationTracker.HasModified(director, this))
+            {
+                multiplyCredits(director, _creditMultiplier);
+                DirectorCreditModificationTracker.MarkModified(director, this, true);
+            }
+        }
+
+        static void multiplyCredits(CombatDirector director, float multiplier)
+        {
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
             CombatDirector.DirectorMoneyWave[] moneyWaves = director.moneyWaves;
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
@@ -169,20 +204,14 @@ namespace RiskOfChaos.EffectDefinitions.World
             if (moneyWaves == null || moneyWaves.Length <= 0)
                 return;
 
-            if (!DirectorCreditModificationTracker.HasModified(director, this))
+            foreach (CombatDirector.DirectorMoneyWave moneyWave in moneyWaves)
             {
-                float multiplier = creditMultiplier;
-                foreach (CombatDirector.DirectorMoneyWave moneyWave in moneyWaves)
-                {
-                    moneyWave.multiplier *= multiplier;
-                }
-
-                DirectorCreditModificationTracker.MarkModified(director, this);
+                moneyWave.multiplier *= multiplier;
+            }
 
 #if DEBUG
-                Log.Debug($"multiplied {nameof(CombatDirector)} {director} ({director.customName}) credits by {multiplier}");
+            Log.Debug($"multiplied {nameof(CombatDirector)} {director} ({director.customName}) credits by {multiplier}");
 #endif
-            }
         }
     }
 }
