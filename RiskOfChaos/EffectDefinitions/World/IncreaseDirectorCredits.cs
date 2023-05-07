@@ -56,7 +56,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 formatString = "+{0:P0}",
                 min = 0f,
                 max = 2f,
-                increment = 0.01f
+                increment = 0.05f
             }));
         }
 
