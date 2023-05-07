@@ -121,7 +121,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
             DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_equipmentDroneSpawnCard, placementRule, rng)
             {
-                summonerBodyObject = ownerBody.gameObject
+                summonerBodyObject = ownerBody.gameObject,
+                teamIndexOverride = ownerBody.teamComponent.teamIndex
             };
 
             spawnRequest.onSpawnedServer = result =>
