@@ -130,7 +130,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 
             MapNodeGroup.GraphType nodeGraphType = isFlying ? MapNodeGroup.GraphType.Air : MapNodeGroup.GraphType.Ground;
 
-            return placementRule.EvaluateToPosition(new Xoroshiro128Plus(rng.nextUlong), bodyPrefab.hullClassification, nodeGraphType);
+            return placementRule.EvaluateToPosition(new Xoroshiro128Plus(rng.nextUlong), bodyPrefab.hullClassification, nodeGraphType, NodeFlags.None, NodeFlags.NoCharacterSpawn);
         }
 
         protected virtual void onSpawned(CharacterMaster master)
