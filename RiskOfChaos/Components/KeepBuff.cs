@@ -1,4 +1,5 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities;
+using RoR2;
 using System.Linq;
 using UnityEngine;
 
@@ -10,7 +11,43 @@ namespace RiskOfChaos.Components
         CharacterBody _body;
 
         public BuffIndex BuffIndex = BuffIndex.None;
-        public int BuffStackCount = 1;
+
+        int _buffStackCount = 0;
+        public int BuffStackCount
+        {
+            get
+            {
+                return _buffStackCount;
+            }
+            set
+            {
+                if (_body)
+                {
+                    if (value > _buffStackCount)
+                    {
+                        for (int i = 0; i < value - _buffStackCount; i++)
+                        {
+                            _body.AddBuff(BuffIndex);
+                        }
+                    }
+                    else if (value < _buffStackCount)
+                    {
+                        for (int i = 0; i < _buffStackCount - value; i++)
+                        {
+                            _body.RemoveBuff(BuffIndex);
+                        }
+                    }
+                    else
+                    {
+                        return;
+                    }
+
+                    BossUtils.TryRefreshBossTitleFor(_body);
+                }
+
+                _buffStackCount = value;
+            }
+        }
 
         void Awake()
         {
@@ -45,6 +82,8 @@ namespace RiskOfChaos.Components
                 {
                     _body.AddBuff(BuffIndex);
                 }
+
+                BossUtils.TryRefreshBossTitleFor(_body);
             }
         }
 
@@ -67,6 +106,7 @@ namespace RiskOfChaos.Components
 
             KeepBuff keepBuff = body.gameObject.AddComponent<KeepBuff>();
             keepBuff.BuffIndex = buff;
+            keepBuff.BuffStackCount = 1;
         }
     }
 }
