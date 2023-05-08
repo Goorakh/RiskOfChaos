@@ -37,6 +37,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
                 _equipmentDroneSpawnCard = ScriptableObject.CreateInstance<CharacterSpawnCard>();
 
+                _equipmentDroneSpawnCard.name = "cscEquipmentDrone";
                 _equipmentDroneSpawnCard.sendOverNetwork = true;
                 _equipmentDroneSpawnCard.nodeGraphType = MapNodeGroup.GraphType.Air;
                 _equipmentDroneSpawnCard.forbiddenFlags = NodeFlags.NoCharacterSpawn;
