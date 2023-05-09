@@ -24,7 +24,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void InitConfigs()
         {
-            _allowDontDestroyOnLoadConfig = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Keep duplicated allies between stages"), ALLOW_DONT_DESTROY_ON_LOAD_DEFAULT_VALUE, new ConfigDescription("Allows duplicated allies to come with you to the next stage.\nThis is disabled by default to prevent lag by repeatedly duplicating your drones."));
+            _allowDontDestroyOnLoadConfig = _effectInfo.BindConfig("Keep duplicated allies between stages", ALLOW_DONT_DESTROY_ON_LOAD_DEFAULT_VALUE, new ConfigDescription("Allows duplicated allies to come with you to the next stage.\nThis is disabled by default to prevent lag by repeatedly duplicating your drones."));
 
             addConfigOption(new CheckBoxOption(_allowDontDestroyOnLoadConfig));
         }

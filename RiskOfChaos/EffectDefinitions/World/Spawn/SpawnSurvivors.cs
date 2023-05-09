@@ -69,7 +69,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                                                               .Select(s => new SurvivorEntry(s, 1f))
                                                               .ToArray();
 
-            _numPodSpawnsConfig = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Pod Spawn Count"), NUM_POD_SPAWNS_DEFAULT_VALUE, new ConfigDescription("The amount of pods to spawn"));
+            _numPodSpawnsConfig = _effectInfo.BindConfig("Pod Spawn Count", NUM_POD_SPAWNS_DEFAULT_VALUE, new ConfigDescription("The amount of pods to spawn"));
 
             addConfigOption(new IntSliderOption(_numPodSpawnsConfig, new IntSliderConfig
             {

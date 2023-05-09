@@ -49,7 +49,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void InitConfigs()
         {
-            _creditIncreaseConfig = Main.Instance.Config.Bind(new ConfigDefinition(_effectInfo.ConfigSectionName, "Credit Increase Amount"), CREDIT_INCREASE_DEFAULT_VALUE, new ConfigDescription("How much to increase director credits by"));
+            _creditIncreaseConfig = _effectInfo.BindConfig("Credit Increase Amount", CREDIT_INCREASE_DEFAULT_VALUE, new ConfigDescription("How much to increase director credits by"));
 
             addConfigOption(new StepSliderOption(_creditIncreaseConfig, new StepSliderConfig
             {
