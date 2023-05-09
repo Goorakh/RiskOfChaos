@@ -84,5 +84,6 @@
 		"EFFECT_SPAWN_AS_RANDOM_BODY_NAME": "Respawn As Random Character",
 		"EFFECT_MONSTER_ITEM_STEAL_NAME": "Steal All Player Items",
 		"EFFECT_SPAWN_SURVIVORS_NAME": "Reinforcements",
+		"EFFECT_BOUNCY_PROJECTILES_NAME": "Bouncy Projectiles",
 	}
 }
