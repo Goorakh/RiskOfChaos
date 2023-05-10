@@ -12,7 +12,7 @@ namespace RiskOfChaos.EffectHandling
     {
         static TimedEffectInfo[] _timedEffectInfos;
 
-        static readonly Dictionary<int, int> _effectIndexToTimedEffectIndexMap = new Dictionary<int, int>();
+        static readonly Dictionary<ChaosEffectIndex, TimedChaosEffectIndex> _effectIndexToTimedEffectIndexMap = new Dictionary<ChaosEffectIndex, TimedChaosEffectIndex>();
 
         static int _timedEffectCount;
         public static int TimedEffectCount => _timedEffectCount;
@@ -26,7 +26,7 @@ namespace RiskOfChaos.EffectHandling
             {
                 _timedEffectInfos = ChaosEffectCatalog.AllEffects()
                                                       .Where(e => typeof(TimedEffect).IsAssignableFrom(e.EffectType))
-                                                      .Select((effectInfo, i) => new TimedEffectInfo(effectInfo, i))
+                                                      .Select((effectInfo, i) => new TimedEffectInfo(effectInfo, (TimedChaosEffectIndex)i))
                                                       .ToArray();
 
                 _timedEffectCount = _timedEffectInfos.Length;
@@ -69,14 +69,15 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
-        public static TimedEffectInfo GetTimedEffectInfo(int timedEffectIndex)
+        public static TimedEffectInfo GetTimedEffectInfo(TimedChaosEffectIndex timedEffectIndex)
         {
-            return ArrayUtils.GetSafe(_timedEffectInfos, timedEffectIndex);
+            return ArrayUtils.GetSafe(_timedEffectInfos, (int)timedEffectIndex);
         }
 
         public static bool TryFindTimedEffectInfo(in ChaosEffectInfo effectInfo, out TimedEffectInfo timedEffectInfo)
         {
-            if (_effectIndexToTimedEffectIndexMap.TryGetValue(effectInfo.EffectIndex, out int timedEffectIndex))
+            if (_effectIndexToTimedEffectIndexMap.TryGetValue(effectInfo.EffectIndex, out TimedChaosEffectIndex timedEffectIndex) &&
+                timedEffectIndex > TimedChaosEffectIndex.Invalid)
             {
                 timedEffectInfo = GetTimedEffectInfo(timedEffectIndex);
                 return true;

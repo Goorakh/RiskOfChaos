@@ -24,7 +24,7 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes
             Identifier = identifier;
         }
 
-        internal ChaosEffectInfo BuildEffectInfo(int index)
+        internal ChaosEffectInfo BuildEffectInfo(ChaosEffectIndex index)
         {
             return new ChaosEffectInfo(index, this);
         }

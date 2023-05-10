@@ -28,7 +28,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 _effectActivationCounts = ChaosEffectCatalog.PerEffectArray<ChaosEffectActivationCounter>();
                 for (int i = 0; i < ChaosEffectCatalog.EffectCount; i++)
                 {
-                    _effectActivationCounts[i] = new ChaosEffectActivationCounter(i);
+                    _effectActivationCounts[i] = new ChaosEffectActivationCounter((ChaosEffectIndex)i);
                 }
             });
         }
@@ -110,12 +110,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         ref ChaosEffectActivationCounter getEffectActivationCounterUncheckedRef(in ChaosEffectInfo effectInfo)
         {
-            return ref _effectActivationCounts[effectInfo.EffectIndex];
+            return ref _effectActivationCounts[(int)effectInfo.EffectIndex];
         }
 
         ChaosEffectActivationCounter getEffectActivationCounter(in ChaosEffectInfo effectInfo)
         {
-            if (effectInfo.EffectIndex < 0 || effectInfo.EffectIndex >= _effectActivationCounts.Length)
+            if (effectInfo.EffectIndex <= ChaosEffectIndex.Invalid || (int)effectInfo.EffectIndex >= _effectActivationCounts.Length)
                 return ChaosEffectActivationCounter.EmptyCounter;
 
             return getEffectActivationCounterUncheckedRef(effectInfo);

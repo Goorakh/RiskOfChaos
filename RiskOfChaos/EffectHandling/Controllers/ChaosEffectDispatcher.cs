@@ -133,10 +133,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
             if (!NetworkServer.active || !Run.instance || !_instance || !_instance.enabled)
                 return;
 
-            int index = ChaosEffectCatalog.FindEffectIndex(args[0]);
-            if (index >= 0)
+            ChaosEffectIndex index = ChaosEffectCatalog.FindEffectIndex(args[0]);
+            if (index > ChaosEffectIndex.Invalid)
             {
-                _instance.dispatchEffect(ChaosEffectCatalog.GetEffectInfo((uint)index), EffectDispatchFlags.DontStopTimedEffects);
+                _instance.dispatchEffect(ChaosEffectCatalog.GetEffectInfo(index), EffectDispatchFlags.DontStopTimedEffects);
             }
         }
 

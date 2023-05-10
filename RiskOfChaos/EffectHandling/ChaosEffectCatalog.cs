@@ -44,7 +44,7 @@ namespace RiskOfChaos.EffectHandling
             _effects = HG.Reflection.SearchableAttribute.GetInstances<ChaosEffectAttribute>()
                                                         .Cast<ChaosEffectAttribute>()
                                                         .OrderBy(static e => e.Identifier, StringComparer.OrdinalIgnoreCase)
-                                                        .Select(static (e, i) => e.BuildEffectInfo(i))
+                                                        .Select(static (e, i) => e.BuildEffectInfo((ChaosEffectIndex)i))
                                                         .ToArray();
 
             _effectCount = _effects.Length;
@@ -64,7 +64,7 @@ namespace RiskOfChaos.EffectHandling
 
         static void checkFindEffectIndex()
         {
-            for (uint effectIndex = 0; effectIndex < _effectCount; effectIndex++)
+            for (ChaosEffectIndex effectIndex = 0; effectIndex < (ChaosEffectIndex)_effectCount; effectIndex++)
             {
                 ChaosEffectInfo effectInfo = GetEffectInfo(effectIndex);
 
@@ -82,7 +82,7 @@ namespace RiskOfChaos.EffectHandling
 
         public static IEnumerable<ChaosEffectInfo> AllEffects()
         {
-            return Enumerable.Range(0, EffectCount).Select(i => GetEffectInfo((uint)i));
+            return Enumerable.Range(0, EffectCount).Select(i => GetEffectInfo((ChaosEffectIndex)i));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -92,33 +92,34 @@ namespace RiskOfChaos.EffectHandling
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ChaosEffectInfo GetEffectInfo(uint effectIndex)
+        public static ChaosEffectInfo GetEffectInfo(ChaosEffectIndex effectIndex)
         {
             return ArrayUtils.GetSafe(_effects, (int)effectIndex);
         }
 
-        public static int FindEffectIndex(string identifier)
+        public static ChaosEffectIndex FindEffectIndex(string identifier)
         {
             int index = Array.BinarySearch(_effects, identifier, ChaosEffectInfoIdentityComparer.Instance);
 
             if (index < 0)
             {
                 Log.Warning($"unable to find effect index for identifier '{identifier}'");
+                return ChaosEffectIndex.Invalid;
             }
 
-            return index;
+            return (ChaosEffectIndex)index;
         }
 
         internal static string GetConfigSectionName(string effectIdentifier)
         {
-            int index = FindEffectIndex(effectIdentifier);
-            if (index < 0)
+            ChaosEffectIndex index = FindEffectIndex(effectIdentifier);
+            if (index <= ChaosEffectIndex.Invalid)
             {
                 Log.Error($"unable to find index for identifier {effectIdentifier}");
                 return null;
             }
 
-            return GetEffectInfo((uint)index).ConfigSectionName;
+            return GetEffectInfo(index).ConfigSectionName;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

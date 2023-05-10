@@ -4,15 +4,15 @@ namespace RiskOfChaos.EffectHandling
 {
     public struct ChaosEffectActivationCounter
     {
-        public static readonly ChaosEffectActivationCounter EmptyCounter = new ChaosEffectActivationCounter(-1);
+        public static readonly ChaosEffectActivationCounter EmptyCounter = new ChaosEffectActivationCounter(ChaosEffectIndex.Invalid);
 
-        public readonly int EffectIndex;
+        public readonly ChaosEffectIndex EffectIndex;
 
         public int RunActivations;
 
         public int StageActivations;
 
-        public ChaosEffectActivationCounter(int effectIndex)
+        public ChaosEffectActivationCounter(ChaosEffectIndex effectIndex)
         {
             EffectIndex = effectIndex;
 
@@ -22,7 +22,7 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly override string ToString()
         {
-            return $"{ChaosEffectCatalog.GetEffectInfo((uint)EffectIndex).Identifier} (Index {EffectIndex}): {nameof(StageActivations)}={StageActivations}, {nameof(RunActivations)}={RunActivations}";
+            return $"{ChaosEffectCatalog.GetEffectInfo(EffectIndex).Identifier} (Index {EffectIndex}): {nameof(StageActivations)}={StageActivations}, {nameof(RunActivations)}={RunActivations}";
         }
     }
 }

@@ -3,16 +3,14 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
-using System;
 using System.Reflection;
 
 namespace RiskOfChaos.EffectHandling
 {
     public class TimedEffectInfo
     {
-        public readonly int EffectIndex;
-
-        public readonly int TimedEffectIndex;
+        public readonly ChaosEffectIndex EffectIndex;
+        public readonly TimedChaosEffectIndex TimedEffectIndex;
 
         readonly TimedEffectType _defaultTimedType;
         readonly ConfigEntry<TimedEffectType> _timedTypeConfig;
@@ -48,7 +46,7 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
-        public TimedEffectInfo(in ChaosEffectInfo effectInfo, int timedEffectIndex)
+        public TimedEffectInfo(in ChaosEffectInfo effectInfo, TimedChaosEffectIndex timedEffectIndex)
         {
             EffectIndex = effectInfo.EffectIndex;
             TimedEffectIndex = timedEffectIndex;

@@ -20,7 +20,7 @@ namespace RiskOfChaos.EffectHandling
 {
     public readonly struct ChaosEffectInfo : IEquatable<ChaosEffectInfo>
     {
-        public readonly int EffectIndex;
+        public readonly ChaosEffectIndex EffectIndex;
 
         public readonly string Identifier;
 
@@ -126,7 +126,7 @@ namespace RiskOfChaos.EffectHandling
 
         readonly string[] _previousConfigSectionNames;
 
-        public ChaosEffectInfo(int effectIndex, ChaosEffectAttribute attribute)
+        public ChaosEffectInfo(ChaosEffectIndex effectIndex, ChaosEffectAttribute attribute)
         {
             EffectIndex = effectIndex;
             Identifier = attribute.Identifier;
