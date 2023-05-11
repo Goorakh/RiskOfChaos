@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using System;
 using System.Reflection;
 
 namespace RiskOfChaos.EffectHandling
@@ -35,13 +36,21 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly bool Invoke(in EffectCanActivateContext context)
         {
-            if (_hasContextArg)
+            try
             {
-                return (bool)_method.Invoke(null, new object[] { context });
+                if (_hasContextArg)
+                {
+                    return (bool)_method.Invoke(null, new object[] { context });
+                }
+                else
+                {
+                    return (bool)_method.Invoke(null, null);
+                }
             }
-            else
+            catch (Exception e)
             {
-                return (bool)_method.Invoke(null, null);
+                Log.Error_NoCallerPrefix($"Caught exception in effect CanActivate method {_method.FullDescription()}, defaulting to not activatable: {e}");
+                return false;
             }
         }
     }
