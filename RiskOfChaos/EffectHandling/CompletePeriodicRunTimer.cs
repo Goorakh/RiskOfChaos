@@ -59,6 +59,12 @@ namespace RiskOfChaos.EffectHandling
             timer.SkipAllScheduledActivations();
         }
 
+        public void RewindScheduledActivations(float numSeconds)
+        {
+            ref PeriodicRunTimer timer = ref currentTimer;
+            timer.RewindScheduledActivations(numSeconds);
+        }
+
         public int GetNumScheduledActivations()
         {
             ref PeriodicRunTimer timer = ref currentTimer;

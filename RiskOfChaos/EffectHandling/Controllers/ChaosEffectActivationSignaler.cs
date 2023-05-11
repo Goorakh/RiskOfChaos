@@ -11,6 +11,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         public abstract event SignalShouldDispatchEffectDelegate SignalShouldDispatchEffect;
 
         public abstract void SkipAllScheduledEffects();
+        public abstract void RewindEffectScheduling(float numSeconds);
 
         protected const float MIN_STAGE_TIME_REQUIRED_TO_DISPATCH = 2f;
         protected virtual bool canDispatchEffects

@@ -91,6 +91,30 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
+        public void RewindEffectScheduling(float numSeconds)
+        {
+            if (!NetworkServer.active)
+            {
+                Log.Warning("Called on client");
+                return;
+            }
+
+            foreach (ChaosEffectActivationSignaler activationSignaler in _effectActivationSignalers)
+            {
+                if (activationSignaler is Behaviour behaviour)
+                {
+                    if (behaviour.enabled)
+                    {
+                        activationSignaler.RewindEffectScheduling(numSeconds);
+                    }
+                }
+                else
+                {
+                    Log.Error($"Non-Behaviour type for effect signaler {activationSignaler}");
+                }
+            }
+        }
+
         void NetworkedEffectDispatchedMessage_OnReceive(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, byte[] serializedEffectData)
         {
             if (NetworkServer.active)

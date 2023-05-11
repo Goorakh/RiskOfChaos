@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using System;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectHandling
@@ -78,8 +79,15 @@ namespace RiskOfChaos.EffectHandling
 
         public void SkipActivations(int numActivationsToSkip)
         {
-            _nextActivationTime += numActivationsToSkip * Period;
-            _lastActivationTime = _nextActivationTime - Period;
+            if (numActivationsToSkip < 0 && -(numActivationsToSkip * Period) > _nextActivationTime)
+            {
+                Reset();
+            }
+            else
+            {
+                _nextActivationTime += numActivationsToSkip * Period;
+                _lastActivationTime = _nextActivationTime - Period;
+            }
 
 #if DEBUG
             Log.Debug($"{nameof(_lastActivationTime)}={_lastActivationTime}, {nameof(_nextActivationTime)}={_nextActivationTime}");
@@ -97,6 +105,20 @@ namespace RiskOfChaos.EffectHandling
         public void SkipAllScheduledActivations()
         {
             SkipActivations(GetNumScheduledActivations());
+        }
+
+        public void RewindScheduledActivations(float numSeconds)
+        {
+            if (numSeconds >= currentTime)
+            {
+                Reset();
+                SkipActivations(1);
+            }
+            else
+            {
+                int activationsToRewind = Mathf.CeilToInt(numSeconds / Period);
+                SkipActivations(-activationsToRewind);
+            }
         }
 
         public readonly bool ShouldActivate()

@@ -16,6 +16,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
             _effectDispatchTimer?.SkipAllScheduledActivations();
         }
 
+        public override void RewindEffectScheduling(float numSeconds)
+        {
+            _effectDispatchTimer?.RewindScheduledActivations(numSeconds);
+        }
+
         void OnEnable()
         {
             Configs.General.OnTimeBetweenEffectsChanged += onTimeBetweenEffectsConfigChanged;

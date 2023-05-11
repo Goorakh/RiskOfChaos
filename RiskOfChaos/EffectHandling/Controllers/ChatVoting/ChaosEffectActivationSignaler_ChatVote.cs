@@ -36,6 +36,11 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             _voteTimer?.SkipAllScheduledActivations();
         }
 
+        public override void RewindEffectScheduling(float numSeconds)
+        {
+            _voteTimer?.RewindScheduledActivations(numSeconds);
+        }
+
         protected void processVoteMessage(string userId, string message)
         {
             if (_effectVoteSelection.IsVoteActive &&
