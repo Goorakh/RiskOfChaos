@@ -88,5 +88,6 @@
 		"EFFECT_SUPPRESS_RANDOM_ITEM_NAME": "Eradicate Random Item",
 		"EFFECT_RESET_PLAYER_LEVEL_NAME": "Reset Player Level",
 		"EFFECT_DECREASE_RUN_TIMER_NAME": "-{0} Minutes",
+		"EFFECT_REVERSE_KNOCKBACK_NAME": "Invert Knockback",
 	}
 }
