@@ -42,7 +42,7 @@ namespace RiskOfChaos.Components
                         return;
                     }
 
-                    BossUtils.TryRefreshBossTitleFor(_body);
+                    onAppliedBuffStacksChanged();
                 }
 
                 _buffStackCount = value;
@@ -83,7 +83,20 @@ namespace RiskOfChaos.Components
                     _body.AddBuff(BuffIndex);
                 }
 
-                BossUtils.TryRefreshBossTitleFor(_body);
+                onAppliedBuffStacksChanged();
+            }
+        }
+
+        void onAppliedBuffStacksChanged()
+        {
+            BossUtils.TryRefreshBossTitleFor(_body);
+
+            // Refresh some of the elite buffs
+            if (_body.inventory)
+            {
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                _body.OnInventoryChanged();
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
             }
         }
 
