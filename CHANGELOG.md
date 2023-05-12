@@ -1,5 +1,27 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* Added 8 new effects:
+  * Reinforcements: Spawns allied survivors in drop pods around the map.
+  * Bouncy Projectiles: All projectiles and bullets bounce on the surface they hit. Lasts 1 stage.
+  * Eradicate Random Item: Permanently removes a random item from the game for the rest of the run
+  * Reset Player Level: Sets all players' level to 0
+  * -5 Minutes: Decreases the run timer by 5 minutes
+  * Invert Knockback: Reverses the direction of all knockback applied to characters
+  * +100% Fall Damage: Increases fall damage by 100% (configurable). Lasts 1 stage.
+  * Disable Fall Damage: Disables all fall damage. Lasts 1 stage.
+
+* Ahoy!:
+  * Fixed drone spawns being affected by Artifact of Swarms
+
+* Mitosis:
+  * Fixed allies duplicating being affected by Artifact of Swarms
+  * Duplicated allies are now temporary (will not be carried over to the next stage), this is done to prevent lag due to ending up with an unreasonable number of drones. Old behavior can still be re-enabled in the config for the effect.
+
+* Increase Director Credits:
+  * Credit increase percentage is now configurable
+
 **1.4.1 Changes:**
 
 * Added 1 new effect:

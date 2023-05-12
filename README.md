@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer combatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 74 different effects.
+Currently features 82 different effects.
 
 ### Twitch Integration:
 
@@ -25,7 +25,7 @@ If the game loses connection to your channel, it will automatically attempt to r
 * One Hit KO: Sets everything on the stage to 1 HP
 * Freeze!: Freezes every character on the stage for 4 seconds
 * Payday: Gives all players an amount of money equivalent to 4 large chests. (Amount can be configured)
-* +50% Director Credits: Increases director credits for the rest of the current stage
+* Increase Director Credits: Increases director credits for the rest of the current stage (+50% by default, configurable)
 * Sequence All Players: Activates a shrine of order on all players
 * Spawn Scavenger Bag: Spawns a scavenger bag near a random player
 * Drop All Items: Drops all characters' items and equipment on the ground
@@ -90,6 +90,14 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Spawn Random Ally: Spawns a random ally for every player
 * Respawn As Random Character: Respawns every player as a random character
 * Steal All Player Items: Steals all items from every player and distributes them among enemies, damage the enemy that took items to gain them back (leaving the stage will also give all the items back)
+* Reinforcements: Spawns allied survivors in drop pods around the map.
+* Bouncy Projectiles: All projectiles and bullets bounce on the surface they hit. Lasts 1 stage.
+* Eradicate Random Item: Permanently removes a random item from the game for the rest of the run
+* Reset Player Level: Sets all players' level to 0
+* -5 Minutes: Decreases the run timer by 5 minutes
+* Invert Knockback: Reverses the direction of all knockback applied to characters
+* +100% Fall Damage: Increases fall damage by 100% (configurable). Lasts 1 stage.
+* Disable Fall Damage: Disables all fall damage. Lasts 1 stage.
 </details>
 
 FAQ:

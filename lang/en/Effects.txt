@@ -89,5 +89,7 @@
 		"EFFECT_RESET_PLAYER_LEVEL_NAME": "Reset Player Level",
 		"EFFECT_DECREASE_RUN_TIMER_NAME": "-{0} Minutes",
 		"EFFECT_REVERSE_KNOCKBACK_NAME": "Invert Knockback",
+		"EFFECT_INCREASE_FALL_DAMAGE_NAME": "+{0:P0} Fall Damage",
+		"EFFECT_DISABLE_FALL_DAMAGE_NAME": "Disable Fall Damage",
 	}
 }
