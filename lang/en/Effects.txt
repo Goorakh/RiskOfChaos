@@ -91,5 +91,6 @@
 		"EFFECT_REVERSE_KNOCKBACK_NAME": "Invert Knockback",
 		"EFFECT_INCREASE_FALL_DAMAGE_NAME": "+{0:P0} Fall Damage",
 		"EFFECT_DISABLE_FALL_DAMAGE_NAME": "Disable Fall Damage",
+		"EFFECT_SPAWN_LIGHTNING_STRIKES_NAME": "Risk of Thunder",
 	}
 }
