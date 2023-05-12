@@ -15,7 +15,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         [EffectCanActivate]
         static bool CanActivate(EffectCanActivateContext context)
         {
-            return !context.IsNow || getReverseItemCorruptionMap().Keys.Any(i => PlayerUtils.GetAllPlayerMasters(false).Any(m => m.inventory.GetItemCount(i) > 0));
+            return getReverseItemCorruptionMap().Keys.Any(i => PlayerUtils.GetAllPlayerMasters(false).Any(m => m.inventory.GetItemCount(i) > 0));
         }
 
         static Dictionary<ItemIndex, List<ItemIndex>> getReverseItemCorruptionMap()

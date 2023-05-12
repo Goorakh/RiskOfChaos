@@ -13,9 +13,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
     public sealed class CorruptRandomItem : BaseEffect
     {
         [EffectCanActivate]
-        static bool CanActivate(EffectCanActivateContext context)
+        static bool CanActivate()
         {
-            return (!context.IsNow && ExpansionUtils.DLC1Enabled) || PlayerUtils.GetAllPlayerMasters(false).Any(m => getAllCorruptableItems(m.inventory).Any());
+            return ExpansionUtils.DLC1Enabled && PlayerUtils.GetAllPlayerMasters(false).Any(m => getAllCorruptableItems(m.inventory).Any());
         }
 
         static IEnumerable<ItemIndex> getAllCorruptableItems(Inventory inventory)
