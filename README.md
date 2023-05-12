@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer combatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 82 different effects.
+Currently features 83 different effects.
 
 ### Twitch Integration:
 
@@ -96,8 +96,9 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Reset Player Level: Sets all players' level to 0
 * -5 Minutes: Decreases the run timer by 5 minutes
 * Invert Knockback: Reverses the direction of all knockback applied to characters
-* +100% Fall Damage: Increases fall damage by 100% (configurable). Lasts 1 stage.
+* +100% Fall Damage: Increases fall damage by 100% (configurable). Also makes it lethal. Lasts 1 stage.
 * Disable Fall Damage: Disables all fall damage. Lasts 1 stage.
+* Risk of Thunder: Spawns lightning strikes at random points on the map. Lasts 30 seconds.
 </details>
 
 FAQ:
