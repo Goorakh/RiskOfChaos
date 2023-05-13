@@ -206,9 +206,9 @@ namespace RiskOfChaos.EffectDefinitions.World
         }
 
         [EffectCanActivate]
-        static bool CanActivate(EffectCanActivateContext context)
+        static bool CanActivate()
         {
-            return _iscChanceShrine && (!context.IsNow || getAllReplacementsData().Any());
+            return _iscChanceShrine && getAllReplacementsData().Any();
         }
 
         public override void OnStart()
