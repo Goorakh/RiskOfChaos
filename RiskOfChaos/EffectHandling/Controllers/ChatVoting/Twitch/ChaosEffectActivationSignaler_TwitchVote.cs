@@ -137,6 +137,8 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
                         baseToken = "TWITCH_EFFECT_VOTING_LOGIN_FAIL_FORMAT",
                         paramTokens = new string[] { Language.GetString("TWITCH_LOGIN_FAIL_NOT_LOGGED_IN") }
                     });
+
+                    scheduleAttemptJoinChannel(5f);
                 }
                 else if (_client != null)
                 {
