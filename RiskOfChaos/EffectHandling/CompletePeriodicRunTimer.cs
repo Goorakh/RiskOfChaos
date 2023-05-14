@@ -3,7 +3,7 @@ using System;
 
 namespace RiskOfChaos.EffectHandling
 {
-    public class CompletePeriodicRunTimer
+    public class CompletePeriodicRunTimer : IRunTimer
     {
         public event Action OnActivate;
 

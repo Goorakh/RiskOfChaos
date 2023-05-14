@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectHandling
 {
-    public struct PeriodicRunTimer
+    public struct PeriodicRunTimer : IRunTimer
     {
         public readonly RunTimerType TimeType;
 
