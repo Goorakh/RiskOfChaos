@@ -47,6 +47,18 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     procChainMask = default,
                     procCoefficient = 0f
                 }, healthComponent, fakeDamageDealt, combinedHealthBeforeDamage));
+
+                // If the effect deals less than this fraction of the player's max health, they will not be given invincibility
+                const float MIN_DEALT_FRACTION_TO_GRANT_INVINCIBILITY = 0.2f;
+                if (healthComponent.body &&
+                    healthComponent.body.isPlayerControlled &&
+                    fakeDamageDealt / healthComponent.fullHealth >= MIN_DEALT_FRACTION_TO_GRANT_INVINCIBILITY)
+                {
+#if DEBUG
+                    Log.Debug("Giving temporary invincibility to " + Util.GetBestBodyName(healthComponent.body.gameObject));
+#endif
+                    healthComponent.body.AddTimedBuff(RoR2Content.Buffs.HiddenInvincibility, 0.75f);
+                }
             }
         }
     }
