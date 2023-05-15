@@ -8,6 +8,7 @@ using RiskOfChaos.ModifierController.SkillSlots;
 using RiskOfChaos.ModifierController.TimeScale;
 using RiskOfChaos.Networking.Components;
 using RoR2;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -32,7 +33,17 @@ namespace RiskOfChaos
 
         public static GameObject DamageInfoModificationControllerPrefab { get; private set; }
 
-        static GameObject createPrefabObject(string name, bool networked = true)
+        static readonly string[] _geyserPrefabPaths = new string[]
+        {
+            "RoR2/Base/Common/Props/Geyser.prefab",
+            "RoR2/Base/artifactworld/AWGeyser.prefab",
+            "RoR2/Base/moon/MoonGeyser.prefab",
+            "RoR2/DLC1/ancientloft/AncientLoft_Geyser.prefab",
+            "RoR2/DLC1/snowyforest/SFGeyser.prefab"
+        };
+        public static GameObject[] GeyserPrefabs { get; private set; }
+
+        static GameObject createEmptyPrefabObject(string name, bool networked = true)
         {
             GameObject tmp = new GameObject(name);
 
@@ -51,7 +62,7 @@ namespace RiskOfChaos
         {
             // GenericTeamInventoryPrefab
             {
-                GenericTeamInventoryPrefab = createPrefabObject("GenericTeamInventory");
+                GenericTeamInventoryPrefab = createEmptyPrefabObject("GenericTeamInventory");
 
                 GenericTeamInventoryPrefab.AddComponent<SetDontDestroyOnLoad>();
                 GenericTeamInventoryPrefab.AddComponent<TeamFilter>();
@@ -75,7 +86,7 @@ namespace RiskOfChaos
 
             // NetworkGravityControllerPrefab
             {
-                GravityControllerPrefab = createPrefabObject("GravityController");
+                GravityControllerPrefab = createEmptyPrefabObject("GravityController");
 
                 GravityControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
                 GravityControllerPrefab.AddComponent<DestroyOnRunEnd>();
@@ -85,7 +96,7 @@ namespace RiskOfChaos
 
             // SkillSlotModificationControllerPrefab
             {
-                SkillSlotModificationControllerPrefab = createPrefabObject("SkillSlotModificationController");
+                SkillSlotModificationControllerPrefab = createEmptyPrefabObject("SkillSlotModificationController");
 
                 SkillSlotModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
                 SkillSlotModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
@@ -94,7 +105,7 @@ namespace RiskOfChaos
 
             // KnockbackModificationControllerPrefab
             {
-                KnockbackModificationControllerPrefab = createPrefabObject("KnockbackModificationController");
+                KnockbackModificationControllerPrefab = createEmptyPrefabObject("KnockbackModificationController");
 
                 KnockbackModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
                 KnockbackModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
@@ -103,7 +114,7 @@ namespace RiskOfChaos
 
             // ProjectileModificationControllerPrefab
             {
-                ProjectileModificationControllerPrefab = createPrefabObject("ProjectileModificationController");
+                ProjectileModificationControllerPrefab = createEmptyPrefabObject("ProjectileModificationController");
 
                 ProjectileModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
                 ProjectileModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
@@ -112,7 +123,7 @@ namespace RiskOfChaos
 
             // TimeScaleModificationControllerPrefab
             {
-                TimeScaleModificationControllerPrefab = createPrefabObject("TimeScaleModificationController");
+                TimeScaleModificationControllerPrefab = createEmptyPrefabObject("TimeScaleModificationController");
 
                 TimeScaleModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
                 TimeScaleModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
@@ -122,11 +133,30 @@ namespace RiskOfChaos
 
             // DamageInfoModificationControllerPrefab
             {
-                DamageInfoModificationControllerPrefab = createPrefabObject("DamageInfoModificationController", false);
+                DamageInfoModificationControllerPrefab = createEmptyPrefabObject("DamageInfoModificationController", false);
 
                 DamageInfoModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
                 DamageInfoModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
                 DamageInfoModificationControllerPrefab.AddComponent<DamageInfoModificationManager>();
+            }
+
+            // GeyserPrefabs
+            {
+                int geyserCount = _geyserPrefabPaths.Length;
+                GeyserPrefabs = new GameObject[geyserCount];
+                for (int i = 0; i < geyserCount; i++)
+                {
+                    GameObject geyserPrefab = Addressables.LoadAssetAsync<GameObject>(_geyserPrefabPaths[i]).WaitForCompletion();
+                    string prefabName = geyserPrefab.name;
+
+                    GameObject tmpNetworkGeyserPrefab = GameObject.Instantiate(geyserPrefab);
+
+                    tmpNetworkGeyserPrefab.AddComponent<NetworkIdentity>();
+                    tmpNetworkGeyserPrefab.AddComponent<SyncJumpVolumeVelocity>();
+                    GeyserPrefabs[i] = tmpNetworkGeyserPrefab.InstantiateClone(Main.PluginGUID + "_Networked" + prefabName, true);
+
+                    GameObject.Destroy(tmpNetworkGeyserPrefab);
+                }
             }
 
             Run.onRunStartGlobal += onRunStart;
