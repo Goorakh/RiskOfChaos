@@ -139,7 +139,7 @@ namespace RiskOfChaos
                 DamageInfoModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
                 DamageInfoModificationControllerPrefab.AddComponent<DamageInfoModificationManager>();
             }
-
+            
             // GeyserPrefabs
             {
                 int geyserCount = _geyserPrefabPaths.Length;
