@@ -23,8 +23,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                 return 0f;
 
             // Scale the weight multiplier up to 1 as player level increases to MIN_LEVEL rather than just having a large reduction percentage
-            const uint MIN_LEVEL = 3;
-            return Mathf.Clamp(teamManager.GetTeamLevel(TeamIndex.Player) / (float)MIN_LEVEL, 0.15f, 1f);
+            const uint MIN_LEVEL = 4;
+            return Mathf.Clamp((teamManager.GetTeamLevel(TeamIndex.Player) - 1f) / (MIN_LEVEL - 1), 0.15f, 1f);
         }
 
         public override void OnStart()
