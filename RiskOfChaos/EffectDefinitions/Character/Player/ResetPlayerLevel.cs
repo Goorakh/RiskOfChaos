@@ -12,7 +12,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return TeamManager.instance;
+            return TeamManager.instance && TeamManager.instance.GetTeamExperience(TeamIndex.Player) > 0;
         }
 
         [EffectWeightMultiplierSelector]
