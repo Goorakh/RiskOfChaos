@@ -162,6 +162,11 @@ namespace RiskOfChaos.ModifierController
         public override sealed void OnDeserialize(NetworkReader reader, bool initialState)
         {
             deserialize(reader, initialState, initialState ? ~0b0U : reader.ReadPackedUInt32());
+
+            if (!NetworkServer.active)
+            {
+                OnValueModificationUpdated?.Invoke();
+            }
         }
 
         protected virtual void deserialize(NetworkReader reader, bool initialState, uint dirtyBits)

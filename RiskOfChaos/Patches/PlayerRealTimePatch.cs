@@ -29,7 +29,7 @@ namespace RiskOfChaos.Patches
         {
             orig(self);
 
-            if (TimeScaleModificationManager.Instance)
+            if (self.characterBody && self.characterBody.hasAuthority && TimeScaleModificationManager.Instance)
             {
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 TimeScaleModificationManager.Instance.OnValueModificationUpdated += self.RecalculateFinalRechargeInterval;
@@ -41,7 +41,7 @@ namespace RiskOfChaos.Patches
         {
             orig(self);
 
-            if (TimeScaleModificationManager.Instance)
+            if (self.characterBody && self.characterBody.hasAuthority && TimeScaleModificationManager.Instance)
             {
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 TimeScaleModificationManager.Instance.OnValueModificationUpdated -= self.RecalculateFinalRechargeInterval;
@@ -62,9 +62,9 @@ namespace RiskOfChaos.Patches
                 return 0f;
             }
 
-            if (self.characterBody && self.characterBody.isPlayerControlled)
+            if (self.characterBody && self.characterBody.isPlayerControlled && TimeScaleModificationManager.Instance)
             {
-                return result * TimeUtils.UnpausedTimeScale;
+                return result * TimeScaleModificationManager.Instance.NetworkPlayerRealtimeTimeScaleMultiplier;
             }
             else
             {
@@ -77,11 +77,11 @@ namespace RiskOfChaos.Patches
         {
             orig(self);
 
-            if (self.targetSkill && self.cooldownText && self.cooldownText.gameObject.activeSelf)
+            if (self.targetSkill && self.cooldownText && self.cooldownText.gameObject.activeSelf && TimeScaleModificationManager.Instance)
             {
                 StringBuilder stringBuilder = HG.StringBuilderPool.RentStringBuilder();
 
-                stringBuilder.AppendInt(Mathf.CeilToInt(self.targetSkill.cooldownRemaining / TimeUtils.UnpausedTimeScale));
+                stringBuilder.AppendInt(Mathf.CeilToInt(self.targetSkill.cooldownRemaining / TimeScaleModificationManager.Instance.NetworkPlayerRealtimeTimeScaleMultiplier));
 
                 self.cooldownText.SetText(stringBuilder);
 
@@ -115,7 +115,10 @@ namespace RiskOfChaos.Patches
 
                     cursor.EmitDelegate((float cooldown) =>
                     {
-                        return cooldown / TimeUtils.UnpausedTimeScale;
+                        if (!TimeScaleModificationManager.Instance)
+                            return cooldown;
+
+                        return cooldown / TimeScaleModificationManager.Instance.NetworkPlayerRealtimeTimeScaleMultiplier;
                     });
                 }
                 else
