@@ -10,8 +10,8 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("all_void_potentials", EffectStageActivationCountHardCap = 1)]
-    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [ChaosEffect("all_void_potentials")]
+    [ChaosTimedEffect(TimedEffectType.UntilStageEnd, AllowDuplicates = false)]
     [EffectConfigBackwardsCompatibility("Effect: All Items Are Void Potentials (Lasts 1 stage)")]
     public sealed class AllVoidPotentials : TimedEffect
     {

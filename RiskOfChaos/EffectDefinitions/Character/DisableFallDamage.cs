@@ -7,8 +7,8 @@ using RoR2;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("disable_fall_damage", EffectStageActivationCountHardCap = 1)]
-    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [ChaosEffect("disable_fall_damage")]
+    [ChaosTimedEffect(TimedEffectType.UntilStageEnd, AllowDuplicates = false)]
     public sealed class DisableFallDamage : TimedEffect
     {
         [InitEffectInfo]

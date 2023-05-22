@@ -12,6 +12,8 @@ namespace RiskOfChaos.EffectHandling
         public readonly ChaosEffectIndex EffectIndex;
         public readonly TimedChaosEffectIndex TimedEffectIndex;
 
+        public readonly bool AllowDuplicates;
+
         readonly TimedEffectType _defaultTimedType;
         readonly ConfigEntry<TimedEffectType> _timedTypeConfig;
         public TimedEffectType TimedType
@@ -61,11 +63,18 @@ namespace RiskOfChaos.EffectHandling
                 {
                     _durationConfig = effectInfo.BindConfig("Effect Duration", _defaultDuration, new ConfigDescription("How long the effect should last, in seconds"));
                 }
+
+                AllowDuplicates = timedEffectAttribute.AllowDuplicates;
             }
             else
             {
                 Log.Error($"Timed effect {effectInfo} is missing {nameof(ChaosTimedEffectAttribute)}");
             }
+        }
+
+        public override string ToString()
+        {
+            return ChaosEffectCatalog.GetEffectInfo(EffectIndex).ToString();
         }
 
         public string ApplyTimedTypeSuffix(string effectName)

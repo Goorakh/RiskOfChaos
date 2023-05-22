@@ -16,14 +16,14 @@ namespace RiskOfChaos.EffectHandling.Controllers
         static TimedChaosEffectHandler _instance;
         public static TimedChaosEffectHandler Instance => _instance;
 
-        readonly struct TimedEffectInfo
+        readonly struct ActiveTimedEffectInfo
         {
             public readonly ChaosEffectInfo EffectInfo;
             public readonly TimedEffect EffectInstance;
 
             public readonly TimedEffectType TimedType;
 
-            public TimedEffectInfo(in ChaosEffectInfo effectInfo, TimedEffect effectInstance)
+            public ActiveTimedEffectInfo(in ChaosEffectInfo effectInfo, TimedEffect effectInstance)
             {
                 EffectInfo = effectInfo;
                 EffectInstance = effectInstance;
@@ -62,7 +62,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        readonly List<TimedEffectInfo> _activeTimedEffects = new List<TimedEffectInfo>();
+        readonly List<ActiveTimedEffectInfo> _activeTimedEffects = new List<ActiveTimedEffectInfo>();
 
         ChaosEffectDispatcher _effectDispatcher;
 
@@ -80,6 +80,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
             _effectDispatcher.OnEffectDispatched += onEffectDispatched;
 
             Stage.onServerStageComplete += onServerStageComplete;
+
+            if (NetworkServer.active)
+            {
+                TimedEffectCatalog.TimedEffectCanActivateOverride += timedEffectCanActivateOverride;
+            }
         }
 
         void Update()
@@ -88,7 +93,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 for (int i = _activeTimedEffects.Count - 1; i >= 0; i--)
                 {
-                    TimedEffectInfo timedEffectInfo = _activeTimedEffects[i];
+                    ActiveTimedEffectInfo timedEffectInfo = _activeTimedEffects[i];
                     if (!timedEffectInfo.MatchesFlag(TimedEffectFlags.FixedDuration))
                         continue;
 
@@ -115,6 +120,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             Stage.onServerStageComplete -= onServerStageComplete;
 
+            TimedEffectCatalog.TimedEffectCanActivateOverride -= timedEffectCanActivateOverride;
+
             endTimedEffects(TimedEffectFlags.All, false);
             _activeTimedEffects.Clear();
         }
@@ -128,7 +135,23 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             if (effectInstance is TimedEffect timedEffectInstance)
             {
-                registerTimedEffect(new TimedEffectInfo(effectInfo, timedEffectInstance));
+                registerTimedEffect(new ActiveTimedEffectInfo(effectInfo, timedEffectInstance));
+            }
+        }
+
+        void timedEffectCanActivateOverride(TimedEffectInfo effect, ref bool canActivate)
+        {
+            if (!effect.AllowDuplicates)
+            {
+                bool effectAlreadyActive = IsTimedEffectActive(ChaosEffectCatalog.GetEffectInfo(effect.EffectIndex));
+                canActivate = !effectAlreadyActive;
+
+#if DEBUG
+                if (effectAlreadyActive)
+                {
+                    Log.Debug($"Duplicate effect {effect} cannot activate");
+                }
+#endif
             }
         }
 
@@ -144,7 +167,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         {
             for (int i = _activeTimedEffects.Count - 1; i >= 0; i--)
             {
-                TimedEffectInfo timedEffect = _activeTimedEffects[i];
+                ActiveTimedEffectInfo timedEffect = _activeTimedEffects[i];
                 if (timedEffect.MatchesFlag(flags))
                 {
 #if DEBUG
@@ -164,7 +187,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             for (int i = 0; i < _activeTimedEffects.Count; i++)
             {
-                TimedEffectInfo timedEffect = _activeTimedEffects[i];
+                ActiveTimedEffectInfo timedEffect = _activeTimedEffects[i];
                 if (timedEffect.EffectInstance != null && timedEffect.EffectInstance.DispatchID == effectDispatchID)
                 {
                     timedEffect.End(false);
@@ -181,14 +204,14 @@ namespace RiskOfChaos.EffectHandling.Controllers
             Log.Warning($"No timed effect registered with ID {effectDispatchID}");
         }
 
-        void registerTimedEffect(in TimedEffectInfo effectInfo)
+        void registerTimedEffect(in ActiveTimedEffectInfo effectInfo)
         {
             _activeTimedEffects.Add(effectInfo);
         }
         
         public bool IsTimedEffectActive(in ChaosEffectInfo effectInfo)
         {
-            foreach (TimedEffectInfo timedEffect in _activeTimedEffects)
+            foreach (ActiveTimedEffectInfo timedEffect in _activeTimedEffects)
             {
                 if (timedEffect.EffectInfo == effectInfo)
                 {
@@ -203,7 +226,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         {
             int count = 0;
 
-            foreach (TimedEffectInfo timedEffect in _activeTimedEffects)
+            foreach (ActiveTimedEffectInfo timedEffect in _activeTimedEffects)
             {
                 if (timedEffect.EffectInfo == effectInfo)
                 {
@@ -216,7 +239,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         public IEnumerable<TEffect> GetActiveEffectInstancesOfType<TEffect>() where TEffect : TimedEffect
         {
-            foreach (TimedEffectInfo timedEffect in _activeTimedEffects)
+            foreach (ActiveTimedEffectInfo timedEffect in _activeTimedEffects)
             {
                 if (timedEffect.EffectInstance is TEffect instance)
                 {

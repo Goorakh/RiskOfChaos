@@ -197,7 +197,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     paramTokens = new string[] { ChaosEffectCatalog.GetEffectDisplayName(effect) }
                 });
 
-                bool canActivate = (dispatchFlags & EffectDispatchFlags.CheckCanActivate) == 0 || effect.CanActivate(EffectCanActivateContext.Now);
+                bool canActivate = (dispatchFlags & EffectDispatchFlags.CheckCanActivate) == 0 || ChaosEffectCatalog.CanEffectActivate(effect, EffectCanActivateContext.Now);
 
                 OnEffectAboutToDispatchServer?.Invoke(effect, dispatchFlags, canActivate);
 

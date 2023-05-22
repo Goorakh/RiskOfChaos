@@ -10,6 +10,8 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes
         public readonly TimedEffectType TimedType;
         public readonly float DurationSeconds;
 
+        public bool AllowDuplicates { get; set; } = true;
+
         ChaosTimedEffectAttribute(TimedEffectType timedType, float durationSeconds)
         {
             TimedType = timedType;

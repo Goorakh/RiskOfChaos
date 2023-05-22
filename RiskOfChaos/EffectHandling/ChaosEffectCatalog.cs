@@ -32,6 +32,9 @@ namespace RiskOfChaos.EffectHandling
         public delegate void OnEffectInstantiatedDelegate(in ChaosEffectInfo effectInfo, in CreateEffectInstanceArgs args, BaseEffect instance);
         public static event OnEffectInstantiatedDelegate OnEffectInstantiatedServer;
 
+        public delegate void EffectCanActivateDelegate(in ChaosEffectInfo effectInfo, ref bool canActivate);
+        public static event EffectCanActivateDelegate OverrideEffectCanActivate;
+
         internal static void InitConfig()
         {
             // ModSettingsManager.SetModIcon(effects_icon, GUID, NAME);
@@ -134,7 +137,7 @@ namespace RiskOfChaos.EffectHandling
 
             foreach (ChaosEffectInfo effect in _effects)
             {
-                if (effect.CanActivate(context) && (excludeEffects == null || !excludeEffects.Contains(effect)))
+                if (CanEffectActivate(effect, context) && (excludeEffects == null || !excludeEffects.Contains(effect)))
                 {
                     weightedSelection.AddChoice(effect, effect.TotalSelectionWeight);
                 }
@@ -194,6 +197,13 @@ namespace RiskOfChaos.EffectHandling
             }
 
             return effectInstance;
+        }
+
+        public static bool CanEffectActivate(in ChaosEffectInfo effectInfo, in EffectCanActivateContext context)
+        {
+            bool canActivate = effectInfo.CanActivate(context);
+            OverrideEffectCanActivate?.Invoke(effectInfo, ref canActivate);
+            return canActivate;
         }
     }
 }

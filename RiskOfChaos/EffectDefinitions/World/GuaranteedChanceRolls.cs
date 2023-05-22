@@ -9,8 +9,8 @@ using System;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("guaranteed_chance_rolls", DefaultSelectionWeight = 0.9f, EffectStageActivationCountHardCap = 1, IsNetworked = true)]
-    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [ChaosEffect("guaranteed_chance_rolls", DefaultSelectionWeight = 0.9f, IsNetworked = true)]
+    [ChaosTimedEffect(TimedEffectType.UntilStageEnd, AllowDuplicates = false)]
     [EffectConfigBackwardsCompatibility("Effect: Guaranteed Chance Effects (Lasts 1 stage)")]
     public sealed class GuaranteedChanceRolls : TimedEffect
     {
