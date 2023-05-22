@@ -6,7 +6,7 @@ using System;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("reverse_knockback", EffectStageActivationCountHardCap = 1)]
+    [ChaosEffect("reverse_knockback", EffectWeightReductionPercentagePerActivation = 0.3f)]
     [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
     public sealed class ReverseKnockback : TimedEffect, IKnockbackModificationProvider
     {
