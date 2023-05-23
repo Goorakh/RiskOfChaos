@@ -80,35 +80,42 @@ namespace RiskOfChaos.EffectDefinitions.Time
                 }
             }
 
+            bool shouldConsiderMovement()
+            {
+                if (!_master)
+                    return false;
+
+                CharacterBody body = _master.GetBody();
+                if (!body || !body.healthComponent || !body.healthComponent.alive)
+                    return false;
+
+                return true;
+            }
+
             float getCurrentTimeScaleMultiplier(float deltaTime)
             {
-                if (_master)
-                {
-                    CharacterBody body = _master.GetBody();
-                    if (body && body.healthComponent && body.healthComponent.alive)
-                    {
-                        float distanceMoved = Vector3.Distance(_lastPosition, body.footPosition);
-                        float velocity = distanceMoved / deltaTime;
+                if (!shouldConsiderMovement())
+                    return 1f;
+                
+                CharacterBody body = _master.GetBody();
+                float distanceMoved = Vector3.Distance(_lastPosition, body.footPosition);
+                float velocity = distanceMoved / deltaTime;
 
-                        _lastPosition = body.footPosition;
+                _lastPosition = body.footPosition;
 
-                        const float TIME_SCALE_MULTIPLIER = 0.95f;
-                        const float MIN_TIME_SCALE_MULTIPLIER = 0.1f;
-                        const float MAX_TIME_SCALE_MULTIPLIER = 1.75f;
-                        const float TIME_SCALE_COEFFICIENT = TIME_SCALE_MULTIPLIER * (MAX_TIME_SCALE_MULTIPLIER - MIN_TIME_SCALE_MULTIPLIER) / MAX_TIME_SCALE_MULTIPLIER;
-                        
-                        float moveSpeed = body.moveSpeed;
-                        if (!body.isSprinting)
-                            moveSpeed *= body.sprintingSpeedMultiplier;
+                const float TIME_SCALE_MULTIPLIER = 0.95f;
+                const float MIN_TIME_SCALE_MULTIPLIER = 0.1f;
+                const float MAX_TIME_SCALE_MULTIPLIER = 1.75f;
+                const float TIME_SCALE_COEFFICIENT = TIME_SCALE_MULTIPLIER * (MAX_TIME_SCALE_MULTIPLIER - MIN_TIME_SCALE_MULTIPLIER) / MAX_TIME_SCALE_MULTIPLIER;
 
-                        float unscaledMultiplier = velocity / moveSpeed;
-                        float scaledMultiplier = (TIME_SCALE_COEFFICIENT * unscaledMultiplier) + MIN_TIME_SCALE_MULTIPLIER;
+                float moveSpeed = body.moveSpeed;
+                if (!body.isSprinting)
+                    moveSpeed *= body.sprintingSpeedMultiplier;
 
-                        return Mathf.Clamp(scaledMultiplier, MIN_TIME_SCALE_MULTIPLIER, MAX_TIME_SCALE_MULTIPLIER);
-                    }
-                }
+                float unscaledMultiplier = velocity / moveSpeed;
+                float scaledMultiplier = (TIME_SCALE_COEFFICIENT * unscaledMultiplier) + MIN_TIME_SCALE_MULTIPLIER;
 
-                return 1f;
+                return Mathf.Clamp(scaledMultiplier, MIN_TIME_SCALE_MULTIPLIER, MAX_TIME_SCALE_MULTIPLIER);
             }
 
             public void ModifyValue(ref float value)
