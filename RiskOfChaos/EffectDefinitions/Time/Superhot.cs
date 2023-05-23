@@ -12,7 +12,7 @@ namespace RiskOfChaos.EffectDefinitions.Time
 {
     [ChaosEffect("superhot")]
     [ChaosTimedEffect(TimedEffectType.UntilStageEnd, AllowDuplicates = false)]
-    public sealed class TimeSuperhot : TimedEffect
+    public sealed class Superhot : TimedEffect
     {
         class PlayerTimeMovementTracker : MonoBehaviour, ITimeScaleModificationProvider
         {
@@ -113,16 +113,8 @@ namespace RiskOfChaos.EffectDefinitions.Time
 
             public void ModifyValue(ref float value)
             {
-                int multiplierSign = (int)Mathf.Sign(_currentTimeScaleMultiplier - 1f);
-                float multiplierChange = Mathf.Abs(_currentTimeScaleMultiplier - 1f);
-
-                float playerScaledMultiplier = 1f + (multiplierSign * multiplierChange / InstanceTracker.GetInstancesList<PlayerTimeMovementTracker>().Count);
-
-#if DEBUG
-                Log.Debug($"{Util.GetBestMasterName(_master)}: {nameof(multiplierSign)}={multiplierSign}, {nameof(multiplierChange)}={multiplierChange}, {nameof(playerScaledMultiplier)}={playerScaledMultiplier}");
-#endif
-
-                value *= playerScaledMultiplier;
+                // Splits influence semi-fairly between players, while keeping the exact min and max values regardless of player count
+                value *= Mathf.Pow(_currentTimeScaleMultiplier, 1f / InstanceTracker.GetInstancesList<PlayerTimeMovementTracker>().Count);
             }
         }
 
