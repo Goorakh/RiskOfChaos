@@ -73,10 +73,6 @@ namespace RiskOfChaos.EffectDefinitions.Time
 
                 _currentTimeScaleMultiplier = Mathf.MoveTowards(_currentTimeScaleMultiplier, targetTimeScaleMultiplier, maxDelta * deltaTime);
 
-#if DEBUG
-                Log.Debug($"{Util.GetBestMasterName(_master)}: {nameof(_lastTimeScaleMultiplier)}={_lastTimeScaleMultiplier}, {nameof(_currentTimeScaleMultiplier)}={_currentTimeScaleMultiplier}, {nameof(targetTimeScaleMultiplier)}={targetTimeScaleMultiplier}");
-#endif
-
                 if (_currentTimeScaleMultiplier != _lastTimeScaleMultiplier)
                 {
                     _lastTimeScaleMultiplier = _currentTimeScaleMultiplier;
@@ -100,17 +96,13 @@ namespace RiskOfChaos.EffectDefinitions.Time
                         const float MIN_TIME_SCALE_MULTIPLIER = 0.1f;
                         const float MAX_TIME_SCALE_MULTIPLIER = 1.75f;
                         const float TIME_SCALE_COEFFICIENT = TIME_SCALE_MULTIPLIER * (MAX_TIME_SCALE_MULTIPLIER - MIN_TIME_SCALE_MULTIPLIER) / MAX_TIME_SCALE_MULTIPLIER;
-
+                        
                         float moveSpeed = body.moveSpeed;
                         if (!body.isSprinting)
                             moveSpeed *= body.sprintingSpeedMultiplier;
 
                         float unscaledMultiplier = velocity / moveSpeed;
                         float scaledMultiplier = (TIME_SCALE_COEFFICIENT * unscaledMultiplier) + MIN_TIME_SCALE_MULTIPLIER;
-
-#if DEBUG
-                        Log.Debug($"{Util.GetBestMasterName(_master)}: {nameof(distanceMoved)}={distanceMoved}, {nameof(deltaTime)}={deltaTime}, {nameof(velocity)}={velocity}, {nameof(unscaledMultiplier)}={unscaledMultiplier}, {nameof(scaledMultiplier)}={scaledMultiplier}");
-#endif
 
                         return Mathf.Clamp(scaledMultiplier, MIN_TIME_SCALE_MULTIPLIER, MAX_TIME_SCALE_MULTIPLIER);
                     }
@@ -121,7 +113,16 @@ namespace RiskOfChaos.EffectDefinitions.Time
 
             public void ModifyValue(ref float value)
             {
-                value *= _currentTimeScaleMultiplier;
+                int multiplierSign = (int)Mathf.Sign(_currentTimeScaleMultiplier - 1f);
+                float multiplierChange = Mathf.Abs(_currentTimeScaleMultiplier - 1f);
+
+                float playerScaledMultiplier = 1f + (multiplierSign * multiplierChange / InstanceTracker.GetInstancesList<PlayerTimeMovementTracker>().Count);
+
+#if DEBUG
+                Log.Debug($"{Util.GetBestMasterName(_master)}: {nameof(multiplierSign)}={multiplierSign}, {nameof(multiplierChange)}={multiplierChange}, {nameof(playerScaledMultiplier)}={playerScaledMultiplier}");
+#endif
+
+                value *= playerScaledMultiplier;
             }
         }
 
