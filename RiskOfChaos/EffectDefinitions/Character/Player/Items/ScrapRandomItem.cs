@@ -1,8 +1,11 @@
-﻿using HG;
+﻿using BepInEx.Configuration;
+using HG;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfOptions.Options;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +15,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
     [ChaosEffect("scrap_random_item", DefaultSelectionWeight = 0.8f, EffectWeightReductionPercentagePerActivation = 15f)]
     public sealed class ScrapRandomItem : BaseEffect
     {
+        [InitEffectInfo]
+        static readonly ChaosEffectInfo _effectInfo;
+
         static PickupIndex[] _scrapPickupByItemTier;
 
         [SystemInitializer(typeof(PickupCatalog), typeof(ItemTierCatalog))]
@@ -31,6 +37,19 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     _ => PickupIndex.none,
                 };
             }
+        }
+
+        static ConfigEntry<bool> _scrapWholeStackConfig;
+        const bool SCRAP_WHOLE_STACK_DEFAULT_VALUE = true;
+
+        static bool scrapWholeStack => _scrapWholeStackConfig?.Value ?? SCRAP_WHOLE_STACK_DEFAULT_VALUE;
+
+        [SystemInitializer(typeof(ChaosEffectCatalog))]
+        static void InitConfig()
+        {
+            _scrapWholeStackConfig = _effectInfo.BindConfig("Scrap Whole Stack", SCRAP_WHOLE_STACK_DEFAULT_VALUE, new ConfigDescription("If the effect should scrap all items of the selected stack. If this option is disabled, only one item will be turned into scrap, and if it's enabled, it's as if you used a scrapper on that item."));
+
+            addConfigOption(new CheckBoxOption(_scrapWholeStackConfig));
         }
 
         static IEnumerable<ItemIndex> getAllScrappableItems(Inventory inventory)
@@ -97,8 +116,18 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             if (scrapPickup == null)
                 return;
 
-            inventory.RemoveItem(itemToScrap, 1);
-            inventory.GiveItem(scrapPickup.itemIndex, 1);
+            int itemCount;
+            if (scrapWholeStack)
+            {
+                itemCount = inventory.GetItemCount(itemToScrap);
+            }
+            else
+            {
+                itemCount = 1;
+            }
+
+            inventory.RemoveItem(itemToScrap, itemCount);
+            inventory.GiveItem(scrapPickup.itemIndex, itemCount);
 
             CharacterMasterNotificationQueue.PushItemTransformNotification(characterMaster, itemToScrap.itemIndex, scrapPickup.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
 
