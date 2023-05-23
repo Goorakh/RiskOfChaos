@@ -94,5 +94,6 @@
 		"EFFECT_CLEANSE_ALL_NAME": "Cleanse Everyone",
 		"EFFECT_SPAWN_GEYSER_NAME": "Spawn Jump Pad",
 		"EFFECT_SUPERHOT_NAME": "Superhot",
+		"EFFECT_PAUSE_PHYSICS_NAME": "Pause Physics",
 	}
 }

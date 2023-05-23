@@ -3,6 +3,7 @@ using RiskOfChaos.Components;
 using RiskOfChaos.ModifierController.DamageInfo;
 using RiskOfChaos.ModifierController.Gravity;
 using RiskOfChaos.ModifierController.Knockback;
+using RiskOfChaos.ModifierController.PhysicsModification;
 using RiskOfChaos.ModifierController.Projectile;
 using RiskOfChaos.ModifierController.SkillSlots;
 using RiskOfChaos.ModifierController.TimeScale;
@@ -32,6 +33,8 @@ namespace RiskOfChaos
         public static GameObject TimeScaleModificationControllerPrefab { get; private set; }
 
         public static GameObject DamageInfoModificationControllerPrefab { get; private set; }
+
+        public static GameObject PhysicsModificationControllerPrefab { get; private set; }
 
         static readonly string[] _geyserPrefabPaths = new string[]
         {
@@ -139,7 +142,17 @@ namespace RiskOfChaos
                 DamageInfoModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
                 DamageInfoModificationControllerPrefab.AddComponent<DamageInfoModificationManager>();
             }
-            
+
+            // PhysicsModificationControllerPrefab
+            {
+                PhysicsModificationControllerPrefab = createEmptyPrefabObject("PhysicsModificationController");
+
+                PhysicsModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
+                PhysicsModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
+                PhysicsModificationControllerPrefab.AddComponent<PhysicsModificationManager>();
+                PhysicsModificationControllerPrefab.AddComponent<ModifiedPhysicsSimulator>();
+            }
+
             // GeyserPrefabs
             {
                 int geyserCount = _geyserPrefabPaths.Length;
@@ -172,6 +185,7 @@ namespace RiskOfChaos
             NetworkServer.Spawn(GameObject.Instantiate(KnockbackModificationControllerPrefab));
             NetworkServer.Spawn(GameObject.Instantiate(ProjectileModificationControllerPrefab));
             NetworkServer.Spawn(GameObject.Instantiate(TimeScaleModificationControllerPrefab));
+            NetworkServer.Spawn(GameObject.Instantiate(PhysicsModificationControllerPrefab));
 
             GameObject.Instantiate(DamageInfoModificationControllerPrefab);
         }
