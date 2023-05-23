@@ -8,6 +8,10 @@ namespace RiskOfChaos.ModifierController
 {
     public abstract class ValueModificationManager<TModificationProvider, TValue> : MonoBehaviour, IValueModificationManager<TModificationProvider, TValue> where TModificationProvider : IValueModificationProvider<TValue>
     {
+#if DEBUG
+        float _lastModificationDirtyLogAttemptTime = float.NegativeInfinity;
+#endif
+
         protected readonly HashSet<TModificationProvider> _modificationProviders = new HashSet<TModificationProvider>();
 
         public event Action OnValueModificationUpdated;
@@ -33,7 +37,10 @@ namespace RiskOfChaos.ModifierController
                 return;
 
 #if DEBUG
-            Log.Debug_NoCallerPrefix($"{name} modification marked dirty");
+            if (Time.unscaledTime >= _lastModificationDirtyLogAttemptTime + 0.25f)
+                Log.Debug_NoCallerPrefix($"{name} modification marked dirty");
+
+            _lastModificationDirtyLogAttemptTime = Time.unscaledTime;
 #endif
 
             RoR2Application.onNextUpdate += updateValueModifiers;

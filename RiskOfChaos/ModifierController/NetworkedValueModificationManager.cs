@@ -2,12 +2,17 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController
 {
     public abstract class NetworkedValueModificationManager<TModificationProvider, TValue> : NetworkBehaviour, IValueModificationManager<TModificationProvider, TValue> where TModificationProvider : IValueModificationProvider<TValue>
     {
+#if DEBUG
+        float _lastModificationDirtyLogAttemptTime = float.NegativeInfinity;
+#endif
+
         protected readonly HashSet<TModificationProvider> _modificationProviders = new HashSet<TModificationProvider>();
 
         const uint ANY_MODIFICATION_ACTIVE_DIRTY_BIT = 1 << 0;
@@ -62,7 +67,10 @@ namespace RiskOfChaos.ModifierController
                 return;
 
 #if DEBUG
-            Log.Debug_NoCallerPrefix($"{name} modification marked dirty");
+            if (Time.unscaledTime >= _lastModificationDirtyLogAttemptTime + 0.25f)
+                Log.Debug_NoCallerPrefix($"{name} modification marked dirty");
+            
+            _lastModificationDirtyLogAttemptTime = Time.unscaledTime;
 #endif
 
             RoR2Application.onNextUpdate += updateValueModifiers;
