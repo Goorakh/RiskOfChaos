@@ -74,10 +74,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (!result.success || !result.spawnedInstance)
                     return;
 
-                if (!allowDontDestroyOnLoad)
-                {
-                    result.spawnedInstance.SetDontDestroyOnLoad(false);
-                }
+                result.spawnedInstance.SetDontDestroyOnLoad(allowDontDestroyOnLoad && Util.IsDontDestroyOnLoad(master.gameObject));
             };
 
             DirectorCore.instance.TrySpawnObject(spawnRequest);
