@@ -58,11 +58,13 @@ namespace RiskOfChaos.EffectHandling
             {
                 _defaultTimedType = timedEffectAttribute.TimedType;
 
+                _timedTypeConfig = effectInfo.BindConfig("Duration Type", _defaultTimedType, new ConfigDescription($"What should determine how long this effect lasts.\n\n{nameof(TimedEffectType.UntilNextEffect)}: Lasts until the next effect activates.\n{nameof(TimedEffectType.UntilStageEnd)}: Lasts until you exit the stage.\n{nameof(TimedEffectType.FixedDuration)}: Lasts for a set number of seconds.\n{nameof(TimedEffectType.Permanent)}: Lasts until the end of the run"));
+
                 _defaultDuration = timedEffectAttribute.DurationSeconds;
-                if (TimedType == TimedEffectType.FixedDuration)
-                {
-                    _durationConfig = effectInfo.BindConfig("Effect Duration", _defaultDuration, new ConfigDescription("How long the effect should last, in seconds"));
-                }
+                if (_defaultDuration < 0f)
+                    _defaultDuration = 60f;
+
+                _durationConfig = effectInfo.BindConfig("Effect Duration", _defaultDuration, new ConfigDescription($"How long the effect should last, in seconds.\nOnly takes effect if the Duration Type is set to {nameof(TimedEffectType.FixedDuration)}"));
 
                 AllowDuplicates = timedEffectAttribute.AllowDuplicates;
             }
