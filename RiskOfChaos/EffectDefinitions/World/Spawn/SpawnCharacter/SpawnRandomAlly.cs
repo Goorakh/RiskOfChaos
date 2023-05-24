@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Linq;
 using UnityEngine;
@@ -62,10 +63,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
         {
             base.onSpawned(master);
 
-            if (!master.GetComponent<SetDontDestroyOnLoad>())
-            {
-                master.gameObject.AddComponent<SetDontDestroyOnLoad>();
-            }
+            master.gameObject.SetDontDestroyOnLoad(true);
         }
     }
 }

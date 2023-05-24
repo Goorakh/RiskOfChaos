@@ -1,10 +1,10 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.CharacterAI;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
@@ -50,10 +50,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 }
 
                 // Make sure void infested allies don't stay until the next stage
-                if (Util.IsDontDestroyOnLoad(master.gameObject))
-                {
-                    SceneManager.MoveGameObjectToScene(master.gameObject, SceneManager.GetActiveScene());
-                }
+                master.gameObject.SetDontDestroyOnLoad(false);
 
                 if (EntityStates.VoidInfestor.Infest.successfulInfestEffectPrefab)
                 {

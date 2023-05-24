@@ -1,11 +1,10 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using RoR2.Navigation;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 {
@@ -66,15 +65,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
         {
             base.onSpawned(master);
 
-            if (master.TryGetComponent(out SetDontDestroyOnLoad setDontDestroyOnLoad))
-            {
-                GameObject.Destroy(setDontDestroyOnLoad);
-            }
-
-            if (Util.IsDontDestroyOnLoad(master.gameObject))
-            {
-                SceneManager.MoveGameObjectToScene(master.gameObject, SceneManager.GetActiveScene());
-            }
+            master.gameObject.SetDontDestroyOnLoad(false);
         }
     }
 }
