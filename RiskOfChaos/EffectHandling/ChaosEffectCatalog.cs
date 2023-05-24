@@ -113,18 +113,6 @@ namespace RiskOfChaos.EffectHandling
             return (ChaosEffectIndex)index;
         }
 
-        internal static string GetConfigSectionName(string effectIdentifier)
-        {
-            ChaosEffectIndex index = FindEffectIndex(effectIdentifier);
-            if (index <= ChaosEffectIndex.Invalid)
-            {
-                Log.Error($"unable to find index for identifier {effectIdentifier}");
-                return null;
-            }
-
-            return GetEffectInfo(index).ConfigSectionName;
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void AddEffectConfigOption(BaseOption option)
         {
