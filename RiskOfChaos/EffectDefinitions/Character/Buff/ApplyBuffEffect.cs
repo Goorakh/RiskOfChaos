@@ -9,17 +9,22 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
     public abstract class ApplyBuffEffect : TimedEffect
     {
-        static int[] _appliedBuffStacks = Array.Empty<int>();
+        static int[] _activeBuffStacks = Array.Empty<int>();
 
         [SystemInitializer(typeof(BuffCatalog))]
         static void Init()
         {
-            _appliedBuffStacks = BuffCatalog.GetPerBuffBuffer<int>();
+            _activeBuffStacks = BuffCatalog.GetPerBuffBuffer<int>();
+
+            Run.onRunStartGlobal += _ =>
+            {
+                ArrayUtils.SetAll(_activeBuffStacks, 0);
+            };
         }
 
         protected static int getBuffStackCount(BuffIndex buffIndex)
         {
-            return ArrayUtils.GetSafe(_appliedBuffStacks, (int)buffIndex);
+            return ArrayUtils.GetSafe(_activeBuffStacks, (int)buffIndex);
         }
 
         protected static bool canSelectBuff(BuffIndex buffIndex)
@@ -76,42 +81,52 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 
         public override void OnStart()
         {
-            CharacterBody.onBodyStartGlobal += addBuff;
+            try
+            {
+                CharacterBody.onBodyStartGlobal += addBuff;
 
-            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
-            {
-                addBuff(body);
+                foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
+                {
+                    addBuff(body);
+                }
             }
-
-            if (ArrayUtils.IsInBounds(_appliedBuffStacks, (int)_buffIndex))
+            finally
             {
-                _appliedBuffStacks[(int)_buffIndex]++;
-            }
-            else
-            {
-                Log.Warning($"Buff index {_buffIndex} out of range (max={_appliedBuffStacks.Length - 1})");
+                if (ArrayUtils.IsInBounds(_activeBuffStacks, (int)_buffIndex))
+                {
+                    _activeBuffStacks[(int)_buffIndex]++;
+                }
+                else
+                {
+                    Log.Warning($"Buff index {_buffIndex} out of range (max={_activeBuffStacks.Length - 1})");
+                }
             }
         }
 
         public override void OnEnd()
         {
-            CharacterBody.onBodyStartGlobal -= addBuff;
-
-            foreach (KeepBuff keepBuff in InstanceTracker.GetInstancesList<KeepBuff>())
+            try
             {
-                if (keepBuff.BuffIndex == _buffIndex)
+                CharacterBody.onBodyStartGlobal -= addBuff;
+
+                foreach (KeepBuff keepBuff in InstanceTracker.GetInstancesList<KeepBuff>())
                 {
-                    keepBuff.BuffStackCount--;
+                    if (keepBuff.BuffIndex == _buffIndex)
+                    {
+                        keepBuff.BuffStackCount--;
+                    }
                 }
             }
-
-            if (ArrayUtils.IsInBounds(_appliedBuffStacks, (int)_buffIndex))
+            finally
             {
-                _appliedBuffStacks[(int)_buffIndex]--;
-            }
-            else
-            {
-                Log.Warning($"Buff index {_buffIndex} out of range (max={_appliedBuffStacks.Length - 1})");
+                if (ArrayUtils.IsInBounds(_activeBuffStacks, (int)_buffIndex))
+                {
+                    _activeBuffStacks[(int)_buffIndex]--;
+                }
+                else
+                {
+                    Log.Warning($"Buff index {_buffIndex} out of range (max={_activeBuffStacks.Length - 1})");
+                }
             }
         }
 
