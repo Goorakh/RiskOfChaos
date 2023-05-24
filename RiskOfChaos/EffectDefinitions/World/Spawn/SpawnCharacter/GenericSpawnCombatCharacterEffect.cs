@@ -67,7 +67,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                     case "BeetleGuardAllyMaster": // Ally reskin
                     case "BeetleGuardMasterCrystal": // Weird beetle buard reskin
                     case "ClaymanMaster": // No hitboxes
-                    case "DroneCommanderMaster": // Doesn't have a gun unless summoner has SDP
                     case "EngiBeamTurretMaster": // Seems to ignore the player
                     case "LemurianBruiserMasterHaunted": // Would include if it had a more distinct appearance
                     case "LemurianBruiserMasterPoison": // Would include if it had a more distinct appearance
@@ -147,6 +146,23 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 #endif
 
                     inventory.SetEquipmentIndex(equipmentIndex);
+                }
+            }
+            else if (master.masterIndex == MasterCatalog.FindMasterIndex("DroneCommanderMaster"))
+            {
+                Inventory inventory = master.inventory;
+                if (inventory)
+                {
+                    inventory.GiveItem(DLC1Content.Items.DroneWeaponsBoost);
+
+                    if (UnityEngine.Random.value < 0.1f)
+                    {
+                        inventory.GiveItem(DLC1Content.Items.DroneWeaponsDisplay2);
+                    }
+                    else
+                    {
+                        inventory.GiveItem(DLC1Content.Items.DroneWeaponsDisplay1);
+                    }
                 }
             }
 
