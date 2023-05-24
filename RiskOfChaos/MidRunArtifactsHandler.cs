@@ -11,7 +11,8 @@ namespace RiskOfChaos
 {
     static class MidRunArtifactsHandler
     {
-        internal static void InitListeners()
+        [SystemInitializer]
+        static void InitListeners()
         {
             RunArtifactManager.onArtifactEnabledGlobal += RunArtifactManager_onArtifactEnabledGlobal;
             RunArtifactManager.onArtifactDisabledGlobal += RunArtifactManager_onArtifactDisabledGlobal;

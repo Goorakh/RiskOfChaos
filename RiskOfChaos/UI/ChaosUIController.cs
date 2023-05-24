@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.UI.ChatVoting;
+using RoR2;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -7,23 +8,13 @@ namespace RiskOfChaos.UI
 {
     public class ChaosUIController : MonoBehaviour
     {
-        internal static void Initialize()
+        [SystemInitializer]
+        static void Init()
         {
-            AsyncOperationHandle<GameObject> loadHudPrefabHandle = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/HUDSimple.prefab");
-            loadHudPrefabHandle.Completed += handle =>
+            On.RoR2.UI.HUD.Awake += (orig, self) =>
             {
-                GameObject hudSimple = handle.Result;
-                if (!hudSimple)
-                {
-                    Log.Error("Unable to load hud prefab");
-                    return;
-                }
-
-                hudSimple.AddComponent<ChaosUIController>();
-
-#if DEBUG
-                Log.Debug("Modified hud prefab");
-#endif
+                orig(self);
+                self.gameObject.AddComponent<ChaosUIController>();
             };
         }
 

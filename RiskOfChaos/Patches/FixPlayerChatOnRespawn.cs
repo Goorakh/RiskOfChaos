@@ -2,14 +2,13 @@
 using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.UI;
-using System.Linq;
-using UnityEngine;
 
 namespace RiskOfChaos.Patches
 {
     internal static class FixPlayerChatOnRespawn
     {
-        internal static void Apply()
+        [SystemInitializer]
+        static void Init()
         {
             CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
         }

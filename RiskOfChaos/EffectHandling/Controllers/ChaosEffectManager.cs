@@ -59,7 +59,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         ManagerComponent[] _managerComponents;
 
-        internal static void InitializeObject()
+        [SystemInitializer]
+        static void InitializeObject()
         {
             _effectManagerObject = new GameObject("ChaosEffectManager");
             DontDestroyOnLoad(_effectManagerObject);

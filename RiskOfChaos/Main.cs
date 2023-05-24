@@ -40,19 +40,11 @@ namespace RiskOfChaos
 
             ContentPackProvider = new ContentPackProvider();
 
-            ChaosEffectManager.InitializeObject();
-
-            FixPlayerChatOnRespawn.Apply();
-
             LanguageFileHandler.Init();
-
-            MidRunArtifactsHandler.InitListeners();
 
             NetworkMessageManager.RegisterMessages();
 
             NetPrefabs.InitializeAll();
-
-            ChaosUIController.Initialize();
 
             Harmony harmony = new Harmony(PluginGUID);
             harmony.PatchAll();
