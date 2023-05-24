@@ -141,17 +141,16 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void timedEffectCanActivateOverride(TimedEffectInfo effect, in EffectCanActivateContext context, ref bool canActivate)
         {
-            if (!effect.AllowDuplicates)
+            if (canActivate && !effect.AllowDuplicates)
             {
                 bool effectAlreadyActive = IsTimedEffectActive(ChaosEffectCatalog.GetEffectInfo(effect.EffectIndex));
-                canActivate = !effectAlreadyActive;
-
-#if DEBUG
                 if (effectAlreadyActive)
                 {
+                    canActivate = false;
+#if DEBUG
                     Log.Debug($"Duplicate effect {effect} cannot activate");
-                }
 #endif
+                }
             }
         }
 
