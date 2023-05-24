@@ -32,7 +32,7 @@ namespace RiskOfChaos.EffectHandling
         public delegate void OnEffectInstantiatedDelegate(in ChaosEffectInfo effectInfo, in CreateEffectInstanceArgs args, BaseEffect instance);
         public static event OnEffectInstantiatedDelegate OnEffectInstantiatedServer;
 
-        public delegate void EffectCanActivateDelegate(in ChaosEffectInfo effectInfo, ref bool canActivate);
+        public delegate void EffectCanActivateDelegate(in ChaosEffectInfo effectInfo, in EffectCanActivateContext context, ref bool canActivate);
         public static event EffectCanActivateDelegate OverrideEffectCanActivate;
 
         internal static void InitConfig()
@@ -190,7 +190,7 @@ namespace RiskOfChaos.EffectHandling
         public static bool CanEffectActivate(in ChaosEffectInfo effectInfo, in EffectCanActivateContext context)
         {
             bool canActivate = effectInfo.CanActivate(context);
-            OverrideEffectCanActivate?.Invoke(effectInfo, ref canActivate);
+            OverrideEffectCanActivate?.Invoke(effectInfo, context, ref canActivate);
             return canActivate;
         }
     }

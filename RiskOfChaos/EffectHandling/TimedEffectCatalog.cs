@@ -19,7 +19,7 @@ namespace RiskOfChaos.EffectHandling
 
         public static readonly ResourceAvailability Availability = new ResourceAvailability();
 
-        public delegate void TimedEffectCanActivateOverrideDelegate(TimedEffectInfo effect, ref bool canActivate);
+        public delegate void TimedEffectCanActivateOverrideDelegate(TimedEffectInfo effect, in EffectCanActivateContext context, ref bool canActivate);
         public static event TimedEffectCanActivateOverrideDelegate TimedEffectCanActivateOverride;
 
         [SystemInitializer]
@@ -93,12 +93,12 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
-        static void overrideEffectCanActivate(in ChaosEffectInfo effectInfo, ref bool canActivate)
+        static void overrideEffectCanActivate(in ChaosEffectInfo effectInfo, in EffectCanActivateContext context, ref bool canActivate)
         {
             if (!TryFindTimedEffectInfo(effectInfo, out TimedEffectInfo timedEffectInfo))
                 return;
 
-            TimedEffectCanActivateOverride?.Invoke(timedEffectInfo, ref canActivate);
+            TimedEffectCanActivateOverride?.Invoke(timedEffectInfo, context, ref canActivate);
         }
     }
 }

@@ -139,7 +139,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        void timedEffectCanActivateOverride(TimedEffectInfo effect, ref bool canActivate)
+        void timedEffectCanActivateOverride(TimedEffectInfo effect, in EffectCanActivateContext context, ref bool canActivate)
         {
             if (!effect.AllowDuplicates)
             {
