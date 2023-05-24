@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer combatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 83 different effects.
+Currently features 86 different effects.
 
 ### Twitch Integration:
 
@@ -38,7 +38,6 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Decrease Gravity: Decreases gravity by a configurable amount (default -50%), lasts until the end of the current stage
 * Give Random Elite Aspect: Gives all players a random elite aspect (drops on the ground if they don't have any empty equipment slots)
 * Corrupt Random Item: Converts a random item in every player's inventory to the void variant
-* Warbanner: Spawns a warbanner on every character
 * Spawn Doppelganger: Triggers the Artifact of Vengeance event
 * Potrolling: Spawns a bunch of nice pots for you to roll
 * Wet Floor: Every surface is slippery. Lasts until end of current stage
@@ -99,6 +98,10 @@ If the game loses connection to your channel, it will automatically attempt to r
 * +100% Fall Damage: Increases fall damage by 100% (configurable). Also makes it lethal. Lasts 1 stage.
 * Disable Fall Damage: Disables all fall damage. Lasts 1 stage.
 * Risk of Thunder: Spawns lightning strikes at random points on the map. Lasts 30 seconds.
+* Spawn Jump Pad: Spawns a random jump pad at every player
+* Superhot: Time moves when players move
+* Pause Physics: Pauses all physics objects (not including players or enemies). Lasts until next effect.
+* Gupscare: Spawns a Gup above every player
 </details>
 
 FAQ:

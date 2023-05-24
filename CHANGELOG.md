@@ -1,5 +1,28 @@
 ## Changelog
 
+**1.6.0 Changes:**
+
+* Added 4 new effects:
+  * Spawn Jump Pad: Spawns a random jump pad at every player
+  * Superhot: Time moves when players move
+  * Pause Physics: Pauses all physics objects (not including players or enemies). Lasts until next effect.
+  * Gupscare: Spawns a Gup above every player
+
+* One Hit KO:
+  * Players will now receive a temorary damage immunity for 0.75 seconds if the effect "deals" more than 20% of their max health (basically if you had over 20% health before the effect activates). This helps prevent situations where the effect immediately kills you if it activates while you are in combat.
+
+* Scrap Random Item:
+  * Now converts *all* of an item stack into scrap, not just 1 of the items from that stack. Old behavior can be re-enabled in the config.
+
+* Spawn Random Ally & Enemy:
+  * Added Col. Droneman to spawn pool
+
+* Invert Knockback:
+  * Effect can now be activated several times per stage
+
+* Removed 1 effect:
+  * Warbanner: Just caused a bunch of lag, and the warbanner visuals didn't communicate which team it belonged to, making it confusing too.
+
 **1.5.0 Changes:**
 
 * Added 9 new effects:
@@ -24,7 +47,7 @@
   * Duplicated allies are now temporary (will not be carried over to the next stage), this is done to prevent lag due to ending up with an unreasonable number of drones. Old behavior can still be re-enabled in the config for the effect.
 
 * Guaranteed Chance Effects:
-  * Tougher Times is now excluded from this effect, since blocking all damage is not very fun
+  * Tougher Times is now excluded from this effect, since blocking all damage is not very interesting
 
 * Increase Director Credits:
   * Credit increase percentage is now configurable
