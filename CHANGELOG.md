@@ -1,5 +1,22 @@
 ## Changelog
 
+**1.7.0 Changes:**
+
+* UI:
+  * Active effects are now displayed on the HUD.
+
+* Teleporting Attacks:
+  * Changed Duration: Until next effect -> 30s
+
+* Pause Physics:
+  * Changed Duration: Until next effect -> 40s
+
+* Timed Effects
+  * The Duration Type of timed effects can now be changed in the config.
+    * UntilStageEnd: Lasts until you exit the stage.
+    * FixedDuration: Lasts for a set number of seconds.
+    * Permanent: Lasts until the end of the run.
+
 **1.6.0 Changes:**
 
 * Added 4 new effects:
