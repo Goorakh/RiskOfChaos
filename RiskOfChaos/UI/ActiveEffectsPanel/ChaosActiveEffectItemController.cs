@@ -45,7 +45,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
             Transform labelTransform = _itemPrefab.transform.Find("Label");
             HGTextMeshProUGUI effectNameLabel = labelTransform.GetComponent<HGTextMeshProUGUI>();
-            effectNameLabel.horizontalAlignment = HorizontalAlignmentOptions.Left;
+            effectNameLabel.horizontalAlignment = HorizontalAlignmentOptions.Center;
 
             effectNameLabel.rectTransform.sizeDelta = new Vector2(140f, 25f);
             effectNameLabel.rectTransform.localPosition = new Vector3(0f, 0f, 0f);
