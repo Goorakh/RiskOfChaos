@@ -53,7 +53,7 @@ namespace RiskOfChaos.EffectDefinitions.Meta
             for (int i = 0; i < numEffects; i++)
             {
                 ChaosEffectInfo effectInfo = ChaosEffectCatalog.PickActivatableEffect(RNG, EffectCanActivateContext.Now);
-                ChaosEffectDispatcher.Instance.DispatchEffect(effectInfo, EffectDispatchFlags.DontPlaySound | EffectDispatchFlags.DontStopTimedEffects);
+                ChaosEffectDispatcher.Instance.DispatchEffect(effectInfo, EffectDispatchFlags.DontPlaySound);
             }
         }
     }

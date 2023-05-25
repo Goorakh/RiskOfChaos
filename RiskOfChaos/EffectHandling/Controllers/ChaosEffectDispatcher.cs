@@ -148,7 +148,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             if (!NetworkServer.active || !Run.instance || !_instance || !_instance.enabled)
                 return;
 
-            _instance.dispatchEffect(ChaosEffectCatalog.PickActivatableEffect(RoR2Application.rng, EffectCanActivateContext.Now), EffectDispatchFlags.DontStopTimedEffects);
+            _instance.dispatchEffect(ChaosEffectCatalog.PickActivatableEffect(RoR2Application.rng, EffectCanActivateContext.Now));
         }
 
         [ConCommand(commandName = "roc_start", flags = ConVarFlags.SenderMustBeServer, helpText = "Dispatches an effect")]
@@ -160,7 +160,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             ChaosEffectIndex index = ChaosEffectCatalog.FindEffectIndex(args[0]);
             if (index > ChaosEffectIndex.Invalid)
             {
-                _instance.dispatchEffect(ChaosEffectCatalog.GetEffectInfo(index), EffectDispatchFlags.DontStopTimedEffects);
+                _instance.dispatchEffect(ChaosEffectCatalog.GetEffectInfo(index));
             }
         }
 

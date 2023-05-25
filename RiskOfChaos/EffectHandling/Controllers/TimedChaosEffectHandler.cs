@@ -133,11 +133,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void onEffectDispatched(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, BaseEffect effectInstance)
         {
-            if (NetworkServer.active && (dispatchFlags & EffectDispatchFlags.DontStopTimedEffects) == 0)
-            {
-                endTimedEffects(TimedEffectFlags.UntilNextEffect);
-            }
-
             if (effectInstance is TimedEffect timedEffectInstance)
             {
                 registerTimedEffect(new ActiveTimedEffectInfo(effectInfo, timedEffectInstance));

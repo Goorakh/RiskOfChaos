@@ -58,7 +58,7 @@ namespace RiskOfChaos.EffectHandling
             {
                 _defaultTimedType = timedEffectAttribute.TimedType;
 
-                _timedTypeConfig = effectInfo.BindConfig("Duration Type", _defaultTimedType, new ConfigDescription($"What should determine how long this effect lasts.\n\n{nameof(TimedEffectType.UntilNextEffect)}: Lasts until the next effect activates.\n{nameof(TimedEffectType.UntilStageEnd)}: Lasts until you exit the stage.\n{nameof(TimedEffectType.FixedDuration)}: Lasts for a set number of seconds.\n{nameof(TimedEffectType.Permanent)}: Lasts until the end of the run."));
+                _timedTypeConfig = effectInfo.BindConfig("Duration Type", _defaultTimedType, new ConfigDescription($"What should determine how long this effect lasts.\n\n{nameof(TimedEffectType.UntilStageEnd)}: Lasts until you exit the stage.\n{nameof(TimedEffectType.FixedDuration)}: Lasts for a set number of seconds.\n{nameof(TimedEffectType.Permanent)}: Lasts until the end of the run."));
 
                 _defaultDuration = timedEffectAttribute.DurationSeconds;
                 if (_defaultDuration < 0f)
@@ -83,8 +83,6 @@ namespace RiskOfChaos.EffectHandling
         {
             switch (TimedType)
             {
-                case TimedEffectType.UntilNextEffect:
-                    return Language.GetStringFormatted("TIMED_TYPE_UNTIL_NEXT_EFFECT_FORMAT", effectName);
                 case TimedEffectType.UntilStageEnd:
                     return Language.GetStringFormatted("TIMED_TYPE_UNTIL_STAGE_END_FORMAT", effectName);
                 case TimedEffectType.FixedDuration:
