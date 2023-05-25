@@ -1,0 +1,6 @@
+{
+	strings:
+	{
+		"CHAOS_ACTIVE_EFFECTS_BAR_TITLE": "Active Effects:"
+	}
+}

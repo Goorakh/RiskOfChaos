@@ -8,7 +8,7 @@ namespace RiskOfChaos.EffectDefinitions
     public abstract class TimedEffect : BaseEffect
     {
         public TimedEffectType TimedType { get; internal set; }
-        public float DurationSeconds { get; internal set; }
+        public float DurationSeconds { get; internal set; } = -1f;
 
         float _effectStartTime;
 

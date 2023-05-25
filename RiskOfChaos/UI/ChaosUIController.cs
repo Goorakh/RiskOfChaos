@@ -1,8 +1,7 @@
-﻿using RiskOfChaos.UI.ChatVoting;
+﻿using RiskOfChaos.UI.ActiveEffectsPanel;
+using RiskOfChaos.UI.ChatVoting;
 using RoR2;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.UI
 {
@@ -24,9 +23,12 @@ namespace RiskOfChaos.UI
 
         public ChaosEffectVoteDisplayController EffectVoteDisplayController { get; private set; }
 
+        public ChaosActiveEffectsDisplayController ActiveEffectsDisplayController { get; private set; }
+
         void Awake()
         {
             EffectVoteDisplayController = ChaosEffectVoteDisplayController.Create(this);
+            ActiveEffectsDisplayController = ChaosActiveEffectsDisplayController.Create(this);
         }
 
         void OnEnable()

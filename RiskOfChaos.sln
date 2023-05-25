@@ -18,6 +18,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "en", "en", "{5B1C6AEB-3034-
 	ProjectSection(SolutionItems) = preProject
 		lang\en\ChatMessages.txt = lang\en\ChatMessages.txt
 		lang\en\Effects.txt = lang\en\Effects.txt
+		lang\en\UI.txt = lang\en\UI.txt
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{94AF67EA-E214-4D35-A617-8A83FDC49F12}"

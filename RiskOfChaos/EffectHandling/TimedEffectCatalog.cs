@@ -65,7 +65,11 @@ namespace RiskOfChaos.EffectHandling
             if (instance is TimedEffect timedEffect)
             {
                 timedEffect.TimedType = timedEffectInfo.TimedType;
-                timedEffect.DurationSeconds = timedEffectInfo.DurationSeconds;
+
+                if (timedEffect.TimedType == TimedEffectType.FixedDuration)
+                {
+                    timedEffect.DurationSeconds = timedEffectInfo.DurationSeconds;
+                }
             }
             else
             {

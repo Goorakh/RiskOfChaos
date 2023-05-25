@@ -16,6 +16,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
         static TimedChaosEffectHandler _instance;
         public static TimedChaosEffectHandler Instance => _instance;
 
+        public delegate void TimedEffectStartDelegate(TimedEffectInfo effectInfo, TimedEffect effectInstance);
+        public static event TimedEffectStartDelegate OnTimedEffectStartServer;
+
+        public delegate void TimedEffectEndDelegate(ulong dispatchID);
+        public static event TimedEffectEndDelegate OnTimedEffectEndServer;
+
         readonly struct ActiveTimedEffectInfo
         {
             public readonly ChaosEffectInfo EffectInfo;
@@ -103,8 +109,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                         Log.Debug($"Ending fixed duration timed effect {timedEffectInfo.EffectInfo} (i={i})");
 #endif
 
-                        timedEffectInfo.End();
-                        _activeTimedEffects.RemoveAt(i);
+                        endTimedEffectAtIndex(i, true);
                     }
                 }
             }
@@ -173,10 +178,22 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     Log.Debug($"Ending timed effect {timedEffect.EffectInfo} (ID={timedEffect.EffectInstance.DispatchID})");
 #endif
 
-                    timedEffect.End(sendClientMessage);
-                    _activeTimedEffects.RemoveAt(i);
+                    endTimedEffectAtIndex(i, sendClientMessage);
                 }
             }
+        }
+
+        void endTimedEffectAtIndex(int index, bool sendClientMessage)
+        {
+            ActiveTimedEffectInfo timedEffect = _activeTimedEffects[index];
+
+            if (NetworkServer.active)
+            {
+                OnTimedEffectEndServer?.Invoke(timedEffect.EffectInstance.DispatchID);
+            }
+
+            timedEffect.End(sendClientMessage);
+            _activeTimedEffects.RemoveAt(index);
         }
 
         void NetworkedTimedEffectEndMessage_OnReceive(ulong effectDispatchID)
@@ -206,6 +223,18 @@ namespace RiskOfChaos.EffectHandling.Controllers
         void registerTimedEffect(in ActiveTimedEffectInfo effectInfo)
         {
             _activeTimedEffects.Add(effectInfo);
+
+            if (NetworkServer.active)
+            {
+                if (TimedEffectCatalog.TryFindTimedEffectInfo(effectInfo.EffectInfo, out TimedEffectInfo timedEffectInfo))
+                {
+                    OnTimedEffectStartServer?.Invoke(timedEffectInfo, effectInfo.EffectInstance);
+                }
+                else
+                {
+                    Log.Error($"Could not find timed effect info for {effectInfo.EffectInfo}");
+                }
+            }
         }
         
         public bool IsTimedEffectActive(in ChaosEffectInfo effectInfo)

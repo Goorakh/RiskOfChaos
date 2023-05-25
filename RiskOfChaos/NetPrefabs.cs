@@ -9,7 +9,6 @@ using RiskOfChaos.ModifierController.SkillSlots;
 using RiskOfChaos.ModifierController.TimeScale;
 using RiskOfChaos.Networking.Components;
 using RoR2;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -45,6 +44,8 @@ namespace RiskOfChaos
             "RoR2/DLC1/snowyforest/SFGeyser.prefab"
         };
         public static GameObject[] GeyserPrefabs { get; private set; }
+
+        public static GameObject ActiveTimedEffectsProviderPrefab { get; private set; }
 
         static GameObject createEmptyPrefabObject(string name, bool networked = true)
         {
@@ -172,6 +173,15 @@ namespace RiskOfChaos
                 }
             }
 
+            // ActiveTimedEffectsProviderPrefab
+            {
+                ActiveTimedEffectsProviderPrefab = createEmptyPrefabObject("ActiveTimedEffectsProvider");
+
+                ActiveTimedEffectsProviderPrefab.AddComponent<SetDontDestroyOnLoad>();
+                ActiveTimedEffectsProviderPrefab.AddComponent<DestroyOnRunEnd>();
+                ActiveTimedEffectsProviderPrefab.AddComponent<ActiveTimedEffectsProvider>();
+            }
+
             Run.onRunStartGlobal += onRunStart;
         }
 
@@ -188,6 +198,8 @@ namespace RiskOfChaos
             NetworkServer.Spawn(GameObject.Instantiate(PhysicsModificationControllerPrefab));
 
             GameObject.Instantiate(DamageInfoModificationControllerPrefab);
+
+            NetworkServer.Spawn(GameObject.Instantiate(ActiveTimedEffectsProviderPrefab));
         }
     }
 }
