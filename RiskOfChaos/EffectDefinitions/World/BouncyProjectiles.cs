@@ -105,9 +105,9 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         public void ModifyValue(ref ProjectileModificationData value)
         {
-            value.BounceFlags |= ProjectileBounceFlags.Projectiles | ProjectileBounceFlags.Bullets;
             value.BulletBounceCount += (uint)maxBulletBounceCount;
             value.ProjectileBounceCount += (uint)maxProjectileBounceCount;
+            value.OrbBounceCount += (uint)maxProjectileBounceCount;
         }
 
         public override void OnEnd()

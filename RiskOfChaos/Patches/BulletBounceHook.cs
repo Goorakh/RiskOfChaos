@@ -10,7 +10,7 @@ namespace RiskOfChaos.Patches
 {
     static class BulletBounceHook
     {
-        static bool isEnabled => ProjectileModificationManager.Instance && ProjectileModificationManager.Instance.ProjectileBounceFlagEnabled(ProjectileBounceFlags.Bullets);
+        static bool isEnabled => bounceCount > 0;
 
         static int bounceCount
         {

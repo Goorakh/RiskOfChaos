@@ -18,7 +18,7 @@ namespace RiskOfChaos.Patches
             IL.RoR2.Projectile.ProjectileController.OnTriggerEnter += ProjectileController_tryBouncePatch;
         }
 
-        static bool isEnabled => ProjectileModificationManager.Instance && ProjectileModificationManager.Instance.ProjectileBounceFlagEnabled(ProjectileBounceFlags.Projectiles);
+        static bool isEnabled => maxBounces > 0;
 
         static int maxBounces
         {
