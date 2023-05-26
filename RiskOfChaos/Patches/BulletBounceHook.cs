@@ -120,30 +120,34 @@ namespace RiskOfChaos.Patches
                                         // Slight "homing" on bullets to make it easier to bounce off walls and still hit
                                         if (instance.owner)
                                         {
-                                            BullseyeSearch bullseyeSearch = new BullseyeSearch
+                                            CharacterBody ownerBody = instance.owner.GetComponent<CharacterBody>();
+
+                                            if (ownerBody.isPlayerControlled)
                                             {
-                                                searchOrigin = instance.origin,
-                                                filterByLoS = true,
-                                                filterByDistinctEntity = true,
-                                                minDistanceFilter = 0f,
-                                                maxDistanceFilter = instance.maxDistance * 0.5f,
-                                                minAngleFilter = 0f,
-                                                maxAngleFilter = instance.sniper ? 35f : 15f,
-                                                searchDirection = bounceDirection,
-                                                queryTriggerInteraction = QueryTriggerInteraction.Ignore,
-                                                sortMode = BullseyeSearch.SortMode.Angle,
-                                                viewer = instance.owner.GetComponent<CharacterBody>(),
-                                                teamMaskFilter = TeamMask.allButNeutral
-                                            };
+                                                BullseyeSearch bullseyeSearch = new BullseyeSearch
+                                                {
+                                                    searchOrigin = instance.origin,
+                                                    filterByLoS = true,
+                                                    minDistanceFilter = 0f,
+                                                    maxDistanceFilter = instance.maxDistance,
+                                                    minAngleFilter = 0f,
+                                                    maxAngleFilter = 35f,
+                                                    searchDirection = bounceDirection,
+                                                    queryTriggerInteraction = QueryTriggerInteraction.Ignore,
+                                                    sortMode = BullseyeSearch.SortMode.Angle,
+                                                    viewer = ownerBody,
+                                                    teamMaskFilter = TeamMask.allButNeutral
+                                                };
 
-                                            bullseyeSearch.teamMaskFilter.RemoveTeam(TeamComponent.GetObjectTeam(instance.owner));
+                                                bullseyeSearch.teamMaskFilter.RemoveTeam(TeamComponent.GetObjectTeam(instance.owner));
 
-                                            bullseyeSearch.RefreshCandidates();
+                                                bullseyeSearch.RefreshCandidates();
 
-                                            HurtBox overrideTargetHurtBox = bullseyeSearch.GetResults().FirstOrDefault(h => h.healthComponent.gameObject != hit.entityObject);
-                                            if (overrideTargetHurtBox)
-                                            {
-                                                bounceDirection = (overrideTargetHurtBox.randomVolumePoint - instance.origin).normalized;
+                                                HurtBox overrideTargetHurtBox = bullseyeSearch.GetResults().FirstOrDefault(h => h.healthComponent.gameObject != hit.entityObject);
+                                                if (overrideTargetHurtBox)
+                                                {
+                                                    bounceDirection = (overrideTargetHurtBox.randomVolumePoint - instance.origin).normalized;
+                                                }
                                             }
                                         }
 
