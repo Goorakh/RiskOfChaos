@@ -110,7 +110,7 @@ namespace RiskOfChaos.EffectHandling
         {
             get
             {
-                if (_getEffectNameFormatArgsMethod != null)
+                if (HasCustomDisplayNameFormatter)
                 {
                     object[] args = (object[])_getEffectNameFormatArgsMethod.Invoke(null, null);
                     return Language.GetStringFormatted(NameToken, args);
@@ -121,6 +121,8 @@ namespace RiskOfChaos.EffectHandling
                 }
             }
         }
+
+        public bool HasCustomDisplayNameFormatter => _getEffectNameFormatArgsMethod != null;
 
         public readonly bool IsNetworked;
 

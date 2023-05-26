@@ -41,7 +41,13 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             EffectInfo = TimedEffectCatalog.GetTimedEffectInfo(reader.ReadTimedChaosEffectIndex());
             DispatchID = reader.ReadPackedUInt64();
 
-            DisplayName = reader.ReadString();
+            string displayName = reader.ReadString();
+            if (string.IsNullOrWhiteSpace(displayName))
+            {
+                displayName = ChaosEffectCatalog.GetEffectInfo(EffectInfo.EffectIndex).DisplayName;
+            }
+
+            DisplayName = displayName;
 
             TimedType = (TimedEffectType)reader.ReadByte();
             if (TimedType == TimedEffectType.FixedDuration)
@@ -54,7 +60,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         public void Serialize(NetworkWriter writer)
         {
-            // For some stupid reason SyncList calls serialize with default(T), when RemoveAt is used
+            // For some stupid reason SyncList calls serialize with default(T) when RemoveAt is used
             if (EffectInfo == null)
             {
                 writer.Write(false);
@@ -65,7 +71,9 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             writer.WriteTimedChaosEffectIndex(EffectInfo.TimedEffectIndex);
             writer.WritePackedUInt64(DispatchID);
 
-            writer.Write(DisplayName);
+            // If the effect name has custom runtime formatting, send the display name to clients. Otherwise, let the clients look up the effect name in their ChaosEffectCatalog instead to save on message size
+            bool hasCustomFormatDisplayName = ChaosEffectCatalog.GetEffectInfo(EffectInfo.EffectIndex).HasCustomDisplayNameFormatter;
+            writer.Write(hasCustomFormatDisplayName ? DisplayName : string.Empty);
 
             writer.Write((byte)TimedType);
             if (TimedType == TimedEffectType.FixedDuration)
