@@ -33,6 +33,20 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 if (!Stage.instance || Stage.instance.entryTime.timeSince < MIN_STAGE_TIME_REQUIRED_TO_DISPATCH)
                     return false;
 
+                SceneDef currentScene = Stage.instance.sceneDef;
+                if (!currentScene)
+                    return false;
+
+                switch (currentScene.sceneType)
+                {
+                    case SceneType.Stage:
+                    case SceneType.Intermission:
+                    case SceneType.Invalid when currentScene.cachedName == "ai_test" || currentScene.cachedName == "moon":
+                        break;
+                    default:
+                        return false;
+                }
+
                 return true;
             }
         }
