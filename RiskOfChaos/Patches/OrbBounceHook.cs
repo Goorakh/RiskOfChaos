@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -66,7 +65,7 @@ namespace RiskOfChaos.Patches
 
         static void tryBounceOrb(Orb orbInstance)
         {
-            if (!isEnabled || orbInstance == null || orbInstance is ItemTransferOrb)
+            if (!isEnabled || !OrbManager.instance || orbInstance == null || orbInstance is ItemTransferOrb)
                 return;
 
             if (_orbBouncesRemaining.TryGetValue(orbInstance, out int bouncesRemaining))
@@ -107,6 +106,27 @@ namespace RiskOfChaos.Patches
 
             newTargetSearch.OrderCandidatesByDistance();
 
+            Type orbType = orbInstance.GetType();
+
+            CharacterBody attackerBody = null;
+
+            FieldInfo attackerField = orbType.GetField("attacker");
+            if (attackerField != null)
+            {
+                if (attackerField.FieldType == typeof(CharacterBody))
+                {
+                    attackerBody = (CharacterBody)attackerField.GetValue(orbInstance);
+                }
+                else if (attackerField.FieldType == typeof(GameObject))
+                {
+                    GameObject attacker = (GameObject)attackerField.GetValue(orbInstance);
+                    if (attacker)
+                    {
+                        attackerBody = attacker.GetComponent<CharacterBody>();
+                    }
+                }
+            }
+
             List<HurtBox> validTargets = newTargetSearch.GetHurtBoxes().Where(h =>
             {
                 if (h.healthComponent == orbInstance.target.healthComponent)
@@ -118,6 +138,13 @@ namespace RiskOfChaos.Patches
                     return false;
                 }
 
+                if (attackerBody)
+                {
+                    CharacterBody targetBody = h.healthComponent.body;
+                    if (targetBody && targetBody.GetVisibilityLevel(attackerBody) < VisibilityLevel.Revealed)
+                        return false;
+                }
+
                 return true;
             }).ToList();
 
@@ -127,12 +154,19 @@ namespace RiskOfChaos.Patches
             float targetIndexFraction = RoR2Application.rng.nextNormalizedFloat;
             HurtBox newTarget = validTargets[Mathf.RoundToInt(Mathf.Pow(targetIndexFraction, 4f) * (validTargets.Count - 1))];
 
-            Type orbType = orbInstance.GetType();
-
             Orb newOrb;
             try
             {
-                newOrb = (Orb)Activator.CreateInstance(orbType);
+                if (orbInstance is ChainGunOrb chainGunOrb)
+                {
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                    newOrb = new ChainGunOrb(chainGunOrb.orbEffectPrefab);
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+                }
+                else
+                {
+                    newOrb = (Orb)Activator.CreateInstance(orbType);
+                }
             }
             catch (Exception ex)
             {
@@ -142,7 +176,26 @@ namespace RiskOfChaos.Patches
 
             foreach (FieldInfo field in orbType.GetFields(BindingFlags.Public | BindingFlags.Instance))
             {
-                field.SetValue(newOrb, field.GetValue(orbInstance));
+                object fieldValue = field.GetValue(orbInstance);
+
+                Type fieldType = field.FieldType;
+                if (fieldType.IsClass)
+                {
+                    if (typeof(ICloneable).IsAssignableFrom(fieldType))
+                    {
+                        fieldValue = ((ICloneable)fieldValue).Clone();
+                    }
+                    else if (fieldType.IsGenericType)
+                    {
+                        if (fieldType.GetGenericTypeDefinition() == typeof(List<>))
+                        {
+                            // newOrb.listField = new List<T>(orbInstance.listField)
+                            fieldValue = Activator.CreateInstance(fieldType, fieldValue);
+                        }
+                    }
+                }
+
+                field.SetValue(newOrb, fieldValue);
 
 #if DEBUG
                 Log.Debug($"Copied field value: {field.DeclaringType.FullName}.{field.Name}");
