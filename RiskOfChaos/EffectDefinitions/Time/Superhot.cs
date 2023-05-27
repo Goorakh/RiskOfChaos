@@ -66,8 +66,8 @@ namespace RiskOfChaos.EffectDefinitions.Time
                 float deltaTime = UnityEngine.Time.fixedUnscaledDeltaTime;
                 float targetTimeScaleMultiplier = getCurrentTimeScaleMultiplier(deltaTime);
 
-                const float TIME_SCALE_CHANGE_UP_MAX_DELTA = 2f;
-                const float TIME_SCALE_CHANGE_DOWN_MAX_DELTA = 3f;
+                const float TIME_SCALE_CHANGE_UP_MAX_DELTA = 1f;
+                const float TIME_SCALE_CHANGE_DOWN_MAX_DELTA = 2f;
 
                 float maxDelta = _currentTimeScaleMultiplier > targetTimeScaleMultiplier ? TIME_SCALE_CHANGE_DOWN_MAX_DELTA : TIME_SCALE_CHANGE_UP_MAX_DELTA;
 
@@ -98,14 +98,15 @@ namespace RiskOfChaos.EffectDefinitions.Time
                     return 1f;
                 
                 CharacterBody body = _master.GetBody();
-                float distanceMoved = Vector3.Distance(_lastPosition, body.footPosition);
+                Vector3 currentPosition = body.footPosition;
+                float distanceMoved = Vector3.Distance(_lastPosition, currentPosition);
                 float velocity = distanceMoved / deltaTime;
 
-                _lastPosition = body.footPosition;
+                _lastPosition = currentPosition;
 
                 const float TIME_SCALE_MULTIPLIER = 0.95f;
-                const float MIN_TIME_SCALE_MULTIPLIER = 0.1f;
-                const float MAX_TIME_SCALE_MULTIPLIER = 1.75f;
+                const float MIN_TIME_SCALE_MULTIPLIER = 0.15f;
+                const float MAX_TIME_SCALE_MULTIPLIER = 1.7f;
                 const float TIME_SCALE_COEFFICIENT = TIME_SCALE_MULTIPLIER * (MAX_TIME_SCALE_MULTIPLIER - MIN_TIME_SCALE_MULTIPLIER) / MAX_TIME_SCALE_MULTIPLIER;
 
                 float moveSpeed = body.moveSpeed;
