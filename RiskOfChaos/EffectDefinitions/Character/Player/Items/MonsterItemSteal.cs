@@ -42,7 +42,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
         static bool canSteal(CharacterMaster stealer, CharacterMaster victim)
         {
-            return stealer && victim && stealer != victim && stealer.teamIndex != victim.teamIndex;
+            return stealer && stealer.hasBody && victim && victim.hasBody && stealer != victim && stealer.teamIndex != victim.teamIndex && !stealer.IsDeadAndOutOfLivesServer();
         }
 
         List<CharacterItemStealInitializer> _itemStealInitializers;
@@ -52,7 +52,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             _itemStealInitializers = new List<CharacterItemStealInitializer>(CharacterMaster.readOnlyInstancesList.Count);
             foreach (CharacterMaster master in CharacterMaster.readOnlyInstancesList)
             {
-                if (master && master.hasBody)
+                if (master && !master.IsDeadAndOutOfLivesServer() && master.hasBody)
                 {
                     _itemStealInitializers.Add(new CharacterItemStealInitializer(master));
                 }
