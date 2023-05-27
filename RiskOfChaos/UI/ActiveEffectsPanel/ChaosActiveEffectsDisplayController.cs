@@ -1,14 +1,13 @@
-﻿using HG;
-using R2API;
+﻿using R2API;
 using RiskOfChaos.Networking.Components;
 using RoR2;
 using RoR2.UI;
 using RoR2.UI.SkinControllers;
 using System;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.UI;
 
 namespace RiskOfChaos.UI.ActiveEffectsPanel
 {
@@ -49,6 +48,11 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
             _activeEffectsPanelPrefab = objectivePanel.gameObject.InstantiateClone("ActiveEffectsPanel", false);
 
+            if (_activeEffectsPanelPrefab.TryGetComponent(out LayoutGroup layoutGroup))
+            {
+                layoutGroup.padding.bottom = 10;
+            }
+
             ChaosActiveEffectsDisplayController activeEffectsDisplayController = _activeEffectsPanelPrefab.AddComponent<ChaosActiveEffectsDisplayController>();
 
             ObjectivePanelController objectivePanelController = _activeEffectsPanelPrefab.GetComponent<ObjectivePanelController>();
@@ -57,12 +61,18 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             activeEffectsDisplayController._activeEffectsContainer = objectivePanelController.objectiveTrackerContainer;
 
             Destroy(objectivePanelController);
+            Destroy(_activeEffectsPanelPrefab.GetComponent<HudObjectiveTargetSetter>());
 
             Transform titleLabelTransform = _activeEffectsPanelPrefab.transform.Find("Label");
             if (titleLabelTransform)
             {
-                LanguageTextMeshController languageTextController = titleLabelTransform.GetComponent<LanguageTextMeshController>();
-                if (languageTextController)
+                if (titleLabelTransform.TryGetComponent(out LayoutElement layoutElement))
+                {
+                    layoutElement.minHeight = 10f;
+                    layoutElement.preferredHeight = 10f;
+                }
+
+                if (titleLabelTransform.TryGetComponent(out LanguageTextMeshController languageTextController))
                 {
                     languageTextController.token = "CHAOS_ACTIVE_EFFECTS_BAR_TITLE";
                 }
@@ -71,8 +81,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
                     Log.Warning("Title is missing LanguageTextMeshController component");
                 }
 
-                activeEffectsDisplayController._activeEffectsTitleLabel = titleLabelTransform.GetComponent<HGTextMeshProUGUI>();
-                if (activeEffectsDisplayController._activeEffectsTitleLabel)
+                if (titleLabelTransform.TryGetComponent(out activeEffectsDisplayController._activeEffectsTitleLabel))
                 {
                     activeEffectsDisplayController._activeEffectsTitleLabel.fontSize = 14f;
                 }

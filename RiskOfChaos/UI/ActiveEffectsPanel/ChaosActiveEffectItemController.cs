@@ -32,7 +32,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             if (layoutElement)
             {
                 layoutElement.enabled = true;
-                layoutElement.minHeight = 26f;
+                layoutElement.minHeight = 20f;
             }
 
             Transform checkBoxTransform = _itemPrefab.transform.Find("Checkbox");
