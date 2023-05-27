@@ -1,5 +1,26 @@
 ## Changelog
 
+**1.7.1 Changes:**
+
+* UI:
+  * Made active effects display take slightly less vertical space
+
+* Blood Money:
+  * Earning money now heals players the same amount of health they would have lost if they spent that amount of money instead
+
+* Bouncy Projectiles:
+  * Added bounce functionality to more projectile types
+
+* Superhot:
+  * Slightly increased minimum time scale & decreased maximum time scale
+  * The time scale now more closely tracks with the player's speed
+
+* Steal All Player Items
+  * Fixed dead enemies being able to steal items
+
+* Misc:
+  * Fixed effects being able to activate during cutscenes
+
 **1.7.0 Changes:**
 
 * UI:
