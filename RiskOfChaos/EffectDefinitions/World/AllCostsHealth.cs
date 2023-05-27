@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.Patches;
 using RoR2;
 using UnityEngine;
 
@@ -18,11 +19,40 @@ namespace RiskOfChaos.EffectDefinitions.World
             }
 
             On.RoR2.PurchaseInteraction.Awake += PurchaseInteraction_Awake;
+
+            CharacterMoneyChangedHook.OnCharacterMoneyChanged += onCharacterMoneyChanged;
         }
 
         public override void OnEnd()
         {
             On.RoR2.PurchaseInteraction.Awake -= PurchaseInteraction_Awake;
+
+            CharacterMoneyChangedHook.OnCharacterMoneyChanged -= onCharacterMoneyChanged;
+        }
+
+        const float MONEY_TO_HEALTH_HALFWAY_VALUE = 150f;
+
+        static int convertCostToHealthCost(float halfwayValue, int cost)
+        {
+            return Mathf.Max(1, Mathf.FloorToInt((1f - (halfwayValue / (cost + halfwayValue))) * 100f));
+        }
+
+        void onCharacterMoneyChanged(CharacterMaster master, int moneyDiff)
+        {
+            if (moneyDiff > 0 && master.playerCharacterMasterController)
+            {
+                CharacterBody body = master.GetBody();
+                if (body)
+                {
+                    float healFraction = convertCostToHealthCost(MONEY_TO_HEALTH_HALFWAY_VALUE, moneyDiff) / 100f;
+
+#if DEBUG
+                    Log.Debug($"Healing {Util.GetBestMasterName(master)} for {healFraction:P} health (+${moneyDiff})");
+#endif
+
+                    body.healthComponent.HealFraction(healFraction, new ProcChainMask());
+                }
+            }
         }
 
         static void PurchaseInteraction_Awake(On.RoR2.PurchaseInteraction.orig_Awake orig, PurchaseInteraction self)
@@ -33,44 +63,39 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         static void handlePurchaseInteraction(PurchaseInteraction purchaseInteraction)
         {
-            int autoHealthCost(float halfwayValue)
-            {
-                return Mathf.FloorToInt((1f - (halfwayValue / (purchaseInteraction.cost + halfwayValue))) * 100f);
-            }
-
             int healthCost;
             switch (purchaseInteraction.costType)
             {
                 case CostTypeIndex.Money:
-                    healthCost = autoHealthCost(150f);
+                    healthCost = convertCostToHealthCost(MONEY_TO_HEALTH_HALFWAY_VALUE, purchaseInteraction.cost);
                     break;
                 case CostTypeIndex.LunarCoin:
                 case CostTypeIndex.VoidCoin:
-                    healthCost = autoHealthCost(2.5f);
+                    healthCost = convertCostToHealthCost(2.5f, purchaseInteraction.cost);
                     break;
                 case CostTypeIndex.WhiteItem:
-                    healthCost = autoHealthCost(2f);
+                    healthCost = convertCostToHealthCost(2f, purchaseInteraction.cost);
                     break;
                 case CostTypeIndex.GreenItem:
-                    healthCost = autoHealthCost(1f);
+                    healthCost = convertCostToHealthCost(1f, purchaseInteraction.cost);
                     break;
                 case CostTypeIndex.RedItem:
-                    healthCost = autoHealthCost(0.5f);
+                    healthCost = convertCostToHealthCost(0.5f, purchaseInteraction.cost);
                     break;
                 case CostTypeIndex.Equipment:
                 case CostTypeIndex.VolatileBattery:
                 case CostTypeIndex.LunarItemOrEquipment:
-                    healthCost = autoHealthCost(3f);
+                    healthCost = convertCostToHealthCost(3f, purchaseInteraction.cost);
                     break;
                 case CostTypeIndex.BossItem:
-                    healthCost = autoHealthCost(0.5f);
+                    healthCost = convertCostToHealthCost(0.5f, purchaseInteraction.cost);
                     break;
                 case CostTypeIndex.ArtifactShellKillerItem:
-                    healthCost = autoHealthCost(3f);
+                    healthCost = convertCostToHealthCost(3f, purchaseInteraction.cost);
                     break;
                 case CostTypeIndex.TreasureCacheItem:
                 case CostTypeIndex.TreasureCacheVoidItem:
-                    healthCost = autoHealthCost(3f);
+                    healthCost = convertCostToHealthCost(3f, purchaseInteraction.cost);
                     break;
                 default:
                     return;
