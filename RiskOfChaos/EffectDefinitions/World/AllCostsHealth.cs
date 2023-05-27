@@ -32,7 +32,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         const float MONEY_TO_HEALTH_HALFWAY_VALUE = 150f;
 
-        static int convertCostToHealthCost(float halfwayValue, int cost)
+        static int convertCostToHealthCost(int cost, float halfwayValue)
         {
             return Mathf.Max(1, Mathf.FloorToInt((1f - (halfwayValue / (cost + halfwayValue))) * 100f));
         }
@@ -44,7 +44,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 CharacterBody body = master.GetBody();
                 if (body)
                 {
-                    float healFraction = convertCostToHealthCost(MONEY_TO_HEALTH_HALFWAY_VALUE, moneyDiff) / 100f;
+                    float healFraction = convertCostToHealthCost(moneyDiff, MONEY_TO_HEALTH_HALFWAY_VALUE) / 100f;
 
 #if DEBUG
                     Log.Debug($"Healing {Util.GetBestMasterName(master)} for {healFraction:P} health (+${moneyDiff})");
@@ -63,43 +63,24 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         static void handlePurchaseInteraction(PurchaseInteraction purchaseInteraction)
         {
-            int healthCost;
-            switch (purchaseInteraction.costType)
+            float halfwayCostValue = purchaseInteraction.costType switch
             {
-                case CostTypeIndex.Money:
-                    healthCost = convertCostToHealthCost(MONEY_TO_HEALTH_HALFWAY_VALUE, purchaseInteraction.cost);
-                    break;
-                case CostTypeIndex.LunarCoin:
-                case CostTypeIndex.VoidCoin:
-                    healthCost = convertCostToHealthCost(2.5f, purchaseInteraction.cost);
-                    break;
-                case CostTypeIndex.WhiteItem:
-                    healthCost = convertCostToHealthCost(2f, purchaseInteraction.cost);
-                    break;
-                case CostTypeIndex.GreenItem:
-                    healthCost = convertCostToHealthCost(1f, purchaseInteraction.cost);
-                    break;
-                case CostTypeIndex.RedItem:
-                    healthCost = convertCostToHealthCost(0.5f, purchaseInteraction.cost);
-                    break;
-                case CostTypeIndex.Equipment:
-                case CostTypeIndex.VolatileBattery:
-                case CostTypeIndex.LunarItemOrEquipment:
-                    healthCost = convertCostToHealthCost(3f, purchaseInteraction.cost);
-                    break;
-                case CostTypeIndex.BossItem:
-                    healthCost = convertCostToHealthCost(0.5f, purchaseInteraction.cost);
-                    break;
-                case CostTypeIndex.ArtifactShellKillerItem:
-                    healthCost = convertCostToHealthCost(3f, purchaseInteraction.cost);
-                    break;
-                case CostTypeIndex.TreasureCacheItem:
-                case CostTypeIndex.TreasureCacheVoidItem:
-                    healthCost = convertCostToHealthCost(3f, purchaseInteraction.cost);
-                    break;
-                default:
-                    return;
-            }
+                CostTypeIndex.Money => MONEY_TO_HEALTH_HALFWAY_VALUE,
+                CostTypeIndex.LunarCoin or CostTypeIndex.VoidCoin => 2.5f,
+                CostTypeIndex.WhiteItem => 2f,
+                CostTypeIndex.GreenItem => 1f,
+                CostTypeIndex.RedItem => 0.5f,
+                CostTypeIndex.Equipment or CostTypeIndex.VolatileBattery or CostTypeIndex.LunarItemOrEquipment => 3f,
+                CostTypeIndex.BossItem => 0.5f,
+                CostTypeIndex.ArtifactShellKillerItem => 3f,
+                CostTypeIndex.TreasureCacheItem or CostTypeIndex.TreasureCacheVoidItem => 3f,
+                _ => -1f,
+            };
+
+            if (halfwayCostValue < 0f)
+                return;
+
+            int healthCost = convertCostToHealthCost(purchaseInteraction.cost, halfwayCostValue);
 
             purchaseInteraction.costType = CostTypeIndex.PercentHealth;
             purchaseInteraction.Networkcost = healthCost;
