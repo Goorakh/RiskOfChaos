@@ -15,31 +15,6 @@ namespace RiskOfChaos.Content
     {
         public static readonly ItemDef InvincibleLemurianMarker;
 
-        sealed class InvincibleLemurianItemBehavior : CharacterBody.ItemBehavior
-        {
-            void FixedUpdate()
-            {
-                if (!body)
-                    return;
-
-                if (!body.HasBuff(RoR2Content.Buffs.Immune))
-                {
-                    body.AddBuff(RoR2Content.Buffs.Immune);
-                }
-            }
-
-            void OnDisable()
-            {
-                if (body)
-                {
-                    if (body.HasBuff(RoR2Content.Buffs.Immune))
-                    {
-                        body.RemoveBuff(RoR2Content.Buffs.Immune);
-                    }
-                }
-            }
-        }
-
         static Items()
         {
             // InvincibleLemurianHelper
@@ -127,18 +102,6 @@ namespace RiskOfChaos.Content
                 if (inventory.GetItemCount(InvincibleLemurianMarker) > 0)
                 {
                     args.moveSpeedReductionMultAdd += 1f;
-                }
-            };
-
-            CharacterBody.onBodyInventoryChangedGlobal += body =>
-            {
-                if (NetworkServer.active)
-                {
-                    Inventory inventory = body.inventory;
-                    if (inventory)
-                    {
-                        body.AddItemBehavior<InvincibleLemurianItemBehavior>(inventory.GetItemCount(InvincibleLemurianMarker));
-                    }
                 }
             };
         }
