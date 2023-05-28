@@ -95,5 +95,6 @@
 		"EFFECT_SUPERHOT_NAME": "Superhot",
 		"EFFECT_PAUSE_PHYSICS_NAME": "Pause Physics",
 		"EFFECT_SPAWN_GUP_NAME": "Gupscare",
+		"EFFECT_START_CREDITS_NAME": "Roll Credits",
 	}
 }
