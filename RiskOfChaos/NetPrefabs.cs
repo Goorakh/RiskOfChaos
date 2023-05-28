@@ -47,6 +47,8 @@ namespace RiskOfChaos
 
         public static GameObject ActiveTimedEffectsProviderPrefab { get; private set; }
 
+        public static GameObject ItemStealerPositionIndicatorPrefab { get; private set; }
+
         static GameObject createEmptyPrefabObject(string name, bool networked = true)
         {
             GameObject tmp = new GameObject(name);
@@ -86,6 +88,9 @@ namespace RiskOfChaos
 
                 ItemStealController itemStealController = MonsterItemStealControllerPrefab.GetComponent<ItemStealController>();
                 itemStealController.stealInterval = 0.2f;
+
+                MonsterItemStealControllerPrefab.AddComponent<SyncStolenItemCount>();
+                MonsterItemStealControllerPrefab.AddComponent<ShowStolenItemsPositionIndicator>();
             }
 
             // NetworkGravityControllerPrefab
@@ -180,6 +185,29 @@ namespace RiskOfChaos
                 ActiveTimedEffectsProviderPrefab.AddComponent<SetDontDestroyOnLoad>();
                 ActiveTimedEffectsProviderPrefab.AddComponent<DestroyOnRunEnd>();
                 ActiveTimedEffectsProviderPrefab.AddComponent<ActiveTimedEffectsProvider>();
+            }
+
+            // ItemStealerPositionIndicatorPrefab
+            {
+                ItemStealerPositionIndicatorPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Common/BossPositionIndicator.prefab").WaitForCompletion().InstantiateClone("ItemStealerPositionIndicator", false);
+
+                PositionIndicator positionIndicator = ItemStealerPositionIndicatorPrefab.GetComponent<PositionIndicator>();
+
+                if (positionIndicator.insideViewObject)
+                {
+                    foreach (SpriteRenderer insideSprite in positionIndicator.insideViewObject.GetComponentsInChildren<SpriteRenderer>())
+                    {
+                        insideSprite.color = Color.cyan;
+                    }
+                }
+
+                if (positionIndicator.outsideViewObject)
+                {
+                    foreach (SpriteRenderer outsideSprite in positionIndicator.outsideViewObject.GetComponentsInChildren<SpriteRenderer>())
+                    {
+                        outsideSprite.color = Color.cyan;
+                    }
+                }
             }
 
             Run.onRunStartGlobal += onRunStart;
