@@ -1,5 +1,16 @@
 ## Changelog
 
+**1.7.2 Changes:**
+
+* Added 1 new effect:
+  * Roll Credits: Starts the game credits
+
+* Steal All Player Items:
+  * Added a marker to enemies that have stolen your items
+
+* Teleporting Attacks:
+  * Fixed AOE attacks not teleporting the attacker if nothing was hit
+
 **1.7.1 Changes:**
 
 * UI:

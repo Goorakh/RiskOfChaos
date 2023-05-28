@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer combatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 86 different effects.
+Currently features 87 different effects.
 
 ### Twitch Integration:
 
@@ -102,6 +102,7 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Superhot: Time moves when players move
 * Pause Physics: Pauses all physics objects (not including players or enemies). Lasts until next effect.
 * Gupscare: Spawns a Gup above every player
+* Roll Credits: Starts the game credits
 </details>
 
 FAQ:
