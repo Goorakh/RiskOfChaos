@@ -1,5 +1,14 @@
 ## Changelog
 
+**1.7.3 Changes:**
+
+* Bouncy Projectiles:
+  * Effect can now be activated several times per stage (max number of bounces increases with each instance of the effect)
+  * Fixed a horrific and immersion-destroying spelling mistake in Max Projectile Bounce Count config description, I truly apologize for letting such a terrible mistake slip by my rigorous testing, and my heart goes out to those who have lost friends or family members because of this. The "programmer" responsible for this frankly unacceptable act has been thoroughly diciplined.
+
+* Eradicate Random Item:
+  * Fixed Strange Scrap not being usable as scrap
+
 **1.7.2 Changes:**
 
 * Added 1 new effect:
