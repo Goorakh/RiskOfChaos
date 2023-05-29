@@ -74,15 +74,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 getBossEntrySingle("RoR2/Base/RoboBallBoss/cscSuperRoboBallBoss.asset", 1f),
                 getBossEntrySingle("RoR2/Base/Scav/cscScavBoss.asset", 0.9f),
                 getBossEntrySingle("RoR2/Base/ScavLunar/cscScavLunar.asset", 0.8f),
-
-                getBossEntryMany(new string[]
-                {
-                    "RoR2/Base/Titan/cscTitanBlackBeach.asset",
-                    "RoR2/Base/Titan/cscTitanDampCave.asset",
-                    "RoR2/Base/Titan/cscTitanGolemPlains.asset",
-                    "RoR2/Base/Titan/cscTitanGooLake.asset"
-                }, 1f),
-
+                getBossEntrySingle("RoR2/Base/Titan/cscTitanBlackBeach.asset", 1f),
                 getBossEntrySingle("RoR2/Base/Titan/cscTitanGold.asset", 0.9f),
                 getBossEntrySingle("RoR2/Base/Vagrant/cscVagrant.asset", 1f),
                 getBossEntrySingle("RoR2/Junk/BrotherGlass/cscBrotherGlass.asset", 0.7f),
@@ -126,10 +118,19 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
             spawnRequest.onSpawnedServer = result =>
             {
-                if (!result.success || !bossCombatSquad)
+                if (!result.success)
                     return;
 
-                bossCombatSquad.AddMember(result.spawnedInstance.GetComponent<CharacterMaster>());
+                CharacterMaster master = result.spawnedInstance.GetComponent<CharacterMaster>();
+                if (!master)
+                    return;
+
+                master.SetLoadoutServer(LoadoutUtils.GetRandomLoadoutFor(master, RNG));
+
+                if (bossCombatSquad)
+                {
+                    bossCombatSquad.AddMember(master);
+                }
             };
 
             GameObject spawnedObject = DirectorCore.instance.TrySpawnObject(spawnRequest);
