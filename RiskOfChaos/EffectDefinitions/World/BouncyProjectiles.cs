@@ -68,7 +68,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 max = 40
             }));
 
-            _maxProjectileBounceCountConfig = _effectInfo.BindConfig("Max Projectile Bounce Count", MAX_PROJECTILE_BOUNCE_COUNT_DEFAULT_VALUE, new ConfigDescription("The maximum amount of times projectiels can be bounced"));
+            _maxProjectileBounceCountConfig = _effectInfo.BindConfig("Max Projectile Bounce Count", MAX_PROJECTILE_BOUNCE_COUNT_DEFAULT_VALUE, new ConfigDescription("The maximum amount of times projectiles can be bounced"));
 
             _maxProjectileBounceCountConfig.SettingChanged += bounceCountConfigChanged;
 
