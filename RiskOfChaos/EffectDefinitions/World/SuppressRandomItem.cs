@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using HG;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
@@ -13,6 +14,30 @@ namespace RiskOfChaos.EffectDefinitions.World
     [ChaosEffect("suppress_random_item", EffectWeightReductionPercentagePerActivation = 10f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
     public sealed class SuppressRandomItem : BaseEffect
     {
+        [SystemInitializer(typeof(ItemCatalog), typeof(ItemTierCatalog))]
+        static void FixStrangeScrap()
+        {
+            static void fixScrapItem(ItemDef item, ItemTier itemTier)
+            {
+                if (!item)
+                {
+                    Log.Warning($"{nameof(item)} is null! Was DLC1Content not initialized?");
+                    return;
+                }
+
+                item.tier = itemTier;
+
+                if (item.DoesNotContainTag(ItemTag.Scrap))
+                {
+                    ArrayUtils.ArrayAppend(ref item.tags, ItemTag.Scrap);
+                }
+            }
+
+            fixScrapItem(DLC1Content.Items.ScrapWhiteSuppressed, ItemTier.Tier1);
+            fixScrapItem(DLC1Content.Items.ScrapGreenSuppressed, ItemTier.Tier2);
+            fixScrapItem(DLC1Content.Items.ScrapRedSuppressed, ItemTier.Tier3);
+        }
+
         [EffectCanActivate]
         static bool CanActivate()
         {
