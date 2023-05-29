@@ -1,4 +1,5 @@
-﻿using Mono.Cecil.Cil;
+﻿using HarmonyLib;
+using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RiskOfChaos.ModifierController.Projectile;
 using RoR2;
@@ -189,8 +190,18 @@ namespace RiskOfChaos.Patches
                     {
                         if (fieldType.GetGenericTypeDefinition() == typeof(List<>))
                         {
-                            // newOrb.listField = new List<T>(orbInstance.listField)
-                            fieldValue = Activator.CreateInstance(fieldType, fieldValue);
+                            if (fieldValue is not null)
+                            {
+                                try
+                                {
+                                    // newOrb.listField = new List<T>(orbInstance.listField)
+                                    fieldValue = Activator.CreateInstance(fieldType, fieldValue);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log.Warning_NoCallerPrefix($"Failed to copy list type {fieldType.FullDescription()} for {field.DeclaringType.FullDescription()}.{field.Name}, same instance of list object will be used instead: {ex}");
+                                }
+                            }
                         }
                     }
                 }
