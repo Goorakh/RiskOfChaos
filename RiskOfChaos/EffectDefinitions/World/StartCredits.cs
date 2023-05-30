@@ -1,5 +1,4 @@
-﻿using EntityStates;
-using R2API;
+﻿using R2API;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RoR2;
 using RoR2.UI;
