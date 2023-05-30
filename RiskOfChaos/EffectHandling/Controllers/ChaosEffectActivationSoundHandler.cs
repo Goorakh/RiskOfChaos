@@ -1,5 +1,4 @@
-﻿using RiskOfChaos.EffectDefinitions;
-using RiskOfChaos.Utilities;
+﻿using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.Audio;
 using UnityEngine;
@@ -9,42 +8,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
     [ChaosController(true)]
     public class ChaosEffectActivationSoundHandler : MonoBehaviour
     {
-        static bool _isEffectActivationSoundInitialized;
-        static AkEventIdArg _effectActivationSoundEventID;
+        static NetworkSoundEventIndex _effectActivationSoundEventIndex;
 
-        static ChaosEffectActivationSoundHandler()
+        [SystemInitializer(typeof(NetworkSoundEventCatalog))]
+        static void Init()
         {
-            static bool tryAssignEffectSoundID()
-            {
-                if (AkSoundEngine.IsInitialized())
-                {
-                    _effectActivationSoundEventID = AkSoundEngine.GetIDFromString("Play_env_hiddenLab_laptop_sequence_fail");
-                    _isEffectActivationSoundInitialized = true;
-
-#if DEBUG
-                    Log.Debug($"Assigned effect activation event ID: {_effectActivationSoundEventID.id}");
-#endif
-
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-
-            if (!tryAssignEffectSoundID())
-            {
-                static void waitUntilSoundEngineInit()
-                {
-                    if (tryAssignEffectSoundID())
-                    {
-                        RoR2Application.onUpdate -= waitUntilSoundEngineInit;
-                    }
-                }
-
-                RoR2Application.onUpdate += waitUntilSoundEngineInit;
-            }
+            _effectActivationSoundEventIndex = NetworkSoundEventCatalog.FindNetworkSoundEventIndex("Play_env_hiddenLab_laptop_sequence_fail");
         }
 
         ChaosEffectDispatcher _effectDispatcher;
@@ -74,7 +43,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         static void playEffectActivatedSoundOnAllPlayerBodies()
         {
-            if (!_isEffectActivationSoundInitialized)
+            if (_effectActivationSoundEventIndex == NetworkSoundEventIndex.Invalid)
             {
                 Log.Warning("Unable to play effect activation sound, event ID not initialized");
                 return;
@@ -82,7 +51,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
             {
-                EntitySoundManager.EmitSoundServer(_effectActivationSoundEventID, playerBody.gameObject);
+                EntitySoundManager.EmitSoundServer(_effectActivationSoundEventIndex, playerBody.gameObject);
             }
         }
     }
