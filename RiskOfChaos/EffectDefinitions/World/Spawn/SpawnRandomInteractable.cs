@@ -135,7 +135,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     "RoR2/DLC1/CategoryChest2/iscCategoryChest2Healing.asset",
                     "RoR2/DLC1/CategoryChest2/iscCategoryChest2Utility.asset"
                 }),
-                getEntrySingle("RoR2/DLC1/DeepVoidPortalBattery/iscDeepVoidPortalBattery.asset"),
                 getEntrySingle("RoR2/DLC1/VoidChest/iscVoidChest.asset"),
                 getEntrySingle("RoR2/DLC1/VoidSuppressor/iscVoidSuppressor.asset"),
                 getEntrySingle("RoR2/DLC1/VoidTriple/iscVoidTriple.asset"),
