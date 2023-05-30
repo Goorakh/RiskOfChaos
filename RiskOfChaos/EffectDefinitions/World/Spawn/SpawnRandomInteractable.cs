@@ -67,7 +67,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     "RoR2/Base/CategoryChest/iscCategoryChestHealing.asset",
                     "RoR2/Base/CategoryChest/iscCategoryChestUtility.asset"
                 }),
-                getEntrySingle("RoR2/Base/Chest1StealthedVariant/iscChest1Stealthed.asset"),
                 getEntryMany(new string[]
                 {
                     "RoR2/Base/Chest1/iscChest1.asset",
