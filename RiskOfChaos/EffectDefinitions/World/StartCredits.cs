@@ -1,7 +1,9 @@
 ﻿using R2API;
+using RiskOfChaos.Components;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RoR2;
 using RoR2.UI;
+using System;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
@@ -47,6 +49,13 @@ namespace RiskOfChaos.EffectDefinitions.World
                     if (creditsContent.TryGetComponent(out Image moreBackgroundImage))
                     {
                         GameObject.Destroy(moreBackgroundImage);
+                    }
+
+                    Transform backgroundStamps = creditsContent.Find("BackgroundStamps");
+                    if (backgroundStamps)
+                    {
+                        HideUIWhileOffScreen hideUIWhileOffScreen = backgroundStamps.gameObject.AddComponent<HideUIWhileOffScreen>();
+                        hideUIWhileOffScreen.TransformsToConsider = Array.ConvertAll(backgroundStamps.GetComponentsInChildren<Image>(), i => i.rectTransform);
                     }
                 }
             }
