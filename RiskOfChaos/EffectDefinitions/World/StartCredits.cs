@@ -1,6 +1,8 @@
-﻿using R2API;
+﻿using EntityStates;
+using R2API;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RoR2;
+using RoR2.UI;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
@@ -61,6 +63,11 @@ namespace RiskOfChaos.EffectDefinitions.World
             {
                 GameObject.Destroy(musicOverride.gameObject);
             }
+
+            CreditsPanelController creditsPanelController = _creditsPanelPrefab.GetComponent<CreditsPanelController>();
+            creditsPanelController.introDuration = 0f;
+            creditsPanelController.scrollDuration = 118f;
+            creditsPanelController.outroDuration = 5f;
         }
 
         GameObject _creditsPanel;
@@ -75,6 +82,49 @@ namespace RiskOfChaos.EffectDefinitions.World
             if (!_creditsPanel)
             {
                 _creditsPanel = GameObject.Instantiate(_creditsPanelPrefab, RoR2Application.instance.mainCanvas.transform);
+
+                CreditsPanelController creditsPanelController = _creditsPanel.GetComponent<CreditsPanelController>();
+                EntityStateMachine stateMachine = _creditsPanel.GetComponent<EntityStateMachine>();
+                if (creditsPanelController && stateMachine)
+                {
+                    float totalCreditsDuration = creditsPanelController.introDuration + creditsPanelController.scrollDuration + creditsPanelController.outroDuration;
+                    float age = TimeElapsed % totalCreditsDuration;
+
+                    bool trySkipToState<T>(float duration) where T : CreditsPanelController.BaseCreditsPanelState, new()
+                    {
+                        if (age > duration)
+                        {
+                            if (stateMachine.state is not T state)
+                            {
+                                state = new T();
+                                stateMachine.SetState(state);
+                            }
+
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                            state.age = age - duration;
+                            state.fixedAge = age - duration;
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+
+                            return true;
+                        }
+
+                        return false;
+                    }
+
+                    if (age > 0)
+                    {
+                        if (!trySkipToState<CreditsPanelController.OutroState>(creditsPanelController.introDuration + creditsPanelController.scrollDuration))
+                        {
+                            if (!trySkipToState<CreditsPanelController.MainScrollState>(creditsPanelController.introDuration))
+                            {
+                                if (!trySkipToState<CreditsPanelController.IntroState>(0f))
+                                {
+                                    Log.Warning($"Credits state {stateMachine.state} at age {age} not accounted for");
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
