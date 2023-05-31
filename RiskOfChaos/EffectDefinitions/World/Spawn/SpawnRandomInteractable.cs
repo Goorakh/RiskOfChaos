@@ -64,13 +64,19 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 getEntryMany(new string[]
                 {
                     "RoR2/Base/CategoryChest/iscCategoryChestDamage.asset",
+                    "RoR2/DLC1/CategoryChest2/iscCategoryChest2Damage.asset",
+
                     "RoR2/Base/CategoryChest/iscCategoryChestHealing.asset",
-                    "RoR2/Base/CategoryChest/iscCategoryChestUtility.asset"
+                    "RoR2/DLC1/CategoryChest2/iscCategoryChest2Healing.asset",
+
+                    "RoR2/Base/CategoryChest/iscCategoryChestUtility.asset",
+                    "RoR2/DLC1/CategoryChest2/iscCategoryChest2Utility.asset"
                 }),
                 getEntryMany(new string[]
                 {
                     "RoR2/Base/Chest1/iscChest1.asset",
-                    "RoR2/Base/Chest2/iscChest2.asset"
+                    "RoR2/Base/Chest2/iscChest2.asset",
+                    "RoR2/Base/GoldChest/iscGoldChest.asset"
                 }),
                 getEntryMany(new string[]
                 {
@@ -80,7 +86,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     "RoR2/Base/DuplicatorWild/iscDuplicatorWild.asset"
                 }),
                 getEntrySingle("RoR2/Base/EquipmentBarrel/iscEquipmentBarrel.asset"),
-                getEntrySingle("RoR2/Base/GoldChest/iscGoldChest.asset"),
                 getEntrySingle("RoR2/Base/LunarChest/iscLunarChest.asset"),
                 getEntrySingle("RoR2/Base/RadarTower/iscRadarTower.asset"),
                 getEntrySingle("RoR2/Base/Scrapper/iscScrapper.asset"),
@@ -129,12 +134,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     "RoR2/Base/TripleShopLarge/iscTripleShopLarge.asset"
                 }),
                 getEntrySingle("RoR2/Base/goldshores/iscGoldshoresBeacon.asset"),
-                getEntryMany(new string[]
-                {
-                    "RoR2/DLC1/CategoryChest2/iscCategoryChest2Damage.asset",
-                    "RoR2/DLC1/CategoryChest2/iscCategoryChest2Healing.asset",
-                    "RoR2/DLC1/CategoryChest2/iscCategoryChest2Utility.asset"
-                }),
                 getEntrySingle("RoR2/DLC1/VoidChest/iscVoidChest.asset"),
                 getEntrySingle("RoR2/DLC1/VoidSuppressor/iscVoidSuppressor.asset"),
                 getEntrySingle("RoR2/DLC1/VoidTriple/iscVoidTriple.asset"),
