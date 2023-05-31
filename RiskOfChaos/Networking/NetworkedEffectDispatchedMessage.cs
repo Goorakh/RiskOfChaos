@@ -1,7 +1,6 @@
 ﻿using R2API.Networking.Interfaces;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.Utilities.Extensions;
-using RoR2;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.Networking
