@@ -3,10 +3,7 @@ using HarmonyLib;
 using R2API.Utils;
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.Networking;
-using RiskOfChaos.Patches;
-using RiskOfChaos.UI;
 using System.Diagnostics;
 
 namespace RiskOfChaos
