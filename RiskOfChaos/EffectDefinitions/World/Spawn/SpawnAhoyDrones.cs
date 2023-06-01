@@ -104,9 +104,18 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         public override void OnStart()
         {
             CharacterBody[] playerBodies = PlayerUtils.GetAllPlayerBodies(true).ToArray();
+            Util.ShuffleArray(playerBodies, new Xoroshiro128Plus(RNG.nextUlong));
 
-            int spawnCount = SpawnAhoyDrones.spawnCount;
-            for (int i = 0; i < spawnCount; i++)
+            int spawnsRemaining = spawnCount;
+            foreach (CharacterBody playerBody in playerBodies)
+            {
+                spawnDroneAt(playerBody, new Xoroshiro128Plus(RNG.nextUlong));
+
+                if (--spawnsRemaining <= 0)
+                    return;
+            }
+
+            for (int i = 0; i < spawnsRemaining; i++)
             {
                 spawnDroneAt(RNG.NextElementUniform(playerBodies), new Xoroshiro128Plus(RNG.nextUlong));
             }
@@ -131,7 +140,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 if (!result.success || !result.spawnedInstance)
                     return;
 
-                if (result.spawnedInstance.TryGetComponent<Inventory>(out Inventory inventory))
+                if (result.spawnedInstance.TryGetComponent(out Inventory inventory))
                 {
                     if (inventory.GetEquipmentIndex() == EquipmentIndex.None)
                     {
