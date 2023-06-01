@@ -17,6 +17,16 @@ namespace RiskOfChaos.EffectDefinitions.Character
             return !context.IsNow || CharacterBody.readOnlyInstancesList.Any(b => getPickupsToDrop(b, false).Any());
         }
 
+        [EffectWeightMultiplierSelector]
+        static float GetWeightMultiplier()
+        {
+            IEnumerable<CharacterBody> charactersWithDroppableItems = CharacterBody.readOnlyInstancesList
+                                                                                   .Where(b => getPickupsToDrop(b, false).Any());
+
+            // If only non-player characters have droppable items -> Decrease weight
+            return charactersWithDroppableItems.Any(b => b.isPlayerControlled) ? 1f : 0.5f;
+        }
+
         public override void OnStart()
         {
             foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
