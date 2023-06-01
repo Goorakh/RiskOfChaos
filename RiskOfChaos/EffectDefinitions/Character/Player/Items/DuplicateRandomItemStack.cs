@@ -34,16 +34,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             if (!inventory)
                 yield break;
 
-            foreach (ItemDef item in ItemCatalog.allItemDefs)
+            foreach (ItemIndex item in inventory.itemAcquisitionOrder)
             {
-                if (!item || item.hidden)
+                ItemDef itemDef = ItemCatalog.GetItemDef(item);
+                if (!itemDef || itemDef.hidden)
                     continue;
 
-                int itemCount = inventory.GetItemCount(item);
-                if (itemCount <= 0)
-                    continue;
-
-                yield return new ItemStack(item.itemIndex, itemCount);
+                yield return new ItemStack(item, inventory.GetItemCount(item));
             }
         }
 

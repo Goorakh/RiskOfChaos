@@ -23,9 +23,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 return false;
 
             int totalCount = 0;
-            foreach (ItemDef item in ItemCatalog.allItemDefs)
+            foreach (ItemIndex item in inventory.itemAcquisitionOrder)
             {
-                if (inventory.GetItemCount(item) > 0 && item.tier == itemTier)
+                if (ItemCatalog.GetItemDef(item).tier == itemTier)
                 {
                     if (++totalCount >= count)
                     {

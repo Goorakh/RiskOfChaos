@@ -53,24 +53,22 @@ namespace RiskOfChaos.EffectDefinitions.Character
             if (!inventory)
                 yield break;
 
-            for (ItemIndex i = 0; i < (ItemIndex)ItemCatalog.itemCount; i++)
+            foreach (ItemIndex i in inventory.itemAcquisitionOrder)
             {
                 ItemDef itemDef = ItemCatalog.GetItemDef(i);
                 if (itemDef && !itemDef.hidden && itemDef.canRemove && itemDef.pickupModelPrefab)
                 {
                     int itemCount = inventory.GetItemCount(itemDef);
-                    if (itemCount > 0)
-                    {
-                        PickupIndex pickupIndex = PickupCatalog.FindPickupIndex(itemDef.itemIndex);
-                        for (int j = 0; j < itemCount; j++)
-                        {
-                            yield return pickupIndex;
-                        }
 
-                        if (remove)
-                        {
-                            inventory.RemoveItem(itemDef, itemCount);
-                        }
+                    PickupIndex pickupIndex = PickupCatalog.FindPickupIndex(itemDef.itemIndex);
+                    for (int j = 0; j < itemCount; j++)
+                    {
+                        yield return pickupIndex;
+                    }
+
+                    if (remove)
+                    {
+                        inventory.RemoveItem(itemDef, itemCount);
                     }
                 }
             }
