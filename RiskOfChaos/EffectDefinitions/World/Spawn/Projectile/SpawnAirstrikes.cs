@@ -45,11 +45,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
             {
                 Vector3 spawnPosition = placementRule.EvaluateToPosition(RNG);
 
+                Quaternion rotation = QuaternionUtils.PointLocalDirectionAt(Vector3.up, SpawnUtils.GetEnvironmentNormalAtPoint(spawnPosition))
+                                    * QuaternionUtils.RandomDeviation(5f, RNG);
+
                 ProjectileManager.instance.FireProjectile(new FireProjectileInfo
                 {
                     projectilePrefab = _diabloStrikePrefab,
                     position = spawnPosition,
-                    rotation = Quaternion.Euler(RNG.RangeFloat(-5f, 5f), RNG.RangeFloat(0f, 360f), RNG.RangeFloat(-5f, 5f)),
+                    rotation = rotation,
                     damage = 400f * 75f
                 });
 

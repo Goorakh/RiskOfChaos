@@ -49,7 +49,12 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
             foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
             {
-                GameObject beacon = GameObject.Instantiate(beaconPrefab, playerBody.footPosition, playerBody.GetRotation());
+                Vector3 spawnPosition = playerBody.footPosition;
+
+                Quaternion rotation = QuaternionUtils.PointLocalDirectionAt(Vector3.up, SpawnUtils.GetEnvironmentNormalAtPoint(spawnPosition))
+                                    * QuaternionUtils.RandomDeviation(5f, RNG);
+
+                GameObject beacon = GameObject.Instantiate(beaconPrefab, spawnPosition, rotation);
 
                 beacon.GetComponent<TeamFilter>().teamIndex = playerBody.teamComponent.teamIndex;
                 beacon.GetComponent<GenericOwnership>().ownerObject = playerBody.gameObject;
