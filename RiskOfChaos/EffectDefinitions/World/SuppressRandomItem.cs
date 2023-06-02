@@ -31,6 +31,15 @@ namespace RiskOfChaos.EffectDefinitions.World
                 {
                     ArrayUtils.ArrayAppend(ref item.tags, ItemTag.Scrap);
                 }
+
+                // Hide strange scrap from the logbook if RFTV isn't installed
+                if (!BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.Anreol.ReleasedFromTheVoid"))
+                {
+                    On.RoR2.UI.LogBook.LogBookController.CanSelectItemEntry += (orig, itemDef, expansionAvailability) =>
+                    {
+                        return orig(itemDef, expansionAvailability) && itemDef != item;
+                    };
+                }
             }
 
             fixScrapItem(DLC1Content.Items.ScrapWhiteSuppressed, ItemTier.Tier1);
