@@ -36,6 +36,8 @@ namespace RiskOfChaos.Networking.Components
         const int kListActiveEffects = 43986584;
         readonly SyncListActiveEffectItemInfo _activeEffects = new SyncListActiveEffectItemInfo();
 
+        public int ActiveEffectsCount => _activeEffects.Count;
+
         void Awake()
         {
             _activeEffects.InitializeBehaviour(this, kListActiveEffects);

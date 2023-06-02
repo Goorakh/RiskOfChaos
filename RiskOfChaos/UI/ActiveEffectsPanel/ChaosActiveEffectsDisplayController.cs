@@ -140,22 +140,31 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         void OnEnable()
         {
-            ActiveTimedEffectsProvider.OnActiveEffectsChanged += onActiveEffectsChanged;
-
-            if (_activeEffectsContainer.childCount > 0)
+            for (int i = 0; i < _activeEffectsContainer.childCount; i++)
             {
-                for (int i = 0; i < _activeEffectsContainer.childCount; i++)
+                Transform child = _activeEffectsContainer.GetChild(i);
+                if (child)
                 {
-                    Transform child = _activeEffectsContainer.GetChild(i);
-                    if (child)
-                    {
-                        Destroy(child.gameObject);
-                    }
+                    Destroy(child.gameObject);
                 }
             }
 
+            ActiveTimedEffectsProvider.OnActiveEffectsChanged += onActiveEffectsChanged;
+
             if (ActiveTimedEffectsProvider.Instance)
             {
+                onActiveEffectsChanged(ActiveTimedEffectsProvider.Instance.GetActiveEffects());
+            }
+        }
+
+        void FixedUpdate()
+        {
+            if (ActiveTimedEffectsProvider.Instance && _activeEffectsContainer.childCount != ActiveTimedEffectsProvider.Instance.ActiveEffectsCount)
+            {
+#if DEBUG
+                Log.Debug("Displayed effects differ from active effects, updating display");
+#endif
+
                 onActiveEffectsChanged(ActiveTimedEffectsProvider.Instance.GetActiveEffects());
             }
         }
@@ -201,7 +210,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
                 }
             }
 
-            // Hancky way of "hiding" the panel if there aren't any effects.
+            // Hacky way of "hiding" the panel if there aren't any effects.
             _activeEffectsTitleLabel.gameObject.SetActive(activeEffects.Length > 0);
         }
     }
