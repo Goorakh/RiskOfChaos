@@ -1,6 +1,6 @@
 ﻿using RiskOfChaos.Trackers;
-using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Artifacts;
 using RoR2.UI;

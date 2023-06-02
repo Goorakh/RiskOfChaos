@@ -1,5 +1,4 @@
-﻿using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+﻿using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.ModifierController.Gravity;
 using RoR2;
 using System;

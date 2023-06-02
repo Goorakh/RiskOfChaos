@@ -96,7 +96,7 @@ namespace RiskOfChaos.EffectDefinitions.Time
             {
                 if (!shouldConsiderMovement())
                     return 1f;
-                
+
                 CharacterBody body = _master.GetBody();
                 Vector3 currentPosition = body.footPosition;
                 float distanceMoved = Vector3.Distance(_lastPosition, currentPosition);

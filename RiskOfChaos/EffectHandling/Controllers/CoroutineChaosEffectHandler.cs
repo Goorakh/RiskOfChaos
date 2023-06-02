@@ -54,7 +54,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         class ActiveCoroutineEffect
         {
             public readonly ICoroutineEffect EffectInstance;
-            
+
             CoroutineWrapper _runningCoroutine;
 
             public event Action OnEnd;
@@ -67,7 +67,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             public void StartCoroutineOn(MonoBehaviour coroutineHost)
             {
                 _runningCoroutine = new CoroutineWrapper(EffectInstance.OnStartCoroutine());
-                
+
                 _runningCoroutine.OnFinished += () =>
                 {
                     OnEnd?.Invoke();

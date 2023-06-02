@@ -1,7 +1,6 @@
 ﻿using RoR2;
 using System;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling.Controllers
 {

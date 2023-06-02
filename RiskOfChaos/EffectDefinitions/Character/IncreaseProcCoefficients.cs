@@ -9,7 +9,6 @@ using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 

@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.EffectHandling.Controllers.ChatVoting;
 using RoR2.UI;
-using System;
 using UnityEngine;
 
 namespace RiskOfChaos.UI.ChatVoting

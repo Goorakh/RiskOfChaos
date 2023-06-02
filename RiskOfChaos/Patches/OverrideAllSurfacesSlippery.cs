@@ -1,11 +1,7 @@
 ﻿using KinematicCharacterController;
-using R2API.Networking;
-using R2API.Networking.Interfaces;
-using RiskOfChaos.Networking;
 using RoR2;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace RiskOfChaos.Patches
 {

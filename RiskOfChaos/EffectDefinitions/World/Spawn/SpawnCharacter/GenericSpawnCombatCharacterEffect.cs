@@ -1,8 +1,6 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.Utilities;
+﻿using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.Navigation;
-using RoR2.Skills;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;

@@ -112,7 +112,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         {
             if (!RunArtifactManager.instance)
                 return;
-            
+
             RunArtifactManager.instance.SetArtifactEnabledServer(_enabledArtifact, false);
         }
     }

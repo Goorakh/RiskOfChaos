@@ -231,7 +231,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 }
             }
         }
-        
+
         public bool IsTimedEffectActive(in ChaosEffectInfo effectInfo)
         {
             foreach (ActiveTimedEffectInfo timedEffect in _activeTimedEffects)

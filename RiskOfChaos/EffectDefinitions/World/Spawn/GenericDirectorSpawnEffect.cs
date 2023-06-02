@@ -1,8 +1,6 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RoR2;
-using System;
-using System.Linq;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn

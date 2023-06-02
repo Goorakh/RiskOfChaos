@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using System;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectHandling

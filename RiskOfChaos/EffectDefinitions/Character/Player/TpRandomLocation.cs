@@ -5,7 +5,6 @@ using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.Navigation;
 using System.Linq;
-using System.Threading;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player

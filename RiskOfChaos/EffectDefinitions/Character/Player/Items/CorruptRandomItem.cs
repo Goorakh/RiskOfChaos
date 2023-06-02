@@ -32,7 +32,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 ItemIndex transformedItem = ContagiousItemManager.GetTransformedItemIndex(item);
                 if (transformedItem == ItemIndex.None || !run.IsItemAvailable(transformedItem) || run.IsItemExpansionLocked(transformedItem))
                     continue;
-                
+
                 yield return item;
             }
         }

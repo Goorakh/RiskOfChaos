@@ -37,7 +37,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                         changedCurrentBody = true;
                     }
                 }
-                
+
                 if (anyChanges)
                 {
                     // Set dirty bit

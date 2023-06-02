@@ -81,7 +81,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     });
                 }
 
-                _lastLightningStrikeTime += TIME_BETWEEN_LIGHTNING_STRIKES;   
+                _lastLightningStrikeTime += TIME_BETWEEN_LIGHTNING_STRIKES;
             }
         }
 

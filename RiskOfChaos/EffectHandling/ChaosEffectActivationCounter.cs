@@ -1,6 +1,4 @@
-﻿using RoR2;
-
-namespace RiskOfChaos.EffectHandling
+﻿namespace RiskOfChaos.EffectHandling
 {
     public struct ChaosEffectActivationCounter
     {

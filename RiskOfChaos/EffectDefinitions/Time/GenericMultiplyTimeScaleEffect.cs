@@ -1,5 +1,4 @@
-﻿using R2API;
-using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+﻿using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.ModifierController.TimeScale;
 using RoR2;
 using System;

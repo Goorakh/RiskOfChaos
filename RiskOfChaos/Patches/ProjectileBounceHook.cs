@@ -131,7 +131,7 @@ namespace RiskOfChaos.Patches
                         return;
                     }
                 }
-                
+
                 transform.forward = Vector3.Reflect(transform.forward, normal);
             }
 

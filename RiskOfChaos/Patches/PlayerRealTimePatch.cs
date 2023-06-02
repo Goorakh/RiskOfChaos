@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using MonoMod.Cil;
 using RiskOfChaos.ModifierController.TimeScale;
-using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.UI;
 using System;

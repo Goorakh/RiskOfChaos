@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace RiskOfChaos.EffectHandling
+﻿namespace RiskOfChaos.EffectHandling
 {
     public readonly struct EffectCanActivateContext
     {

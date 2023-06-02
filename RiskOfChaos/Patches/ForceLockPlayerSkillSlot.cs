@@ -1,12 +1,8 @@
 ﻿using HarmonyLib;
-using HG;
 using MonoMod.RuntimeDetour;
 using RiskOfChaos.ModifierController.SkillSlots;
-using RiskOfChaos.Networking;
 using RoR2;
 using RoR2.Skills;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;

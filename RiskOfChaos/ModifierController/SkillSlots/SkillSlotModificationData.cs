@@ -1,6 +1,4 @@
 ﻿using RoR2;
-using System;
-using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.SkillSlots
 {

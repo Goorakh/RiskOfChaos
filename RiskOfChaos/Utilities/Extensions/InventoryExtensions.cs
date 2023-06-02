@@ -1,9 +1,4 @@
-﻿using RiskOfChaos.EffectDefinitions;
-using RoR2;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using UnityEngine;
+﻿using RoR2;
 
 namespace RiskOfChaos.Utilities.Extensions
 {

@@ -76,7 +76,7 @@ namespace RiskOfChaos.Utilities
                 _positionHelperSpawnCard.forbiddenFlags = forbiddenFlags.Value;
 
             GameObject positionMarkerObject = directorCore.TrySpawnObject(new DirectorSpawnRequest(_positionHelperSpawnCard, placementRule, rng));
-            
+
             _positionHelperSpawnCard.hullSize = originalHullSize;
             _positionHelperSpawnCard.nodeGraphType = originalNodeGraphType;
             _positionHelperSpawnCard.requiredFlags = originalRequiredFlags;

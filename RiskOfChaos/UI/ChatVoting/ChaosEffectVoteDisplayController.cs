@@ -52,7 +52,7 @@ namespace RiskOfChaos.UI.ChatVoting
             effectTextTransform.anchorMax = Vector2.one;
             effectTextTransform.sizeDelta = Vector2.zero;
             effectTextTransform.anchoredPosition = Vector2.zero;
-            
+
             HGTextMeshProUGUI effectTextLabel = effectText.AddComponent<HGTextMeshProUGUI>();
             effectTextLabel.alignment = TextAlignmentOptions.Left;
             effectTextLabel.enableWordWrapping = false;

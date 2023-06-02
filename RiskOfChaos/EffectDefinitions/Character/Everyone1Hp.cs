@@ -1,5 +1,4 @@
-﻿using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Trackers;
 using RoR2;
 using System.Collections.Generic;
@@ -22,7 +21,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 HealthComponent healthComponent = healthComponentTracker.HealthComponent;
                 if (!healthComponent || !healthComponent.alive)
                     continue;
-                
+
                 float fakeDamageDealt = healthComponent.health - 1f;
                 float combinedHealthBeforeDamage = healthComponent.combinedHealth;
 

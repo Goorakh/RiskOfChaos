@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RoR2;
@@ -25,7 +24,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             // Make new instance of the spawn card so that settings can safely be changed without messing with the original behavior
             _iscChanceShrine = ScriptableObject.Instantiate(iscChanceShrine);
-            
+
             // Make sure it'll always spawn no matter what
             _iscChanceShrine.skipSpawnWhenSacrificeArtifactEnabled = false;
 

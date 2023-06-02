@@ -6,7 +6,6 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RoR2;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
