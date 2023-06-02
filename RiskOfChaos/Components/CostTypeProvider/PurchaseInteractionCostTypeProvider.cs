@@ -13,14 +13,8 @@ namespace RiskOfChaos.Components.CostTypeProvider
 
         public CostTypeIndex CostType
         {
-            get
-            {
-                return _purchaseInteraction.costType;
-            }
-            set
-            {
-                _purchaseInteraction.costType = value;
-            }
+            get => _purchaseInteraction.costType;
+            set => _purchaseInteraction.costType = value;
         }
     }
 }

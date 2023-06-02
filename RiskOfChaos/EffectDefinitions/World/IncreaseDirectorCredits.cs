@@ -38,13 +38,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             }
         }
 
-        static float creditMultiplier
-        {
-            get
-            {
-                return 1f + creditIncrease;
-            }
-        }
+        static float creditMultiplier => 1f + creditIncrease;
 
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void InitConfigs()

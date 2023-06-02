@@ -13,14 +13,8 @@ namespace RiskOfChaos.Components.CostTypeProvider
 
         public CostTypeIndex CostType
         {
-            get
-            {
-                return _multiShopController.costType;
-            }
-            set
-            {
-                _multiShopController.costType = value;
-            }
+            get => _multiShopController.costType;
+            set => _multiShopController.costType = value;
         }
     }
 }

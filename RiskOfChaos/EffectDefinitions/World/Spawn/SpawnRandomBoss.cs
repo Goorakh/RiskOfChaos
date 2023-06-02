@@ -96,8 +96,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             DirectorPlacementRule placementRule = SpawnUtils.GetPlacementRule_AtRandomPlayerApproximate(RNG, 30f, 50f);
 
-            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(getItemToSpawn(_bossSpawnEntries, RNG), placementRule, RNG);
-            spawnRequest.teamIndexOverride = TeamIndex.Monster;
+            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(getItemToSpawn(_bossSpawnEntries, RNG), placementRule, RNG)
+            {
+                teamIndexOverride = TeamIndex.Monster
+            };
 
             CombatSquad bossCombatSquad;
             if (_bossCombatSquadPrefab)
