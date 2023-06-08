@@ -1,5 +1,17 @@
 ## Changelog
 
+**1.7.4 Changes:**
+
+* Reworked 1 effect:
+  * Pause Physics -> Laggy Physics
+
+* Spawn Random Interactable:
+  * Removed Cloaked Chest from spawn pool
+  * Removed Deep Void Signal from spawn pool
+
+* Roll Credits:
+  * Slightly improved performance while active
+
 **1.7.3 Changes:**
 
 * Bouncy Projectiles:

@@ -100,7 +100,7 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Risk of Thunder: Spawns lightning strikes at random points on the map. Lasts 30 seconds.
 * Spawn Jump Pad: Spawns a random jump pad at every player
 * Superhot: Time moves when players move
-* Pause Physics: Pauses all physics objects (not including players or enemies). Lasts until next effect.
+* Laggy Physics: Randomly pauses physics calculations
 * Gupscare: Spawns a Gup above every player
 * Roll Credits: Starts the game credits
 </details>
