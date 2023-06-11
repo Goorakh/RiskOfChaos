@@ -164,10 +164,7 @@ namespace RiskOfChaos.EffectDefinitions.Time
 
         public override void OnEnd()
         {
-            foreach (PlayerTimeMovementTracker movementTracker in InstanceTracker.GetInstancesList<PlayerTimeMovementTracker>().ToList())
-            {
-                GameObject.Destroy(movementTracker);
-            }
+            InstanceUtils.DestroyAllTrackedInstances<PlayerTimeMovementTracker>();
 
             PlayerCharacterMasterController.onPlayerAdded -= PlayerCharacterMasterController_onPlayerAdded;
             PlayerCharacterMasterController.onPlayerRemoved -= PlayerCharacterMasterController_onPlayerRemoved;
