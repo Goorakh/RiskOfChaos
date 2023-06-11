@@ -41,7 +41,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             void FixedUpdate()
             {
-                _aspectReplaceTimer -= UnityEngine.Time.fixedDeltaTime;
+                _aspectReplaceTimer -= Time.fixedDeltaTime;
 
                 if (_aspectReplaceTimer <= 0)
                 {

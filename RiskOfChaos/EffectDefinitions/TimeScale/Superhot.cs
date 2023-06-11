@@ -8,7 +8,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.Time
+namespace RiskOfChaos.EffectDefinitions.TimeScale
 {
     [ChaosEffect("superhot")]
     [ChaosTimedEffect(TimedEffectType.UntilStageEnd, AllowDuplicates = false)]
@@ -63,7 +63,7 @@ namespace RiskOfChaos.EffectDefinitions.Time
 
             void FixedUpdate()
             {
-                float deltaTime = UnityEngine.Time.fixedUnscaledDeltaTime;
+                float deltaTime = Time.fixedUnscaledDeltaTime;
                 float targetTimeScaleMultiplier = getCurrentTimeScaleMultiplier(deltaTime);
 
                 const float TIME_SCALE_CHANGE_UP_MAX_DELTA = 1f;

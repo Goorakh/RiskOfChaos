@@ -11,29 +11,29 @@ using System;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.Time
+namespace RiskOfChaos.EffectDefinitions.TimeScale
 {
-    [ChaosEffect("decrease_time_scale", ConfigName = "Decrease World Speed", EffectWeightReductionPercentagePerActivation = 20f)]
+    [ChaosEffect("increase_time_scale", ConfigName = "Increase World Speed", EffectWeightReductionPercentagePerActivation = 20f)]
     [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
-    public sealed class DecreaseTimeScale : GenericMultiplyTimeScaleEffect
+    public sealed class IncreaseTimeScale : GenericMultiplyTimeScaleEffect
     {
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;
 
-        static ConfigEntry<float> _timeScaleDecreaseConfig;
-        const float TIME_SCALE_DECREASE_DEFAULT_VALUE = 0.25f;
+        static ConfigEntry<float> _timeScaleIncreaseConfig;
+        const float TIME_SCALE_INCREASE_DEFAULT_VALUE = 0.25f;
 
-        static float timeScaleDecrease
+        static float timeScaleIncrease
         {
             get
             {
-                if (_timeScaleDecreaseConfig == null)
+                if (_timeScaleIncreaseConfig == null)
                 {
-                    return TIME_SCALE_DECREASE_DEFAULT_VALUE;
+                    return TIME_SCALE_INCREASE_DEFAULT_VALUE;
                 }
                 else
                 {
-                    return Mathf.Clamp01(_timeScaleDecreaseConfig.Value);
+                    return Mathf.Max(0f, _timeScaleIncreaseConfig.Value);
                 }
             }
         }
@@ -41,22 +41,22 @@ namespace RiskOfChaos.EffectDefinitions.Time
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            _timeScaleDecreaseConfig = _effectInfo.BindConfig("World Speed Decrease", TIME_SCALE_DECREASE_DEFAULT_VALUE, null);
+            _timeScaleIncreaseConfig = _effectInfo.BindConfig("World Speed Increase", TIME_SCALE_INCREASE_DEFAULT_VALUE, null);
 
-            _timeScaleDecreaseConfig.SettingChanged += (o, e) =>
+            _timeScaleIncreaseConfig.SettingChanged += (o, e) =>
             {
                 if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
                     return;
 
-                foreach (DecreaseTimeScale effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<DecreaseTimeScale>())
+                foreach (IncreaseTimeScale effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<IncreaseTimeScale>())
                 {
                     effectInstance.OnValueDirty?.Invoke();
                 }
             };
 
-            addConfigOption(new StepSliderOption(_timeScaleDecreaseConfig, new StepSliderConfig
+            addConfigOption(new StepSliderOption(_timeScaleIncreaseConfig, new StepSliderConfig
             {
-                formatString = "-{0:P0}",
+                formatString = "+{0:P0}",
                 min = 0f,
                 max = 1f,
                 increment = 0.01f
@@ -65,12 +65,12 @@ namespace RiskOfChaos.EffectDefinitions.Time
 
         public override event Action OnValueDirty;
 
-        protected override float multiplier => 1f - timeScaleDecrease;
+        protected override float multiplier => 1f + timeScaleIncrease;
 
         [EffectNameFormatArgs]
         static object[] GetDisplayNameFormatArgs()
         {
-            return new object[] { timeScaleDecrease };
+            return new object[] { timeScaleIncrease };
         }
     }
 }

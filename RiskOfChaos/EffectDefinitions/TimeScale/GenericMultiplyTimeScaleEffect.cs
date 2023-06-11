@@ -3,7 +3,7 @@ using RiskOfChaos.ModifierController.TimeScale;
 using RoR2;
 using System;
 
-namespace RiskOfChaos.EffectDefinitions.Time
+namespace RiskOfChaos.EffectDefinitions.TimeScale
 {
     public abstract class GenericMultiplyTimeScaleEffect : TimedEffect, ITimeScaleModificationProvider
     {
