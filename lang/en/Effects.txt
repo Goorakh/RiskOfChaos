@@ -96,5 +96,6 @@
 		"EFFECT_LAGGY_PHYSICS_NAME": "Laggy Physics",
 		"EFFECT_SPAWN_GUP_NAME": "Gupscare",
 		"EFFECT_START_CREDITS_NAME": "Roll Credits",
+		"EFFECT_ASPECT_ROULETTE_NAME": "Aspect Roulette",
 	}
 }
