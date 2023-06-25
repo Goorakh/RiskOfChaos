@@ -18,15 +18,15 @@ namespace RiskOfChaos.Patches
             IL.RoR2.Projectile.ProjectileController.OnTriggerEnter += ProjectileController_tryBouncePatch;
         }
 
-        static bool isEnabled => maxBounces > 0;
+        static bool isBouncingEnabled => maxBounces > 0;
 
-        static int maxBounces
+        static uint maxBounces
         {
             get
             {
                 if (ProjectileModificationManager.Instance)
                 {
-                    return (int)ProjectileModificationManager.Instance.NetworkedProjectileBounceCount;
+                    return ProjectileModificationManager.Instance.NetworkedProjectileBounceCount;
                 }
                 else
                 {
@@ -76,12 +76,9 @@ namespace RiskOfChaos.Patches
         [RequireComponent(typeof(ProjectileController))]
         class ProjectileEnvironmentBounceBehavior : MonoBehaviour
         {
-            bool _hasEverBounced;
             int _timesBounced;
 
             float _lastBounceTime = float.NegativeInfinity;
-
-            ProjectileController _projectileController;
 
             ProjectileSimple _projectileSimple;
 
@@ -93,7 +90,6 @@ namespace RiskOfChaos.Patches
 
             void Awake()
             {
-                _projectileController = GetComponent<ProjectileController>();
                 _projectileSimple = GetComponent<ProjectileSimple>();
                 _rigidbody = GetComponent<Rigidbody>();
             }
@@ -137,10 +133,8 @@ namespace RiskOfChaos.Patches
 
             public bool TryBounce(ProjectileImpactInfo impactInfo)
             {
-                if (!isEnabled || _timesBounced >= maxBounces || _lastBounceTime >= Time.fixedTime - 0.1f)
+                if (!isBouncingEnabled || _timesBounced >= maxBounces || _lastBounceTime >= Time.fixedTime - 0.1f)
                     return false;
-
-                _timesBounced++;
 
                 if (_projectileSimple)
                 {
@@ -149,7 +143,7 @@ namespace RiskOfChaos.Patches
 
                 reflectAroundNormal(impactInfo.estimatedImpactNormal);
 
-                _hasEverBounced = true;
+                _timesBounced++;
                 _lastBounceTime = Time.fixedTime;
                 return true;
             }
