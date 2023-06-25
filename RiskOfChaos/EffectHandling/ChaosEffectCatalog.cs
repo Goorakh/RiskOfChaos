@@ -1,6 +1,7 @@
 ﻿using HG;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions;
 using RiskOfOptions.Options;
 using RoR2;
@@ -146,7 +147,7 @@ namespace RiskOfChaos.EffectHandling
 
 #if DEBUG
                 float effectWeight = weightedSelection.GetChoice(weightedSelection.EvaluateToChoiceIndex(nextNormalizedFloat)).weight;
-                Log.Debug($"effect {effect.Identifier} selected, weight={effectWeight} ({effectWeight / weightedSelection.totalWeight:P} chance)");
+                Log.Debug($"effect {effect.Identifier} selected, weight={effectWeight} ({weightedSelection.GetSelectionChance(effectWeight):P} chance)");
 #endif
             }
             else

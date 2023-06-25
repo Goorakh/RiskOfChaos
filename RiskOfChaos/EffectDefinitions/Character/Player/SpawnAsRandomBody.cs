@@ -242,7 +242,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             master.bodyPrefab = bodyPrefabChoice.value.GetItem(rng);
 
 #if DEBUG
-            Log.Debug($"Override body prefab for {Util.GetBestMasterName(master)}: {master.bodyPrefab} (weight={bodyPrefabChoice.weight}, {bodyPrefabChoice.weight / weightedSelection.totalWeight:P} chance)");
+            Log.Debug($"Override body prefab for {Util.GetBestMasterName(master)}: {master.bodyPrefab} (weight={bodyPrefabChoice.weight}, {weightedSelection.GetSelectionChance(bodyPrefabChoice):P} chance)");
 #endif
 
             if (!master.IsDeadAndOutOfLivesServer())

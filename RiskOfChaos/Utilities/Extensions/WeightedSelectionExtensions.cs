@@ -20,5 +20,17 @@ namespace RiskOfChaos.Utilities.Extensions
             // Item doesn't exist in the selection, so add it
             selection.AddChoice(value, weight);
         }
+
+        public static float GetSelectionChance<T>(this WeightedSelection<T> selection, float selectedWeight)
+        {
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+            return selectedWeight / selection.totalWeight;
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+        }
+
+        public static float GetSelectionChance<T>(this WeightedSelection<T> selection, WeightedSelection<T>.ChoiceInfo selectedChoice)
+        {
+            return selection.GetSelectionChance(selectedChoice.weight);
+        }
     }
 }

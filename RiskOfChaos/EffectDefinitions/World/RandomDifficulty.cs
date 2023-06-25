@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -45,7 +46,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 #if DEBUG
             DifficultyDef selectedDifficultyDef = DifficultyCatalog.GetDifficultyDef(choiceInfo.value);
 
-            Log.Debug($"Selected difficulty: {choiceInfo.value} (\"{(selectedDifficultyDef != null ? Language.GetString(selectedDifficultyDef.nameToken) : "NULL")}\"), weight={choiceInfo.weight} ({choiceInfo.weight / newDifficultySelection.totalWeight:P2} chance)");
+            Log.Debug($"Selected difficulty: {choiceInfo.value} (\"{(selectedDifficultyDef != null ? Language.GetString(selectedDifficultyDef.nameToken) : "NULL")}\"), weight={choiceInfo.weight} ({newDifficultySelection.GetSelectionChance(choiceInfo):P2} chance)");
 #endif
         }
     }
