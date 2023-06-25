@@ -62,7 +62,14 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 EquipmentIndex currentEquipment = inventory.GetEquipmentIndex();
                 if (!_body.isPlayerControlled || currentEquipment == EquipmentIndex.None || Array.BinarySearch(_aspectEquipmentIndices, currentEquipment) >= 0)
                 {
-                    inventory.SetEquipmentIndex(RoR2Application.rng.NextElementUniform(_aspectEquipmentIndices));
+                    if (_aspectEquipmentIndices != null && _aspectEquipmentIndices.Length > 0)
+                    {
+                        inventory.SetEquipmentIndex(RoR2Application.rng.NextElementUniform(_aspectEquipmentIndices));
+                    }
+                    else
+                    {
+                        Log.Error($"{nameof(_aspectEquipmentIndices)} is not initialized");
+                    }
                 }
             }
 
@@ -70,11 +77,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 InstanceTracker.Remove(this);
             }
-        }
-
-        void CharacterBody_onBodyStartGlobal(CharacterBody body)
-        {
-            body.gameObject.AddComponent<RandomlySwapAspect>();
         }
 
         public override void OnStart()
@@ -85,6 +87,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
             }
 
             CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
+        }
+
+        static void CharacterBody_onBodyStartGlobal(CharacterBody body)
+        {
+            body.gameObject.AddComponent<RandomlySwapAspect>();
         }
 
         public override void OnEnd()
