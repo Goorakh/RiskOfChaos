@@ -186,18 +186,12 @@ namespace RiskOfChaos.ModifierController.SkillSlots
                 return;
             }
 
-            SkillSlotModificationData[] modificationDatas = new SkillSlotModificationData[SKILL_SLOT_COUNT];
-            for (int i = 0; i < SKILL_SLOT_COUNT; i++)
-            {
-                modificationDatas[i] = getModifiedValue(new SkillSlotModificationData((SkillSlot)i));
-            }
-
             uint forceLockedSkillSlotsMask = 0;
             uint forceActivateSkillSlotsMask = 0;
 
             for (int i = 0; i < SKILL_SLOT_COUNT; i++)
             {
-                SkillSlotModificationData modificationData = modificationDatas[i];
+                SkillSlotModificationData modificationData = getModifiedValue(new SkillSlotModificationData((SkillSlot)i));
 
                 uint maskBit = getSlotBitMask(modificationData.SlotIndex);
 
