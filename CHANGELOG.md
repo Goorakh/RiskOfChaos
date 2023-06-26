@@ -1,5 +1,16 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* Added 1 new effect:
+  * Aspect Roulette: Randomly switches the elite aspect of all characters (only affects players if they already have an aspect equipment)
+
+* Drop All Items:
+  * Fixed effect not working
+
+* Increase Proc Coefficients:
+  * Fixed proc coefficient multiplier being applied several times per attack
+
 **1.7.4 Changes:**
 
 * Reworked 1 effect:
