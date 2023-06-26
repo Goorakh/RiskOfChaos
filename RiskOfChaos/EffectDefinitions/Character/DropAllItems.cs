@@ -11,17 +11,69 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [ChaosEffect("drop_all_items", EffectWeightReductionPercentagePerActivation = 15f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
     public sealed class DropAllItems : BaseEffect
     {
+        abstract class PickupInfo
+        {
+            public readonly Inventory Inventory;
+            public readonly PickupIndex PickupIndex;
+
+            public virtual int PickupDropletCount => 1;
+
+            protected PickupInfo(Inventory inventory, PickupIndex pickupIndex)
+            {
+                Inventory = inventory;
+                PickupIndex = pickupIndex;
+            }
+
+            public abstract void RemoveFromInventory();
+        }
+
+        sealed class ItemPickupInfo : PickupInfo
+        {
+            public readonly ItemIndex ItemIndex;
+            public readonly int ItemCount;
+
+            public override int PickupDropletCount => ItemCount;
+
+            public ItemPickupInfo(Inventory inventory, PickupIndex pickupIndex, int itemCount) : base(inventory, pickupIndex)
+            {
+                ItemCount = itemCount;
+                ItemIndex = PickupCatalog.GetPickupDef(pickupIndex).itemIndex;
+            }
+
+            public override void RemoveFromInventory()
+            {
+                Inventory.RemoveItem(ItemIndex, ItemCount);
+            }
+        }
+
+        sealed class EquipmentPickupInfo : PickupInfo
+        {
+            public readonly EquipmentIndex EquipmentIndex;
+            public readonly uint EquipmentSlotIndex;
+
+            public EquipmentPickupInfo(Inventory inventory, PickupIndex pickupIndex, uint equipmentSlotIndex) : base(inventory, pickupIndex)
+            {
+                EquipmentSlotIndex = equipmentSlotIndex;
+                EquipmentIndex = PickupCatalog.GetPickupDef(pickupIndex).equipmentIndex;
+            }
+
+            public override void RemoveFromInventory()
+            {
+                Inventory.SetEquipmentIndexForSlot(EquipmentIndex.None, EquipmentSlotIndex);
+            }
+        }
+
         [EffectCanActivate]
         static bool CanActivate(EffectCanActivateContext context)
         {
-            return !context.IsNow || CharacterBody.readOnlyInstancesList.Any(b => getPickupsToDrop(b, false).Any());
+            return !context.IsNow || CharacterBody.readOnlyInstancesList.Any(b => getPickupsToDrop(b).Any());
         }
 
         [EffectWeightMultiplierSelector]
         static float GetWeightMultiplier()
         {
             IEnumerable<CharacterBody> charactersWithDroppableItems = CharacterBody.readOnlyInstancesList
-                                                                                   .Where(b => getPickupsToDrop(b, false).Any());
+                                                                                   .Where(b => getPickupsToDrop(b).Any());
 
             // If only non-player characters have droppable items -> Decrease weight
             return charactersWithDroppableItems.Any(b => b.isPlayerControlled) ? 1f : 0.5f;
@@ -33,21 +85,27 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 Vector3 bodyPosition = body.corePosition;
 
-                List<PickupIndex> pickupsToDrop = getPickupsToDrop(body, true).ToList();
+                List<PickupInfo> pickupsToDrop = getPickupsToDrop(body).ToList();
 
                 Vector3 dropVelocity = Quaternion.AngleAxis(Random.Range(0f, 360f), Vector3.up) * ((Vector3.up * 40f) + (Vector3.forward * 5f));
-                Quaternion rotationPerDrop = Quaternion.AngleAxis(360f / pickupsToDrop.Count, Vector3.up);
+                Quaternion rotationPerDrop = Quaternion.AngleAxis(360f / pickupsToDrop.Sum(p => p.PickupDropletCount), Vector3.up);
 
-                foreach (PickupIndex pickup in pickupsToDrop)
+                foreach (PickupInfo pickupInfo in pickupsToDrop)
                 {
-                    PickupDropletController.CreatePickupDroplet(pickup, bodyPosition, dropVelocity);
+                    pickupInfo.RemoveFromInventory();
 
-                    dropVelocity = rotationPerDrop * dropVelocity;
+                    int dropletCount = pickupInfo.PickupDropletCount;
+                    for (int i = 0; i < dropletCount; i++)
+                    {
+                        PickupDropletController.CreatePickupDroplet(pickupInfo.PickupIndex, bodyPosition, dropVelocity);
+
+                        dropVelocity = rotationPerDrop * dropVelocity;
+                    }
                 }
             }
         }
 
-        static IEnumerable<PickupIndex> getPickupsToDrop(CharacterBody playerBody, bool remove)
+        static IEnumerable<PickupInfo> getPickupsToDrop(CharacterBody playerBody)
         {
             Inventory inventory = playerBody.inventory;
             if (!inventory)
@@ -58,18 +116,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 ItemDef itemDef = ItemCatalog.GetItemDef(i);
                 if (itemDef && !itemDef.hidden && itemDef.canRemove && itemDef.pickupModelPrefab)
                 {
-                    int itemCount = inventory.GetItemCount(itemDef);
-
-                    PickupIndex pickupIndex = PickupCatalog.FindPickupIndex(itemDef.itemIndex);
-                    for (int j = 0; j < itemCount; j++)
-                    {
-                        yield return pickupIndex;
-                    }
-
-                    if (remove)
-                    {
-                        inventory.RemoveItem(itemDef, itemCount);
-                    }
+                    yield return new ItemPickupInfo(inventory, PickupCatalog.FindPickupIndex(itemDef.itemIndex), inventory.GetItemCount(itemDef));
                 }
             }
 
@@ -82,12 +129,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     EquipmentDef equipmentDef = EquipmentCatalog.GetEquipmentDef(equipmentState.equipmentIndex);
                     if (equipmentDef && equipmentDef.pickupModelPrefab)
                     {
-                        yield return PickupCatalog.FindPickupIndex(equipmentState.equipmentIndex);
-
-                        if (remove)
-                        {
-                            inventory.SetEquipmentIndexForSlot(EquipmentIndex.None, i);
-                        }
+                        yield return new EquipmentPickupInfo(inventory, PickupCatalog.FindPickupIndex(equipmentState.equipmentIndex), i);
                     }
                 }
             }
