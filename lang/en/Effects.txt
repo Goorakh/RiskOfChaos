@@ -97,5 +97,6 @@
 		"EFFECT_SPAWN_GUP_NAME": "Gupscare",
 		"EFFECT_START_CREDITS_NAME": "Roll Credits",
 		"EFFECT_ASPECT_ROULETTE_NAME": "Aspect Roulette",
+		"EFFECT_UNSCRAP_RANDOM_ITEM_NAME": "Unscrap Random Item",
 	}
 }
