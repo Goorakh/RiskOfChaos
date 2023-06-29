@@ -98,7 +98,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                     return false;
 
                 BuffDef buffDef = BuffCatalog.GetBuffDef(bi);
-                if (!buffDef || buffDef.isHidden || isDebuff(buffDef) || buffDef.isCooldown)
+                if (!buffDef || buffDef.isHidden || isDebuff(buffDef) || isCooldown(buffDef))
                 {
 #if DEBUG
                     Log.Debug($"Excluding hidden/debuff/cooldown buff {buffDef.name}");
@@ -146,6 +146,71 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                         Log.Debug($"Excluding buff {buffDef.name}: blacklist");
 #endif
                         return false;
+
+                    #region MysticsItems compat
+                    case "MysticsItems_BuffInTPRange": // Doesn't work without item
+                    case "MysticsItems_DasherDiscActive": // Invincibility
+                    case "MysticsItems_GachaponBonus": // Doesn't work without item
+                    case "MysticsItems_MechanicalArmCharge": // Does nothing
+                    case "MysticsItems_NanomachineArmor": // Doesn't work without item
+                    case "MysticsItems_StarPickup": // Doesn't work without item
+#if DEBUG
+                        Log.Debug($"Excluding buff {buffDef.name}: MysticsItems compat blacklist");
+#endif
+                        return false;
+                    #endregion
+
+                    #region TsunamiItemsRevived compat
+                    case "ColaBoostBuff": // Doesn't work without item
+                    case "GeigerBuff": // Does nothing
+                    case "ManualReadyBuff": // Doesn't work without item
+                    case "SandwichHealBuff": // Doesn't work without item
+                    case "SkullBuff": // Does nothing
+                    case "SuppressorBoostBuff": // Doesn't work without item
+#if DEBUG
+                        Log.Debug($"Excluding buff {buffDef.name}: TsunamiItemsRevived compat blacklist");
+#endif
+                        return false;
+                    #endregion
+
+                    #region ExtradimensionalItems compat
+                    case "Adrenaline Protection": // Doesn't work without item
+                    case "Damage On Cooldowns": // Doesn't work without item
+                    case "Royal Guard Damage Buff": // Doesn't work without item
+                    case "Royal Guard Parry State": // Doesn't work without item
+                    case "Sheen Damage Bonus": // Doesn't work without item
+                    case "Skull of Impending Doom": // Doesn't work without item
+#if DEBUG
+                        Log.Debug($"Excluding buff {buffDef.name}: ExtradimensionalItems compat blacklist");
+#endif
+                        return false;
+                    #endregion
+
+                    #region VanillaVoid compat
+                    case "ZnVVOrreryDamage": // Doesn't work without item
+                    case "ZnVVshatterStatus": // Doesn't work without item
+#if DEBUG
+                        Log.Debug($"Excluding buff {buffDef.name}: VanillaVoid compat blacklist");
+#endif
+                        return false;
+                    #endregion
+
+                    #region SpireItems compat
+                    case "Buffer": // Invincibility
+                    case "Mantra": // Does nothing
+#if DEBUG
+                        Log.Debug($"Excluding buff {buffDef.name}: SpireItems compat blacklist");
+#endif
+                        return false;
+                    #endregion
+
+                    #region LostInTransit compat
+                    case "GoldenGun": // Doesn't work without item
+#if DEBUG
+                        Log.Debug($"Excluding buff {buffDef.name}: LostInTransit compat blacklist");
+#endif
+                        return false;
+                    #endregion
                 }
 
 #if DEBUG
@@ -168,12 +233,25 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             tryApplyPatches();
         }
 
+#if DEBUG
         static int _debugIndex = 0;
+        static bool _enableDebugIndex = false;
+#endif
 
         protected override BuffIndex getBuffIndexToApply()
         {
-            BuffIndex selectedBuff = RNG.NextElementUniform(filterSelectableBuffs(_availableBuffIndices).ToList());
-            //selectedBuff = _availableBuffIndices[_debugIndex++ % _availableBuffIndices.Length];
+            BuffIndex selectedBuff;
+
+#if DEBUG
+            if (_enableDebugIndex)
+            {
+                selectedBuff = _availableBuffIndices[_debugIndex++ % _availableBuffIndices.Length];
+            }
+            else
+#endif
+            {
+                selectedBuff = RNG.NextElementUniform(filterSelectableBuffs(_availableBuffIndices).ToList());
+            }
 
 #if DEBUG
             BuffDef buffDef = BuffCatalog.GetBuffDef(selectedBuff);

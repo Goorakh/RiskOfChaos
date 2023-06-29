@@ -22,7 +22,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                     return false;
 
                 BuffDef buffDef = BuffCatalog.GetBuffDef(bi);
-                if (!buffDef || buffDef.isHidden || !isDebuff(buffDef) || buffDef.isCooldown)
+                if (!buffDef || buffDef.isHidden || !isDebuff(buffDef) || isCooldown(buffDef))
                 {
 #if DEBUG
                     Log.Debug($"Excluding hidden/buff/cooldown: {buffDef.name}");
@@ -50,6 +50,22 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                         Log.Debug($"Excluding debuff {buffDef.name}: blacklist");
 #endif
                         return false;
+
+                    #region VanillaVoid compat
+                    case "ZnVVlotusSlow": // Doesn't work without item
+#if DEBUG
+                        Log.Debug($"Excluding debuff {buffDef.name}: VanillaVoid compat blacklist");
+#endif
+                        return false;
+                    #endregion
+
+                    #region MysticsItems compat
+                    case "MysticsItems_Crystallized": // Immobile
+#if DEBUG
+                        Log.Debug($"Excluding debuff {buffDef.name}: MysticsItems compat blacklist");
+#endif
+                        return false;
+                    #endregion
                 }
 
 #if DEBUG
@@ -66,12 +82,25 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             return _availableBuffIndices != null && filterSelectableBuffs(_availableBuffIndices).Any();
         }
 
+#if DEBUG
         static int _debugIndex = 0;
+        static bool _enableDebugIndex = false;
+#endif
 
         protected override BuffIndex getBuffIndexToApply()
         {
-            BuffIndex selectedBuff = RNG.NextElementUniform(filterSelectableBuffs(_availableBuffIndices).ToList());
-            // selectedBuff = _availableBuffIndices[_debugIndex++ % _availableBuffIndices.Length];
+            BuffIndex selectedBuff;
+
+#if DEBUG
+            if (_enableDebugIndex)
+            {
+                selectedBuff = _availableBuffIndices[_debugIndex++ % _availableBuffIndices.Length];
+            }
+            else
+#endif
+            {
+                selectedBuff = RNG.NextElementUniform(filterSelectableBuffs(_availableBuffIndices).ToList());
+            }
 
 #if DEBUG
             BuffDef buffDef = BuffCatalog.GetBuffDef(selectedBuff);

@@ -46,7 +46,35 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 
         protected static bool isDebuff(BuffDef buff)
         {
-            return buff.isDebuff || buff.name == "bdBlinded";
+            if (buff.isDebuff)
+                return true;
+
+            switch (buff.name)
+            {
+                // MysticsItems compat
+                case "MysticsItems_Crystallized":
+                case "MysticsItems_TimePieceSlow":
+
+                case "bdBlinded":
+                    return true;
+            }
+
+            return false;
+        }
+
+        protected static bool isCooldown(BuffDef buff)
+        {
+            if (buff.isCooldown)
+                return true;
+
+            switch (buff.name)
+            {
+                // LostInTransit compat
+                case "RepulsionArmorCD":
+                    return true;
+            }
+
+            return false;
         }
 
         protected static bool isDOT(BuffDef buff)
