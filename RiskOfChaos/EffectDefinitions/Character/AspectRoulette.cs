@@ -1,5 +1,8 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using HarmonyLib;
+using R2API.Utils;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
 using System.Collections.Generic;
@@ -81,22 +84,26 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         public override void OnStart()
         {
-            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
+            CharacterBody.readOnlyInstancesList.Do(tryAddComponentToBody);
+
+            CharacterBody.onBodyStartGlobal += tryAddComponentToBody;
+        }
+
+        static void tryAddComponentToBody(CharacterBody body)
+        {
+            try
             {
                 body.gameObject.AddComponent<RandomlySwapAspect>();
             }
-
-            CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
-        }
-
-        static void CharacterBody_onBodyStartGlobal(CharacterBody body)
-        {
-            body.gameObject.AddComponent<RandomlySwapAspect>();
+            catch (Exception ex)
+            {
+                Log.Error_NoCallerPrefix($"Failed to add component to {Util.GetBestBodyName(body.gameObject)}: {ex}");
+            }
         }
 
         public override void OnEnd()
         {
-            CharacterBody.onBodyStartGlobal -= CharacterBody_onBodyStartGlobal;
+            CharacterBody.onBodyStartGlobal -= tryAddComponentToBody;
 
             InstanceUtils.DestroyAllTrackedInstances<RandomlySwapAspect>();
         }

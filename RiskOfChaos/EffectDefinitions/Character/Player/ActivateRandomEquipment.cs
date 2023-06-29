@@ -132,10 +132,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
         public override void OnStart()
         {
-            foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
-            {
-                activateRandomEquipment(playerBody);
-            }
+            PlayerUtils.GetAllPlayerBodies(true).TryDo(activateRandomEquipment, FormatUtils.GetBestBodyName);
         }
 
         void activateRandomEquipment(CharacterBody body)
@@ -174,9 +171,19 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                     continue;
                 }
 
+                bool equipmentSuccessfullyPerformed;
+                try
+                {
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                bool equipmentSuccessfullyPerformed = equipmentSlot.PerformEquipmentAction(equipment);
+                    equipmentSuccessfullyPerformed = equipmentSlot.PerformEquipmentAction(equipment);
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
+                }
+                catch (Exception ex)
+                {
+                    equipmentSuccessfullyPerformed = false;
+                    Log.Warning_NoCallerPrefix($"Caught exception when trying to activate equipment \"{Language.GetString(equipment.nameToken)}\": {ex}");
+                }
+
                 if (equipmentSuccessfullyPerformed)
                 {
 #if DEBUG

@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
@@ -9,10 +10,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
     {
         public override void OnStart()
         {
-            foreach (CharacterMaster master in PlayerUtils.GetAllPlayerMasters(false))
+            PlayerUtils.GetAllPlayerMasters(false).TryDo(master =>
             {
                 master.money = 0;
-            }
+            }, Util.GetBestMasterName);
         }
     }
 }

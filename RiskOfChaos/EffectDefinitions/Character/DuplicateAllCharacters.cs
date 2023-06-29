@@ -2,9 +2,11 @@
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.Options;
 using RoR2;
+using System;
 using System.Collections.ObjectModel;
 
 namespace RiskOfChaos.EffectDefinitions.Character
@@ -44,7 +46,14 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (!master)
                     continue;
 
-                duplicateMaster(master);
+                try
+                {
+                    duplicateMaster(master);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error_NoCallerPrefix($"Failed to duplicate body {FormatUtils.GetBestBodyName(body)}: {ex}");
+                }
             }
         }
 

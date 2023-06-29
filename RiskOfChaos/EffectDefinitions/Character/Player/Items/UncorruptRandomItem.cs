@@ -2,6 +2,7 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Items;
 using System.Collections.Generic;
@@ -53,10 +54,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         {
             Dictionary<ItemIndex, List<ItemIndex>> reverseItemCorruptionMap = getReverseItemCorruptionMap();
 
-            foreach (CharacterMaster master in PlayerUtils.GetAllPlayerMasters(false))
+            PlayerUtils.GetAllPlayerMasters(false).TryDo(master =>
             {
                 uncorruptRandomItem(master, new Xoroshiro128Plus(RNG.nextUlong), reverseItemCorruptionMap);
-            }
+            }, Util.GetBestMasterName);
         }
 
         static void uncorruptRandomItem(CharacterMaster master, Xoroshiro128Plus rng, Dictionary<ItemIndex, List<ItemIndex>> reverseItemCorruptionMap)

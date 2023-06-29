@@ -3,6 +3,7 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,13 +59,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 }
             }
 
-            foreach (CharacterMaster playerMaster in PlayerUtils.GetAllPlayerMasters(true))
+            PlayerUtils.GetAllPlayerMasters(true).TryDo(playerMaster =>
             {
                 if (playerMaster.hasBody)
                 {
                     tryStealItemsFrom(playerMaster);
                 }
-            }
+            }, Util.GetBestMasterName);
         }
 
         void tryStealItemsFrom(CharacterMaster master)

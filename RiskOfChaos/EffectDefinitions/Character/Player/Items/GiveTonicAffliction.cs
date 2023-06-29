@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
@@ -10,11 +11,11 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
     {
         public override void OnStart()
         {
-            foreach (CharacterMaster master in PlayerUtils.GetAllPlayerMasters(false))
+            PlayerUtils.GetAllPlayerMasters(false).TryDo(master =>
             {
                 master.inventory.GiveItem(RoR2Content.Items.TonicAffliction);
                 GenericPickupController.SendPickupMessage(master, PickupCatalog.FindPickupIndex(RoR2Content.Items.TonicAffliction.itemIndex));
-            }
+            }, Util.GetBestMasterName);
         }
     }
 }

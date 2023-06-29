@@ -2,6 +2,7 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,21 +47,21 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
         public override void OnStart()
         {
-            foreach (CharacterMaster master in PlayerUtils.GetAllPlayerMasters(false))
+            PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
             {
-                Inventory inventory = master.inventory;
+                Inventory inventory = playerMaster.inventory;
                 if (!inventory)
-                    continue;
+                    return;
 
                 ItemStack[] duplicatableItemStacks = getAllDuplicatableItemStacks(inventory).ToArray();
                 if (duplicatableItemStacks.Length <= 0)
-                    continue;
+                    return;
 
                 ItemStack itemStack = RNG.NextElementUniform(duplicatableItemStacks);
                 inventory.GiveItem(itemStack.ItemIndex, itemStack.ItemCount);
 
-                GenericPickupController.SendPickupMessage(master, PickupCatalog.FindPickupIndex(itemStack.ItemIndex));
-            }
+                GenericPickupController.SendPickupMessage(playerMaster, PickupCatalog.FindPickupIndex(itemStack.ItemIndex));
+            }, Util.GetBestMasterName);
         }
     }
 }

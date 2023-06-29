@@ -3,6 +3,7 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
@@ -71,10 +72,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             if (amount == 0)
                 return;
 
-            foreach (CharacterMaster master in PlayerUtils.GetAllPlayerMasters(false))
+            PlayerUtils.GetAllPlayerMasters(false).TryDo(master =>
             {
                 master.GiveMoney(amount);
-            }
+            }, Util.GetBestMasterName);
         }
     }
 }

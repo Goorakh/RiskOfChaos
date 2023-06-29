@@ -1,5 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.Utilities;
 using RoR2;
+using System;
 using System.Linq;
 
 namespace RiskOfChaos.EffectDefinitions.Character
@@ -9,8 +11,9 @@ namespace RiskOfChaos.EffectDefinitions.Character
     {
         public override void OnStart()
         {
-            foreach (CharacterMaster master in CharacterMaster.readOnlyInstancesList.ToList())
+            for (int i = CharacterMaster.readOnlyInstancesList.Count - 1; i >= 0; i--)
             {
+                CharacterMaster master = CharacterMaster.readOnlyInstancesList[i];
                 if (!master || master.isBoss || master.playerCharacterMasterController)
                     continue;
 
@@ -18,19 +21,26 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (!body)
                     continue;
 
-                switch (body.teamComponent.teamIndex)
+                try
                 {
-                    case TeamIndex.Neutral:
-                    case TeamIndex.Monster:
-                    case TeamIndex.Lunar:
-                    case TeamIndex.Void:
-                        HealthComponent healthComponent = body.healthComponent;
-                        if (healthComponent)
-                        {
-                            healthComponent.Suicide();
-                        }
+                    switch (body.teamComponent.teamIndex)
+                    {
+                        case TeamIndex.Neutral:
+                        case TeamIndex.Monster:
+                        case TeamIndex.Lunar:
+                        case TeamIndex.Void:
+                            HealthComponent healthComponent = body.healthComponent;
+                            if (healthComponent)
+                            {
+                                healthComponent.Suicide();
+                            }
 
-                        break;
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error_NoCallerPrefix($"Failed to kill {Util.GetBestMasterName(master)}: {ex}");
                 }
             }
         }

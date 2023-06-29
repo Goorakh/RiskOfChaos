@@ -5,6 +5,7 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Linq;
 
@@ -65,10 +66,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
         public override void OnStart()
         {
-            foreach (CharacterMaster playerMaster in PlayerUtils.GetAllPlayerMasters(false))
+            PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
             {
                 upgradeRandomItem(playerMaster, new Xoroshiro128Plus(RNG.nextUlong));
-            }
+            }, Util.GetBestMasterName);
         }
 
         static void upgradeRandomItem(CharacterMaster playerMaster, Xoroshiro128Plus rng)

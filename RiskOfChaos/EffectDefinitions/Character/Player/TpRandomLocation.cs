@@ -2,6 +2,7 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Navigation;
 using System.Linq;
@@ -22,10 +23,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
         {
             DirectorPlacementRule.PlacementMode placementMode = SpawnUtils.GetBestValidRandomPlacementType();
 
-            foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
+            PlayerUtils.GetAllPlayerBodies(true).TryDo(playerBody =>
             {
                 teleportToRandomLocation(playerBody, placementMode);
-            }
+            }, FormatUtils.GetBestBodyName);
         }
 
         void teleportToRandomLocation(CharacterBody playerBody, DirectorPlacementRule.PlacementMode targetPositionPlacementMode)

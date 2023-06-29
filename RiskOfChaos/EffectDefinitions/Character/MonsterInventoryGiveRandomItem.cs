@@ -209,13 +209,13 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 pickupQuantity = pickupCount
             });
 
-            foreach (CharacterMaster master in CharacterMaster.readOnlyInstancesList)
+            CharacterMaster.readOnlyInstancesList.TryDo(master =>
             {
                 if (canGiveItems(master))
                 {
                     master.inventory.TryGrant(pickupDef, true);
                 }
-            }
+            }, Util.GetBestMasterName);
         }
     }
 }

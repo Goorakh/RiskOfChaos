@@ -21,18 +21,18 @@ namespace RiskOfChaos.EffectDefinitions.World
         {
             EquipmentIndex voidEliteEquipmentIndex = DLC1Content.Elites.Void.eliteEquipmentDef.equipmentIndex;
 
-            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
+            CharacterBody.readOnlyInstancesList.TryDo(body =>
             {
                 if (!body || body.isPlayerControlled)
-                    continue;
+                    return;
 
                 HealthComponent healthComponent = body.healthComponent;
                 if (!healthComponent.alive)
-                    continue;
+                    return;
 
                 CharacterMaster master = body.master;
                 if (!master)
-                    continue;
+                    return;
 
                 master.teamIndex = TeamIndex.Void;
                 body.teamComponent.teamIndex = TeamIndex.Void;
@@ -58,7 +58,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 }
 
                 BossUtils.TryRefreshBossTitleFor(body);
-            }
+            }, FormatUtils.GetBestBodyName);
         }
     }
 }

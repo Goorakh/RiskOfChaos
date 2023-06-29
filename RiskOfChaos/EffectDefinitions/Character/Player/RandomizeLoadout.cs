@@ -17,7 +17,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
         {
             bool isMetamorphosisActive = RunArtifactManager.instance && RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.randomSurvivorOnRespawnArtifactDef);
 
-            foreach (CharacterMaster playerMaster in PlayerUtils.GetAllPlayerMasters(false))
+            PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
             {
                 CharacterBody playerBody = playerMaster.GetBody();
 
@@ -48,7 +48,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                         respawnPlayerBody(playerMaster, playerBody, isMetamorphosisActive);
                     }
                 }
-            }
+            }, Util.GetBestMasterName);
         }
 
         static void respawnPlayerBody(CharacterMaster playerMaster, CharacterBody playerBody, bool preventMetamorphosisRespawn)

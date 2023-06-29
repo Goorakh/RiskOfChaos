@@ -1,5 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Trackers;
+using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,16 +13,14 @@ namespace RiskOfChaos.EffectDefinitions.Character
     {
         public override void OnStart()
         {
-            List<HealthComponentTracker> healthComponents = InstanceTracker.GetInstancesList<HealthComponentTracker>();
-            for (int i = healthComponents.Count - 1; i >= 0; i--)
+            InstanceTracker.GetInstancesList<HealthComponentTracker>().TryDo(healthComponentTracker =>
             {
-                HealthComponentTracker healthComponentTracker = healthComponents[i];
                 if (!healthComponentTracker)
-                    continue;
+                    return;
 
                 HealthComponent healthComponent = healthComponentTracker.HealthComponent;
                 if (!healthComponent || !healthComponent.alive)
-                    continue;
+                    return;
 
                 float fakeDamageDealt = healthComponent.health - 1f;
                 float combinedHealthBeforeDamage = healthComponent.combinedHealth;
@@ -58,7 +58,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 #endif
                     healthComponent.body.AddTimedBuff(RoR2Content.Buffs.HiddenInvincibility, 0.75f);
                 }
-            }
+            });
         }
     }
 }

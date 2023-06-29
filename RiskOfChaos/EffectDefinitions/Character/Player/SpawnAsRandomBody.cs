@@ -214,10 +214,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
         public override void OnStart()
         {
-            foreach (CharacterMaster playerMaster in PlayerUtils.GetAllPlayerMasters(false))
+            PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
             {
                 randomizePlayerBody(playerMaster, new Xoroshiro128Plus(RNG.nextUlong));
-            }
+            }, Util.GetBestMasterName);
         }
 
         void randomizePlayerBody(CharacterMaster master, Xoroshiro128Plus rng)

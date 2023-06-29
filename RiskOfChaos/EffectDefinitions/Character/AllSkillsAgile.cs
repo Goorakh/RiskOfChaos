@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2.Skills;
 using System.Collections.Generic;
 
@@ -46,22 +47,18 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         public override void OnStart()
         {
-            foreach (SkillDef skillDef in SkillCatalog.allSkillDefs)
+            SkillCatalog.allSkillDefs.TryDo(skillDef =>
             {
                 if (skillDef.cancelSprintingOnActivation || skillDef.canceledFromSprinting)
                 {
                     _skillIsAgileOverrides.Add(new SkillDefIsAgileOverride(skillDef));
                 }
-            }
+            });
         }
 
         public override void OnEnd()
         {
-            foreach (SkillDefIsAgileOverride isAgileOverride in _skillIsAgileOverrides)
-            {
-                isAgileOverride.Undo();
-            }
-
+            _skillIsAgileOverrides.TryDo(isAgileOverride => isAgileOverride.Undo());
             _skillIsAgileOverrides.Clear();
         }
     }

@@ -100,6 +100,18 @@ namespace RiskOfChaos.Components
             }
         }
 
+        public override string ToString()
+        {
+            if (!_body)
+            {
+                return base.ToString();
+            }
+            else
+            {
+                return string.Format($"{nameof(KeepBuff)} ({{0}})", FormatUtils.GetBestBodyName(_body));
+            }
+        }
+
         public static void AddTo(CharacterBody body, BuffIndex buff)
         {
             BuffDef buffDef = BuffCatalog.GetBuffDef(buff);

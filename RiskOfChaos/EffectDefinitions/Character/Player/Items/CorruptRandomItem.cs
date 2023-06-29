@@ -2,6 +2,7 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Items;
 using System.Collections.Generic;
@@ -39,18 +40,18 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
         public override void OnStart()
         {
-            foreach (CharacterMaster playerMaster in PlayerUtils.GetAllPlayerMasters(false))
+            PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
             {
                 Inventory inventory = playerMaster.inventory;
                 if (!inventory)
-                    continue;
+                    return;
 
                 ItemIndex[] allCorruptableItems = getAllCorruptableItems(inventory).ToArray();
                 if (allCorruptableItems.Length <= 0)
-                    continue;
+                    return;
 
                 ContagiousItemManager.TryForceReplacement(inventory, RNG.NextElementUniform(allCorruptableItems));
-            }
+            }, Util.GetBestMasterName);
         }
     }
 }

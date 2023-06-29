@@ -1,5 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using UnityEngine.Networking;
 
@@ -10,7 +12,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
     {
         public override void OnStart()
         {
-            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
+            CharacterBody.readOnlyInstancesList.TryDo(body =>
             {
                 if (body.hasAuthority)
                 {
@@ -45,7 +47,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                         }
                     }
                 }
-            }
+            }, FormatUtils.GetBestBodyName);
         }
     }
 }

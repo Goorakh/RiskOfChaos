@@ -135,10 +135,11 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         public override void OnStart()
         {
             PickupDef pickupDef = PickupCatalog.GetPickupDef(_dropTable.GenerateDrop(RNG));
-            foreach (CharacterMaster playerMaster in PlayerUtils.GetAllPlayerMasters(false))
+
+            PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
             {
                 PickupUtils.GrantOrDropPickupAt(pickupDef, playerMaster);
-            }
+            }, Util.GetBestMasterName);
         }
     }
 }

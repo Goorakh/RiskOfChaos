@@ -1,4 +1,6 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 
 namespace RiskOfChaos.EffectDefinitions.Character
@@ -8,7 +10,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
     {
         public override void OnStart()
         {
-            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
+            CharacterBody.readOnlyInstancesList.TryDo(body =>
             {
                 if (body && body.TryGetComponent(out SetStateOnHurt setStateOnHurt))
                 {
@@ -19,7 +21,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     setStateOnHurt.SetFrozen(4f);
                     canBeFrozen = originalCanBeFrozen;
                 }
-            }
+            }, FormatUtils.GetBestBodyName);
         }
     }
 }

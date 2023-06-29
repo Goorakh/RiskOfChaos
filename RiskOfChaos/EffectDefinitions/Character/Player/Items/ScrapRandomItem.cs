@@ -5,6 +5,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.Options;
 using RoR2;
 using System.Collections.Generic;
@@ -90,10 +91,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
         public override void OnStart()
         {
-            foreach (CharacterMaster playerMaster in PlayerUtils.GetAllPlayerMasters(false))
-            {
-                tryScrapRandomItem(playerMaster);
-            }
+            PlayerUtils.GetAllPlayerMasters(false).TryDo(tryScrapRandomItem, Util.GetBestMasterName);
         }
 
         void tryScrapRandomItem(CharacterMaster characterMaster)

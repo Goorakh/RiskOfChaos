@@ -1,6 +1,8 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
@@ -81,7 +83,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         public override void OnStart()
         {
-            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
+            CharacterBody.readOnlyInstancesList.TryDo(body =>
             {
                 Vector3 bodyPosition = body.corePosition;
 
@@ -102,7 +104,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                         dropVelocity = rotationPerDrop * dropVelocity;
                     }
                 }
-            }
+            }, FormatUtils.GetBestBodyName);
         }
 
         static IEnumerable<PickupInfo> getPickupsToDrop(CharacterBody playerBody)

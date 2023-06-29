@@ -1,4 +1,5 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities;
+using RoR2;
 using UnityEngine;
 
 namespace RiskOfChaos.Trackers
@@ -36,6 +37,24 @@ namespace RiskOfChaos.Trackers
         void OnDisable()
         {
             InstanceTracker.Remove(this);
+        }
+
+        public override string ToString()
+        {
+            const string FORMAT = $"{nameof(HealthComponentTracker)} ({{0}})";
+
+            if (!HealthComponent)
+            {
+                return base.ToString();
+            }
+            else if (!HealthComponent.body)
+            {
+                return string.Format(FORMAT, HealthComponent);
+            }
+            else
+            {
+                return string.Format(FORMAT, FormatUtils.GetBestBodyName(HealthComponent.body));
+            }
         }
     }
 }

@@ -1,5 +1,7 @@
-﻿using HG;
+﻿using HarmonyLib;
+using HG;
 using RiskOfChaos.Components;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
 using System.Collections.Generic;
@@ -109,58 +111,51 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 
         public override void OnStart()
         {
-            try
-            {
-                CharacterBody.onBodyStartGlobal += addBuff;
+            CharacterBody.readOnlyInstancesList.Do(addBuff);
+            CharacterBody.onBodyStartGlobal += addBuff;
 
-                foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
-                {
-                    addBuff(body);
-                }
-            }
-            finally
+            if (ArrayUtils.IsInBounds(_activeBuffStacks, (int)_buffIndex))
             {
-                if (ArrayUtils.IsInBounds(_activeBuffStacks, (int)_buffIndex))
-                {
-                    _activeBuffStacks[(int)_buffIndex]++;
-                }
-                else
-                {
-                    Log.Warning($"Buff index {_buffIndex} out of range (max={_activeBuffStacks.Length - 1})");
-                }
+                _activeBuffStacks[(int)_buffIndex]++;
+            }
+            else
+            {
+                Log.Warning($"Buff index {_buffIndex} out of range (max={_activeBuffStacks.Length - 1})");
             }
         }
 
         public override void OnEnd()
         {
-            try
-            {
-                CharacterBody.onBodyStartGlobal -= addBuff;
+            CharacterBody.onBodyStartGlobal -= addBuff;
 
-                foreach (KeepBuff keepBuff in InstanceTracker.GetInstancesList<KeepBuff>())
-                {
-                    if (keepBuff.BuffIndex == _buffIndex)
-                    {
-                        keepBuff.BuffStackCount--;
-                    }
-                }
-            }
-            finally
+            InstanceTracker.GetInstancesList<KeepBuff>().TryDo(keepBuff =>
             {
-                if (ArrayUtils.IsInBounds(_activeBuffStacks, (int)_buffIndex))
+                if (keepBuff.BuffIndex == _buffIndex)
                 {
-                    _activeBuffStacks[(int)_buffIndex]--;
+                    keepBuff.BuffStackCount--;
                 }
-                else
-                {
-                    Log.Warning($"Buff index {_buffIndex} out of range (max={_activeBuffStacks.Length - 1})");
-                }
+            });
+
+            if (ArrayUtils.IsInBounds(_activeBuffStacks, (int)_buffIndex))
+            {
+                _activeBuffStacks[(int)_buffIndex]--;
+            }
+            else
+            {
+                Log.Warning($"Buff index {_buffIndex} out of range (max={_activeBuffStacks.Length - 1})");
             }
         }
 
         void addBuff(CharacterBody body)
         {
-            KeepBuff.AddTo(body, _buffIndex);
+            try
+            {
+                KeepBuff.AddTo(body, _buffIndex);
+            }
+            catch (Exception ex)
+            {
+                Log.Error_NoCallerPrefix($"Failed to add buff {BuffCatalog.GetBuffDef(_buffIndex)} to {Util.GetBestBodyName(body.gameObject)}: {ex}");
+            }
         }
     }
 }

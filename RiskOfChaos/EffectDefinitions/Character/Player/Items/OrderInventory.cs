@@ -2,6 +2,7 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Linq;
 using UnityEngine;
@@ -39,22 +40,22 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
         public override void OnStart()
         {
-            foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(false))
+            PlayerUtils.GetAllPlayerBodies(false).TryDo(playerBody =>
             {
                 CharacterMaster master = playerBody.master;
-                if (master)
+                if (!master)
+                    return;
+
+                Inventory inventory = master.inventory;
+                if (!inventory)
+                    return;
+
+                inventory.ShrineRestackInventory(RNG);
+                Chat.SendBroadcastChat(new Chat.SubjectFormatChatMessage
                 {
-                    Inventory inventory = master.inventory;
-                    if (inventory)
-                    {
-                        inventory.ShrineRestackInventory(RNG);
-                        Chat.SendBroadcastChat(new Chat.SubjectFormatChatMessage
-                        {
-                            subjectAsCharacterBody = playerBody,
-                            baseToken = "SHRINE_RESTACK_USE_MESSAGE"
-                        });
-                    }
-                }
+                    subjectAsCharacterBody = playerBody,
+                    baseToken = "SHRINE_RESTACK_USE_MESSAGE"
+                });
 
                 EffectManager.SpawnEffect(LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/ShrineUseEffect"), new EffectData
                 {
@@ -63,7 +64,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     scale = 1f,
                     color = new Color(1f, 0.23f, 0.6337214f)
                 }, true);
-            }
+            }, FormatUtils.GetBestBodyName);
         }
     }
 }

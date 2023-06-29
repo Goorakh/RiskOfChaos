@@ -1,5 +1,7 @@
 ﻿using HG;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using UnityEngine;
 
@@ -10,10 +12,7 @@ namespace RiskOfChaos.EffectDefinitions.World
     {
         public override void OnStart()
         {
-            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
-            {
-                launchInRandomDirection(body);
-            }
+            CharacterBody.readOnlyInstancesList.TryDo(launchInRandomDirection, FormatUtils.GetBestBodyName);
         }
 
         void launchInRandomDirection(CharacterBody body)

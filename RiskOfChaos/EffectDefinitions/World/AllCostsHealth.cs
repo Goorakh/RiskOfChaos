@@ -1,7 +1,9 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using HarmonyLib;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Patches;
 using RoR2;
+using System;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World
@@ -13,10 +15,7 @@ namespace RiskOfChaos.EffectDefinitions.World
     {
         public override void OnStart()
         {
-            foreach (PurchaseInteraction purchaseInteraction in InstanceTracker.GetInstancesList<PurchaseInteraction>())
-            {
-                handlePurchaseInteraction(purchaseInteraction);
-            }
+            InstanceTracker.GetInstancesList<PurchaseInteraction>().Do(handlePurchaseInteraction);
 
             On.RoR2.PurchaseInteraction.Awake += PurchaseInteraction_Awake;
 
@@ -30,7 +29,35 @@ namespace RiskOfChaos.EffectDefinitions.World
             CharacterMoneyChangedHook.OnCharacterMoneyChanged -= onCharacterMoneyChanged;
         }
 
-        const float MONEY_TO_HEALTH_HALFWAY_VALUE = 150f;
+        static float getCostTypeToPercentHealthConversionHalfwayValue(CostTypeIndex costType)
+        {
+            switch (costType)
+            {
+                case CostTypeIndex.Money:
+                    return 150f;
+                case CostTypeIndex.VoidCoin:
+                case CostTypeIndex.LunarCoin:
+                    return 2.5f;
+                case CostTypeIndex.WhiteItem:
+                    return 2f;
+                case CostTypeIndex.GreenItem:
+                    return 1f;
+                case CostTypeIndex.RedItem:
+                    return 0.5f;
+                case CostTypeIndex.Equipment:
+                case CostTypeIndex.VolatileBattery:
+                case CostTypeIndex.LunarItemOrEquipment:
+                case CostTypeIndex.ArtifactShellKillerItem:
+                    return 3f;
+                case CostTypeIndex.BossItem:
+                    return 0.5f;
+                case CostTypeIndex.TreasureCacheItem:
+                case CostTypeIndex.TreasureCacheVoidItem:
+                    return 3f;
+                default:
+                    return -1f;
+            }
+        }
 
         static int convertCostToHealthCost(int cost, float halfwayValue)
         {
@@ -44,7 +71,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 CharacterBody body = master.GetBody();
                 if (body)
                 {
-                    float healFraction = convertCostToHealthCost(moneyDiff, MONEY_TO_HEALTH_HALFWAY_VALUE) / 100f;
+                    float healFraction = convertCostToHealthCost(moneyDiff, getCostTypeToPercentHealthConversionHalfwayValue(CostTypeIndex.Money)) / 100f;
 
 #if DEBUG
                     Log.Debug($"Healing {Util.GetBestMasterName(master)} for {healFraction:P} health (+${moneyDiff})");
@@ -63,32 +90,37 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         static void handlePurchaseInteraction(PurchaseInteraction purchaseInteraction)
         {
-            float halfwayCostValue = purchaseInteraction.costType switch
-            {
-                CostTypeIndex.Money => MONEY_TO_HEALTH_HALFWAY_VALUE,
-                CostTypeIndex.LunarCoin or CostTypeIndex.VoidCoin => 2.5f,
-                CostTypeIndex.WhiteItem => 2f,
-                CostTypeIndex.GreenItem => 1f,
-                CostTypeIndex.RedItem => 0.5f,
-                CostTypeIndex.Equipment or CostTypeIndex.VolatileBattery or CostTypeIndex.LunarItemOrEquipment => 3f,
-                CostTypeIndex.BossItem => 0.5f,
-                CostTypeIndex.ArtifactShellKillerItem => 3f,
-                CostTypeIndex.TreasureCacheItem or CostTypeIndex.TreasureCacheVoidItem => 3f,
-                _ => -1f,
-            };
-
-            if (halfwayCostValue < 0f)
+            if (!purchaseInteraction)
                 return;
 
-            int healthCost = convertCostToHealthCost(purchaseInteraction.cost, halfwayCostValue);
-
-            purchaseInteraction.costType = CostTypeIndex.PercentHealth;
-            purchaseInteraction.Networkcost = healthCost;
-
-            if (purchaseInteraction.TryGetComponent(out ShopTerminalBehavior shopTerminalBehavior) && shopTerminalBehavior.serverMultiShopController)
+            int healthCost;
+            if (purchaseInteraction.cost < 0)
             {
-                shopTerminalBehavior.serverMultiShopController.costType = CostTypeIndex.PercentHealth;
-                shopTerminalBehavior.serverMultiShopController.Networkcost = healthCost;
+                healthCost = 0;
+            }
+            else
+            {
+                float halfwayCostValue = getCostTypeToPercentHealthConversionHalfwayValue(purchaseInteraction.costType);
+                if (halfwayCostValue < 0f)
+                    return;
+
+                healthCost = convertCostToHealthCost(purchaseInteraction.cost, halfwayCostValue);
+            }
+
+            try
+            {
+                purchaseInteraction.costType = CostTypeIndex.PercentHealth;
+                purchaseInteraction.Networkcost = healthCost;
+
+                if (purchaseInteraction.TryGetComponent(out ShopTerminalBehavior shopTerminalBehavior) && shopTerminalBehavior.serverMultiShopController)
+                {
+                    shopTerminalBehavior.serverMultiShopController.costType = CostTypeIndex.PercentHealth;
+                    shopTerminalBehavior.serverMultiShopController.Networkcost = healthCost;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error_NoCallerPrefix($"Failed to convert {purchaseInteraction} ({purchaseInteraction.costType}) into health cost: {ex}");
             }
         }
     }

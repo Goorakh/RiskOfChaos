@@ -3,6 +3,7 @@ using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
@@ -133,6 +134,11 @@ namespace RiskOfChaos.EffectDefinitions.World
                 }
             }
 
+            public override string ToString()
+            {
+                return OriginalObject ? OriginalObject.ToString() : "null";
+            }
+
             public static IEnumerable<ShrineReplacementData> GetReplacementDatasFor(PurchaseInteraction purchaseInteraction)
             {
                 return GetReplacementDatasFor(purchaseInteraction.gameObject);
@@ -200,8 +206,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         static IEnumerable<ShrineReplacementData> getAllReplacementsData()
         {
-            // HACK: ToArray is used to avoid an InvalidOperationException due to foreach modifying the collection by destroying the purchase interactions
-            return InstanceTracker.GetInstancesList<PurchaseInteraction>().ToArray().SelectMany(ShrineReplacementData.GetReplacementDatasFor);
+            return InstanceTracker.GetInstancesList<PurchaseInteraction>().SelectMany(ShrineReplacementData.GetReplacementDatasFor);
         }
 
         [EffectCanActivate]
@@ -212,10 +217,11 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         public override void OnStart()
         {
-            foreach (ShrineReplacementData replacementData in getAllReplacementsData())
+            // ToList is required here since PerformReplacement will modify the enumerable returned by getAllReplacementsData
+            getAllReplacementsData().ToList().TryDo(replacementData =>
             {
                 replacementData.PerformReplacement(new Xoroshiro128Plus(RNG.nextUlong));
-            }
+            });
         }
     }
 }
