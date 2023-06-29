@@ -66,6 +66,16 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 #endif
                         return false;
                     #endregion
+
+                    #region Starstorm2 compat
+                    case "bdMULENet": // Basically immobile
+                    case "bdPurplePoison": // Does nothing
+                    case "BuffNeedleBuildup": // Doesn't work without item
+#if DEBUG
+                        Log.Debug($"Excluding debuff {buffDef.name}: Starstorm2 compat blacklist");
+#endif
+                        return false;
+                    #endregion
                 }
 
 #if DEBUG

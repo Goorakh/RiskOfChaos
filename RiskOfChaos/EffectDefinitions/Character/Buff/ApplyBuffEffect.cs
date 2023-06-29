@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using HG;
 using RiskOfChaos.Components;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
@@ -57,6 +58,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                 case "MysticsItems_Crystallized":
                 case "MysticsItems_TimePieceSlow":
 
+                // Starstorm2 compat
+                case "bdMULENet":
+
                 case "bdBlinded":
                     return true;
             }
@@ -73,6 +77,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             {
                 // LostInTransit compat
                 case "RepulsionArmorCD":
+
+                // Starstorm2 compat
+                case "BuffTerminationCooldown":
                     return true;
             }
 

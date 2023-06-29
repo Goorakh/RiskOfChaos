@@ -211,6 +211,21 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 #endif
                         return false;
                     #endregion
+
+                    #region Starstorm2 compat
+                    case "bdElitePurple": // Does nothing
+                    case "BuffChirrAlly": // Does nothing
+                    case "BuffExecutionerSuperCharged": // Does nothing unless you are Executioner
+                    case "BuffKickflip": // Doesn't work without item
+                    case "BuffReactor": // Invincibility
+                    case "BuffTerminationFailed": // Does nothing
+                    case "BuffTerminationReady": // Doesn't work without item
+                    case "BuffTerminationVFX": // Does nothing
+#if DEBUG
+                        Log.Debug($"Excluding buff {buffDef.name}: Starstorm2 compat blacklist");
+#endif
+                        return false;
+                    #endregion
                 }
 
 #if DEBUG
