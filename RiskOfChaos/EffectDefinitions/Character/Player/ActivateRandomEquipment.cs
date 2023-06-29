@@ -76,6 +76,14 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             return EquipmentCatalog.allEquipment.Select(EquipmentCatalog.GetEquipmentDef)
                                                 .Where(equipment =>
                                                 {
+                                                    if (string.IsNullOrWhiteSpace(equipment.nameToken) || Language.GetString(equipment.nameToken) == equipment.nameToken)
+                                                    {
+#if DEBUG
+                                                        Log.Debug($"excluding equipment {equipment.name} ({equipment.nameToken}): Invalid name token");
+#endif
+                                                        return false;
+                                                    }
+
                                                     if (EliteCatalog.eliteList.Select(EliteCatalog.GetEliteDef)
                                                                               .Any(elite => elite.eliteEquipmentDef == equipment))
                                                     {
@@ -100,7 +108,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                                                         case "GoldGat": // Doesn't really work in this context
                                                         case "IrradiatingLaser": // Does nothing
                                                         case "MultiShopCard": // Does nothing on activate
-                                                        case "OrbOnUse": // Does nothing
                                                         case "QuestVolatileBattery": // Does nothing on activate
 #if DEBUG
                                                             Log.Debug($"excluding equipment {equipment.name} ({Language.GetString(equipment.nameToken)}): blacklist");
