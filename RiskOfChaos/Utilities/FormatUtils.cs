@@ -9,7 +9,15 @@ namespace RiskOfChaos.Utilities
             if (!body)
                 return "null";
 
-            return Util.GetBestBodyName(body.gameObject);
+            string bodyName = Util.GetBestBodyName(body.gameObject);
+            if (!string.IsNullOrWhiteSpace(bodyName))
+            {
+                return bodyName;
+            }
+            else
+            {
+                return body.ToString();
+            }
         }
     }
 }
