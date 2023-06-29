@@ -172,10 +172,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 return;
             }
 
-#if DEBUG
-            if (Configs.Debug.DebugDisable)
+            if (Configs.General.DisableEffectDispatching)
                 return;
-#endif
 
             dispatchEffect(effect, dispatchFlags);
         }

@@ -83,9 +83,37 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             _voteTimer.OnActivate += onVoteEnd;
 
             Configs.General.OnTimeBetweenEffectsChanged += onTimeBetweenEffectsChanged;
+            Configs.General.OnShouldActivateEffectsChanged += onShouldActivateEffectsChanged;
             Configs.ChatVoting.OnWinnerSelectionModeChanged += onVoteWinnerSelectionModeChanged;
 
             ChaosEffectVoteDisplayController.OnDisplayControllerCreated += onEffectDisplayControllerCreated;
+        }
+
+        void onShouldActivateEffectsChanged()
+        {
+            if (Configs.General.DisableEffectDispatching)
+            {
+                if (_effectVoteSelection.IsVoteActive)
+                {
+                    _effectVoteSelection.EndVote();
+
+                    if (ChaosUIController.Instance)
+                    {
+                        ChaosEffectVoteDisplayController effectVoteDisplayController = ChaosUIController.Instance.EffectVoteDisplayController;
+                        if (effectVoteDisplayController)
+                        {
+                            effectVoteDisplayController.RemoveAllVoteDisplays();
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (!_effectVoteSelection.IsVoteActive)
+                {
+                    beginNextVote();
+                }
+            }
         }
 
         protected virtual void Update()
@@ -189,6 +217,9 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
         void beginNextVote()
         {
+            if (Configs.General.DisableEffectDispatching)
+                return;
+
             _offsetVoteNumbers = _voteStartCount++ % 2 != 0;
 
             int numOptions = numVoteOptions;

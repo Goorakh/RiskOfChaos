@@ -10,12 +10,6 @@ namespace RiskOfChaos
     {
         public static class Debug
         {
-            static ConfigEntry<bool> _debugDisable;
-            const bool DEBUG_DISABLE_DEFAULT_VALUE = false;
-            public static bool DebugDisable => _debugDisable?.Value ?? DEBUG_DISABLE_DEFAULT_VALUE;
-
-            public static event Action OnDebugDisabledChanged;
-
             static ConfigEntry<bool> _useLocalhostConnect;
             const bool USE_LOCALHOST_CONNECT_DEFAULT_VALUE = false;
             public static bool UseLocalhostConnect => _useLocalhostConnect?.Value ?? USE_LOCALHOST_CONNECT_DEFAULT_VALUE;
@@ -23,14 +17,6 @@ namespace RiskOfChaos
             internal static void Init(ConfigFile file)
             {
                 const string SECTION_NAME = "Debug";
-
-                _debugDisable = file.Bind(new ConfigDefinition(SECTION_NAME, "Debug Disable"), DEBUG_DISABLE_DEFAULT_VALUE);
-                ModSettingsManager.AddOption(new CheckBoxOption(_debugDisable), CONFIG_GUID, CONFIG_NAME);
-
-                _debugDisable.SettingChanged += static (s, e) =>
-                {
-                    OnDebugDisabledChanged?.Invoke();
-                };
 
                 _useLocalhostConnect = file.Bind(new ConfigDefinition(SECTION_NAME, "Use Localhost Connect"), USE_LOCALHOST_CONNECT_DEFAULT_VALUE);
                 ModSettingsManager.AddOption(new CheckBoxOption(_useLocalhostConnect), CONFIG_GUID, CONFIG_NAME);
