@@ -154,7 +154,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             }
             catch (Exception ex)
             {
-                Log.Error_NoCallerPrefix($"Failed to add buff {BuffCatalog.GetBuffDef(_buffIndex)} to {Util.GetBestBodyName(body.gameObject)}: {ex}");
+                Log.Error_NoCallerPrefix($"Failed to add buff {BuffCatalog.GetBuffDef(_buffIndex)} to {FormatUtils.GetBestBodyName(body)}: {ex}");
             }
         }
     }
