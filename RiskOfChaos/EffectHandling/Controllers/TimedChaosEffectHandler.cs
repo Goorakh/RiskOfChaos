@@ -270,5 +270,14 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 }
             }
         }
+
+        [ConCommand(commandName = "roc_end_all_effects", flags = ConVarFlags.SenderMustBeServer, helpText = "Ends all active timed effects")]
+        static void CCEndAllTimedEffects(ConCommandArgs args)
+        {
+            if (!NetworkServer.active || !Run.instance || !_instance || !_instance.enabled)
+                return;
+
+            _instance.endTimedEffects(TimedEffectFlags.All);
+        }
     }
 }
