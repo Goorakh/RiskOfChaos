@@ -131,7 +131,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"Caught exception in {effectInfo} {nameof(BaseEffect.Deserialize)}: {ex}");
+                    Log.Error_NoCallerPrefix($"Caught exception in {effectInfo} {nameof(BaseEffect.Deserialize)}: {ex}");
                 }
 
                 startEffect(effectInfo, dispatchFlags, effectInstance);
@@ -236,7 +236,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     }
                     catch (Exception ex)
                     {
-                        Log.Error($"Caught exception in {effect} {nameof(BaseEffect.OnPreStartServer)}: {ex}");
+                        Log.Error_NoCallerPrefix($"Caught exception in {effect} {nameof(BaseEffect.OnPreStartServer)}: {ex}");
                     }
 
                     if (effect.IsNetworked)
@@ -249,7 +249,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                         }
                         catch (Exception ex)
                         {
-                            Log.Error($"Caught exception in {effect} {nameof(BaseEffect.Serialize)}: {ex}");
+                            Log.Error_NoCallerPrefix($"Caught exception in {effect} {nameof(BaseEffect.Serialize)}: {ex}");
                         }
 
                         new NetworkedEffectDispatchedMessage(effect, dispatchFlags, networkWriter.AsArray()).Send(NetworkDestination.Clients);
@@ -273,7 +273,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
             catch (Exception ex)
             {
-                Log.Error($"Caught exception in {effectInfo} {nameof(BaseEffect.OnStart)}: {ex}");
+                Log.Error_NoCallerPrefix($"Caught exception in {effectInfo} {nameof(BaseEffect.OnStart)}: {ex}");
             }
 
             OnEffectDispatched?.Invoke(effectInfo, dispatchFlags, effectInstance);
