@@ -39,7 +39,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 foreach (ChaosEffectActivationSignaler activationSignaler in _effectActivationSignalers)
                 {
-                    activationSignaler.SignalShouldDispatchEffect += DispatchEffect;
+                    activationSignaler.SignalShouldDispatchEffect += ActivationSignaler_SignalShouldDispatchEffect;
                 }
 
                 if (Run.instance)
@@ -59,7 +59,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             foreach (ChaosEffectActivationSignaler activationSignaler in _effectActivationSignalers)
             {
-                activationSignaler.SignalShouldDispatchEffect -= DispatchEffect;
+                activationSignaler.SignalShouldDispatchEffect -= ActivationSignaler_SignalShouldDispatchEffect;
             }
 
             _effectRNG = null;
@@ -164,6 +164,14 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
+        void ActivationSignaler_SignalShouldDispatchEffect(in ChaosEffectInfo effect, EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None)
+        {
+            if (Configs.General.DisableEffectDispatching)
+                return;
+
+            DispatchEffect(effect, dispatchFlags);
+        }
+
         public void DispatchEffect(in ChaosEffectInfo effect, EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None)
         {
             if (!NetworkServer.active)
@@ -171,9 +179,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 Log.Warning("Called on client");
                 return;
             }
-
-            if (Configs.General.DisableEffectDispatching)
-                return;
 
             dispatchEffect(effect, dispatchFlags);
         }
