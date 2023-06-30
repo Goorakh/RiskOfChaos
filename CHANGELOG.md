@@ -2,9 +2,10 @@
 
 **?.?.? Changes:**
 
-* Added 2 new effects:
+* Added 3 new effects:
   * Aspect Roulette: Randomly switches the elite aspect of all characters (only affects players if they already have an aspect equipment)
   * Unscrap Random Item: Converts a random stack of scrap into a random item of the same tier
+  * Disable Procs: Disables all proc effects. Lasts 45 seconds
 
 * Drop All Items:
   * Fixed effect not working
