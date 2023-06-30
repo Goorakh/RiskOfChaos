@@ -46,11 +46,13 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 {
                     _effectRNG = new Xoroshiro128Plus(Run.instance.runRNG.nextUlong);
                 }
+
+                _effectDispatchCount = 0;
             }
-
-            NetworkedEffectDispatchedMessage.OnReceive += NetworkedEffectDispatchedMessage_OnReceive;
-
-            _effectDispatchCount = 0;
+            else
+            {
+                NetworkedEffectDispatchedMessage.OnReceive += NetworkedEffectDispatchedMessage_OnReceive;
+            }
         }
 
         void OnDisable()
