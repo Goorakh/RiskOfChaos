@@ -18,11 +18,6 @@ namespace RiskOfChaos.ModifierController
 
         public bool AnyModificationActive { get; private set; }
 
-        protected virtual void syncAnyModificationActive(bool active)
-        {
-            AnyModificationActive = active;
-        }
-
         bool _modificationProvidersDirty;
 
         protected void onModificationProviderDirty()
