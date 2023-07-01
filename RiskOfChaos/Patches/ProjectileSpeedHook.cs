@@ -83,13 +83,16 @@ namespace RiskOfChaos.Patches
 
         static bool tryGetTotalMultiplier(out float totalMultiplier)
         {
-            totalMultiplier = 1f;
-
             if (!ProjectileModificationManager.Instance || !ProjectileModificationManager.Instance.AnyModificationActive)
+            {
+                totalMultiplier = 1f;
                 return false;
+            }
 
             totalMultiplier = ProjectileModificationManager.Instance.NetworkedTotalProjectileSpeedMultiplier;
-            return true;
+
+            const float MULTIPLIER_ACTIVE_MIN_DIFF = 0.01f;
+            return Mathf.Abs(totalMultiplier - 1f) >= MULTIPLIER_ACTIVE_MIN_DIFF;
         }
 
         static void tryMultiplyProjectileValues(ref float speed, ref float travelTime, object debugIdentifier)
