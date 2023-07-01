@@ -1,9 +1,10 @@
-﻿using System;
+﻿using RoR2;
+using System;
 using System.Reflection;
 
-namespace RiskOfChaos.ModifierController.DamageInfo
+namespace RiskOfChaos.ModifierController.Damage
 {
-    public class DamageInfoModificationManager : ValueModificationManager<IDamageInfoModificationProvider, RoR2.DamageInfo>
+    public class DamageInfoModificationManager : ValueModificationManager<IDamageInfoModificationProvider, DamageInfo>
     {
         static bool _hasAppliedPatches = false;
         static void tryApplyPatches()
@@ -46,17 +47,17 @@ namespace RiskOfChaos.ModifierController.DamageInfo
             SingletonHelper.Unassign(ref _instance, this);
         }
 
-        static void tryModifyDamageInfo(ref RoR2.DamageInfo damageInfo)
+        static void tryModifyDamageInfo(ref DamageInfo damageInfo)
         {
             if (!Instance || damageInfo == null)
                 return;
 
             Type damageInfoType = damageInfo.GetType();
 
-            RoR2.DamageInfo damageInfoCopy;
+            DamageInfo damageInfoCopy;
             try
             {
-                damageInfoCopy = (RoR2.DamageInfo)Activator.CreateInstance(damageInfoType);
+                damageInfoCopy = (DamageInfo)Activator.CreateInstance(damageInfoType);
             }
             catch (Exception ex)
             {

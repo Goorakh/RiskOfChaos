@@ -1,6 +1,6 @@
 ﻿using R2API;
 using RiskOfChaos.Components;
-using RiskOfChaos.ModifierController.DamageInfo;
+using RiskOfChaos.ModifierController.Damage;
 using RiskOfChaos.ModifierController.Gravity;
 using RiskOfChaos.ModifierController.Knockback;
 using RiskOfChaos.ModifierController.PhysicsModification;
