@@ -99,5 +99,7 @@
 		"EFFECT_ASPECT_ROULETTE_NAME": "Aspect Roulette",
 		"EFFECT_UNSCRAP_RANDOM_ITEM_NAME": "Unscrap Random Item",
 		"EFFECT_DISABLE_PROCS_NAME": "Disable Procs",
+		"EFFECT_ATTRACT_PICKUPS_NAME": "Item Magnet",
+		"EFFECT_REPULSE_PICKUPS_NAME": "Item Repulsor",
 	}
 }

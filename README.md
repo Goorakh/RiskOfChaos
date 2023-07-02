@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer combatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 90 different effects.
+Currently features 92 different effects.
 
 ### Twitch Integration:
 
@@ -106,6 +106,8 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Aspect Roulette: Randomly switches the elite aspect of all characters (only affects players if they already have an aspect equipment)
 * Unscrap Random Item: Converts a random stack of scrap into a random item of the same tier
 * Disable Procs: Disables all proc effects. Lasts 45 seconds
+* Item Magnet: All pickups move towards players. Lasts 90 seconds
+* Item Repulsor: All pickups move away from players. Lasts 90 seconds
 </details>
 
 FAQ:
