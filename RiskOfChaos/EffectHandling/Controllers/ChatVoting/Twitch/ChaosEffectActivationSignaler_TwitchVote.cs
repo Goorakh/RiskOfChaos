@@ -1,4 +1,5 @@
 ﻿using RoR2;
+using RoR2.UI;
 using TwitchLib.Client;
 using TwitchLib.Client.Enums;
 using TwitchLib.Client.Events;
@@ -11,6 +12,23 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
     public class ChaosEffectActivationSignaler_TwitchVote : ChaosEffectActivationSignaler_ChatVote
     {
         static TwitchLoginCredentials _loginCredentials = TwitchLoginCredentials.TryReadFromFile();
+
+        [SystemInitializer]
+        static void Init()
+        {
+            Configs.ChatVoting.OnReconnectButtonPressed += () =>
+            {
+                if (Configs.ChatVoting.VotingMode == Configs.ChatVoting.ChatVotingMode.Twitch && !_loginCredentials.IsValid())
+                {
+                    SimpleDialogBox notLoggedInDialog = SimpleDialogBox.Create();
+
+                    notLoggedInDialog.headerToken = new SimpleDialogBox.TokenParamsPair("ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_HEADER");
+                    notLoggedInDialog.descriptionToken = new SimpleDialogBox.TokenParamsPair("ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_DESCRIPTION_TWITCH");
+
+                    notLoggedInDialog.AddCancelButton(CommonLanguageTokens.ok);
+                }
+            };
+        }
 
         [ConCommand(commandName = "roc_twitch_login")]
         static void CCLogin(ConCommandArgs args)

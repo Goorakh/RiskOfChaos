@@ -1,6 +1,10 @@
 {
 	strings:
 	{
-		"CHAOS_ACTIVE_EFFECTS_BAR_TITLE": "Active Effects:"
+		"CHAOS_ACTIVE_EFFECTS_BAR_TITLE": "Active Effects:",
+
+		"ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_HEADER": "Reconnect Failed",
+		
+		"ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_DESCRIPTION_TWITCH": "No valid Twitch login found. Please use the roc_twitch_login console command to connect to Twitch. See the README or Thunderstore page for instructions.",
 	}
 }
