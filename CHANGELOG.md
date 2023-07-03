@@ -21,6 +21,9 @@
 * Increase Proc Coefficients:
   * Fixed proc coefficient multiplier being applied several times per attack
 
+* Increase Director Credits:
+  * Renamed effect: Increase Director Credits -> Increase Monster Spawns
+
 * Effect Voting:
   * Added error message if the Manual Reconnect button is pressed when not logged in. Hopefully reduces the number of confused streamers. Hopefully.
 

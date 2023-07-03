@@ -12,9 +12,9 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("increase_director_credits", ConfigName = "Increase Director Credits", EffectWeightReductionPercentagePerActivation = 35f)]
+    [ChaosEffect("increase_director_credits", ConfigName = "Increase Monster Spawns", EffectWeightReductionPercentagePerActivation = 35f)]
     [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
-    [EffectConfigBackwardsCompatibility("Effect: +50% Director Credits")]
+    [EffectConfigBackwardsCompatibility("Effect: +50% Director Credits", "Effect: Increase Director Credits")]
     public sealed class IncreaseDirectorCredits : TimedEffect
     {
         [InitEffectInfo]
@@ -43,7 +43,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void InitConfigs()
         {
-            _creditIncreaseConfig = _effectInfo.BindConfig("Credit Increase Amount", CREDIT_INCREASE_DEFAULT_VALUE, new ConfigDescription("How much to increase director credits by"));
+            _creditIncreaseConfig = _effectInfo.BindConfig("Monster Spawn Increase", new string[] { "Credit Increase Amount" }, CREDIT_INCREASE_DEFAULT_VALUE, new ConfigDescription("How much to increase monster spawns by"));
 
             addConfigOption(new StepSliderOption(_creditIncreaseConfig, new StepSliderConfig
             {

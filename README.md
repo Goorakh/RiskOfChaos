@@ -25,7 +25,7 @@ If the game loses connection to your channel, it will automatically attempt to r
 * One Hit KO: Sets everything on the stage to 1 HP
 * Freeze!: Freezes every character on the stage for 4 seconds
 * Payday: Gives all players an amount of money equivalent to 4 large chests. (Amount can be configured)
-* Increase Director Credits: Increases director credits for the rest of the current stage (+50% by default, configurable)
+* Increase Monster Spawns: Increases monster director credits for the rest of the current stage (+50% by default, configurable)
 * Sequence All Players: Activates a shrine of order on all players
 * Spawn Scavenger Bag: Spawns a scavenger bag near a random player
 * Drop All Items: Drops all characters' items and equipment on the ground

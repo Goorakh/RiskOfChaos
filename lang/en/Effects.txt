@@ -17,7 +17,7 @@
 		"EFFECT_EVERYONE_1HP_NAME": "One Hit KO",
 		"EFFECT_FREEZE_ALL_NAME": "Freeze!",
 		"EFFECT_GIVE_MONEY_NAME": "Payday",
-		"EFFECT_INCREASE_DIRECTOR_CREDITS_NAME": "+{0:P0} Director Credits",
+		"EFFECT_INCREASE_DIRECTOR_CREDITS_NAME": "+{0:P0} Monster Spawns",
 		"EFFECT_ORDER_INVENTORY_NAME": "Sequence All Players",
 		"EFFECT_SPAWN_SCAV_BAG_NAME": "Spawn Scavenger Bag",
 		"EFFECT_DROP_ALL_ITEMS_NAME": "Drop All Items",
