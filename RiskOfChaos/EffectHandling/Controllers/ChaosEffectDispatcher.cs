@@ -79,16 +79,9 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             foreach (ChaosEffectActivationSignaler activationSignaler in _effectActivationSignalers)
             {
-                if (activationSignaler is Behaviour behaviour)
+                if (activationSignaler && activationSignaler.enabled)
                 {
-                    if (behaviour.enabled)
-                    {
-                        activationSignaler.SkipAllScheduledEffects();
-                    }
-                }
-                else
-                {
-                    Log.Error($"Non-Behaviour type for effect signaler {activationSignaler}");
+                    activationSignaler.SkipAllScheduledEffects();
                 }
             }
         }
