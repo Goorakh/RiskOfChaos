@@ -9,11 +9,23 @@
   * Item Magnet: All pickups move towards players. Lasts 90 seconds
   * Item Repulsor: All pickups move away from players. Lasts 90 seconds
 
+* Stability:
+  * Improved error handling for certain effects.
+
 * Drop All Items:
   * Fixed effect not working
 
+* Give Everyone a Random Buff & Debuff:
+  * Added proper mod compatibility with Starstorm 2, LostInTransit, VanillaVoid, MysticsItems, TsunamiItemsRevived, ExtradimensionalItems, and SpireItems
+
 * Increase Proc Coefficients:
   * Fixed proc coefficient multiplier being applied several times per attack
+
+* Effect Voting:
+  * Added error message if the Manual Reconnect button is pressed when not logged in. Hopefully reduces the number of confused streamers. Hopefully.
+
+* Misc:
+  * Added option to disable automatic effect dispatching
 
 **1.7.4 Changes:**
 
