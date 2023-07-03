@@ -128,7 +128,9 @@ namespace RiskOfChaos.EffectHandling
 
         readonly string[] _previousConfigSectionNames;
 
-        public ChaosEffectInfo(ChaosEffectIndex effectIndex, ChaosEffectAttribute attribute)
+        public readonly ConfigFile ConfigFile;
+
+        public ChaosEffectInfo(ChaosEffectIndex effectIndex, ChaosEffectAttribute attribute, ConfigFile configFile)
         {
             EffectIndex = effectIndex;
             Identifier = attribute.Identifier;
@@ -185,6 +187,8 @@ namespace RiskOfChaos.EffectHandling
                 }
             }
 
+            ConfigFile = configFile;
+
             _isEnabledConfig = BindConfig("Effect Enabled", true, new ConfigDescription("If the effect should be able to be picked"));
 
             _selectionWeightConfig = BindConfig("Effect Weight", attribute.DefaultSelectionWeight, new ConfigDescription("How likely the effect is to be picked, higher value means more likely, lower value means less likely"));
@@ -210,17 +214,17 @@ namespace RiskOfChaos.EffectHandling
             valueComparer ??= EqualityComparer<T>.Default;
 
             ConfigDefinition configDefinition = new ConfigDefinition(ConfigSectionName, key);
-            if (Main.Instance.Config.TryGetEntry(configDefinition, out ConfigEntry<T> existingEntry))
+            if (ConfigFile.TryGetEntry(configDefinition, out ConfigEntry<T> existingEntry))
                 return existingEntry;
 
-            ConfigEntry<T> result = Main.Instance.Config.Bind(configDefinition, defaultValue, description);
+            ConfigEntry<T> result = ConfigFile.Bind(configDefinition, defaultValue, description);
 
             if (_previousConfigSectionNames != null)
             {
                 for (int i = _previousConfigSectionNames.Length - 1; i >= 0; i--)
                 {
                     // TryGetValue only works if the config is already binded, so we have to re-bind it every time to check :(
-                    ConfigEntry<T> previousConfigEntry = Main.Instance.Config.Bind(_previousConfigSectionNames[i], key, defaultValue);
+                    ConfigEntry<T> previousConfigEntry = ConfigFile.Bind(_previousConfigSectionNames[i], key, defaultValue);
                     if (!valueComparer.Equals(previousConfigEntry.Value, defaultValue))
                     {
                         result.Value = previousConfigEntry.Value;
@@ -235,8 +239,37 @@ namespace RiskOfChaos.EffectHandling
 
                 foreach (string configSectionName in _previousConfigSectionNames)
                 {
-                    Main.Instance.Config.Remove(new ConfigDefinition(configSectionName, key));
+                    ConfigFile.Remove(new ConfigDefinition(configSectionName, key));
                 }
+            }
+
+            return result;
+        }
+
+        public readonly ConfigEntry<T> BindConfig<T>(string key, string[] previousKeys, T defaultValue, ConfigDescription description, IEqualityComparer<T> valueComparer = null)
+        {
+            ConfigEntry<T> result = BindConfig(key, defaultValue, description, valueComparer);
+
+            valueComparer ??= EqualityComparer<T>.Default;
+
+            for (int i = previousKeys.Length - 1; i >= 0; i--)
+            {
+                ConfigEntry<T> previousConfigEntry = BindConfig(previousKeys[i], defaultValue, description, valueComparer);
+                if (!valueComparer.Equals(previousConfigEntry.Value, defaultValue))
+                {
+                    result.Value = previousConfigEntry.Value;
+
+#if DEBUG
+                    Log.Debug($"Previous config entry found for {ConfigSectionName}:{key} ({previousConfigEntry.Definition}), overriding value");
+#endif
+
+                    break;
+                }
+            }
+
+            foreach (string previousKey in previousKeys)
+            {
+                ConfigFile.Remove(new ConfigDefinition(ConfigSectionName, previousKey));
             }
 
             return result;
