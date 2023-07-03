@@ -26,6 +26,7 @@
 
 * Misc:
   * Added option to disable automatic effect dispatching
+  * Fixed automatic effect activation getting delayed if Rewind Run Timer is activated while the run timer is paused
   * Updated Risk of Options dependency (2.5.3 -> 2.6.1)
 
 **1.7.4 Changes:**

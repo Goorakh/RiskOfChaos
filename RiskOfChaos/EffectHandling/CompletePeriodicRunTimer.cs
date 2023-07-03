@@ -61,8 +61,8 @@ namespace RiskOfChaos.EffectHandling
 
         public void RewindScheduledActivations(float numSeconds)
         {
-            ref PeriodicRunTimer timer = ref currentTimer;
-            timer.RewindScheduledActivations(numSeconds);
+            _stopwatchEffectDispatchTimer.RewindScheduledActivations(numSeconds);
+            _realtimeEffectDispatchTimer.RewindScheduledActivations(numSeconds);
         }
 
         public int GetNumScheduledActivations()
