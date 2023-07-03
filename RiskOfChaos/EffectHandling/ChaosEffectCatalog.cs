@@ -27,6 +27,8 @@ namespace RiskOfChaos.EffectHandling
         static int _effectCount;
         public static int EffectCount => _effectCount;
 
+        static readonly WeightedSelection<ChaosEffectInfo> _pickNextEffectSelection = new WeightedSelection<ChaosEffectInfo>();
+
         public delegate void EffectDisplayNameModifier(in ChaosEffectInfo effectInfo, ref string displayName);
         public static event EffectDisplayNameModifier EffectDisplayNameModificationProvider;
 
@@ -52,6 +54,8 @@ namespace RiskOfChaos.EffectHandling
                                                         .ToArray();
 
             _effectCount = _effects.Length;
+
+            _pickNextEffectSelection.Capacity = _effectCount;
 
             checkFindEffectIndex();
 
@@ -122,17 +126,17 @@ namespace RiskOfChaos.EffectHandling
 
         public static WeightedSelection<ChaosEffectInfo> GetAllActivatableEffects(in EffectCanActivateContext context, HashSet<ChaosEffectInfo> excludeEffects = null)
         {
-            WeightedSelection<ChaosEffectInfo> weightedSelection = new WeightedSelection<ChaosEffectInfo>(_effectCount);
+            _pickNextEffectSelection.Clear();
 
             foreach (ChaosEffectInfo effect in _effects)
             {
                 if (CanEffectActivate(effect, context) && (excludeEffects == null || !excludeEffects.Contains(effect)))
                 {
-                    weightedSelection.AddChoice(effect, effect.TotalSelectionWeight);
+                    _pickNextEffectSelection.AddChoice(effect, effect.TotalSelectionWeight);
                 }
             }
 
-            return weightedSelection;
+            return _pickNextEffectSelection;
         }
 
         public static ChaosEffectInfo PickActivatableEffect(Xoroshiro128Plus rng, in EffectCanActivateContext context, HashSet<ChaosEffectInfo> excludeEffects = null)
