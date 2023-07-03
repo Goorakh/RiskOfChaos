@@ -211,6 +211,12 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly ConfigEntry<T> BindConfig<T>(string key, T defaultValue, ConfigDescription description, IEqualityComparer<T> valueComparer = null)
         {
+            if (string.IsNullOrEmpty(key))
+                throw new ArgumentException($"'{nameof(key)}' cannot be null or empty.", nameof(key));
+
+            if (description is null)
+                throw new ArgumentNullException(nameof(description));
+
             valueComparer ??= EqualityComparer<T>.Default;
 
             ConfigDefinition configDefinition = new ConfigDefinition(ConfigSectionName, key);
@@ -221,11 +227,12 @@ namespace RiskOfChaos.EffectHandling
 
             if (_previousConfigSectionNames != null)
             {
+                bool foundLegacyConfig = false;
                 for (int i = _previousConfigSectionNames.Length - 1; i >= 0; i--)
                 {
                     // TryGetValue only works if the config is already binded, so we have to re-bind it every time to check :(
                     ConfigEntry<T> previousConfigEntry = ConfigFile.Bind(_previousConfigSectionNames[i], key, defaultValue);
-                    if (!valueComparer.Equals(previousConfigEntry.Value, defaultValue))
+                    if (!foundLegacyConfig && !valueComparer.Equals(previousConfigEntry.Value, defaultValue))
                     {
                         result.Value = previousConfigEntry.Value;
 
@@ -233,13 +240,10 @@ namespace RiskOfChaos.EffectHandling
                         Log.Debug($"Previous config entry found for {ConfigSectionName}:{key}, overriding value");
 #endif
 
-                        break;
+                        foundLegacyConfig = true;
                     }
-                }
 
-                foreach (string configSectionName in _previousConfigSectionNames)
-                {
-                    ConfigFile.Remove(new ConfigDefinition(configSectionName, key));
+                    ConfigFile.Remove(previousConfigEntry.Definition);
                 }
             }
 
@@ -248,14 +252,24 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly ConfigEntry<T> BindConfig<T>(string key, string[] previousKeys, T defaultValue, ConfigDescription description, IEqualityComparer<T> valueComparer = null)
         {
+            if (string.IsNullOrEmpty(key))
+                throw new ArgumentException($"'{nameof(key)}' cannot be null or empty.", nameof(key));
+
+            if (previousKeys is null)
+                throw new ArgumentNullException(nameof(previousKeys));
+
+            if (description is null)
+                throw new ArgumentNullException(nameof(description));
+
             ConfigEntry<T> result = BindConfig(key, defaultValue, description, valueComparer);
 
             valueComparer ??= EqualityComparer<T>.Default;
 
+            bool foundLegacyConfig = false;
             for (int i = previousKeys.Length - 1; i >= 0; i--)
             {
                 ConfigEntry<T> previousConfigEntry = BindConfig(previousKeys[i], defaultValue, description, valueComparer);
-                if (!valueComparer.Equals(previousConfigEntry.Value, defaultValue))
+                if (!foundLegacyConfig && !valueComparer.Equals(previousConfigEntry.Value, defaultValue))
                 {
                     result.Value = previousConfigEntry.Value;
 
@@ -263,13 +277,10 @@ namespace RiskOfChaos.EffectHandling
                     Log.Debug($"Previous config entry found for {ConfigSectionName}:{key} ({previousConfigEntry.Definition}), overriding value");
 #endif
 
-                    break;
+                    foundLegacyConfig = true;
                 }
-            }
 
-            foreach (string previousKey in previousKeys)
-            {
-                ConfigFile.Remove(new ConfigDefinition(ConfigSectionName, previousKey));
+                ConfigFile.Remove(previousConfigEntry.Definition);
             }
 
             return result;
