@@ -214,9 +214,6 @@ namespace RiskOfChaos.EffectHandling
             if (string.IsNullOrEmpty(key))
                 throw new ArgumentException($"'{nameof(key)}' cannot be null or empty.", nameof(key));
 
-            if (description is null)
-                throw new ArgumentNullException(nameof(description));
-
             valueComparer ??= EqualityComparer<T>.Default;
 
             ConfigDefinition configDefinition = new ConfigDefinition(ConfigSectionName, key);
@@ -257,9 +254,6 @@ namespace RiskOfChaos.EffectHandling
 
             if (previousKeys is null)
                 throw new ArgumentNullException(nameof(previousKeys));
-
-            if (description is null)
-                throw new ArgumentNullException(nameof(description));
 
             ConfigEntry<T> result = BindConfig(key, defaultValue, description, valueComparer);
 
