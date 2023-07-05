@@ -1,4 +1,6 @@
-﻿using System;
+﻿using RiskOfChaos.EffectHandling.Controllers.ChatVoting;
+using RiskOfChaos.EffectHandling;
+using System;
 
 namespace RiskOfChaos.Utilities.Extensions
 {
@@ -31,6 +33,40 @@ namespace RiskOfChaos.Utilities.Extensions
         public static float GetSelectionChance<T>(this WeightedSelection<T> selection, WeightedSelection<T>.ChoiceInfo selectedChoice)
         {
             return selection.GetSelectionChance(selectedChoice.weight);
+        }
+
+        public static T GetRandom<T>(this WeightedSelection<T> selection, Xoroshiro128Plus rng)
+        {
+#if DEBUG
+            int choiceIndex = selection.EvaluateToChoiceIndex(rng.nextNormalizedFloat);
+            WeightedSelection<T>.ChoiceInfo effectChoice = selection.GetChoice(choiceIndex);
+
+            T result = effectChoice.value;
+
+            float effectWeight = effectChoice.weight;
+            Log.Debug($"{effectChoice.value} selected, weight={effectWeight} ({selection.GetSelectionChance(effectWeight):P} chance)");
+
+            return result;
+#else
+            return selection.Evaluate(rng.nextNormalizedFloat);
+#endif
+        }
+
+        public static T GetAndRemoveRandom<T>(this WeightedSelection<T> selection, Xoroshiro128Plus rng)
+        {
+            int choiceIndex = selection.EvaluateToChoiceIndex(rng.nextNormalizedFloat);
+            WeightedSelection<T>.ChoiceInfo effectChoice = selection.GetChoice(choiceIndex);
+
+            T result = effectChoice.value;
+
+#if DEBUG
+            float effectWeight = effectChoice.weight;
+            Log.Debug($"{effectChoice.value} selected, weight={effectWeight} ({selection.GetSelectionChance(effectWeight):P} chance)");
+#endif
+
+            selection.RemoveChoice(choiceIndex);
+
+            return result;
         }
     }
 }

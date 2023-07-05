@@ -151,9 +151,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
             while (equipmentSelector.Count > 0)
             {
-                int choiceIndex = equipmentSelector.EvaluateToChoiceIndex(rng.nextNormalizedFloat);
-                EquipmentDef equipment = equipmentSelector.GetChoice(choiceIndex).value;
-                equipmentSelector.RemoveChoice(choiceIndex);
+                EquipmentDef equipment = equipmentSelector.GetAndRemoveRandom(rng);
 
                 if (!Run.instance.IsEquipmentAvailable(equipment.equipmentIndex))
                 {

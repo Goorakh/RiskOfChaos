@@ -37,16 +37,12 @@ namespace RiskOfChaos.EffectDefinitions.World
                 newDifficultySelection.AddChoice((DifficultyIndex)i, 1f / Mathf.Abs(i - (int)currentDifficulty));
             }
 
-            int selectedChoiceIndex = newDifficultySelection.EvaluateToChoiceIndex(RNG.nextNormalizedFloat);
-
-            WeightedSelection<DifficultyIndex>.ChoiceInfo choiceInfo = newDifficultySelection.GetChoice(selectedChoiceIndex);
-
-            Run.instance.selectedDifficulty = choiceInfo.value;
+            DifficultyIndex newDifficultyIndex = newDifficultySelection.GetRandom(RNG);
+            Run.instance.selectedDifficulty = newDifficultyIndex;
 
 #if DEBUG
-            DifficultyDef selectedDifficultyDef = DifficultyCatalog.GetDifficultyDef(choiceInfo.value);
-
-            Log.Debug($"Selected difficulty: {choiceInfo.value} (\"{(selectedDifficultyDef != null ? Language.GetString(selectedDifficultyDef.nameToken) : "NULL")}\"), weight={choiceInfo.weight} ({newDifficultySelection.GetSelectionChance(choiceInfo):P2} chance)");
+            DifficultyDef selectedDifficultyDef = DifficultyCatalog.GetDifficultyDef(newDifficultyIndex);
+            Log.Debug($"Selected difficulty: {(selectedDifficultyDef != null ? Language.GetString(selectedDifficultyDef.nameToken) : "NULL")}");
 #endif
         }
     }
