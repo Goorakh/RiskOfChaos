@@ -1,8 +1,9 @@
-﻿using RiskOfChaos.UI;
+﻿using RiskOfChaos.EffectDefinitions;
+using RiskOfChaos.UI;
 using RiskOfChaos.UI.ChatVoting;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
-using System.Collections.Generic;
 
 namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 {
@@ -225,8 +226,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             int numOptions = numVoteOptions;
             _effectVoteSelection.NumOptions = numOptions;
 
-            EffectCanActivateContext effectCanActivateContext = new EffectCanActivateContext(_voteTimer.GetTimeRemaining());
-            HashSet<ChaosEffectInfo> usedEffects = new HashSet<ChaosEffectInfo>();
+            WeightedSelection<ChaosEffectInfo> effectSelection = ChaosEffectCatalog.GetAllActivatableEffects(new EffectCanActivateContext(_voteTimer.GetTimeRemaining()));
 
             EffectVoteInfo[] voteOptions = new EffectVoteInfo[numOptions];
             for (int i = 0; i < numOptions; i++)
@@ -239,17 +239,14 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
                 }
                 else
                 {
-                    ChaosEffectInfo effectInfo = ChaosEffectCatalog.PickActivatableEffect(_rng, effectCanActivateContext, usedEffects);
-
-                    if (usedEffects.Add(effectInfo))
+                    if (effectSelection.Count <= 0)
                     {
-                        voteOptions[i] = new EffectVoteInfo(effectInfo, voteNumber);
+                        Log.Warning($"No activatable effects remain for vote {voteNumber}");
+                        voteOptions[i] = new EffectVoteInfo(Nothing.EffectInfo, voteNumber);
                     }
                     else
                     {
-                        Log.Error($"Effect {effectInfo} is already used!");
-
-                        voteOptions[i] = EffectVoteInfo.Random(voteNumber);
+                        voteOptions[i] = new EffectVoteInfo(effectSelection.GetAndRemoveRandom(_rng), voteNumber);
                     }
                 }
             }
