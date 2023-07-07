@@ -4,6 +4,8 @@ using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.Utilities;
+using RoR2;
 
 namespace RiskOfChaos.EffectDefinitions.World.Pickups
 {
@@ -18,6 +20,20 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
         static bool CanActivate()
         {
             return TimedChaosEffectHandler.Instance && !TimedChaosEffectHandler.Instance.IsTimedEffectActive(AttractPickups.EffectInfo);
+        }
+
+        public override void OnStart()
+        {
+            base.OnStart();
+
+            ItemTierPickupRulesOverride.OverrideRules = ItemTierDef.PickupRules.ConfirmAll;
+        }
+
+        public override void OnEnd()
+        {
+            base.OnEnd();
+
+            ItemTierPickupRulesOverride.OverrideRules = null;
         }
 
         protected override void onAttractorComponentAdded(AttractToPlayers attractToPlayers)
