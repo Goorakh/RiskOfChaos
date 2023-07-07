@@ -141,15 +141,20 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void timedEffectCanActivateOverride(TimedEffectInfo effect, in EffectCanActivateContext context, ref bool canActivate)
         {
-            if (canActivate && !effect.AllowDuplicates)
+            if (!canActivate || effect.AllowDuplicates)
+                return;
+
+            foreach (ActiveTimedEffectInfo activeTimedEffectInfo in getActiveTimedEffectsFor(ChaosEffectCatalog.GetEffectInfo(effect.EffectIndex)))
             {
-                bool effectAlreadyActive = IsTimedEffectActive(ChaosEffectCatalog.GetEffectInfo(effect.EffectIndex));
-                if (effectAlreadyActive)
+                if (!activeTimedEffectInfo.MatchesFlag(TimedEffectFlags.FixedDuration) ||
+                    activeTimedEffectInfo.EffectInstance.TimeRemaining > context.Delay)
                 {
-                    canActivate = false;
 #if DEBUG
                     Log.Debug($"Duplicate effect {effect} cannot activate");
 #endif
+
+                    canActivate = false;
+                    return;
                 }
             }
         }
@@ -232,17 +237,20 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        public bool IsTimedEffectActive(in ChaosEffectInfo effectInfo)
+        IEnumerable<ActiveTimedEffectInfo> getActiveTimedEffectsFor(ChaosEffectInfo effectInfo)
         {
             foreach (ActiveTimedEffectInfo timedEffect in _activeTimedEffects)
             {
                 if (timedEffect.EffectInfo == effectInfo)
                 {
-                    return true;
+                    yield return timedEffect;
+                }
                 }
             }
 
-            return false;
+        public bool IsTimedEffectActive(in ChaosEffectInfo effectInfo)
+        {
+            return getActiveTimedEffectsFor(effectInfo).Any();
         }
 
         public int GetEffectActiveCount(in ChaosEffectInfo effectInfo)
