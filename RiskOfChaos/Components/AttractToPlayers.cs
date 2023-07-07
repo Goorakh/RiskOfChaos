@@ -94,11 +94,33 @@ namespace RiskOfChaos.Components
             if (!NetworkServer.active)
                 return null;
 
-            if (!self.GetComponent<Rigidbody>())
+            if (!self.TryGetComponent(out Rigidbody rb))
             {
-                Log.Warning($"Cannot add component to {self}: missing Rigidbody component");
+#if DEBUG
+                Log.Debug($"Cannot add component to {self}: missing Rigidbody component");
+#endif
                 return null;
             }
+
+            if (rb.isKinematic)
+            {
+#if DEBUG
+                Log.Debug($"Cannot add component to {self}: object is kinematic");
+#endif
+                return null;
+            }
+
+            if (!rb.GetComponent<Collider>())
+            {
+#if DEBUG
+                Log.Debug($"Cannot add component to {self}: missing collider");
+#endif
+                return null;
+            }
+
+#if DEBUG
+            Log.Debug($"Adding component to {self}");
+#endif
 
             return self.gameObject.AddComponent<AttractToPlayers>();
         }
