@@ -15,6 +15,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("increase_fall_damage", ConfigName = "Increase Fall Damage")]
     [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [IncompatibleEffects(typeof(DisableFallDamage))]
     public sealed class IncreaseFallDamage : TimedEffect, IDamageInfoModificationProvider
     {
         [InitEffectInfo]
@@ -66,7 +67,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return DamageInfoModificationManager.Instance && (!TimedChaosEffectHandler.Instance || !TimedChaosEffectHandler.Instance.IsTimedEffectActive(DisableFallDamage.EffectInfo));
+            return DamageInfoModificationManager.Instance;
         }
 
         public override void OnStart()

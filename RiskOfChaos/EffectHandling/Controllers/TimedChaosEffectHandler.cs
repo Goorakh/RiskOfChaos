@@ -1,10 +1,12 @@
-﻿using R2API.Networking;
+﻿using HG;
+using R2API.Networking;
 using R2API.Networking.Interfaces;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.Networking;
 using RoR2;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -89,6 +91,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             if (NetworkServer.active)
             {
+                ChaosEffectCatalog.OverrideEffectCanActivate += effectCanActivateOverride;
                 TimedEffectCatalog.TimedEffectCanActivateOverride += timedEffectCanActivateOverride;
             }
         }
@@ -125,6 +128,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             Stage.onServerStageComplete -= onServerStageComplete;
 
+            ChaosEffectCatalog.OverrideEffectCanActivate -= effectCanActivateOverride;
             TimedEffectCatalog.TimedEffectCanActivateOverride -= timedEffectCanActivateOverride;
 
             endTimedEffects(TimedEffectFlags.All, false);
@@ -136,6 +140,30 @@ namespace RiskOfChaos.EffectHandling.Controllers
             if (effectInstance is TimedEffect timedEffectInstance)
             {
                 registerTimedEffect(new ActiveTimedEffectInfo(effectInfo, timedEffectInstance));
+            }
+        }
+
+        void effectCanActivateOverride(in ChaosEffectInfo effectInfo, in EffectCanActivateContext context, ref bool canActivate)
+        {
+            if (!canActivate)
+                return;
+
+            ReadOnlyArray<ChaosEffectInfo> incompatibleEffects = effectInfo.IncompatibleEffects;
+            for (int i = 0; i < incompatibleEffects.Length; i++)
+            {
+                foreach (ActiveTimedEffectInfo activeTimedEffectInfo in getActiveTimedEffectsFor(incompatibleEffects[i]))
+                {
+                    if (!activeTimedEffectInfo.MatchesFlag(TimedEffectFlags.FixedDuration) ||
+                        activeTimedEffectInfo.EffectInstance.TimeRemaining > context.Delay)
+                    {
+#if DEBUG
+                        Log.Debug($"Effect {effectInfo} cannot activate: incompatible effect {activeTimedEffectInfo.EffectInfo} is active");
+#endif
+
+                        canActivate = false;
+                        return;
+                    }
+                }
             }
         }
 
@@ -245,8 +273,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 {
                     yield return timedEffect;
                 }
-                }
             }
+        }
 
         public bool IsTimedEffectActive(in ChaosEffectInfo effectInfo)
         {

@@ -11,16 +11,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
 {
     [ChaosEffect("repulse_pickups")]
     [ChaosTimedEffect(90f, AllowDuplicates = false)]
+    [IncompatibleEffects(typeof(AttractPickups))]
     public sealed class RepulsePickups : GenericAttractPickupsEffect
     {
         [InitEffectInfo]
         public static readonly ChaosEffectInfo EffectInfo;
-
-        [EffectCanActivate]
-        static bool CanActivate()
-        {
-            return TimedChaosEffectHandler.Instance && !TimedChaosEffectHandler.Instance.IsTimedEffectActive(AttractPickups.EffectInfo);
-        }
 
         public override void OnStart()
         {

@@ -27,6 +27,8 @@ namespace RiskOfChaos.EffectHandling
         static int _effectCount;
         public static int EffectCount => _effectCount;
 
+        static Dictionary<Type, ChaosEffectIndex> _effectTypeToIndexMap = new Dictionary<Type, ChaosEffectIndex>();
+
         static readonly WeightedSelection<ChaosEffectInfo> _pickNextEffectSelection = new WeightedSelection<ChaosEffectInfo>();
 
         public delegate void EffectDisplayNameModifier(in ChaosEffectInfo effectInfo, ref string displayName);
@@ -54,6 +56,8 @@ namespace RiskOfChaos.EffectHandling
                                                         .ToArray();
 
             _effectCount = _effects.Length;
+
+            _effectTypeToIndexMap = _effects.ToDictionary(e => e.EffectType, e => e.EffectIndex);
 
             _pickNextEffectSelection.Capacity = _effectCount;
 
@@ -116,6 +120,18 @@ namespace RiskOfChaos.EffectHandling
             }
 
             return (ChaosEffectIndex)index;
+        }
+
+        public static ChaosEffectIndex FindEffectIndex(Type effectType)
+        {
+            if (_effectTypeToIndexMap.TryGetValue(effectType, out ChaosEffectIndex effectIndex))
+            {
+                return effectIndex;
+            }
+            else
+            {
+                return ChaosEffectIndex.Invalid;
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

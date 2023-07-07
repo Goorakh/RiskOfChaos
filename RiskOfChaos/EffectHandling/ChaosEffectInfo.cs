@@ -64,6 +64,9 @@ namespace RiskOfChaos.EffectHandling
             return true;
         }
 
+        readonly Type[] _incompatibleEffectTypes;
+        public readonly ReadOnlyArray<ChaosEffectInfo> IncompatibleEffects;
+
         readonly ConfigEntry<bool> _isEnabledConfig;
         readonly ConfigEntry<float> _selectionWeightConfig;
 
@@ -165,6 +168,33 @@ namespace RiskOfChaos.EffectHandling
                     _weightMultSelectorMethods = allMethods.WithAttribute<MethodInfo, EffectWeightMultiplierSelectorAttribute>().ToArray();
 
                     _getEffectNameFormatArgsMethod = allMethods.WithAttribute<MethodInfo, EffectNameFormatArgsAttribute>().FirstOrDefault();
+
+                    Type[] incompatibleEffectTypes = effectType.GetCustomAttributes<IncompatibleEffectsAttribute>(true)
+                                                               .SelectMany(a => a.IncompatibleEffectTypes)
+                                                               .ToArray();
+                    _incompatibleEffectTypes = incompatibleEffectTypes;
+
+                    ChaosEffectInfo[] incompatibleEffectInfos = new ChaosEffectInfo[incompatibleEffectTypes.Length];
+                    IncompatibleEffects = new ReadOnlyArray<ChaosEffectInfo>(incompatibleEffectInfos);
+
+                    if (incompatibleEffectInfos.Length > 0)
+                    {
+                        ChaosEffectCatalog.Availability.CallWhenAvailable(() =>
+                        {
+                            for (int i = 0; i < incompatibleEffectInfos.Length; i++)
+                            {
+                                ChaosEffectIndex effectIndex = ChaosEffectCatalog.FindEffectIndex(incompatibleEffectTypes[i]);
+                                if (effectIndex <= ChaosEffectIndex.Invalid)
+                                {
+                                    Log.Error($"Failed to find effect index for type {incompatibleEffectTypes[i].FullName}");
+                                }
+                                else
+                                {
+                                    incompatibleEffectInfos[i] = ChaosEffectCatalog.GetEffectInfo(effectIndex);
+                                }
+                            }
+                        });
+                    }
                 }
             }
             else
