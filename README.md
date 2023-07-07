@@ -1,6 +1,6 @@
 # Risk of Chaos
 
-Every minute, a random effect happens. Multiplayer combatible! Every player needs to have the mod installed.
+Every minute, a random effect happens. Multiplayer compatible! Every player needs to have the mod installed.
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
