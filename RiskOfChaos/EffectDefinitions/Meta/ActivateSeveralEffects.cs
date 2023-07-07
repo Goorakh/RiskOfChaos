@@ -3,7 +3,6 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
-using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using RoR2;
@@ -64,18 +63,17 @@ namespace RiskOfChaos.EffectDefinitions.Meta
 
         public override void OnStart()
         {
-            WeightedSelection<ChaosEffectInfo> effectSelection = ChaosEffectCatalog.GetAllActivatableEffects(EffectCanActivateContext.Now, _excludeEffects);
+            HashSet<ChaosEffectInfo> excludeEffects = !allowDuplicateEffects ? new HashSet<ChaosEffectInfo>(_excludeEffects) : _excludeEffects;
 
             for (int i = numEffectsToActivate - 1; i >= 0; i--)
             {
-                if (effectSelection.Count <= 0)
-                {
-                    Log.Warning("No remaining activatable effects in selection");
-                    return;
-                }
-
-                ChaosEffectInfo effect = allowDuplicateEffects ? effectSelection.GetRandom(RNG) : effectSelection.GetAndRemoveRandom(RNG);
+                ChaosEffectInfo effect = ChaosEffectCatalog.PickActivatableEffect(RNG, EffectCanActivateContext.Now, excludeEffects);
                 ChaosEffectDispatcher.Instance.DispatchEffect(effect, EffectDispatchFlags.DontPlaySound);
+
+                if (!allowDuplicateEffects)
+                {
+                    excludeEffects.Add(effect);
+                }
             }
         }
     }
