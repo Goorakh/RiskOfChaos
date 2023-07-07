@@ -1,5 +1,9 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* Renamed effect: Touch Void -> Voidtouch Everyone
+
 **1.8.0 Changes:**
 
 * Added 6 new effects:

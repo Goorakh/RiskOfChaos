@@ -6,9 +6,10 @@ using RoR2;
 using RoR2.CharacterAI;
 using UnityEngine;
 
-namespace RiskOfChaos.EffectDefinitions.World
+namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("void_infest_all", DefaultSelectionWeight = 0.6f, EffectWeightReductionPercentagePerActivation = 20f)]
+    [EffectConfigBackwardsCompatibility("Effect: Touch Void")]
     public sealed class VoidInfestAll : BaseEffect
     {
         [EffectCanActivate]
@@ -43,7 +44,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                     inventory.SetEquipmentIndex(voidEliteEquipmentIndex);
                 }
 
-                if (master.TryGetComponent<BaseAI>(out BaseAI baseAI))
+                if (master.TryGetComponent(out BaseAI baseAI))
                 {
                     baseAI.enemyAttention = 0f;
                     baseAI.ForceAcquireNearestEnemyIfNoCurrentEnemy();
