@@ -28,19 +28,26 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                 _onPickupCreated?.Invoke(self);
             };
 
+            On.RoR2.PickupPickerController.Awake += (orig, self) =>
+            {
+                orig(self);
+                _onPickupCreated?.Invoke(self);
+            };
+
             _hasAppliedPatches = true;
         }
 
         static event Action<MonoBehaviour> _onPickupCreated;
 
         readonly HashSet<AttractToPlayers> _createdInstances = new HashSet<AttractToPlayers>();
-
+        
         public override void OnStart()
         {
             tryApplyPatches();
 
             GameObject.FindObjectsOfType<PickupDropletController>().TryDo(tryAddComponentTo);
             GameObject.FindObjectsOfType<GenericPickupController>().TryDo(tryAddComponentTo);
+            GameObject.FindObjectsOfType<PickupPickerController>().TryDo(tryAddComponentTo);
 
             _onPickupCreated += tryAddComponentTo;
         }
