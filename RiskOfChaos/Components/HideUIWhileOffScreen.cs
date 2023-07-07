@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RiskOfChaos.Utilities;
+using System;
 using UnityEngine;
 
 namespace RiskOfChaos.Components
@@ -16,7 +17,7 @@ namespace RiskOfChaos.Components
                 Vector3[] corners = new Vector3[4];
                 rectTransform.GetWorldCorners(corners);
 
-                Rect rect = new Rect(corners[0], Vector2.Scale(rectTransform.lossyScale, rectTransform.rect.size));
+                Rect rect = new Rect(VectorUtils.Min(corners), Vector2.Scale(rectTransform.lossyScale, rectTransform.rect.size));
 
                 if (rectTransform.gameObject.activeSelf)
                 {
