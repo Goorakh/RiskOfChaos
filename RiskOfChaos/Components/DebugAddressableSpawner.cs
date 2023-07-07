@@ -18,8 +18,12 @@ namespace RiskOfChaos.Components
 
         public GameObject SpawnAddressablePrefab(string path)
         {
-            GameObject prefab = Addressables.LoadAssetAsync<GameObject>(path).WaitForCompletion();
-            return Instantiate(prefab);
+            return Instantiate(LoadAsset<GameObject>(path));
+        }
+
+        public T LoadAsset<T>(string path)
+        {
+            return Addressables.LoadAssetAsync<T>(path).WaitForCompletion();
         }
     }
 #endif
