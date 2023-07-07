@@ -10,6 +10,9 @@
   * Item Repulsor: All pickups move away from players. Lasts 90 seconds
   * Kill All Player Allies: Kills all player allies
 
+* Removed 1 effect:
+  * Respawn As Random Character: Either just respawned you as a survivor (which is just Metamorphosis activating), or as an enemy character, which would just guarantee death 9 times out of 10
+
 * Stability:
   * Improved error handling for certain effects.
 

@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 93 different effects.
+Currently features 92 different effects.
 
 ### Twitch Integration:
 
@@ -87,7 +87,6 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Force Activate Random Skill: Forces a random skill to constantly activate, lasts 1 stage
 * Spawn Random Enemy: Spawns a random enemy for every player
 * Spawn Random Ally: Spawns a random ally for every player
-* Respawn As Random Character: Respawns every player as a random character
 * Steal All Player Items: Steals all items from every player and distributes them among enemies, damage the enemy that took items to gain them back (leaving the stage will also give all the items back)
 * Reinforcements: Spawns allied survivors in drop pods around the map.
 * Bouncy Projectiles: All projectiles and bullets bounce on the surface they hit. Lasts 1 stage.
