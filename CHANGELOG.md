@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**1.8.0 Changes:**
 
 * Added 6 new effects:
   * Aspect Roulette: Randomly switches the elite aspect of all characters (only affects players if they already have an aspect equipment)
