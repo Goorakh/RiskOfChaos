@@ -71,10 +71,6 @@ namespace RiskOfChaos.Components
             if (angle > 45f ||
                 (_targetVelocity.sqrMagnitude <= 0f && _currentVelocity.sqrMagnitude > 0f)) // Should be stopped, but still moving
             {
-#if DEBUG
-                Log.Debug($"{name} increasing friction");
-#endif
-
                 return OppositeDirectionFrictionMultiplier;
             }
             else
