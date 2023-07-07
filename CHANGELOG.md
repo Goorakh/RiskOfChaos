@@ -2,12 +2,13 @@
 
 **?.?.? Changes:**
 
-* Added 5 new effects:
+* Added 6 new effects:
   * Aspect Roulette: Randomly switches the elite aspect of all characters (only affects players if they already have an aspect equipment)
   * Unscrap Random Item: Converts a random stack of scrap into a random item of the same tier
   * Disable Procs: Disables all proc effects. Lasts 45 seconds
   * Item Magnet: All pickups move towards players. Lasts 90 seconds
   * Item Repulsor: All pickups move away from players. Lasts 90 seconds
+  * Kill All Player Allies: Kills all player allies
 
 * Stability:
   * Improved error handling for certain effects.
