@@ -13,6 +13,7 @@ namespace RiskOfChaos.Components
         public float MaxDistance;
         public float MaxSpeed;
         public float Acceleration;
+        public float OppositeDirectionFrictionMultiplier = 30f;
 
         public float? DynamicFrictionOverride = 0.025f;
         public float? StaticFrictionOverride = 0f;
@@ -20,6 +21,7 @@ namespace RiskOfChaos.Components
         Rigidbody _rigidbody;
 
         Collider _collider;
+        PhysicMaterial _overrideMaterial;
         PhysicMaterial _originalMaterial;
 
         Vector3 _currentVelocity;
@@ -39,15 +41,15 @@ namespace RiskOfChaos.Components
                     _originalMaterial = _collider.material;
                     if (_originalMaterial)
                     {
-                        PhysicMaterial overrideMaterial = Instantiate(_originalMaterial);
+                        _overrideMaterial = Instantiate(_originalMaterial);
 
                         if (DynamicFrictionOverride.HasValue)
-                            overrideMaterial.dynamicFriction = DynamicFrictionOverride.Value;
+                            _overrideMaterial.dynamicFriction = DynamicFrictionOverride.Value;
 
                         if (StaticFrictionOverride.HasValue)
-                            overrideMaterial.staticFriction = StaticFrictionOverride.Value;
+                            _overrideMaterial.staticFriction = StaticFrictionOverride.Value;
 
-                        _collider.material = overrideMaterial;
+                        _collider.material = _overrideMaterial;
                     }
                 }
             }
@@ -60,6 +62,33 @@ namespace RiskOfChaos.Components
             if (_collider && _originalMaterial)
             {
                 _collider.material = _originalMaterial;
+            }
+        }
+
+        float getTargetFrictionMultiplier()
+        {
+            float angle = Mathf.Abs(Vector3.SignedAngle(_currentVelocity, _targetVelocity, Vector3.up));
+            if (angle > 45f ||
+                (_targetVelocity.sqrMagnitude <= 0f && _currentVelocity.sqrMagnitude > 0f)) // Should be stopped, but still moving
+            {
+#if DEBUG
+                Log.Debug($"{name} increasing friction");
+#endif
+
+                return OppositeDirectionFrictionMultiplier;
+            }
+            else
+            {
+                return 1f;
+            }
+        }
+
+        void setFrictionMultiplier(float multiplier)
+        {
+            if (_originalMaterial && _overrideMaterial)
+            {
+                float baseFriction = DynamicFrictionOverride.GetValueOrDefault(_originalMaterial.dynamicFriction);
+                _overrideMaterial.dynamicFriction = baseFriction * multiplier;
             }
         }
 
@@ -80,6 +109,8 @@ namespace RiskOfChaos.Components
                 Vector3 forceDirectionNormalized = positionDiff / Mathf.Sqrt(sqrDistance);
                 _targetVelocity += forceDirectionNormalized * MaxSpeed;
             });
+
+            setFrictionMultiplier(getTargetFrictionMultiplier());
 
             _currentVelocity = Vector3.MoveTowards(_currentVelocity, _targetVelocity, Acceleration * Time.fixedDeltaTime);
 
