@@ -1,5 +1,7 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Patches;
+using RoR2;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.Gravity
 {
@@ -8,21 +10,34 @@ namespace RiskOfChaos.ModifierController.Gravity
         static GravityModificationManager _instance;
         public static GravityModificationManager Instance => _instance;
 
-        static readonly Vector3 _baseGravity = new Vector3(0f, Run.baseGravity, 0f);
-
         void OnEnable()
         {
             SingletonHelper.Assign(ref _instance, this);
+
+            if (NetworkServer.active)
+            {
+                GravityTracker.OnBaseGravityChanged += onBaseGravityChanged;
+            }
         }
 
         void OnDisable()
         {
             SingletonHelper.Unassign(ref _instance, this);
+
+            GravityTracker.OnBaseGravityChanged -= onBaseGravityChanged;
+        }
+
+        void onBaseGravityChanged(Vector3 newGravity)
+        {
+            if (AnyModificationActive)
+            {
+                onModificationProviderDirty();
+            }
         }
 
         protected override void updateValueModifications()
         {
-            Physics.gravity = getModifiedValue(_baseGravity);
+            GravityTracker.SetGravityUntracked(getModifiedValue(GravityTracker.BaseGravity));
         }
     }
 }

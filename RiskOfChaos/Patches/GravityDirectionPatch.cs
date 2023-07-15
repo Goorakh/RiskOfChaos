@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using UnityEngine;
 
@@ -28,7 +29,12 @@ namespace RiskOfChaos.Patches
                     cursor.Emit(OpCodes.Ldarg_1);
                     cursor.EmitDelegate((CharacterMotor instance, float deltaTime) =>
                     {
-                        Vector3 xzGravity = new Vector3(Physics.gravity.x, 0f, Physics.gravity.z);
+                        if (instance.isGrounded)
+                            return;
+
+                        Vector3 gravity = instance.GetGravity(Physics.gravity);
+
+                        Vector3 xzGravity = new Vector3(gravity.x, 0f, gravity.z);
                         instance.velocity += xzGravity * deltaTime;
                     });
                 }

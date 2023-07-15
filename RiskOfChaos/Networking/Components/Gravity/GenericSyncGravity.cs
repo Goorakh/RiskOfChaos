@@ -1,12 +1,14 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Patches;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.Networking.Components
+namespace RiskOfChaos.Networking.Components.Gravity
 {
-    public class SyncWorldGravity : NetworkBehaviour
+    public abstract class GenericSyncGravity : NetworkBehaviour
     {
+        protected abstract Vector3 currentGravity { get; }
+
         const uint GRAVITY_DIRTY_BIT = 1 << 0;
 
         Vector3 _gravity;
@@ -33,7 +35,7 @@ namespace RiskOfChaos.Networking.Components
 
         void Awake()
         {
-            _gravity = Physics.gravity;
+            _gravity = currentGravity;
         }
 
         public override void OnStartClient()
@@ -45,7 +47,7 @@ namespace RiskOfChaos.Networking.Components
 
         void FixedUpdate()
         {
-            Vector3 currentGravity = Physics.gravity;
+            Vector3 currentGravity = this.currentGravity;
             if (_gravity != currentGravity)
             {
                 if (hasAuthority)
@@ -54,14 +56,14 @@ namespace RiskOfChaos.Networking.Components
                 }
                 else
                 {
-                    Physics.gravity = _gravity;
+                    onGravityChanged(_gravity);
                 }
             }
         }
 
         void OnDestroy()
         {
-            setGravity(new Vector3(0f, Run.baseGravity, 0f));
+            setGravity(GravityTracker.BaseGravity);
         }
 
         void setGravity(in Vector3 gravity)
@@ -74,7 +76,11 @@ namespace RiskOfChaos.Networking.Components
 #endif
 
             NetworkGravity = gravity;
-            Physics.gravity = gravity;
+            onGravityChanged(gravity);
+        }
+
+        protected virtual void onGravityChanged(in Vector3 newGravity)
+        {
         }
 
         public override bool OnSerialize(NetworkWriter writer, bool initialState)
@@ -88,12 +94,15 @@ namespace RiskOfChaos.Networking.Components
             uint dirtyBits = syncVarDirtyBits;
             writer.WritePackedUInt32(dirtyBits);
 
+            bool anythingWritten = false;
+
             if ((dirtyBits & GRAVITY_DIRTY_BIT) != 0)
             {
                 writer.Write(_gravity);
+                anythingWritten = true;
             }
 
-            return dirtyBits != 0b0;
+            return anythingWritten;
         }
 
         public override void OnDeserialize(NetworkReader reader, bool initialState)

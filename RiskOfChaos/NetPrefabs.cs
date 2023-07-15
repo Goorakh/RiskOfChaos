@@ -8,6 +8,7 @@ using RiskOfChaos.ModifierController.Projectile;
 using RiskOfChaos.ModifierController.SkillSlots;
 using RiskOfChaos.ModifierController.TimeScale;
 using RiskOfChaos.Networking.Components;
+using RiskOfChaos.Networking.Components.Gravity;
 using RoR2;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -100,6 +101,7 @@ namespace RiskOfChaos
                 GravityControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
                 GravityControllerPrefab.AddComponent<DestroyOnRunEnd>();
                 GravityControllerPrefab.AddComponent<SyncWorldGravity>();
+                GravityControllerPrefab.AddComponent<SyncBaseGravity>();
                 GravityControllerPrefab.AddComponent<GravityModificationManager>();
             }
 
