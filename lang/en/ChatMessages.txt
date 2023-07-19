@@ -1,8 +1,6 @@
 {
 	strings:
 	{
-		"MONSTER_PICKUP_2P": "<style=cWorldEvent>You picked up {1}{2}</color>",
-	
 		"TWITCH_EFFECT_VOTING_LOGIN_FAIL_FORMAT": "<style=cWorldEvent>[Risk of Chaos]: Unable to connect to Twitch channel: {0}</style>",
 		"TWITCH_LOGIN_FAIL_NOT_LOGGED_IN": "Not logged in, please use the roc_twitch_login console command",
 
