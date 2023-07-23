@@ -2,6 +2,10 @@
 
 **?.?.? Changes:**
 
+* Duplicate Random Item Stack:
+  * Added config option to blacklist specific items from being duplicated
+  * Added config option to disallow duplication if the item count is greater than some value (default 1000)
+
 * Gravity effects:
   * !!!!!!!! MULTIPLAYER IS NOT TESTED, MAKE SURE IT WORKS BEFORE RELEASING !!!!!!!!
   * Jump pads will now always bring players to the same location, regardless of the gravity value

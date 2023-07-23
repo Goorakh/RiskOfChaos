@@ -2,7 +2,7 @@
 {
     public enum ParsedValueState : byte
     {
-        NotAssigned,
+        Unassigned,
         ParseFailed,
         Valid
     }

@@ -25,7 +25,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         static ConfigEntry<string> _maxItemStacksConfig;
         const int MAX_ITEM_STACKS_DEFAULT_VALUE = 1000;
 
-        static readonly ParsedUInt32 _maxItemStacks = new ParsedUInt32();
+        static readonly ParsedInt32 _maxItemStacks = new ParsedInt32();
 
         static ConfigEntry<string> _itemBlacklistConfig;
         static readonly ParsedItemList _itemBlacklist = new ParsedItemList(ItemIndexComparer.Instance);
@@ -41,7 +41,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             _maxItemStacks.BindToConfig(_maxItemStacksConfig);
 
-            _itemBlacklistConfig = _effectInfo.BindConfig("Item Blacklist", string.Empty, new ConfigDescription("A comma-separated list of items that should not be allowed to be duplicated"));
+            _itemBlacklistConfig = _effectInfo.BindConfig("Item Blacklist", string.Empty, new ConfigDescription("A comma-separated list of items that should not be allowed to be duplicated. Both internal and English display names are accepted, with spaces and commas removed."));
             addConfigOption(new StringInputFieldOption(_itemBlacklistConfig, new InputFieldConfig
             {
                 submitOn = InputFieldConfig.SubmitEnum.OnSubmit
@@ -56,17 +56,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             return !context.IsNow || PlayerUtils.GetAllPlayerMasters(false).Any(master => getAllDuplicatableItemStacks(master.inventory).Any());
         }
 
-        readonly struct ItemStack
-        {
-            public readonly ItemIndex ItemIndex;
-            public readonly int ItemCount;
-
-            public ItemStack(ItemIndex itemIndex, int itemCount)
-            {
-                ItemIndex = itemIndex;
-                ItemCount = itemCount;
-            }
-        }
+        readonly record struct ItemStack(ItemIndex ItemIndex, int ItemCount);
 
         static IEnumerable<ItemStack> getAllDuplicatableItemStacks(Inventory inventory)
         {

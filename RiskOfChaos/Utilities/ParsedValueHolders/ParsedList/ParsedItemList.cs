@@ -8,7 +8,7 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders.ParsedList
 {
     public class ParsedItemList : GenericParsedList<ItemIndex>
     {
-        static readonly char[] _itemNameFilterChars = new char[] { ',' };
+        static readonly char[] _itemNameFilterChars = new char[] { ',', ' ' };
 
         public ParsedItemList(IComparer<ItemIndex> comparer) : base(comparer)
         {
@@ -23,23 +23,15 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders.ParsedList
             return input.Split(',');
         }
 
-        protected override bool tryParse(string input, out ItemIndex value)
+        protected override ItemIndex parseValue(string str)
         {
-            value = ItemCatalog.FindItemIndex(input);
-            if (value != ItemIndex.None)
-                return true;
-
-            string trimmedInput = input.Trim();
-            value = ItemCatalog.FindItemIndex(trimmedInput);
-            if (value != ItemIndex.None)
-                return true;
+            ItemIndex result = ItemCatalog.FindItemIndex(str);
+            if (result != ItemIndex.None)
+                return result;
 
             bool compareName(string itemName)
             {
-                if (string.Equals(itemName, input, StringComparison.OrdinalIgnoreCase))
-                    return true;
-
-                if (string.Equals(itemName, trimmedInput, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(itemName.FilterChars(_itemNameFilterChars), str, StringComparison.OrdinalIgnoreCase))
                     return true;
 
                 return false;
@@ -51,15 +43,13 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders.ParsedList
                 ItemDef item = allItems[i];
                 if (compareName(item.name)
                     || compareName(item.nameToken)
-                    || compareName(Language.GetString(item.nameToken, "en").FilterChars(_itemNameFilterChars)))
+                    || compareName(Language.GetString(item.nameToken, "en")))
                 {
-                    value = item.itemIndex;
-                    return true;
+                    return item.itemIndex;
                 }
             }
 
-            value = default;
-            return false;
+            throw new ParseException($"Unable to find matching ItemDef");
         }
     }
 }

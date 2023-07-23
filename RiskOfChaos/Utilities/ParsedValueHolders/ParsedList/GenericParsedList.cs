@@ -83,11 +83,21 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders.ParsedList
                 T value;
                 try
                 {
-                    value = parseValue(item);
+                    value = handleParsedInput(item, parseValue);
                 }
-                catch (Exception ex)
+                catch (ParseException ex)
                 {
-                    failReasonsList.Add(new ParseFailReason(item, ex));
+                    if (_boundToConfig != null)
+                    {
+                        Log.Warning($"Failed to parse {_boundToConfig.Definition} list item \"{item}\": " + ex.Message);
+                    }
+                    else
+                    {
+                        Log.Warning($"Failed to parse list item \"{item}\": " + ex.Message);
+                    }
+
+                    failReasonsList?.Add(new ParseFailReason(item, ex));
+
                     continue;
                 }
 
@@ -103,8 +113,6 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders.ParsedList
         protected abstract IEnumerable<string> splitInput(string input);
 
         protected abstract T parseValue(string str);
-
-        protected abstract bool tryParse(string str, out T value);
 
         protected IEnumerable<T> getEnumerable()
         {

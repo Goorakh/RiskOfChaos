@@ -17,27 +17,38 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders
             }
             set
             {
+                value = value?.TrimEnd('\r', '\n');
+
                 if (string.Equals(value, _lastParsedInput))
                     return;
 
                 _lastParsedInput = value;
 
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    _parsedValue = default;
+                    ParseFailReason = null;
+                    ValueState = ParsedValueState.Unassigned;
+
+                    return;
+                }
+
                 try
                 {
-                    _parsedValue = parseInput(value);
+                    _parsedValue = handleParsedInput(value, parseInput);
 
                     ParseFailReason = null;
                     ValueState = ParsedValueState.Valid;
                 }
-                catch (Exception ex)
+                catch (ParseException ex)
                 {
                     if (_boundToConfig != null)
                     {
-                        Log.Error($"Unable to parse value of {_boundToConfig.Definition}: {ex}");
+                        Log.Error($"Unable to parse value of {_boundToConfig.Definition} (\"{value}\"): {ex.Message}");
                     }
                     else
                     {
-                        Log.Error($"Unable to parse input: {ex}");
+                        Log.Error($"Unable to parse value \"{value}\": {ex.Message}");
                     }
 
                     ParseFailReason = new ParseFailReason(value, ex);
@@ -49,7 +60,7 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders
 
         public ParseFailReason ParseFailReason { get; private set; }
 
-        public ParsedValueState ValueState { get; private set; } = ParsedValueState.NotAssigned;
+        public ParsedValueState ValueState { get; private set; } = ParsedValueState.Unassigned;
 
         public bool HasParsedValue => ValueState == ParsedValueState.Valid;
         T _parsedValue;
@@ -99,6 +110,25 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders
         {
             parsedValue = _parsedValue;
             return HasParsedValue;
+        }
+
+        protected TValue handleParsedInput<TValue>(string input, Func<string, TValue> parseFunc)
+        {
+            try
+            {
+                return parseFunc(input);
+            }
+            catch (ParseException)
+            {
+                try
+                {
+                    return parseFunc(input.Trim());
+                }
+                catch (ParseException trimEx)
+                {
+                    throw trimEx;
+                }
+            }
         }
 
         protected abstract T parseInput(string input);
