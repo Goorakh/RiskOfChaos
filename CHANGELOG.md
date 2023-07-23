@@ -7,7 +7,6 @@
   * Added config option to disallow duplication if the item count is greater than some value (default 1000)
 
 * Gravity effects:
-  * !!!!!!!! MULTIPLAYER IS NOT TESTED, MAKE SURE IT WORKS BEFORE RELEASING !!!!!!!!
   * Jump pads will now always bring players to the same location, regardless of the gravity value
   * Gravity effects can now be activated on Commencement, they were previously blacklisted from the stage to prevent run softlocks with the jump pads up to Mithrix not bringing you all the way up
 
