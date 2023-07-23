@@ -68,10 +68,6 @@ namespace RiskOfChaos.Patches
                 Log.Error("Unable to find patch location");
                 return;
             }
-
-#if DEBUG
-            Log.Debug(il);
-#endif
         }
     }
 }
