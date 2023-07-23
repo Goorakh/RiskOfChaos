@@ -12,10 +12,24 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders.ParsedList
 
         public ParsedItemList(IComparer<ItemIndex> comparer) : base(comparer)
         {
+            setupParseReadyListener();
         }
 
         public ParsedItemList() : base()
         {
+            setupParseReadyListener();
+        }
+
+        void setupParseReadyListener()
+        {
+            if (!ItemCatalog.availability.available)
+            {
+                ParseReady = false;
+                ItemCatalog.availability.onAvailable += () =>
+                {
+                    ParseReady = true;
+                };
+            }
         }
 
         protected override IEnumerable<string> splitInput(string input)

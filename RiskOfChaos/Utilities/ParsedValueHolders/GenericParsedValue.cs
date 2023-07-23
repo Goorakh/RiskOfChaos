@@ -24,36 +24,34 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders
 
                 _lastParsedInput = value;
 
-                if (string.IsNullOrWhiteSpace(value))
+                if (_parseReady)
                 {
-                    _parsedValue = default;
-                    ParseFailReason = null;
-                    ValueState = ParsedValueState.Unassigned;
+                    setParsedValue(value);
+                }
+            }
+        }
 
+        bool _parseReady = true;
+        public bool ParseReady
+        {
+            get
+            {
+                return _parseReady;
+            }
+            set
+            {
+                if (_parseReady == value)
                     return;
-                }
 
-                try
+                _parseReady = value;
+
+                if (_parseReady && !string.IsNullOrWhiteSpace(_lastParsedInput))
                 {
-                    _parsedValue = handleParsedInput(value, parseInput);
-
-                    ParseFailReason = null;
-                    ValueState = ParsedValueState.Valid;
+                    setParsedValue(_lastParsedInput);
                 }
-                catch (ParseException ex)
+                else
                 {
-                    if (_boundToConfig != null)
-                    {
-                        Log.Error($"Unable to parse value of {_boundToConfig.Definition} (\"{value}\"): {ex.Message}");
-                    }
-                    else
-                    {
-                        Log.Error($"Unable to parse value \"{value}\": {ex.Message}");
-                    }
-
-                    ParseFailReason = new ParseFailReason(value, ex);
-                    ValueState = ParsedValueState.ParseFailed;
-                    _parsedValue = default;
+                    resetValue();
                 }
             }
         }
@@ -75,6 +73,11 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders
             {
                 _boundToConfig.SettingChanged -= onBoundConfigChanged;
             }
+        }
+
+        public void ForceRefreshValue()
+        {
+            setParsedValue(_lastParsedInput);
         }
 
         public void BindToConfig(ConfigEntry<string> entry)
@@ -139,6 +142,56 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders
             {
                 yield return ParseFailReason;
             }
+        }
+
+        void setParsedValue(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                resetValue();
+                return;
+            }
+
+            try
+            {
+                _parsedValue = handleParsedInput(value, parseInput);
+
+#if DEBUG
+                if (_boundToConfig != null)
+                {
+                    Log.Debug($"Successfully parsed value of {_boundToConfig.Definition} (\"{value}\"): {_parsedValue}");
+                }
+                else
+                {
+                    Log.Debug($"Successfully parsed \"{value}\": {_parsedValue}");
+                }
+#endif
+
+                ParseFailReason = null;
+                ValueState = ParsedValueState.Valid;
+            }
+            catch (ParseException ex)
+            {
+                if (_boundToConfig != null)
+                {
+                    Log.Error($"Unable to parse value of {_boundToConfig.Definition} (\"{value}\"): {ex.Message}");
+                }
+                else
+                {
+                    Log.Error($"Unable to parse value \"{value}\": {ex.Message}");
+                }
+
+                ParseFailReason = new ParseFailReason(value, ex);
+                ValueState = ParsedValueState.ParseFailed;
+                _parsedValue = default;
+            }
+        }
+
+        void resetValue()
+        {
+            _parsedValue = default;
+            ParseFailReason = null;
+            ValueState = ParsedValueState.Unassigned;
         }
     }
 }
