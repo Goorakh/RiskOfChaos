@@ -2,8 +2,9 @@
 
 **?.?.? Changes:**
 
-* Added 1 new effect:
+* Added 2 new effects:
   * No sprinting: Disables sprinting for all characters, lasts 30 seconds
+  * Everyone is Invisible: Every character on the stage becomes invisible, lasts 30 seconds
 
 * Duplicate Random Item Stack:
   * Added config option to blacklist specific items from being duplicated
