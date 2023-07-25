@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 92 different effects.
+Currently features 93 different effects.
 
 ### Twitch Integration:
 
@@ -108,6 +108,7 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Item Magnet: All pickups move towards players. Lasts 90 seconds
 * Item Repulsor: All pickups move away from players. Lasts 90 seconds
 * Kill All Player Allies: Kills all player allies
+* No sprinting: Disables sprinting for all characters, lasts 30 seconds
 </details>
 
 FAQ:

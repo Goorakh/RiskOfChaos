@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Added 1 new effect:
+  * No sprinting: Disables sprinting for all characters, lasts 30 seconds
+
 * Duplicate Random Item Stack:
   * Added config option to blacklist specific items from being duplicated
   * Added config option to disallow duplication if the item count is greater than some value (default 1000)
