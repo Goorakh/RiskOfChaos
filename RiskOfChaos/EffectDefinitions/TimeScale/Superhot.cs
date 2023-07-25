@@ -4,14 +4,13 @@ using RiskOfChaos.ModifierController.TimeScale;
 using RiskOfChaos.Utilities;
 using RoR2;
 using System;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.TimeScale
 {
     [ChaosEffect("superhot")]
-    [ChaosTimedEffect(TimedEffectType.UntilStageEnd, AllowDuplicates = false)]
+    [ChaosTimedEffect(90f, AllowDuplicates = false)]
     public sealed class Superhot : TimedEffect
     {
         class PlayerTimeMovementTracker : MonoBehaviour, ITimeScaleModificationProvider

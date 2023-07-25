@@ -16,6 +16,9 @@
 * Combo:
   * Fixed effect selection ignoring incompatibility rules
 
+* Superhot:
+  * Default duration: Until next stage -> 90s
+
 * Renamed effect: Touch Void -> Voidtouch Everyone
 
 **1.8.0 Changes:**
