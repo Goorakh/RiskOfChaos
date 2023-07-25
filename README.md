@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 94 different effects.
+Currently features 95 different effects.
 
 ### Twitch Integration:
 
@@ -110,6 +110,7 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Kill All Player Allies: Kills all player allies
 * No sprinting: Disables sprinting for all characters, lasts 30 seconds
 * Everyone is Invisible: Every character on the stage becomes invisible, lasts 30 seconds
+* Revive Dead Characters: Revives all recently killed characters
 </details>
 
 FAQ:

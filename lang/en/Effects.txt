@@ -103,5 +103,6 @@
 		"EFFECT_KILL_ALL_ALLIES_NAME": "Kill All Player Allies",
 		"EFFECT_DISABLE_SPRINTING_NAME": "No Sprinting",
 		"EFFECT_EVERYONE_INVISIBLE_NAME": "Everyone is Invisible",
+		"EFFECT_REVIVE_DEAD_CHARACTERS_NAME": "Revive Dead Characters",
 	}
 }
