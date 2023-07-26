@@ -1,8 +1,13 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using BepInEx.Configuration;
+using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfOptions.OptionConfigs;
+using RiskOfOptions.Options;
 using RoR2;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -12,7 +17,85 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [ChaosEffect("revive_dead_characters")]
     public sealed class ReviveDeadCharacters : BaseEffect
     {
+        [InitEffectInfo]
+        static readonly ChaosEffectInfo _effectInfo;
+
         static readonly GameObject _bossCombatSquadPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Core/BossCombatSquad.prefab").WaitForCompletion();
+
+        static ConfigEntry<int> _maxTrackedCharactersCountConfig;
+        const int MAX_TRACKED_CHARACTERS_COUNT_DEFAULT_VALUE = 50;
+
+        static int maxTrackedCharactersCount
+        {
+            get
+            {
+                if (_maxTrackedCharactersCountConfig != null)
+                {
+                    return Mathf.Max(1, _maxTrackedCharactersCountConfig.Value);
+                }
+                else
+                {
+                    return MAX_TRACKED_CHARACTERS_COUNT_DEFAULT_VALUE;
+                }
+            }
+        }
+
+        [SystemInitializer(typeof(ChaosEffectCatalog))]
+        static void InitConfigs()
+        {
+            _maxTrackedCharactersCountConfig = _effectInfo.BindConfig("Max Characters to Revive", MAX_TRACKED_CHARACTERS_COUNT_DEFAULT_VALUE, new ConfigDescription("The maximum amount of characters the effect can revive at once"));
+
+            addConfigOption(new IntSliderOption(_maxTrackedCharactersCountConfig, new IntSliderConfig
+            {
+                min = 1,
+                max = 100
+            }));
+
+            _maxTrackedCharactersCountConfig.SettingChanged += (s, e) =>
+            {
+                _trackedDeadCharacters.MaxCapacity = maxTrackedCharactersCount;
+            };
+        }
+
+        static readonly MaxCapacityQueue<DeadCharacterInfo> _trackedDeadCharacters = new MaxCapacityQueue<DeadCharacterInfo>(maxTrackedCharactersCount);
+
+        [SystemInitializer]
+        static void InitListeners()
+        {
+            GlobalEventManager.onCharacterDeathGlobal += damageReport =>
+            {
+                if (!NetworkServer.active)
+                    return;
+
+                CharacterMaster victimMaster = damageReport.victimMaster;
+                if (!victimMaster || victimMaster.IsExtraLifePendingServer())
+                    return;
+
+                _trackedDeadCharacters.Enqueue(new DeadCharacterInfo(damageReport));
+            };
+
+            Run.onRunDestroyGlobal += _ =>
+            {
+                _trackedDeadCharacters.Clear();
+            };
+
+            Stage.onServerStageComplete += _ =>
+            {
+                _trackedDeadCharacters.Clear();
+            };
+        }
+
+        [EffectCanActivate]
+        static bool CanActivate(EffectCanActivateContext context)
+        {
+            return !context.IsNow || _trackedDeadCharacters.Count > 0;
+        }
+
+        public override void OnStart()
+        {
+            _trackedDeadCharacters.TryDo(character => character.Respawn());
+            _trackedDeadCharacters.Clear();
+        }
 
         readonly struct DeadCharacterInfo : MasterSummon.IInventorySetupCallback
         {
@@ -44,12 +127,20 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     _bodyPosition = victimBody.footPosition;
                     _bodyRotation = victimBody.GetRotation();
                 }
+                else
+                {
+                    _bodyPosition = SpawnUtils.GetBestValidRandomPlacementRule().EvaluateToPosition(RoR2Application.rng);
+                    _bodyRotation = Quaternion.identity;
+                }
 
                 CharacterMaster victimMaster = deathReport.victimMaster;
                 if (victimMaster)
                 {
-                    _loadout = Loadout.RequestInstance();
-                    victimMaster.loadout.Copy(_loadout);
+                    if (victimMaster.loadout != null)
+                    {
+                        _loadout = Loadout.RequestInstance();
+                        victimMaster.loadout.Copy(_loadout);
+                    }
 
                     foreach (CombatSquad squad in InstanceTracker.GetInstancesList<CombatSquad>())
                     {
@@ -81,7 +172,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 MasterCatalog.MasterIndex masterIndex = MasterCatalog.FindAiMasterIndexForBody(_bodyIndex);
                 if (!masterIndex.isValid)
                 {
-                    Log.Warning($"No master index found for body {BodyCatalog.GetBodyName(_bodyIndex)}");
+                    Log.Warning($"No master index found for {BodyCatalog.GetBodyName(_bodyIndex)}");
                     return;
                 }
 
@@ -141,7 +232,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             readonly void preSpawnSetupCallback(CharacterMaster master)
             {
-                if (_combatSquad && _combatSquad.isActiveAndEnabled)
+                if (_combatSquad && _combatSquad.isActiveAndEnabled && !_combatSquad.defeatedServer)
                 {
                     _combatSquad.AddMember(master);
                 }
@@ -150,7 +241,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     GameObject bossCombatSquadObj = GameObject.Instantiate(_bossCombatSquadPrefab);
 
                     BossGroup bossGroup = bossCombatSquadObj.GetComponent<BossGroup>();
-                    bossGroup.dropPosition = null; // Don't drop an squad
+                    bossGroup.dropPosition = null; // Don't drop an item
 
                     CombatSquad bossCombatSquad = bossCombatSquadObj.GetComponent<CombatSquad>();
                     bossCombatSquad.AddMember(master);
@@ -158,53 +249,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     NetworkServer.Spawn(bossCombatSquadObj);
                 }
             }
-        }
 
-        const int MAX_TRACKED_CHARACTER_COUNT = 50;
-        static readonly Queue<DeadCharacterInfo> _trackedDeadCharacters = new Queue<DeadCharacterInfo>(MAX_TRACKED_CHARACTER_COUNT);
-
-        [SystemInitializer]
-        static void Init()
-        {
-            GlobalEventManager.onCharacterDeathGlobal += damageReport =>
+            public override readonly string ToString()
             {
-                if (!NetworkServer.active)
-                    return;
-
-                CharacterMaster victimMaster = damageReport.victimMaster;
-                if (!victimMaster || !victimMaster.IsDeadAndOutOfLivesServer())
-                    return;
-
-                _trackedDeadCharacters.Enqueue(new DeadCharacterInfo(damageReport));
-                while (_trackedDeadCharacters.Count > MAX_TRACKED_CHARACTER_COUNT)
-                {
-                    _trackedDeadCharacters.Dequeue();
-                }
-            };
-
-            Run.onRunDestroyGlobal += _ =>
-            {
-                _trackedDeadCharacters.Clear();
-            };
-
-            Stage.onServerStageComplete += _ =>
-            {
-                _trackedDeadCharacters.Clear();
-            };
-        }
-
-        [EffectCanActivate]
-        static bool CanActivate()
-        {
-            return _trackedDeadCharacters.Count > 0;
-        }
-
-        public override void OnStart()
-        {
-            while (_trackedDeadCharacters.Count > 0)
-            {
-                DeadCharacterInfo characterInfo = _trackedDeadCharacters.Dequeue();
-                characterInfo.Respawn();
+                return $"{BodyCatalog.GetBodyName(_bodyIndex)}";
             }
         }
     }
