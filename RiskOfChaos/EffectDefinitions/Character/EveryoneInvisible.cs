@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 
@@ -10,7 +11,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
     {
         public override void OnStart()
         {
-            CharacterBody.readOnlyInstancesList.TryDo(handleBody);
+            CharacterBody.readOnlyInstancesList.TryDo(handleBody, FormatUtils.GetBestBodyName);
 
             CharacterBody.onBodyStartGlobal += handleBody;
         }
@@ -22,7 +23,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             CharacterBody.readOnlyInstancesList.TryDo(body =>
             {
                 body.RemoveBuff(RoR2Content.Buffs.Cloak);
-            });
+            }, FormatUtils.GetBestBodyName);
         }
 
         void handleBody(CharacterBody body)
