@@ -111,7 +111,7 @@ If the game loses connection to your channel, it will automatically attempt to r
 * No sprinting: Disables sprinting for all characters, lasts 30 seconds
 * Everyone is Invisible: Every character on the stage becomes invisible, lasts 30 seconds
 * Revive Dead Characters: Revives all recently killed characters
-* The Floor is Lava: Every character touching the ground is set on fire
+* The Floor is Lava: Every character touching the ground is set on fire, lasts 30 seconds
 </details>
 
 FAQ:
