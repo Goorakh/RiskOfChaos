@@ -104,5 +104,6 @@
 		"EFFECT_DISABLE_SPRINTING_NAME": "No Sprinting",
 		"EFFECT_EVERYONE_INVISIBLE_NAME": "Everyone is Invisible",
 		"EFFECT_REVIVE_DEAD_CHARACTERS_NAME": "Revive Dead Characters",
+		"EFFECT_FLOOR_IS_LAVA_NAME": "The Floor is Lava",
 	}
 }
