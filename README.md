@@ -86,7 +86,7 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Blood Money: All interactable prices are converted into percent health cost, lasts 1 stage
 * Force Activate Random Skill: Forces a random skill to constantly activate, lasts 1 stage
 * Spawn Random Enemy: Spawns a random enemy for every player
-* Spawn Random Ally: Spawns a random ally for every playerVoidtouch Everyone
+* Spawn Random Ally: Spawns a random ally for every player
 * Steal All Player Items: Steals all items from every player and distributes them among enemies, damage the enemy that took items to gain them back (leaving the stage will also give all the items back)
 * Reinforcements: Spawns allied survivors in drop pods around the map.
 * Bouncy Projectiles: All projectiles and bullets bounce on the surface they hit. Lasts 1 stage.
