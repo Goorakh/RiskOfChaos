@@ -27,6 +27,9 @@
 
 * Renamed effect: Touch Void -> Voidtouch Everyone
 
+* All Items are Void Potentials:
+  * Fixed duplicate items drops if the effect is activated while Artifact of Command is active
+
 **1.8.0 Changes:**
 
 * Added 6 new effects:

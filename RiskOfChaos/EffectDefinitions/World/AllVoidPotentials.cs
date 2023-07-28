@@ -20,7 +20,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return _optionPickupPrefab;
+            return _optionPickupPrefab && (!RunArtifactManager.instance || !RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.commandArtifactDef));
         }
 
         public override void OnStart()
