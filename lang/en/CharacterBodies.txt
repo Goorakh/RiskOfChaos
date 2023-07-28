@@ -1,0 +1,6 @@
+{
+	strings:
+	{
+		"CHAOS_FAKE_INTERACTOR_BODY": "<b>[[CHAOS MOD]]</b>",
+	}
+}

@@ -1,4 +1,5 @@
 ﻿using HG;
+using RiskOfChaos.Components;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -109,7 +110,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             ItemTierDef itemTierDef = ItemTierCatalog.GetItemTierDef(suppressedItem.tier);
             Chat.SendBroadcastChat(new ColoredTokenChatMessage
             {
-                subjectAsCharacterBody = PlayerUtils.GetLocalUserBody(),
+                subjectAsCharacterBody = ChaosInteractor.GetBody(),
                 baseToken = "VOID_SUPPRESSOR_USE_MESSAGE",
                 paramTokens = new string[]
                 {

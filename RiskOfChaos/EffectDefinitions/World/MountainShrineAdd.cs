@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using RiskOfChaos.Components;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -55,7 +56,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             Chat.SendBroadcastChat(new Chat.SubjectFormatChatMessage
             {
-                subjectAsCharacterBody = PlayerUtils.GetLocalUserBody(),
+                subjectAsCharacterBody = ChaosInteractor.GetBody(),
                 baseToken = "SHRINE_BOSS_USE_MESSAGE"
             });
 

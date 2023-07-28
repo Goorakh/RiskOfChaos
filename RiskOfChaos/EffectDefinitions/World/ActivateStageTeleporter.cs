@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using RiskOfChaos.Components;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
@@ -13,12 +14,12 @@ namespace RiskOfChaos.EffectDefinitions.World
         [EffectCanActivate]
         static bool CanActivate(EffectCanActivateContext context)
         {
-            Interactor localUserInteractor = PlayerUtils.GetLocalUserInteractor();
-            if (!localUserInteractor)
+            Interactor interactor = ChaosInteractor.GetInteractor();
+            if (!interactor)
                 return false;
 
             TeleporterInteraction tpInteraction = TeleporterInteraction.instance;
-            return tpInteraction && (!context.IsNow || tpInteraction.GetInteractability(localUserInteractor) >= Interactability.Available);
+            return tpInteraction && (!context.IsNow || tpInteraction.GetInteractability(interactor) >= Interactability.Available);
         }
 
         [EffectWeightMultiplierSelector]
@@ -35,7 +36,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         public override void OnStart()
         {
-            TeleporterInteraction.instance.OnInteractionBegin(PlayerUtils.GetLocalUserInteractor());
+            TeleporterInteraction.instance.OnInteractionBegin(ChaosInteractor.GetInteractor());
         }
     }
 }

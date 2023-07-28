@@ -27,6 +27,9 @@
 
 * Renamed effect: Touch Void -> Voidtouch Everyone
 
+* Activate Teleporter, +2 Mountain Shrine, & Eradicate Random Item:
+  * No longer credits the host in the chat message, it now properly communicates it was the mod's doing instead.
+
 * All Items are Void Potentials:
   * Fixed duplicate items drops if the effect is activated while Artifact of Command is active
 
