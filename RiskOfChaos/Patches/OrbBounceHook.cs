@@ -1,7 +1,7 @@
-﻿using HarmonyLib;
-using Mono.Cecil.Cil;
+﻿using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RiskOfChaos.ModifierController.Projectile;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Orbs;
 using System;
@@ -175,43 +175,7 @@ namespace RiskOfChaos.Patches
                 return;
             }
 
-            foreach (FieldInfo field in orbType.GetFields(BindingFlags.Public | BindingFlags.Instance))
-            {
-                object fieldValue = field.GetValue(orbInstance);
-
-                Type fieldType = field.FieldType;
-                if (fieldType.IsClass)
-                {
-                    if (typeof(ICloneable).IsAssignableFrom(fieldType))
-                    {
-                        fieldValue = ((ICloneable)fieldValue).Clone();
-                    }
-                    else if (fieldType.IsGenericType)
-                    {
-                        if (fieldType.GetGenericTypeDefinition() == typeof(List<>))
-                        {
-                            if (fieldValue is not null)
-                            {
-                                try
-                                {
-                                    // newOrb.listField = new List<T>(orbInstance.listField)
-                                    fieldValue = Activator.CreateInstance(fieldType, fieldValue);
-                                }
-                                catch (Exception ex)
-                                {
-                                    Log.Warning_NoCallerPrefix($"Failed to copy list type {fieldType.FullDescription()} for {field.DeclaringType.FullDescription()}.{field.Name}, same instance of list object will be used instead: {ex}");
-                                }
-                            }
-                        }
-                    }
-                }
-
-                field.SetValue(newOrb, fieldValue);
-
-#if DEBUG
-                Log.Debug($"Copied field value: {field.DeclaringType.FullName}.{field.Name}");
-#endif
-            }
+            orbInstance.ShallowCopy(ref newOrb);
 
             newOrb.origin = newOrbOrigin;
             newOrb.target = newTarget;

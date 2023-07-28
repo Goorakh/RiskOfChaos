@@ -1,4 +1,5 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities.Extensions;
+using RoR2;
 using System;
 using System.Reflection;
 
@@ -52,29 +53,15 @@ namespace RiskOfChaos.ModifierController.Damage
             if (!Instance || damageInfo == null)
                 return;
 
-            Type damageInfoType = damageInfo.GetType();
-
             DamageInfo damageInfoCopy;
             try
             {
-                damageInfoCopy = (DamageInfo)Activator.CreateInstance(damageInfoType);
+                damageInfoCopy = damageInfo.ShallowCopy(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             }
             catch (Exception ex)
             {
-                Log.Error_NoCallerPrefix($"Failed to create instance of DamageInfo type {damageInfoType.FullName}: {ex}");
+                Log.Error_NoCallerPrefix($"Failed to create shallow copy of {damageInfo}: {ex}");
                 return;
-            }
-
-            foreach (FieldInfo field in damageInfoType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-            {
-                try
-                {
-                    field.SetValue(damageInfoCopy, field.GetValue(damageInfo));
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning_NoCallerPrefix($"Failed to set copy field value {field.DeclaringType.FullName}.{field.Name} ({field.FieldType.FullName}): {ex}");
-                }
             }
 
             damageInfo = Instance.getModifiedValue(damageInfoCopy);
