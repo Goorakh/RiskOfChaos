@@ -13,23 +13,14 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [ChaosEffect("drop_all_items", EffectWeightReductionPercentagePerActivation = 15f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
     public sealed class DropAllItems : BaseEffect
     {
-        abstract class PickupInfo
+        abstract record class PickupInfo(Inventory Inventory, PickupIndex PickupIndex)
         {
-            public readonly Inventory Inventory;
-            public readonly PickupIndex PickupIndex;
-
             public virtual int PickupDropletCount => 1;
-
-            protected PickupInfo(Inventory inventory, PickupIndex pickupIndex)
-            {
-                Inventory = inventory;
-                PickupIndex = pickupIndex;
-            }
 
             public abstract void RemoveFromInventory();
         }
 
-        sealed class ItemPickupInfo : PickupInfo
+        sealed record class ItemPickupInfo : PickupInfo
         {
             public readonly ItemIndex ItemIndex;
             public readonly int ItemCount;
@@ -48,7 +39,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             }
         }
 
-        sealed class EquipmentPickupInfo : PickupInfo
+        sealed record class EquipmentPickupInfo : PickupInfo
         {
             public readonly EquipmentIndex EquipmentIndex;
             public readonly uint EquipmentSlotIndex;
