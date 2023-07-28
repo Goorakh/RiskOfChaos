@@ -7,7 +7,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("max_cooldowns", DefaultSelectionWeight = 0.6f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun, EffectWeightReductionPercentagePerActivation = 20f, IsNetworked = true)]
+    [ChaosEffect("max_cooldowns", IsNetworked = true)]
     public sealed class MaxCooldowns : BaseEffect
     {
         public override void OnStart()
