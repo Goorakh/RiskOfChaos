@@ -78,10 +78,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                 {
                     Log.Warning("Failed to find void infestor patch location");
                 }
-
-#if DEBUG
-                Log.Debug(il);
-#endif
             };
 
             _hasAppliedPatches = true;
