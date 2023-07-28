@@ -10,6 +10,7 @@ using RiskOfOptions.Options;
 using RoR2;
 using System;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
@@ -43,6 +44,17 @@ namespace RiskOfChaos.EffectDefinitions.Character
         static void InitConfigs()
         {
             _increaseAmountConfig = _effectInfo.BindConfig("Increase Amount", INCREASE_AMOUNT_DEFAULT_VALUE, new ConfigDescription("The amount to increase fall damage by"));
+
+            _increaseAmountConfig.SettingChanged += (s, e) =>
+            {
+                if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                    return;
+
+                foreach (IncreaseFallDamage effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<IncreaseFallDamage>())
+                {
+                    effectInstance.OnValueDirty?.Invoke();
+                }
+            };
 
             addConfigOption(new StepSliderOption(_increaseAmountConfig, new StepSliderConfig
             {
