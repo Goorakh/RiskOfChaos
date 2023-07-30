@@ -14,7 +14,7 @@
   * Added config option to disallow duplication if the item count is greater than some value (default 1000)
 
 * Gravity effects:
-  * Jump pads will now always bring players to the same location, regardless of the gravity value
+  * Jump pads will now always bring players to the same location, regardless of the current gravity
   * Gravity effects can now be activated on Commencement, they were previously blacklisted from the stage to prevent run softlocks with the jump pads up to Mithrix not bringing you all the way up
 
 * Random Gravity Direction:
@@ -29,7 +29,7 @@
 * Renamed effect: Touch Void -> Voidtouch Everyone
 
 * Activate Teleporter, +2 Mountain Shrine, & Eradicate Random Item:
-  * No longer credits the host in the chat message, it now properly communicates it was the mod's doing instead.
+  * No longer credits the host player in the chat message, it now properly communicates it was the mod's doing instead.
 
 * All Items are Void Potentials:
   * Fixed duplicate items drops if the effect is activated while Artifact of Command is active
