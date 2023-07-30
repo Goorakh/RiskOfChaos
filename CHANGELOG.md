@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**1.9.0 Changes:**
 
 * Added 5 new effects:
   * No sprinting: Disables sprinting for all characters, lasts 30 seconds
