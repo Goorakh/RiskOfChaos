@@ -1,5 +1,10 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* Superhot:
+  * Fixed time scale being really slow when players are unable to move (frozen, in cutscene, etc)
+
 **1.9.0 Changes:**
 
 * Added 5 new effects:

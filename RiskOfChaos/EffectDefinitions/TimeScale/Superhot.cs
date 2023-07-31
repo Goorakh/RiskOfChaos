@@ -1,7 +1,8 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using EntityStates;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.ModifierController.TimeScale;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
 using UnityEngine;
@@ -86,6 +87,10 @@ namespace RiskOfChaos.EffectDefinitions.TimeScale
 
                 CharacterBody body = _master.GetBody();
                 if (!body || !body.healthComponent || !body.healthComponent.alive)
+                    return false;
+
+                EntityStateMachine bodyStateMachine = EntityStateMachine.FindByCustomName(body.gameObject, "Body");
+                if (!bodyStateMachine || (!bodyStateMachine.IsInMainState() && !bodyStateMachine.CurrentStateInheritsFrom(typeof(BaseCharacterMain))))
                     return false;
 
                 return true;
