@@ -97,6 +97,20 @@ namespace RiskOfChaos.EffectDefinitions.Character
             _trackedDeadCharacters.Clear();
         }
 
+        readonly record struct DeathRewardsData(uint GoldReward, uint ExpReward, int SpawnValue)
+        {
+            public DeathRewardsData(DeathRewards deathRewards) : this(deathRewards.goldReward, deathRewards.expReward, deathRewards.spawnValue)
+            {
+            }
+
+            public readonly void ApplyRewards(DeathRewards deathRewards)
+            {
+                deathRewards.goldReward = GoldReward;
+                deathRewards.expReward = ExpReward;
+                deathRewards.spawnValue = SpawnValue;
+            }
+        }
+
         readonly struct DeadCharacterInfo : MasterSummon.IInventorySetupCallback
         {
             readonly Vector3 _bodyPosition;
@@ -112,6 +126,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             readonly CombatSquad _combatSquad;
 
+            readonly DeathRewardsData _deathRewardsData;
+
             readonly DamageReport _deathReport;
 
             public DeadCharacterInfo(DamageReport deathReport)
@@ -126,6 +142,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 {
                     _bodyPosition = victimBody.footPosition;
                     _bodyRotation = victimBody.GetRotation();
+
+                    if (victimBody.TryGetComponent(out DeathRewards deathRewards))
+                    {
+                        _deathRewardsData = new DeathRewardsData(deathRewards);
+                    }
                 }
                 else
                 {
@@ -209,6 +230,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     foreach (EntityStateMachine entityStateMachine in bodyObj.GetComponents<EntityStateMachine>())
                     {
                         entityStateMachine.initialStateType = entityStateMachine.mainStateType;
+                    }
+
+                    if (bodyObj.TryGetComponent(out DeathRewards deathRewards))
+                    {
+                        _deathRewardsData.ApplyRewards(deathRewards);
                     }
                 }
             }

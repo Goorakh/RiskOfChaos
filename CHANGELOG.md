@@ -5,6 +5,9 @@
 * Superhot:
   * Fixed time scale being really slow when players are unable to move (frozen, in cutscene, etc)
 
+* Revive Dead Characters:
+  * Revived enemies now give gold and exp when killed
+
 **1.9.0 Changes:**
 
 * Added 5 new effects:
