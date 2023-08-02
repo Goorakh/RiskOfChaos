@@ -1,12 +1,8 @@
 ﻿using HarmonyLib;
-using R2API.Utils;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character
@@ -15,19 +11,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [ChaosTimedEffect(90f, AllowDuplicates = false)]
     public sealed class AspectRoulette : TimedEffect
     {
-        static EquipmentIndex[] _aspectEquipmentIndices = Array.Empty<EquipmentIndex>();
-
-        [SystemInitializer(typeof(EliteCatalog))]
-        static void InitEquipments()
-        {
-            _aspectEquipmentIndices = EliteCatalog.eliteList
-                                                  .Select(i => EliteCatalog.GetEliteDef(i).eliteEquipmentDef)
-                                                  .Where(ed => ed.pickupModelPrefab && ed.pickupModelPrefab.name != "NullModel" && ed.dropOnDeathChance > 0f)
-                                                  .Select(ed => ed.equipmentIndex)
-                                                  .OrderBy(i => i)
-                                                  .ToArray();
-        }
-
         [RequireComponent(typeof(CharacterBody))]
         class RandomlySwapAspect : MonoBehaviour
         {
@@ -63,15 +46,15 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     return;
 
                 EquipmentIndex currentEquipment = inventory.GetEquipmentIndex();
-                if (!_body.isPlayerControlled || currentEquipment == EquipmentIndex.None || Array.BinarySearch(_aspectEquipmentIndices, currentEquipment) >= 0)
+                if (!_body.isPlayerControlled || currentEquipment == EquipmentIndex.None || EliteUtils.IsEliteEquipment(currentEquipment))
                 {
-                    if (_aspectEquipmentIndices != null && _aspectEquipmentIndices.Length > 0)
+                    if (EliteUtils.HasAnyAvailableEliteEquipments)
                     {
-                        inventory.SetEquipmentIndex(RoR2Application.rng.NextElementUniform(_aspectEquipmentIndices));
+                        inventory.SetEquipmentIndex(EliteUtils.GetRandomEliteEquipmentIndex());
                     }
                     else
                     {
-                        Log.Error($"{nameof(_aspectEquipmentIndices)} is not initialized");
+                        Log.Error($"{nameof(EliteUtils)} is not initialized");
                     }
                 }
             }
