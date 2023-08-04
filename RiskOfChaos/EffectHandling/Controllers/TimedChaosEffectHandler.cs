@@ -141,6 +141,22 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 registerTimedEffect(new ActiveTimedEffectInfo(effectInfo, timedEffectInstance));
             }
+
+            if (NetworkServer.active)
+            {
+                for (int i = _activeTimedEffects.Count - 1; i >= 0; i--)
+                {
+                    ActiveTimedEffectInfo timedEffect = _activeTimedEffects[i];
+                    if (timedEffect.EffectInfo.IncompatibleEffects.Contains(effectInfo))
+                    {
+#if DEBUG
+                        Log.Debug($"Ending timed effect {timedEffect.EffectInfo} (ID={timedEffect.EffectInstance.DispatchID}): Incompatible effect {effectInfo} started");
+#endif
+
+                        endTimedEffectAtIndex(i, true);
+                    }
+        }
+            }
         }
 
         void effectCanActivateOverride(in ChaosEffectInfo effectInfo, in EffectCanActivateContext context, ref bool canActivate)
