@@ -45,7 +45,20 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
         static ConfigEntry<float> _eliteChanceConfig;
         const float ELITE_CHANCE_CONFIG_DEFAULT_VALUE = 0.4f;
 
-        protected override float eliteChance => _eliteChanceConfig?.Value ?? ELITE_CHANCE_CONFIG_DEFAULT_VALUE;
+        protected override float eliteChance
+        {
+            get
+            {
+                if (_eliteChanceConfig == null)
+                {
+                    return ELITE_CHANCE_CONFIG_DEFAULT_VALUE;
+                }
+                else
+                {
+                    return Mathf.Clamp01(_eliteChanceConfig.Value);
+                }
+            }
+        }
 
         static ConfigEntry<bool> _allowDirectorUnavailableElitesConfig;
         const bool ALLOW_DIRECTOR_UNAVAILABLE_ELITES_CONFIG_DEFAULT_VALUE = true;
