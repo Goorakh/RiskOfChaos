@@ -16,7 +16,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
         [SystemInitializer(typeof(MasterCatalog))]
         static void Init()
         {
-            _spawnEntries = getAllValidMasterPrefabs().Where(master =>
+            _spawnEntries = getAllValidMasterPrefabs(false).Where(master =>
             {
                 CharacterBody bodyPrefab = master.bodyPrefab.GetComponent<CharacterBody>();
 

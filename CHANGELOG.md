@@ -10,6 +10,7 @@
 
 * Spawn Random Ally:
   * Fixed Grandparents spawning in the air
+  * Fixed effect not using ally skins of characters that have then
 
 **1.9.0 Changes:**
 

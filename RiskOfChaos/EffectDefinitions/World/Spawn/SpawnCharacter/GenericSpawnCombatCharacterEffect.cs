@@ -25,7 +25,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
             }
         }
 
-        protected static IEnumerable<CharacterMaster> getAllValidMasterPrefabs()
+        protected static IEnumerable<CharacterMaster> getAllValidMasterPrefabs(bool useAllySkins)
         {
             return MasterCatalog.allAiMasters.Where(masterPrefab =>
             {
@@ -56,13 +56,45 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                     return false;
                 }
 
+                if (useAllySkins)
+                {
+                switch (masterPrefab.name)
+                {
+                        case "BeetleGuardMaster":
+                        case "NullifierMaster":
+                        case "TitanGoldMaster":
+                        case "VoidJailerMaster":
+                        case "VoidMegaCrabMaster":
+#if DEBUG
+                            Log.Debug($"excluding master {masterPrefab.name}: non-ally skin");
+#endif
+
+                            return false;
+                    }
+                }
+                else
+                {
+                    switch (masterPrefab.name)
+                    {
+                        case "BeetleGuardAllyMaster":
+                        case "NullifierAllyMaster":
+                        case "TitanGoldAllyMaster":
+                        case "VoidJailerAllyMaster":
+                        case "VoidMegaCrabAllyMaster":
+#if DEBUG
+                            Log.Debug($"excluding master {masterPrefab.name}: ally skin");
+#endif
+
+                            return false;
+                    }
+                }
+
                 switch (masterPrefab.name)
                 {
                     case "AffixEarthHealerMaster": // Dies instantly
                     case "AncientWispMaster": // Does nothing
                     case "ArtifactShellMaster": // No model, does not attack, cannot be damaged
                     case "BeetleCrystalMaster": // Weird beetle reskin
-                    case "BeetleGuardAllyMaster": // Ally reskin
                     case "BeetleGuardMasterCrystal": // Weird beetle buard reskin
                     case "ClaymanMaster": // No hitboxes
                     case "EngiBeamTurretMaster": // Seems to ignore the player
@@ -71,15 +103,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                     case "MajorConstructMaster": // Beta Xi Construct
                     case "MinorConstructAttachableMaster": // Instantly dies
                     case "MinorConstructOnKillMaster": // Alpha construct reskin
-                    case "NullifierAllyMaster": // Ally reskin
                     case "ParentPodMaster": // Just a worse Parent spawn
                     case "ShopkeeperMaster": // Too much health, also flashbang thing when it takes enough damage
-                    case "TitanGoldAllyMaster": // Ally reskin
                     case "UrchinTurretMaster": // Dies shortly after spawning
-                    case "VoidBarnacleMaster": // The NoCast version will be included so its spawn position can be controller
-                    case "VoidBarnacleAllyMaster": // Ally reskin
-                    case "VoidJailerAllyMaster": // Ally reskin
-                    case "VoidMegaCrabAllyMaster": // Ally reskin
+                    case "VoidBarnacleMaster": // The NoCast version will be included so its spawn position can be controlled
+                    case "VoidBarnacleAllyMaster":
                     case "VoidRaidCrabJointMaster": // Just some balls, does nothing
                     case "VoidRaidCrabMaster": // Beta voidling, half invisible
 #if DEBUG
