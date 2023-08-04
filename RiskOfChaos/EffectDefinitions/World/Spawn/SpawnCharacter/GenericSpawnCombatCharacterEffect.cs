@@ -109,6 +109,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 
             bool isFlying;
             if (masterPrefab.masterIndex == MasterCatalog.FindMasterIndex("EngiTurretMaster") ||
+                masterPrefab.masterIndex == MasterCatalog.FindMasterIndex("GrandparentMaster") ||
                 masterPrefab.masterIndex == MasterCatalog.FindMasterIndex("SquidTurretMaster") ||
                 masterPrefab.masterIndex == MasterCatalog.FindMasterIndex("MinorConstructMaster") ||
                 masterPrefab.masterIndex == MasterCatalog.FindMasterIndex("Turret1Master") ||

@@ -8,6 +8,9 @@
 * Revive Dead Characters:
   * Revived enemies now give gold and exp when killed
 
+* Spawn Random Ally:
+  * Fixed Grandparents spawning in the air
+
 **1.9.0 Changes:**
 
 * Added 5 new effects:
