@@ -44,11 +44,7 @@ namespace RiskOfChaos.Utilities
         {
             Run.onRunStartGlobal += run =>
             {
-                _runAvailableEliteEquipments = _baseEliteEquipments.Where(i =>
-                {
-                    ExpansionDef requiredExpansion = EquipmentCatalog.GetEquipmentDef(i).requiredExpansion;
-                    return !requiredExpansion || run.IsExpansionEnabled(requiredExpansion);
-                }).OrderBy(i => i).ToArray();
+                _runAvailableEliteEquipments = _baseEliteEquipments.Where(i => !run.IsEquipmentExpansionLocked(i)).OrderBy(i => i).ToArray();
             };
 
             Run.onRunDestroyGlobal += _ =>
@@ -75,6 +71,34 @@ namespace RiskOfChaos.Utilities
         public static bool IsEliteEquipment(EquipmentIndex equipmentIndex)
         {
             return Array.BinarySearch(_baseEliteEquipments, equipmentIndex) >= 0;
+        }
+
+        public static EquipmentIndex SelectEliteEquipment(Xoroshiro128Plus rng, bool allowDirectorUnavailableElites)
+        {
+            if (allowDirectorUnavailableElites)
+            {
+                return GetRandomEliteEquipmentIndex(rng);
+            }
+            else
+            {
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                CombatDirector.EliteTierDef[] eliteTiers = CombatDirector.eliteTiers;
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+
+                CombatDirector.EliteTierDef[] availableEliteTiers = eliteTiers.Where(e => e.eliteTypes.All(ed => ed) && e.CanSelect(SpawnCard.EliteRules.Default)).ToArray();
+                if (availableEliteTiers.Length > 0)
+                {
+                    CombatDirector.EliteTierDef eliteTier = rng.NextElementUniform(availableEliteTiers);
+                    EliteDef eliteDef = eliteTier.GetRandomAvailableEliteDef(rng);
+                    if (eliteDef)
+                    {
+                        return eliteDef.eliteEquipmentDef.equipmentIndex;
+                    }
+                }
+
+                Log.Warning("No available elites");
+                return EquipmentIndex.None;
+            }
         }
     }
 }
