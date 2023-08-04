@@ -15,6 +15,9 @@
   * Fixed Grandparents spawning in the air
   * Fixed effect not using ally skins of characters that have them
 
+* Max All Cooldowns:
+  * Fixed Railgunner not being able to fire scoped shots after effect activation
+
 **1.9.0 Changes:**
 
 * Added 5 new effects:

@@ -1,8 +1,8 @@
-﻿using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using System;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
@@ -10,17 +10,50 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [ChaosEffect("max_cooldowns", IsNetworked = true)]
     public sealed class MaxCooldowns : BaseEffect
     {
+        record struct BodySkillPair(BodyIndex BodyIndex, SkillSlot SkillSlot)
+        {
+            public BodySkillPair(string bodyName, SkillSlot slot) : this(BodyCatalog.FindBodyIndex(bodyName), slot)
+            {
+            }
+        }
+        static BodySkillPair[] _ignoreSkillSlots = Array.Empty<BodySkillPair>();
+
+        [SystemInitializer(typeof(BodyCatalog))]
+        static void Init()
+        {
+            _ignoreSkillSlots = new BodySkillPair[]
+            {
+                // Railgunner can only get secondary stocks back after shooting while scoped, which you can't do if stocks are 0
+                new BodySkillPair("RailgunnerBody", SkillSlot.Secondary)
+            };
+        }
+
+        static bool canDrainSkill(BodyIndex bodyIndex, SkillSlot slot)
+        {
+            foreach (BodySkillPair ignoreSkillPair in _ignoreSkillSlots)
+            {
+                if (ignoreSkillPair.BodyIndex == bodyIndex && ignoreSkillPair.SkillSlot == slot)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         public override void OnStart()
         {
             CharacterBody.readOnlyInstancesList.TryDo(body =>
             {
                 if (body.hasAuthority)
                 {
-                    int skillSlotCount = body.skillLocator.skillSlotCount;
+                    SkillLocator skillLocator = body.skillLocator;
+                    
+                    int skillSlotCount = skillLocator.skillSlotCount;
                     for (int i = 0; i < skillSlotCount; i++)
                     {
-                        GenericSkill skill = body.skillLocator.GetSkillAtIndex(i);
-                        if (skill)
+                        GenericSkill skill = skillLocator.GetSkillAtIndex(i);
+                        if (skill && canDrainSkill(body.bodyIndex, skillLocator.FindSkillSlot(skill)))
                         {
                             skill.RemoveAllStocks();
                         }
