@@ -8,9 +8,12 @@
 * Revive Dead Characters:
   * Revived enemies now give gold and exp when killed
 
+* Spawn Random Enemy & Ally:
+  * Added chance for spawned characters to be elites
+
 * Spawn Random Ally:
   * Fixed Grandparents spawning in the air
-  * Fixed effect not using ally skins of characters that have then
+  * Fixed effect not using ally skins of characters that have them
 
 **1.9.0 Changes:**
 

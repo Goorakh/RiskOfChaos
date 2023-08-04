@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.Navigation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -9,6 +10,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 {
     public abstract class GenericSpawnCombatCharacterEffect : GenericSpawnEffect<CharacterMaster>
     {
+        protected virtual float eliteChance => 0f;
+        protected virtual bool allowDirectorUnavailableElites => false;
+
         protected class CharacterSpawnEntry : SpawnEntry
         {
             public CharacterSpawnEntry(CharacterMaster[] items, float weight) : base(items, weight)
@@ -23,6 +27,79 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
             {
                 return base.isItemAvailable(prefab) && prefab && ExpansionUtils.IsCharacterMasterExpansionAvailable(prefab.gameObject);
             }
+        }
+
+        protected record struct CharacterSpawnData(EquipmentIndex OverrideEquipment, int[] ItemStacks, Loadout Loadout) : IDisposable
+        {
+            public CharacterSpawnData() : this(EquipmentIndex.None, ItemCatalog.RequestItemStackArray(), null)
+            {
+            }
+
+            public void GiveItem(ItemDef itemDef, int count = 1)
+            {
+                if (!itemDef)
+                    throw new ArgumentNullException(nameof(itemDef));
+
+                GiveItem(itemDef.itemIndex, count);
+            }
+
+            public void GiveItem(ItemIndex itemIndex, int count = 1)
+            {
+                if (ItemStacks == null)
+                {
+                    Log.Warning($"{nameof(ItemStacks)} not initialized");
+                    return;
+                }
+
+                if (itemIndex <= ItemIndex.None || (int)itemIndex >= ItemStacks.Length)
+                {
+                    Log.Warning($"Invalid ItemIndex {itemIndex}");
+                    return;
+                }
+
+                ItemStacks[(int)itemIndex] += count;
+            }
+
+            public void ApplyTo(CharacterMaster master)
+            {
+                Inventory inventory = master.inventory;
+
+                if (inventory)
+                {
+                    if (OverrideEquipment != EquipmentIndex.None)
+                    {
+                        inventory.SetEquipmentIndex(OverrideEquipment);
+                    }
+
+                    if (ItemStacks != null)
+                    {
+                        inventory.AddItemsFrom(ItemStacks, i => true);
+                    }
+                }
+
+                if (Loadout != null)
+                {
+                    Loadout newLoadout = new Loadout();
+                    Loadout.Copy(newLoadout);
+                    master.SetLoadoutServer(newLoadout);
+                }
+            }
+
+            public void Dispose()
+            {
+                if (ItemStacks != null)
+                {
+                    ItemCatalog.ReturnItemStackArray(ItemStacks);
+                    ItemStacks = null;
+                }
+            }
+        }
+
+        CharacterSpawnData _spawnData = new CharacterSpawnData();
+
+        ~GenericSpawnCombatCharacterEffect()
+        {
+            _spawnData.Dispose();
         }
 
         protected static IEnumerable<CharacterMaster> getAllValidMasterPrefabs(bool useAllySkins)
@@ -58,8 +135,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 
                 if (useAllySkins)
                 {
-                switch (masterPrefab.name)
-                {
+                    switch (masterPrefab.name)
+                    {
                         case "BeetleGuardMaster":
                         case "NullifierMaster":
                         case "TitanGoldMaster":
@@ -159,45 +236,57 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
             return placementRule.EvaluateToPosition(new Xoroshiro128Plus(rng.nextUlong), bodyPrefab.hullClassification, nodeGraphType, NodeFlags.None, NodeFlags.NoCharacterSpawn);
         }
 
-        protected virtual void onSpawned(CharacterMaster master)
+        protected void setupPrefab(CharacterMaster masterPrefab)
         {
-            if (master.masterIndex == MasterCatalog.FindMasterIndex("EquipmentDroneMaster"))
+            if (masterPrefab.masterIndex == MasterCatalog.FindMasterIndex("EquipmentDroneMaster"))
             {
-                Inventory inventory = master.inventory;
-                if (inventory)
+                List<EquipmentIndex> availableEquipment = EquipmentCatalog.equipmentList.Where(Run.instance.IsEquipmentAvailable).ToList();
+                if (availableEquipment.Count > 0)
                 {
-                    EquipmentIndex equipmentIndex = RNG.NextElementUniform(EquipmentCatalog.equipmentList.Where(Run.instance.IsEquipmentAvailable).ToList());
+                    EquipmentIndex equipmentIndex = RoR2Application.rng.NextElementUniform(availableEquipment);
 
 #if DEBUG
                     Log.Debug($"Gave {Language.GetString(EquipmentCatalog.GetEquipmentDef(equipmentIndex).nameToken, "en")} to spawned equipment drone");
 #endif
 
-                    inventory.SetEquipmentIndex(equipmentIndex);
+                    _spawnData.OverrideEquipment = equipmentIndex;
                 }
-            }
-            else if (master.masterIndex == MasterCatalog.FindMasterIndex("DroneCommanderMaster"))
-            {
-                Inventory inventory = master.inventory;
-                if (inventory)
+                else
                 {
-                    inventory.GiveItem(DLC1Content.Items.DroneWeaponsBoost);
+                    Log.Warning("No available equipment to give to spawned equipment drone");
+                }
+            }
+            else if (masterPrefab.masterIndex == MasterCatalog.FindMasterIndex("DroneCommanderMaster"))
+            {
+                _spawnData.GiveItem(DLC1Content.Items.DroneWeaponsBoost);
 
-                    if (UnityEngine.Random.value < 0.1f)
-                    {
-                        inventory.GiveItem(DLC1Content.Items.DroneWeaponsDisplay2);
-                    }
-                    else
-                    {
-                        inventory.GiveItem(DLC1Content.Items.DroneWeaponsDisplay1);
-                    }
+                if (UnityEngine.Random.value < 0.1f)
+                {
+                    _spawnData.GiveItem(DLC1Content.Items.DroneWeaponsDisplay2);
+                }
+                else
+                {
+                    _spawnData.GiveItem(DLC1Content.Items.DroneWeaponsDisplay1);
                 }
             }
 
-            Loadout loadout = LoadoutUtils.GetRandomLoadoutFor(master, new Xoroshiro128Plus(RNG.nextUlong));
-            if (loadout != null)
+            _spawnData.Loadout = LoadoutUtils.GetRandomLoadoutFor(masterPrefab, new Xoroshiro128Plus(RNG.nextUlong));
+
+            if (RNG.nextNormalizedFloat <= eliteChance)
             {
-                master.SetLoadoutServer(loadout);
+                _spawnData.OverrideEquipment = EliteUtils.SelectEliteEquipment(new Xoroshiro128Plus(RNG.nextUlong), allowDirectorUnavailableElites);
             }
+
+            modifySpawnData(ref _spawnData);
+        }
+
+        protected virtual void modifySpawnData(ref CharacterSpawnData spawnData)
+        {
+        }
+
+        protected virtual void onSpawned(CharacterMaster master)
+        {
+            _spawnData.ApplyTo(master);
         }
     }
 }
