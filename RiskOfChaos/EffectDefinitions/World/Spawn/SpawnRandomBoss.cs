@@ -1,6 +1,11 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using BepInEx.Configuration;
+using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfOptions.OptionConfigs;
+using RiskOfOptions.Options;
 using RoR2;
 using System;
 using UnityEngine;
@@ -12,6 +17,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
     [ChaosEffect("spawn_random_boss", DefaultSelectionWeight = 0.8f)]
     public sealed class SpawnRandomBoss : GenericDirectorSpawnEffect<CharacterSpawnCard>
     {
+        [InitEffectInfo]
+        static readonly ChaosEffectInfo _effectInfo;
+
         class BossSpawnEntry : SpawnCardEntry
         {
             public BossSpawnEntry(CharacterSpawnCard[] items, float weight) : base(items, weight)
@@ -86,17 +94,69 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             };
         }
 
+        static ConfigEntry<float> _eliteChanceConfig;
+        const float ELITE_CHANCE_CONFIG_DEFAULT_VALUE = 0.15f;
+
+        static float eliteChance
+        {
+            get
+            {
+                if (_eliteChanceConfig == null)
+                {
+                    return ELITE_CHANCE_CONFIG_DEFAULT_VALUE;
+                }
+                else
+                {
+                    return Mathf.Clamp01(_eliteChanceConfig.Value);
+                }
+            }
+        }
+
+        static ConfigEntry<bool> _allowDirectorUnavailableElitesConfig;
+        const bool ALLOW_DIRECTOR_UNAVAILABLE_ELITES_CONFIG_DEFAULT_VALUE = true;
+
+        static bool allowDirectorUnavailableElites => _allowDirectorUnavailableElitesConfig?.Value ?? ALLOW_DIRECTOR_UNAVAILABLE_ELITES_CONFIG_DEFAULT_VALUE;
+
+        [SystemInitializer(typeof(ChaosEffectCatalog))]
+        static void InitConfigs()
+        {
+            _eliteChanceConfig = _effectInfo.BindConfig("Elite Chance", ELITE_CHANCE_CONFIG_DEFAULT_VALUE, new ConfigDescription("The likelyhood for the spawned boss to be an elite"));
+
+            addConfigOption(new StepSliderOption(_eliteChanceConfig, new StepSliderConfig
+            {
+                formatString = "{0:P0}",
+                min = 0f,
+                max = 1f,
+                increment = 0.01f
+            }));
+
+            _allowDirectorUnavailableElitesConfig = _effectInfo.BindConfig("Ignore Elite Selection Rules", ALLOW_DIRECTOR_UNAVAILABLE_ELITES_CONFIG_DEFAULT_VALUE, new ConfigDescription("If the effect should ignore normal elite selection rules. If enabled, any elite type can be selected, if disabled, only the elite types that can currently be spawned on the stage can be selected"));
+
+            addConfigOption(new CheckBoxOption(_allowDirectorUnavailableElitesConfig));
+        }
+
         [EffectCanActivate]
         static bool CanActivate()
         {
             return areAnyAvailable(_bossSpawnEntries);
         }
 
+        CharacterSpawnCard _selectedSpawnCard;
+        Loadout _loadout;
+
+        public override void OnPreStartServer()
+        {
+            base.OnPreStartServer();
+
+            _selectedSpawnCard = getItemToSpawn(_bossSpawnEntries, RNG);
+            _loadout = LoadoutUtils.GetRandomLoadoutFor(_selectedSpawnCard, RNG);
+        }
+
         public override void OnStart()
         {
             DirectorPlacementRule placementRule = SpawnUtils.GetPlacementRule_AtRandomPlayerApproximate(RNG, 30f, 50f);
 
-            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(getItemToSpawn(_bossSpawnEntries, RNG), placementRule, RNG)
+            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_selectedSpawnCard, placementRule, RNG)
             {
                 teamIndexOverride = TeamIndex.Monster
             };
@@ -127,7 +187,21 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 if (!master)
                     return;
 
-                master.SetLoadoutServer(LoadoutUtils.GetRandomLoadoutFor(master, RNG));
+                if (_loadout != null)
+                {
+                    master.SetLoadoutServer(_loadout);
+                }
+
+                if (RNG.nextNormalizedFloat <= eliteChance)
+                {
+                    EquipmentIndex eliteEquipmentIndex = EliteUtils.SelectEliteEquipment(RNG, allowDirectorUnavailableElites);
+
+                    Inventory inventory = master.inventory;
+                    if (inventory && inventory.GetEquipmentIndex() == EquipmentIndex.None)
+                    {
+                        inventory.SetEquipmentIndex(eliteEquipmentIndex);
+                    }
+                }
 
                 if (bossCombatSquad)
                 {

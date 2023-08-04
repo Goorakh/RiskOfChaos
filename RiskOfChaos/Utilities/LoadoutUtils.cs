@@ -62,11 +62,39 @@ namespace RiskOfChaos.Utilities
                 BodyIndex bodyIndex = BodyCatalog.FindBodyIndex(bodyObject);
                 if (bodyIndex != BodyIndex.None)
                 {
-                    return GetRandomLoadoutFor(bodyIndex, new Xoroshiro128Plus(rng.nextUlong), flags);
+                    return GetRandomLoadoutFor(bodyIndex, rng, flags);
                 }
             }
 
             return null;
+        }
+
+        public static Loadout GetRandomLoadoutFor(GameObject characterPrefab, Xoroshiro128Plus rng, GeneratorFlags flags = GeneratorFlags.All)
+        {
+            if (!characterPrefab)
+                return null;
+
+            if (characterPrefab.TryGetComponent(out CharacterBody characterBody))
+            {
+                return GetRandomLoadoutFor(characterBody.bodyIndex, rng, flags);
+            }
+            else if (characterPrefab.TryGetComponent(out CharacterMaster characterMaster))
+            {
+                return GetRandomLoadoutFor(characterMaster, rng, flags);
+            }
+            else
+            {
+                Log.Warning($"{characterPrefab} has no character related components");
+                return null;
+            }
+        }
+
+        public static Loadout GetRandomLoadoutFor(CharacterSpawnCard spawnCard, Xoroshiro128Plus rng, GeneratorFlags flags = GeneratorFlags.All)
+        {
+            if (!spawnCard)
+                return null;
+
+            return GetRandomLoadoutFor(spawnCard.prefab, rng, flags);
         }
     }
 }

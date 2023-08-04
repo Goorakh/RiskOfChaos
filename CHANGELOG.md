@@ -8,7 +8,7 @@
 * Revive Dead Characters:
   * Revived enemies now give gold and exp when killed
 
-* Spawn Random Enemy & Ally:
+* Spawn Random Enemy, Ally, & Boss:
   * Added chance for spawned characters to be elites
 
 * Spawn Random Ally:
