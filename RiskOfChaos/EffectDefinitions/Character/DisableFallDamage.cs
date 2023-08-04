@@ -1,55 +1,44 @@
-﻿using MonoMod.Cil;
-using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
+﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
-using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.ModifierController.Damage;
 using RoR2;
+using System;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("disable_fall_damage")]
     [ChaosTimedEffect(TimedEffectType.UntilStageEnd, AllowDuplicates = false)]
-    public sealed class DisableFallDamage : TimedEffect
+    public sealed class DisableFallDamage : TimedEffect, IDamageInfoModificationProvider
     {
-        [InitEffectInfo]
-        public static readonly ChaosEffectInfo EffectInfo;
+        public event Action OnValueDirty;
 
-        static bool _hasAppliedPatches;
-        static void tryApplyPatches()
+        [EffectCanActivate]
+        static bool CanActivate()
         {
-            if (_hasAppliedPatches)
-                return;
-
-            IL.RoR2.GlobalEventManager.OnCharacterHitGroundServer += il =>
-            {
-                ILCursor c = new ILCursor(il);
-
-                while (c.TryGotoNext(MoveType.After, x => x.MatchLdfld<CharacterBody>(nameof(CharacterBody.bodyFlags))))
-                {
-                    c.EmitDelegate((CharacterBody.BodyFlags bodyFlags) =>
-                    {
-                        if (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
-                        {
-                            return bodyFlags | CharacterBody.BodyFlags.IgnoreFallDamage;
-                        }
-                        else
-                        {
-                            return bodyFlags;
-                        }
-                    });
-                }
-            };
-
-            _hasAppliedPatches = true;
+            return DamageInfoModificationManager.Instance;
         }
 
         public override void OnStart()
         {
-            tryApplyPatches();
+            DamageInfoModificationManager.Instance.RegisterModificationProvider(this);
+        }
+
+        public void ModifyValue(ref DamageInfo value)
+        {
+            if ((value.damageType & DamageType.FallDamage) != 0)
+            {
+                value.rejected = true;
+                value.canRejectForce = true;
+            }
         }
 
         public override void OnEnd()
         {
+            if (DamageInfoModificationManager.Instance)
+            {
+                DamageInfoModificationManager.Instance.UnregisterModificationProvider(this);
+            }
         }
     }
 }
