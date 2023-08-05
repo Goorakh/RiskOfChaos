@@ -103,10 +103,16 @@ namespace RiskOfChaos.ConfigHandling
             if (Entry != null)
             {
                 Entry.SettingChanged += Entry_SettingChanged;
+                invokeSettingChanged();
             }
         }
 
         void Entry_SettingChanged(object sender, EventArgs e)
+        {
+            invokeSettingChanged();
+        }
+
+        private void invokeSettingChanged()
         {
             SettingChanged?.Invoke(this, new ConfigChangedArgs<T>(this));
         }
