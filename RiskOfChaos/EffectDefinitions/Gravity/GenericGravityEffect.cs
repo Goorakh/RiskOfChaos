@@ -1,8 +1,6 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.ModifierController.Gravity;
-using RoR2;
 using System;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 

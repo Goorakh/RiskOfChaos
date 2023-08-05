@@ -4,7 +4,6 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
