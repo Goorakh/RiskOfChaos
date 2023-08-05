@@ -54,7 +54,7 @@ namespace RiskOfChaos.Patches
                     if (!characterMotor)
                         return;
 
-                    if (characterMotor.TryGetComponent(out IsJumpingOnJumpPadTracker jumpingTracker))
+                    if (characterMotor.TryGetComponent(out IsJumpingOnJumpPadTracker jumpingTracker) && !jumpingTracker.NetworkedIsJumping)
                     {
 #if DEBUG
                         Log.Debug($"{FormatUtils.GetBestBodyName(characterMotor.body)} started jumping on jump pad");
