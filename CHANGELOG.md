@@ -11,6 +11,9 @@
 * Spawn Random Enemy, Ally, & Boss:
   * Added chance for spawned characters to be elites
 
+* Freeze!:
+  * Freeze duration can now be configured
+
 * Spawn Random Ally:
   * Fixed Grandparents spawning in the air
   * Fixed effect not using ally skins of characters that have them
