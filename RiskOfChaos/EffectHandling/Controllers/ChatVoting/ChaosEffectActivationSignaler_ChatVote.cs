@@ -172,6 +172,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
         protected virtual void OnDisable()
         {
             Configs.General.OnTimeBetweenEffectsChanged -= onTimeBetweenEffectsChanged;
+            Configs.General.OnShouldActivateEffectsChanged -= onShouldActivateEffectsChanged;
             Configs.ChatVoting.OnWinnerSelectionModeChanged -= onVoteWinnerSelectionModeChanged;
 
             if (_voteTimer != null)
