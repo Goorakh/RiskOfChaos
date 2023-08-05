@@ -12,6 +12,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
     [ChaosEffect("give_random_item", EffectWeightReductionPercentagePerActivation = 0f)]
     public sealed class GiveRandomItem : BaseEffect
     {
+        static bool _dropTableDirty = false;
         static BasicPickupDropTable _dropTable;
 
         static ConfigHolder<float> createItemTierWeightConfig(string name, float defaultWeight)
@@ -26,7 +27,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                                            increment = 0.05f
                                        })
                                        .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(0f))
-                                       .OnValueChanged(regenerateDropTable)
+                                       .OnValueChanged(() => _dropTableDirty = true)
                                        .Build();
         }
 
@@ -74,6 +75,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 _dropTable.Regenerate(run);
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
             }
+
+            _dropTableDirty = false;
         }
 
         [SystemInitializer]
@@ -102,14 +105,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             };
         }
 
-        [SystemInitializer(typeof(ItemCatalog), typeof(EquipmentCatalog))]
-        static void InitDropTable()
-        {
-            regenerateDropTable();
-        }
-
         public override void OnStart()
         {
+            if (!_dropTable || _dropTableDirty)
+            {
+                regenerateDropTable();
+            }
+
             PickupDef pickupDef = PickupCatalog.GetPickupDef(_dropTable.GenerateDrop(RNG));
 
             PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>

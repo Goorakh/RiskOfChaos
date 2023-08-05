@@ -15,6 +15,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [ChaosEffect("monster_inventory_give_random_item", EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun, EffectWeightReductionPercentagePerActivation = 15f)]
     public sealed class MonsterInventoryGiveRandomItem : BaseEffect
     {
+        static bool _dropTableDirty = false;
         static BasicPickupDropTable _dropTable;
 
         static ConfigHolder<float> createWeightConfig(string name, float defaultValue)
@@ -29,7 +30,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                            increment = 0.05f
                                        })
                                        .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(0f))
-                                       .OnValueChanged(regenerateDropTable)
+                                       .OnValueChanged(() => _dropTableDirty = true)
                                        .Build();
         }
 
@@ -75,6 +76,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 _dropTable.Regenerate(run);
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
             }
+
+            _dropTableDirty = false;
         }
 
         [SystemInitializer]
@@ -97,12 +100,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 {
                 }
             };
-        }
-
-        [SystemInitializer(typeof(ItemCatalog))]
-        static void InitDropTable()
-        {
-            regenerateDropTable();
         }
 
         static Inventory _monsterInventory;
@@ -161,11 +158,16 @@ namespace RiskOfChaos.EffectDefinitions.Character
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return _dropTable && _monsterInventory;
+            return _monsterInventory;
         }
 
         public override void OnStart()
         {
+            if (!_dropTable || _dropTableDirty)
+            {
+                regenerateDropTable();
+            }
+
             PickupDef pickupDef = PickupCatalog.GetPickupDef(_dropTable.GenerateDrop(RNG));
             _monsterInventory.TryGrant(pickupDef, true);
 
