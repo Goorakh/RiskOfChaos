@@ -88,8 +88,11 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders
             }
 
             _boundToConfig = entry;
-            _boundToConfig.SettingChanged += onBoundConfigChanged;
-            ParsedInput = _boundToConfig.Value;
+            if (entry != null)
+            {
+                _boundToConfig.SettingChanged += onBoundConfigChanged;
+                ParsedInput = _boundToConfig.Value;
+            }
         }
 
         void onBoundConfigChanged(object sender, EventArgs e)
