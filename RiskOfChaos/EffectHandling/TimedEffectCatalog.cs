@@ -34,8 +34,6 @@ namespace RiskOfChaos.EffectHandling
 
                 for (int i = 0; i < _timedEffectCount; i++)
                 {
-                    _timedEffectInfos[i].AddRiskOfOptionsEntries();
-
                     _effectIndexToTimedEffectIndexMap.Add(_timedEffectInfos[i].EffectIndex, _timedEffectInfos[i].TimedEffectIndex);
                 }
 
