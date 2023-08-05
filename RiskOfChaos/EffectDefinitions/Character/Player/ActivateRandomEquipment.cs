@@ -1,4 +1,4 @@
-﻿using BepInEx.Configuration;
+﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -6,7 +6,6 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
-using RiskOfOptions.Options;
 using RoR2;
 using System;
 using System.Linq;
@@ -23,20 +22,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
         readonly struct ActivatableEquipment
         {
             readonly EquipmentDef _equipmentDef;
-            readonly ConfigEntry<float> _equipmentWeightConfig;
-
-            readonly float selectionWeight
-            {
-                get
-                {
-                    if (_equipmentWeightConfig != null)
-                    {
-                        return Mathf.Max(_equipmentWeightConfig.Value, 0f);
-                    }
-
-                    return 1f;
-                }
-            }
+            readonly ConfigHolder<float> _equipmentWeightConfig;
 
             public ActivatableEquipment(EquipmentDef equipmentDef)
             {
@@ -44,20 +30,24 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
                 string equipmentName = Language.GetString(equipmentDef.nameToken, "en");
 
-                _equipmentWeightConfig = _effectInfo.BindConfig($"{equipmentName.FilterConfigKey()} Weight", 1f, new ConfigDescription($"How likely {equipmentName} is to be selected"));
+                _equipmentWeightConfig = ConfigFactory<float>.CreateConfig($"{equipmentName.FilterConfigKey()} Weight", 1f)
+                                                             .Description($"How likely {equipmentName} is to be selected")
+                                                             .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(0f))
+                                                             .OptionConfig(new StepSliderConfig
+                                                             {
+                                                                 formatString = "{0:F1}",
+                                                                 min = 0f,
+                                                                 max = 2f,
+                                                                 increment = 0.1f
+                                                             })
+                                                             .Build();
 
-                addConfigOption(new StepSliderOption(_equipmentWeightConfig, new StepSliderConfig
-                {
-                    formatString = "{0:F1}",
-                    min = 0f,
-                    max = 2f,
-                    increment = 0.1f
-                }));
+                _equipmentWeightConfig.Bind(_effectInfo);
             }
 
             public readonly void AddToWeightedSelection(WeightedSelection<EquipmentDef> selection)
             {
-                selection.AddChoice(_equipmentDef, selectionWeight);
+                selection.AddChoice(_equipmentDef, _equipmentWeightConfig.Value);
             }
         }
 

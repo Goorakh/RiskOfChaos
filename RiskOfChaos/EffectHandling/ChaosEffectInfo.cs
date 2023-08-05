@@ -40,7 +40,7 @@ namespace RiskOfChaos.EffectHandling
                 return false;
             }
 
-            if (_isEnabledConfig != null && !_isEnabledConfig.Value)
+            if (IsEnabledConfig != null && !IsEnabledConfig.Value)
             {
 #if DEBUG
                 Log.Debug($"effect {Identifier} cannot activate due to: Disabled in config");
@@ -67,7 +67,7 @@ namespace RiskOfChaos.EffectHandling
         readonly Type[] _incompatibleEffectTypes;
         public readonly ReadOnlyArray<ChaosEffectInfo> IncompatibleEffects;
 
-        readonly ConfigEntry<bool> _isEnabledConfig;
+        public readonly ConfigEntry<bool> IsEnabledConfig;
         readonly ConfigEntry<float> _selectionWeightConfig;
 
         readonly ConfigEntry<float> _weightReductionPerActivation;
@@ -219,7 +219,7 @@ namespace RiskOfChaos.EffectHandling
 
             ConfigFile = configFile;
 
-            _isEnabledConfig = BindConfig("Effect Enabled", true, new ConfigDescription("If the effect should be able to be picked"));
+            IsEnabledConfig = BindConfig("Effect Enabled", true, new ConfigDescription("If the effect should be able to be picked"));
 
             _selectionWeightConfig = BindConfig("Effect Weight", attribute.DefaultSelectionWeight, new ConfigDescription("How likely the effect is to be picked, higher value means more likely, lower value means less likely"));
 
@@ -234,7 +234,10 @@ namespace RiskOfChaos.EffectHandling
             {
                 foreach (InitEffectMemberAttribute initEffectMember in member.GetCustomAttributes<InitEffectMemberAttribute>())
                 {
-                    initEffectMember.ApplyTo(member, this);
+                    if (initEffectMember.Priority == InitEffectMemberAttribute.InitializationPriority.EffectInfoCreation)
+                    {
+                        initEffectMember.ApplyTo(member, this);
+                    }
                 }
             }
         }
@@ -341,9 +344,15 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly void AddRiskOfOptionsEntries()
         {
-            if (_isEnabledConfig != null)
+            if (IsEnabledConfig != null)
             {
-                ChaosEffectCatalog.AddEffectConfigOption(new CheckBoxOption(_isEnabledConfig));
+                ChaosEffectCatalog.AddEffectConfigOption(new CheckBoxOption(IsEnabledConfig));
+            }
+
+            ConfigEntry<bool> isEnabledConfig = IsEnabledConfig;
+            bool isEffectDisabled()
+            {
+                return isEnabledConfig != null && !isEnabledConfig.Value;
             }
 
             if (_selectionWeightConfig != null)
@@ -353,7 +362,8 @@ namespace RiskOfChaos.EffectHandling
                     formatString = "{0:F1}",
                     increment = 0.1f,
                     min = 0f,
-                    max = 2.5f
+                    max = 2.5f,
+                    checkIfDisabled = isEffectDisabled
                 }));
             }
 
@@ -364,13 +374,17 @@ namespace RiskOfChaos.EffectHandling
                     formatString = "-{0:P0}",
                     increment = 0.01f,
                     min = 0f,
-                    max = 1f
+                    max = 1f,
+                    checkIfDisabled = isEffectDisabled
                 }));
             }
 
             if (_effectRepetitionCountMode != null)
             {
-                ChaosEffectCatalog.AddEffectConfigOption(new ChoiceOption(_effectRepetitionCountMode));
+                ChaosEffectCatalog.AddEffectConfigOption(new ChoiceOption(_effectRepetitionCountMode, new ChoiceConfig
+                {
+                    checkIfDisabled = isEffectDisabled
+                }));
             }
         }
 

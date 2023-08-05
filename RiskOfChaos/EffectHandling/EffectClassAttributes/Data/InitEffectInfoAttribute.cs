@@ -6,6 +6,8 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes.Data
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false)]
     public sealed class InitEffectInfoAttribute : InitEffectMemberAttribute
     {
+        public override InitializationPriority Priority => InitializationPriority.EffectInfoCreation;
+
         public override void ApplyTo(MemberInfo member, ChaosEffectInfo effectInfo)
         {
             if (member is FieldInfo field)

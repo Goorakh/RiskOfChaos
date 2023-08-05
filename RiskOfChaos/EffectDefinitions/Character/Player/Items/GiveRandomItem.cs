@@ -1,11 +1,9 @@
-﻿using BepInEx.Configuration;
-using RiskOfChaos.EffectHandling;
+﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
-using RiskOfOptions.Options;
 using RoR2;
 using UnityEngine;
 
@@ -14,22 +12,35 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
     [ChaosEffect("give_random_item", EffectWeightReductionPercentagePerActivation = 0f)]
     public sealed class GiveRandomItem : BaseEffect
     {
-        [InitEffectInfo]
-        static readonly ChaosEffectInfo _effectInfo;
-
         static BasicPickupDropTable _dropTable;
 
-        static ConfigEntry<float> _tier1Weight;
-        static ConfigEntry<float> _tier2Weight;
-        static ConfigEntry<float> _tier3Weight;
-        static ConfigEntry<float> _bossWeight;
-        static ConfigEntry<float> _lunarEquipmentWeight;
-        static ConfigEntry<float> _lunarItemWeight;
-        static ConfigEntry<float> _equipmentWeight;
-        static ConfigEntry<float> _voidTier1Weight;
-        static ConfigEntry<float> _voidTier2Weight;
-        static ConfigEntry<float> _voidTier3Weight;
-        static ConfigEntry<float> _voidBossWeight;
+        static ConfigHolder<float> createItemTierWeightConfig(string name, float defaultWeight)
+        {
+            return ConfigFactory<float>.CreateConfig($"Weight: {name}", defaultWeight)
+                                       .Description($"Controls how likely {name} are to be given\n\nA value of 0 means items from this tier will never be given")
+                                       .OptionConfig(new StepSliderConfig
+                                       {
+                                           formatString = "{0:F2}",
+                                           min = 0f,
+                                           max = 1f,
+                                           increment = 0.05f
+                                       })
+                                       .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(0f))
+                                       .OnValueChanged(regenerateDropTable)
+                                       .Build();
+        }
+
+        [EffectConfig] static readonly ConfigHolder<float> _tier1Weight = createItemTierWeightConfig("Common Items", 0.75f);
+        [EffectConfig] static readonly ConfigHolder<float> _tier2Weight = createItemTierWeightConfig("Uncommon Items", 0.6f);
+        [EffectConfig] static readonly ConfigHolder<float> _tier3Weight = createItemTierWeightConfig("Legendary Items", 0.3f);
+        [EffectConfig] static readonly ConfigHolder<float> _bossWeight = createItemTierWeightConfig("Boss Items", 0.5f);
+        [EffectConfig] static readonly ConfigHolder<float> _lunarEquipmentWeight = createItemTierWeightConfig("Lunar Equipments", 0.15f);
+        [EffectConfig] static readonly ConfigHolder<float> _lunarItemWeight = createItemTierWeightConfig("Lunar Items", 0.35f);
+        [EffectConfig] static readonly ConfigHolder<float> _equipmentWeight = createItemTierWeightConfig("Equipments", 0.25f);
+        [EffectConfig] static readonly ConfigHolder<float> _voidTier1Weight = createItemTierWeightConfig("Common Void Items", 0.4f);
+        [EffectConfig] static readonly ConfigHolder<float> _voidTier2Weight = createItemTierWeightConfig("Uncommon Void Items", 0.35f);
+        [EffectConfig] static readonly ConfigHolder<float> _voidTier3Weight = createItemTierWeightConfig("Legendary Void Items", 0.3f);
+        [EffectConfig] static readonly ConfigHolder<float> _voidBossWeight = createItemTierWeightConfig("Void Boss Items", 0.3f);
 
         static void regenerateDropTable()
         {
@@ -89,41 +100,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(DLC1Content.Equipment.LunarPortalOnUse.equipmentIndex), _equipmentWeight.Value);
                 }
             };
-        }
-
-        [SystemInitializer(typeof(ChaosEffectCatalog))]
-        static void InitConfig()
-        {
-            ConfigEntry<float> addWeightConfig(string name, float defaultValue)
-            {
-                ConfigEntry<float> config = _effectInfo.BindConfig($"Weight: {name}", defaultValue, new ConfigDescription($"Controls how likely {name} are to be given\n\nA value of 0 means items from this tier will never be given"));
-                addConfigOption(new StepSliderOption(config, new StepSliderConfig
-                {
-                    formatString = "{0:F2}",
-                    min = 0f,
-                    max = 1f,
-                    increment = 0.05f
-                }));
-
-                config.SettingChanged += static (sender, e) =>
-                {
-                    regenerateDropTable();
-                };
-
-                return config;
-            }
-
-            _tier1Weight = addWeightConfig("Common Items", 0.75f);
-            _tier2Weight = addWeightConfig("Uncommon Items", 0.6f);
-            _tier3Weight = addWeightConfig("Legendary Items", 0.3f);
-            _bossWeight = addWeightConfig("Boss Items", 0.5f);
-            _lunarEquipmentWeight = addWeightConfig("Lunar Equipments", 0.15f);
-            _lunarItemWeight = addWeightConfig("Lunar Items", 0.35f);
-            _equipmentWeight = addWeightConfig("Equipments", 0.25f);
-            _voidTier1Weight = addWeightConfig("Common Void Items", 0.4f);
-            _voidTier2Weight = addWeightConfig("Uncommon Void Items", 0.35f);
-            _voidTier3Weight = addWeightConfig("Legendary Void Items", 0.3f);
-            _voidBossWeight = addWeightConfig("Void Boss Items", 0.3f);
         }
 
         [SystemInitializer(typeof(ItemCatalog), typeof(EquipmentCatalog))]

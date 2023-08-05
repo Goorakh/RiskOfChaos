@@ -1,10 +1,9 @@
-﻿using BepInEx.Configuration;
-using RiskOfChaos.EffectHandling;
+﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
-using RiskOfOptions.Options;
+using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
 using System.Collections.ObjectModel;
@@ -14,21 +13,12 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [ChaosEffect("duplicate_all_characters", EffectWeightReductionPercentagePerActivation = 50f)]
     public sealed class DuplicateAllCharacters : BaseEffect
     {
-        [InitEffectInfo]
-        static readonly ChaosEffectInfo _effectInfo;
-
-        static ConfigEntry<bool> _allowDontDestroyOnLoadConfig;
-        const bool ALLOW_DONT_DESTROY_ON_LOAD_DEFAULT_VALUE = false;
-
-        static bool allowDontDestroyOnLoad => _allowDontDestroyOnLoadConfig?.Value ?? ALLOW_DONT_DESTROY_ON_LOAD_DEFAULT_VALUE;
-
-        [SystemInitializer(typeof(ChaosEffectCatalog))]
-        static void InitConfigs()
-        {
-            _allowDontDestroyOnLoadConfig = _effectInfo.BindConfig("Keep duplicated allies between stages", ALLOW_DONT_DESTROY_ON_LOAD_DEFAULT_VALUE, new ConfigDescription("Allows duplicated allies to come with you to the next stage.\nThis is disabled by default to prevent lag by repeatedly duplicating your drones."));
-
-            addConfigOption(new CheckBoxOption(_allowDontDestroyOnLoadConfig));
-        }
+        [EffectConfig]
+        static readonly ConfigHolder<bool> _allowDontDestroyOnLoad =
+            ConfigFactory<bool>.CreateConfig("Keep duplicated allies between stages", false)
+                               .Description("Allows duplicated allies to come with you to the next stage.\nThis is disabled by default to prevent lag by repeatedly duplicating your drones.")
+                               .OptionConfig(new CheckBoxConfig())
+                               .Build();
 
         public override void OnStart()
         {
@@ -83,7 +73,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (!result.success || !result.spawnedInstance)
                     return;
 
-                result.spawnedInstance.SetDontDestroyOnLoad(allowDontDestroyOnLoad && Util.IsDontDestroyOnLoad(master.gameObject));
+                result.spawnedInstance.SetDontDestroyOnLoad(_allowDontDestroyOnLoad.Value && Util.IsDontDestroyOnLoad(master.gameObject));
             };
 
             DirectorCore.instance.TrySpawnObject(spawnRequest);

@@ -1,12 +1,12 @@
-﻿using BepInEx.Configuration;
-using HG;
+﻿using HG;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
-using RiskOfOptions.Options;
+using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,9 +16,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
     [ChaosEffect("scrap_random_item", DefaultSelectionWeight = 0.8f, EffectWeightReductionPercentagePerActivation = 15f)]
     public sealed class ScrapRandomItem : BaseEffect
     {
-        [InitEffectInfo]
-        static readonly ChaosEffectInfo _effectInfo;
-
         static PickupIndex[] _scrapPickupByItemTier;
 
         [SystemInitializer(typeof(PickupCatalog), typeof(ItemTierCatalog))]
@@ -40,18 +37,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             }
         }
 
-        static ConfigEntry<bool> _scrapWholeStackConfig;
-        const bool SCRAP_WHOLE_STACK_DEFAULT_VALUE = true;
-
-        static bool scrapWholeStack => _scrapWholeStackConfig?.Value ?? SCRAP_WHOLE_STACK_DEFAULT_VALUE;
-
-        [SystemInitializer(typeof(ChaosEffectCatalog))]
-        static void InitConfig()
-        {
-            _scrapWholeStackConfig = _effectInfo.BindConfig("Scrap Whole Stack", SCRAP_WHOLE_STACK_DEFAULT_VALUE, new ConfigDescription("If the effect should scrap all items of the selected stack. If this option is disabled, only one item will be turned into scrap, and if it's enabled, it's as if you used a scrapper on that item."));
-
-            addConfigOption(new CheckBoxOption(_scrapWholeStackConfig));
-        }
+        [EffectConfig]
+        static readonly ConfigHolder<bool> _scrapWholeStack =
+            ConfigFactory<bool>.CreateConfig("Scrap Whole Stack", true)
+                               .Description("If the effect should scrap all items of the selected stack. If this option is disabled, only one item will be turned into scrap, and if it's enabled, it's as if you used a scrapper on that item.")
+                               .OptionConfig(new CheckBoxConfig())
+                               .Build();
 
         static IEnumerable<ItemIndex> getAllScrappableItems(Inventory inventory)
         {
@@ -115,7 +106,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 return;
 
             int itemCount;
-            if (scrapWholeStack)
+            if (_scrapWholeStack.Value)
             {
                 itemCount = inventory.GetItemCount(itemToScrap);
             }

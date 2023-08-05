@@ -1,99 +1,65 @@
-﻿using BepInEx.Configuration;
+﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
-using RiskOfOptions.Options;
 using RoR2;
 using RoR2.Navigation;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("spawn_ahoy_drones", EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun, EffectWeightReductionPercentagePerActivation = 10f)]
     public sealed class SpawnAhoyDrones : BaseEffect
     {
-        [InitEffectInfo]
-        static readonly ChaosEffectInfo _effectInfo;
+        static readonly CharacterSpawnCard _equipmentDroneSpawnCard;
 
-        static CharacterSpawnCard _equipmentDroneSpawnCard;
-
-        [SystemInitializer]
-        static void InitSpawnCardPrefab()
+        static SpawnAhoyDrones()
         {
-            AsyncOperationHandle<GameObject> loadEquipmentDronePrefabHandle = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Drones/EquipmentDroneMaster.prefab");
-            loadEquipmentDronePrefabHandle.Completed += handle =>
+            _equipmentDroneSpawnCard = ScriptableObject.CreateInstance<CharacterSpawnCard>();
+            _equipmentDroneSpawnCard.name = "cscEquipmentDrone";
+            _equipmentDroneSpawnCard.sendOverNetwork = true;
+            _equipmentDroneSpawnCard.nodeGraphType = MapNodeGroup.GraphType.Air;
+            _equipmentDroneSpawnCard.forbiddenFlags = NodeFlags.NoCharacterSpawn;
+            _equipmentDroneSpawnCard.eliteRules = SpawnCard.EliteRules.ArtifactOnly;
+
+            _equipmentDroneSpawnCard.noElites = true;
+            _equipmentDroneSpawnCard.forbiddenAsBoss = true;
+
+            _equipmentDroneSpawnCard.prefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Drones/EquipmentDroneMaster.prefab").WaitForCompletion();
+
+            if (_equipmentDroneSpawnCard.prefab &&
+                _equipmentDroneSpawnCard.prefab.TryGetComponent(out CharacterMaster masterPrefab) &&
+                masterPrefab.bodyPrefab &&
+                masterPrefab.bodyPrefab.TryGetComponent(out CharacterBody bodyPrefab))
             {
-                if (!handle.Result)
-                {
-                    Log.Error("Failed to load equipment drone prefab");
-                    return;
-                }
-
-                _equipmentDroneSpawnCard = ScriptableObject.CreateInstance<CharacterSpawnCard>();
-
-                _equipmentDroneSpawnCard.name = "cscEquipmentDrone";
-                _equipmentDroneSpawnCard.sendOverNetwork = true;
-                _equipmentDroneSpawnCard.nodeGraphType = MapNodeGroup.GraphType.Air;
-                _equipmentDroneSpawnCard.forbiddenFlags = NodeFlags.NoCharacterSpawn;
-                _equipmentDroneSpawnCard.eliteRules = SpawnCard.EliteRules.ArtifactOnly;
-
-                _equipmentDroneSpawnCard.noElites = true;
-                _equipmentDroneSpawnCard.forbiddenAsBoss = true;
-
-                _equipmentDroneSpawnCard.prefab = handle.Result;
-
-                if (handle.Result.TryGetComponent(out CharacterMaster masterPrefab) &&
-                    masterPrefab.bodyPrefab &&
-                    masterPrefab.bodyPrefab.TryGetComponent(out CharacterBody bodyPrefab))
-                {
-                    _equipmentDroneSpawnCard.hullSize = bodyPrefab.hullClassification;
+                _equipmentDroneSpawnCard.hullSize = bodyPrefab.hullClassification;
 
 #if DEBUG
-                    Log.Debug($"Set SpawnCard hull size to: {_equipmentDroneSpawnCard.hullSize}");
+                Log.Debug($"Set SpawnCard hull size to: {_equipmentDroneSpawnCard.hullSize}");
 #endif
-                }
-                else
-                {
-                    Log.Warning("Failed to get equipment drone hull size");
-                }
-            };
-        }
-
-        static ConfigEntry<int> _spawnCountConfig;
-        const int SPAWN_COUNT_DEFAULT_VALUE = 3;
-
-        static int spawnCount
-        {
-            get
+            }
+            else
             {
-                if (_spawnCountConfig == null)
-                {
-                    return SPAWN_COUNT_DEFAULT_VALUE;
-                }
-                else
-                {
-                    return Mathf.Max(_spawnCountConfig.Value, 1);
-                }
+                Log.Warning("Failed to get equipment drone hull size");
             }
         }
 
-        [SystemInitializer(typeof(ChaosEffectCatalog))]
-        static void InitConfigs()
-        {
-            _spawnCountConfig = _effectInfo.BindConfig("Spawn Count", SPAWN_COUNT_DEFAULT_VALUE, new ConfigDescription("How many drones should be spawned"));
-
-            addConfigOption(new IntSliderOption(_spawnCountConfig, new IntSliderConfig
-            {
-                min = 1,
-                max = 15
-            }));
-        }
+        [EffectConfig]
+        static readonly ConfigHolder<int> _droneSpawnCount =
+            ConfigFactory<int>.CreateConfig("Spawn Count", 3)
+                              .Description("How many drones should be spawned")
+                              .OptionConfig(new IntSliderConfig
+                              {
+                                  min = 1,
+                                  max = 15
+                              })
+                              .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(1))
+                              .Build();
 
         [EffectCanActivate]
         static bool CanActivate(EffectCanActivateContext context)
@@ -106,7 +72,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             CharacterBody[] playerBodies = PlayerUtils.GetAllPlayerBodies(true).ToArray();
             Util.ShuffleArray(playerBodies, new Xoroshiro128Plus(RNG.nextUlong));
 
-            int spawnsRemaining = spawnCount;
+            int spawnsRemaining = _droneSpawnCount.Value;
             foreach (CharacterBody playerBody in playerBodies)
             {
                 spawnDroneAt(playerBody, new Xoroshiro128Plus(RNG.nextUlong));
@@ -132,7 +98,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_equipmentDroneSpawnCard, placementRule, rng)
             {
                 summonerBodyObject = ownerBody.gameObject,
-                teamIndexOverride = ownerBody.teamComponent.teamIndex
+                teamIndexOverride = ownerBody.teamComponent.teamIndex,
+                ignoreTeamMemberLimit = true
             };
 
             spawnRequest.onSpawnedServer = result =>

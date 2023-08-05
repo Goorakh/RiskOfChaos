@@ -1,11 +1,10 @@
-﻿using BepInEx.Configuration;
-using HG;
+﻿using HG;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfOptions.OptionConfigs;
-using RiskOfOptions.Options;
 using RoR2;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,42 +16,22 @@ namespace RiskOfChaos.EffectDefinitions.World
     [EffectConfigBackwardsCompatibility("Effect: +50% Director Credits", "Effect: Increase Director Credits")]
     public sealed class IncreaseDirectorCredits : TimedEffect
     {
-        [InitEffectInfo]
-        static readonly ChaosEffectInfo _effectInfo;
+        [EffectConfig]
+        static readonly ConfigHolder<float> _creditIncrease =
+            ConfigFactory<float>.CreateConfig("Monster Spawn Increase", 0.5f)
+                                .RenamedFrom("Credit Increase Amount")
+                                .Description("How much to increase monster spawns by")
+                                .OptionConfig(new StepSliderConfig
+                                {
+                                    formatString = "+{0:P0}",
+                                    min = 0f,
+                                    max = 2f,
+                                    increment = 0.05f
+                                })
+                                .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(0f))
+                                .Build();
 
-        static ConfigEntry<float> _creditIncreaseConfig;
-        const float CREDIT_INCREASE_DEFAULT_VALUE = 0.5f;
-
-        static float creditIncrease
-        {
-            get
-            {
-                if (_creditIncreaseConfig == null)
-                {
-                    return CREDIT_INCREASE_DEFAULT_VALUE;
-                }
-                else
-                {
-                    return Mathf.Max(0f, _creditIncreaseConfig.Value);
-                }
-            }
-        }
-
-        static float creditMultiplier => 1f + creditIncrease;
-
-        [SystemInitializer(typeof(ChaosEffectCatalog))]
-        static void InitConfigs()
-        {
-            _creditIncreaseConfig = _effectInfo.BindConfig("Monster Spawn Increase", new string[] { "Credit Increase Amount" }, CREDIT_INCREASE_DEFAULT_VALUE, new ConfigDescription("How much to increase monster spawns by"));
-
-            addConfigOption(new StepSliderOption(_creditIncreaseConfig, new StepSliderConfig
-            {
-                formatString = "+{0:P0}",
-                min = 0f,
-                max = 2f,
-                increment = 0.05f
-            }));
-        }
+        static float creditMultiplier => 1f + _creditIncrease.Value;
 
         [EffectCanActivate]
         static bool CanActivate(EffectCanActivateContext context)
@@ -65,7 +44,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         {
             return new object[]
             {
-                creditIncrease
+                _creditIncrease.Value
             };
         }
 

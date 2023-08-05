@@ -53,11 +53,5 @@ namespace RiskOfChaos.EffectDefinitions
         }
 
         public abstract void OnStart();
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected static void addConfigOption(BaseOption baseOption)
-        {
-            ChaosEffectCatalog.AddEffectConfigOption(baseOption);
-        }
     }
 }

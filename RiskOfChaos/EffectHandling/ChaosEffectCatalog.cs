@@ -1,6 +1,7 @@
 ﻿using HG;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions;
 using RiskOfOptions.Options;
@@ -8,6 +9,7 @@ using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using UnityEngine.Networking;
 
@@ -17,8 +19,8 @@ namespace RiskOfChaos.EffectHandling
     {
         const string CONFIG_SECTION_NAME = "Effects";
 
-        const string CONFIG_MOD_GUID = $"RoC_Config_{CONFIG_SECTION_NAME}";
-        const string CONFIG_MOD_NAME = $"Risk of Chaos: {CONFIG_SECTION_NAME}";
+        public const string CONFIG_MOD_GUID = $"RoC_Config_{CONFIG_SECTION_NAME}";
+        public const string CONFIG_MOD_NAME = $"Risk of Chaos: {CONFIG_SECTION_NAME}";
 
         public static ResourceAvailability Availability = new ResourceAvailability();
 
@@ -72,6 +74,23 @@ namespace RiskOfChaos.EffectHandling
             Log.Info($"Registered {_effectCount} effects");
 
             Availability.MakeAvailable();
+
+            RoR2Application.onNextUpdate += () =>
+            {
+                foreach (ChaosEffectInfo effectInfo in _effects.OrderBy(ei => ei.ConfigSectionName, StringComparer.OrdinalIgnoreCase))
+                {
+                    foreach (MemberInfo member in effectInfo.EffectType.GetMembers(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly).WithAttribute<MemberInfo, InitEffectMemberAttribute>())
+                    {
+                        foreach (InitEffectMemberAttribute initEffectMember in member.GetCustomAttributes<InitEffectMemberAttribute>())
+                        {
+                            if (initEffectMember.Priority == InitEffectMemberAttribute.InitializationPriority.EffectCatalogInitialized)
+                            {
+                                initEffectMember.ApplyTo(member, effectInfo);
+                            }
+                        }
+                    }
+                }
+            };
         }
 
         static void checkFindEffectIndex()

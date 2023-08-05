@@ -1,4 +1,4 @@
-﻿using BepInEx.Configuration;
+﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -9,7 +9,6 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.ParsedValueHolders;
 using RiskOfChaos.Utilities.ParsedValueHolders.ParsedList;
 using RiskOfOptions.OptionConfigs;
-using RiskOfOptions.Options;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,35 +18,38 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
     [ChaosEffect("duplicate_random_item_stack", EffectWeightReductionPercentagePerActivation = 0f)]
     public sealed class DuplicateRandomItemStack : BaseEffect
     {
-        [InitEffectInfo]
-        static readonly ChaosEffectInfo _effectInfo;
-
-        static ConfigEntry<string> _maxItemStacksConfig;
         const int MAX_ITEM_STACKS_DEFAULT_VALUE = 1000;
+
+        [EffectConfig]
+        static readonly ConfigHolder<string> _maxItemStacksConfig =
+            ConfigFactory<string>.CreateConfig("Max Item Stacks", MAX_ITEM_STACKS_DEFAULT_VALUE.ToString())
+                                 .Description("The maximum amount of item stacks to allow, the effect will not duplicate an item stack if it is greater than this number. Set to a negative number to disable the limit.")
+                                 .OptionConfig(new InputFieldConfig
+                                 {
+                                     submitOn = InputFieldConfig.SubmitEnum.OnSubmit
+                                 })
+                                 .Build();
 
         static readonly ParsedInt32 _maxItemStacks = new ParsedInt32();
 
-        static ConfigEntry<string> _itemBlacklistConfig;
+        [EffectConfig]
+        static readonly ConfigHolder<string> _itemBlacklistConfig =
+            ConfigFactory<string>.CreateConfig("Item Blacklist", string.Empty)
+                                 .Description("A comma-separated list of items that should not be allowed to be duplicated. Both internal and English display names are accepted, with spaces and commas removed.")
+                                 .OptionConfig(new InputFieldConfig
+                                 {
+                                     submitOn = InputFieldConfig.SubmitEnum.OnSubmit
+                                 })
+                                 .Build();
+
         static readonly ParsedItemList _itemBlacklist = new ParsedItemList(ItemIndexComparer.Instance);
 
         [SystemInitializer(typeof(ChaosEffectCatalog))]
         static void InitConfigs()
         {
-            _maxItemStacksConfig = _effectInfo.BindConfig("Max Item Stacks", MAX_ITEM_STACKS_DEFAULT_VALUE.ToString(), new ConfigDescription("The maximum amount of item stacks to allow, the effect will not duplicate an item stack if it is greater than this number. Set to a negative number to disable the limit."));
-            addConfigOption(new StringInputFieldOption(_maxItemStacksConfig, new InputFieldConfig
-            {
-                submitOn = InputFieldConfig.SubmitEnum.OnSubmit
-            }));
+            _maxItemStacks.BindToConfig(_maxItemStacksConfig.Entry);
 
-            _maxItemStacks.BindToConfig(_maxItemStacksConfig);
-
-            _itemBlacklistConfig = _effectInfo.BindConfig("Item Blacklist", string.Empty, new ConfigDescription("A comma-separated list of items that should not be allowed to be duplicated. Both internal and English display names are accepted, with spaces and commas removed."));
-            addConfigOption(new StringInputFieldOption(_itemBlacklistConfig, new InputFieldConfig
-            {
-                submitOn = InputFieldConfig.SubmitEnum.OnSubmit
-            }));
-
-            _itemBlacklist.BindToConfig(_itemBlacklistConfig);
+            _itemBlacklist.BindToConfig(_itemBlacklistConfig.Entry);
         }
 
         [EffectCanActivate]

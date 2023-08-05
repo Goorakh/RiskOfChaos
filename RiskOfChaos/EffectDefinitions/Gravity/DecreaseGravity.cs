@@ -1,14 +1,11 @@
-﻿using BepInEx.Configuration;
+﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfOptions.OptionConfigs;
-using RiskOfOptions.Options;
-using RoR2;
 using System;
-using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Gravity
@@ -17,47 +14,38 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
     [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
     public sealed class DecreaseGravity : GenericMultiplyGravityEffect
     {
-        [InitEffectInfo]
-        static readonly ChaosEffectInfo _effectInfo;
+        [EffectConfig]
+        static readonly ConfigHolder<float> _gravityDecrease =
+            ConfigFactory<float>.CreateConfig("Decrease per Activation", 0.5f)
+                                .Description("How much gravity should decrease per effect activation, 50% means the gravity is multiplied by 0.5, 100% means the gravity is reduced to 0, 0% means gravity doesn't change at all. etc.")
+                                .OptionConfig(new StepSliderConfig
+                                {
+                                    min = 0f,
+                                    max = 1f,
+                                    increment = 0.01f,
+                                    formatString = "-{0:P0}"
+                                })
+                                .ValueConstrictor(ValueConstrictors.Clamped01Float)
+                                .OnValueChanged(() =>
+                                {
+                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                                        return;
 
-        const float GRAVITY_DECREASE_DEFAULT_VALUE = 0.5f;
-
-        static ConfigEntry<float> _gravityDecrease;
-        static float gravityDecrease => Mathf.Clamp01(_gravityDecrease?.Value ?? GRAVITY_DECREASE_DEFAULT_VALUE);
-
-        [SystemInitializer(typeof(ChaosEffectCatalog))]
-        static void Init()
-        {
-            _gravityDecrease = _effectInfo.BindConfig("Decrease per Activation", GRAVITY_DECREASE_DEFAULT_VALUE, new ConfigDescription("How much gravity should decrease per effect activation, 50% means the gravity is multiplied by 0.5, 100% means the gravity is reduced to 0, 0% means gravity doesn't change at all. etc."));
-
-            _gravityDecrease.SettingChanged += (o, e) =>
-            {
-                if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
-                    return;
-
-                foreach (DecreaseGravity effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<DecreaseGravity>())
-                {
-                    effectInstance.OnValueDirty?.Invoke();
-                }
-            };
-
-            addConfigOption(new StepSliderOption(_gravityDecrease, new StepSliderConfig
-            {
-                min = 0f,
-                max = 1f,
-                increment = 0.01f,
-                formatString = "-{0:P0}"
-            }));
-        }
+                                    foreach (DecreaseGravity effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<DecreaseGravity>())
+                                    {
+                                        effectInstance.OnValueDirty?.Invoke();
+                                    }
+                                })
+                                .Build();
 
         public override event Action OnValueDirty;
 
-        protected override float multiplier => 1f - gravityDecrease;
+        protected override float multiplier => 1f - _gravityDecrease.Value;
 
         [EffectNameFormatArgs]
         static object[] GetEffectNameFormatArgs()
         {
-            return new object[] { gravityDecrease };
+            return new object[] { _gravityDecrease.Value };
         }
     }
 }

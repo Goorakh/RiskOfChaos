@@ -1,11 +1,10 @@
-﻿using BepInEx.Configuration;
+﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
-using RiskOfOptions.Options;
 using RoR2;
 using RoR2.EntityLogic;
 using RoR2.Navigation;
@@ -42,23 +41,17 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         }
         static SurvivorEntry[] _survivorEntries;
 
-        static ConfigEntry<int> _numPodSpawnsConfig;
-        const int NUM_POD_SPAWNS_DEFAULT_VALUE = 10;
-
-        static int numPodSpawns
-        {
-            get
+        [EffectConfig]
+        static readonly ConfigHolder<int> _numPodSpawns =
+            ConfigFactory<int>.CreateConfig("Pod Spawn Count", 10)
+            .Description("The amount of pods to spawn")
+            .OptionConfig(new IntSliderConfig
             {
-                if (_numPodSpawnsConfig == null)
-                {
-                    return NUM_POD_SPAWNS_DEFAULT_VALUE;
-                }
-                else
-                {
-                    return Mathf.Max(0, _numPodSpawnsConfig.Value);
-                }
-            }
-        }
+                min = 1,
+                max = 20
+            })
+            .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(1))
+            .Build();
 
         [SystemInitializer(typeof(SurvivorCatalog), typeof(MasterCatalog), typeof(ChaosEffectCatalog))]
         static void Init()
@@ -68,14 +61,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             _survivorEntries = SurvivorCatalog.allSurvivorDefs.Where(s => MasterCatalog.FindAiMasterIndexForBody(BodyCatalog.FindBodyIndex(s.bodyPrefab)).isValid)
                                                               .Select(s => new SurvivorEntry(s, 1f))
                                                               .ToArray();
-
-            _numPodSpawnsConfig = _effectInfo.BindConfig("Pod Spawn Count", NUM_POD_SPAWNS_DEFAULT_VALUE, new ConfigDescription("The amount of pods to spawn"));
-
-            addConfigOption(new IntSliderOption(_numPodSpawnsConfig, new IntSliderConfig
-            {
-                min = 1,
-                max = 20
-            }));
         }
 
         [EffectCanActivate]
@@ -90,8 +75,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         public IEnumerator OnStartCoroutine()
         {
-            int numSpawns = numPodSpawns;
-            for (int i = 0; i < numSpawns; i++)
+            for (int i = _numPodSpawns.Value - 1; i >= 0; i--)
             {
                 spawnSurvivor(getItemToSpawn(_survivorEntries, RNG), new Xoroshiro128Plus(RNG.nextUlong));
 

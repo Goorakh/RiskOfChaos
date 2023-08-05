@@ -1,12 +1,11 @@
-﻿using BepInEx.Configuration;
-using HG;
+﻿using HG;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
-using RiskOfOptions.Options;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +23,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         readonly struct ArtifactConfig
         {
-            public readonly ConfigEntry<float> SelectionWeight;
+            public readonly ConfigHolder<float> SelectionWeight;
 
             public ArtifactConfig(ArtifactIndex artifactIndex)
             {
@@ -37,14 +36,20 @@ namespace RiskOfChaos.EffectDefinitions.World
 
                 string artifactName = Language.GetString(artifactDef.nameToken, "en");
 
-                SelectionWeight = _effectInfo.BindConfig($"{artifactName.FilterConfigKey()} Weight", 1f, new ConfigDescription($"How likely the {artifactName} is to be picked, higher value means more likely, lower value means less likely.\n\nA value of 0 will exclude it completely"));
-                addConfigOption(new StepSliderOption(SelectionWeight, new StepSliderConfig
-                {
-                    formatString = "{0:F1}",
-                    increment = 0.1f,
-                    min = 0f,
-                    max = 2.5f
-                }));
+                SelectionWeight =
+                    ConfigFactory<float>.CreateConfig($"{artifactName.FilterConfigKey()} Weight", 1f)
+                                        .Description($"How likely the {artifactName} is to be picked, higher value means more likely, lower value means less likely.\n\nA value of 0 will exclude it completely")
+                                        .OptionConfig(new StepSliderConfig
+                                        {
+                                            formatString = "{0:F1}",
+                                            increment = 0.1f,
+                                            min = 0f,
+                                            max = 2.5f
+                                        })
+                                        .ValueConstrictor(ValueConstrictors.Clamped01Float)
+                                        .Build();
+
+                SelectionWeight.Bind(_effectInfo);
             }
         }
         static ArtifactConfig[] _artifactConfigs;

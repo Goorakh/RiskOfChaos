@@ -1,4 +1,4 @@
-﻿using BepInEx.Configuration;
+﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -6,7 +6,6 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.ModifierController.Damage;
 using RiskOfOptions.OptionConfigs;
-using RiskOfOptions.Options;
 using RoR2;
 using System;
 using UnityEngine;
@@ -19,62 +18,40 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [IncompatibleEffects(typeof(DisableFallDamage))]
     public sealed class IncreaseFallDamage : TimedEffect, IDamageInfoModificationProvider
     {
-        [InitEffectInfo]
-        static readonly ChaosEffectInfo _effectInfo;
+        [EffectConfig]
+        static readonly ConfigHolder<float> _damageIncreaseAmount =
+            ConfigFactory<float>.CreateConfig("Increase Amount", 1f)
+                                .Description("The amount to increase fall damage by")
+                                .OptionConfig(new StepSliderConfig
+                                {
+                                    formatString = "+{0:P0}",
+                                    min = 0f,
+                                    max = 2f,
+                                    increment = 0.05f
+                                })
+                                .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(0f))
+                                .OnValueChanged(() =>
+                                {
+                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                                        return;
 
-        static ConfigEntry<float> _increaseAmountConfig;
-        const float INCREASE_AMOUNT_DEFAULT_VALUE = 1f;
-
-        static float damageIncreaseAmount
-        {
-            get
-            {
-                if (_increaseAmountConfig == null)
-                {
-                    return INCREASE_AMOUNT_DEFAULT_VALUE;
-                }
-                else
-                {
-                    return Mathf.Max(0f, _increaseAmountConfig.Value);
-                }
-            }
-        }
-
-        [SystemInitializer(typeof(ChaosEffectCatalog))]
-        static void InitConfigs()
-        {
-            _increaseAmountConfig = _effectInfo.BindConfig("Increase Amount", INCREASE_AMOUNT_DEFAULT_VALUE, new ConfigDescription("The amount to increase fall damage by"));
-
-            _increaseAmountConfig.SettingChanged += (s, e) =>
-            {
-                if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
-                    return;
-
-                foreach (IncreaseFallDamage effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<IncreaseFallDamage>())
-                {
-                    effectInstance.OnValueDirty?.Invoke();
-                }
-            };
-
-            addConfigOption(new StepSliderOption(_increaseAmountConfig, new StepSliderConfig
-            {
-                formatString = "+{0:P0}",
-                min = 0f,
-                max = 2f,
-                increment = 0.05f
-            }));
-        }
+                                    foreach (IncreaseFallDamage effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<IncreaseFallDamage>())
+                                    {
+                                        effectInstance.OnValueDirty?.Invoke();
+                                    }
+                                })
+                                .Build();
 
         [EffectNameFormatArgs]
         static object[] GetEffectNameFormatArgs()
         {
             return new object[]
             {
-                damageIncreaseAmount
+                _damageIncreaseAmount.Value
             };
         }
 
-        static float damageMultiplier => 1f + damageIncreaseAmount;
+        static float damageMultiplier => 1f + _damageIncreaseAmount.Value;
 
         [EffectCanActivate]
         static bool CanActivate()

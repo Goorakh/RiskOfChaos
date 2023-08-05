@@ -1,12 +1,11 @@
-﻿using BepInEx.Configuration;
-using RiskOfChaos.Components;
+﻿using RiskOfChaos.Components;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
-using RiskOfOptions.Options;
 using RoR2;
 using UnityEngine;
 
@@ -15,22 +14,17 @@ namespace RiskOfChaos.EffectDefinitions.World
     [ChaosEffect("mountain_shrine_add", ConfigName = "Add Mountain Shrine", EffectWeightReductionPercentagePerActivation = 20f)]
     public sealed class MountainShrineAdd : BaseEffect
     {
-        [InitEffectInfo]
-        static readonly ChaosEffectInfo _effectInfo;
-
-        static ConfigEntry<int> _numShrinesPerActivation;
-        static int numShrinesPerActivation => Mathf.Max(1, _numShrinesPerActivation?.Value ?? 2);
-
-        [SystemInitializer(typeof(ChaosEffectCatalog))]
-        static void Init()
-        {
-            _numShrinesPerActivation = _effectInfo.BindConfig("Shrines per Activation", 2, new ConfigDescription("The amount of mountain shrines to activate each time this effect is activated"));
-            addConfigOption(new IntSliderOption(_numShrinesPerActivation, new IntSliderConfig
-            {
-                min = 1,
-                max = 10
-            }));
-        }
+        [EffectConfig]
+        static readonly ConfigHolder<int> _numShrinesPerActivation =
+            ConfigFactory<int>.CreateConfig("Shrines per Activation", 2)
+                              .Description("The amount of mountain shrines to activate each time this effect is activated")
+                              .OptionConfig(new IntSliderConfig
+                              {
+                                  min = 1,
+                                  max = 10
+                              })
+                              .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(1))
+                              .Build();
 
         [EffectCanActivate]
         static bool CanActivate(EffectCanActivateContext context)
@@ -42,14 +36,14 @@ namespace RiskOfChaos.EffectDefinitions.World
         [EffectNameFormatArgs]
         static object[] GetEffectNameFormatArgs()
         {
-            return new object[] { numShrinesPerActivation };
+            return new object[] { _numShrinesPerActivation.Value };
         }
 
         public override void OnStart()
         {
             TeleporterInteraction tpInteraction = TeleporterInteraction.instance;
 
-            for (int i = 0; i < numShrinesPerActivation; i++)
+            for (int i = _numShrinesPerActivation.Value - 1; i >= 0; i--)
             {
                 tpInteraction.AddShrineStack();
             }

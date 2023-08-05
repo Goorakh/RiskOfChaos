@@ -94,12 +94,23 @@ namespace RiskOfChaos.EffectHandling
                     return effectName;
             }
         }
-
+        
         internal void AddRiskOfOptionsEntries()
         {
+            ChaosEffectInfo effectInfo = ChaosEffectCatalog.GetEffectInfo(EffectIndex);
+
+            ConfigEntry<bool> isEffectEnabledConfig = effectInfo.IsEnabledConfig;
+            bool isEffectDisabled()
+            {
+                return isEffectEnabledConfig != null && !isEffectEnabledConfig.Value;
+            }
+
             if (_timedTypeConfig != null)
             {
-                ChaosEffectCatalog.AddEffectConfigOption(new ChoiceOption(_timedTypeConfig));
+                ChaosEffectCatalog.AddEffectConfigOption(new ChoiceOption(_timedTypeConfig, new ChoiceConfig
+                {
+                    checkIfDisabled = isEffectDisabled,
+                }));
             }
 
             if (_durationConfig != null)
@@ -110,7 +121,7 @@ namespace RiskOfChaos.EffectHandling
                     min = 0f,
                     max = 120f,
                     increment = 5f,
-                    checkIfDisabled = () => TimedType != TimedEffectType.FixedDuration
+                    checkIfDisabled = () => isEffectDisabled() || TimedType != TimedEffectType.FixedDuration
                 }));
             }
         }

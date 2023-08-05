@@ -1,12 +1,9 @@
-﻿using BepInEx.Configuration;
+﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfOptions.OptionConfigs;
-using RiskOfOptions.Options;
-using RoR2;
-using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
 {
@@ -14,42 +11,26 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
     [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
     public sealed class DecreaseInteractableCosts : GenericMultiplyPurchaseInteractionCostsEffect
     {
-        [InitEffectInfo]
-        static readonly ChaosEffectInfo _effectInfo;
-
-        static ConfigEntry<float> _decreaseAmount;
-        const float DECREASE_AMOUNT_DEFAULT_VALUE = 0.25f;
-
-        static float decreaseAmount
-        {
-            get
-            {
-                if (_decreaseAmount == null)
-                    return DECREASE_AMOUNT_DEFAULT_VALUE;
-
-                return Mathf.Clamp01(_decreaseAmount.Value);
-            }
-        }
-
-        protected override float multiplier => 1f - decreaseAmount;
-
-        [SystemInitializer(typeof(ChaosEffectCatalog))]
-        static void Init()
-        {
-            _decreaseAmount = _effectInfo.BindConfig("Decrease Amount", DECREASE_AMOUNT_DEFAULT_VALUE, new ConfigDescription("The amount to decrease costs by"));
-            addConfigOption(new StepSliderOption(_decreaseAmount, new StepSliderConfig
-            {
-                formatString = "-{0:P0}",
-                min = 0f,
-                max = 1f,
-                increment = 0.05f
-            }));
-        }
+        [EffectConfig]
+        static readonly ConfigHolder<float> _decreaseAmount =
+            ConfigFactory<float>.CreateConfig("Decrease Amount", 0.25f)
+                                .Description("The amount to decrease costs by")
+                                .OptionConfig(new StepSliderConfig
+                                {
+                                    formatString = "-{0:P0}",
+                                    min = 0f,
+                                    max = 1f,
+                                    increment = 0.05f
+                                })
+                                .ValueConstrictor(ValueConstrictors.Clamped01Float)
+                                .Build();
 
         [EffectNameFormatArgs]
         static object[] GetDisplayNameFormatArgs()
         {
-            return new object[] { decreaseAmount };
+            return new object[] { _decreaseAmount.Value };
         }
+
+        protected override float multiplier => 1f - _decreaseAmount.Value;
     }
 }

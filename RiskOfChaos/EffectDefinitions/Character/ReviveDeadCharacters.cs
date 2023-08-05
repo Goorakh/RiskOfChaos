@@ -1,4 +1,4 @@
-﻿using BepInEx.Configuration;
+﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -6,7 +6,6 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
-using RiskOfOptions.Options;
 using RoR2;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -17,47 +16,25 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [ChaosEffect("revive_dead_characters")]
     public sealed class ReviveDeadCharacters : BaseEffect
     {
-        [InitEffectInfo]
-        static readonly ChaosEffectInfo _effectInfo;
-
         static readonly GameObject _bossCombatSquadPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Core/BossCombatSquad.prefab").WaitForCompletion();
 
-        static ConfigEntry<int> _maxTrackedCharactersCountConfig;
-        const int MAX_TRACKED_CHARACTERS_COUNT_DEFAULT_VALUE = 50;
+        [EffectConfig]
+        static readonly ConfigHolder<int> _maxTrackedCharactersCount = 
+            ConfigFactory<int>.CreateConfig("Max Characters to Revive", 50)
+                              .Description("The maximum amount of characters the effect can revive at once")
+                              .OptionConfig(new IntSliderConfig
+                              {
+                                  min = 1,
+                                  max = 100
+                              })
+                              .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(1))
+                              .OnValueChanged((s, e) =>
+                              {
+                                  _trackedDeadCharacters.MaxCapacity = e.NewValue;
+                              })
+                              .Build();
 
-        static int maxTrackedCharactersCount
-        {
-            get
-            {
-                if (_maxTrackedCharactersCountConfig != null)
-                {
-                    return Mathf.Max(1, _maxTrackedCharactersCountConfig.Value);
-                }
-                else
-                {
-                    return MAX_TRACKED_CHARACTERS_COUNT_DEFAULT_VALUE;
-                }
-            }
-        }
-
-        [SystemInitializer(typeof(ChaosEffectCatalog))]
-        static void InitConfigs()
-        {
-            _maxTrackedCharactersCountConfig = _effectInfo.BindConfig("Max Characters to Revive", MAX_TRACKED_CHARACTERS_COUNT_DEFAULT_VALUE, new ConfigDescription("The maximum amount of characters the effect can revive at once"));
-
-            addConfigOption(new IntSliderOption(_maxTrackedCharactersCountConfig, new IntSliderConfig
-            {
-                min = 1,
-                max = 100
-            }));
-
-            _maxTrackedCharactersCountConfig.SettingChanged += (s, e) =>
-            {
-                _trackedDeadCharacters.MaxCapacity = maxTrackedCharactersCount;
-            };
-        }
-
-        static readonly MaxCapacityQueue<DeadCharacterInfo> _trackedDeadCharacters = new MaxCapacityQueue<DeadCharacterInfo>(maxTrackedCharactersCount);
+        static readonly MaxCapacityQueue<DeadCharacterInfo> _trackedDeadCharacters = new MaxCapacityQueue<DeadCharacterInfo>(_maxTrackedCharactersCount.Value);
 
         [SystemInitializer]
         static void InitListeners()
