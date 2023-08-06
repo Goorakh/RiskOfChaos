@@ -118,7 +118,7 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly bool IsNetworked;
 
-        readonly string[] _previousConfigSectionNames;
+        public readonly string[] PreviousConfigSectionNames;
 
         public readonly ConfigFile ConfigFile;
 
@@ -136,11 +136,11 @@ namespace RiskOfChaos.EffectHandling
                 EffectConfigBackwardsCompatibilityAttribute configBackwardsCompatibilityAttribute = EffectType.GetCustomAttribute<EffectConfigBackwardsCompatibilityAttribute>();
                 if (configBackwardsCompatibilityAttribute != null)
                 {
-                    _previousConfigSectionNames = configBackwardsCompatibilityAttribute.ConfigSectionNames;
+                    PreviousConfigSectionNames = configBackwardsCompatibilityAttribute.ConfigSectionNames;
                 }
                 else
                 {
-                    _previousConfigSectionNames = Array.Empty<string>();
+                    PreviousConfigSectionNames = Array.Empty<string>();
                 }
 
                 if (!typeof(BaseEffect).IsAssignableFrom(effectType))
@@ -195,12 +195,12 @@ namespace RiskOfChaos.EffectHandling
 
             ConfigSectionName = "Effect: " + (attribute.ConfigName ?? Language.GetString(NameToken, "en")).FilterConfigKey();
 
-            if (_previousConfigSectionNames != null && _previousConfigSectionNames.Length > 0)
+            if (PreviousConfigSectionNames != null && PreviousConfigSectionNames.Length > 0)
             {
-                int index = Array.IndexOf(_previousConfigSectionNames, ConfigSectionName);
+                int index = Array.IndexOf(PreviousConfigSectionNames, ConfigSectionName);
                 if (index >= 0)
                 {
-                    ArrayUtils.ArrayRemoveAtAndResize(ref _previousConfigSectionNames, index);
+                    ArrayUtils.ArrayRemoveAtAndResize(ref PreviousConfigSectionNames, index);
                 }
             }
 
@@ -259,77 +259,6 @@ namespace RiskOfChaos.EffectHandling
                     }
                 }
             }
-        }
-
-        public readonly ConfigEntry<T> BindConfig<T>(string key, T defaultValue, ConfigDescription description, IEqualityComparer<T> valueComparer = null)
-        {
-            if (string.IsNullOrEmpty(key))
-                throw new ArgumentException($"'{nameof(key)}' cannot be null or empty.", nameof(key));
-
-            valueComparer ??= EqualityComparer<T>.Default;
-
-            ConfigDefinition configDefinition = new ConfigDefinition(ConfigSectionName, key);
-            if (ConfigFile.TryGetEntry(configDefinition, out ConfigEntry<T> existingEntry))
-                return existingEntry;
-
-            ConfigEntry<T> result = ConfigFile.Bind(configDefinition, defaultValue, description);
-
-            if (_previousConfigSectionNames != null)
-            {
-                bool foundLegacyConfig = false;
-                for (int i = _previousConfigSectionNames.Length - 1; i >= 0; i--)
-                {
-                    // TryGetValue only works if the config is already binded, so we have to re-bind it every time to check :(
-                    ConfigEntry<T> previousConfigEntry = ConfigFile.Bind(_previousConfigSectionNames[i], key, defaultValue);
-                    if (!foundLegacyConfig && !valueComparer.Equals(previousConfigEntry.Value, defaultValue))
-                    {
-                        result.Value = previousConfigEntry.Value;
-
-#if DEBUG
-                        Log.Debug($"Previous config entry found for {ConfigSectionName}:{key}, overriding value");
-#endif
-
-                        foundLegacyConfig = true;
-                    }
-
-                    ConfigFile.Remove(previousConfigEntry.Definition);
-                }
-            }
-
-            return result;
-        }
-
-        public readonly ConfigEntry<T> BindConfig<T>(string key, string[] previousKeys, T defaultValue, ConfigDescription description, IEqualityComparer<T> valueComparer = null)
-        {
-            if (string.IsNullOrEmpty(key))
-                throw new ArgumentException($"'{nameof(key)}' cannot be null or empty.", nameof(key));
-
-            if (previousKeys is null)
-                throw new ArgumentNullException(nameof(previousKeys));
-
-            ConfigEntry<T> result = BindConfig(key, defaultValue, description, valueComparer);
-
-            valueComparer ??= EqualityComparer<T>.Default;
-
-            bool foundLegacyConfig = false;
-            for (int i = previousKeys.Length - 1; i >= 0; i--)
-            {
-                ConfigEntry<T> previousConfigEntry = BindConfig(previousKeys[i], defaultValue, description, valueComparer);
-                if (!foundLegacyConfig && !valueComparer.Equals(previousConfigEntry.Value, defaultValue))
-                {
-                    result.Value = previousConfigEntry.Value;
-
-#if DEBUG
-                    Log.Debug($"Previous config entry found for {ConfigSectionName}:{key} ({previousConfigEntry.Definition}), overriding value");
-#endif
-
-                    foundLegacyConfig = true;
-                }
-
-                ConfigFile.Remove(previousConfigEntry.Definition);
-            }
-
-            return result;
         }
 
         internal readonly void Validate()

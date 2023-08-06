@@ -1,5 +1,4 @@
 ﻿using BepInEx.Configuration;
-using ProBuilder.Core;
 using RiskOfChaos.EffectHandling;
 using RiskOfOptions;
 using RiskOfOptions.OptionConfigs;
@@ -20,7 +19,9 @@ namespace RiskOfChaos.ConfigHandling
         readonly BaseOptionConfig _optionConfig;
 
         readonly string[] _previousKeys;
+        string[] _previousConfigSectionNames = Array.Empty<string>();
 
+        ConfigFile _configFile;
         public ConfigEntry<T> Entry { get; private set; }
 
         public T Value => Entry != null ? ValueConstrictor(Entry.Value) : DefaultValue;
@@ -29,13 +30,16 @@ namespace RiskOfChaos.ConfigHandling
 
         public ConfigHolder(string key, T defaultValue, ConfigDescription description, IEqualityComparer<T> equalityComparer, ValueConstrictor<T> valueConstrictor, BaseOptionConfig optionConfig, string[] previousKeys)
         {
+            if (string.IsNullOrEmpty(key))
+                throw new ArgumentException($"'{nameof(key)}' cannot be null or empty.", nameof(key));
+
             Key = key;
             DefaultValue = defaultValue;
-            Description = description;
-            EqualityComparer = equalityComparer;
-            ValueConstrictor = valueConstrictor;
+            Description = description ?? throw new ArgumentNullException(nameof(description));
+            EqualityComparer = equalityComparer ?? throw new ArgumentNullException(nameof(equalityComparer));
+            ValueConstrictor = valueConstrictor ?? throw new ArgumentNullException(nameof(valueConstrictor));
             _optionConfig = optionConfig;
-            _previousKeys = previousKeys;
+            _previousKeys = previousKeys ?? throw new ArgumentNullException(nameof(previousKeys));
         }
 
         ~ConfigHolder()
@@ -46,19 +50,18 @@ namespace RiskOfChaos.ConfigHandling
             }
         }
 
+        void Entry_SettingChanged(object sender, EventArgs e)
+        {
+            invokeSettingChanged();
+        }
+
+        void invokeSettingChanged()
+        {
+            SettingChanged?.Invoke(this, new ConfigChangedArgs<T>(this));
+        }
+
         public override void Bind(ChaosEffectInfo ownerEffect)
         {
-            if (_previousKeys != null && _previousKeys.Length > 0)
-            {
-                Entry = ownerEffect.BindConfig(Key, _previousKeys, DefaultValue, Description, EqualityComparer);
-            }
-            else
-            {
-                Entry = ownerEffect.BindConfig(Key, DefaultValue, Description, EqualityComparer);
-            }
-
-            setupSettingChangedListener();
-
             if (_optionConfig != null)
             {
                 ConfigHolder<bool> isEffectEnabledConfig = ownerEffect.IsEnabledConfig;
@@ -81,40 +84,31 @@ namespace RiskOfChaos.ConfigHandling
                 }
             }
 
-            setupOption(ChaosEffectCatalog.CONFIG_MOD_GUID, ChaosEffectCatalog.CONFIG_MOD_NAME);
+            _previousConfigSectionNames = ownerEffect.PreviousConfigSectionNames;
+
+            Bind(ownerEffect.ConfigFile, ownerEffect.ConfigSectionName, ChaosEffectCatalog.CONFIG_MOD_GUID, ChaosEffectCatalog.CONFIG_MOD_NAME);
         }
 
         public override void Bind(ConfigFile file, string section, string modGuid = null, string modName = null)
         {
-            if (_previousKeys.Length > 0)
+            _configFile = file;
+
+            if (_previousKeys != null && _previousKeys.Length > 0)
             {
-                Log.Warning("Previous key names not supported");
+                Entry = bindConfigFile(new ConfigDefinition(section, Key), _previousKeys);
+            }
+            else
+            {
+                Entry = bindConfigFile(new ConfigDefinition(section, Key));
             }
 
-            Entry = file.Bind(new ConfigDefinition(section, Key), DefaultValue, Description);
-
-            setupSettingChangedListener();
-
-            setupOption(modGuid, modName);
-        }
-
-        void setupSettingChangedListener()
-        {
             if (Entry != null)
             {
                 Entry.SettingChanged += Entry_SettingChanged;
                 invokeSettingChanged();
             }
-        }
 
-        void Entry_SettingChanged(object sender, EventArgs e)
-        {
-            invokeSettingChanged();
-        }
-
-        private void invokeSettingChanged()
-        {
-            SettingChanged?.Invoke(this, new ConfigChangedArgs<T>(this));
+            setupOption(modGuid, modName);
         }
 
         void setupOption(string modGuid, string modName)
@@ -127,6 +121,74 @@ namespace RiskOfChaos.ConfigHandling
                 return;
 
             ModSettingsManager.AddOption(option, modGuid, modName);
+        }
+
+        ConfigEntry<T> bindConfigFile(ConfigDefinition definition, string[] previousKeys)
+        {
+            if (definition is null)
+                throw new ArgumentNullException(nameof(definition));
+
+            if (previousKeys is null)
+                throw new ArgumentNullException(nameof(previousKeys));
+
+            ConfigEntry<T> result = bindConfigFile(definition);
+
+            bool foundLegacyConfig = false;
+            for (int i = previousKeys.Length - 1; i >= 0; i--)
+            {
+                ConfigDefinition previousDefinition = new ConfigDefinition(definition.Section, previousKeys[i]);
+
+                ConfigEntry<T> previousConfigEntry = bindConfigFile(previousDefinition);
+                if (!foundLegacyConfig && !EqualityComparer.Equals(previousConfigEntry.Value, DefaultValue))
+                {
+                    result.Value = previousConfigEntry.Value;
+
+#if DEBUG
+                    Log.Debug($"Previous config entry found for {definition}: ({previousConfigEntry.Definition}), overriding value");
+#endif
+
+                    foundLegacyConfig = true;
+                }
+
+                _configFile.Remove(previousConfigEntry.Definition);
+            }
+
+            return result;
+        }
+
+        ConfigEntry<T> bindConfigFile(ConfigDefinition definition)
+        {
+            if (definition is null)
+                throw new ArgumentNullException(nameof(definition));
+
+            if (_configFile.TryGetEntry(definition, out ConfigEntry<T> existingEntry))
+                return existingEntry;
+
+            ConfigEntry<T> result = _configFile.Bind(definition, DefaultValue, Description);
+
+            if (_previousConfigSectionNames != null)
+            {
+                bool foundLegacyConfig = false;
+                for (int i = _previousConfigSectionNames.Length - 1; i >= 0; i--)
+                {
+                    // TryGetValue only works if the config is already binded, so we have to re-bind it every time to check :(
+                    ConfigEntry<T> previousConfigEntry = _configFile.Bind(new ConfigDefinition(_previousConfigSectionNames[i], definition.Key), DefaultValue);
+                    if (!foundLegacyConfig && !EqualityComparer.Equals(previousConfigEntry.Value, DefaultValue))
+                    {
+                        result.Value = previousConfigEntry.Value;
+
+#if DEBUG
+                        Log.Debug($"Previous config entry found for {definition}, overriding value");
+#endif
+
+                        foundLegacyConfig = true;
+                    }
+
+                    _configFile.Remove(previousConfigEntry.Definition);
+                }
+            }
+
+            return result;
         }
     }
 }
