@@ -1,8 +1,10 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using R2API;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RoR2;
+using RoR2.Navigation;
 using System;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -39,6 +41,44 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             static SpawnCardEntry getEntryMany(string[] iscPaths, float weight = 1f)
             {
                 return new SpawnCardEntry(Array.ConvertAll(iscPaths, loadSpawnCard), weight);
+            }
+
+            static InteractableSpawnCard createCauldronSpawnCard(string assetPath)
+            {
+                int lastSlashIndex = assetPath.LastIndexOf('/');
+                string cardName = assetPath.Substring(lastSlashIndex + 1, assetPath.LastIndexOf('.') - lastSlashIndex - 1);
+
+                Log.Debug(cardName);
+
+                InteractableSpawnCard spawnCard = ScriptableObject.CreateInstance<InteractableSpawnCard>();
+                spawnCard.name = cardName;
+                spawnCard.prefab = Addressables.LoadAssetAsync<GameObject>(assetPath).WaitForCompletion();
+                spawnCard.orientToFloor = true;
+                spawnCard.hullSize = HullClassification.Golem;
+                spawnCard.requiredFlags = NodeFlags.None;
+                spawnCard.forbiddenFlags = NodeFlags.NoChestSpawn;
+                spawnCard.occupyPosition = true;
+                spawnCard.sendOverNetwork = true;
+
+                return spawnCard;
+            }
+
+            InteractableSpawnCard iscNewtStatue = ScriptableObject.CreateInstance<InteractableSpawnCard>();
+            iscNewtStatue.name = "iscNewtStatue";
+            {
+                GameObject prefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/NewtStatue/NewtStatue.prefab").WaitForCompletion().InstantiateClone("NewtStatueFixedOrigin");
+                for (int i = 0; i < prefab.transform.childCount; i++)
+                {
+                    prefab.transform.GetChild(i).Translate(new Vector3(0f, 1.25f, 0f), Space.World);
+                }
+
+                iscNewtStatue.prefab = prefab;
+                iscNewtStatue.orientToFloor = false;
+                iscNewtStatue.hullSize = HullClassification.Golem;
+                iscNewtStatue.requiredFlags = NodeFlags.None;
+                iscNewtStatue.forbiddenFlags = NodeFlags.NoChestSpawn;
+                iscNewtStatue.occupyPosition = true;
+                iscNewtStatue.sendOverNetwork = true;
             }
 
             _spawnCards = new SpawnCardEntry[]
@@ -141,7 +181,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 {
                     "RoR2/DLC1/TreasureCacheVoid/iscLockboxVoid.asset",
                     "RoR2/Junk/TreasureCache/iscLockbox.asset"
-                })
+                }),
+                new SpawnCardEntry(new InteractableSpawnCard[]
+                {
+                    createCauldronSpawnCard("RoR2/Base/LunarCauldrons/LunarCauldron, GreenToRed Variant.prefab"),
+                    createCauldronSpawnCard("RoR2/Base/LunarCauldrons/LunarCauldron, RedToWhite Variant.prefab"),
+                    createCauldronSpawnCard("RoR2/Base/LunarCauldrons/LunarCauldron, WhiteToGreen.prefab")
+                }, 1f),
+                new SpawnCardEntry(iscNewtStatue, 1f)
             };
         }
 

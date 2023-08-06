@@ -11,6 +11,10 @@
 * Spawn Random Enemy, Ally, & Boss:
   * Added chance for spawned characters to be elites
 
+* Spawn Random Interactable:
+  * Added Lunar Cauldrons to spawn pool
+  * Added Newt Altar to spawn pool
+
 * Freeze!:
   * Freeze duration can now be configured
 
