@@ -48,8 +48,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 int lastSlashIndex = assetPath.LastIndexOf('/');
                 string cardName = assetPath.Substring(lastSlashIndex + 1, assetPath.LastIndexOf('.') - lastSlashIndex - 1);
 
-                Log.Debug(cardName);
-
                 InteractableSpawnCard spawnCard = ScriptableObject.CreateInstance<InteractableSpawnCard>();
                 spawnCard.name = cardName;
                 spawnCard.prefab = Addressables.LoadAssetAsync<GameObject>(assetPath).WaitForCompletion();
