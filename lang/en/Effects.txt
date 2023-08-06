@@ -2,6 +2,8 @@
 	strings:
 	{
 		"CHAOS_EFFECT_ACTIVATE": "<style=cWorldEvent>Effect activated: <b>{0}</b></style>",
+		"CHAOS_EFFECT_SHORTCUT_CANNOT_ACTIVATE": "<style=cWorldEvent>\"{0}\" cannot be activated</style>",
+
 		"CHAOS_EFFECT_VOTING_RANDOM_OPTION_NAME": "Random Effect",
 		
 		"TIMED_TYPE_UNTIL_STAGE_END_FORMAT": "{0} (Lasts 1 stage)",

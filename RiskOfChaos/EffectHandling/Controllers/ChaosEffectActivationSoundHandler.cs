@@ -37,11 +37,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
         {
             if ((dispatchFlags & EffectDispatchFlags.DontPlaySound) == 0)
             {
-                playEffectActivatedSoundOnAllPlayerBodies();
+                PlayEffectActivatedSound();
             }
         }
 
-        static void playEffectActivatedSoundOnAllPlayerBodies()
+        public static void PlayEffectActivatedSound()
         {
             if (_effectActivationSoundEventIndex == NetworkSoundEventIndex.Invalid)
             {

@@ -64,7 +64,20 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 if (effectInfo.IsActivationShortcutPressed)
                 {
-                    dispatchEffect(effectInfo);
+                    if (effectInfo.CanActivate(EffectCanActivateContext.Now))
+                    {
+                        dispatchEffect(effectInfo);
+                    }
+                    else
+                    {
+                        ChaosEffectActivationSoundHandler.PlayEffectActivatedSound();
+
+                        Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                        {
+                            baseToken = "CHAOS_EFFECT_SHORTCUT_CANNOT_ACTIVATE",
+                            paramTokens = new string[] { effectInfo.DisplayName }
+                        });
+                    }
                 }
             }
         }
