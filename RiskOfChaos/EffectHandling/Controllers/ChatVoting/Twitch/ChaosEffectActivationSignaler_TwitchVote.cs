@@ -18,7 +18,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
         {
             Configs.ChatVoting.OnReconnectButtonPressed += () =>
             {
-                if (Configs.ChatVoting.VotingMode == Configs.ChatVoting.ChatVotingMode.Twitch && !_loginCredentials.IsValid())
+                if (Configs.ChatVoting.VotingMode.Value == Configs.ChatVoting.ChatVotingMode.Twitch && !_loginCredentials.IsValid())
                 {
                     SimpleDialogBox notLoggedInDialog = SimpleDialogBox.Create();
 

@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectDefinitions;
+﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.UI;
 using RiskOfChaos.UI.ChatVoting;
 using RiskOfChaos.Utilities.Extensions;
@@ -13,7 +14,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
         {
             get
             {
-                return Configs.ChatVoting.NumEffectOptions + (Configs.ChatVoting.IncludeRandomEffectInVote ? 1 : 0);
+                return Configs.ChatVoting.NumEffectOptions.Value + (Configs.ChatVoting.IncludeRandomEffectInVote.Value ? 1 : 0);
             }
         }
 
@@ -77,22 +78,22 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
             _effectVoteSelection = new UniqueVoteSelection<string, EffectVoteInfo>(numVoteOptions)
             {
-                WinnerSelectionMode = Configs.ChatVoting.WinnerSelectionMode
+                WinnerSelectionMode = Configs.ChatVoting.WinnerSelectionMode.Value
             };
 
-            _voteTimer = new CompletePeriodicRunTimer(Configs.General.TimeBetweenEffects);
+            _voteTimer = new CompletePeriodicRunTimer(Configs.General.TimeBetweenEffects.Value);
             _voteTimer.OnActivate += onVoteEnd;
 
-            Configs.General.OnTimeBetweenEffectsChanged += onTimeBetweenEffectsChanged;
-            Configs.General.OnShouldActivateEffectsChanged += onShouldActivateEffectsChanged;
-            Configs.ChatVoting.OnWinnerSelectionModeChanged += onVoteWinnerSelectionModeChanged;
+            Configs.General.TimeBetweenEffects.SettingChanged += onTimeBetweenEffectsChanged;
+            Configs.General.DisableEffectDispatching.SettingChanged += onDisableEffectDispatchingChanged;
+            Configs.ChatVoting.WinnerSelectionMode.SettingChanged += onVoteWinnerSelectionModeChanged;
 
             ChaosEffectVoteDisplayController.OnDisplayControllerCreated += onEffectDisplayControllerCreated;
         }
 
-        void onShouldActivateEffectsChanged()
+        void onDisableEffectDispatchingChanged(object s, ConfigChangedArgs<bool> args)
         {
-            if (Configs.General.DisableEffectDispatching)
+            if (args.NewValue)
             {
                 if (_effectVoteSelection.IsVoteActive)
                 {
@@ -171,9 +172,9 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
         protected virtual void OnDisable()
         {
-            Configs.General.OnTimeBetweenEffectsChanged -= onTimeBetweenEffectsChanged;
-            Configs.General.OnShouldActivateEffectsChanged -= onShouldActivateEffectsChanged;
-            Configs.ChatVoting.OnWinnerSelectionModeChanged -= onVoteWinnerSelectionModeChanged;
+            Configs.General.TimeBetweenEffects.SettingChanged -= onTimeBetweenEffectsChanged;
+            Configs.General.DisableEffectDispatching.SettingChanged -= onDisableEffectDispatchingChanged;
+            Configs.ChatVoting.WinnerSelectionMode.SettingChanged -= onVoteWinnerSelectionModeChanged;
 
             if (_voteTimer != null)
             {
@@ -201,25 +202,25 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             ChaosEffectVoteDisplayController.OnDisplayControllerCreated -= onEffectDisplayControllerCreated;
         }
 
-        void onTimeBetweenEffectsChanged()
+        void onTimeBetweenEffectsChanged(object s, ConfigChangedArgs<float> args)
         {
             if (_voteTimer == null)
                 return;
             
-            _voteTimer.Period = Configs.General.TimeBetweenEffects;
+            _voteTimer.Period = args.NewValue;
         }
 
-        void onVoteWinnerSelectionModeChanged()
+        void onVoteWinnerSelectionModeChanged(object sender, ConfigChangedArgs<VoteWinnerSelectionMode> e)
         {
             if (_effectVoteSelection == null)
                 return;
 
-            _effectVoteSelection.WinnerSelectionMode = Configs.ChatVoting.WinnerSelectionMode;
+            _effectVoteSelection.WinnerSelectionMode = e.NewValue;
         }
 
         void beginNextVote()
         {
-            if (Configs.General.DisableEffectDispatching)
+            if (Configs.General.DisableEffectDispatching.Value)
                 return;
 
             _offsetVoteNumbers = _voteStartCount++ % 2 != 0;
@@ -234,7 +235,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             {
                 int voteNumber = (_offsetVoteNumbers ? numOptions : 0) + i + 1;
 
-                if (Configs.ChatVoting.IncludeRandomEffectInVote && i == numOptions - 1)
+                if (Configs.ChatVoting.IncludeRandomEffectInVote.Value && i == numOptions - 1)
                 {
                     voteOptions[i] = EffectVoteInfo.Random(voteNumber);
                 }

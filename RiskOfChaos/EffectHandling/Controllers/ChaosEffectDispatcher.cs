@@ -154,7 +154,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void ActivationSignaler_SignalShouldDispatchEffect(in ChaosEffectInfo effect, EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None)
         {
-            if (Configs.General.DisableEffectDispatching)
+            if (Configs.General.DisableEffectDispatching.Value)
                 return;
 
             DispatchEffect(effect, dispatchFlags);

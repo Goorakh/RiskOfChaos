@@ -1,4 +1,5 @@
-﻿using RoR2;
+﻿using RiskOfChaos.ConfigHandling;
+using RoR2;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling.Controllers
@@ -23,9 +24,9 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void OnEnable()
         {
-            Configs.General.OnTimeBetweenEffectsChanged += onTimeBetweenEffectsConfigChanged;
+            Configs.General.TimeBetweenEffects.SettingChanged += onTimeBetweenEffectsConfigChanged;
 
-            _effectDispatchTimer = new CompletePeriodicRunTimer(Configs.General.TimeBetweenEffects);
+            _effectDispatchTimer = new CompletePeriodicRunTimer(Configs.General.TimeBetweenEffects.Value);
             _effectDispatchTimer.OnActivate += dispatchRandomEffect;
 
             if (Run.instance)
@@ -48,7 +49,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void OnDisable()
         {
-            Configs.General.OnTimeBetweenEffectsChanged -= onTimeBetweenEffectsConfigChanged;
+            Configs.General.TimeBetweenEffects.SettingChanged -= onTimeBetweenEffectsConfigChanged;
 
             if (_effectDispatchTimer != null)
             {
@@ -59,9 +60,9 @@ namespace RiskOfChaos.EffectHandling.Controllers
             _nextEffectRNG = null;
         }
 
-        void onTimeBetweenEffectsConfigChanged()
+        void onTimeBetweenEffectsConfigChanged(object s, ConfigChangedArgs<float> args)
         {
-            _effectDispatchTimer.Period = Configs.General.TimeBetweenEffects;
+            _effectDispatchTimer.Period = args.NewValue;
         }
 
         void Update()

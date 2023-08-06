@@ -1,4 +1,5 @@
 ﻿using R2API;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling.Controllers.ChatVoting;
 using RoR2;
 using RoR2.UI;
@@ -124,18 +125,23 @@ namespace RiskOfChaos.UI.ChatVoting
         {
             OnDisplayControllerCreated?.Invoke(this);
 
-            Configs.ChatVoting.OnVoteDisplayScaleMultiplierChanged += refreshScale;
-            refreshScale();
+            Configs.ChatVoting.VoteDisplayScaleMultiplier.SettingChanged += refreshScale;
+            setScale(Configs.ChatVoting.VoteDisplayScaleMultiplier.Value);
         }
 
         void OnDisable()
         {
-            Configs.ChatVoting.OnVoteDisplayScaleMultiplierChanged -= refreshScale;
+            Configs.ChatVoting.VoteDisplayScaleMultiplier.SettingChanged -= refreshScale;
         }
 
-        void refreshScale()
+        void refreshScale(object sender, ConfigChangedArgs<float> args)
         {
-            transform.localScale = _defaultScale * Configs.ChatVoting.VoteDisplayScaleMultiplier;
+            setScale(args.NewValue);
+        }
+
+        void setScale(float scale)
+        {
+            transform.localScale = _defaultScale * scale;
         }
 
         public void RemoveAllVoteDisplays()

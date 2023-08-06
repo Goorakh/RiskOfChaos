@@ -1,7 +1,6 @@
 ﻿using BepInEx.Configuration;
-using RiskOfOptions;
-using RiskOfOptions.Options;
-using System;
+using RiskOfChaos.ConfigHandling;
+using RiskOfOptions.OptionConfigs;
 
 namespace RiskOfChaos
 {
@@ -10,20 +9,20 @@ namespace RiskOfChaos
     {
         public static class Debug
         {
-            static ConfigEntry<bool> _useLocalhostConnect;
-            const bool USE_LOCALHOST_CONNECT_DEFAULT_VALUE = false;
-            public static bool UseLocalhostConnect => _useLocalhostConnect?.Value ?? USE_LOCALHOST_CONNECT_DEFAULT_VALUE;
+            public static ConfigHolder<bool> UseLocalhostConnect =
+                ConfigFactory<bool>.CreateConfig("Use Localhost Connect", false)
+                                   .OptionConfig(new CheckBoxConfig())
+                                   .Build();
 
-            internal static void Init(ConfigFile file)
+            internal static void Bind(ConfigFile file)
             {
                 const string SECTION_NAME = "Debug";
 
-                _useLocalhostConnect = file.Bind(new ConfigDefinition(SECTION_NAME, "Use Localhost Connect"), USE_LOCALHOST_CONNECT_DEFAULT_VALUE);
-                ModSettingsManager.AddOption(new CheckBoxOption(_useLocalhostConnect), CONFIG_GUID, CONFIG_NAME);
+                UseLocalhostConnect.Bind(file, SECTION_NAME, CONFIG_GUID, CONFIG_NAME);
 
                 On.RoR2.Networking.NetworkManagerSystem.ClientSendAuth += (orig, self, conn) =>
                 {
-                    if (UseLocalhostConnect)
+                    if (UseLocalhostConnect.Value)
                         return;
 
                     orig(self, conn);
@@ -32,7 +31,7 @@ namespace RiskOfChaos
                 // Connecting to localhost this way makes entitlements not work, so just force them all to be enabled
                 On.RoR2.PlayerCharacterMasterControllerEntitlementTracker.HasEntitlement += (orig, self, entitlementDef) =>
                 {
-                    return UseLocalhostConnect || orig(self, entitlementDef);
+                    return UseLocalhostConnect.Value || orig(self, entitlementDef);
                 };
             }
         }

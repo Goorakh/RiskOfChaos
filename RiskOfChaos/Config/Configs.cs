@@ -10,12 +10,12 @@ namespace RiskOfChaos
 
         internal static void Init(ConfigFile file)
         {
-            General.Init(file);
+            General.Bind(file);
 
-            ChatVoting.Init(file);
+            ChatVoting.Bind(file);
 
 #if DEBUG
-            Debug.Init(file);
+            Debug.Bind(file);
 #endif
 
             // ModSettingsManager.SetModIcon(general_icon, GENERAL_GUID, GENERAL_NAME);

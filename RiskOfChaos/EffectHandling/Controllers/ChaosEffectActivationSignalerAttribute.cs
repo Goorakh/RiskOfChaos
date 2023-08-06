@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RiskOfChaos.ConfigHandling;
+using System;
 
 namespace RiskOfChaos.EffectHandling.Controllers
 {
@@ -11,12 +12,22 @@ namespace RiskOfChaos.EffectHandling.Controllers
         {
             _requiredVotingMode = requiredVotingMode;
 
-            Configs.ChatVoting.OnVotingModeChanged += invokeShouldRefreshEnabledState;
+            Configs.ChatVoting.VotingMode.SettingChanged += VotingMode_SettingChanged;
+        }
+
+        ~ChaosEffectActivationSignalerAttribute()
+        {
+            Configs.ChatVoting.VotingMode.SettingChanged -= VotingMode_SettingChanged;
+        }
+
+        void VotingMode_SettingChanged(object sender, ConfigChangedArgs<Configs.ChatVoting.ChatVotingMode> e)
+        {
+            invokeShouldRefreshEnabledState();
         }
 
         public override bool CanBeActive()
         {
-            return base.CanBeActive() && Configs.ChatVoting.VotingMode == _requiredVotingMode;
+            return base.CanBeActive() && Configs.ChatVoting.VotingMode.Value == _requiredVotingMode;
         }
     }
 }
