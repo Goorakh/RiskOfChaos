@@ -48,14 +48,6 @@ namespace RiskOfChaos.EffectHandling
                 return false;
             }
 
-            if (HasHardStageActivationCountCap && GetActivationCount(EffectActivationCountMode.PerStage) >= HardStageActivationCountCap)
-            {
-#if DEBUG
-                Log.Debug($"effect {Identifier} cannot activate due to stage activation cap of {HardStageActivationCountCap} reached ({GetActivationCount(EffectActivationCountMode.PerStage)} activations)");
-#endif
-                return false;
-            }
-
             if (_canActivateMethods.Length != 0 && _canActivateMethods.Any(m => m.Invoke(context) == false))
             {
                 return false;
@@ -76,9 +68,6 @@ namespace RiskOfChaos.EffectHandling
 
         readonly ConfigHolder<EffectActivationCountMode> _effectRepetitionCountMode;
         public EffectActivationCountMode EffectRepetitionCountMode => _effectRepetitionCountMode.Value;
-
-        public readonly int HardStageActivationCountCap;
-        public readonly bool HasHardStageActivationCountCap => HardStageActivationCountCap >= 0;
 
         public int ActivationCount
         {
@@ -198,8 +187,6 @@ namespace RiskOfChaos.EffectHandling
             {
                 Log.Error($"attribute target is not a Type ({attribute.target})");
             }
-
-            HardStageActivationCountCap = attribute.EffectStageActivationCountHardCap;
 
             IsNetworked = attribute.IsNetworked;
 
