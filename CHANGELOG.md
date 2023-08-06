@@ -25,6 +25,9 @@
 * Max All Cooldowns:
   * Fixed Railgunner not being able to fire scoped shots after effect activation
 
+* Misc:
+  * Added the ability to set a keyboard shortcut to activate a specific effect at any time in a run
+
 **1.9.0 Changes:**
 
 * Added 5 new effects:

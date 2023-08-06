@@ -69,6 +69,9 @@ namespace RiskOfChaos.EffectHandling
         readonly ConfigHolder<EffectActivationCountMode> _effectRepetitionCountMode;
         public EffectActivationCountMode EffectRepetitionCountMode => _effectRepetitionCountMode.Value;
 
+        readonly ConfigHolder<KeyboardShortcut> _activationShortcut;
+        public bool IsActivationShortcutPressed => _activationShortcut != null && _activationShortcut.Value.IsDown();
+
         public int ActivationCount
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -239,6 +242,12 @@ namespace RiskOfChaos.EffectHandling
                                                         .OptionConfig(new ChoiceConfig())
                                                         .Build();
 
+            _activationShortcut =
+                ConfigFactory<KeyboardShortcut>.CreateConfig("Activation Shortcut", KeyboardShortcut.Empty)
+                                               .Description("A keyboard shortcut that, if pressed, will activate this effect at any time during a run")
+                                               .OptionConfig(new KeyBindConfig())
+                                               .Build();
+
             foreach (MemberInfo member in EffectType.GetMembers(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly)
                                                     .WithAttribute<MemberInfo, InitEffectMemberAttribute>())
             {
@@ -361,6 +370,8 @@ namespace RiskOfChaos.EffectHandling
             _weightReductionPerActivation?.Bind(this);
 
             _effectRepetitionCountMode?.Bind(this);
+
+            _activationShortcut?.Bind(this);
         }
 
         public override readonly string ToString()

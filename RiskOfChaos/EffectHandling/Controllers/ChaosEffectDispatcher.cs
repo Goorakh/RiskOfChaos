@@ -55,6 +55,20 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
+        void Update()
+        {
+            if (!NetworkServer.active)
+                return;
+            
+            foreach (ChaosEffectInfo effectInfo in ChaosEffectCatalog.AllEffects())
+            {
+                if (effectInfo.IsActivationShortcutPressed)
+                {
+                    dispatchEffect(effectInfo);
+                }
+            }
+        }
+
         void OnDisable()
         {
             SingletonHelper.Unassign(ref _instance, this);
