@@ -27,10 +27,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             TimedType = effectInstance.TimedType;
             DurationSeconds = effectInstance.DurationSeconds;
 
-            if (Run.instance)
-            {
-                TimeStarted = Run.instance.GetRunTime(RunTimerType.Realtime);
-            }
+            TimeStarted = effectInstance.TimeStarted;
         }
 
         private ActiveEffectItemInfo(NetworkReader reader)

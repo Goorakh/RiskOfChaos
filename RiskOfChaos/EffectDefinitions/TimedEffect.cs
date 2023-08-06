@@ -11,6 +11,7 @@ namespace RiskOfChaos.EffectDefinitions
         public float DurationSeconds { get; internal set; } = -1f;
 
         float _effectStartTime;
+        public float TimeStarted => _effectStartTime;
 
         public float TimeElapsed
         {
