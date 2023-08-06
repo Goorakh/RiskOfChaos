@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using HG;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -7,7 +8,6 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
-using RiskOfOptions.Options;
 using RoR2;
 using System;
 using System.Collections.Generic;
@@ -67,18 +67,15 @@ namespace RiskOfChaos.EffectHandling
         readonly Type[] _incompatibleEffectTypes;
         public readonly ReadOnlyArray<ChaosEffectInfo> IncompatibleEffects;
 
-        public readonly ConfigEntry<bool> IsEnabledConfig;
-        readonly ConfigEntry<float> _selectionWeightConfig;
+        public readonly ConfigHolder<bool> IsEnabledConfig;
+        readonly ConfigHolder<float> _selectionWeightConfig;
 
-        readonly ConfigEntry<float> _weightReductionPerActivation;
-        readonly float _weightReductionPerActivationDefaultValue;
+        readonly ConfigHolder<float> _weightReductionPerActivation;
 
-        public float EffectWeightMultiplierPerActivation => 1f - Mathf.Clamp01(_weightReductionPerActivation?.Value ?? _weightReductionPerActivationDefaultValue);
+        public float EffectWeightMultiplierPerActivation => 1f - _weightReductionPerActivation.Value;
 
-        readonly ConfigEntry<EffectActivationCountMode> _effectRepetitionCountMode;
-        readonly EffectActivationCountMode _effectRepetitionCountModeDefaultValue;
-
-        public EffectActivationCountMode EffectRepetitionCountMode => _effectRepetitionCountMode?.Value ?? _effectRepetitionCountModeDefaultValue;
+        readonly ConfigHolder<EffectActivationCountMode> _effectRepetitionCountMode;
+        public EffectActivationCountMode EffectRepetitionCountMode => _effectRepetitionCountMode.Value;
 
         public readonly int HardStageActivationCountCap;
         public readonly bool HasHardStageActivationCountCap => HardStageActivationCountCap >= 0;
@@ -219,15 +216,41 @@ namespace RiskOfChaos.EffectHandling
 
             ConfigFile = configFile;
 
-            IsEnabledConfig = BindConfig("Effect Enabled", true, new ConfigDescription("If the effect should be able to be picked"));
+            IsEnabledConfig = ConfigFactory<bool>.CreateConfig("Effect Enabled", true)
+                                                 .Description("If the effect should be able to be picked")
+                                                 .OptionConfig(new CheckBoxConfig())
+                                                 .Build();
 
-            _selectionWeightConfig = BindConfig("Effect Weight", attribute.DefaultSelectionWeight, new ConfigDescription("How likely the effect is to be picked, higher value means more likely, lower value means less likely"));
+            _selectionWeightConfig = ConfigFactory<float>.CreateConfig("Effect Weight", attribute.DefaultSelectionWeight)
+                                                         .Description("How likely the effect is to be picked, higher value means more likely, lower value means less likely")
+                                                         .OptionConfig(new StepSliderConfig
+                                                         {
+                                                             formatString = "{0:F1}",
+                                                             increment = 0.1f,
+                                                             min = 0f,
+                                                             max = 2.5f
+                                                         })
+                                                         .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(0f))
+                                                         .Build();
 
-            _weightReductionPerActivationDefaultValue = attribute.EffectWeightReductionPercentagePerActivation / 100f;
-            _weightReductionPerActivation = BindConfig("Effect Repetition Reduction Percentage", _weightReductionPerActivationDefaultValue, new ConfigDescription("The percentage reduction to apply to the weight value per activation, setting this to any value above 0 will make the effect less likely to happen several times"));
+            _weightReductionPerActivation =
+                ConfigFactory<float>.CreateConfig("Effect Repetition Reduction Percentage", attribute.EffectWeightReductionPercentagePerActivation / 100f)
+                                    .Description("The percentage reduction to apply to the weight value per activation, setting this to any value above 0 will make the effect less likely to happen several times")
+                                    .OptionConfig(new StepSliderConfig
+                                    {
+                                        formatString = "-{0:P0}",
+                                        increment = 0.01f,
+                                        min = 0f,
+                                        max = 1f
+                                    })
+                                    .ValueConstrictor(ValueConstrictors.Clamped01Float)
+                                    .Build();
 
-            _effectRepetitionCountModeDefaultValue = attribute.EffectRepetitionWeightCalculationMode;
-            _effectRepetitionCountMode = BindConfig("Effect Repetition Count Mode", _effectRepetitionCountModeDefaultValue, new ConfigDescription($"Controls how the Reduction Percentage will be applied.\n\n{nameof(EffectActivationCountMode.PerStage)}: Only the activations on the current stage are considered, and the weight reduction is reset on stage start.\n\n{nameof(EffectActivationCountMode.PerRun)}: All activations during the current run are considered."));
+            _effectRepetitionCountMode =
+                ConfigFactory<EffectActivationCountMode>.CreateConfig("Effect Repetition Count Mode", attribute.EffectRepetitionWeightCalculationMode)
+                                                        .Description($"Controls how the Reduction Percentage will be applied.\n\n{nameof(EffectActivationCountMode.PerStage)}: Only the activations on the current stage are considered, and the weight reduction is reset on stage start.\n\n{nameof(EffectActivationCountMode.PerRun)}: All activations during the current run are considered.")
+                                                        .OptionConfig(new ChoiceConfig())
+                                                        .Build();
 
             foreach (MemberInfo member in EffectType.GetMembers(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly)
                                                     .WithAttribute<MemberInfo, InitEffectMemberAttribute>())
@@ -342,50 +365,15 @@ namespace RiskOfChaos.EffectHandling
             return effectActivationCounterHandler.GetEffectActivationCount(this, countMode);
         }
 
-        public readonly void AddRiskOfOptionsEntries()
+        public readonly void BindConfigs()
         {
-            if (IsEnabledConfig != null)
-            {
-                ChaosEffectCatalog.AddEffectConfigOption(new CheckBoxOption(IsEnabledConfig));
-            }
+            IsEnabledConfig?.Bind(this);
 
-            ConfigEntry<bool> isEnabledConfig = IsEnabledConfig;
-            bool isEffectDisabled()
-            {
-                return isEnabledConfig != null && !isEnabledConfig.Value;
-            }
+            _selectionWeightConfig?.Bind(this);
 
-            if (_selectionWeightConfig != null)
-            {
-                ChaosEffectCatalog.AddEffectConfigOption(new StepSliderOption(_selectionWeightConfig, new StepSliderConfig
-                {
-                    formatString = "{0:F1}",
-                    increment = 0.1f,
-                    min = 0f,
-                    max = 2.5f,
-                    checkIfDisabled = isEffectDisabled
-                }));
-            }
+            _weightReductionPerActivation?.Bind(this);
 
-            if (_weightReductionPerActivation != null)
-            {
-                ChaosEffectCatalog.AddEffectConfigOption(new StepSliderOption(_weightReductionPerActivation, new StepSliderConfig
-                {
-                    formatString = "-{0:P0}",
-                    increment = 0.01f,
-                    min = 0f,
-                    max = 1f,
-                    checkIfDisabled = isEffectDisabled
-                }));
-            }
-
-            if (_effectRepetitionCountMode != null)
-            {
-                ChaosEffectCatalog.AddEffectConfigOption(new ChoiceOption(_effectRepetitionCountMode, new ChoiceConfig
-                {
-                    checkIfDisabled = isEffectDisabled
-                }));
-            }
+            _effectRepetitionCountMode?.Bind(this);
         }
 
         public override readonly string ToString()

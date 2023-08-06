@@ -68,7 +68,7 @@ namespace RiskOfChaos.EffectHandling
             foreach (ChaosEffectInfo effectInfo in _effects.OrderBy(ei => ei.ConfigSectionName, StringComparer.OrdinalIgnoreCase))
             {
                 effectInfo.Validate();
-                effectInfo.AddRiskOfOptionsEntries();
+                effectInfo.BindConfigs();
             }
 
             Log.Info($"Registered {_effectCount} effects");

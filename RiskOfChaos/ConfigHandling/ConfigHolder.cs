@@ -61,8 +61,8 @@ namespace RiskOfChaos.ConfigHandling
 
             if (_optionConfig != null)
             {
-                ConfigEntry<bool> isEffectEnabledConfig = ownerEffect.IsEnabledConfig;
-                if (isEffectEnabledConfig != null)
+                ConfigHolder<bool> isEffectEnabledConfig = ownerEffect.IsEnabledConfig;
+                if (isEffectEnabledConfig != null && (ConfigHolderBase)isEffectEnabledConfig != this)
                 {
                     bool isEffectDisabled()
                     {
