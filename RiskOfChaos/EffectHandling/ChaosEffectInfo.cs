@@ -32,16 +32,10 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly string ConfigSectionName;
 
-        readonly ChaosEffectCanActivateMethod[] _canActivateMethods;
+        readonly ChaosEffectCanActivateMethod[] _canActivateMethods = Array.Empty<ChaosEffectCanActivateMethod>();
 
         public readonly bool CanActivate(EffectCanActivateContext context)
         {
-            if (_canActivateMethods == null)
-            {
-                Log.Warning($"effect {Identifier} has null {nameof(_canActivateMethods)} array");
-                return false;
-            }
-
             if (IsEnabledConfig != null && !IsEnabledConfig.Value)
             {
 #if DEBUG
