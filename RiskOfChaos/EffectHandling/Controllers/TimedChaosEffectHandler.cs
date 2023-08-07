@@ -138,10 +138,9 @@ namespace RiskOfChaos.EffectHandling.Controllers
             if (!canActivate)
                 return;
 
-            ReadOnlyArray<ChaosEffectInfo> incompatibleEffects = effectInfo.IncompatibleEffects;
-            for (int i = 0; i < incompatibleEffects.Length; i++)
+            foreach (ChaosEffectInfo incompatibleEffect in effectInfo.IncompatibleEffects)
             {
-                foreach (ActiveTimedEffectInfo activeTimedEffectInfo in getActiveTimedEffectsFor(incompatibleEffects[i]))
+                foreach (ActiveTimedEffectInfo activeTimedEffectInfo in getActiveTimedEffectsFor(incompatibleEffect))
                 {
                     if (!activeTimedEffectInfo.MatchesFlag(TimedEffectFlags.FixedDuration) ||
                         activeTimedEffectInfo.EffectInstance.TimeRemaining > context.Delay)

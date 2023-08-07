@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using RiskOfChaos.Components;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
@@ -8,6 +9,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World.Pickups
 {
+    [IncompatibleEffects(typeof(GenericAttractPickupsEffect))]
     public abstract class GenericAttractPickupsEffect : TimedEffect
     {
         static bool _hasAppliedPatches = false;

@@ -7,7 +7,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
 {
     [ChaosEffect("attract_pickups")]
     [ChaosTimedEffect(90f, AllowDuplicates = false)]
-    [IncompatibleEffects(typeof(RepulsePickups))]
     public sealed class AttractPickups : GenericAttractPickupsEffect
     {
         public override void OnStart()

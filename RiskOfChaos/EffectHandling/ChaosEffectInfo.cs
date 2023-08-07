@@ -6,11 +6,13 @@ using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -56,8 +58,7 @@ namespace RiskOfChaos.EffectHandling
             return true;
         }
 
-        readonly Type[] _incompatibleEffectTypes;
-        public readonly ReadOnlyArray<ChaosEffectInfo> IncompatibleEffects;
+        public readonly ReadOnlyCollection<ChaosEffectInfo> IncompatibleEffects = Empty<ChaosEffectInfo>.ReadOnlyCollection;
 
         public readonly ConfigHolder<bool> IsEnabledConfig;
         readonly ConfigHolder<float> _selectionWeightConfig;
@@ -161,27 +162,19 @@ namespace RiskOfChaos.EffectHandling
                     Type[] incompatibleEffectTypes = effectType.GetCustomAttributes<IncompatibleEffectsAttribute>(true)
                                                                .SelectMany(a => a.IncompatibleEffectTypes)
                                                                .ToArray();
-                    _incompatibleEffectTypes = incompatibleEffectTypes;
 
-                    ChaosEffectInfo[] incompatibleEffectInfos = new ChaosEffectInfo[incompatibleEffectTypes.Length];
-                    IncompatibleEffects = new ReadOnlyArray<ChaosEffectInfo>(incompatibleEffectInfos);
-
-                    if (incompatibleEffectInfos.Length > 0)
+                    if (incompatibleEffectTypes.Length > 0)
                     {
+                        List<ChaosEffectInfo> incompatibleEffects = new List<ChaosEffectInfo>(incompatibleEffectTypes.Length);
+                        IncompatibleEffects = new ReadOnlyCollection<ChaosEffectInfo>(incompatibleEffects);
+
                         ChaosEffectCatalog.Availability.CallWhenAvailable(() =>
                         {
-                            for (int i = 0; i < incompatibleEffectInfos.Length; i++)
-                            {
-                                ChaosEffectIndex effectIndex = ChaosEffectCatalog.FindEffectIndex(incompatibleEffectTypes[i]);
-                                if (effectIndex <= ChaosEffectIndex.Invalid)
-                                {
-                                    Log.Error($"Failed to find effect index for type {incompatibleEffectTypes[i].FullName}");
-                                }
-                                else
-                                {
-                                    incompatibleEffectInfos[i] = ChaosEffectCatalog.GetEffectInfo(effectIndex);
-                                }
-                            }
+                            incompatibleEffects.AddRange(ChaosEffectCatalog.AllEffects().Where(e => e.EffectIndex != effectIndex && incompatibleEffectTypes.Any(t => t.IsAssignableFrom(e.EffectType))));
+
+#if DEBUG
+                            Log.Debug($"Initialized incompatibility list for {ChaosEffectCatalog.GetEffectInfo(effectIndex)}: [{string.Join(", ", incompatibleEffects)}]");
+#endif
                         });
                     }
                 }
@@ -308,17 +301,17 @@ namespace RiskOfChaos.EffectHandling
             return Identifier;
         }
 
-        public override bool Equals(object obj)
+        public override readonly bool Equals(object obj)
         {
             return obj is ChaosEffectInfo info && Equals(info);
         }
 
-        public bool Equals(ChaosEffectInfo other)
+        public readonly bool Equals(ChaosEffectInfo other)
         {
             return EffectIndex == other.EffectIndex;
         }
 
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
             return -865576688 + EffectIndex.GetHashCode();
         }
