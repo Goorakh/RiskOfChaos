@@ -18,6 +18,12 @@
 * Freeze!:
   * Freeze duration can now be configured
 
+* Force Activate Random Skill:
+  * Changed default duration: Until next stage -> 90s
+
+* Disable Random Skill:
+  * Changed default duration: Until next stage -> 90s
+
 * Spawn Random Ally:
   * Fixed Grandparents spawning in the air
   * Fixed effect not using ally skins of characters that have them
