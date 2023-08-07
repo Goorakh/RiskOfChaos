@@ -68,7 +68,11 @@ namespace RiskOfChaos.EffectHandling
 
             checkFindEffectIndex();
 
-            foreach (ChaosEffectInfo effectInfo in _effects.OrderBy(ei => ei.ConfigSectionName, StringComparer.OrdinalIgnoreCase))
+            ChaosEffectInfo[] effectsByConfigName = new ChaosEffectInfo[_effectCount];
+            _effects.CopyTo(effectsByConfigName, 0);
+            Array.Sort(effectsByConfigName, (a, b) => StringComparer.OrdinalIgnoreCase.Compare(a.ConfigSectionName, b.ConfigSectionName));
+
+            foreach (ChaosEffectInfo effectInfo in effectsByConfigName)
             {
                 effectInfo.Validate();
                 effectInfo.BindConfigs();
@@ -80,7 +84,7 @@ namespace RiskOfChaos.EffectHandling
 
             RoR2Application.onNextUpdate += () =>
             {
-                foreach (ChaosEffectInfo effectInfo in _effects.OrderBy(ei => ei.ConfigSectionName, StringComparer.OrdinalIgnoreCase))
+                foreach (ChaosEffectInfo effectInfo in effectsByConfigName)
                 {
                     foreach (MemberInfo member in effectInfo.EffectType.GetMembers(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly).WithAttribute<MemberInfo, InitEffectMemberAttribute>())
                     {
