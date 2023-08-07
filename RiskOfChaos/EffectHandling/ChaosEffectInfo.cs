@@ -44,7 +44,7 @@ namespace RiskOfChaos.EffectHandling
                 return false;
             }
 
-            if (_canActivateMethods.Length != 0 && _canActivateMethods.Any(m => m.Invoke(context) == false))
+            if (_canActivateMethods.Length > 0 && !_canActivateMethods.All(m => m.Invoke(context)))
             {
                 return false;
             }
