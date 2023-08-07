@@ -25,6 +25,7 @@ namespace RiskOfChaos.EffectHandling
         public static ResourceAvailability Availability = new ResourceAvailability();
 
         static ChaosEffectInfo[] _effects;
+        public static ReadOnlyArray<ChaosEffectInfo> AllEffects { get; private set; }
 
         static int _effectCount;
         public static int EffectCount => _effectCount;
@@ -56,6 +57,8 @@ namespace RiskOfChaos.EffectHandling
                                                         .OrderBy(static e => e.Identifier, StringComparer.OrdinalIgnoreCase)
                                                         .Select(static (e, i) => e.BuildEffectInfo((ChaosEffectIndex)i))
                                                         .ToArray();
+
+            AllEffects = new ReadOnlyArray<ChaosEffectInfo>(_effects);
 
             _effectCount = _effects.Length;
 
@@ -109,11 +112,6 @@ namespace RiskOfChaos.EffectHandling
                     Log.Error($"Effect Find Test: {effectInfo.Identifier} failed case-insensitive check");
                 }
             }
-        }
-
-        public static IEnumerable<ChaosEffectInfo> AllEffects()
-        {
-            return Enumerable.Range(0, EffectCount).Select(i => GetEffectInfo((ChaosEffectIndex)i));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

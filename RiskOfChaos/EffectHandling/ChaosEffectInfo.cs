@@ -170,7 +170,7 @@ namespace RiskOfChaos.EffectHandling
 
                         ChaosEffectCatalog.Availability.CallWhenAvailable(() =>
                         {
-                            incompatibleEffects.AddRange(ChaosEffectCatalog.AllEffects().Where(e => e.EffectIndex != effectIndex && incompatibleEffectTypes.Any(t => t.IsAssignableFrom(e.EffectType))));
+                            incompatibleEffects.AddRange(ChaosEffectCatalog.AllEffects.Where(e => e.EffectIndex != effectIndex && incompatibleEffectTypes.Any(t => t.IsAssignableFrom(e.EffectType))));
 
 #if DEBUG
                             Log.Debug($"Initialized incompatibility list for {ChaosEffectCatalog.GetEffectInfo(effectIndex)}: [{string.Join(", ", incompatibleEffects)}]");

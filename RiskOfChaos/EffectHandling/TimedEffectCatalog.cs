@@ -25,7 +25,7 @@ namespace RiskOfChaos.EffectHandling
         {
             ChaosEffectCatalog.Availability.CallWhenAvailable(() =>
             {
-                _timedEffectInfos = ChaosEffectCatalog.AllEffects()
+                _timedEffectInfos = ChaosEffectCatalog.AllEffects
                                                       .Where(e => typeof(TimedEffect).IsAssignableFrom(e.EffectType))
                                                       .Select((effectInfo, i) => new TimedEffectInfo(effectInfo, (TimedChaosEffectIndex)i))
                                                       .ToArray();
