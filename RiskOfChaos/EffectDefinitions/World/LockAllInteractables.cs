@@ -78,7 +78,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                     NetworkServer.Destroy(lockObject);
                 }
             }
-            
+
             _spawnedLockObjects.Clear();
         }
     }

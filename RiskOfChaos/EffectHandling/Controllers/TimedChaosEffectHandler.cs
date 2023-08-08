@@ -1,5 +1,4 @@
-﻿using HG;
-using R2API.Networking;
+﻿using R2API.Networking;
 using R2API.Networking.Interfaces;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.Networking;

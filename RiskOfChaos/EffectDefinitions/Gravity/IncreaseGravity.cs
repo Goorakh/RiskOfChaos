@@ -15,7 +15,7 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
     public sealed class IncreaseGravity : GenericMultiplyGravityEffect
     {
         [EffectConfig]
-        static readonly ConfigHolder<float> _gravityIncrease = 
+        static readonly ConfigHolder<float> _gravityIncrease =
             ConfigFactory<float>.CreateConfig("Increase per Activation", 0.5f)
                                 .Description("How much gravity should increase per effect activation, 50% means the gravity is multiplied by 1.5, 100% means the gravity is multiplied by 2, etc.")
                                 .OptionConfig(new StepSliderConfig

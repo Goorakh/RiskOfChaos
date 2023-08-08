@@ -42,7 +42,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
         static event Action<MonoBehaviour> _onPickupCreated;
 
         readonly HashSet<AttractToPlayers> _createdInstances = new HashSet<AttractToPlayers>();
-        
+
         public override void OnStart()
         {
             tryApplyPatches();

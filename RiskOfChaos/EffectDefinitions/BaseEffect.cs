@@ -1,6 +1,4 @@
 ﻿using RiskOfChaos.EffectHandling;
-using RiskOfOptions.Options;
-using System.Runtime.CompilerServices;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions

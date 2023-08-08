@@ -5,7 +5,6 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {

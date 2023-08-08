@@ -1,7 +1,6 @@
 ﻿using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.Utilities.Extensions;
-using RoR2;
 using System;
 using UnityEngine.Networking;
 

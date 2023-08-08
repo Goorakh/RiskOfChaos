@@ -30,13 +30,13 @@ namespace RiskOfChaos.Utilities.Extensions
                 dest = default;
                 return;
             }
-            
+
             if (source is ValueType)
             {
                 dest = source;
                 return;
             }
-            
+
             if (source is ICloneable cloneable)
             {
                 dest = (T)cloneable.Clone();

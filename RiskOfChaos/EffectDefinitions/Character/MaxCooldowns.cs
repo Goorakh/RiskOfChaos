@@ -48,7 +48,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (body.hasAuthority)
                 {
                     SkillLocator skillLocator = body.skillLocator;
-                    
+
                     int skillSlotCount = skillLocator.skillSlotCount;
                     for (int i = 0; i < skillSlotCount; i++)
                     {

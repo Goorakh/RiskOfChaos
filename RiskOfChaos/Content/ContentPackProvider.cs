@@ -22,7 +22,7 @@ namespace RiskOfChaos.Content
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
             _contentPack.identifier = identifier;
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
-            
+
             Items.AddItemDefsTo(_contentPack.itemDefs);
             BodyPrefabs.AddBodyPrefabsTo(_contentPack.bodyPrefabs);
 

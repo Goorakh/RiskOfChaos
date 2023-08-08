@@ -59,7 +59,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         {
             if (!NetworkServer.active)
                 return;
-            
+
             foreach (ChaosEffectInfo effectInfo in ChaosEffectCatalog.AllEffects)
             {
                 if (effectInfo.IsActivationShortcutPressed)

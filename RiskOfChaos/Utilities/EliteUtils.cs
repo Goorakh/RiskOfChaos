@@ -1,5 +1,4 @@
 ﻿using RoR2;
-using RoR2.ExpansionManagement;
 using System;
 using System.Linq;
 

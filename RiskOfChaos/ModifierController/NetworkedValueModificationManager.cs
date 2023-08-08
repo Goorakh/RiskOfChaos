@@ -69,7 +69,7 @@ namespace RiskOfChaos.ModifierController
 #if DEBUG
             if (Time.unscaledTime >= _lastModificationDirtyLogAttemptTime + 0.25f)
                 Log.Debug_NoCallerPrefix($"{name} modification marked dirty");
-            
+
             _lastModificationDirtyLogAttemptTime = Time.unscaledTime;
 #endif
 
@@ -137,7 +137,7 @@ namespace RiskOfChaos.ModifierController
             return baseValue;
         }
 
-        public override sealed bool OnSerialize(NetworkWriter writer, bool initialState)
+        public sealed override bool OnSerialize(NetworkWriter writer, bool initialState)
         {
             uint dirtyBits = syncVarDirtyBits;
             if (!initialState)
@@ -167,7 +167,7 @@ namespace RiskOfChaos.ModifierController
             return anythingWritten;
         }
 
-        public override sealed void OnDeserialize(NetworkReader reader, bool initialState)
+        public sealed override void OnDeserialize(NetworkReader reader, bool initialState)
         {
             deserialize(reader, initialState, initialState ? ~0b0U : reader.ReadPackedUInt32());
 

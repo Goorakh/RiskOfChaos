@@ -19,7 +19,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         static readonly GameObject _bossCombatSquadPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Core/BossCombatSquad.prefab").WaitForCompletion();
 
         [EffectConfig]
-        static readonly ConfigHolder<int> _maxTrackedCharactersCount = 
+        static readonly ConfigHolder<int> _maxTrackedCharactersCount =
             ConfigFactory<int>.CreateConfig("Max Characters to Revive", 50)
                               .Description("The maximum amount of characters the effect can revive at once")
                               .OptionConfig(new IntSliderConfig

@@ -18,7 +18,7 @@
             StageActivations = 0;
         }
 
-        public readonly override string ToString()
+        public override readonly string ToString()
         {
             return $"{ChaosEffectCatalog.GetEffectInfo(EffectIndex).Identifier} (Index {EffectIndex}): {nameof(StageActivations)}={StageActivations}, {nameof(RunActivations)}={RunActivations}";
         }

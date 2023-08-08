@@ -58,7 +58,7 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders.ParsedList
             return IndexOf(item) >= 0;
         }
 
-        protected override sealed ReadOnlyArray<T> parseInput(string input)
+        protected sealed override ReadOnlyArray<T> parseInput(string input)
         {
             _itemParseFailReasons.Clear();
             if (string.IsNullOrWhiteSpace(input))

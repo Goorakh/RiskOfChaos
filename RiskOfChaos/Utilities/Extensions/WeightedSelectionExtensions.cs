@@ -1,6 +1,4 @@
-﻿using RiskOfChaos.EffectHandling.Controllers.ChatVoting;
-using RiskOfChaos.EffectHandling;
-using System;
+﻿using System;
 
 namespace RiskOfChaos.Utilities.Extensions
 {

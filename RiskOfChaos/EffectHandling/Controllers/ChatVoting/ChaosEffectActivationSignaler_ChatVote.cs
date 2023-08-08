@@ -10,13 +10,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 {
     public class ChaosEffectActivationSignaler_ChatVote : ChaosEffectActivationSignaler
     {
-        static int numVoteOptions
-        {
-            get
-            {
-                return Configs.ChatVoting.NumEffectOptions.Value + (Configs.ChatVoting.IncludeRandomEffectInVote.Value ? 1 : 0);
-            }
-        }
+        static int numVoteOptions => Configs.ChatVoting.NumEffectOptions.Value + (Configs.ChatVoting.IncludeRandomEffectInVote.Value ? 1 : 0);
 
         public override event SignalShouldDispatchEffectDelegate SignalShouldDispatchEffect;
 
@@ -206,7 +200,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
         {
             if (_voteTimer == null)
                 return;
-            
+
             _voteTimer.Period = args.NewValue;
         }
 
