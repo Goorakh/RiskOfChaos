@@ -5,7 +5,7 @@ namespace RiskOfChaos.ConfigHandling
 {
     public delegate T ValueConstrictor<T>(T value);
 
-    public static class ValueConstrictors
+    public static class CommonValueConstrictors
     {
         public static ValueConstrictor<T> None<T>()
         {

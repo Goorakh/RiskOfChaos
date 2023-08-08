@@ -24,7 +24,7 @@ namespace RiskOfChaos.EffectDefinitions.World.ProjectileSpeed
                                     max = 2f,
                                     increment = 0.01f
                                 })
-                                .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(0f))
+                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                 .OnValueChanged(() =>
                                 {
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)

@@ -23,7 +23,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                                   min = 1,
                                   max = 10
                               })
-                              .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(1))
+                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
                               .Build();
 
         [EffectCanActivate]

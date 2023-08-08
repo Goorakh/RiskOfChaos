@@ -47,7 +47,7 @@ namespace RiskOfChaos.EffectHandling
                                                     increment = 5f,
                                                     checkIfDisabled = () => TimedType != TimedEffectType.FixedDuration
                                                 })
-                                                .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(0f))
+                                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                                 .Build();
                 _duration.Bind(effectInfo);
 

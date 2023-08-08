@@ -50,7 +50,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 min = 1,
                 max = 20
             })
-            .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(1))
+            .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
             .Build();
 
         [SystemInitializer(typeof(SurvivorCatalog), typeof(MasterCatalog), typeof(ChaosEffectCatalog))]

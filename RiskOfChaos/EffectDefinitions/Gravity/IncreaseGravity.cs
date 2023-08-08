@@ -25,7 +25,7 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
                                     increment = 0.01f,
                                     formatString = "+{0:P0}"
                                 })
-                                .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(0f))
+                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                 .OnValueChanged(() =>
                                 {
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)

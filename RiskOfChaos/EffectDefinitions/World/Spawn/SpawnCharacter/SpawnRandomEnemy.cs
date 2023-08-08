@@ -50,7 +50,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                                     max = 1f,
                                     increment = 0.01f
                                 })
-                                .ValueConstrictor(ValueConstrictors.Clamped01Float)
+                                .ValueConstrictor(CommonValueConstrictors.Clamped01Float)
                                 .Build();
 
         [EffectConfig]

@@ -43,7 +43,7 @@ namespace RiskOfChaos
                                       max = 10,
                                       checkIfDisabled = isVotingDisabled
                                   })
-                                  .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(NUM_EFFECT_OPTIONS_MIN_VALUE))
+                                  .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(NUM_EFFECT_OPTIONS_MIN_VALUE))
                                   .Build();
 
             public static readonly ConfigHolder<bool> IncludeRandomEffectInVote =
@@ -75,7 +75,7 @@ namespace RiskOfChaos
                                         increment = 0.05f,
                                         checkIfDisabled = isVotingDisabled
                                     })
-                                    .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(0f))
+                                    .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                     .Build();
 
             internal static void Bind(ConfigFile file)

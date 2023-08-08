@@ -27,7 +27,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                     max = 10f,
                                     increment = 0.5f
                                 })
-                                .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(1.5f))
+                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1.5f))
                                 .OnValueChanged(() =>
                                 {
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)

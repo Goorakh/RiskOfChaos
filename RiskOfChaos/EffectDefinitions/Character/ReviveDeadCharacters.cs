@@ -27,7 +27,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                   min = 1,
                                   max = 100
                               })
-                              .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(1))
+                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
                               .OnValueChanged((s, e) =>
                               {
                                   _trackedDeadCharacters.MaxCapacity = e.NewValue;

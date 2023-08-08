@@ -29,7 +29,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                                     max = 15f,
                                     increment = KNOCKBACK_MULTIPLIER_INCREMENT
                                 })
-                                .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(KNOCKBACK_MULTIPLIER_MIN_VALUE))
+                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(KNOCKBACK_MULTIPLIER_MIN_VALUE))
                                 .OnValueChanged(() =>
                                 {
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)

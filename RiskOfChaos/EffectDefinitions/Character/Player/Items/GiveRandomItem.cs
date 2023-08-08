@@ -26,7 +26,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                                            max = 1f,
                                            increment = 0.05f
                                        })
-                                       .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(0f))
+                                       .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                        .OnValueChanged(() => _dropTableDirty = true)
                                        .Build();
         }

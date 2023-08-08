@@ -24,7 +24,7 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
                                     max = 2f,
                                     increment = 0.05f
                                 })
-                                .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(INCREASE_AMOUNT_MIN_VALUE))
+                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(INCREASE_AMOUNT_MIN_VALUE))
                                 .Build();
 
         [EffectNameFormatArgs]

@@ -26,7 +26,7 @@ namespace RiskOfChaos
                                         min = TIME_BETWEEN_EFFECTS_MIN_VALUE,
                                         max = 60f * 5f
                                     })
-                                    .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(TIME_BETWEEN_EFFECTS_MIN_VALUE))
+                                    .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(TIME_BETWEEN_EFFECTS_MIN_VALUE))
                                     .Build();
 
             internal static void Bind(ConfigFile file)

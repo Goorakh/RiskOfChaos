@@ -84,7 +84,7 @@ namespace RiskOfChaos.ConfigHandling
                                                                _defaultValue,
                                                                _description ?? ConfigDescription.Empty,
                                                                _equalityComparer ?? EqualityComparer<T>.Default,
-                                                               _valueConstrictor ?? ValueConstrictors.None<T>(),
+                                                               _valueConstrictor ?? CommonValueConstrictors.None<T>(),
                                                                _optionConfig,
                                                                _previousKeys.ToArray());
 

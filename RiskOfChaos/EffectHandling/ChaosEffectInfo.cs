@@ -207,7 +207,7 @@ namespace RiskOfChaos.EffectHandling
                                                              min = 0f,
                                                              max = 2.5f
                                                          })
-                                                         .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(0f))
+                                                         .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                                          .Build();
 
             _weightReductionPerActivation =
@@ -220,7 +220,7 @@ namespace RiskOfChaos.EffectHandling
                                         min = 0f,
                                         max = 1f
                                     })
-                                    .ValueConstrictor(ValueConstrictors.Clamped01Float)
+                                    .ValueConstrictor(CommonValueConstrictors.Clamped01Float)
                                     .Build();
 
             _effectRepetitionCountMode =

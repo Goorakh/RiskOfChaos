@@ -22,7 +22,7 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
                                     max = 1f,
                                     increment = 0.05f
                                 })
-                                .ValueConstrictor(ValueConstrictors.Clamped01Float)
+                                .ValueConstrictor(CommonValueConstrictors.Clamped01Float)
                                 .Build();
 
         [EffectNameFormatArgs]

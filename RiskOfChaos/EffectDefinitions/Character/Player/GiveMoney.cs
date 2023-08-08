@@ -21,7 +21,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                                   min = 0,
                                   max = 1000
                               })
-                              .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(0))
+                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0))
                               .Build();
 
         [EffectConfig]

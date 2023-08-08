@@ -25,7 +25,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                                   max = 40
                               })
                               .OnValueChanged(bounceCountConfigChanged)
-                              .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(1))
+                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
                               .Build();
 
         [EffectConfig]
@@ -38,7 +38,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                                   max = 10
                               })
                               .OnValueChanged(bounceCountConfigChanged)
-                              .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(1))
+                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
                               .Build();
 
         static void bounceCountConfigChanged()

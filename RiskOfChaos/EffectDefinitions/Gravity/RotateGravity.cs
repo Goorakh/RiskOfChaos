@@ -27,7 +27,7 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
                                     max = MAX_DEVITATION_MAX_VALUE,
                                     increment = 0.5f
                                 })
-                                .ValueConstrictor(ValueConstrictors.Clamped(MAX_DEVITATION_MIN_VALUE, MAX_DEVITATION_MAX_VALUE))
+                                .ValueConstrictor(CommonValueConstrictors.Clamped(MAX_DEVITATION_MIN_VALUE, MAX_DEVITATION_MAX_VALUE))
                                 .Build();
 
         public override event Action OnValueDirty;

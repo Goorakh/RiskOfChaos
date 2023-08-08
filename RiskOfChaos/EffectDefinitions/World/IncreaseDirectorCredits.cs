@@ -28,7 +28,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                                     max = 2f,
                                     increment = 0.05f
                                 })
-                                .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(0f))
+                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                 .Build();
 
         static float creditMultiplier => 1f + _creditIncrease.Value;

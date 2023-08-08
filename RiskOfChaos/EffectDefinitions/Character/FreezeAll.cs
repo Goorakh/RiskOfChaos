@@ -21,7 +21,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 max = 10f,
                 increment = 1f
             })
-            .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(1f))
+            .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1f))
             .Build();
 
         public override void OnStart()

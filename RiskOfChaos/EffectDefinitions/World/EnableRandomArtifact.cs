@@ -46,7 +46,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                                             min = 0f,
                                             max = 2.5f
                                         })
-                                        .ValueConstrictor(ValueConstrictors.Clamped01Float)
+                                        .ValueConstrictor(CommonValueConstrictors.Clamped01Float)
                                         .Build();
 
                 SelectionWeight.Bind(_effectInfo);

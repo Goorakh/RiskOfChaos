@@ -25,7 +25,7 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
                                     increment = 0.01f,
                                     formatString = "-{0:P0}"
                                 })
-                                .ValueConstrictor(ValueConstrictors.Clamped01Float)
+                                .ValueConstrictor(CommonValueConstrictors.Clamped01Float)
                                 .OnValueChanged(() =>
                                 {
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
