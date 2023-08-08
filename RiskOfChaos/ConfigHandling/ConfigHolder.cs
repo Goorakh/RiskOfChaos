@@ -15,6 +15,7 @@ namespace RiskOfChaos.ConfigHandling
         public readonly ConfigDescription Description;
         public readonly IEqualityComparer<T> EqualityComparer;
         public readonly ValueConstrictor<T> ValueConstrictor;
+        public readonly ValueValidator<T> ValueValidator;
 
         readonly BaseOptionConfig _optionConfig;
 
@@ -24,11 +25,26 @@ namespace RiskOfChaos.ConfigHandling
         ConfigFile _configFile;
         public ConfigEntry<T> Entry { get; private set; }
 
-        public T Value => Entry != null ? ValueConstrictor(Entry.Value) : DefaultValue;
+        public T Value
+        {
+            get
+            {
+                if (Entry != null)
+                {
+                    T value = Entry.Value;
+                    if (ValueValidator(value))
+                    {
+                        return ValueConstrictor(value);
+                    }
+                }
+
+                return DefaultValue;
+            }
+        }
 
         public event EventHandler<ConfigChangedArgs<T>> SettingChanged;
 
-        public ConfigHolder(string key, T defaultValue, ConfigDescription description, IEqualityComparer<T> equalityComparer, ValueConstrictor<T> valueConstrictor, BaseOptionConfig optionConfig, string[] previousKeys)
+        public ConfigHolder(string key, T defaultValue, ConfigDescription description, IEqualityComparer<T> equalityComparer, ValueConstrictor<T> valueConstrictor, ValueValidator<T> valueValidator, BaseOptionConfig optionConfig, string[] previousKeys)
         {
             if (string.IsNullOrEmpty(key))
                 throw new ArgumentException($"'{nameof(key)}' cannot be null or empty.", nameof(key));
@@ -38,6 +54,7 @@ namespace RiskOfChaos.ConfigHandling
             Description = description ?? throw new ArgumentNullException(nameof(description));
             EqualityComparer = equalityComparer ?? throw new ArgumentNullException(nameof(equalityComparer));
             ValueConstrictor = valueConstrictor ?? throw new ArgumentNullException(nameof(valueConstrictor));
+            ValueValidator = valueValidator ?? throw new ArgumentNullException(nameof(valueValidator));
             _optionConfig = optionConfig;
             _previousKeys = previousKeys ?? throw new ArgumentNullException(nameof(previousKeys));
         }

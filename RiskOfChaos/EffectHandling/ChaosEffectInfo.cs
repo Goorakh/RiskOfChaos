@@ -227,6 +227,7 @@ namespace RiskOfChaos.EffectHandling
                 ConfigFactory<EffectActivationCountMode>.CreateConfig("Effect Repetition Count Mode", attribute.EffectRepetitionWeightCalculationMode)
                                                         .Description($"Controls how the Reduction Percentage will be applied.\n\n{nameof(EffectActivationCountMode.PerStage)}: Only the activations on the current stage are considered, and the weight reduction is reset on stage start.\n\n{nameof(EffectActivationCountMode.PerRun)}: All activations during the current run are considered.")
                                                         .OptionConfig(new ChoiceConfig())
+                                                        .ValueValidator(CommonValueValidators.DefinedEnumValue<EffectActivationCountMode>())
                                                         .Build();
 
             _activationShortcut =
