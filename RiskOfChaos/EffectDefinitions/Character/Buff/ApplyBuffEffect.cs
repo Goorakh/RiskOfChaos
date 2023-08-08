@@ -2,6 +2,7 @@
 using HG;
 using RiskOfChaos.Components;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.CatalogIndexCollection;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
@@ -47,41 +48,45 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             return buffIndices.Where(canSelectBuff);
         }
 
+        static readonly BuffIndexCollection _isDebuffOverrideList = new BuffIndexCollection(new string[]
+        {
+            // MysticsItems compat
+            "MysticsItems_Crystallized",
+            "MysticsItems_TimePieceSlow",
+
+            // Starstorm2 compat
+            "bdMULENet",
+
+            "bdBlinded",
+        });
+
         protected static bool isDebuff(BuffDef buff)
         {
             if (buff.isDebuff)
                 return true;
 
-            switch (buff.name)
-            {
-                // MysticsItems compat
-                case "MysticsItems_Crystallized":
-                case "MysticsItems_TimePieceSlow":
-
-                // Starstorm2 compat
-                case "bdMULENet":
-
-                case "bdBlinded":
-                    return true;
-            }
+            if (_isDebuffOverrideList.Contains(buff.buffIndex))
+                return true;
 
             return false;
         }
+
+        static readonly BuffIndexCollection _isCooldownOverrideList = new BuffIndexCollection(new string[]
+        {
+            // LostInTransit compat
+            "RepulsionArmorCD",
+
+            // Starstorm2 compat
+            "BuffTerminationCooldown",
+        });
 
         protected static bool isCooldown(BuffDef buff)
         {
             if (buff.isCooldown)
                 return true;
 
-            switch (buff.name)
-            {
-                // LostInTransit compat
-                case "RepulsionArmorCD":
-
-                // Starstorm2 compat
-                case "BuffTerminationCooldown":
-                    return true;
-            }
+            if (_isCooldownOverrideList.Contains(buff.buffIndex))
+                return true;
 
             return false;
         }

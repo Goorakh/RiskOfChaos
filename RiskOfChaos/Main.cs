@@ -4,6 +4,7 @@ using R2API.Utils;
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.Networking;
+using RiskOfChaos.Utilities;
 using System.Diagnostics;
 
 namespace RiskOfChaos
@@ -42,6 +43,8 @@ namespace RiskOfChaos
             NetworkMessageManager.RegisterMessages();
 
             NetPrefabs.InitializeAll();
+
+            AdditionalResourceAvailability.InitHooks();
 
             Harmony harmony = new Harmony(PluginGUID);
             harmony.PatchAll();

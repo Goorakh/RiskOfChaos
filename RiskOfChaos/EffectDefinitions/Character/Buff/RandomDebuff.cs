@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.Utilities.CatalogIndexCollection;
 using RoR2;
 using System.Linq;
 
@@ -11,6 +12,30 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
     [EffectConfigBackwardsCompatibility("Effect: Give Everyone a Random Debuff (Lasts 1 stage)")]
     public sealed class RandomDebuff : ApplyBuffEffect
     {
+        static readonly BuffIndexCollection _debuffBlacklist = new BuffIndexCollection(new string[]
+        {
+            "bdEntangle", // Immobile
+            "bdLunarSecondaryRoot", // Immobile
+            "bdNullified", // Immobile
+            "bdNullifyStack", // Does nothing
+            "bdOverheat", // Does nothing
+            "bdPulverizeBuildup", // Does nothing
+
+            #region VanillaVoid compat
+            "ZnVVlotusSlow", // Doesn't work without item
+            #endregion
+
+            #region MysticsItems compat
+            "MysticsItems_Crystallized", // Immobile
+            #endregion
+
+            #region Starstorm2 compat
+            "bdMULENet", // Basically immobile
+            "bdPurplePoison", // Does nothing
+            "BuffNeedleBuildup", // Doesn't work without item
+            #endregion
+        });
+
         static BuffIndex[] _availableBuffIndices;
 
         [SystemInitializer(typeof(BuffCatalog), typeof(DotController))]
@@ -38,44 +63,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                     return false;
                 }
 
-                switch (buffDef.name)
+                if (_debuffBlacklist.Contains(buffDef.buffIndex))
                 {
-                    case "bdEntangle": // Immobile
-                    case "bdLunarSecondaryRoot": // Immobile
-                    case "bdNullified": // Immobile
-                    case "bdNullifyStack": // Does nothing
-                    case "bdOverheat": // Does nothing
-                    case "bdPulverizeBuildup": // Does nothing
 #if DEBUG
-                        Log.Debug($"Excluding debuff {buffDef.name}: blacklist");
+                    Log.Debug($"Excluding debuff {buffDef.name}: blacklist");
 #endif
-                        return false;
-
-                    #region VanillaVoid compat
-                    case "ZnVVlotusSlow": // Doesn't work without item
-#if DEBUG
-                        Log.Debug($"Excluding debuff {buffDef.name}: VanillaVoid compat blacklist");
-#endif
-                        return false;
-                    #endregion
-
-                    #region MysticsItems compat
-                    case "MysticsItems_Crystallized": // Immobile
-#if DEBUG
-                        Log.Debug($"Excluding debuff {buffDef.name}: MysticsItems compat blacklist");
-#endif
-                        return false;
-                    #endregion
-
-                    #region Starstorm2 compat
-                    case "bdMULENet": // Basically immobile
-                    case "bdPurplePoison": // Does nothing
-                    case "BuffNeedleBuildup": // Doesn't work without item
-#if DEBUG
-                        Log.Debug($"Excluding debuff {buffDef.name}: Starstorm2 compat blacklist");
-#endif
-                        return false;
-                    #endregion
+                    return false;
                 }
 
 #if DEBUG

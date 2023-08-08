@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.CatalogIndexCollection;
 using RoR2;
 using RoR2.Navigation;
 using System;
@@ -102,6 +103,48 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
             _spawnData.Dispose();
         }
 
+        static readonly MasterIndexCollection _nonAllySkinMasters = new MasterIndexCollection(new string[]
+        {
+            "BeetleGuardMaster",
+            "NullifierMaster",
+            "TitanGoldMaster",
+            "VoidJailerMaster",
+            "VoidMegaCrabMaster",
+        });
+
+        static readonly MasterIndexCollection _allySkinMasters = new MasterIndexCollection(new string[]
+        {
+            "BeetleGuardAllyMaster",
+            "NullifierAllyMaster",
+            "TitanGoldAllyMaster",
+            "VoidJailerAllyMaster",
+            "VoidMegaCrabAllyMaster",
+        });
+
+        static readonly MasterIndexCollection _masterBlacklist = new MasterIndexCollection(new string[]
+        {
+            "AffixEarthHealerMaster", // Dies instantly
+            "AncientWispMaster", // Does nothing
+            "ArtifactShellMaster", // No model, does not attack, cannot be damaged
+            "BeetleCrystalMaster", // Weird beetle reskin
+            "BeetleGuardMasterCrystal", // Weird beetle buard reskin
+            "ClaymanMaster", // No hitboxes
+            "EngiBeamTurretMaster", // Seems to ignore the player
+            "LemurianBruiserMasterHaunted", // Would include if it had a more distinct appearance
+            "LemurianBruiserMasterPoison", // Would include if it had a more distinct appearance
+            "MajorConstructMaster", // Beta Xi Construct
+            "MinorConstructAttachableMaster", // Instantly dies
+            "MinorConstructOnKillMaster", // Alpha construct reskin
+            "ParentPodMaster", // Just a worse Parent spawn
+            "ShopkeeperMaster", // Too much health, also flashbang thing when it takes enough damage
+            "UrchinTurretMaster", // Dies shortly after spawning
+            "VoidBarnacleMaster", // The NoCast version will be included so its spawn position can be controlled
+            "VoidBarnacleAllyMaster",
+            "VoidRaidCrabJointMaster", // Just some balls, does nothing
+            "VoidRaidCrabMaster", // Beta voidling, half invisible
+            "WispSoulMaster", // Just dies on a timer
+        });
+
         protected static IEnumerable<CharacterMaster> getAllValidMasterPrefabs(bool useAllySkins)
         {
             return MasterCatalog.allAiMasters.Where(masterPrefab =>
@@ -135,62 +178,33 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 
                 if (useAllySkins)
                 {
-                    switch (masterPrefab.name)
+                    if (_nonAllySkinMasters.Contains(masterPrefab.masterIndex))
                     {
-                        case "BeetleGuardMaster":
-                        case "NullifierMaster":
-                        case "TitanGoldMaster":
-                        case "VoidJailerMaster":
-                        case "VoidMegaCrabMaster":
 #if DEBUG
-                            Log.Debug($"excluding master {masterPrefab.name}: non-ally skin");
+                        Log.Debug($"excluding master {masterPrefab.name}: non-ally skin");
 #endif
 
-                            return false;
+                        return false;
                     }
                 }
                 else
                 {
-                    switch (masterPrefab.name)
+                    if (_allySkinMasters.Contains(masterPrefab.masterIndex))
                     {
-                        case "BeetleGuardAllyMaster":
-                        case "NullifierAllyMaster":
-                        case "TitanGoldAllyMaster":
-                        case "VoidJailerAllyMaster":
-                        case "VoidMegaCrabAllyMaster":
 #if DEBUG
-                            Log.Debug($"excluding master {masterPrefab.name}: ally skin");
+                        Log.Debug($"excluding master {masterPrefab.name}: ally skin");
 #endif
 
-                            return false;
+                        return false;
                     }
                 }
 
-                switch (masterPrefab.name)
+                if (_masterBlacklist.Contains(masterPrefab.masterIndex))
                 {
-                    case "AffixEarthHealerMaster": // Dies instantly
-                    case "AncientWispMaster": // Does nothing
-                    case "ArtifactShellMaster": // No model, does not attack, cannot be damaged
-                    case "BeetleCrystalMaster": // Weird beetle reskin
-                    case "BeetleGuardMasterCrystal": // Weird beetle buard reskin
-                    case "ClaymanMaster": // No hitboxes
-                    case "EngiBeamTurretMaster": // Seems to ignore the player
-                    case "LemurianBruiserMasterHaunted": // Would include if it had a more distinct appearance
-                    case "LemurianBruiserMasterPoison": // Would include if it had a more distinct appearance
-                    case "MajorConstructMaster": // Beta Xi Construct
-                    case "MinorConstructAttachableMaster": // Instantly dies
-                    case "MinorConstructOnKillMaster": // Alpha construct reskin
-                    case "ParentPodMaster": // Just a worse Parent spawn
-                    case "ShopkeeperMaster": // Too much health, also flashbang thing when it takes enough damage
-                    case "UrchinTurretMaster": // Dies shortly after spawning
-                    case "VoidBarnacleMaster": // The NoCast version will be included so its spawn position can be controlled
-                    case "VoidBarnacleAllyMaster":
-                    case "VoidRaidCrabJointMaster": // Just some balls, does nothing
-                    case "VoidRaidCrabMaster": // Beta voidling, half invisible
 #if DEBUG
-                        Log.Debug($"excluding master {masterPrefab.name}: blacklist");
+                    Log.Debug($"excluding master {masterPrefab.name}: blacklist");
 #endif
-                        return false;
+                    return false;
                 }
 
 #if DEBUG

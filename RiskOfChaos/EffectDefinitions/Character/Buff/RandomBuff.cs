@@ -4,6 +4,7 @@ using MonoMod.Cil;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.Utilities.CatalogIndexCollection;
 using RoR2;
 using System.Linq;
 
@@ -83,6 +84,89 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             _hasAppliedPatches = true;
         }
 
+        static readonly BuffIndexCollection _buffBlacklist = new BuffIndexCollection(new string[]
+        {
+            "bdBearVoidReady", // Invincibility
+            "bdBodyArmor", // Invincibility
+            "bdCloak", // Invisibility not fun
+            "bdCrocoRegen", // Too much regen
+            "bdElementalRingsReady", // Doesn't work without the item
+            "bdElementalRingVoidReady", // Doesn't work without the item
+            "bdEliteSecretSpeed", // Does nothing
+            "bdEliteHauntedRecipient", // Invisibility not fun
+            "bdGoldEmpowered", // Invincibility
+            "bdHiddenInvincibility", // Invincibility
+            "bdImmune", // Invincibility
+            "bdImmuneToDebuffReady", // Does nothing without the item
+            "bdIntangible", // Invincibility
+            "bdLaserTurbineKillCharge", // Doesn't work without the item
+            "bdLightningShield", // Does nothing
+            "bdLoaderOvercharged", // Does nothing unless you are Loader
+            "bdMedkitHeal", // Doesn't do anything if constantly applied
+            "bdMushroomVoidActive", // Does nothing without the item
+            "bdOutOfCombatArmorBuff", // Does nothing without the item
+            "bdPrimarySkillShurikenBuff", // Does nothing without the item
+            "bdTeslaField", // Doesn't work without the item
+            "bdVoidFogMild", // Does nothing
+            "bdVoidFogStrong", // Does nothing
+            "bdVoidRaidCrabWardWipeFog", // Does nothing
+            "bdVoidSurvivorCorruptMode", // Does nothing
+            "bdWhipBoost", // Doesn't work without the item
+
+            #region MysticsItems compat
+            "MysticsItems_BuffInTPRange", // Doesn't work without item
+            "MysticsItems_DasherDiscActive", // Invincibility
+            "MysticsItems_GachaponBonus", // Doesn't work without item
+            "MysticsItems_MechanicalArmCharge", // Does nothing
+            "MysticsItems_NanomachineArmor", // Doesn't work without item
+            "MysticsItems_StarPickup", // Doesn't work without item
+
+            #endregion
+
+            #region TsunamiItemsRevived compat
+            "ColaBoostBuff", // Doesn't work without item
+            "GeigerBuff", // Does nothing
+            "ManualReadyBuff", // Doesn't work without item
+            "SandwichHealBuff", // Doesn't work without item
+            "SkullBuff", // Does nothing
+            "SuppressorBoostBuff", // Doesn't work without item
+            #endregion
+
+            #region ExtradimensionalItems compat
+            "Adrenaline Protection", // Doesn't work without item
+            "Damage On Cooldowns", // Doesn't work without item
+            "Royal Guard Damage Buff", // Doesn't work without item
+            "Royal Guard Parry State", // Doesn't work without item
+            "Sheen Damage Bonus", // Doesn't work without item
+            "Skull of Impending Doom", // Doesn't work without item
+            #endregion
+
+            #region VanillaVoid compat
+            "ZnVVOrreryDamage", // Doesn't work without item
+            "ZnVVshatterStatus", // Doesn't work without item
+            #endregion
+
+            #region SpireItems compat
+            "Buffer", // Invincibility
+            "Mantra", // Does nothing
+            #endregion
+
+            #region LostInTransit compat
+            "GoldenGun", // Doesn't work without item
+            #endregion
+
+            #region Starstorm2 compat
+            "bdElitePurple", // Does nothing
+            "BuffChirrAlly", // Does nothing
+            "BuffExecutionerSuperCharged", // Does nothing unless you are Executioner
+            "BuffKickflip", // Doesn't work without item
+            "BuffReactor", // Invincibility
+            "BuffTerminationFailed", // Does nothing
+            "BuffTerminationReady", // Doesn't work without item
+            "BuffTerminationVFX", // Does nothing
+            #endregion
+        });
+
         static BuffIndex[] _availableBuffIndices;
 
         [SystemInitializer(typeof(BuffCatalog), typeof(DotController))]
@@ -110,118 +194,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                     return false;
                 }
 
-                switch (buffDef.name)
+                if (_buffBlacklist.Contains(buffDef.buffIndex))
                 {
-                    case "bdBearVoidReady": // Invincibility
-                    case "bdBodyArmor": // Invincibility
-                    case "bdCloak": // Invisibility not fun
-                    case "bdCrocoRegen": // Too much regen
-                    case "bdElementalRingsReady": // Doesn't work without the item
-                    case "bdElementalRingVoidReady": // Doesn't work without the item
-                    case "bdEliteSecretSpeed": // Does nothing
-                    case "bdEliteHauntedRecipient": // Invisibility not fun
-                    case "bdGoldEmpowered": // Invincibility
-                    case "bdHiddenInvincibility": // Invincibility
-                    case "bdImmune": // Invincibility
-                    case "bdImmuneToDebuffReady": // Does nothing without the item
-                    case "bdIntangible": // Invincibility
-                    case "bdLaserTurbineKillCharge": // Doesn't work without the item
-                    case "bdLightningShield": // Does nothing
-                    case "bdLoaderOvercharged": // Does nothing unless you are Loader
-                    case "bdMedkitHeal": // Doesn't do anything if constantly applied
-                    case "bdMushroomVoidActive": // Does nothing without the item
-                    case "bdOutOfCombatArmorBuff": // Does nothing without the item
-                    case "bdPrimarySkillShurikenBuff": // Does nothing without the item
-                    case "bdTeslaField": // Doesn't work without the item
-                    case "bdVoidFogMild": // Does nothing
-                    case "bdVoidFogStrong": // Does nothing
-                    case "bdVoidRaidCrabWardWipeFog": // Does nothing
-                    case "bdVoidSurvivorCorruptMode": // Does nothing
-                    case "bdWhipBoost": // Doesn't work without the item
 #if DEBUG
-                        Log.Debug($"Excluding buff {buffDef.name}: blacklist");
+                    Log.Debug($"Excluding buff {buffDef.name}: blacklist");
 #endif
-                        return false;
-
-                    #region MysticsItems compat
-                    case "MysticsItems_BuffInTPRange": // Doesn't work without item
-                    case "MysticsItems_DasherDiscActive": // Invincibility
-                    case "MysticsItems_GachaponBonus": // Doesn't work without item
-                    case "MysticsItems_MechanicalArmCharge": // Does nothing
-                    case "MysticsItems_NanomachineArmor": // Doesn't work without item
-                    case "MysticsItems_StarPickup": // Doesn't work without item
-#if DEBUG
-                        Log.Debug($"Excluding buff {buffDef.name}: MysticsItems compat blacklist");
-#endif
-                        return false;
-                    #endregion
-
-                    #region TsunamiItemsRevived compat
-                    case "ColaBoostBuff": // Doesn't work without item
-                    case "GeigerBuff": // Does nothing
-                    case "ManualReadyBuff": // Doesn't work without item
-                    case "SandwichHealBuff": // Doesn't work without item
-                    case "SkullBuff": // Does nothing
-                    case "SuppressorBoostBuff": // Doesn't work without item
-#if DEBUG
-                        Log.Debug($"Excluding buff {buffDef.name}: TsunamiItemsRevived compat blacklist");
-#endif
-                        return false;
-                    #endregion
-
-                    #region ExtradimensionalItems compat
-                    case "Adrenaline Protection": // Doesn't work without item
-                    case "Damage On Cooldowns": // Doesn't work without item
-                    case "Royal Guard Damage Buff": // Doesn't work without item
-                    case "Royal Guard Parry State": // Doesn't work without item
-                    case "Sheen Damage Bonus": // Doesn't work without item
-                    case "Skull of Impending Doom": // Doesn't work without item
-#if DEBUG
-                        Log.Debug($"Excluding buff {buffDef.name}: ExtradimensionalItems compat blacklist");
-#endif
-                        return false;
-                    #endregion
-
-                    #region VanillaVoid compat
-                    case "ZnVVOrreryDamage": // Doesn't work without item
-                    case "ZnVVshatterStatus": // Doesn't work without item
-#if DEBUG
-                        Log.Debug($"Excluding buff {buffDef.name}: VanillaVoid compat blacklist");
-#endif
-                        return false;
-                    #endregion
-
-                    #region SpireItems compat
-                    case "Buffer": // Invincibility
-                    case "Mantra": // Does nothing
-#if DEBUG
-                        Log.Debug($"Excluding buff {buffDef.name}: SpireItems compat blacklist");
-#endif
-                        return false;
-                    #endregion
-
-                    #region LostInTransit compat
-                    case "GoldenGun": // Doesn't work without item
-#if DEBUG
-                        Log.Debug($"Excluding buff {buffDef.name}: LostInTransit compat blacklist");
-#endif
-                        return false;
-                    #endregion
-
-                    #region Starstorm2 compat
-                    case "bdElitePurple": // Does nothing
-                    case "BuffChirrAlly": // Does nothing
-                    case "BuffExecutionerSuperCharged": // Does nothing unless you are Executioner
-                    case "BuffKickflip": // Doesn't work without item
-                    case "BuffReactor": // Invincibility
-                    case "BuffTerminationFailed": // Does nothing
-                    case "BuffTerminationReady": // Doesn't work without item
-                    case "BuffTerminationVFX": // Does nothing
-#if DEBUG
-                        Log.Debug($"Excluding buff {buffDef.name}: Starstorm2 compat blacklist");
-#endif
-                        return false;
-                    #endregion
+                    return false;
                 }
 
 #if DEBUG

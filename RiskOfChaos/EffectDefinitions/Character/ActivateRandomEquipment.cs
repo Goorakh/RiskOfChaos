@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.CatalogIndexCollection;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
@@ -25,6 +26,16 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                .Description("If the effect should also activate equipments on non-player characters")
                                .OptionConfig(new CheckBoxConfig())
                                .Build();
+
+        static readonly EquipmentIndexCollection _equipmentsBlacklist = new EquipmentIndexCollection(new string[]
+        {
+            "EliteSecretSpeedEquipment", // Does nothing
+            "GhostGun", // Requires target
+            "GoldGat", // Doesn't really work in this context
+            "IrradiatingLaser", // Does nothing
+            "MultiShopCard", // Does nothing on activate
+            "QuestVolatileBattery", // Does nothing on activate
+        });
 
         readonly struct ActivatableEquipment
         {
@@ -94,18 +105,12 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 return false;
             }
 
-            switch (equipment.name)
+            if (_equipmentsBlacklist.Contains(equipment.equipmentIndex))
             {
-                case "EliteSecretSpeedEquipment": // Does nothing
-                case "GhostGun": // Requires target
-                case "GoldGat": // Doesn't really work in this context
-                case "IrradiatingLaser": // Does nothing
-                case "MultiShopCard": // Does nothing on activate
-                case "QuestVolatileBattery": // Does nothing on activate
 #if DEBUG
-                    Log.Debug($"excluding equipment {equipment.name} ({Language.GetString(equipment.nameToken)}): blacklist");
+                Log.Debug($"excluding equipment {equipment.name} ({Language.GetString(equipment.nameToken)}): blacklist");
 #endif
-                    return false;
+                return false;
             }
 
 #if DEBUG
