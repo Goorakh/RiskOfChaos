@@ -48,7 +48,7 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Voidtouch Everyone: Makes every non-player on the stage into a voidtouched elite (including allies)
 * Duplicate Random Item Stack: Duplicates a random item stack for every player
 * Teleport to Random Location: Teleports every player to a random location on the current stage
-* Activate Random Equipment: Activates a random activatable equipment on all players
+* Activate Random Equipment: Activates a random activatable equipment on all characters
 * Change Difficulty: Sets the current difficulty to a random one for the rest of the run
 * Combo: Activates 2 other random effects
 * Gambling Addiction: Replaces every source of loot on the map with a chance shrine

@@ -11,6 +11,9 @@
 * Spawn Random Enemy, Ally, & Boss:
   * Added chance for spawned characters to be elites
 
+* Activate Random Equipment:
+  * Now activates equipments on all characters, not just players
+
 * Spawn Random Interactable:
   * Added Lunar Cauldrons to spawn pool
   * Added Newt Altar to spawn pool

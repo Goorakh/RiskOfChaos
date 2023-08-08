@@ -8,10 +8,10 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
-namespace RiskOfChaos.EffectDefinitions.Character.Player
+namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("activate_random_equipment")]
     public sealed class ActivateRandomEquipment : BaseEffect
@@ -19,8 +19,17 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;
 
+        [EffectConfig]
+        static readonly ConfigHolder<bool> _allowNonPlayerEquipmentUse =
+            ConfigFactory<bool>.CreateConfig("Allow Non-Player Equipment Use", true)
+                               .Description("If the effect should also activate equipments on non-player characters")
+                               .OptionConfig(new CheckBoxConfig())
+                               .Build();
+
         readonly struct ActivatableEquipment
         {
+            public readonly string EquipmentName;
+
             readonly EquipmentDef _equipmentDef;
             readonly ConfigHolder<float> _equipmentWeightConfig;
 
@@ -28,11 +37,11 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             {
                 _equipmentDef = equipmentDef;
 
-                string equipmentName = Language.GetString(equipmentDef.nameToken, "en");
+                EquipmentName = Language.GetString(equipmentDef.nameToken, "en");
 
-                _equipmentWeightConfig = ConfigFactory<float>.CreateConfig($"{equipmentName.FilterConfigKey()} Weight", 1f)
-                                                             .Description($"How likely {equipmentName} is to be selected")
-                                                             .ValueConstrictor(ValueConstrictors.GreaterThanOrEqualTo(0f))
+                _equipmentWeightConfig = ConfigFactory<float>.CreateConfig($"{EquipmentName.FilterConfigKey()} Weight", 1f)
+                                                             .Description($"How likely {EquipmentName} is to be selected")
+                                                             .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                                              .OptionConfig(new StepSliderConfig
                                                              {
                                                                  formatString = "{0:F1}",
@@ -41,8 +50,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                                                                  increment = 0.1f
                                                              })
                                                              .Build();
+            }
 
-                _equipmentWeightConfig.Bind(_effectInfo);
+            public readonly bool IsAvailable => _equipmentWeightConfig.Value > 0f && (!Run.instance || Run.instance.IsEquipmentAvailable(_equipmentDef.equipmentIndex));
+
+            public readonly void BindConfig(ChaosEffectInfo effectInfo)
+            {
+                _equipmentWeightConfig.Bind(effectInfo);
             }
 
             public readonly void AddToWeightedSelection(WeightedSelection<EquipmentDef> selection)
@@ -51,14 +65,20 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             }
         }
 
-        static ActivatableEquipment[] _availableEquipments;
-        static int _availableEquipmentsCount;
+        static ActivatableEquipment[] _availableEquipments = Array.Empty<ActivatableEquipment>();
 
         [SystemInitializer(typeof(EquipmentCatalog), typeof(EliteCatalog), typeof(ChaosEffectCatalog))]
         static void Init()
         {
             _availableEquipments = Array.ConvertAll(getAllActivatableEquipmentDefs(), static ed => new ActivatableEquipment(ed));
-            _availableEquipmentsCount = _availableEquipments.Length;
+
+            RoR2Application.onNextUpdate += () =>
+            {
+                foreach (ActivatableEquipment equipment in _availableEquipments.OrderBy(a => a.EquipmentName))
+                {
+                    equipment.BindConfig(_effectInfo);
+                }
+            };
         }
 
         static EquipmentDef[] getAllActivatableEquipmentDefs()
@@ -117,48 +137,58 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return _availableEquipments != null && _availableEquipmentsCount > 0;
+            return _availableEquipments.Length > 0;
+        }
+
+        EquipmentDef[] _equipmentActivationOrder = Array.Empty<EquipmentDef>();
+
+        public override void OnPreStartServer()
+        {
+            base.OnPreStartServer();
+
+            ActivatableEquipment[] availableEquipments = _availableEquipments.Where(e => e.IsAvailable).ToArray();
+            int availableEquipmentsCount = availableEquipments.Length;
+
+            WeightedSelection<EquipmentDef> equipmentSelector = new WeightedSelection<EquipmentDef>(availableEquipmentsCount);
+            for (int i = 0; i < availableEquipmentsCount; i++)
+            {
+                availableEquipments[i].AddToWeightedSelection(equipmentSelector);
+            }
+
+            _equipmentActivationOrder = new EquipmentDef[availableEquipmentsCount];
+            for (int i = 0; i < availableEquipmentsCount; i++)
+            {
+                _equipmentActivationOrder[i] = equipmentSelector.GetAndRemoveRandom(RNG);
+            }
         }
 
         public override void OnStart()
         {
-            PlayerUtils.GetAllPlayerBodies(true).TryDo(activateRandomEquipment, FormatUtils.GetBestBodyName);
+            IEnumerable<CharacterBody> bodies;
+            if (_allowNonPlayerEquipmentUse.Value)
+            {
+                bodies = CharacterBody.readOnlyInstancesList;
+            }
+            else
+            {
+                bodies = PlayerUtils.GetAllPlayerBodies(true);
+            }
+
+            // ToArray since equipments might modify the underlying collection by spawning a new character
+            bodies.ToArray().TryDo(activateRandomEquipment, FormatUtils.GetBestBodyName);
         }
 
         void activateRandomEquipment(CharacterBody body)
         {
+            if (!body)
+                return;
+
             EquipmentSlot equipmentSlot = body.equipmentSlot;
             if (!equipmentSlot)
                 return;
 
-            Xoroshiro128Plus rng = new Xoroshiro128Plus(RNG.nextUlong);
-
-            WeightedSelection<EquipmentDef> equipmentSelector = new WeightedSelection<EquipmentDef>(_availableEquipmentsCount);
-            for (int i = 0; i < _availableEquipmentsCount; i++)
+            foreach (EquipmentDef equipment in _equipmentActivationOrder)
             {
-                _availableEquipments[i].AddToWeightedSelection(equipmentSelector);
-            }
-
-            while (equipmentSelector.Count > 0)
-            {
-                EquipmentDef equipment = equipmentSelector.GetAndRemoveRandom(rng);
-
-                if (!Run.instance.IsEquipmentAvailable(equipment.equipmentIndex))
-                {
-#if DEBUG
-                    Log.Debug($"{Language.GetString(equipment.nameToken)} is not available in the current run");
-#endif
-                    continue;
-                }
-
-                if (Run.instance.IsEquipmentExpansionLocked(equipment.equipmentIndex))
-                {
-#if DEBUG
-                    Log.Debug($"{Language.GetString(equipment.nameToken)} is expansion locked");
-#endif
-                    continue;
-                }
-
                 bool equipmentSuccessfullyPerformed;
                 try
                 {
@@ -169,25 +199,25 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                 catch (Exception ex)
                 {
                     equipmentSuccessfullyPerformed = false;
-                    Log.Warning_NoCallerPrefix($"Caught exception when trying to activate equipment \"{Language.GetString(equipment.nameToken)}\": {ex}");
+                    Log.Warning_NoCallerPrefix($"Caught exception when trying to activate equipment \"{Language.GetString(equipment.nameToken)}\" on {FormatUtils.GetBestBodyName(body)}: {ex}");
                 }
 
                 if (equipmentSuccessfullyPerformed)
                 {
 #if DEBUG
-                    Log.Debug($"Activated equipment \"{Language.GetString(equipment.nameToken)}\"");
+                    Log.Debug($"Activated equipment \"{Language.GetString(equipment.nameToken)}\" on {FormatUtils.GetBestBodyName(body)}");
 #endif
                     return;
                 }
 #if DEBUG
                 else
                 {
-                    Log.Debug($"{Language.GetString(equipment.nameToken)} was not activatable for {body}");
+                    Log.Debug($"{Language.GetString(equipment.nameToken)} was not activatable for {FormatUtils.GetBestBodyName(body)}");
                 }
 #endif
             }
 
-            Log.Warning($"no equipment was activatable for {body}");
+            Log.Warning($"no equipment was activatable for {FormatUtils.GetBestBodyName(body)}");
         }
     }
 }
