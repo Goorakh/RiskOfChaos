@@ -67,10 +67,61 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         static ActivatableEquipment[] _availableEquipments = Array.Empty<ActivatableEquipment>();
 
+        static bool isValidEquipment(EquipmentDef equipment)
+        {
+            if (string.IsNullOrWhiteSpace(equipment.nameToken) || Language.GetString(equipment.nameToken) == equipment.nameToken)
+            {
+#if DEBUG
+                Log.Debug($"excluding equipment {equipment.name} ({equipment.nameToken}): Invalid name token");
+#endif
+                return false;
+            }
+
+            if (EliteCatalog.eliteList.Select(EliteCatalog.GetEliteDef)
+                                      .Any(elite => elite.eliteEquipmentDef == equipment))
+            {
+#if DEBUG
+                Log.Debug($"excluding equipment {equipment.name} ({Language.GetString(equipment.nameToken)}): elite affix");
+#endif
+                return false;
+            }
+
+            if (!equipment.pickupModelPrefab || equipment.pickupModelPrefab.name == "NullModel")
+            {
+#if DEBUG
+                Log.Debug($"excluding equipment {equipment.name} ({Language.GetString(equipment.nameToken)}): null model");
+#endif
+                return false;
+            }
+
+            switch (equipment.name)
+            {
+                case "EliteSecretSpeedEquipment": // Does nothing
+                case "GhostGun": // Requires target
+                case "GoldGat": // Doesn't really work in this context
+                case "IrradiatingLaser": // Does nothing
+                case "MultiShopCard": // Does nothing on activate
+                case "QuestVolatileBattery": // Does nothing on activate
+#if DEBUG
+                    Log.Debug($"excluding equipment {equipment.name} ({Language.GetString(equipment.nameToken)}): blacklist");
+#endif
+                    return false;
+            }
+
+#if DEBUG
+            Log.Debug($"including equipment {equipment.name} ({Language.GetString(equipment.nameToken)})");
+#endif
+
+            return true;
+        }
+
         [SystemInitializer(typeof(EquipmentCatalog), typeof(EliteCatalog), typeof(ChaosEffectCatalog))]
         static void Init()
         {
-            _availableEquipments = Array.ConvertAll(getAllActivatableEquipmentDefs(), static ed => new ActivatableEquipment(ed));
+            _availableEquipments = EquipmentCatalog.allEquipment.Select(EquipmentCatalog.GetEquipmentDef)
+                                                                .Where(isValidEquipment)
+                                                                .Select(e => new ActivatableEquipment(e))
+                                                                .ToArray();
 
             RoR2Application.onNextUpdate += () =>
             {
@@ -79,59 +130,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     equipment.BindConfig(_effectInfo);
                 }
             };
-        }
-
-        static EquipmentDef[] getAllActivatableEquipmentDefs()
-        {
-            return EquipmentCatalog.allEquipment.Select(EquipmentCatalog.GetEquipmentDef)
-                                                .Where(equipment =>
-                                                {
-                                                    if (string.IsNullOrWhiteSpace(equipment.nameToken) || Language.GetString(equipment.nameToken) == equipment.nameToken)
-                                                    {
-#if DEBUG
-                                                        Log.Debug($"excluding equipment {equipment.name} ({equipment.nameToken}): Invalid name token");
-#endif
-                                                        return false;
-                                                    }
-
-                                                    if (EliteCatalog.eliteList.Select(EliteCatalog.GetEliteDef)
-                                                                              .Any(elite => elite.eliteEquipmentDef == equipment))
-                                                    {
-#if DEBUG
-                                                        Log.Debug($"excluding equipment {equipment.name} ({Language.GetString(equipment.nameToken)}): elite affix");
-#endif
-                                                        return false;
-                                                    }
-
-                                                    if (!equipment.pickupModelPrefab || equipment.pickupModelPrefab.name == "NullModel")
-                                                    {
-#if DEBUG
-                                                        Log.Debug($"excluding equipment {equipment.name} ({Language.GetString(equipment.nameToken)}): null model");
-#endif
-                                                        return false;
-                                                    }
-
-                                                    switch (equipment.name)
-                                                    {
-                                                        case "EliteSecretSpeedEquipment": // Does nothing
-                                                        case "GhostGun": // Requires target
-                                                        case "GoldGat": // Doesn't really work in this context
-                                                        case "IrradiatingLaser": // Does nothing
-                                                        case "MultiShopCard": // Does nothing on activate
-                                                        case "QuestVolatileBattery": // Does nothing on activate
-#if DEBUG
-                                                            Log.Debug($"excluding equipment {equipment.name} ({Language.GetString(equipment.nameToken)}): blacklist");
-#endif
-                                                            return false;
-                                                    }
-
-#if DEBUG
-                                                    Log.Debug($"including equipment {equipment.name} ({Language.GetString(equipment.nameToken)})");
-#endif
-
-                                                    return true;
-                                                })
-                                                .ToArray();
         }
 
         [EffectCanActivate]
