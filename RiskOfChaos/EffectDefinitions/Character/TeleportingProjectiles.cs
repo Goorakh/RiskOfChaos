@@ -3,9 +3,8 @@ using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.CatalogIndexCollection;
 using RoR2;
-using System;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -19,18 +18,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;
 
-        static MasterCatalog.MasterIndex[] _teleportBlacklist = Array.Empty<MasterCatalog.MasterIndex>();
-
-        [SystemInitializer(typeof(MasterCatalog))]
-        static void InitMasterBlacklist()
-        {
-            _teleportBlacklist = new MasterCatalog.MasterIndex[]
-            {
-                MasterCatalog.FindMasterIndex("ArtifactShellMaster"),
-                MasterCatalog.FindMasterIndex("BrotherHauntMaster")
-            }.Where(i => i.isValid)
-             .ToArray();
-        }
+        static readonly MasterIndexCollection _teleportBlacklist = new MasterIndexCollection("ArtifactShellMaster", "BrotherHauntMaster");
 
         static bool _appliedPatches = false;
 
@@ -77,7 +65,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 return;
 
             CharacterMaster master = attackerBody.master;
-            if (!master || Array.IndexOf(_teleportBlacklist, master.masterIndex) != -1)
+            if (!master || _teleportBlacklist.Contains(master.masterIndex))
                 return;
 
             /*
