@@ -1,6 +1,7 @@
 ﻿using R2API;
 using RiskOfChaos.Components;
 using RiskOfChaos.ModifierController.AttackDelay;
+using RiskOfChaos.ModifierController.CharacterStats;
 using RiskOfChaos.ModifierController.Damage;
 using RiskOfChaos.ModifierController.Gravity;
 using RiskOfChaos.ModifierController.Knockback;
@@ -38,6 +39,8 @@ namespace RiskOfChaos
         public static GameObject PhysicsModificationControllerPrefab { get; private set; }
 
         public static GameObject AttackDelayModificationControllerPrefab { get; private set; }
+
+        public static GameObject CharacterStatModificationControllerPrefab { get; private set; }
 
         static readonly string[] _geyserPrefabPaths = new string[]
         {
@@ -173,6 +176,15 @@ namespace RiskOfChaos
                 AttackDelayModificationControllerPrefab.AddComponent<AttackDelayModificationManager>();
             }
 
+            // CharacterStatModificationControllerPrefab
+            {
+                CharacterStatModificationControllerPrefab = createEmptyPrefabObject("CharacterStatModificationController", false);
+
+                CharacterStatModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
+                CharacterStatModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
+                CharacterStatModificationControllerPrefab.AddComponent<CharacterStatModificationManager>();
+            }
+
             // GeyserPrefabs
             {
                 int geyserCount = _geyserPrefabPaths.Length;
@@ -241,6 +253,7 @@ namespace RiskOfChaos
             NetworkServer.Spawn(GameObject.Instantiate(AttackDelayModificationControllerPrefab));
 
             GameObject.Instantiate(DamageInfoModificationControllerPrefab);
+            GameObject.Instantiate(CharacterStatModificationControllerPrefab);
 
             NetworkServer.Spawn(GameObject.Instantiate(ActiveTimedEffectsProviderPrefab));
         }

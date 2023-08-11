@@ -1,12 +1,38 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.ModifierController;
+using RiskOfChaos.ModifierController.CharacterStats;
 using RiskOfChaos.ModifierController.TimeScale;
 using RoR2;
 using System;
 
 namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 {
-    public abstract class GenericMultiplyTimeScaleEffect : TimedEffect, ITimeScaleModificationProvider
+    public abstract class GenericMultiplyTimeScaleEffect : TimedEffect, ITimeScaleModificationProvider, ICharacterStatModificationProvider
     {
+        event Action IValueModificationProvider<CharacterBody>.OnValueDirty
+        {
+            add
+            {
+                OnValueDirty += value;
+            }
+            remove
+            {
+                OnValueDirty -= value;
+            }
+        }
+
+        event Action IValueModificationProvider<float>.OnValueDirty
+        {
+            add
+            {
+                OnValueDirty += value;
+            }
+            remove
+            {
+                OnValueDirty -= value;
+            }
+        }
+
         [EffectCanActivate]
         static bool CanActivate()
         {
@@ -24,12 +50,24 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
             value *= multiplier;
         }
 
+        public void ModifyValue(ref CharacterBody value)
+        {
+            if (value.isPlayerControlled)
+            {
+                value.moveSpeed /= multiplier;
+                value.attackSpeed /= multiplier;
+                value.acceleration /= multiplier;
+            }
+        }
+
         public override void OnStart()
         {
             TimeScaleModificationManager.Instance.RegisterModificationProvider(this);
 
-            On.RoR2.CharacterBody.RecalculateStats += CharacterBody_RecalculateStats;
-            markAllPlayerStatsDirty();
+            if (CharacterStatModificationManager.Instance)
+            {
+                CharacterStatModificationManager.Instance.RegisterModificationProvider(this);
+            }
         }
 
         public override void OnEnd()
@@ -39,30 +77,9 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
                 TimeScaleModificationManager.Instance.UnregisterModificationProvider(this);
             }
 
-            On.RoR2.CharacterBody.RecalculateStats -= CharacterBody_RecalculateStats;
-            markAllPlayerStatsDirty();
-        }
-
-        static void markAllPlayerStatsDirty()
-        {
-            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
+            if (CharacterStatModificationManager.Instance)
             {
-                if (body && body.isPlayerControlled)
-                {
-                    body.MarkAllStatsDirty();
-                }
-            }
-        }
-
-        void CharacterBody_RecalculateStats(On.RoR2.CharacterBody.orig_RecalculateStats orig, CharacterBody self)
-        {
-            orig(self);
-
-            if (self.isPlayerControlled)
-            {
-                self.moveSpeed /= multiplier;
-                self.attackSpeed /= multiplier;
-                self.acceleration /= multiplier;
+                CharacterStatModificationManager.Instance.UnregisterModificationProvider(this);
             }
         }
     }
