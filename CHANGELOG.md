@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Added 1 new effect:
+  * Delayed Attacks: All attacks have a 0.5 second delay before happening, lasts 90 seconds
+
 * Superhot:
   * Fixed time scale being really slow when players are unable to move (frozen, in cutscene, etc)
 

@@ -1,5 +1,6 @@
 ﻿using R2API;
 using RiskOfChaos.Components;
+using RiskOfChaos.ModifierController.AttackDelay;
 using RiskOfChaos.ModifierController.Damage;
 using RiskOfChaos.ModifierController.Gravity;
 using RiskOfChaos.ModifierController.Knockback;
@@ -35,6 +36,8 @@ namespace RiskOfChaos
         public static GameObject DamageInfoModificationControllerPrefab { get; private set; }
 
         public static GameObject PhysicsModificationControllerPrefab { get; private set; }
+
+        public static GameObject AttackDelayModificationControllerPrefab { get; private set; }
 
         static readonly string[] _geyserPrefabPaths = new string[]
         {
@@ -161,6 +164,15 @@ namespace RiskOfChaos
                 PhysicsModificationControllerPrefab.AddComponent<ModifiedPhysicsSimulator>();
             }
 
+            // AttackDelayModificationControllerPrefab
+            {
+                AttackDelayModificationControllerPrefab = createEmptyPrefabObject("AttackDelayModificationController");
+
+                AttackDelayModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
+                AttackDelayModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
+                AttackDelayModificationControllerPrefab.AddComponent<AttackDelayModificationManager>();
+            }
+
             // GeyserPrefabs
             {
                 int geyserCount = _geyserPrefabPaths.Length;
@@ -226,6 +238,7 @@ namespace RiskOfChaos
             NetworkServer.Spawn(GameObject.Instantiate(ProjectileModificationControllerPrefab));
             NetworkServer.Spawn(GameObject.Instantiate(TimeScaleModificationControllerPrefab));
             NetworkServer.Spawn(GameObject.Instantiate(PhysicsModificationControllerPrefab));
+            NetworkServer.Spawn(GameObject.Instantiate(AttackDelayModificationControllerPrefab));
 
             GameObject.Instantiate(DamageInfoModificationControllerPrefab);
 

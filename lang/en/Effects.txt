@@ -108,5 +108,6 @@
 		"EFFECT_REVIVE_DEAD_CHARACTERS_NAME": "Revive Dead Characters",
 		"EFFECT_FLOOR_IS_LAVA_NAME": "The Floor is Lava",
 		"EFFECT_LOCK_ALL_INTERACTABLES_NAME": "Lock All Chests",
+		"EFFECT_DELAY_ATTACKS_NAME": "Delayed Attacks",
 	}
 }
