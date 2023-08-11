@@ -8,22 +8,21 @@ using RiskOfOptions.OptionConfigs;
 using System;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.Gravity
+namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 {
-    [ChaosEffect("increase_gravity", ConfigName = "Increase Gravity", EffectWeightReductionPercentagePerActivation = 25f)]
+    [ChaosEffect("increase_time_scale", ConfigName = "Increase World Speed", EffectWeightReductionPercentagePerActivation = 20f)]
     [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
-    public sealed class IncreaseGravity : GenericMultiplyGravityEffect
+    public sealed class IncreaseTimeScale : GenericMultiplyTimeScaleEffect
     {
         [EffectConfig]
-        static readonly ConfigHolder<float> _gravityIncrease =
-            ConfigFactory<float>.CreateConfig("Increase per Activation", 0.5f)
-                                .Description("How much gravity should increase per effect activation, 50% means the gravity is multiplied by 1.5, 100% means the gravity is multiplied by 2, etc.")
+        static readonly ConfigHolder<float> _timeScaleIncrease =
+            ConfigFactory<float>.CreateConfig("World Speed Increase", 0.25f)
                                 .OptionConfig(new StepSliderConfig
                                 {
+                                    formatString = "+{0:P0}",
                                     min = 0f,
                                     max = 1f,
-                                    increment = 0.01f,
-                                    formatString = "+{0:P0}"
+                                    increment = 0.01f
                                 })
                                 .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                 .OnValueChanged(() =>
@@ -31,7 +30,7 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
                                         return;
 
-                                    foreach (IncreaseGravity effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<IncreaseGravity>())
+                                    foreach (IncreaseTimeScale effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<IncreaseTimeScale>())
                                     {
                                         effectInstance.OnValueDirty?.Invoke();
                                     }
@@ -40,12 +39,12 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
 
         public override event Action OnValueDirty;
 
-        protected override float multiplier => 1f + _gravityIncrease.Value;
+        protected override float multiplier => 1f + _timeScaleIncrease.Value;
 
         [EffectNameFormatArgs]
-        static object[] GetEffectNameFormatArgs()
+        static object[] GetDisplayNameFormatArgs()
         {
-            return new object[] { _gravityIncrease.Value };
+            return new object[] { _timeScaleIncrease.Value };
         }
     }
 }

@@ -6,7 +6,7 @@ using RiskOfOptions.OptionConfigs;
 using System;
 using UnityEngine;
 
-namespace RiskOfChaos.EffectDefinitions.Gravity
+namespace RiskOfChaos.EffectDefinitions.World.Gravity
 {
     [ChaosEffect("rotate_gravity", DefaultSelectionWeight = 0.8f, EffectWeightReductionPercentagePerActivation = 20f)]
     [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]

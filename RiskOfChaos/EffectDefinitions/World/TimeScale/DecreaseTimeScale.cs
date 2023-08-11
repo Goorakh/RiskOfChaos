@@ -8,7 +8,7 @@ using RiskOfOptions.OptionConfigs;
 using System;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.TimeScale
+namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 {
     [ChaosEffect("decrease_time_scale", ConfigName = "Decrease World Speed", EffectWeightReductionPercentagePerActivation = 20f)]
     [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]

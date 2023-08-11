@@ -8,30 +8,30 @@ using RiskOfOptions.OptionConfigs;
 using System;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.Gravity
+namespace RiskOfChaos.EffectDefinitions.World.Gravity
 {
-    [ChaosEffect("decrease_gravity", ConfigName = "Decrease Gravity", EffectWeightReductionPercentagePerActivation = 25f)]
+    [ChaosEffect("increase_gravity", ConfigName = "Increase Gravity", EffectWeightReductionPercentagePerActivation = 25f)]
     [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
-    public sealed class DecreaseGravity : GenericMultiplyGravityEffect
+    public sealed class IncreaseGravity : GenericMultiplyGravityEffect
     {
         [EffectConfig]
-        static readonly ConfigHolder<float> _gravityDecrease =
-            ConfigFactory<float>.CreateConfig("Decrease per Activation", 0.5f)
-                                .Description("How much gravity should decrease per effect activation, 50% means the gravity is multiplied by 0.5, 100% means the gravity is reduced to 0, 0% means gravity doesn't change at all. etc.")
+        static readonly ConfigHolder<float> _gravityIncrease =
+            ConfigFactory<float>.CreateConfig("Increase per Activation", 0.5f)
+                                .Description("How much gravity should increase per effect activation, 50% means the gravity is multiplied by 1.5, 100% means the gravity is multiplied by 2, etc.")
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     min = 0f,
                                     max = 1f,
                                     increment = 0.01f,
-                                    formatString = "-{0:P0}"
+                                    formatString = "+{0:P0}"
                                 })
-                                .ValueConstrictor(CommonValueConstrictors.Clamped01Float)
+                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                 .OnValueChanged(() =>
                                 {
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
                                         return;
 
-                                    foreach (DecreaseGravity effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<DecreaseGravity>())
+                                    foreach (IncreaseGravity effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<IncreaseGravity>())
                                     {
                                         effectInstance.OnValueDirty?.Invoke();
                                     }
@@ -40,12 +40,12 @@ namespace RiskOfChaos.EffectDefinitions.Gravity
 
         public override event Action OnValueDirty;
 
-        protected override float multiplier => 1f - _gravityDecrease.Value;
+        protected override float multiplier => 1f + _gravityIncrease.Value;
 
         [EffectNameFormatArgs]
         static object[] GetEffectNameFormatArgs()
         {
-            return new object[] { _gravityDecrease.Value };
+            return new object[] { _gravityIncrease.Value };
         }
     }
 }

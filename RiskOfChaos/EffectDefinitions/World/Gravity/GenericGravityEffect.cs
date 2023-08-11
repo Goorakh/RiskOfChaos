@@ -4,7 +4,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.Gravity
+namespace RiskOfChaos.EffectDefinitions.World.Gravity
 {
     public abstract class GenericGravityEffect : TimedEffect, IGravityModificationProvider
     {

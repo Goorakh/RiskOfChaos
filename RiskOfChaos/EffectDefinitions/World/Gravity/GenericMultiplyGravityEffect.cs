@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace RiskOfChaos.EffectDefinitions.Gravity
+namespace RiskOfChaos.EffectDefinitions.World.Gravity
 {
     public abstract class GenericMultiplyGravityEffect : GenericGravityEffect
     {
