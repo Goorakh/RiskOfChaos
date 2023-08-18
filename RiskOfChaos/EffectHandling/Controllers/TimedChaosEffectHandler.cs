@@ -77,12 +77,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
             _effectDispatcher.OnEffectDispatched += onEffectDispatched;
 
             Stage.onServerStageComplete += onServerStageComplete;
-
-            if (NetworkServer.active)
-            {
-                ChaosEffectCatalog.OverrideEffectCanActivate += effectCanActivateOverride;
-                TimedEffectCatalog.TimedEffectCanActivateOverride += timedEffectCanActivateOverride;
-            }
         }
 
         void Update()
@@ -117,14 +111,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             Stage.onServerStageComplete -= onServerStageComplete;
 
-            ChaosEffectCatalog.OverrideEffectCanActivate -= effectCanActivateOverride;
-            TimedEffectCatalog.TimedEffectCanActivateOverride -= timedEffectCanActivateOverride;
-
             endTimedEffects(TimedEffectFlags.All, false);
             _activeTimedEffects.Clear();
         }
 
-        void onEffectDispatched(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, BaseEffect effectInstance)
+        void onEffectDispatched(ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, BaseEffect effectInstance)
         {
             if (effectInstance is TimedEffect timedEffectInstance)
             {
@@ -132,47 +123,18 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        void effectCanActivateOverride(in ChaosEffectInfo effectInfo, in EffectCanActivateContext context, ref bool canActivate)
+        public bool AnyInstanceOfEffectActive(ChaosEffectInfo effectInfo, in EffectCanActivateContext context)
         {
-            if (!canActivate)
-                return;
-
-            foreach (ChaosEffectInfo incompatibleEffect in effectInfo.IncompatibleEffects)
-            {
-                foreach (ActiveTimedEffectInfo activeTimedEffectInfo in getActiveTimedEffectsFor(incompatibleEffect))
-                {
-                    if (!activeTimedEffectInfo.MatchesFlag(TimedEffectFlags.FixedDuration) ||
-                        activeTimedEffectInfo.EffectInstance.TimeRemaining > context.Delay)
-                    {
-#if DEBUG
-                        Log.Debug($"Effect {effectInfo} cannot activate: incompatible effect {activeTimedEffectInfo.EffectInfo} is active");
-#endif
-
-                        canActivate = false;
-                        return;
-                    }
-                }
-            }
-        }
-
-        void timedEffectCanActivateOverride(TimedEffectInfo effect, in EffectCanActivateContext context, ref bool canActivate)
-        {
-            if (!canActivate || effect.AllowDuplicates)
-                return;
-
-            foreach (ActiveTimedEffectInfo activeTimedEffectInfo in getActiveTimedEffectsFor(ChaosEffectCatalog.GetEffectInfo(effect.EffectIndex)))
+            foreach (ActiveTimedEffectInfo activeTimedEffectInfo in getActiveTimedEffectsFor(effectInfo))
             {
                 if (!activeTimedEffectInfo.MatchesFlag(TimedEffectFlags.FixedDuration) ||
                     activeTimedEffectInfo.EffectInstance.TimeRemaining > context.Delay)
                 {
-#if DEBUG
-                    Log.Debug($"Duplicate effect {effect} cannot activate");
-#endif
-
-                    canActivate = false;
-                    return;
+                    return true;
                 }
             }
+
+            return false;
         }
 
         void onServerStageComplete(Stage stage)
@@ -240,19 +202,19 @@ namespace RiskOfChaos.EffectHandling.Controllers
             endTimedEffectWithDispatchID(effectDispatchID, false);
         }
 
-        void registerTimedEffect(in ActiveTimedEffectInfo effectInfo)
+        void registerTimedEffect(in ActiveTimedEffectInfo activeEffectInfo)
         {
-            _activeTimedEffects.Add(effectInfo);
+            _activeTimedEffects.Add(activeEffectInfo);
 
             if (NetworkServer.active)
             {
-                if (TimedEffectCatalog.TryFindTimedEffectInfo(effectInfo.EffectInfo, out TimedEffectInfo timedEffectInfo))
+                if (activeEffectInfo.EffectInfo is TimedEffectInfo timedEffectInfo)
                 {
-                    OnTimedEffectStartServer?.Invoke(timedEffectInfo, effectInfo.EffectInstance);
+                    OnTimedEffectStartServer?.Invoke(timedEffectInfo, activeEffectInfo.EffectInstance);
                 }
                 else
                 {
-                    Log.Error($"Could not find timed effect info for {effectInfo.EffectInfo}");
+                    Log.Error($"Could not find timed effect info for {activeEffectInfo.EffectInfo}");
                 }
             }
         }
@@ -268,12 +230,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        public bool IsTimedEffectActive(in ChaosEffectInfo effectInfo)
+        public bool IsTimedEffectActive(ChaosEffectInfo effectInfo)
         {
             return getActiveTimedEffectsFor(effectInfo).Any();
         }
 
-        public int GetEffectActiveCount(in ChaosEffectInfo effectInfo)
+        public int GetEffectActiveCount(ChaosEffectInfo effectInfo)
         {
             int count = 0;
 

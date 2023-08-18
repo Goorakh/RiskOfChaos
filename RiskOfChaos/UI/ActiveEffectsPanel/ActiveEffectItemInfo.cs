@@ -21,7 +21,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             EffectInfo = effectInfo;
             DispatchID = effectInstance.DispatchID;
 
-            DisplayName = ChaosEffectCatalog.GetEffectInfo(effectInfo.EffectIndex).DisplayName;
+            DisplayName = effectInfo.GetDisplayName();
 
             TimedType = effectInstance.TimedType;
             DurationSeconds = effectInstance.DurationSeconds;
@@ -34,13 +34,22 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             if (!reader.ReadBoolean())
                 return;
 
-            EffectInfo = TimedEffectCatalog.GetTimedEffectInfo(reader.ReadTimedChaosEffectIndex());
+            ChaosEffectIndex effectIndex = reader.ReadChaosEffectIndex();
+
+            if (ChaosEffectCatalog.GetEffectInfo(effectIndex) is not TimedEffectInfo effectInfo)
+            {
+                Log.Error($"Effect index {effectIndex} is not a TimedEffectInfo");
+                return;
+            }
+
+            EffectInfo = effectInfo;
+
             DispatchID = reader.ReadPackedUInt64();
 
             string displayName = reader.ReadString();
             if (string.IsNullOrWhiteSpace(displayName))
             {
-                displayName = ChaosEffectCatalog.GetEffectInfo(EffectInfo.EffectIndex).DisplayName;
+                displayName = EffectInfo.GetDisplayName(EffectNameFormatFlags.RuntimeFormatArgs);
             }
 
             DisplayName = displayName;
@@ -64,12 +73,11 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             }
 
             writer.Write(true);
-            writer.WriteTimedChaosEffectIndex(EffectInfo.TimedEffectIndex);
+            writer.WriteChaosEffectIndex(EffectInfo.EffectIndex);
             writer.WritePackedUInt64(DispatchID);
 
             // If the effect name has custom runtime formatting, send the display name to clients. Otherwise, let the clients look up the effect name in their ChaosEffectCatalog instead to save on message size
-            bool hasCustomFormatDisplayName = ChaosEffectCatalog.GetEffectInfo(EffectInfo.EffectIndex).HasCustomDisplayNameFormatter;
-            writer.Write(hasCustomFormatDisplayName ? DisplayName : string.Empty);
+            writer.Write(EffectInfo.HasCustomDisplayNameFormatter ? DisplayName : string.Empty);
 
             writer.Write((byte)TimedType);
             if (TimedType == TimedEffectType.FixedDuration)

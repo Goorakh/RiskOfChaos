@@ -6,7 +6,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 {
     public abstract class ChaosEffectActivationSignaler : MonoBehaviour
     {
-        public delegate void SignalShouldDispatchEffectDelegate(in ChaosEffectInfo effect, EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None);
+        public delegate void SignalShouldDispatchEffectDelegate(ChaosEffectInfo effect, EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None);
 
         public abstract event SignalShouldDispatchEffectDelegate SignalShouldDispatchEffect;
 

@@ -15,10 +15,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
         static ChaosEffectDispatcher _instance;
         public static ChaosEffectDispatcher Instance => _instance;
 
-        public delegate void EffectDispatchedDelegate(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, BaseEffect effectInstance);
+        public delegate void EffectDispatchedDelegate(ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, BaseEffect effectInstance);
         public event EffectDispatchedDelegate OnEffectDispatched;
 
-        public delegate void EffectAboutToDispatchDelegate(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, bool willStart);
+        public delegate void EffectAboutToDispatchDelegate(ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, bool willStart);
         public event EffectAboutToDispatchDelegate OnEffectAboutToDispatchServer;
 
         ChaosEffectActivationSignaler[] _effectActivationSignalers;
@@ -75,7 +75,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                         Chat.SendBroadcastChat(new Chat.SimpleChatMessage
                         {
                             baseToken = "CHAOS_EFFECT_SHORTCUT_CANNOT_ACTIVATE",
-                            paramTokens = new string[] { effectInfo.DisplayName }
+                            paramTokens = new string[] { effectInfo.GetDisplayName(EffectNameFormatFlags.RuntimeFormatArgs) }
                         });
                     }
                 }
@@ -130,7 +130,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        void NetworkedEffectDispatchedMessage_OnReceive(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, byte[] serializedEffectData)
+        void NetworkedEffectDispatchedMessage_OnReceive(ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, byte[] serializedEffectData)
         {
             if (NetworkServer.active)
                 return;
@@ -179,7 +179,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        void ActivationSignaler_SignalShouldDispatchEffect(in ChaosEffectInfo effect, EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None)
+        void ActivationSignaler_SignalShouldDispatchEffect(ChaosEffectInfo effect, EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None)
         {
             if (Configs.General.DisableEffectDispatching.Value)
                 return;
@@ -187,7 +187,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             DispatchEffect(effect, dispatchFlags);
         }
 
-        public void DispatchEffect(in ChaosEffectInfo effect, EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None)
+        public void DispatchEffect(ChaosEffectInfo effect, EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None)
         {
             if (!NetworkServer.active)
             {
@@ -198,7 +198,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             dispatchEffect(effect, dispatchFlags);
         }
 
-        BaseEffect dispatchEffect(in ChaosEffectInfo effect, EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None)
+        BaseEffect dispatchEffect(ChaosEffectInfo effect, EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None)
         {
             bool isServer = NetworkServer.active;
             if (!isServer && !effect.IsNetworked)
@@ -212,10 +212,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 Chat.SendBroadcastChat(new Chat.SimpleChatMessage
                 {
                     baseToken = "CHAOS_EFFECT_ACTIVATE",
-                    paramTokens = new string[] { ChaosEffectCatalog.GetEffectDisplayName(effect) }
+                    paramTokens = new string[] { effect.GetDisplayName() }
                 });
 
-                bool canActivate = (dispatchFlags & EffectDispatchFlags.CheckCanActivate) == 0 || ChaosEffectCatalog.CanEffectActivate(effect, EffectCanActivateContext.Now);
+                bool canActivate = (dispatchFlags & EffectDispatchFlags.CheckCanActivate) == 0 || effect.CanActivate(EffectCanActivateContext.Now);
 
                 OnEffectAboutToDispatchServer?.Invoke(effect, dispatchFlags, canActivate);
 
@@ -237,7 +237,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             else
             {
                 // Clients will get the seed from the server in Deserialize
-                createEffectArgs = default;
+                createEffectArgs = CreateEffectInstanceArgs.None;
             }
 
             BaseEffect effectInstance = ChaosEffectCatalog.CreateEffectInstance(effect, createEffectArgs);
@@ -280,7 +280,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             return effectInstance;
         }
 
-        void startEffect(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, BaseEffect effectInstance)
+        void startEffect(ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, BaseEffect effectInstance)
         {
             try
             {

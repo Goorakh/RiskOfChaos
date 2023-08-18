@@ -15,15 +15,5 @@ namespace RiskOfChaos.Utilities.Extensions
         {
             return (ChaosEffectIndex)reader.ReadPackedIndex32();
         }
-
-        public static void WriteTimedChaosEffectIndex(this NetworkWriter writer, TimedChaosEffectIndex effectIndex)
-        {
-            writer.WritePackedIndex32((int)effectIndex);
-        }
-
-        public static TimedChaosEffectIndex ReadTimedChaosEffectIndex(this NetworkReader reader)
-        {
-            return (TimedChaosEffectIndex)reader.ReadPackedIndex32();
-        }
     }
 }

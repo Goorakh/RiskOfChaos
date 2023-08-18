@@ -3,11 +3,11 @@ using System.Collections;
 
 namespace RiskOfChaos.EffectHandling
 {
-    public class ChaosEffectInfoIdentityComparer : IComparer
+    public class ChaosEffectInfoIdentifierComparer : IComparer
     {
-        public static readonly ChaosEffectInfoIdentityComparer Instance = new ChaosEffectInfoIdentityComparer();
+        public static readonly ChaosEffectInfoIdentifierComparer Instance = new ChaosEffectInfoIdentifierComparer();
 
-        ChaosEffectInfoIdentityComparer()
+        ChaosEffectInfoIdentifierComparer()
         {
         }
 

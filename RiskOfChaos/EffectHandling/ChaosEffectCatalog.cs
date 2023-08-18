@@ -30,18 +30,7 @@ namespace RiskOfChaos.EffectHandling
         static int _effectCount;
         public static int EffectCount => _effectCount;
 
-        static Dictionary<Type, ChaosEffectIndex> _effectTypeToIndexMap = new Dictionary<Type, ChaosEffectIndex>();
-
         static readonly WeightedSelection<ChaosEffectInfo> _pickNextEffectSelection = new WeightedSelection<ChaosEffectInfo>();
-
-        public delegate void EffectDisplayNameModifier(in ChaosEffectInfo effectInfo, ref string displayName);
-        public static event EffectDisplayNameModifier EffectDisplayNameModificationProvider;
-
-        public delegate void OnEffectInstantiatedDelegate(in ChaosEffectInfo effectInfo, in CreateEffectInstanceArgs args, BaseEffect instance);
-        public static event OnEffectInstantiatedDelegate OnEffectInstantiatedServer;
-
-        public delegate void EffectCanActivateDelegate(in ChaosEffectInfo effectInfo, in EffectCanActivateContext context, ref bool canActivate);
-        public static event EffectCanActivateDelegate OverrideEffectCanActivate;
 
         internal static void InitConfig()
         {
@@ -62,8 +51,6 @@ namespace RiskOfChaos.EffectHandling
 
             _effectCount = _effects.Length;
 
-            _effectTypeToIndexMap = _effects.ToDictionary(e => e.EffectType, e => e.EffectIndex);
-
             _pickNextEffectSelection.Capacity = _effectCount;
 
             checkFindEffectIndex();
@@ -80,24 +67,21 @@ namespace RiskOfChaos.EffectHandling
 
             Log.Info($"Registered {_effectCount} effects");
 
-            Availability.MakeAvailable();
-
-            RoR2Application.onNextUpdate += () =>
+            foreach (ChaosEffectInfo effectInfo in effectsByConfigName)
             {
-                foreach (ChaosEffectInfo effectInfo in effectsByConfigName)
+                foreach (MemberInfo member in effectInfo.EffectType.GetMembers(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly).WithAttribute<MemberInfo, InitEffectMemberAttribute>())
                 {
-                    foreach (MemberInfo member in effectInfo.EffectType.GetMembers(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly).WithAttribute<MemberInfo, InitEffectMemberAttribute>())
+                    foreach (InitEffectMemberAttribute initEffectMember in member.GetCustomAttributes<InitEffectMemberAttribute>())
                     {
-                        foreach (InitEffectMemberAttribute initEffectMember in member.GetCustomAttributes<InitEffectMemberAttribute>())
+                        if (initEffectMember.Priority == InitEffectMemberAttribute.InitializationPriority.EffectCatalogInitialized)
                         {
-                            if (initEffectMember.Priority == InitEffectMemberAttribute.InitializationPriority.EffectCatalogInitialized)
-                            {
-                                initEffectMember.ApplyTo(member, effectInfo);
-                            }
+                            initEffectMember.ApplyTo(member, effectInfo);
                         }
                     }
                 }
-            };
+            }
+
+            Availability.MakeAvailable();
         }
 
         static void checkFindEffectIndex()
@@ -132,7 +116,7 @@ namespace RiskOfChaos.EffectHandling
 
         public static ChaosEffectIndex FindEffectIndex(string identifier)
         {
-            int index = Array.BinarySearch(_effects, identifier, ChaosEffectInfoIdentityComparer.Instance);
+            int index = Array.BinarySearch(_effects, identifier, ChaosEffectInfoIdentifierComparer.Instance);
 
             if (index < 0)
             {
@@ -141,18 +125,6 @@ namespace RiskOfChaos.EffectHandling
             }
 
             return (ChaosEffectIndex)index;
-        }
-
-        public static ChaosEffectIndex FindEffectIndex(Type effectType)
-        {
-            if (_effectTypeToIndexMap.TryGetValue(effectType, out ChaosEffectIndex effectIndex))
-            {
-                return effectIndex;
-            }
-            else
-            {
-                return ChaosEffectIndex.Invalid;
-            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -167,7 +139,7 @@ namespace RiskOfChaos.EffectHandling
 
             foreach (ChaosEffectInfo effect in _effects)
             {
-                if (CanEffectActivate(effect, context) && (excludeEffects == null || !excludeEffects.Contains(effect)))
+                if (effect.CanActivate(context) && (excludeEffects == null || !excludeEffects.Contains(effect)))
                 {
                     _pickNextEffectSelection.AddChoice(effect, effect.TotalSelectionWeight);
                 }
@@ -201,16 +173,7 @@ namespace RiskOfChaos.EffectHandling
             return effect;
         }
 
-        public static string GetEffectDisplayName(in ChaosEffectInfo effectInfo)
-        {
-            string displayName = effectInfo.DisplayName;
-
-            EffectDisplayNameModificationProvider?.Invoke(effectInfo, ref displayName);
-
-            return displayName;
-        }
-
-        public static BaseEffect CreateEffectInstance(in ChaosEffectInfo effectInfo, in CreateEffectInstanceArgs args)
+        public static BaseEffect CreateEffectInstance(ChaosEffectInfo effectInfo, in CreateEffectInstanceArgs args)
         {
             if (effectInfo.EffectType == null)
             {
@@ -223,17 +186,10 @@ namespace RiskOfChaos.EffectHandling
 
             if (NetworkServer.active)
             {
-                OnEffectInstantiatedServer?.Invoke(effectInfo, args, effectInstance);
+                effectInfo.OnEffectInstantiatedServer(args, effectInstance);
             }
 
             return effectInstance;
-        }
-
-        public static bool CanEffectActivate(in ChaosEffectInfo effectInfo, in EffectCanActivateContext context)
-        {
-            bool canActivate = effectInfo.CanActivate(context);
-            OverrideEffectCanActivate?.Invoke(effectInfo, context, ref canActivate);
-            return canActivate;
         }
     }
 }

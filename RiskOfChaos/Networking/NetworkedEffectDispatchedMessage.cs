@@ -7,14 +7,14 @@ namespace RiskOfChaos.Networking
 {
     public sealed class NetworkedEffectDispatchedMessage : INetMessage
     {
-        public delegate void OnReceiveDelegate(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, byte[] serializedEffectData);
+        public delegate void OnReceiveDelegate(ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, byte[] serializedEffectData);
         public static event OnReceiveDelegate OnReceive;
 
         ChaosEffectIndex _effectIndex;
         EffectDispatchFlags _dispatchFlags;
         byte[] _serializedEffectData;
 
-        public NetworkedEffectDispatchedMessage(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, byte[] serializedEffectData)
+        public NetworkedEffectDispatchedMessage(ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, byte[] serializedEffectData)
         {
             _effectIndex = effectInfo.EffectIndex;
             _dispatchFlags = dispatchFlags;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace RiskOfChaos.Utilities.Extensions
@@ -25,14 +26,7 @@ namespace RiskOfChaos.Utilities.Extensions
 
         public static IEnumerable<TMember> WithAttribute<TMember, TAttr>(this IEnumerable<TMember> members) where TMember : MemberInfo where TAttr : Attribute
         {
-            foreach (TMember member in members)
-            {
-                TAttr attr = member.GetCustomAttribute<TAttr>();
-                if (attr != null)
-                {
-                    yield return member;
-                }
-            }
+            return members.Where(m => m.GetCustomAttribute<TAttr>() != null);
         }
     }
 }

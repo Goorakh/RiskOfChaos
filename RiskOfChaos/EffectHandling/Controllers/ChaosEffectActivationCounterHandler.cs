@@ -86,7 +86,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 #endif
         }
 
-        void onEffectAboutToDispatchServer(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, bool willStart)
+        void onEffectAboutToDispatchServer(ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, bool willStart)
         {
             if (!willStart)
                 return;
@@ -107,12 +107,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        ref ChaosEffectActivationCounter getEffectActivationCounterUncheckedRef(in ChaosEffectInfo effectInfo)
+        ref ChaosEffectActivationCounter getEffectActivationCounterUncheckedRef(ChaosEffectInfo effectInfo)
         {
             return ref _effectActivationCounts[(int)effectInfo.EffectIndex];
         }
 
-        ChaosEffectActivationCounter getEffectActivationCounter(in ChaosEffectInfo effectInfo)
+        ChaosEffectActivationCounter getEffectActivationCounter(ChaosEffectInfo effectInfo)
         {
             if (effectInfo.EffectIndex <= ChaosEffectIndex.Invalid || (int)effectInfo.EffectIndex >= _effectActivationCounts.Length)
                 return ChaosEffectActivationCounter.EmptyCounter;
@@ -120,17 +120,17 @@ namespace RiskOfChaos.EffectHandling.Controllers
             return getEffectActivationCounterUncheckedRef(effectInfo);
         }
 
-        public int GetTotalRunEffectActivationCount(in ChaosEffectInfo effectInfo)
+        public int GetTotalRunEffectActivationCount(ChaosEffectInfo effectInfo)
         {
             return getEffectActivationCounter(effectInfo).RunActivations;
         }
 
-        public int GetTotalStageEffectActivationCount(in ChaosEffectInfo effectInfo)
+        public int GetTotalStageEffectActivationCount(ChaosEffectInfo effectInfo)
         {
             return getEffectActivationCounter(effectInfo).StageActivations;
         }
 
-        public int GetEffectActivationCount(in ChaosEffectInfo effectInfo, EffectActivationCountMode mode)
+        public int GetEffectActivationCount(ChaosEffectInfo effectInfo, EffectActivationCountMode mode)
         {
             return mode switch
             {

@@ -1,4 +1,7 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using BepInEx.Configuration;
+using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.EffectDefinitions;
+using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
@@ -6,11 +9,8 @@ using System.Reflection;
 
 namespace RiskOfChaos.EffectHandling
 {
-    public class TimedEffectInfo
+    public class TimedEffectInfo : ChaosEffectInfo
     {
-        public readonly ChaosEffectIndex EffectIndex;
-        public readonly TimedChaosEffectIndex TimedEffectIndex;
-
         public readonly bool AllowDuplicates;
 
         readonly ConfigHolder<TimedEffectType> _timedType;
@@ -19,12 +19,9 @@ namespace RiskOfChaos.EffectHandling
         readonly ConfigHolder<float> _duration;
         public float DurationSeconds => _duration.Value;
 
-        public TimedEffectInfo(in ChaosEffectInfo effectInfo, TimedChaosEffectIndex timedEffectIndex)
+        public TimedEffectInfo(ChaosEffectIndex effectIndex, ChaosEffectAttribute attribute, ConfigFile configFile) : base(effectIndex, attribute, configFile)
         {
-            EffectIndex = effectInfo.EffectIndex;
-            TimedEffectIndex = timedEffectIndex;
-
-            ChaosTimedEffectAttribute timedEffectAttribute = effectInfo.EffectType.GetCustomAttribute<ChaosTimedEffectAttribute>();
+            ChaosTimedEffectAttribute timedEffectAttribute = EffectType.GetCustomAttribute<ChaosTimedEffectAttribute>();
             if (timedEffectAttribute != null)
             {
                 _timedType = ConfigFactory<TimedEffectType>.CreateConfig("Duration Type", timedEffectAttribute.TimedType)
@@ -32,7 +29,6 @@ namespace RiskOfChaos.EffectHandling
                                                            .OptionConfig(new ChoiceConfig())
                                                            .ValueValidator(CommonValueValidators.DefinedEnumValue<TimedEffectType>())
                                                            .Build();
-                _timedType.Bind(effectInfo);
 
                 float defaultDuration = timedEffectAttribute.DurationSeconds;
                 if (defaultDuration < 0f)
@@ -50,34 +46,85 @@ namespace RiskOfChaos.EffectHandling
                                                 })
                                                 .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                                 .Build();
-                _duration.Bind(effectInfo);
 
                 AllowDuplicates = timedEffectAttribute.AllowDuplicates;
             }
             else
             {
-                Log.Error($"Timed effect {effectInfo} is missing {nameof(ChaosTimedEffectAttribute)}");
+                Log.Error($"Timed effect {this} is missing {nameof(ChaosTimedEffectAttribute)}");
             }
         }
 
-        public override string ToString()
+        public override void BindConfigs()
         {
-            return ChaosEffectCatalog.GetEffectInfo(EffectIndex).ToString();
+            base.BindConfigs();
+
+            _timedType?.Bind(this);
+
+            _duration?.Bind(this);
         }
 
-        public string ApplyTimedTypeSuffix(string effectName)
+        public override bool CanActivate(in EffectCanActivateContext context)
         {
-            switch (TimedType)
+            if (!base.CanActivate(context))
+                return false;
+
+            if (!AllowDuplicates)
             {
-                case TimedEffectType.UntilStageEnd:
-                    return Language.GetStringFormatted("TIMED_TYPE_UNTIL_STAGE_END_FORMAT", effectName);
-                case TimedEffectType.FixedDuration:
-                    return Language.GetStringFormatted("TIMED_TYPE_FIXED_DURATION_FORMAT", effectName, DurationSeconds);
-                case TimedEffectType.Permanent:
-                    return Language.GetStringFormatted("TIMED_TYPE_PERMANENT_FORMAT", effectName);
-                default:
-                    Log.Warning($"Timed type {TimedType} is not implemented");
-                    return effectName;
+                if (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.AnyInstanceOfEffectActive(this, context))
+                {
+#if DEBUG
+                    Log.Debug($"Duplicate effect {this} cannot activate");
+#endif
+
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public override string GetDisplayName(EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)
+        {
+            string displayName = base.GetDisplayName(formatFlags);
+
+            if ((formatFlags & EffectNameFormatFlags.TimedType) != 0)
+            {
+                switch (TimedType)
+                {
+                    case TimedEffectType.UntilStageEnd:
+                        return Language.GetStringFormatted("TIMED_TYPE_UNTIL_STAGE_END_FORMAT", displayName);
+                    case TimedEffectType.FixedDuration:
+                        return Language.GetStringFormatted("TIMED_TYPE_FIXED_DURATION_FORMAT", displayName, DurationSeconds);
+                    case TimedEffectType.Permanent:
+                        return Language.GetStringFormatted("TIMED_TYPE_PERMANENT_FORMAT", displayName);
+                    default:
+                        Log.Warning($"Timed type {TimedType} is not implemented");
+                        return displayName;
+                }
+            }
+            else
+            {
+                return displayName;
+            }
+        }
+
+        public override void OnEffectInstantiatedServer(in CreateEffectInstanceArgs args, BaseEffect effectInstance)
+        {
+            base.OnEffectInstantiatedServer(args, effectInstance);
+
+            if (effectInstance is TimedEffect timedEffect)
+            {
+                timedEffect.TimedType = TimedType;
+
+                if (TimedType == TimedEffectType.FixedDuration)
+                {
+                    timedEffect.DurationSeconds = DurationSeconds;
+                }
+            }
+            else
+            {
+                Log.Error($"Effect info {this} is marked as timed, but instance is not of type {nameof(TimedEffect)} ({effectInstance})");
             }
         }
     }

@@ -114,7 +114,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             _activeCoroutineEffects.Clear();
         }
 
-        void onEffectDispatched(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, BaseEffect effectInstance)
+        void onEffectDispatched(ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, BaseEffect effectInstance)
         {
             if (effectInstance is ICoroutineEffect coroutineEffect)
             {

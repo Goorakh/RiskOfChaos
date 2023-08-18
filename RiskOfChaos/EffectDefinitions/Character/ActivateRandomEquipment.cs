@@ -128,13 +128,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                                                 .Select(e => new ActivatableEquipment(e))
                                                                 .ToArray();
 
-            RoR2Application.onNextUpdate += () =>
+            foreach (ActivatableEquipment equipment in _availableEquipments.OrderBy(a => a.EquipmentName))
             {
-                foreach (ActivatableEquipment equipment in _availableEquipments.OrderBy(a => a.EquipmentName))
-                {
-                    equipment.BindConfig(_effectInfo);
-                }
-            };
+                equipment.BindConfig(_effectInfo);
+            }
         }
 
         [EffectCanActivate]

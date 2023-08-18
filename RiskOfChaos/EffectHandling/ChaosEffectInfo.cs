@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using HarmonyLib;
 using HG;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectDefinitions;
@@ -15,12 +16,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling
 {
-    public readonly struct ChaosEffectInfo : IEquatable<ChaosEffectInfo>
+    public class ChaosEffectInfo : IEquatable<ChaosEffectInfo>
     {
         public readonly ChaosEffectIndex EffectIndex;
 
@@ -34,32 +35,12 @@ namespace RiskOfChaos.EffectHandling
 
         readonly ChaosEffectCanActivateMethod[] _canActivateMethods = Array.Empty<ChaosEffectCanActivateMethod>();
 
-        public readonly bool CanActivate(EffectCanActivateContext context)
-        {
-            if (IsEnabledConfig != null && !IsEnabledConfig.Value)
-            {
-#if DEBUG
-                Log.Debug($"effect {Identifier} cannot activate due to: Disabled in config");
-#endif
-                return false;
-            }
-
-            if (_canActivateMethods.Length > 0 && !_canActivateMethods.All(m => m.Invoke(context)))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        public readonly ReadOnlyCollection<ChaosEffectInfo> IncompatibleEffects = Empty<ChaosEffectInfo>.ReadOnlyCollection;
+        readonly ReadOnlyCollection<ChaosEffectInfo> _incompatibleEffects = Empty<ChaosEffectInfo>.ReadOnlyCollection;
 
         public readonly ConfigHolder<bool> IsEnabledConfig;
         readonly ConfigHolder<float> _selectionWeightConfig;
 
         readonly ConfigHolder<float> _weightReductionPerActivation;
-
-        public float EffectWeightMultiplierPerActivation => 1f - _weightReductionPerActivation.Value;
 
         readonly ConfigHolder<EffectActivationCountMode> _effectRepetitionCountMode;
         public EffectActivationCountMode EffectRepetitionCountMode => _effectRepetitionCountMode.Value;
@@ -67,24 +48,32 @@ namespace RiskOfChaos.EffectHandling
         readonly ConfigHolder<KeyboardShortcut> _activationShortcut;
         public bool IsActivationShortcutPressed => _activationShortcut != null && _activationShortcut.Value.IsDown();
 
-        public int ActivationCount
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => GetActivationCount(EffectRepetitionCountMode);
-        }
-
-        readonly MethodInfo[] _weightMultSelectorMethods;
+        readonly MethodInfo[] _weightMultSelectorMethods = Array.Empty<MethodInfo>();
         public float TotalSelectionWeight
         {
             get
             {
-                float weight = Mathf.Pow(EffectWeightMultiplierPerActivation, ActivationCount) * _selectionWeightConfig.Value;
+                float weight = _selectionWeightConfig.Value;
 
-                if (_weightMultSelectorMethods != null)
+                float weightMultiplierPerActivation = 1f - _weightReductionPerActivation.Value;
+                if (weightMultiplierPerActivation < 1f)
                 {
-                    foreach (MethodInfo weightSelector in _weightMultSelectorMethods)
+                    ChaosEffectActivationCounterHandler effectActivationCountHandler = ChaosEffectActivationCounterHandler.Instance;
+                    if (effectActivationCountHandler)
                     {
-                        weight *= (float)weightSelector.Invoke(null, null);
+                        weight *= Mathf.Pow(weightMultiplierPerActivation, effectActivationCountHandler.GetEffectActivationCount(this, EffectRepetitionCountMode));
+                    }
+                }
+
+                foreach (MethodInfo weightSelector in _weightMultSelectorMethods)
+                {
+                    if (weightSelector.Invoke(null, null) is float weightMultiplier)
+                    {
+                        weight *= weightMultiplier;
+                    }
+                    else
+                    {
+                        Log.Error($"{weightSelector.FullDescription()} has incorrect return type");
                     }
                 }
 
@@ -93,27 +82,11 @@ namespace RiskOfChaos.EffectHandling
         }
 
         readonly MethodInfo _getEffectNameFormatArgsMethod;
-        public string DisplayName
-        {
-            get
-            {
-                if (HasCustomDisplayNameFormatter)
-                {
-                    object[] args = (object[])_getEffectNameFormatArgsMethod.Invoke(null, null);
-                    return Language.GetStringFormatted(NameToken, args);
-                }
-                else
-                {
-                    return Language.GetString(NameToken);
-                }
-            }
-        }
-
         public bool HasCustomDisplayNameFormatter => _getEffectNameFormatArgsMethod != null;
 
         public readonly bool IsNetworked;
 
-        public readonly string[] PreviousConfigSectionNames;
+        public readonly string[] PreviousConfigSectionNames = Array.Empty<string>();
 
         public readonly ConfigFile ConfigFile;
 
@@ -133,10 +106,6 @@ namespace RiskOfChaos.EffectHandling
                 {
                     PreviousConfigSectionNames = configBackwardsCompatibilityAttribute.ConfigSectionNames;
                 }
-                else
-                {
-                    PreviousConfigSectionNames = Array.Empty<string>();
-                }
 
                 if (!typeof(BaseEffect).IsAssignableFrom(effectType))
                 {
@@ -144,8 +113,7 @@ namespace RiskOfChaos.EffectHandling
                 }
                 else
                 {
-                    const BindingFlags FLAGS = BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public;
-                    IEnumerable<MethodInfo> allMethods = effectType.GetAllMethodsRecursive(FLAGS);
+                    MethodInfo[] allMethods = effectType.GetAllMethodsRecursive(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public).ToArray();
 
                     _canActivateMethods = allMethods.WithAttribute<MethodInfo, EffectCanActivateAttribute>().Select(m => new ChaosEffectCanActivateMethod(m)).ToArray();
 
@@ -160,11 +128,11 @@ namespace RiskOfChaos.EffectHandling
                     if (incompatibleEffectTypes.Length > 0)
                     {
                         List<ChaosEffectInfo> incompatibleEffects = new List<ChaosEffectInfo>(incompatibleEffectTypes.Length);
-                        IncompatibleEffects = new ReadOnlyCollection<ChaosEffectInfo>(incompatibleEffects);
+                        _incompatibleEffects = new ReadOnlyCollection<ChaosEffectInfo>(incompatibleEffects);
 
                         ChaosEffectCatalog.Availability.CallWhenAvailable(() =>
                         {
-                            incompatibleEffects.AddRange(ChaosEffectCatalog.AllEffects.Where(e => e.EffectIndex != effectIndex && incompatibleEffectTypes.Any(t => t.IsAssignableFrom(e.EffectType))));
+                            incompatibleEffects.AddRange(ChaosEffectCatalog.AllEffects.Where(e => e != this && e is TimedEffectInfo && incompatibleEffectTypes.Any(t => t.IsAssignableFrom(e.EffectType))));
 
 #if DEBUG
                             Log.Debug($"Initialized incompatibility list for {ChaosEffectCatalog.GetEffectInfo(effectIndex)}: [{string.Join(", ", incompatibleEffects)}]");
@@ -249,9 +217,9 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
-        internal readonly void Validate()
+        internal virtual void Validate()
         {
-            string displayName = DisplayName;
+            string displayName = GetDisplayName();
             if (string.IsNullOrWhiteSpace(displayName))
             {
                 Log.Error($"{this}: Null or empty display name");
@@ -268,17 +236,7 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly int GetActivationCount(EffectActivationCountMode countMode)
-        {
-            ChaosEffectActivationCounterHandler effectActivationCounterHandler = ChaosEffectActivationCounterHandler.Instance;
-            if (!effectActivationCounterHandler)
-                return 0;
-
-            return effectActivationCounterHandler.GetEffectActivationCount(this, countMode);
-        }
-
-        public readonly void BindConfigs()
+        public virtual void BindConfigs()
         {
             IsEnabledConfig?.Bind(this);
 
@@ -291,28 +249,91 @@ namespace RiskOfChaos.EffectHandling
             _activationShortcut?.Bind(this);
         }
 
-        public override readonly string ToString()
+        public virtual bool CanActivate(in EffectCanActivateContext context)
+        {
+            if (!NetworkServer.active)
+            {
+                Log.Warning("Called on client");
+                return false;
+            }
+
+            if (IsEnabledConfig != null && !IsEnabledConfig.Value)
+            {
+#if DEBUG
+                Log.Debug($"effect {Identifier} cannot activate due to: Disabled in config");
+#endif
+                return false;
+            }
+
+            if (_canActivateMethods.Length > 0)
+            {
+                foreach (ChaosEffectCanActivateMethod canActivateMethod in _canActivateMethods)
+                {
+                    if (!canActivateMethod.Invoke(context))
+                        return false;
+                }
+            }
+
+            if (TimedChaosEffectHandler.Instance)
+            {
+                foreach (ChaosEffectInfo incompatibleEffect in _incompatibleEffects)
+                {
+                    if (TimedChaosEffectHandler.Instance.AnyInstanceOfEffectActive(incompatibleEffect, context))
+                    {
+#if DEBUG
+                        Log.Debug($"Effect {this} cannot activate: incompatible effect {incompatibleEffect} is active");
+#endif
+
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        public virtual string GetDisplayName(EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)
+        {
+            if ((formatFlags & EffectNameFormatFlags.RuntimeFormatArgs) != 0 && HasCustomDisplayNameFormatter)
+            {
+                object[] args = (object[])_getEffectNameFormatArgsMethod.Invoke(null, null);
+                return Language.GetStringFormatted(NameToken, args);
+            }
+            else
+            {
+                return Language.GetString(NameToken);
+            }
+        }
+
+        public virtual void OnEffectInstantiatedServer(in CreateEffectInstanceArgs args, BaseEffect effectInstance)
+        {
+        }
+
+        public override string ToString()
         {
             return Identifier;
         }
 
-        public override readonly bool Equals(object obj)
+        public override bool Equals(object obj)
         {
-            return obj is ChaosEffectInfo info && Equals(info);
+            return obj is ChaosEffectInfo effectInfo && Equals(effectInfo);
         }
 
-        public readonly bool Equals(ChaosEffectInfo other)
+        public bool Equals(ChaosEffectInfo other)
         {
-            return EffectIndex == other.EffectIndex;
+            return other is not null && EffectIndex == other.EffectIndex;
         }
 
-        public override readonly int GetHashCode()
+        public override int GetHashCode()
         {
             return -865576688 + EffectIndex.GetHashCode();
         }
 
         public static bool operator ==(ChaosEffectInfo left, ChaosEffectInfo right)
         {
+            if (left is null || right is null)
+                return left is null && right is null;
+
             return left.Equals(right);
         }
 

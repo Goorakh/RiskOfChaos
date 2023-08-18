@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RiskOfChaos.EffectDefinitions;
+using System;
 
 namespace RiskOfChaos.EffectHandling.EffectClassAttributes
 {
@@ -24,7 +25,20 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes
 
         internal ChaosEffectInfo BuildEffectInfo(ChaosEffectIndex index)
         {
-            return new ChaosEffectInfo(index, this, Main.Instance.Config);
+            if (target is Type targetType)
+            {
+                if (typeof(TimedEffect).IsAssignableFrom(targetType))
+                {
+                    return new TimedEffectInfo(index, this, Main.Instance.Config);
+                }
+                else
+                {
+                    return new ChaosEffectInfo(index, this, Main.Instance.Config);
+                }
+            }
+
+            Log.Error($"Invalid attribute target {target}");
+            return null;
         }
     }
 }

@@ -33,7 +33,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             _effectDispatcher.OnEffectAboutToDispatchServer -= onEffectAboutToDispatchServer;
         }
 
-        static void onEffectAboutToDispatchServer(in ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, bool willStart)
+        static void onEffectAboutToDispatchServer(ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, bool willStart)
         {
             if ((dispatchFlags & EffectDispatchFlags.DontPlaySound) == 0)
             {
