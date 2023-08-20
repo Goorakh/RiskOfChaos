@@ -23,9 +23,9 @@ namespace RiskOfChaos.EffectHandling.Controllers
         public delegate void TimedEffectEndDelegate(ulong dispatchID);
         public static event TimedEffectEndDelegate OnTimedEffectEndServer;
 
-        readonly record struct ActiveTimedEffectInfo(ChaosEffectInfo EffectInfo, TimedEffect EffectInstance, TimedEffectType TimedType)
+        readonly record struct ActiveTimedEffectInfo(TimedEffectInfo EffectInfo, TimedEffect EffectInstance, TimedEffectType TimedType)
         {
-            public ActiveTimedEffectInfo(ChaosEffectInfo effectInfo, TimedEffect effectInstance) : this(effectInfo, effectInstance, effectInstance.TimedType)
+            public ActiveTimedEffectInfo(TimedEffectInfo effectInfo, TimedEffect effectInstance) : this(effectInfo, effectInstance, effectInstance.TimedType)
             {
             }
 
@@ -117,13 +117,13 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void onEffectDispatched(ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, BaseEffect effectInstance)
         {
-            if (effectInstance is TimedEffect timedEffectInstance)
+            if (effectInfo is TimedEffectInfo timedEffectInfo && effectInstance is TimedEffect timedEffectInstance)
             {
-                registerTimedEffect(new ActiveTimedEffectInfo(effectInfo, timedEffectInstance));
+                registerTimedEffect(new ActiveTimedEffectInfo(timedEffectInfo, timedEffectInstance));
             }
         }
 
-        public bool AnyInstanceOfEffectActive(ChaosEffectInfo effectInfo, in EffectCanActivateContext context)
+        public bool AnyInstanceOfEffectActive(TimedEffectInfo effectInfo, in EffectCanActivateContext context)
         {
             foreach (ActiveTimedEffectInfo activeTimedEffectInfo in getActiveTimedEffectsFor(effectInfo))
             {
@@ -208,18 +208,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             if (NetworkServer.active)
             {
-                if (activeEffectInfo.EffectInfo is TimedEffectInfo timedEffectInfo)
-                {
-                    OnTimedEffectStartServer?.Invoke(timedEffectInfo, activeEffectInfo.EffectInstance);
-                }
-                else
-                {
-                    Log.Error($"Could not find timed effect info for {activeEffectInfo.EffectInfo}");
-                }
+                OnTimedEffectStartServer?.Invoke(activeEffectInfo.EffectInfo, activeEffectInfo.EffectInstance);
             }
         }
 
-        IEnumerable<ActiveTimedEffectInfo> getActiveTimedEffectsFor(ChaosEffectInfo effectInfo)
+        IEnumerable<ActiveTimedEffectInfo> getActiveTimedEffectsFor(TimedEffectInfo effectInfo)
         {
             foreach (ActiveTimedEffectInfo timedEffect in _activeTimedEffects)
             {
@@ -230,12 +223,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        public bool IsTimedEffectActive(ChaosEffectInfo effectInfo)
+        public bool IsTimedEffectActive(TimedEffectInfo effectInfo)
         {
             return getActiveTimedEffectsFor(effectInfo).Any();
         }
 
-        public int GetEffectActiveCount(ChaosEffectInfo effectInfo)
+        public int GetEffectActiveCount(TimedEffectInfo effectInfo)
         {
             int count = 0;
 

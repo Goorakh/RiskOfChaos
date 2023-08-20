@@ -16,7 +16,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
     public sealed class TeleportingProjectiles : TimedEffect
     {
         [InitEffectInfo]
-        static readonly ChaosEffectInfo _effectInfo;
+        static readonly TimedEffectInfo _effectInfo;
 
         static readonly MasterIndexCollection _teleportBlacklist = new MasterIndexCollection("ArtifactShellMaster", "BrotherHauntMaster");
 

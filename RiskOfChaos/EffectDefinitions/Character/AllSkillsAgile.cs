@@ -13,7 +13,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
     public sealed class AllSkillsAgile : TimedEffect
     {
         [InitEffectInfo]
-        public static readonly ChaosEffectInfo EffectInfo;
+        public static readonly TimedEffectInfo EffectInfo;
 
         readonly struct SkillDefIsAgileOverride
         {

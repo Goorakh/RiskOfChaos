@@ -15,7 +15,7 @@ namespace RiskOfChaos.EffectDefinitions.World
     public sealed class GuaranteedChanceRolls : TimedEffect
     {
         [InitEffectInfo]
-        static readonly ChaosEffectInfo _effectInfo;
+        static readonly TimedEffectInfo _effectInfo;
 
         static bool _hasAppliedPatches;
         static int _tempDisablePatchCount;
