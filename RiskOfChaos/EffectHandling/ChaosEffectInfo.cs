@@ -35,7 +35,7 @@ namespace RiskOfChaos.EffectHandling
 
         readonly ChaosEffectCanActivateMethod[] _canActivateMethods = Array.Empty<ChaosEffectCanActivateMethod>();
 
-        readonly ReadOnlyCollection<ChaosEffectInfo> _incompatibleEffects = Empty<ChaosEffectInfo>.ReadOnlyCollection;
+        readonly ReadOnlyCollection<TimedEffectInfo> _incompatibleEffects = Empty<TimedEffectInfo>.ReadOnlyCollection;
 
         public readonly ConfigHolder<bool> IsEnabledConfig;
         readonly ConfigHolder<float> _selectionWeightConfig;
@@ -127,12 +127,12 @@ namespace RiskOfChaos.EffectHandling
 
                     if (incompatibleEffectTypes.Length > 0)
                     {
-                        List<ChaosEffectInfo> incompatibleEffects = new List<ChaosEffectInfo>(incompatibleEffectTypes.Length);
-                        _incompatibleEffects = new ReadOnlyCollection<ChaosEffectInfo>(incompatibleEffects);
+                        List<TimedEffectInfo> incompatibleEffects = new List<TimedEffectInfo>(incompatibleEffectTypes.Length);
+                        _incompatibleEffects = new ReadOnlyCollection<TimedEffectInfo>(incompatibleEffects);
 
                         ChaosEffectCatalog.Availability.CallWhenAvailable(() =>
                         {
-                            incompatibleEffects.AddRange(ChaosEffectCatalog.AllEffects.Where(e => e != this && e is TimedEffectInfo && incompatibleEffectTypes.Any(t => t.IsAssignableFrom(e.EffectType))));
+                            incompatibleEffects.AddRange(ChaosEffectCatalog.AllTimedEffects.Where(e => e != this && incompatibleEffectTypes.Any(t => t.IsAssignableFrom(e.EffectType))));
 
 #if DEBUG
                             Log.Debug($"Initialized incompatibility list for {ChaosEffectCatalog.GetEffectInfo(effectIndex)}: [{string.Join(", ", incompatibleEffects)}]");
@@ -276,7 +276,7 @@ namespace RiskOfChaos.EffectHandling
 
             if (TimedChaosEffectHandler.Instance)
             {
-                foreach (ChaosEffectInfo incompatibleEffect in _incompatibleEffects)
+                foreach (TimedEffectInfo incompatibleEffect in _incompatibleEffects)
                 {
                     if (TimedChaosEffectHandler.Instance.AnyInstanceOfEffectActive(incompatibleEffect, context))
                     {

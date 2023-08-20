@@ -27,6 +27,8 @@ namespace RiskOfChaos.EffectHandling
         static ChaosEffectInfo[] _effects;
         public static ReadOnlyArray<ChaosEffectInfo> AllEffects { get; private set; }
 
+        public static ReadOnlyArray<TimedEffectInfo> AllTimedEffects { get; private set; }
+
         static int _effectCount;
         public static int EffectCount => _effectCount;
 
@@ -48,6 +50,9 @@ namespace RiskOfChaos.EffectHandling
                                                         .ToArray();
 
             AllEffects = new ReadOnlyArray<ChaosEffectInfo>(_effects);
+
+            AllTimedEffects = new ReadOnlyArray<TimedEffectInfo>(_effects.Where(e => e is TimedEffectInfo)
+                                                                             .Select(e => e as TimedEffectInfo).ToArray());
 
             _effectCount = _effects.Length;
 
