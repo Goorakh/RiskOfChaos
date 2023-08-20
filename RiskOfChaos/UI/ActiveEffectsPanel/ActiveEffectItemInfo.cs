@@ -21,7 +21,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             EffectInfo = effectInfo;
             DispatchID = effectInstance.DispatchID;
 
-            DisplayName = effectInfo.GetDisplayName();
+            DisplayName = effectInfo.GetDisplayName(EffectNameFormatFlags.RuntimeFormatArgs);
 
             TimedType = effectInstance.TimedType;
             DurationSeconds = effectInstance.DurationSeconds;
