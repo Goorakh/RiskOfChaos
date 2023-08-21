@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**1.9.1 Changes:**
 
 * Added 1 new effect:
   * Delayed Attacks: All attacks have a 0.5 second delay before happening, lasts 90 seconds
