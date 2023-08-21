@@ -37,6 +37,9 @@
 * Max All Cooldowns:
   * Fixed Railgunner not being able to fire scoped shots after effect activation
 
+* Aspect Roulette:
+  * Can no longer select elites with a tier outside of those available on the current stage by default, old behaviour can be re-enabled in the config
+
 * Misc:
   * Added the ability to set a keyboard shortcut to activate a specific effect at any time in a run
   * Updated default effect weight reduction percentage: 5% -> 0%
