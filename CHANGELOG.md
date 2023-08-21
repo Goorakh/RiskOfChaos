@@ -39,6 +39,7 @@
 
 * Misc:
   * Added the ability to set a keyboard shortcut to activate a specific effect at any time in a run
+  * Updated default effect weight reduction percentage: 5% -> 0%
 
 **1.9.0 Changes:**
 
