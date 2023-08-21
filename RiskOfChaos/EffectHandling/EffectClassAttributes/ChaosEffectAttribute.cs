@@ -27,14 +27,8 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes
         {
             if (target is Type targetType)
             {
-                if (typeof(TimedEffect).IsAssignableFrom(targetType))
-                {
-                    return new TimedEffectInfo(index, this, Main.Instance.Config);
-                }
-                else
-                {
-                    return new ChaosEffectInfo(index, this, Main.Instance.Config);
-                }
+                ChaosEffectCatalog.EffectInfoConstructor effectInfoConstructor = ChaosEffectCatalog.GetEffectInfoConstructor(targetType);
+                return effectInfoConstructor(index, this, Main.Instance.Config);
             }
 
             Log.Error($"Invalid attribute target {target}");

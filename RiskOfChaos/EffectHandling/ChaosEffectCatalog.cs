@@ -1,4 +1,5 @@
-﻿using HG;
+﻿using BepInEx.Configuration;
+using HG;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -195,6 +196,29 @@ namespace RiskOfChaos.EffectHandling
             }
 
             return effectInstance;
+        }
+
+        public delegate ChaosEffectInfo EffectInfoConstructor(ChaosEffectIndex effectIndex, ChaosEffectAttribute effectAttribute, ConfigFile configFile);
+
+        public static EffectInfoConstructor GetEffectInfoConstructor(Type effectType)
+        {
+            if (typeof(TimedEffect).IsAssignableFrom(effectType))
+            {
+                return (index, attribute, config) =>
+                {
+                    return new TimedEffectInfo(index, attribute, config);
+                };
+            }
+            else if (typeof(BaseEffect).IsAssignableFrom(effectType))
+            {
+                return (index, attribute, config) =>
+                {
+                    return new ChaosEffectInfo(index, attribute, config);
+                };
+            }
+
+            Log.Error($"Invalid effect type {effectType.FullName}");
+            return (_, _, _) => null;
         }
     }
 }
