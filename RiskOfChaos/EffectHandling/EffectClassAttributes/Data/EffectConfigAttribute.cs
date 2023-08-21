@@ -11,11 +11,7 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes.Data
 
         public override void ApplyTo(MemberInfo member, ChaosEffectInfo effectInfo)
         {
-            object configInstance = getConfigInstance(member);
-            if (configInstance == null)
-                return;
-
-            if (configInstance is ConfigHolderBase configHolder)
+            if (getConfigInstance(member) is ConfigHolderBase configHolder)
             {
                 configHolder.Bind(effectInfo);
             }
@@ -41,6 +37,10 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes.Data
                 {
                     return property.GetValue(null);
                 }
+            }
+            else
+            {
+                Log.Error($"Attribute applied to invalid MemberInfo: {member.MemberType} ({member.DeclaringType.FullName}.{member.Name})");
             }
 
             return null;
