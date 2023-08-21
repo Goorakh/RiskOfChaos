@@ -72,13 +72,14 @@ namespace RiskOfChaos.Utilities
             return Array.BinarySearch(_baseEliteEquipments, equipmentIndex) >= 0;
         }
 
+        public static EquipmentIndex SelectEliteEquipment(bool allowDirectorUnavailableElites)
+        {
+            return SelectEliteEquipment(RoR2Application.rng, allowDirectorUnavailableElites);
+        }
+
         public static EquipmentIndex SelectEliteEquipment(Xoroshiro128Plus rng, bool allowDirectorUnavailableElites)
         {
-            if (allowDirectorUnavailableElites)
-            {
-                return GetRandomEliteEquipmentIndex(rng);
-            }
-            else
+            if (!allowDirectorUnavailableElites)
             {
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 CombatDirector.EliteTierDef[] eliteTiers = CombatDirector.eliteTiers;
@@ -95,9 +96,10 @@ namespace RiskOfChaos.Utilities
                     }
                 }
 
-                Log.Warning("No available elites");
-                return EquipmentIndex.None;
+                Log.Warning("No available elites, using random");
             }
+
+            return GetRandomEliteEquipmentIndex(rng);
         }
     }
 }
