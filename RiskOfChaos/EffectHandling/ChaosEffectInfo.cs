@@ -1,6 +1,6 @@
 ﻿using BepInEx.Configuration;
-using HarmonyLib;
 using HG;
+using MonoMod.Utils;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.EffectHandling.Controllers;
@@ -48,7 +48,7 @@ namespace RiskOfChaos.EffectHandling
         readonly ConfigHolder<KeyboardShortcut> _activationShortcut;
         public bool IsActivationShortcutPressed => _activationShortcut != null && _activationShortcut.Value.IsDown();
 
-        readonly MethodInfo[] _weightMultSelectorMethods = Array.Empty<MethodInfo>();
+        readonly EffectWeightMultiplierDelegate[] _effectNameWeightMultipliers = Array.Empty<EffectWeightMultiplierDelegate>();
         public float TotalSelectionWeight
         {
             get
@@ -65,24 +65,17 @@ namespace RiskOfChaos.EffectHandling
                     }
                 }
 
-                foreach (MethodInfo weightSelector in _weightMultSelectorMethods)
+                foreach (EffectWeightMultiplierDelegate getEffectWeightMultiplier in _effectNameWeightMultipliers)
                 {
-                    if (weightSelector.Invoke(null, null) is float weightMultiplier)
-                    {
-                        weight *= weightMultiplier;
-                    }
-                    else
-                    {
-                        Log.Error($"{weightSelector.FullDescription()} has incorrect return type");
-                    }
+                    weight *= getEffectWeightMultiplier();
                 }
 
                 return weight;
             }
         }
 
-        readonly MethodInfo _getEffectNameFormatArgsMethod;
-        public bool HasCustomDisplayNameFormatter => _getEffectNameFormatArgsMethod != null;
+        readonly EffectNameFormatArgsDelegate _getEffectNameFormatArgs;
+        public bool HasCustomDisplayNameFormatter => _getEffectNameFormatArgs != null;
 
         public readonly bool IsNetworked;
 
@@ -115,11 +108,16 @@ namespace RiskOfChaos.EffectHandling
                 {
                     MethodInfo[] allMethods = effectType.GetAllMethodsRecursive(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public).ToArray();
 
-                    _canActivateMethods = allMethods.WithAttribute<MethodInfo, EffectCanActivateAttribute>().Select(m => new ChaosEffectCanActivateMethod(m)).ToArray();
+                    _canActivateMethods = allMethods.WithAttribute<MethodInfo, EffectCanActivateAttribute>()
+                                                    .Select(m => new ChaosEffectCanActivateMethod(m))
+                                                    .ToArray();
 
-                    _weightMultSelectorMethods = allMethods.WithAttribute<MethodInfo, EffectWeightMultiplierSelectorAttribute>().ToArray();
+                    _effectNameWeightMultipliers = allMethods.WithAttribute<MethodInfo, EffectWeightMultiplierSelectorAttribute>()
+                                                             .Select(m => m.CreateDelegate<EffectWeightMultiplierDelegate>())
+                                                             .ToArray();
 
-                    _getEffectNameFormatArgsMethod = allMethods.WithAttribute<MethodInfo, EffectNameFormatArgsAttribute>().FirstOrDefault();
+                    MethodInfo getEffectNameFormatArgsMethod = allMethods.WithAttribute<MethodInfo, EffectNameFormatArgsAttribute>().FirstOrDefault();
+                    _getEffectNameFormatArgs = getEffectNameFormatArgsMethod?.CreateDelegate<EffectNameFormatArgsDelegate>();
 
                     Type[] incompatibleEffectTypes = effectType.GetCustomAttributes<IncompatibleEffectsAttribute>(true)
                                                                .SelectMany(a => a.IncompatibleEffectTypes)
@@ -296,8 +294,7 @@ namespace RiskOfChaos.EffectHandling
         {
             if ((formatFlags & EffectNameFormatFlags.RuntimeFormatArgs) != 0 && HasCustomDisplayNameFormatter)
             {
-                object[] args = (object[])_getEffectNameFormatArgsMethod.Invoke(null, null);
-                return Language.GetStringFormatted(NameToken, args);
+                return Language.GetStringFormatted(NameToken, _getEffectNameFormatArgs());
             }
             else
             {
