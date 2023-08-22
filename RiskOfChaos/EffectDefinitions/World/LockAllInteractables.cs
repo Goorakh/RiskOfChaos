@@ -24,7 +24,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         }
 
         [EffectCanActivate]
-        static bool CanActivate(EffectCanActivateContext context)
+        static bool CanActivate(in EffectCanActivateContext context)
         {
             return _purchaseLockPrefab && (!context.IsNow || getAllNonLockedInteractables().Any());
         }

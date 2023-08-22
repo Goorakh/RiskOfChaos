@@ -57,7 +57,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         }
 
         [EffectCanActivate]
-        static bool CanActivate(EffectCanActivateContext context)
+        static bool CanActivate(in EffectCanActivateContext context)
         {
             return !context.IsNow || CharacterBody.readOnlyInstancesList.Any(b => getPickupsToDrop(b).Any());
         }

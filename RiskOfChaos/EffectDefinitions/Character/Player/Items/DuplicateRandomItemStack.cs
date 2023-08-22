@@ -53,7 +53,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         }
 
         [EffectCanActivate]
-        static bool CanActivate(EffectCanActivateContext context)
+        static bool CanActivate(in EffectCanActivateContext context)
         {
             return !context.IsNow || PlayerUtils.GetAllPlayerMasters(false).Any(master => getAllDuplicatableItemStacks(master.inventory).Any());
         }

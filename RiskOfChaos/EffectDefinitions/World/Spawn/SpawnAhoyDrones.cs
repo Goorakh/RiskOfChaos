@@ -62,7 +62,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                               .Build();
 
         [EffectCanActivate]
-        static bool CanActivate(EffectCanActivateContext context)
+        static bool CanActivate(in EffectCanActivateContext context)
         {
             return ExpansionUtils.DLC1Enabled && DirectorCore.instance && _equipmentDroneSpawnCard.HasValidSpawnLocation() && (!context.IsNow || PlayerUtils.GetAllPlayerBodies(true).Any());
         }

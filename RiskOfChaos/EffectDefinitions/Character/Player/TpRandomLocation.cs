@@ -14,7 +14,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
     public sealed class TpRandomLocation : BaseEffect
     {
         [EffectCanActivate]
-        static bool CanSelect(EffectCanActivateContext context)
+        static bool CanSelect(in EffectCanActivateContext context)
         {
             return !context.IsNow || (DirectorCore.instance && PlayerUtils.GetAllPlayerBodies(true).Any());
         }

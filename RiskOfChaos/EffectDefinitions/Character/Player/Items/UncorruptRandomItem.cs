@@ -14,7 +14,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
     public sealed class UncorruptRandomItem : BaseEffect
     {
         [EffectCanActivate]
-        static bool CanActivate(EffectCanActivateContext context)
+        static bool CanActivate(in EffectCanActivateContext context)
         {
             return getReverseItemCorruptionMap().Keys.Any(i => PlayerUtils.GetAllPlayerMasters(false).Any(m => m.inventory.GetItemCount(i) > 0));
         }

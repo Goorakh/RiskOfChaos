@@ -6,50 +6,72 @@ namespace RiskOfChaos.EffectHandling
 {
     public readonly struct ChaosEffectCanActivateMethod
     {
-        readonly MethodInfo _method;
-        readonly bool _hasContextArg;
+        readonly string _methodDescription;
+        readonly EffectCanActivateDelegate _canActivate;
 
         public ChaosEffectCanActivateMethod(MethodInfo method)
         {
-            _method = method;
+            _methodDescription = method.FullDescription();
 
-            ParameterInfo[] methodParameters = _method.GetParameters();
-            if (methodParameters.Length > 0)
+            Delegate canActivateDelegate = Delegate.CreateDelegate(typeof(EffectCanActivateDelegate), method, false);
+            if (canActivateDelegate != null)
             {
-                if (methodParameters.Length == 1)
+                _canActivate = canActivateDelegate as EffectCanActivateDelegate;
+
+#if DEBUG
+                Log.Debug($"Direct delegate bind available for {_methodDescription}: {_canActivate}");
+#endif
+            }
+            else
+            {
+#if DEBUG
+                Log.Debug($"Using indirect delegate for {_methodDescription}");
+#endif
+
+                ParameterInfo[] methodParameters = method.GetParameters();
+                switch (methodParameters.Length)
                 {
-                    if (methodParameters[0].ParameterType == typeof(EffectCanActivateContext))
-                    {
-                        _hasContextArg = true;
-                    }
-                    else
-                    {
-                        Log.Error($"Invalid parameter type {methodParameters[0].ParameterType.FullName} in {method.FullDescription()}");
-                    }
-                }
-                else
-                {
-                    Log.Error($"Invalid parameter count for method {method.FullDescription()}");
+                    case 0:
+                        _canActivate = (in EffectCanActivateContext context) =>
+                        {
+                            return (bool)method.Invoke(null, null);
+                        };
+                        break;
+                    case 1:
+                        if (methodParameters[0].ParameterType == typeof(EffectCanActivateContext))
+                        {
+                            _canActivate = (in EffectCanActivateContext context) =>
+                            {
+                                return (bool)method.Invoke(null, new object[] { context });
+                            };
+                        }
+                        else
+                        {
+                            Log.Error($"Invalid parameter type {methodParameters[0].ParameterType.FullName} in {_methodDescription}");
+                        }
+                        break;
+                    default:
+                        Log.Error($"Invalid parameter count for method {_methodDescription}: {methodParameters.Length}");
+                        break;
                 }
             }
         }
 
         public readonly bool Invoke(in EffectCanActivateContext context)
         {
+            if (_canActivate == null)
+            {
+                Log.Warning($"Null canActivate delegate for method {_methodDescription}, defaulting to false");
+                return false;
+            }
+
             try
             {
-                if (_hasContextArg)
-                {
-                    return (bool)_method.Invoke(null, new object[] { context });
-                }
-                else
-                {
-                    return (bool)_method.Invoke(null, null);
-                }
+                return _canActivate(context);
             }
             catch (Exception e)
             {
-                Log.Error_NoCallerPrefix($"Caught exception in effect CanActivate method {_method.FullDescription()}, defaulting to not activatable: {e}");
+                Log.Error_NoCallerPrefix($"Caught exception in effect CanActivate method {_methodDescription}, defaulting to not activatable: {e}");
                 return false;
             }
         }

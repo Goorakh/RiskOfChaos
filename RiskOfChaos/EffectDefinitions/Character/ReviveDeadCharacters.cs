@@ -63,7 +63,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         }
 
         [EffectCanActivate]
-        static bool CanActivate(EffectCanActivateContext context)
+        static bool CanActivate(in EffectCanActivateContext context)
         {
             return !context.IsNow || _trackedDeadCharacters.Count > 0;
         }

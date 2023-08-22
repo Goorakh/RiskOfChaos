@@ -11,7 +11,7 @@ namespace RiskOfChaos.EffectDefinitions.World
     public sealed class ActivateStageTeleporter : BaseEffect
     {
         [EffectCanActivate]
-        static bool CanActivate(EffectCanActivateContext context)
+        static bool CanActivate(in EffectCanActivateContext context)
         {
             Interactor interactor = ChaosInteractor.GetInteractor();
             if (!interactor)

@@ -15,7 +15,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
     public sealed class MonsterItemSteal : BaseEffect
     {
         [EffectCanActivate]
-        static bool CanActivate(EffectCanActivateContext context)
+        static bool CanActivate(in EffectCanActivateContext context)
         {
             if (!NetPrefabs.MonsterItemStealControllerPrefab)
                 return false;

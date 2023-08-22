@@ -34,7 +34,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         static float creditMultiplier => 1f + _creditIncrease.Value;
 
         [EffectCanActivate]
-        static bool CanActivate(EffectCanActivateContext context)
+        static bool CanActivate(in EffectCanActivateContext context)
         {
             return !context.IsNow || CombatDirector.instancesList.Count > 0;
         }

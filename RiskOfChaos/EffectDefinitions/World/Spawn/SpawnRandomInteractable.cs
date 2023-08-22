@@ -191,7 +191,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         }
 
         [EffectCanActivate]
-        static bool CanActivate(EffectCanActivateContext context)
+        static bool CanActivate()
         {
             return areAnyAvailable(_spawnCards);
         }

@@ -33,7 +33,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         }
 
         [EffectCanActivate]
-        static bool CanActivate(EffectCanActivateContext context)
+        static bool CanActivate(in EffectCanActivateContext context)
         {
             return Run.instance.GetRunStopwatch() + context.Delay >= numSecondsToRemove;
         }
