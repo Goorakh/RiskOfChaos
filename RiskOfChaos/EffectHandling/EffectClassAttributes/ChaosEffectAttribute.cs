@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectDefinitions;
+﻿using BepInEx.Configuration;
+using RiskOfChaos.EffectDefinitions;
 using System;
 
 namespace RiskOfChaos.EffectHandling.EffectClassAttributes
@@ -45,7 +46,7 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes
         internal ChaosEffectInfo BuildEffectInfo(ChaosEffectIndex index)
         {
             ChaosEffectCatalog.EffectInfoConstructor effectInfoConstructor = ChaosEffectCatalog.GetEffectInfoConstructor(target);
-            return effectInfoConstructor(index, this, Main.Instance.Config);
+            return effectInfoConstructor(index, this);
         }
     }
 }

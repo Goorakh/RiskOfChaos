@@ -11,7 +11,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
         public static readonly TwitchLoginCredentials Empty = new TwitchLoginCredentials(string.Empty, string.Empty);
 
         const string LOGIN_FILE_NAME = "twitch_login.txt";
-        static readonly string _saveFilePath = Path.Combine(new FileInfo(Main.Instance.Info.Location).Directory.FullName, LOGIN_FILE_NAME);
+        static readonly string _saveFilePath = Path.Combine(Main.ModDirectory, LOGIN_FILE_NAME);
 
         const string FILE_USERNAME_PREFIX = "username:";
         const string FILE_OAUTH_PREFIX = "oauth:";

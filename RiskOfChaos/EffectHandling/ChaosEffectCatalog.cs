@@ -22,6 +22,8 @@ namespace RiskOfChaos.EffectHandling
         public const string CONFIG_MOD_GUID = $"RoC_Config_{CONFIG_SECTION_NAME}";
         public const string CONFIG_MOD_NAME = $"Risk of Chaos: {CONFIG_SECTION_NAME}";
 
+        static ConfigFile _effectConfigFile;
+
         public static ResourceAvailability Availability = new ResourceAvailability();
 
         static ChaosEffectInfo[] _effects;
@@ -34,8 +36,10 @@ namespace RiskOfChaos.EffectHandling
 
         static readonly WeightedSelection<ChaosEffectInfo> _pickNextEffectSelection = new WeightedSelection<ChaosEffectInfo>();
 
-        internal static void InitConfig()
+        internal static void InitConfig(ConfigFile config)
         {
+            _effectConfigFile = config;
+
             // ModSettingsManager.SetModIcon(effects_icon, GUID, NAME);
             ModSettingsManager.SetModDescription("Effect config options for Risk of Chaos", CONFIG_MOD_GUID, CONFIG_MOD_NAME);
         }
@@ -179,27 +183,27 @@ namespace RiskOfChaos.EffectHandling
             return effect;
         }
 
-        public delegate ChaosEffectInfo EffectInfoConstructor(ChaosEffectIndex effectIndex, ChaosEffectAttribute effectAttribute, ConfigFile configFile);
+        public delegate ChaosEffectInfo EffectInfoConstructor(ChaosEffectIndex effectIndex, ChaosEffectAttribute effectAttribute);
 
         public static EffectInfoConstructor GetEffectInfoConstructor(Type effectType)
         {
             if (typeof(TimedEffect).IsAssignableFrom(effectType))
             {
-                return (index, attribute, config) =>
+                return (index, attribute) =>
                 {
-                    return new TimedEffectInfo(index, attribute, config);
+                    return new TimedEffectInfo(index, attribute, _effectConfigFile);
                 };
             }
             else if (typeof(BaseEffect).IsAssignableFrom(effectType))
             {
-                return (index, attribute, config) =>
+                return (index, attribute) =>
                 {
-                    return new ChaosEffectInfo(index, attribute, config);
+                    return new ChaosEffectInfo(index, attribute, _effectConfigFile);
                 };
             }
 
             Log.Error($"Invalid effect type {effectType.FullName}");
-            return (_, _, _) => null;
+            return (_, _) => null;
         }
     }
 }

@@ -6,6 +6,7 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.Networking;
 using RiskOfChaos.Utilities;
 using System.Diagnostics;
+using System.IO;
 
 namespace RiskOfChaos
 {
@@ -23,7 +24,7 @@ namespace RiskOfChaos
         public const string PluginName = "RiskOfChaos";
         public const string PluginVersion = "1.9.1";
 
-        internal static Main Instance { get; private set; }
+        internal static string ModDirectory { get; private set; }
 
         public ContentPackProvider ContentPackProvider;
 
@@ -34,7 +35,7 @@ namespace RiskOfChaos
 
             Log.Init(Logger);
 
-            Instance = this;
+            ModDirectory = Path.GetDirectoryName(Info.Location);
 
             ContentPackProvider = new ContentPackProvider();
 
@@ -59,7 +60,7 @@ namespace RiskOfChaos
         {
             Configs.Init(Config);
 
-            ChaosEffectCatalog.InitConfig();
+            ChaosEffectCatalog.InitConfig(Config);
         }
     }
 }
