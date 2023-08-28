@@ -6,6 +6,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Reflection;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling
 {
@@ -109,23 +110,27 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
-        public override void OnEffectInstantiatedServer(in CreateEffectInstanceArgs args, BaseEffect effectInstance)
+        public override BaseEffect CreateInstance(in CreateEffectInstanceArgs args)
         {
-            base.OnEffectInstantiatedServer(args, effectInstance);
-
+            BaseEffect effectInstance = base.CreateInstance(args);
             if (effectInstance is TimedEffect timedEffect)
             {
-                timedEffect.TimedType = TimedType;
-
-                if (TimedType == TimedEffectType.FixedDuration)
+                if (NetworkServer.active)
                 {
-                    timedEffect.DurationSeconds = DurationSeconds;
+                    timedEffect.TimedType = TimedType;
+
+                    if (TimedType == TimedEffectType.FixedDuration)
+                    {
+                        timedEffect.DurationSeconds = DurationSeconds;
+                    }
                 }
             }
             else
             {
                 Log.Error($"Effect info {this} is marked as timed, but instance is not of type {nameof(TimedEffect)} ({effectInstance})");
             }
+
+            return effectInstance;
         }
     }
 }

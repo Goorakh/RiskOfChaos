@@ -90,58 +90,44 @@ namespace RiskOfChaos.EffectHandling
 
             NameToken = $"EFFECT_{Identifier.ToUpper()}_NAME";
 
-            if (attribute.target is Type effectType)
+            EffectType = attribute.target;
+
+            EffectConfigBackwardsCompatibilityAttribute configBackwardsCompatibilityAttribute = EffectType.GetCustomAttribute<EffectConfigBackwardsCompatibilityAttribute>();
+            if (configBackwardsCompatibilityAttribute != null)
             {
-                EffectType = effectType;
+                PreviousConfigSectionNames = configBackwardsCompatibilityAttribute.ConfigSectionNames;
+            }
 
-                EffectConfigBackwardsCompatibilityAttribute configBackwardsCompatibilityAttribute = EffectType.GetCustomAttribute<EffectConfigBackwardsCompatibilityAttribute>();
-                if (configBackwardsCompatibilityAttribute != null)
+            MethodInfo[] allMethods = EffectType.GetAllMethodsRecursive(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public).ToArray();
+
+            _canActivateMethods = allMethods.WithAttribute<MethodInfo, EffectCanActivateAttribute>()
+                                            .Select(m => new ChaosEffectCanActivateMethod(m))
+                                            .ToArray();
+
+            _effectNameWeightMultipliers = allMethods.WithAttribute<MethodInfo, EffectWeightMultiplierSelectorAttribute>()
+                                                     .Select(m => m.CreateDelegate<EffectWeightMultiplierDelegate>())
+                                                     .ToArray();
+
+            MethodInfo getEffectNameFormatArgsMethod = allMethods.WithAttribute<MethodInfo, EffectNameFormatArgsAttribute>().FirstOrDefault();
+            _getEffectNameFormatArgs = getEffectNameFormatArgsMethod?.CreateDelegate<EffectNameFormatArgsDelegate>();
+
+            Type[] incompatibleEffectTypes = EffectType.GetCustomAttributes<IncompatibleEffectsAttribute>(true)
+                                                       .SelectMany(a => a.IncompatibleEffectTypes)
+                                                       .ToArray();
+
+            if (incompatibleEffectTypes.Length > 0)
+            {
+                List<TimedEffectInfo> incompatibleEffects = new List<TimedEffectInfo>(incompatibleEffectTypes.Length);
+                _incompatibleEffects = new ReadOnlyCollection<TimedEffectInfo>(incompatibleEffects);
+
+                ChaosEffectCatalog.Availability.CallWhenAvailable(() =>
                 {
-                    PreviousConfigSectionNames = configBackwardsCompatibilityAttribute.ConfigSectionNames;
-                }
-
-                if (!typeof(BaseEffect).IsAssignableFrom(effectType))
-                {
-                    Log.Error($"effect type {effectType.FullName} is not {nameof(BaseEffect)}");
-                }
-                else
-                {
-                    MethodInfo[] allMethods = effectType.GetAllMethodsRecursive(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public).ToArray();
-
-                    _canActivateMethods = allMethods.WithAttribute<MethodInfo, EffectCanActivateAttribute>()
-                                                    .Select(m => new ChaosEffectCanActivateMethod(m))
-                                                    .ToArray();
-
-                    _effectNameWeightMultipliers = allMethods.WithAttribute<MethodInfo, EffectWeightMultiplierSelectorAttribute>()
-                                                             .Select(m => m.CreateDelegate<EffectWeightMultiplierDelegate>())
-                                                             .ToArray();
-
-                    MethodInfo getEffectNameFormatArgsMethod = allMethods.WithAttribute<MethodInfo, EffectNameFormatArgsAttribute>().FirstOrDefault();
-                    _getEffectNameFormatArgs = getEffectNameFormatArgsMethod?.CreateDelegate<EffectNameFormatArgsDelegate>();
-
-                    Type[] incompatibleEffectTypes = effectType.GetCustomAttributes<IncompatibleEffectsAttribute>(true)
-                                                               .SelectMany(a => a.IncompatibleEffectTypes)
-                                                               .ToArray();
-
-                    if (incompatibleEffectTypes.Length > 0)
-                    {
-                        List<TimedEffectInfo> incompatibleEffects = new List<TimedEffectInfo>(incompatibleEffectTypes.Length);
-                        _incompatibleEffects = new ReadOnlyCollection<TimedEffectInfo>(incompatibleEffects);
-
-                        ChaosEffectCatalog.Availability.CallWhenAvailable(() =>
-                        {
-                            incompatibleEffects.AddRange(ChaosEffectCatalog.AllTimedEffects.Where(e => e != this && incompatibleEffectTypes.Any(t => t.IsAssignableFrom(e.EffectType))));
+                    incompatibleEffects.AddRange(ChaosEffectCatalog.AllTimedEffects.Where(e => e != this && incompatibleEffectTypes.Any(t => t.IsAssignableFrom(e.EffectType))));
 
 #if DEBUG
-                            Log.Debug($"Initialized incompatibility list for {ChaosEffectCatalog.GetEffectInfo(effectIndex)}: [{string.Join(", ", incompatibleEffects)}]");
+                    Log.Debug($"Initialized incompatibility list for {ChaosEffectCatalog.GetEffectInfo(effectIndex)}: [{string.Join(", ", incompatibleEffects)}]");
 #endif
-                        });
-                    }
-                }
-            }
-            else
-            {
-                Log.Error($"attribute target is not a Type ({attribute.target})");
+                });
             }
 
             IsNetworked = attribute.IsNetworked;
@@ -247,6 +233,13 @@ namespace RiskOfChaos.EffectHandling
             _activationShortcut?.Bind(this);
         }
 
+        public virtual BaseEffect CreateInstance(in CreateEffectInstanceArgs args)
+        {
+            BaseEffect effectInstance = (BaseEffect)Activator.CreateInstance(EffectType);
+            effectInstance.Initialize(args);
+            return effectInstance;
+        }
+
         public virtual bool CanActivate(in EffectCanActivateContext context)
         {
             if (!NetworkServer.active)
@@ -300,10 +293,6 @@ namespace RiskOfChaos.EffectHandling
             {
                 return Language.GetString(NameToken);
             }
-        }
-
-        public virtual void OnEffectInstantiatedServer(in CreateEffectInstanceArgs args, BaseEffect effectInstance)
-        {
         }
 
         public override string ToString()

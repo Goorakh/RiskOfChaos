@@ -18,21 +18,34 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes
 
         public bool IsNetworked { get; set; } = false;
 
+        public new Type target => base.target as Type;
+
         public ChaosEffectAttribute(string identifier)
         {
             Identifier = identifier;
         }
 
-        internal ChaosEffectInfo BuildEffectInfo(ChaosEffectIndex index)
+        internal bool Validate()
         {
-            if (target is Type targetType)
+            if (target == null)
             {
-                ChaosEffectCatalog.EffectInfoConstructor effectInfoConstructor = ChaosEffectCatalog.GetEffectInfoConstructor(targetType);
-                return effectInfoConstructor(index, this, Main.Instance.Config);
+                Log.Warning($"Invalid attribute target ({base.target})");
+                return false;
             }
 
-            Log.Error($"Invalid attribute target {target}");
-            return null;
+            if (!typeof(BaseEffect).IsAssignableFrom(target))
+            {
+                Log.Error($"Effect '{Identifier}' type ({target.FullName}) does not derive from {nameof(BaseEffect)}");
+                return false;
+            }
+
+            return true;
+        }
+
+        internal ChaosEffectInfo BuildEffectInfo(ChaosEffectIndex index)
+        {
+            ChaosEffectCatalog.EffectInfoConstructor effectInfoConstructor = ChaosEffectCatalog.GetEffectInfoConstructor(target);
+            return effectInfoConstructor(index, this, Main.Instance.Config);
         }
     }
 }

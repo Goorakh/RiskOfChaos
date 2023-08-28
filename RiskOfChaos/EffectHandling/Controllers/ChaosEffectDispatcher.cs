@@ -240,7 +240,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 createEffectArgs = CreateEffectInstanceArgs.None;
             }
 
-            BaseEffect effectInstance = ChaosEffectCatalog.CreateEffectInstance(effect, createEffectArgs);
+            BaseEffect effectInstance = effect.CreateInstance(createEffectArgs);
             if (effectInstance != null)
             {
                 if (isServer)

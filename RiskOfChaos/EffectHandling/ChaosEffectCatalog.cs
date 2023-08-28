@@ -12,7 +12,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling
 {
@@ -46,6 +45,7 @@ namespace RiskOfChaos.EffectHandling
         {
             _effects = HG.Reflection.SearchableAttribute.GetInstances<ChaosEffectAttribute>()
                                                         .Cast<ChaosEffectAttribute>()
+                                                        .Where(attr => attr.Validate())
                                                         .OrderBy(static e => e.Identifier, StringComparer.OrdinalIgnoreCase)
                                                         .Select(static (e, i) => e.BuildEffectInfo((ChaosEffectIndex)i))
                                                         .ToArray();
@@ -177,25 +177,6 @@ namespace RiskOfChaos.EffectHandling
             }
 
             return effect;
-        }
-
-        public static BaseEffect CreateEffectInstance(ChaosEffectInfo effectInfo, in CreateEffectInstanceArgs args)
-        {
-            if (effectInfo.EffectType == null)
-            {
-                Log.Error($"Cannot instantiate effect {effectInfo}, {nameof(effectInfo.EffectType)} is null!");
-                return null;
-            }
-
-            BaseEffect effectInstance = (BaseEffect)Activator.CreateInstance(effectInfo.EffectType);
-            effectInstance.Initialize(args);
-
-            if (NetworkServer.active)
-            {
-                effectInfo.OnEffectInstantiatedServer(args, effectInstance);
-            }
-
-            return effectInstance;
         }
 
         public delegate ChaosEffectInfo EffectInfoConstructor(ChaosEffectIndex effectIndex, ChaosEffectAttribute effectAttribute, ConfigFile configFile);
