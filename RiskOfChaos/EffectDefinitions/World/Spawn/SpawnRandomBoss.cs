@@ -1,5 +1,4 @@
 ﻿using RiskOfChaos.ConfigHandling;
-using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -16,9 +15,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
     [ChaosEffect("spawn_random_boss", DefaultSelectionWeight = 0.8f)]
     public sealed class SpawnRandomBoss : GenericDirectorSpawnEffect<CharacterSpawnCard>
     {
-        [InitEffectInfo]
-        static readonly ChaosEffectInfo _effectInfo;
-
         class BossSpawnEntry : SpawnCardEntry
         {
             public BossSpawnEntry(CharacterSpawnCard[] items, float weight) : base(items, weight)

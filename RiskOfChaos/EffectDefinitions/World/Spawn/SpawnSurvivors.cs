@@ -19,9 +19,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
     [ChaosEffect("spawn_survivors")]
     public sealed class SpawnSurvivors : GenericSpawnEffect<SurvivorDef>, ICoroutineEffect
     {
-        [InitEffectInfo]
-        static readonly ChaosEffectInfo _effectInfo;
-
         static GameObject _podPrefab;
 
         class SurvivorEntry : SpawnEntry
