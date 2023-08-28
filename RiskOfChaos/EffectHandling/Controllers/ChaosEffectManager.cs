@@ -75,7 +75,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             _managerComponents = ChaosControllerAttribute.GetInstances<ChaosControllerAttribute>()
                                                          .Cast<ChaosControllerAttribute>()
-                                                         .Select(s => new ManagerComponent((Behaviour)gameObject.AddComponent((Type)s.target), s))
+                                                         .Select(s => new ManagerComponent((Behaviour)gameObject.AddComponent(s.target), s))
                                                          .ToArray();
 
             setManagersActive(Run.instance);

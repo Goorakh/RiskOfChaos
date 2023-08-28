@@ -11,6 +11,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         public event Action OnShouldRefreshEnabledState;
 
+        public new Type target => base.target as Type;
+
         public ChaosControllerAttribute(bool serverOnly)
         {
             ServerOnly = serverOnly;
