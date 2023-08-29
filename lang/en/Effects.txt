@@ -109,5 +109,6 @@
 		"EFFECT_FLOOR_IS_LAVA_NAME": "The Floor is Lava",
 		"EFFECT_LOCK_ALL_INTERACTABLES_NAME": "Lock All Chests",
 		"EFFECT_DELAY_ATTACKS_NAME": "Delayed Attacks",
+		"EFFECT_CONVERT_RANDOM_ENEMY_NAME": "Recruit Random Enemy",
 	}
 }

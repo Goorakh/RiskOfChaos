@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 98 different effects.
+Currently features 99 different effects.
 
 ### Twitch Integration:
 
@@ -114,6 +114,7 @@ If the game loses connection to your channel, it will automatically attempt to r
 * The Floor is Lava: Every character touching the ground is set on fire, lasts 30 seconds
 * Lock All Chests: Locks all chests as if the teleporter has started, lasts 45 seconds
 * Delayed Attacks: All attacks have a 0.5 second delay before happening, lasts 90 seconds
+* Recruit Random Enemy: Converts a random enemy on the stage to the player team
 </details>
 
 FAQ:

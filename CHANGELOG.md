@@ -1,5 +1,10 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* Added 1 new effect:
+  * Recruit Random Enemy: Converts a random enemy on the stage to the player team
+
 **1.9.1 Changes:**
 
 * Added 1 new effect:
