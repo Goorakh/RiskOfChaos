@@ -5,6 +5,9 @@
 * Added 1 new effect:
   * Recruit Random Enemy: Converts a random enemy on the stage to the player team
 
+* Disable Fall Damage:
+  * Fixed Safer Spaces being triggered when fall damage would normally happen
+
 **1.9.1 Changes:**
 
 * Added 1 new effect:

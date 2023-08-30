@@ -28,6 +28,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             if ((value.damageType & DamageType.FallDamage) != 0)
             {
+                value.damage = 0f;
                 value.rejected = true;
                 value.canRejectForce = true;
             }
