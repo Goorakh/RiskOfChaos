@@ -2,8 +2,9 @@
 
 **?.?.? Changes:**
 
-* Added 1 new effect:
+* Added 2 new effects:
   * Recruit Random Enemy: Converts a random enemy on the stage to the player team
+  * Adaptive Recycling: Repeatedly recycles all items on the stage, lasts 90 seconds
 
 * One Hit KO:
   * Now sets everything to 1 hp for a duration, default 30 seconds
