@@ -6,8 +6,7 @@ using RoR2;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("disable_sprinting", DefaultSelectionWeight = 0.8f, IsNetworked = true)]
-    [ChaosTimedEffect(30f, AllowDuplicates = false)]
+    [ChaosTimedEffect("disable_sprinting", 30f, AllowDuplicates = false, DefaultSelectionWeight = 0.8f, IsNetworked = true)]
     public sealed class DisableSprinting : TimedEffect
     {
         [EffectCanActivate]

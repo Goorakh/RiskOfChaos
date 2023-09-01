@@ -12,8 +12,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("increase_fall_damage", ConfigName = "Increase Fall Damage")]
-    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [ChaosTimedEffect("increase_fall_damage", TimedEffectType.UntilStageEnd, ConfigName = "Increase Fall Damage")]
     [IncompatibleEffects(typeof(DisableFallDamage))]
     public sealed class IncreaseFallDamage : TimedEffect, IDamageInfoModificationProvider
     {

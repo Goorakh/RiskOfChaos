@@ -7,8 +7,7 @@ using RiskOfOptions.OptionConfigs;
 
 namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
 {
-    [ChaosEffect("increase_interactable_costs", DefaultSelectionWeight = 0.8f, ConfigName = "Increase Chest Prices")]
-    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [ChaosTimedEffect("increase_interactable_costs", TimedEffectType.UntilStageEnd, DefaultSelectionWeight = 0.8f, ConfigName = "Increase Chest Prices")]
     public sealed class IncreaseInteractableCosts : GenericMultiplyPurchaseInteractionCostsEffect
     {
         const float INCREASE_AMOUNT_MIN_VALUE = 0.05f;

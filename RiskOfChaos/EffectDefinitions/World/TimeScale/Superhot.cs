@@ -10,8 +10,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 {
-    [ChaosEffect("superhot")]
-    [ChaosTimedEffect(90f, AllowDuplicates = false)]
+    [ChaosTimedEffect("superhot", 90f, AllowDuplicates = false)]
     public sealed class Superhot : TimedEffect
     {
         class PlayerTimeMovementTracker : MonoBehaviour, ITimeScaleModificationProvider

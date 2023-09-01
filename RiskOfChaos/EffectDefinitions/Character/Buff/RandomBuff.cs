@@ -10,8 +10,7 @@ using System.Linq;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
-    [ChaosEffect("random_buff")]
-    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [ChaosTimedEffect("random_buff", TimedEffectType.UntilStageEnd)]
     [EffectConfigBackwardsCompatibility("Effect: Give Everyone a Random Buff (Lasts 1 stage)")]
     public sealed class RandomBuff : ApplyBuffEffect
     {

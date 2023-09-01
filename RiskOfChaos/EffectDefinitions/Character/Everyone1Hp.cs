@@ -6,8 +6,7 @@ using RoR2;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("everyone_1hp")]
-    [ChaosTimedEffect(30f, AllowDuplicates = false)]
+    [ChaosTimedEffect("everyone_1hp", 30f, AllowDuplicates = false)]
     public sealed class Everyone1Hp : ApplyBuffEffect
     {
         [EffectCanActivate]

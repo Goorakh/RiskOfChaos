@@ -5,7 +5,6 @@ using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using System.Reflection;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling
@@ -20,40 +19,32 @@ namespace RiskOfChaos.EffectHandling
         readonly ConfigHolder<float> _duration;
         public float DurationSeconds => _duration.Value;
 
-        public TimedEffectInfo(ChaosEffectIndex effectIndex, ChaosEffectAttribute attribute, ConfigFile configFile) : base(effectIndex, attribute, configFile)
+        public TimedEffectInfo(ChaosEffectIndex effectIndex, ChaosTimedEffectAttribute attribute, ConfigFile configFile) : base(effectIndex, attribute, configFile)
         {
-            ChaosTimedEffectAttribute timedEffectAttribute = EffectType.GetCustomAttribute<ChaosTimedEffectAttribute>();
-            if (timedEffectAttribute != null)
-            {
-                _timedType = ConfigFactory<TimedEffectType>.CreateConfig("Duration Type", timedEffectAttribute.TimedType)
-                                                           .Description($"What should determine how long this effect lasts.\n\n{nameof(TimedEffectType.UntilStageEnd)}: Lasts until you exit the stage.\n{nameof(TimedEffectType.FixedDuration)}: Lasts for a set number of seconds.\n{nameof(TimedEffectType.Permanent)}: Lasts until the end of the run.")
-                                                           .OptionConfig(new ChoiceConfig())
-                                                           .ValueValidator(CommonValueValidators.DefinedEnumValue<TimedEffectType>())
-                                                           .Build();
+            _timedType = ConfigFactory<TimedEffectType>.CreateConfig("Duration Type", attribute.TimedType)
+                                                       .Description($"What should determine how long this effect lasts.\n\n{nameof(TimedEffectType.UntilStageEnd)}: Lasts until you exit the stage.\n{nameof(TimedEffectType.FixedDuration)}: Lasts for a set number of seconds.\n{nameof(TimedEffectType.Permanent)}: Lasts until the end of the run.")
+                                                       .OptionConfig(new ChoiceConfig())
+                                                       .ValueValidator(CommonValueValidators.DefinedEnumValue<TimedEffectType>())
+                                                       .Build();
 
-                float defaultDuration = timedEffectAttribute.DurationSeconds;
-                if (defaultDuration < 0f)
-                    defaultDuration = 60f;
+            float defaultDuration = attribute.DurationSeconds;
+            if (defaultDuration < 0f)
+                defaultDuration = 60f;
 
-                _duration = ConfigFactory<float>.CreateConfig("Effect Duration", defaultDuration)
-                                                .Description($"How long the effect should last, in seconds.\nOnly takes effect if the Duration Type is set to {nameof(TimedEffectType.FixedDuration)}")
-                                                .OptionConfig(new StepSliderConfig
-                                                {
-                                                    formatString = "{0:F0}s",
-                                                    min = 0f,
-                                                    max = 120f,
-                                                    increment = 5f,
-                                                    checkIfDisabled = () => TimedType != TimedEffectType.FixedDuration
-                                                })
-                                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
-                                                .Build();
+            _duration = ConfigFactory<float>.CreateConfig("Effect Duration", defaultDuration)
+                                            .Description($"How long the effect should last, in seconds.\nOnly takes effect if the Duration Type is set to {nameof(TimedEffectType.FixedDuration)}")
+                                            .OptionConfig(new StepSliderConfig
+                                            {
+                                                formatString = "{0:F0}s",
+                                                min = 0f,
+                                                max = 120f,
+                                                increment = 5f,
+                                                checkIfDisabled = () => TimedType != TimedEffectType.FixedDuration
+                                            })
+                                            .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
+                                            .Build();
 
-                AllowDuplicates = timedEffectAttribute.AllowDuplicates;
-            }
-            else
-            {
-                Log.Error($"Timed effect {this} is missing {nameof(ChaosTimedEffectAttribute)}");
-            }
+            AllowDuplicates = attribute.AllowDuplicates;
         }
 
         public override void BindConfigs()

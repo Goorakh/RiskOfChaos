@@ -7,8 +7,7 @@ using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
-    [ChaosEffect("spawn_lightning_strikes")]
-    [ChaosTimedEffect(30f)]
+    [ChaosTimedEffect("spawn_lightning_strikes", 30f)]
     public sealed class SpawnLightningStrikes : TimedEffect
     {
         class StationaryLightningStrikeOrb : GenericDamageOrb

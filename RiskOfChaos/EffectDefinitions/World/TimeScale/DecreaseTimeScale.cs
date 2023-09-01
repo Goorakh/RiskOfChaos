@@ -10,8 +10,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 {
-    [ChaosEffect("decrease_time_scale", ConfigName = "Decrease World Speed", EffectWeightReductionPercentagePerActivation = 20f)]
-    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [ChaosTimedEffect("decrease_time_scale", TimedEffectType.UntilStageEnd, ConfigName = "Decrease World Speed", EffectWeightReductionPercentagePerActivation = 20f)]
     public sealed class DecreaseTimeScale : GenericMultiplyTimeScaleEffect
     {
         [EffectConfig]

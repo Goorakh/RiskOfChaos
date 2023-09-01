@@ -10,8 +10,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("teleporting_projectiles", DefaultSelectionWeight = 0.7f, IsNetworked = true)]
-    [ChaosTimedEffect(30f, AllowDuplicates = false)]
+    [ChaosTimedEffect("teleporting_projectiles", 30f, AllowDuplicates = false, DefaultSelectionWeight = 0.7f, IsNetworked = true)]
     [EffectConfigBackwardsCompatibility("Effect: Teleporting Attacks (Lasts until next effect)")]
     public sealed class TeleportingProjectiles : TimedEffect
     {

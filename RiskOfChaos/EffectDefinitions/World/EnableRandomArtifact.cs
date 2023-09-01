@@ -13,8 +13,7 @@ using System.Runtime.CompilerServices;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("enable_random_artifact", EffectWeightReductionPercentagePerActivation = 20f)]
-    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [ChaosTimedEffect("enable_random_artifact", TimedEffectType.UntilStageEnd, EffectWeightReductionPercentagePerActivation = 20f)]
     [EffectConfigBackwardsCompatibility("Effect: Enable Random Artifact (Lasts 1 Stage)")]
     public sealed class EnableRandomArtifact : TimedEffect
     {

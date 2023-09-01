@@ -51,7 +51,7 @@ namespace RiskOfChaos.EffectHandling
                                                         .Cast<ChaosEffectAttribute>()
                                                         .Where(attr => attr.Validate())
                                                         .OrderBy(static e => e.Identifier, StringComparer.OrdinalIgnoreCase)
-                                                        .Select(static (e, i) => e.BuildEffectInfo((ChaosEffectIndex)i))
+                                                        .Select(static (e, i) => e.BuildEffectInfo((ChaosEffectIndex)i, _effectConfigFile))
                                                         .ToArray();
 
             AllEffects = new ReadOnlyArray<ChaosEffectInfo>(_effects);
@@ -181,29 +181,6 @@ namespace RiskOfChaos.EffectHandling
             }
 
             return effect;
-        }
-
-        public delegate ChaosEffectInfo EffectInfoConstructor(ChaosEffectIndex effectIndex, ChaosEffectAttribute effectAttribute);
-
-        public static EffectInfoConstructor GetEffectInfoConstructor(Type effectType)
-        {
-            if (typeof(TimedEffect).IsAssignableFrom(effectType))
-            {
-                return (index, attribute) =>
-                {
-                    return new TimedEffectInfo(index, attribute, _effectConfigFile);
-                };
-            }
-            else if (typeof(BaseEffect).IsAssignableFrom(effectType))
-            {
-                return (index, attribute) =>
-                {
-                    return new ChaosEffectInfo(index, attribute, _effectConfigFile);
-                };
-            }
-
-            Log.Error($"Invalid effect type {effectType.FullName}");
-            return (_, _) => null;
         }
     }
 }

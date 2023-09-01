@@ -10,8 +10,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("delay_attacks")]
-    [ChaosTimedEffect(90f)]
+    [ChaosTimedEffect("delay_attacks", 90f)]
     public sealed class DelayAttacks : TimedEffect, IAttackDelayModificationProvider
     {
         [EffectConfig]

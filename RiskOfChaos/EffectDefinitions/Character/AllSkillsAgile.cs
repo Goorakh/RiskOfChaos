@@ -7,8 +7,7 @@ using System.Collections.Generic;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("all_skills_agile", IsNetworked = true)]
-    [ChaosTimedEffect(TimedEffectType.UntilStageEnd, AllowDuplicates = false)]
+    [ChaosTimedEffect("all_skills_agile", TimedEffectType.UntilStageEnd, AllowDuplicates = false, IsNetworked = true)]
     [EffectConfigBackwardsCompatibility("Effect: All Skills are Agile (Lasts 1 stage)")]
     public sealed class AllSkillsAgile : TimedEffect
     {

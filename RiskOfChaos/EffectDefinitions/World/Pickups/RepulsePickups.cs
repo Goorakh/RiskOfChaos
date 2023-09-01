@@ -5,8 +5,7 @@ using RoR2;
 
 namespace RiskOfChaos.EffectDefinitions.World.Pickups
 {
-    [ChaosEffect("repulse_pickups")]
-    [ChaosTimedEffect(90f, AllowDuplicates = false)]
+    [ChaosTimedEffect("repulse_pickups", 90f, AllowDuplicates = false)]
     public sealed class RepulsePickups : GenericAttractPickupsEffect
     {
         public override void OnStart()

@@ -5,8 +5,7 @@ using RoR2;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("everyone_invisible")]
-    [ChaosTimedEffect(30f, AllowDuplicates = false)]
+    [ChaosTimedEffect("everyone_invisible", 30f, AllowDuplicates = false)]
     public sealed class EveryoneInvisible : TimedEffect
     {
         public override void OnStart()

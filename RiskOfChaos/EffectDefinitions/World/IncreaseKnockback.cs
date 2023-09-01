@@ -11,8 +11,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("increase_knockback", ConfigName = "Increase Knockback", EffectWeightReductionPercentagePerActivation = 30f)]
-    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [ChaosTimedEffect("increase_knockback", TimedEffectType.UntilStageEnd, ConfigName = "Increase Knockback", EffectWeightReductionPercentagePerActivation = 30f)]
     public sealed class IncreaseKnockback : TimedEffect, IKnockbackModificationProvider
     {
         const float KNOCKBACK_MULTIPLIER_INCREMENT = 0.1f;

@@ -12,8 +12,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("increase_proc_coefficients", ConfigName = "Increase Proc Coefficients")]
-    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [ChaosTimedEffect("increase_proc_coefficients", TimedEffectType.UntilStageEnd, ConfigName = "Increase Proc Coefficients")]
     public sealed class IncreaseProcCoefficients : TimedEffect, IDamageInfoModificationProvider
     {
         [EffectConfig]

@@ -10,8 +10,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.ProjectileSpeed
 {
-    [ChaosEffect("increase_projectile_speed", ConfigName = "Increase Projectile Speed")]
-    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [ChaosTimedEffect("increase_projectile_speed", TimedEffectType.UntilStageEnd, ConfigName = "Increase Projectile Speed")]
     public sealed class IncreaseProjectileSpeed : GenericProjectileSpeedEffect
     {
         [EffectConfig]

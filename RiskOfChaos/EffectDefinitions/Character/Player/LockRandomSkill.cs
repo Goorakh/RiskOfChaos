@@ -6,8 +6,7 @@ using System;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
-    [ChaosEffect("lock_random_skill", DefaultSelectionWeight = 0.5f)]
-    [ChaosTimedEffect(90f)]
+    [ChaosTimedEffect("lock_random_skill", 90f, DefaultSelectionWeight = 0.5f)]
     [EffectConfigBackwardsCompatibility("Effect: Disable Random Skill (Lasts 1 stage)")]
     public sealed class LockRandomSkill : TimedEffect, ISkillSlotModificationProvider
     {

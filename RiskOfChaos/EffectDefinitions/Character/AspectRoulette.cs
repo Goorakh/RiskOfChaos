@@ -10,8 +10,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("aspect_roulette")]
-    [ChaosTimedEffect(90f, AllowDuplicates = false)]
+    [ChaosTimedEffect("aspect_roulette", 90f, AllowDuplicates = false)]
     public sealed class AspectRoulette : TimedEffect
     {
         [EffectConfig]

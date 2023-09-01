@@ -4,8 +4,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World.Physics
 {
-    [ChaosEffect("laggy_physics")]
-    [ChaosTimedEffect(60f, AllowDuplicates = false)]
+    [ChaosTimedEffect("laggy_physics", 60f, AllowDuplicates = false)]
     public sealed class LaggyPhysics : SimplePhysicsSpeedMultiplierEffect
     {
         protected override float multiplier => (_physicsActive ? 1f : 0f) * _physicsSpeedMultiplier;

@@ -11,8 +11,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("bouncy_projectiles")]
-    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [ChaosTimedEffect("bouncy_projectiles", TimedEffectType.UntilStageEnd)]
     public sealed class BouncyProjectiles : TimedEffect, IProjectileModificationProvider
     {
         [EffectConfig]

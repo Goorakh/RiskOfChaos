@@ -8,8 +8,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World.Pickups
 {
-    [ChaosEffect("repeatedly_recycle_items")]
-    [ChaosTimedEffect(90f, AllowDuplicates = false)]
+    [ChaosTimedEffect("repeatedly_recycle_items", 90f, AllowDuplicates = false)]
     public sealed class RepeatedlyRecycleItems : TimedEffect
     {
         static PickupIndex[] _allAvailablePickupIndices = Array.Empty<PickupIndex>();

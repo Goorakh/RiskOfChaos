@@ -11,8 +11,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("lock_all_interactables")]
-    [ChaosTimedEffect(45f, AllowDuplicates = false)]
+    [ChaosTimedEffect("lock_all_interactables", 45f, AllowDuplicates = false)]
     public sealed class LockAllInteractables : TimedEffect
     {
         static GameObject _purchaseLockPrefab;

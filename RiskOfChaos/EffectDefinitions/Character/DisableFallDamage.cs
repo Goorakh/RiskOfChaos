@@ -7,8 +7,7 @@ using System;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("disable_fall_damage")]
-    [ChaosTimedEffect(TimedEffectType.UntilStageEnd, AllowDuplicates = false)]
+    [ChaosTimedEffect("disable_fall_damage", TimedEffectType.UntilStageEnd, AllowDuplicates = false)]
     public sealed class DisableFallDamage : TimedEffect, IDamageInfoModificationProvider
     {
         public event Action OnValueDirty;

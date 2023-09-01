@@ -5,7 +5,7 @@ using System;
 namespace RiskOfChaos.EffectHandling.EffectClassAttributes
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    public sealed class ChaosEffectAttribute : HG.Reflection.SearchableAttribute
+    public class ChaosEffectAttribute : HG.Reflection.SearchableAttribute
     {
         public readonly string Identifier;
 
@@ -43,10 +43,9 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes
             return true;
         }
 
-        internal ChaosEffectInfo BuildEffectInfo(ChaosEffectIndex index)
+        public virtual ChaosEffectInfo BuildEffectInfo(ChaosEffectIndex index, ConfigFile configFile)
         {
-            ChaosEffectCatalog.EffectInfoConstructor effectInfoConstructor = ChaosEffectCatalog.GetEffectInfoConstructor(target);
-            return effectInfoConstructor(index, this);
+            return new ChaosEffectInfo(index, this, configFile);
         }
     }
 }

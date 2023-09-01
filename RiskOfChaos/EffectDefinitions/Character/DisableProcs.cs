@@ -6,8 +6,7 @@ using System;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("disable_procs")]
-    [ChaosTimedEffect(45f, AllowDuplicates = false)]
+    [ChaosTimedEffect("disable_procs", 45f, AllowDuplicates = false)]
     public sealed class DisableProcs : TimedEffect, IDamageInfoModificationProvider
     {
         [EffectCanActivate]

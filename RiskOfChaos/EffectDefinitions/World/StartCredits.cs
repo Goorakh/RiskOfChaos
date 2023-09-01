@@ -10,8 +10,7 @@ using UnityEngine.UI;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("start_credits", IsNetworked = true)]
-    [ChaosTimedEffect(120f, AllowDuplicates = false)]
+    [ChaosTimedEffect("start_credits", 120f, AllowDuplicates = false, IsNetworked = true)]
     public sealed class StartCredits : TimedEffect
     {
         static GameObject _creditsPanelPrefab;

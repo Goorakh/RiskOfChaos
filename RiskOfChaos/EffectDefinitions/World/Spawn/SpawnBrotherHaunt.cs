@@ -6,8 +6,7 @@ using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
-    [ChaosEffect("spawn_brother_haunt", DefaultSelectionWeight = 0.7f)]
-    [ChaosTimedEffect(45f)]
+    [ChaosTimedEffect("spawn_brother_haunt", 45f, DefaultSelectionWeight = 0.7f)]
     public sealed class SpawnBrotherHaunt : TimedEffect
     {
         static readonly GameObject _brotherHauntPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/BrotherHaunt/BrotherHauntMaster.prefab").WaitForCompletion();

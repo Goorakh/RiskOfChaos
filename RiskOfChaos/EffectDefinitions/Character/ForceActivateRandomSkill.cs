@@ -6,8 +6,7 @@ using System;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("force_activate_random_skill", DefaultSelectionWeight = 0.6f)]
-    [ChaosTimedEffect(90f)]
+    [ChaosTimedEffect("force_activate_random_skill", 90f, DefaultSelectionWeight = 0.6f)]
     [EffectConfigBackwardsCompatibility("Effect: Force Activate Random Skill (Lasts 1 stage)")]
     public sealed class ForceActivateRandomSkill : TimedEffect, ISkillSlotModificationProvider
     {

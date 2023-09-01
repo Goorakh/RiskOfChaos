@@ -6,8 +6,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("floor_is_lava")]
-    [ChaosTimedEffect(30f, AllowDuplicates = false)]
+    [ChaosTimedEffect("floor_is_lava", 30f, AllowDuplicates = false)]
     public sealed class FloorIsLava : TimedEffect
     {
         [RequireComponent(typeof(CharacterBody))]

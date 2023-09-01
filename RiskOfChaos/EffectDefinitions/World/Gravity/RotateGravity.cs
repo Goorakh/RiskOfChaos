@@ -8,8 +8,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World.Gravity
 {
-    [ChaosEffect("rotate_gravity", DefaultSelectionWeight = 0.8f, EffectWeightReductionPercentagePerActivation = 20f)]
-    [ChaosTimedEffect(TimedEffectType.UntilStageEnd)]
+    [ChaosTimedEffect("rotate_gravity", TimedEffectType.UntilStageEnd, DefaultSelectionWeight = 0.8f, EffectWeightReductionPercentagePerActivation = 20f)]
     [EffectConfigBackwardsCompatibility("Effect: Random Gravity Direction (Lasts 1 stage)")]
     public sealed class RotateGravity : GenericGravityEffect
     {
