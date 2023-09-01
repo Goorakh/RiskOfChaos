@@ -32,16 +32,22 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
 
             void OnEnable()
             {
-                _holdoutZoneController.calcRadius += calcRadius;
-                _holdoutZoneController.calcChargeRate += calcChargeRate;
-                _holdoutZoneController.calcColor += calcColor;
+                if (NetworkServer.active)
+                {
+                    _holdoutZoneController.calcRadius += calcRadius;
+                    _holdoutZoneController.calcChargeRate += calcChargeRate;
+                    _holdoutZoneController.calcColor += calcColor;
+                }
             }
 
             void OnDisable()
             {
-                _holdoutZoneController.calcRadius -= calcRadius;
-                _holdoutZoneController.calcChargeRate -= calcChargeRate;
-                _holdoutZoneController.calcColor -= calcColor;
+                if (NetworkServer.active)
+                {
+                    _holdoutZoneController.calcRadius -= calcRadius;
+                    _holdoutZoneController.calcChargeRate -= calcChargeRate;
+                    _holdoutZoneController.calcColor -= calcColor;
+                }
             }
 
             void calcRadius(ref float radius)
