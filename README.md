@@ -65,7 +65,7 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Benthic Transform Random Item: Upgrades the tier of 1 random item
 * Kill All (Non-Boss) Enemies: Kills all non-boss enemies on the map
 * Random Gravity Direction: Changes the direction of gravity
-* Disable Random Skill: Disables a random skill slot (Lasts 1 stage)
+* Disable Random Skill: Disables a random skill slot, lasts 90 seconds
 * Ahoy!: Spawns 3 equipment drones with a Consumed Trophy Hunter's Tricorn
 * Increase Knockback: Multiplies all knockback by 3 (configurable), lasts 1 stage
 * Add Random Item to Monster Inventory: Permanently adds a random item to all enemies
@@ -84,7 +84,7 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Increase World Speed: Increases the game speed, but compensates all players to be slower, gives the illusion of everything else being faster, lasts 1 stage (+50% by default, configurable)
 * Decrease World Speed: Decreases the game speed, but compensates all players to be faster, gives the illusion of everything else being slower, lasts 1 stage (-50% by default, configurable)
 * Blood Money: All interactable prices are converted into percent health cost, lasts 1 stage
-* Force Activate Random Skill: Forces a random skill to constantly activate, lasts 1 stage
+* Force Activate Random Skill: Forces a random skill to constantly activate, lasts 90 seconds
 * Spawn Random Enemy: Spawns a random enemy for every player
 * Spawn Random Ally: Spawns a random ally for every player
 * Steal All Player Items: Steals all items from every player and distributes them among enemies, damage the enemy that took items to gain them back (leaving the stage will also give all the items back)
