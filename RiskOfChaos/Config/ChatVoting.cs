@@ -6,6 +6,7 @@ using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using System;
 using System.Runtime.CompilerServices;
+using UnityEngine;
 
 namespace RiskOfChaos
 {
@@ -80,6 +81,24 @@ namespace RiskOfChaos
                                     .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                     .Build();
 
+            public static readonly ConfigHolder<Color> VoteDisplayTextColor =
+                ConfigFactory<Color>.CreateConfig("Vote Display Text Color", new Color(1f, 1f, 1f, 1f))
+                                    .Description("The color of the effect voting options text")
+                                    .OptionConfig(new ColorOptionConfig
+                                    {
+                                        checkIfDisabled = isVotingDisabled
+                                    })
+                                    .Build();
+
+            public static readonly ConfigHolder<Color> VoteDisplayBackgroundColor =
+                ConfigFactory<Color>.CreateConfig("Vote Display Background Color", new Color(0.0943f, 0.0943f, 0.0943f, 0.3373f))
+                                    .Description("The color of the effect voting options backdrop")
+                                    .OptionConfig(new ColorOptionConfig
+                                    {
+                                        checkIfDisabled = isVotingDisabled
+                                    })
+                                    .Build();
+
             internal static void Bind(ConfigFile file)
             {
                 const string SECTION_NAME = "Streamer Integration";
@@ -103,6 +122,10 @@ namespace RiskOfChaos
                 bindConfig(WinnerSelectionMode);
 
                 bindConfig(VoteDisplayScaleMultiplier);
+
+                bindConfig(VoteDisplayTextColor);
+
+                bindConfig(VoteDisplayBackgroundColor);
             }
         }
     }

@@ -30,6 +30,8 @@ namespace RiskOfChaos.UI.ChatVoting
                 return;
             }
 
+            DestroyImmediate(voteItemPrefab.GetComponent<GenericNotification>());
+
             GameObject voteItemCanvasGroup = voteItemCanvasGroupTransform.gameObject;
 
             DestroyImmediate(voteItemCanvasGroup.GetComponent<HorizontalLayoutGroup>());
@@ -69,6 +71,12 @@ namespace RiskOfChaos.UI.ChatVoting
             ChaosEffectVoteItemController chaosEffectVoteItem = voteItemPrefab.AddComponent<ChaosEffectVoteItemController>();
             chaosEffectVoteItem.EffectText = effectTextLabel;
             chaosEffectVoteItem.CanvasGroup = voteItemCanvasGroup.GetComponent<CanvasGroup>();
+
+            Transform backdropTransform = voteItemCanvasGroup.transform.Find("Backdrop");
+            if (backdropTransform)
+            {
+                chaosEffectVoteItem.BackdropImage = backdropTransform.GetComponent<Image>();
+            }
 
             _voteItemPrefab = voteItemPrefab.InstantiateClone("ChaosEffectVoteItem", false);
             Destroy(voteItemPrefab);

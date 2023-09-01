@@ -1,4 +1,5 @@
 ﻿using R2API;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -79,6 +80,27 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         [SerializeField]
         HGTextMeshProUGUI _effectNameLabel;
+
+        void Start()
+        {
+            Configs.General.ActiveEffectsTextColor.SettingChanged += ActiveEffectsTextColor_SettingChanged;
+            setTextColor(Configs.General.ActiveEffectsTextColor.Value);
+        }
+
+        void OnDestroy()
+        {
+            Configs.General.ActiveEffectsTextColor.SettingChanged -= ActiveEffectsTextColor_SettingChanged;
+        }
+
+        void ActiveEffectsTextColor_SettingChanged(object sender, ConfigChangedArgs<Color> e)
+        {
+            setTextColor(e.NewValue);
+        }
+
+        void setTextColor(Color color)
+        {
+            _effectNameLabel.color = color;
+        }
 
         void updateEffectLabel()
         {

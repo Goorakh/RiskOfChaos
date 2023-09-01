@@ -12,6 +12,9 @@
 * Disable Fall Damage:
   * Fixed Safer Spaces being triggered when fall damage would normally happen
 
+* Misc:
+  * Added config options to change the colors of most UI elements of the mod
+
 **1.9.1 Changes:**
 
 * Added 1 new effect:

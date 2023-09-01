@@ -1,6 +1,7 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.ConfigHandling;
 using RiskOfOptions.OptionConfigs;
+using UnityEngine;
 
 namespace RiskOfChaos
 {
@@ -29,6 +30,12 @@ namespace RiskOfChaos
                                     .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(TIME_BETWEEN_EFFECTS_MIN_VALUE))
                                     .Build();
 
+            public static readonly ConfigHolder<Color> ActiveEffectsTextColor =
+                ConfigFactory<Color>.CreateConfig("Active Effect Text Color", Color.white)
+                                    .Description("The color of the effect names in the \"Active Effects\" list")
+                                    .OptionConfig(new ColorOptionConfig())
+                                    .Build();
+
             internal static void Bind(ConfigFile file)
             {
                 const string GENERAL_SECTION_NAME = "General";
@@ -36,6 +43,8 @@ namespace RiskOfChaos
                 DisableEffectDispatching.Bind(file, GENERAL_SECTION_NAME, CONFIG_GUID, CONFIG_NAME);
 
                 TimeBetweenEffects.Bind(file, GENERAL_SECTION_NAME, CONFIG_GUID, CONFIG_NAME);
+
+                ActiveEffectsTextColor.Bind(file, GENERAL_SECTION_NAME, CONFIG_GUID, CONFIG_NAME);
             }
         }
     }
