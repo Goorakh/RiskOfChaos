@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using RiskOfChaos.EffectDefinitions;
 using System;
 
 namespace RiskOfChaos.EffectHandling.EffectClassAttributes
@@ -26,6 +27,20 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes
 
         public ChaosTimedEffectAttribute(string identifier, float duration) : this(identifier, TimedEffectType.FixedDuration, duration)
         {
+        }
+
+        internal override bool Validate()
+        {
+            if (!base.Validate())
+                return false;
+
+            if (!typeof(TimedEffect).IsAssignableFrom(target))
+            {
+                Log.Error($"Effect '{Identifier}' type ({target.FullName}) does not derive from {nameof(TimedEffect)}");
+                return false;
+            }
+
+            return true;
         }
 
         public override ChaosEffectInfo BuildEffectInfo(ChaosEffectIndex index, ConfigFile configFile)

@@ -26,7 +26,7 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes
             Identifier = identifier;
         }
 
-        internal bool Validate()
+        internal virtual bool Validate()
         {
             if (target == null)
             {
