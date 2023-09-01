@@ -1,62 +1,36 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
-using RiskOfChaos.Trackers;
-using RiskOfChaos.Utilities.Extensions;
+﻿using RiskOfChaos.EffectDefinitions.Character.Buff;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.Utilities;
 using RoR2;
-using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("everyone_1hp")]
-    public sealed class Everyone1Hp : BaseEffect
+    [ChaosTimedEffect(30f, AllowDuplicates = false)]
+    public sealed class Everyone1Hp : ApplyBuffEffect
     {
+        [EffectCanActivate]
+        static bool CanActivate()
+        {
+            return canSelectBuff(RoR2Content.Buffs.PermanentCurse.buffIndex);
+        }
+
+        protected override BuffIndex getBuffIndexToApply()
+        {
+            return RoR2Content.Buffs.PermanentCurse.buffIndex;
+        }
+
+        protected override int buffCount => int.MaxValue;
+
         public override void OnStart()
         {
-            InstanceTracker.GetInstancesList<HealthComponentTracker>().TryDo(healthComponentTracker =>
+            foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
             {
-                if (!healthComponentTracker)
-                    return;
+                playerBody.AddTimedBuff(RoR2Content.Buffs.HiddenInvincibility, 1f);
+            }
 
-                HealthComponent healthComponent = healthComponentTracker.HealthComponent;
-                if (!healthComponent || !healthComponent.alive)
-                    return;
-
-                float fakeDamageDealt = healthComponent.health - 1f;
-                float combinedHealthBeforeDamage = healthComponent.combinedHealth;
-
-                healthComponent.Networkhealth = 1f;
-                healthComponent.Networkshield = 0f;
-                healthComponent.Networkbarrier = 0f;
-
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                HealthComponent.SendDamageDealt(new DamageReport(new DamageInfo
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-                {
-                    attacker = null,
-                    canRejectForce = false,
-                    crit = false,
-                    damage = fakeDamageDealt,
-                    damageColorIndex = DamageColorIndex.Default,
-                    damageType = DamageType.Generic,
-                    dotIndex = DotController.DotIndex.None,
-                    force = Vector3.zero,
-                    inflictor = null,
-                    position = healthComponent.transform.position,
-                    procChainMask = default,
-                    procCoefficient = 0f
-                }, healthComponent, fakeDamageDealt, combinedHealthBeforeDamage));
-
-                // If the effect deals less than this fraction of the player's max health, they will not be given invincibility
-                const float MIN_DEALT_FRACTION_TO_GRANT_INVINCIBILITY = 0.2f;
-                if (healthComponent.body &&
-                    healthComponent.body.isPlayerControlled &&
-                    fakeDamageDealt / healthComponent.fullHealth >= MIN_DEALT_FRACTION_TO_GRANT_INVINCIBILITY)
-                {
-#if DEBUG
-                    Log.Debug("Giving temporary invincibility to " + Util.GetBestBodyName(healthComponent.body.gameObject));
-#endif
-                    healthComponent.body.AddTimedBuff(RoR2Content.Buffs.HiddenInvincibility, 0.75f);
-                }
-            });
+            base.OnStart();
         }
     }
 }

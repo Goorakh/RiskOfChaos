@@ -2,6 +2,7 @@
 using RoR2;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.Components
 {
@@ -12,8 +13,8 @@ namespace RiskOfChaos.Components
 
         public BuffIndex BuffIndex = BuffIndex.None;
 
-        int _buffStackCount = 0;
-        public int BuffStackCount
+        uint _buffStackCount = 0;
+        public uint BuffStackCount
         {
             get
             {
@@ -23,24 +24,25 @@ namespace RiskOfChaos.Components
             {
                 if (_body)
                 {
+                    int currentBuffCount = _body.GetBuffCount(BuffIndex);
+
+                    int newBuffCount;
                     if (value > _buffStackCount)
                     {
-                        for (int i = 0; i < value - _buffStackCount; i++)
-                        {
-                            _body.AddBuff(BuffIndex);
-                        }
+                        newBuffCount = ClampedConversion.Int32(currentBuffCount + (value - _buffStackCount));
                     }
                     else if (value < _buffStackCount)
                     {
-                        for (int i = 0; i < _buffStackCount - value; i++)
-                        {
-                            _body.RemoveBuff(BuffIndex);
-                        }
+                        newBuffCount = ClampedConversion.Int32(currentBuffCount - (_buffStackCount - value));
                     }
                     else
                     {
                         return;
                     }
+
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                    _body.SetBuffCount(BuffIndex, newBuffCount);
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
                     onAppliedBuffStacksChanged();
                 }
@@ -66,7 +68,7 @@ namespace RiskOfChaos.Components
 
         void FixedUpdate()
         {
-            if (BuffIndex == BuffIndex.None)
+            if (BuffIndex == BuffIndex.None || !NetworkServer.active)
                 return;
 
             if (BuffStackCount <= 0)
@@ -78,10 +80,9 @@ namespace RiskOfChaos.Components
             int currentBuffCount = _body.GetBuffCount(BuffIndex);
             if (currentBuffCount < BuffStackCount)
             {
-                for (int i = 0; i < BuffStackCount - currentBuffCount; i++)
-                {
-                    _body.AddBuff(BuffIndex);
-                }
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                _body.SetBuffCount(BuffIndex, ClampedConversion.Int32(BuffStackCount));
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
                 onAppliedBuffStacksChanged();
             }
@@ -112,7 +113,7 @@ namespace RiskOfChaos.Components
             }
         }
 
-        public static void AddTo(CharacterBody body, BuffIndex buff)
+        public static void AddTo(CharacterBody body, BuffIndex buff, uint buffCount = 1)
         {
             BuffDef buffDef = BuffCatalog.GetBuffDef(buff);
             if (!buffDef)
@@ -123,7 +124,7 @@ namespace RiskOfChaos.Components
             {
                 if (buffDef.canStack)
                 {
-                    existingComponent.BuffStackCount++;
+                    existingComponent.BuffStackCount += buffCount;
                 }
 
                 return;
@@ -131,7 +132,7 @@ namespace RiskOfChaos.Components
 
             KeepBuff keepBuff = body.gameObject.AddComponent<KeepBuff>();
             keepBuff.BuffIndex = buff;
-            keepBuff.BuffStackCount = 1;
+            keepBuff.BuffStackCount = buffCount;
         }
     }
 }

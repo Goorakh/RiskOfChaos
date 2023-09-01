@@ -13,20 +13,20 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
     public abstract class ApplyBuffEffect : TimedEffect
     {
-        static int[] _activeBuffStacks = Array.Empty<int>();
+        static uint[] _activeBuffStacks = Array.Empty<uint>();
 
         [SystemInitializer(typeof(BuffCatalog))]
         static void Init()
         {
-            _activeBuffStacks = BuffCatalog.GetPerBuffBuffer<int>();
+            _activeBuffStacks = BuffCatalog.GetPerBuffBuffer<uint>();
 
             Run.onRunStartGlobal += _ =>
             {
-                ArrayUtils.SetAll(_activeBuffStacks, 0);
+                ArrayUtils.SetAll(_activeBuffStacks, 0U);
             };
         }
 
-        protected static int getBuffStackCount(BuffIndex buffIndex)
+        protected static uint getBuffStackCount(BuffIndex buffIndex)
         {
             return ArrayUtils.GetSafe(_activeBuffStacks, (int)buffIndex);
         }
@@ -40,7 +40,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             if (!buffDef)
                 return false;
 
-            return buffDef.canStack || getBuffStackCount(buffIndex) == 0;
+            uint stackCount = getBuffStackCount(buffIndex);
+            return stackCount < int.MaxValue && (buffDef.canStack || stackCount == 0);
         }
 
         protected static IEnumerable<BuffIndex> filterSelectableBuffs(IEnumerable<BuffIndex> buffIndices)
@@ -114,6 +115,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 
         protected abstract BuffIndex getBuffIndexToApply();
 
+        protected virtual int buffCount => 1;
+
         public override void OnPreStartServer()
         {
             base.OnPreStartServer();
@@ -128,7 +131,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 
             if (ArrayUtils.IsInBounds(_activeBuffStacks, (int)_buffIndex))
             {
-                _activeBuffStacks[(int)_buffIndex]++;
+                _activeBuffStacks[(int)_buffIndex] += ClampedConversion.UInt32(buffCount);
             }
             else
             {
@@ -144,13 +147,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             {
                 if (keepBuff.BuffIndex == _buffIndex)
                 {
-                    keepBuff.BuffStackCount--;
+                    keepBuff.BuffStackCount -= ClampedConversion.UInt32(buffCount);
                 }
             });
 
             if (ArrayUtils.IsInBounds(_activeBuffStacks, (int)_buffIndex))
             {
-                _activeBuffStacks[(int)_buffIndex]--;
+                _activeBuffStacks[(int)_buffIndex] -= ClampedConversion.UInt32(buffCount);
             }
             else
             {
@@ -162,7 +165,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         {
             try
             {
-                KeepBuff.AddTo(body, _buffIndex);
+                KeepBuff.AddTo(body, _buffIndex, ClampedConversion.UInt32(buffCount));
             }
             catch (Exception ex)
             {

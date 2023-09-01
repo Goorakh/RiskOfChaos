@@ -5,6 +5,9 @@
 * Added 1 new effect:
   * Recruit Random Enemy: Converts a random enemy on the stage to the player team
 
+* One Hit KO:
+  * Now sets everything to 1 hp for a duration, default 30 seconds
+
 * Disable Fall Damage:
   * Fixed Safer Spaces being triggered when fall damage would normally happen
 

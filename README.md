@@ -22,7 +22,7 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Add Mountain Shrine: Adds a number of mountain shrines to the teleporter event, number of shrines added can be configured (default is 2)
 * Activate Teleporter: Forcefully activates the stage teleporter
 * Give Random Item: Gives all players a random item
-* One Hit KO: Sets everything on the stage to 1 HP
+* One Hit KO: Sets everything on the stage to 1 HP, lasts 30 seconds
 * Freeze!: Freezes every character on the stage for 4 seconds
 * Payday: Gives all players an amount of money equivalent to 4 large chests. (Amount can be configured)
 * Increase Monster Spawns: Increases monster director credits for the rest of the current stage (+50% by default, configurable)
