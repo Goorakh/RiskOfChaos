@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 100 different effects.
+Currently features 104 different effects.
 
 ### Twitch Integration:
 
@@ -116,6 +116,10 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Delayed Attacks: All attacks have a 0.5 second delay before happening, lasts 90 seconds
 * Recruit Random Enemy: Converts a random enemy on the stage to the player team
 * Adaptive Recycling: Repeatedly recycles all items on the stage, lasts 90 seconds
+* Decrease Teleporter Charge Rate: Decreases charge rate for all holdout zones, lasts 1 stage
+* Increase Teleporter Charge Rate: Increases charge rate for all holdout zones, lasts 1 stage
+* Decrease Teleporter Radius: Decreases the radius on all holdout zones, lasts 1 stage
+* Increase Teleporter Radius: Increases the radius on all holdout zones, lasts 1 stage
 </details>
 
 FAQ:

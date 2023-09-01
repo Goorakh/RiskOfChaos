@@ -111,5 +111,9 @@
 		"EFFECT_DELAY_ATTACKS_NAME": "Delayed Attacks",
 		"EFFECT_CONVERT_RANDOM_ENEMY_NAME": "Recruit Random Enemy",
 		"EFFECT_REPEATEDLY_RECYCLE_ITEMS_NAME": "Adaptive Recycling",
+		"EFFECT_DECREASE_HOLDOUT_ZONE_RADIUS_NAME": "-{0:P0} Teleporter Zone Radius",
+		"EFFECT_INCREASE_HOLDOUT_ZONE_RADIUS_NAME": "+{0:P0} Teleporter Zone Radius",
+		"EFFECT_DECREASE_HOLDOUT_ZONE_CHARGE_RATE_NAME": "-{0:P0} Teleporter Charge Rate",
+		"EFFECT_INCREASE_HOLDOUT_ZONE_CHARGE_RATE_NAME": "+{0:P0} Teleporter Charge Rate",
 	}
 }

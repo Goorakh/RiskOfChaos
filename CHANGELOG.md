@@ -2,9 +2,13 @@
 
 **?.?.? Changes:**
 
-* Added 2 new effects:
+* Added 6 new effects:
   * Recruit Random Enemy: Converts a random enemy on the stage to the player team
   * Adaptive Recycling: Repeatedly recycles all items on the stage, lasts 90 seconds
+  * Decrease Teleporter Charge Rate: Decreases charge rate for all holdout zones, lasts 1 stage
+  * Increase Teleporter Charge Rate: Increases charge rate for all holdout zones, lasts 1 stage
+  * Decrease Teleporter Radius: Decreases the radius on all holdout zones, lasts 1 stage
+  * Increase Teleporter Radius: Increases the radius on all holdout zones, lasts 1 stage
 
 * One Hit KO:
   * Now sets everything to 1 hp for a duration, default 30 seconds
