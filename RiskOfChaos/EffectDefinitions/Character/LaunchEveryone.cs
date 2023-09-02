@@ -1,11 +1,12 @@
 ﻿using HG;
+using RiskOfChaos.EffectDefinitions.World;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using UnityEngine;
 
-namespace RiskOfChaos.EffectDefinitions.World
+namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("launch_everyone")]
     [IncompatibleEffects(typeof(DisableKnockback))]
@@ -42,7 +43,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         static void applyForceToBody(CharacterBody body, Vector3 force)
         {
-            if (body.TryGetComponent<IPhysMotor>(out IPhysMotor motor))
+            if (body.TryGetComponent(out IPhysMotor motor))
             {
                 PhysForceInfo physForceInfo = PhysForceInfo.Create();
                 physForceInfo.force = force;
@@ -52,7 +53,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
                 motor.ApplyForceImpulse(physForceInfo);
             }
-            else if (body.TryGetComponent<Rigidbody>(out Rigidbody rigidbody))
+            else if (body.TryGetComponent(out Rigidbody rigidbody))
             {
                 rigidbody.AddForce(force, ForceMode.VelocityChange);
             }
