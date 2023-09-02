@@ -6,9 +6,8 @@ using System;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosTimedEffect("reverse_knockback", TimedEffectType.UntilStageEnd)]
-    [IncompatibleEffects(typeof(DisableKnockback))]
-    public sealed class ReverseKnockback : TimedEffect, IKnockbackModificationProvider
+    [ChaosTimedEffect("disable_knockback", TimedEffectType.UntilStageEnd, AllowDuplicates = false, DefaultSelectionWeight = 0.8f)]
+    public sealed class DisableKnockback : TimedEffect, IKnockbackModificationProvider
     {
         [EffectCanActivate]
         static bool CanActivate()
@@ -21,19 +20,19 @@ namespace RiskOfChaos.EffectDefinitions.World
             KnockbackModificationManager.Instance.RegisterModificationProvider(this);
         }
 
-        public event Action OnValueDirty;
-
-        public void ModifyValue(ref float value)
-        {
-            value *= -1f;
-        }
-
         public override void OnEnd()
         {
             if (KnockbackModificationManager.Instance)
             {
                 KnockbackModificationManager.Instance.UnregisterModificationProvider(this);
             }
+        }
+
+        public event Action OnValueDirty;
+
+        public void ModifyValue(ref float value)
+        {
+            value = 0f;
         }
     }
 }

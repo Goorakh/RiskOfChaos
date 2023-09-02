@@ -117,5 +117,6 @@
 		"EFFECT_INCREASE_HOLDOUT_ZONE_CHARGE_RATE_NAME": "+{0:P0} Teleporter Charge Rate",
 		"EFFECT_SCRAMBLE_TEXT_NAME": "Scrambled Text",
 		"EFFECT_SPAWN_SULFUR_PODS_NAME": "Sulfur Pools Experience",
+		"EFFECT_DISABLE_KNOCKBACK_NAME": "Disable Knockback",
 	}
 }
