@@ -12,7 +12,7 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _chargeRateIncrease =
-            ConfigFactory<float>.CreateConfig("Rate Increase", 0.25f)
+            ConfigFactory<float>.CreateConfig("Rate Increase", 0.5f)
                                 .Description("Percentage increase of teleporter charge rate")
                                 .OptionConfig(new StepSliderConfig
                                 {
