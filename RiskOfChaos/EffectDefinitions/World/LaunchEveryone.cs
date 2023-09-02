@@ -8,6 +8,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("launch_everyone")]
+    [IncompatibleEffects(typeof(DisableKnockback))]
     public sealed class LaunchEveryone : BaseEffect
     {
         public override void OnStart()
