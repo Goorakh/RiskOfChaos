@@ -53,6 +53,8 @@ namespace RiskOfChaos
 
         public static GameObject ItemStealerPositionIndicatorPrefab { get; private set; }
 
+        public static GameObject SulfurPodBasePrefab { get; private set; }
+
         static GameObject createEmptyPrefabObject(string name, bool networked = true)
         {
             GameObject tmp = new GameObject(name);
@@ -222,6 +224,19 @@ namespace RiskOfChaos
                         outsideSprite.color = Color.cyan;
                     }
                 }
+            }
+
+            // SulfurPodBasePrefab
+            {
+                GameObject prefab = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/sulfurpools/SPSulfurPodBase.prefab").WaitForCompletion();
+                string prefabName = prefab.name;
+
+                GameObject tmp = GameObject.Instantiate(prefab);
+                tmp.AddComponent<NetworkIdentity>();
+
+                SulfurPodBasePrefab = tmp.InstantiateClone(Main.PluginGUID + "_Networked" + prefabName, true);
+
+                GameObject.Destroy(tmp);
             }
 
             Run.onRunStartGlobal += onRunStart;

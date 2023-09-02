@@ -2,7 +2,7 @@
 
 **?.?.? Changes:**
 
-* Added 7 new effects:
+* Added 8 new effects:
   * Recruit Random Enemy: Converts a random enemy on the stage to the player team
   * Adaptive Recycling: Repeatedly recycles all items on the stage, lasts 90 seconds
   * Decrease Teleporter Charge Rate: Decreases charge rate for all holdout zones, lasts 1 stage
@@ -10,6 +10,7 @@
   * Decrease Teleporter Radius: Decreases the radius on all holdout zones, lasts 1 stage
   * Increase Teleporter Radius: Increases the radius on all holdout zones, lasts 1 stage
   * Scrambled Text: Randomizes the order of letters in most text displayed in the game, lasts 120 seconds
+  * Sulfur Pools Experience: Fills the map with Sulfur Pods
 
 * Add Random Item to Monster Inventory:
   * Effect can now be set to any duration type in the config, default is still for the rest of the run
