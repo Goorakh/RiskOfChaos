@@ -15,7 +15,7 @@
   * Effect can now be set to any duration type in the config, default is still for the rest of the run
 
 * One Hit KO:
-  * Now sets everything to 1 hp for a duration, default 30 seconds
+  * Now sets everything to 1 hp for a duration instead of just once, default 30 seconds
 
 * Disable Fall Damage:
   * Fixed Safer Spaces being triggered when fall damage would normally happen
