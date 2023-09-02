@@ -28,6 +28,9 @@
 * Unscrap Random Item:
   * Fixed showing item notification twice
 
+* You and a super intelligent Lemurian...:
+  * Leonard
+
 * Misc:
   * Added config options to change the colors of most UI elements of the mod
 

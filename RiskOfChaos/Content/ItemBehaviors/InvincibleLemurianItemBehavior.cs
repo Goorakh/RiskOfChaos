@@ -1,19 +1,28 @@
 ﻿using RoR2;
 using RoR2.Items;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.Content.ItemBehaviors
 {
     public sealed class InvincibleLemurianItemBehavior : BaseItemBodyBehavior
     {
-        [ItemDefAssociation(useOnServer = true, useOnClient = false)]
+        [ItemDefAssociation(useOnServer = true, useOnClient = true)]
         static ItemDef GetItemDef()
         {
             return Items.InvincibleLemurianMarker;
         }
 
+        string _originalNameToken;
+
+        void OnEnable()
+        {
+            _originalNameToken = body ? body.baseNameToken : "UNKNOWN";
+            body.baseNameToken = "INVINCIBLE_LEMURIAN_BODY_NAME";
+        }
+
         void FixedUpdate()
         {
-            if (!body)
+            if (!NetworkServer.active || !body)
                 return;
 
             if (!body.HasBuff(RoR2Content.Buffs.Immune))
@@ -26,10 +35,15 @@ namespace RiskOfChaos.Content.ItemBehaviors
         {
             if (body)
             {
-                if (body.HasBuff(RoR2Content.Buffs.Immune))
+                if (NetworkServer.active)
                 {
-                    body.RemoveBuff(RoR2Content.Buffs.Immune);
+                    if (body.HasBuff(RoR2Content.Buffs.Immune))
+                    {
+                        body.RemoveBuff(RoR2Content.Buffs.Immune);
+                    }
                 }
+
+                body.baseNameToken = _originalNameToken;
             }
         }
     }
