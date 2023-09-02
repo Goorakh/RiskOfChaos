@@ -29,10 +29,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
                 for (BodyIndex bodyIndex = 0; bodyIndex < (BodyIndex)BodyCatalog.bodyCount; bodyIndex++)
                 {
-                    bool anyChangesForThisBodyIndex = randomizeLoadoutForBodyIndex(bodyLoadoutManager, bodyIndex);
+                    bool anyChangesForThisBodyIndex = randomizeLoadoutForBodyIndex(playerMaster, bodyLoadoutManager, bodyIndex);
                     anyChanges |= anyChangesForThisBodyIndex;
 
-                    if (anyChangesForThisBodyIndex && bodyIndex == playerBody.bodyIndex)
+                    if (anyChangesForThisBodyIndex && playerBody && bodyIndex == playerBody.bodyIndex)
                     {
                         changedCurrentBody = true;
                     }
@@ -74,9 +74,31 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             }
         }
 
-        bool randomizeLoadoutForBodyIndex(Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex)
+        bool randomizeLoadoutForBodyIndex(CharacterMaster master, Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex)
         {
-            return randomizeLoadoutSkills(bodyLoadoutManager, bodyIndex) | randomizeLoadoutSkin(bodyLoadoutManager, bodyIndex);
+            bool skillsChanged;
+            try
+            {
+                skillsChanged = randomizeLoadoutSkills(bodyLoadoutManager, bodyIndex);
+            }
+            catch (Exception ex)
+            {
+                Log.Error_NoCallerPrefix($"Failed to randomize {Util.GetBestMasterName(master)} ({BodyCatalog.GetBodyName(bodyIndex)}) skills: {ex}");
+                skillsChanged = false;
+            }
+
+            bool skinChanged;
+            try
+            {
+                skinChanged = randomizeLoadoutSkin(bodyLoadoutManager, bodyIndex);
+            }
+            catch (Exception ex)
+            {
+                Log.Error_NoCallerPrefix($"Failed to randomize {Util.GetBestMasterName(master)} ({BodyCatalog.GetBodyName(bodyIndex)}) skin: {ex}");
+                skinChanged = false;
+            }
+
+            return skillsChanged || skinChanged;
         }
 
         static WeightedSelection<uint> getWeightedIndexSelection(int count, uint currentIndex, Predicate<uint> canSelectIndex)
