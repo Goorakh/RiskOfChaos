@@ -18,6 +18,9 @@
 * One Hit KO:
   * Now sets everything to 1 hp for a duration instead of just once, default 30 seconds
 
+* Mitosis:
+  * Fixed clones of bosses not counting as bosses
+
 * Disable Fall Damage:
   * Fixed Safer Spaces being triggered when fall damage would normally happen
 

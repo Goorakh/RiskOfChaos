@@ -74,6 +74,15 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     return;
 
                 result.spawnedInstance.SetDontDestroyOnLoad(_allowDontDestroyOnLoad.Value && Util.IsDontDestroyOnLoad(master.gameObject));
+
+                if (result.spawnedInstance.TryGetComponent(out CharacterMaster spawnedMaster))
+                {
+                    BossGroup bossGroup = BossGroup.FindBossGroup(body);
+                    if (bossGroup && bossGroup.combatSquad)
+                    {
+                        bossGroup.combatSquad.AddMember(spawnedMaster);
+                    }
+                }
             };
 
             DirectorCore.instance.TrySpawnObject(spawnRequest);
