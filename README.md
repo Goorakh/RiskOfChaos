@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 104 different effects.
+Currently features 105 different effects.
 
 ### Twitch Integration:
 
@@ -120,6 +120,7 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Increase Teleporter Charge Rate: Increases charge rate for all holdout zones, lasts 1 stage
 * Decrease Teleporter Radius: Decreases the radius on all holdout zones, lasts 1 stage
 * Increase Teleporter Radius: Increases the radius on all holdout zones, lasts 1 stage
+* Scrambled Text: Randomizes the order of letters in most text displayed in the game, lasts 120 seconds
 </details>
 
 FAQ:

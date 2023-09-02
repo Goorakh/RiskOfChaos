@@ -115,5 +115,6 @@
 		"EFFECT_INCREASE_HOLDOUT_ZONE_RADIUS_NAME": "+{0:P0} Teleporter Zone Radius",
 		"EFFECT_DECREASE_HOLDOUT_ZONE_CHARGE_RATE_NAME": "-{0:P0} Teleporter Charge Rate",
 		"EFFECT_INCREASE_HOLDOUT_ZONE_CHARGE_RATE_NAME": "+{0:P0} Teleporter Charge Rate",
+		"EFFECT_SCRAMBLE_TEXT_NAME": "Scrambled Text",
 	}
 }

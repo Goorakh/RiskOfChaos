@@ -31,6 +31,8 @@ namespace RiskOfChaos.EffectHandling
 
         public static ReadOnlyArray<TimedEffectInfo> AllTimedEffects { get; private set; }
 
+        static readonly Dictionary<string, ChaosEffectIndex> _effectIndexByNameToken = new Dictionary<string, ChaosEffectIndex>();
+
         static int _effectCount;
         public static int EffectCount => _effectCount;
 
@@ -58,6 +60,18 @@ namespace RiskOfChaos.EffectHandling
 
             AllTimedEffects = new ReadOnlyArray<TimedEffectInfo>(_effects.Where(e => e is TimedEffectInfo)
                                                                              .Select(e => e as TimedEffectInfo).ToArray());
+
+            foreach (ChaosEffectInfo effect in _effects)
+            {
+                if (_effectIndexByNameToken.ContainsKey(effect.NameToken))
+                {
+                    Log.Error($"Duplicate effect name token: {effect.NameToken}");
+                }
+                else
+                {
+                    _effectIndexByNameToken.Add(effect.NameToken, effect.EffectIndex);
+                }
+            }
 
             _effectCount = _effects.Length;
 
@@ -135,6 +149,14 @@ namespace RiskOfChaos.EffectHandling
             }
 
             return (ChaosEffectIndex)index;
+        }
+
+        public static ChaosEffectIndex FindEffectIndexByNameToken(string token)
+        {
+            if (_effectIndexByNameToken.TryGetValue(token, out ChaosEffectIndex effectIndex))
+                return effectIndex;
+
+            return ChaosEffectIndex.Invalid;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
