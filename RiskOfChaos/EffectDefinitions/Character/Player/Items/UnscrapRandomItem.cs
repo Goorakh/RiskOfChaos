@@ -76,7 +76,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                         ItemIndex newItem = RNG.NextElementUniform(runAvailableItems);
                         inventory.GiveItem(newItem, scrapCount);
 
-                        GenericPickupController.SendPickupMessage(master, PickupCatalog.FindPickupIndex(newItem));
                         CharacterMasterNotificationQueue.SendTransformNotification(master, scrapItem.itemIndex, newItem, CharacterMasterNotificationQueue.TransformationType.Default);
                     }
                     else

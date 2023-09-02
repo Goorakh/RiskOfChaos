@@ -25,6 +25,9 @@
 * Disable Fall Damage:
   * Fixed Safer Spaces being triggered when fall damage would normally happen
 
+* Unscrap Random Item:
+  * Fixed showing item notification twice
+
 * Misc:
   * Added config options to change the colors of most UI elements of the mod
 
