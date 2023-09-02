@@ -19,6 +19,9 @@ namespace RiskOfChaos.EffectHandling
         readonly ConfigHolder<float> _duration;
         public float DurationSeconds => _duration.Value;
 
+        public readonly bool HideFromEffectsListWhenPermanent;
+        public bool ShouldDisplayOnHUD => !HideFromEffectsListWhenPermanent || TimedType != TimedEffectType.Permanent;
+
         public TimedEffectInfo(ChaosEffectIndex effectIndex, ChaosTimedEffectAttribute attribute, ConfigFile configFile) : base(effectIndex, attribute, configFile)
         {
             _timedType = ConfigFactory<TimedEffectType>.CreateConfig("Duration Type", attribute.TimedType)
@@ -45,6 +48,7 @@ namespace RiskOfChaos.EffectHandling
                                             .Build();
 
             AllowDuplicates = attribute.AllowDuplicates;
+            HideFromEffectsListWhenPermanent = attribute.HideFromEffectsListWhenPermanent;
         }
 
         public override void BindConfigs()

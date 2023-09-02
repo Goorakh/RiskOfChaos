@@ -72,7 +72,10 @@ namespace RiskOfChaos.Networking.Components
 
         void onTimedEffectStartServer(TimedEffectInfo effectInfo, TimedEffect effectInstance)
         {
-            _activeEffects.Add(new ActiveEffectItemInfo(effectInfo, effectInstance));
+            if (effectInfo.ShouldDisplayOnHUD)
+            {
+                _activeEffects.Add(new ActiveEffectItemInfo(effectInfo, effectInstance));
+            }
         }
 
         void onTimedEffectEndServer(ulong dispatchID)

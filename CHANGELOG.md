@@ -11,6 +11,9 @@
   * Increase Teleporter Radius: Increases the radius on all holdout zones, lasts 1 stage
   * Scrambled Text: Randomizes the order of letters in most text displayed in the game, lasts 120 seconds
 
+* Add Random Item to Monster Inventory:
+  * Effect can now be set to any duration type in the config, default is still for the rest of the run
+
 * One Hit KO:
   * Now sets everything to 1 hp for a duration, default 30 seconds
 

@@ -11,6 +11,8 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes
 
         public bool AllowDuplicates { get; set; } = true;
 
+        public bool HideFromEffectsListWhenPermanent { get; set; } = false;
+
         ChaosTimedEffectAttribute(string identifier, TimedEffectType timedType, float durationSeconds) : base(identifier)
         {
             TimedType = timedType;

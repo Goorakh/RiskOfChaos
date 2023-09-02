@@ -12,8 +12,8 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("monster_inventory_give_random_item", EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun, EffectWeightReductionPercentagePerActivation = 15f)]
-    public sealed class MonsterInventoryGiveRandomItem : BaseEffect
+    [ChaosTimedEffect("monster_inventory_give_random_item", TimedEffectType.Permanent, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun, EffectWeightReductionPercentagePerActivation = 15f, HideFromEffectsListWhenPermanent = true)]
+    public sealed class MonsterInventoryGiveRandomItem : TimedEffect
     {
         static bool _dropTableDirty = false;
         static BasicPickupDropTable _dropTable;
@@ -162,6 +162,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
             return _monsterInventory;
         }
 
+        PickupDef _grantedPickupDef;
+
         public override void OnStart()
         {
             if (!_dropTable || _dropTableDirty)
@@ -169,13 +171,13 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 regenerateDropTable();
             }
 
-            PickupDef pickupDef = PickupCatalog.GetPickupDef(_dropTable.GenerateDrop(RNG));
-            _monsterInventory.TryGrant(pickupDef, true);
+            _grantedPickupDef = PickupCatalog.GetPickupDef(_dropTable.GenerateDrop(RNG));
+            _monsterInventory.TryGrant(_grantedPickupDef, true);
 
             uint pickupCount;
-            if (pickupDef.itemIndex != ItemIndex.None)
+            if (_grantedPickupDef.itemIndex != ItemIndex.None)
             {
-                pickupCount = (uint)_monsterInventory.GetItemCount(pickupDef.itemIndex);
+                pickupCount = (uint)_monsterInventory.GetItemCount(_grantedPickupDef.itemIndex);
             }
             else
             {
@@ -185,8 +187,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
             Chat.SendBroadcastChat(new Chat.PlayerPickupChatMessage
             {
                 baseToken = "MONSTER_INVENTORY_ADD_ITEM",
-                pickupToken = pickupDef.nameToken,
-                pickupColor = pickupDef.baseColor,
+                pickupToken = _grantedPickupDef.nameToken,
+                pickupColor = _grantedPickupDef.baseColor,
                 pickupQuantity = pickupCount
             });
 
@@ -194,7 +196,23 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 if (canGiveItems(master))
                 {
-                    master.inventory.TryGrant(pickupDef, true);
+                    master.inventory.TryGrant(_grantedPickupDef, true);
+                }
+            }, Util.GetBestMasterName);
+        }
+
+        public override void OnEnd()
+        {
+            if (_monsterInventory)
+            {
+                _monsterInventory.TryRemove(_grantedPickupDef);
+            }
+
+            CharacterMaster.readOnlyInstancesList.TryDo(master =>
+            {
+                if (canGiveItems(master))
+                {
+                    master.inventory.TryRemove(_grantedPickupDef);
                 }
             }, Util.GetBestMasterName);
         }

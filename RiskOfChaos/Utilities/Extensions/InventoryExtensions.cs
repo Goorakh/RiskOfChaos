@@ -74,5 +74,32 @@ namespace RiskOfChaos.Utilities.Extensions
                 return PickupTryGrantResult.Failed;
             }
         }
+
+        public static void TryRemove(this Inventory inventory, PickupDef pickupDef)
+        {
+            if (!inventory || pickupDef == null)
+                return;
+
+            if (pickupDef.itemIndex != ItemIndex.None)
+            {
+                inventory.RemoveItem(pickupDef.itemIndex);
+            }
+            else if (pickupDef.equipmentIndex != EquipmentIndex.None)
+            {
+                int equipmentSlotCount = inventory.GetEquipmentSlotCount();
+                for (uint i = 0; i < equipmentSlotCount; i++)
+                {
+                    if (inventory.GetEquipment(i).equipmentIndex == pickupDef.equipmentIndex)
+                    {
+                        inventory.SetEquipmentIndexForSlot(EquipmentIndex.None, i);
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                Log.Warning($"Unhandled pickup index {pickupDef.pickupIndex}");
+            }
+        }
     }
 }
