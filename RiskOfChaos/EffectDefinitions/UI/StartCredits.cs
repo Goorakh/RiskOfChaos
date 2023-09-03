@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
 
-namespace RiskOfChaos.EffectDefinitions.World
+namespace RiskOfChaos.EffectDefinitions.UI
 {
     [ChaosTimedEffect("start_credits", 120f, AllowDuplicates = false, IsNetworked = true)]
     public sealed class StartCredits : TimedEffect
@@ -39,7 +39,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             {
                 if (viewport.TryGetComponent(out Image backgroundImage))
                 {
-                    GameObject.Destroy(backgroundImage);
+                    UnityEngine.Object.Destroy(backgroundImage);
                 }
 
                 Transform creditsContent = viewport.Find("CreditsContent");
@@ -47,7 +47,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 {
                     if (creditsContent.TryGetComponent(out Image moreBackgroundImage))
                     {
-                        GameObject.Destroy(moreBackgroundImage);
+                        UnityEngine.Object.Destroy(moreBackgroundImage);
                     }
 
                     Transform backgroundStamps = creditsContent.Find("BackgroundStamps");
@@ -68,7 +68,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             Transform musicOverride = creditsPanelTransform.Find("MusicOverride");
             if (musicOverride)
             {
-                GameObject.Destroy(musicOverride.gameObject);
+                UnityEngine.Object.Destroy(musicOverride.gameObject);
             }
 
             CreditsPanelController creditsPanelController = _creditsPanelPrefab.GetComponent<CreditsPanelController>();
@@ -88,7 +88,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         {
             if (!_creditsPanel)
             {
-                _creditsPanel = GameObject.Instantiate(_creditsPanelPrefab, RoR2Application.instance.mainCanvas.transform);
+                _creditsPanel = UnityEngine.Object.Instantiate(_creditsPanelPrefab, RoR2Application.instance.mainCanvas.transform);
 
                 CreditsPanelController creditsPanelController = _creditsPanel.GetComponent<CreditsPanelController>();
                 EntityStateMachine stateMachine = _creditsPanel.GetComponent<EntityStateMachine>();
@@ -139,7 +139,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         {
             RoR2Application.onFixedUpdate -= fixedUpdate;
 
-            GameObject.Destroy(_creditsPanel);
+            UnityEngine.Object.Destroy(_creditsPanel);
         }
     }
 }
