@@ -8,6 +8,9 @@
 * Randomize Loadout:
   * Skip spawn animation when respawning
 
+* Misc:
+  * Seconds duration of effects is now displayed in the effect voting options and the chat activation message
+
 **1.10.0 Changes:**
 
 * Added 9 new effects:
