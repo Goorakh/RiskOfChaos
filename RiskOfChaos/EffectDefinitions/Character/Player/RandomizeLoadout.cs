@@ -45,38 +45,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
                     if (changedCurrentBody && !playerMaster.IsDeadAndOutOfLivesServer())
                     {
-                        respawnPlayerBody(playerMaster, playerBody, isMetamorphosisActive);
+                        PreventMetamorphosisRespawn.PreventionEnabled = isMetamorphosisActive;
+                        playerMaster.Respawn(CharacterMasterExtensions.CharacterRespawnFlags.All);
+                        PreventMetamorphosisRespawn.PreventionEnabled = false;
                     }
                 }
             }, Util.GetBestMasterName);
-        }
-
-        static void respawnPlayerBody(CharacterMaster playerMaster, CharacterBody playerBody, bool preventMetamorphosisRespawn)
-        {
-            VehicleSeat oldVehicleSeat = playerBody.currentVehicle;
-
-#if DEBUG
-            Log.Debug($"seat={oldVehicleSeat}");
-#endif
-
-            if (oldVehicleSeat)
-            {
-                oldVehicleSeat.EjectPassenger();
-            }
-
-            PreventMetamorphosisRespawn.PreventionEnabled = preventMetamorphosisRespawn;
-            playerBody = playerMaster.Respawn(playerBody.footPosition, playerBody.GetRotation());
-            PreventMetamorphosisRespawn.PreventionEnabled = false;
-
-            foreach (EntityStateMachine esm in playerBody.GetComponents<EntityStateMachine>())
-            {
-                esm.initialStateType = esm.mainStateType;
-            }
-
-            if (oldVehicleSeat)
-            {
-                oldVehicleSeat.AssignPassenger(playerBody.gameObject);
-            }
         }
 
         bool randomizeLoadoutForBodyIndex(CharacterMaster master, Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex)

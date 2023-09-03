@@ -12,6 +12,9 @@
 * Randomize Loadout:
   * Skip spawn animation when respawning
 
+* Randomize Loadout & Enable Random Artifact (Metamorphosis):
+  * No longer resets Eclipse 8 curse stacks
+
 * Misc:
   * Seconds duration of effects is now displayed in the effect voting options and the chat activation message
 
