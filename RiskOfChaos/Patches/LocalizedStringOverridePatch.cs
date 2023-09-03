@@ -59,7 +59,18 @@ namespace RiskOfChaos.Patches
         static string Language_GetLocalizedStringByToken(On.RoR2.Language.orig_GetLocalizedStringByToken orig, Language self, string token)
         {
             string result = orig(self, token);
-            _overrideLanguageString?.Invoke(ref result, token, self);
+
+            string tmpResult = result;
+            try
+            {
+                _overrideLanguageString?.Invoke(ref tmpResult, token, self);
+                result = tmpResult;
+            }
+            catch (Exception e)
+            {
+                Log.Error_NoCallerPrefix($"Failed to override language token {token}: {e}");
+            }
+
             return result;
         }
     }
