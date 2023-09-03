@@ -68,6 +68,11 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             playerBody = playerMaster.Respawn(playerBody.footPosition, playerBody.GetRotation());
             PreventMetamorphosisRespawn.PreventionEnabled = false;
 
+            foreach (EntityStateMachine esm in playerBody.GetComponents<EntityStateMachine>())
+            {
+                esm.initialStateType = esm.mainStateType;
+            }
+
             if (oldVehicleSeat)
             {
                 oldVehicleSeat.AssignPassenger(playerBody.gameObject);

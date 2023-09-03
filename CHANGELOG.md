@@ -5,6 +5,9 @@
 * Sulfur Pools Experience:
   * Fixed spawned pods not aligning with the ground properly
 
+* Randomize Loadout:
+  * Skip spawn animation when respawning
+
 **1.10.0 Changes:**
 
 * Added 9 new effects:
