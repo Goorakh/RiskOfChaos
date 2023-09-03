@@ -68,6 +68,7 @@ namespace RiskOfChaos.EffectDefinitions.UI
             switch (token)
             {
                 case "DEFAULT_FONT":
+                case "CHAOS_EFFECT_UNHANDLED_EXCEPTION_MESSAGE":
                     return;
             }
 

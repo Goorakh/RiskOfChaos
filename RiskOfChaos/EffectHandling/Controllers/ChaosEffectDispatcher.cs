@@ -252,6 +252,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     catch (Exception ex)
                     {
                         Log.Error_NoCallerPrefix($"Caught exception in {effect} {nameof(BaseEffect.OnPreStartServer)}: {ex}");
+                        Chat.AddMessage(Language.GetString("CHAOS_EFFECT_UNHANDLED_EXCEPTION_MESSAGE"));
                     }
 
                     if (effect.IsNetworked)
@@ -289,6 +290,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             catch (Exception ex)
             {
                 Log.Error_NoCallerPrefix($"Caught exception in {effectInfo} {nameof(BaseEffect.OnStart)}: {ex}");
+                Chat.AddMessage(Language.GetString("CHAOS_EFFECT_UNHANDLED_EXCEPTION_MESSAGE"));
             }
 
             OnEffectDispatched?.Invoke(effectInfo, dispatchFlags, effectInstance);
