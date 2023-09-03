@@ -9,6 +9,8 @@ namespace RiskOfChaos.ModifierController.SkillSlots
         public bool ForceIsLocked = false;
         public bool ForceActivate = false;
 
+        public float CooldownScale = 1f;
+
         public SkillSlotModificationData(SkillSlot slotIndex)
         {
             SlotIndex = slotIndex;

@@ -2,6 +2,10 @@
 
 **?.?.? Changes:**
 
+* Added 2 new effects:
+  * Increase Skill Cooldowns: Increases cooldown for all skills, lasts 1 stage
+  * Decrease Skill Cooldowns: Decreases cooldown for all skills, lasts 1 stage
+
 * Sulfur Pools Experience:
   * Fixed spawned pods not aligning with the ground properly
 

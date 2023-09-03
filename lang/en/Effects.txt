@@ -118,5 +118,7 @@
 		"EFFECT_SCRAMBLE_TEXT_NAME": "Scrambled Text",
 		"EFFECT_SPAWN_SULFUR_PODS_NAME": "Sulfur Pools Experience",
 		"EFFECT_DISABLE_KNOCKBACK_NAME": "Disable Knockback",
+		"EFFECT_INCREASE_SKILL_COOLDOWN_NAME": "+{0:P0} Skill Cooldowns",
+		"EFFECT_DECREASE_SKILL_COOLDOWN_NAME": "-{0:P0} Skill Cooldowns",
 	}
 }

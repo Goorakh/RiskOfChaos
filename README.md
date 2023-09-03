@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 107 different effects.
+Currently features 109 different effects.
 
 ### Twitch Integration:
 
@@ -123,6 +123,8 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Scrambled Text: Randomizes the order of letters in most text displayed in the game, lasts 120 seconds
 * Sulfur Pools Experience: Fills the map with Sulfur Pods
 * Disable Knockback: Disables all knockback, lasts 1 stage
+* Increase Skill Cooldowns: Increases cooldown for all skills, lasts 1 stage
+* Decrease Skill Cooldowns: Decreases cooldown for all skills, lasts 1 stage
 </details>
 
 FAQ:

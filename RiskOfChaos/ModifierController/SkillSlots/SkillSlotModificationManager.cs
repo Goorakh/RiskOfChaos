@@ -1,4 +1,6 @@
-﻿using RoR2;
+﻿using HG;
+using RiskOfChaos.Trackers;
+using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -160,12 +162,68 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             NonLockedNonForceActivatedSkillSlots = NonLockedSkillSlots.Intersect(NonForceActivatedSkillSlots).ToArray();
         }
 
+        const uint SKILL_SLOT_COOLDOWN_SCALES_DIRTY_BIT = 1u << 3;
+
+        float[] _skillSlotCooldownScales = new float[SKILL_SLOT_COUNT];
+        public float[] NetworkSkillSlotCooldownScales
+        {
+            get
+            {
+                return _skillSlotCooldownScales;
+            }
+
+            [param: In]
+            set
+            {
+                if (value.Length != SKILL_SLOT_COUNT)
+                {
+                    Log.Error($"Cooldown scales array must have a size of exactly {SKILL_SLOT_COUNT}");
+                    return;
+                }
+
+                if (NetworkServer.localClientActive && !syncVarHookGuard)
+                {
+                    syncVarHookGuard = true;
+                    syncNetworkSkillSlotCooldownScales(value);
+                    syncVarHookGuard = false;
+                }
+
+                if (_skillSlotCooldownScales != value && !_skillSlotCooldownScales.SequenceEqual(value))
+                {
+                    SetDirtyBit(SKILL_SLOT_COOLDOWN_SCALES_DIRTY_BIT);
+                    _skillSlotCooldownScales = value;
+                }
+            }
+        }
+
+        void syncNetworkSkillSlotCooldownScales(float[] cooldownScales)
+        {
+            NetworkSkillSlotCooldownScales = cooldownScales;
+
+            foreach (GenericSkillTracker skillTracker in InstanceTracker.GetInstancesList<GenericSkillTracker>())
+            {
+                if (skillTracker.Skill)
+                {
+                    skillTracker.Skill.RecalculateValues();
+                }
+            }
+        }
+
         public override void OnStartClient()
         {
             base.OnStartClient();
 
             syncLockedSkillSlots(_lockedSkillSlotsMask);
             syncForceActivatedSkillSlots(_forceActivateSkillSlotsMask);
+            syncNetworkSkillSlotCooldownScales(_skillSlotCooldownScales);
+        }
+
+        void Awake()
+        {
+            for (int i = 0; i < _skillSlotCooldownScales.Length; i++)
+            {
+                _skillSlotCooldownScales[i] = 1f;
+            }
         }
 
         void OnEnable()
@@ -189,6 +247,8 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             uint forceLockedSkillSlotsMask = 0;
             uint forceActivateSkillSlotsMask = 0;
 
+            float[] skillCooldownScales = new float[SKILL_SLOT_COUNT];
+
             for (int i = 0; i < SKILL_SLOT_COUNT; i++)
             {
                 SkillSlotModificationData modificationData = getModifiedValue(new SkillSlotModificationData((SkillSlot)i));
@@ -204,10 +264,13 @@ namespace RiskOfChaos.ModifierController.SkillSlots
                 {
                     forceActivateSkillSlotsMask |= maskBit;
                 }
+
+                skillCooldownScales[i] = modificationData.CooldownScale;
             }
 
             NetworkLockedSkillSlotsMask = forceLockedSkillSlotsMask;
             NetworkForceActivateSkillSlotsMask = forceActivateSkillSlotsMask;
+            NetworkSkillSlotCooldownScales = skillCooldownScales;
         }
 
         protected override bool serialize(NetworkWriter writer, bool initialState, uint dirtyBits)
@@ -217,6 +280,12 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             {
                 writer.WritePackedUInt32(_lockedSkillSlotsMask);
                 writer.WritePackedUInt32(_forceActivateSkillSlotsMask);
+
+                for (int i = 0; i < SKILL_SLOT_COUNT; i++)
+                {
+                    writer.Write(_skillSlotCooldownScales[i]);
+                }
+
                 return result;
             }
 
@@ -234,6 +303,14 @@ namespace RiskOfChaos.ModifierController.SkillSlots
                 anythingWritten = true;
             }
 
+            if ((dirtyBits & SKILL_SLOT_COOLDOWN_SCALES_DIRTY_BIT) != 0)
+            {
+                for (int i = 0; i < SKILL_SLOT_COUNT; i++)
+                {
+                    writer.Write(_skillSlotCooldownScales[i]);
+                }
+            }
+
             return result || anythingWritten;
         }
 
@@ -245,6 +322,12 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             {
                 _lockedSkillSlotsMask = reader.ReadPackedUInt32();
                 _forceActivateSkillSlotsMask = reader.ReadPackedUInt32();
+
+                for (int i = 0; i < SKILL_SLOT_COUNT; i++)
+                {
+                    _skillSlotCooldownScales[i] = reader.ReadSingle();
+                }
+
                 return;
             }
 
@@ -256,6 +339,16 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             if ((dirtyBits & FORCE_ACTIVATE_SKILL_SLOTS_MASK_DIRTY_BIT) != 0)
             {
                 syncForceActivatedSkillSlots(reader.ReadPackedUInt32());
+            }
+
+            if ((dirtyBits & SKILL_SLOT_COOLDOWN_SCALES_DIRTY_BIT) != 0)
+            {
+                for (int i = 0; i < SKILL_SLOT_COUNT; i++)
+                {
+                    _skillSlotCooldownScales[i] = reader.ReadSingle();
+                }
+
+                syncNetworkSkillSlotCooldownScales(_skillSlotCooldownScales);
             }
         }
     }
