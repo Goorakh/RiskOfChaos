@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**1.10.1 Changes:**
 
 * Added 2 new effects:
   * Increase Skill Cooldowns: Increases cooldown for all skills, lasts 1 stage
