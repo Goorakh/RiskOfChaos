@@ -63,7 +63,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
                 if (spawnNodeGraph.GetNodePosition(spawnNode, out Vector3 position))
                 {
-                    Quaternion rotation = Quaternion.Euler(0f, RNG.RangeFloat(0f, 360f), 0f);
+                    Vector3 normal = SpawnUtils.GetEnvironmentNormalAtPoint(position);
+
+                    Quaternion rotation = Quaternion.AngleAxis(RNG.RangeFloat(0f, 360f), normal)
+                                        * QuaternionUtils.RandomDeviation(15f, RNG)
+                                        * QuaternionUtils.PointLocalDirectionAt(Vector3.up, normal);
 
                     if (NetPrefabs.SulfurPodBasePrefab)
                     {

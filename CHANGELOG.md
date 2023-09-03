@@ -1,5 +1,10 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* Sulfur Pools Experience:
+  * Fixed spawned pods not aligning with the ground properly
+
 **1.10.0 Changes:**
 
 * Added 9 new effects:
