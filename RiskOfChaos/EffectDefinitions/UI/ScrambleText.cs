@@ -68,7 +68,7 @@ namespace RiskOfChaos.EffectDefinitions.UI
             switch (token)
             {
                 case "DEFAULT_FONT":
-                    break;
+                    return;
             }
 
             if (_excludeEffectNames.Value && ChaosEffectCatalog.FindEffectIndexByNameToken(token) != ChaosEffectIndex.Invalid)
