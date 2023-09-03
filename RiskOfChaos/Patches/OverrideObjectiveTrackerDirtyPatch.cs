@@ -48,5 +48,20 @@ namespace RiskOfChaos.Patches
 #endif
             }
         }
+
+        public static void ForceRefresh()
+        {
+            static void overrideAllDirty(ObjectivePanelController.ObjectiveTracker objective, ref bool isDirty)
+            {
+                isDirty = true;
+            }
+
+            OverrideObjectiveTrackerDirty += overrideAllDirty;
+
+            RoR2Application.onNextUpdate += () =>
+            {
+                OverrideObjectiveTrackerDirty -= overrideAllDirty;
+            };
+        }
     }
 }

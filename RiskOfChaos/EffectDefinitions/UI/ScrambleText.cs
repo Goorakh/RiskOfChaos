@@ -5,9 +5,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Patches;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using RoR2.UI;
-using System;
-using System.Reflection;
+using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine.Networking;
@@ -24,35 +22,16 @@ namespace RiskOfChaos.EffectDefinitions.UI
                                .OptionConfig(new CheckBoxConfig())
                                .Build();
 
-        static readonly FieldInfo Language_onCurrentLanguageChanged = typeof(Language).GetField(nameof(Language.onCurrentLanguageChanged), BindingFlags.NonPublic | BindingFlags.Static);
+        // Match string formats ({0}, {0:F0}, etc.)
+        static readonly Regex _stringFormatsRegex = new Regex(@"\{\d+(?::\w+)?\}", RegexOptions.Compiled);
 
-        static ScrambleText()
-        {
-            if (Language_onCurrentLanguageChanged == null)
-            {
-                Log.Error($"Failed to find field {nameof(Language)}.{nameof(Language.onCurrentLanguageChanged)}");
-            }
-        }
+        // Match rich text tags (<i>, <size=12>, </b>, etc.)
+        static readonly Regex _richTextTagsRegex = new Regex(@"<[^<>]+>", RegexOptions.Compiled);
 
-        static void forceRefreshLanguageTokens()
-        {
-            if (Language_onCurrentLanguageChanged != null && Language_onCurrentLanguageChanged.GetValue(null) is Action onCurrentLanguageChanged)
-            {
-                onCurrentLanguageChanged?.Invoke();
-            }
+        static readonly StringBuilder _sharedResultBuilder = new StringBuilder();
+        static readonly StringBuilder _sharedWordBuilder = new StringBuilder();
 
-            static void OverrideObjectiveTrackerDirtyPatch_OverrideObjectiveTrackerDirty(ObjectivePanelController.ObjectiveTracker objective, ref bool isDirty)
-            {
-                isDirty = true;
-            }
-
-            OverrideObjectiveTrackerDirtyPatch.OverrideObjectiveTrackerDirty += OverrideObjectiveTrackerDirtyPatch_OverrideObjectiveTrackerDirty;
-
-            RoR2Application.onNextUpdate += () =>
-            {
-                OverrideObjectiveTrackerDirtyPatch.OverrideObjectiveTrackerDirty -= OverrideObjectiveTrackerDirtyPatch_OverrideObjectiveTrackerDirty;
-            };
-        }
+        readonly Dictionary<string, string> _tokenOverrideCache = new Dictionary<string, string>();
 
         ulong _baseScrambleSeed;
 
@@ -76,32 +55,29 @@ namespace RiskOfChaos.EffectDefinitions.UI
 
         public override void OnStart()
         {
-            On.RoR2.Language.GetLocalizedStringByToken += Language_GetLocalizedStringByToken;
-            forceRefreshLanguageTokens();
+            LocalizedStringOverridePatch.OverrideLanguageString += overrideLanguageString;
         }
 
         public override void OnEnd()
         {
-            On.RoR2.Language.GetLocalizedStringByToken -= Language_GetLocalizedStringByToken;
-            forceRefreshLanguageTokens();
+            LocalizedStringOverridePatch.OverrideLanguageString -= overrideLanguageString;
         }
 
-        // Match string formats ({0}, {0:F0}, etc.)
-        static readonly Regex _stringFormatsRegex = new Regex(@"\{\d+(?::\w+)?\}", RegexOptions.Compiled);
-
-        // Match rich text tags (<i>, <size=12>, </b>, etc.)
-        static readonly Regex _richTextTagsRegex = new Regex(@"<[^<>]+>", RegexOptions.Compiled);
-
-        static readonly StringBuilder _sharedResultBuilder = new StringBuilder();
-        static readonly StringBuilder _sharedWordBuilder = new StringBuilder();
-
-        string Language_GetLocalizedStringByToken(On.RoR2.Language.orig_GetLocalizedStringByToken orig, Language self, string token)
+        void overrideLanguageString(ref string str, string token, Language language)
         {
-            string str = orig(self, token);
+            switch (token)
+            {
+                case "DEFAULT_FONT":
+                    break;
+            }
 
             if (_excludeEffectNames.Value && ChaosEffectCatalog.FindEffectIndexByNameToken(token) != ChaosEffectIndex.Invalid)
+                return;
+
+            if (_tokenOverrideCache.TryGetValue(token, out string cachedOverride))
             {
-                return str;
+                str = cachedOverride;
+                return;
             }
 
             Xoroshiro128Plus rng = new Xoroshiro128Plus(_baseScrambleSeed ^ (ulong)token.GetHashCode());
@@ -168,7 +144,10 @@ namespace RiskOfChaos.EffectDefinitions.UI
 
             endCurrentWord();
 
-            return _sharedResultBuilder.ToString();
+            str = _sharedResultBuilder.ToString();
+            _sharedResultBuilder.Clear();
+
+            _tokenOverrideCache.Add(token, str);
         }
     }
 }
