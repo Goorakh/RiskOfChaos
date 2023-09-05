@@ -60,6 +60,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     if (EliteUtils.HasAnyAvailableEliteEquipments)
                     {
                         inventory.SetEquipmentIndex(EliteUtils.SelectEliteEquipment(_allowDirectorUnavailableElites.Value));
+
+                        BossUtils.TryRefreshBossTitleFor(_body);
                     }
                     else
                     {
