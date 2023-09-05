@@ -2,7 +2,9 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Comparers;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.Utilities.ParsedValueHolders.ParsedList;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using UnityEngine;
@@ -14,6 +16,22 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
     {
         static bool _dropTableDirty = false;
         static BasicPickupDropTable _dropTable;
+
+        [EffectConfig]
+        static readonly ConfigHolder<string> _itemBlacklistConfig =
+            ConfigFactory<string>.CreateConfig("Item Blacklist", string.Empty)
+                                 .Description("A comma-separated list of items and equipment that should not be included for the effect. Both internal and English display names are accepted, with spaces and commas removed.")
+                                 .OptionConfig(new InputFieldConfig
+                                 {
+                                     submitOn = InputFieldConfig.SubmitEnum.OnSubmit
+                                 })
+                                 .OnValueChanged(() => _dropTableDirty = true)
+                                 .Build();
+
+        static readonly ParsedPickupList _itemBlacklist = new ParsedPickupList(PickupIndexComparer.Instance)
+        {
+            ConfigHolder = _itemBlacklistConfig
+        };
 
         static ConfigHolder<float> createItemTierWeightConfig(string name, float defaultWeight)
         {
@@ -90,18 +108,48 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 if (!_dropTable || self != _dropTable)
                     return;
 
-                self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.ArtifactKey.itemIndex), _bossWeight.Value);
-                self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.CaptainDefenseMatrix.itemIndex), _tier3Weight.Value);
-                self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.Pearl.itemIndex), _bossWeight.Value);
-                self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.ShinyPearl.itemIndex), _bossWeight.Value);
-                self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.TonicAffliction.itemIndex), _lunarItemWeight.Value);
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                WeightedSelection<PickupIndex> selector = self.selector;
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
-                self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Equipment.QuestVolatileBattery.equipmentIndex), _equipmentWeight.Value);
+                for (int i = selector.Count - 1; i >= 0; i--)
+                {
+                    PickupIndex pickupIndex = selector.GetChoice(i).value;
+                    if (_itemBlacklist.Contains(pickupIndex))
+                    {
+#if DEBUG
+                        Log.Debug($"Removing {pickupIndex} from droptable: Blacklist");
+#endif
+                        selector.RemoveChoice(i);
+                    }
+                }
+
+                void tryAddPickup(PickupIndex pickup, float weight)
+                {
+                    if (!_itemBlacklist.Contains(pickup))
+                    {
+                        self.AddPickupIfMissing(pickup, weight);
+                    }
+                    else
+                    {
+#if DEBUG
+                        Log.Debug($"Not adding {pickup} to droptable: Blacklist");
+#endif
+                    }
+                }
+
+                tryAddPickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.ArtifactKey.itemIndex), _bossWeight.Value);
+                tryAddPickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.CaptainDefenseMatrix.itemIndex), _tier3Weight.Value);
+                tryAddPickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.Pearl.itemIndex), _bossWeight.Value);
+                tryAddPickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.ShinyPearl.itemIndex), _bossWeight.Value);
+                tryAddPickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.TonicAffliction.itemIndex), _lunarItemWeight.Value);
+
+                tryAddPickup(PickupCatalog.FindPickupIndex(RoR2Content.Equipment.QuestVolatileBattery.equipmentIndex), _equipmentWeight.Value);
 
                 if (run.IsExpansionEnabled(ExpansionUtils.DLC1))
                 {
-                    self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(DLC1Content.Equipment.BossHunterConsumed.equipmentIndex), _equipmentWeight.Value);
-                    self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(DLC1Content.Equipment.LunarPortalOnUse.equipmentIndex), _equipmentWeight.Value);
+                    tryAddPickup(PickupCatalog.FindPickupIndex(DLC1Content.Equipment.BossHunterConsumed.equipmentIndex), _equipmentWeight.Value);
+                    tryAddPickup(PickupCatalog.FindPickupIndex(DLC1Content.Equipment.LunarPortalOnUse.equipmentIndex), _equipmentWeight.Value);
                 }
             };
         }

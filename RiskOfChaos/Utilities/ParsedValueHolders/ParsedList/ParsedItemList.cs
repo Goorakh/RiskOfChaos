@@ -39,9 +39,21 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders.ParsedList
 
         protected override ItemIndex parseValue(string str)
         {
-            ItemIndex result = ItemCatalog.FindItemIndex(str);
+            if (TryParseItemIndex(str, out ItemIndex itemIndex))
+            {
+                return itemIndex;
+            }
+            else
+            {
+                throw new ParseException($"Unable to find matching ItemDef");
+            }
+        }
+
+        public static bool TryParseItemIndex(string str, out ItemIndex result)
+        {
+            result = ItemCatalog.FindItemIndex(str);
             if (result != ItemIndex.None)
-                return result;
+                return true;
 
             bool compareName(string itemName)
             {
@@ -59,11 +71,12 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders.ParsedList
                     || compareName(item.nameToken)
                     || compareName(Language.GetString(item.nameToken, "en")))
                 {
-                    return item.itemIndex;
+                    result = item.itemIndex;
+                    return true;
                 }
             }
 
-            throw new ParseException($"Unable to find matching ItemDef");
+            return false;
         }
     }
 }

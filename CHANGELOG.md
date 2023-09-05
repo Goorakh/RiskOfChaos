@@ -18,6 +18,9 @@
 * Corrupt Random Item:
   * Added configurable blacklist to make the effect not corrupt certain items
 
+* Give Random Item:
+  * Added configurable blacklist to exclude specific items or equipments from the effect
+
 **1.10.1 Changes:**
 
 * Added 2 new effects:

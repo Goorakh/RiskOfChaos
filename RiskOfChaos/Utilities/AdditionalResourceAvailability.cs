@@ -8,6 +8,8 @@ namespace RiskOfChaos.Utilities
 
         public static ResourceAvailability MasterCatalog;
 
+        public static ResourceAvailability PickupCatalog;
+
         internal static void InitHooks()
         {
             On.RoR2.BuffCatalog.Init += (orig) =>
@@ -20,6 +22,12 @@ namespace RiskOfChaos.Utilities
             {
                 orig();
                 MasterCatalog.MakeAvailable();
+            };
+
+            On.RoR2.PickupCatalog.Init += orig =>
+            {
+                orig();
+                PickupCatalog.MakeAvailable();
             };
         }
     }
