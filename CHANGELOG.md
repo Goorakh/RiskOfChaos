@@ -9,6 +9,9 @@
 * Aspect Roulette:
   * Fixed boss health bars not updating to match the new elite aspect
 
+* Scrambled Text:
+  * Fixed boss health bar text not updating if effect is activated after the boss spawned
+
 **1.10.1 Changes:**
 
 * Added 2 new effects:

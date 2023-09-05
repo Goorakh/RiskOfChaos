@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using RiskOfChaos.Utilities;
 using RoR2;
 using System;
 using System.Reflection;
@@ -25,6 +26,11 @@ namespace RiskOfChaos.Patches
             }
 
             OverrideObjectiveTrackerDirtyPatch.ForceRefresh();
+
+            foreach (BossGroup bossGroup in InstanceTracker.GetInstancesList<BossGroup>())
+            {
+                BossUtils.RefreshBossTitle(bossGroup);
+            }
         }
 
         public delegate void OverrideLanguageStringDelegate(ref string str, string token, Language language);
