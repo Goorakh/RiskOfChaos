@@ -215,6 +215,18 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
             });
         }
 
+        static readonly MasterIndexCollection _overrideGroundNodeSpawnMasters = new MasterIndexCollection(new string[]
+        {
+            "EngiTurretMaster",
+            "GrandparentMaster",
+            "SquidTurretMaster",
+            "MinorConstructMaster",
+            "Turret1Master",
+            "VoidBarnacleNoCastMaster"
+        });
+
+        static readonly MasterIndexCollection _overrideAirNodeSpawnMasters = new MasterIndexCollection("FlyingVerminMaster");
+
         protected static Vector3 getProperSpawnPosition(Vector3 startSpawnPosition, CharacterMaster masterPrefab, Xoroshiro128Plus rng)
         {
             DirectorPlacementRule placementRule = new DirectorPlacementRule
@@ -226,26 +238,19 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 
             CharacterBody bodyPrefab = masterPrefab.bodyPrefab.GetComponent<CharacterBody>();
 
-            bool isFlying;
-            if (masterPrefab.masterIndex == MasterCatalog.FindMasterIndex("EngiTurretMaster") ||
-                masterPrefab.masterIndex == MasterCatalog.FindMasterIndex("GrandparentMaster") ||
-                masterPrefab.masterIndex == MasterCatalog.FindMasterIndex("SquidTurretMaster") ||
-                masterPrefab.masterIndex == MasterCatalog.FindMasterIndex("MinorConstructMaster") ||
-                masterPrefab.masterIndex == MasterCatalog.FindMasterIndex("Turret1Master") ||
-                masterPrefab.masterIndex == MasterCatalog.FindMasterIndex("VoidBarnacleNoCastMaster"))
+            MapNodeGroup.GraphType nodeGraphType;
+            if (_overrideGroundNodeSpawnMasters.Contains(masterPrefab.masterIndex))
             {
-                isFlying = false;
+                nodeGraphType = MapNodeGroup.GraphType.Ground;
             }
-            else if (masterPrefab.masterIndex == MasterCatalog.FindMasterIndex("FlyingVerminMaster"))
+            else if (_overrideAirNodeSpawnMasters.Contains(masterPrefab.masterIndex))
             {
-                isFlying = true;
+                nodeGraphType = MapNodeGroup.GraphType.Air;
             }
             else
             {
-                isFlying = !bodyPrefab.GetComponent<CharacterMotor>();
+                nodeGraphType = bodyPrefab.GetComponent<CharacterMotor>() ? MapNodeGroup.GraphType.Ground : MapNodeGroup.GraphType.Air;
             }
-
-            MapNodeGroup.GraphType nodeGraphType = isFlying ? MapNodeGroup.GraphType.Air : MapNodeGroup.GraphType.Ground;
 
             return placementRule.EvaluateToPosition(new Xoroshiro128Plus(rng.nextUlong), bodyPrefab.hullClassification, nodeGraphType, NodeFlags.None, NodeFlags.NoCharacterSpawn);
         }
