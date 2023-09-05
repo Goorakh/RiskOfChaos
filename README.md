@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 109 different effects.
+Currently features 110 different effects.
 
 ### Twitch Integration:
 
@@ -125,6 +125,7 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Disable Knockback: Disables all knockback, lasts 1 stage
 * Increase Skill Cooldowns: Increases cooldown for all skills, lasts 1 stage
 * Decrease Skill Cooldowns: Decreases cooldown for all skills, lasts 1 stage
+* Relocate Teleporter: Moves the stage teleporter to a random position on the map
 </details>
 
 FAQ:

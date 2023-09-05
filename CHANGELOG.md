@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Added 1 new effect:
+  * Relocate Teleporter: Moves the stage teleporter to a random position on the map
+
 * Change Difficulty:
   * The new difficulty now has a duration instead of for rest of the run
   * Default weight: 0.2 -> 0.6
