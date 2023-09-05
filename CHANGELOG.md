@@ -20,6 +20,7 @@
 
 * Give Random Item:
   * Added configurable blacklist to exclude specific items or equipments from the effect
+  * Amount of items given is now configurable
 
 * Give Tonic Affliction:
   * Amount of affliction given to each player is now configurable

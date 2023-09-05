@@ -18,6 +18,18 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         static BasicPickupDropTable _dropTable;
 
         [EffectConfig]
+        static readonly ConfigHolder<int> _itemCount =
+            ConfigFactory<int>.CreateConfig("Item Count", 1)
+                              .Description("The amount of items to give to each player per effect activation")
+                              .OptionConfig(new IntSliderConfig
+                              {
+                                  min = 1,
+                                  max = 10
+                              })
+                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
+                              .Build();
+
+        [EffectConfig]
         static readonly ConfigHolder<string> _itemBlacklistConfig =
             ConfigFactory<string>.CreateConfig("Item Blacklist", string.Empty)
                                  .Description("A comma-separated list of items and equipment that should not be included for the effect. Both internal and English display names are accepted, with spaces and commas removed.")
@@ -161,11 +173,18 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 regenerateDropTable();
             }
 
-            PickupDef pickupDef = PickupCatalog.GetPickupDef(_dropTable.GenerateDrop(RNG));
+            PickupDef[] pickups = new PickupDef[_itemCount.Value];
+            for (int i = 0; i < pickups.Length; i++)
+            {
+                pickups[i] = PickupCatalog.GetPickupDef(_dropTable.GenerateDrop(RNG));
+            }
 
             PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
             {
-                PickupUtils.GrantOrDropPickupAt(pickupDef, playerMaster);
+                foreach (PickupDef pickupDef in pickups)
+                {
+                    PickupUtils.GrantOrDropPickupAt(pickupDef, playerMaster);
+                }
             }, Util.GetBestMasterName);
         }
     }
