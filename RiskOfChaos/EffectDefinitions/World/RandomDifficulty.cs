@@ -7,8 +7,8 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("random_difficulty", DefaultSelectionWeight = 0.2f, EffectWeightReductionPercentagePerActivation = 75f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
-    public sealed class RandomDifficulty : BaseEffect
+    [ChaosTimedEffect("random_difficulty", TimedEffectType.UntilStageEnd, DefaultSelectionWeight = 0.6f, AllowDuplicates = false, HideFromEffectsListWhenPermanent = true)]
+    public sealed class RandomDifficulty : TimedEffect
     {
         static int difficultiesCount
         {
@@ -21,9 +21,11 @@ namespace RiskOfChaos.EffectDefinitions.World
             }
         }
 
+        DifficultyIndex _previousDifficulty;
+
         public override void OnStart()
         {
-            DifficultyIndex currentDifficulty = Run.instance.selectedDifficulty;
+            _previousDifficulty = Run.instance.selectedDifficulty;
 
             int totalDifficultiesCount = difficultiesCount;
 
@@ -31,10 +33,10 @@ namespace RiskOfChaos.EffectDefinitions.World
             WeightedSelection<DifficultyIndex> newDifficultySelection = new WeightedSelection<DifficultyIndex>(totalDifficultiesCount - 1);
             for (int i = 0; i < totalDifficultiesCount; i++)
             {
-                if (i == (int)currentDifficulty)
+                if (i == (int)_previousDifficulty)
                     continue;
 
-                newDifficultySelection.AddChoice((DifficultyIndex)i, 1f / Mathf.Abs(i - (int)currentDifficulty));
+                newDifficultySelection.AddChoice((DifficultyIndex)i, 1f / Mathf.Abs(i - (int)_previousDifficulty));
             }
 
             DifficultyIndex newDifficultyIndex = newDifficultySelection.GetRandom(RNG);
@@ -44,6 +46,11 @@ namespace RiskOfChaos.EffectDefinitions.World
             DifficultyDef selectedDifficultyDef = DifficultyCatalog.GetDifficultyDef(newDifficultyIndex);
             Log.Debug($"Selected difficulty: {(selectedDifficultyDef != null ? Language.GetString(selectedDifficultyDef.nameToken) : "NULL")}");
 #endif
+        }
+
+        public override void OnEnd()
+        {
+            Run.instance.selectedDifficulty = _previousDifficulty;
         }
     }
 }

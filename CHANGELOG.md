@@ -1,5 +1,11 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* Change Difficulty:
+  * The new difficulty now has a duration instead of for rest of the run
+  * Default weight: 0.2 -> 0.6
+
 **1.10.1 Changes:**
 
 * Added 2 new effects:
