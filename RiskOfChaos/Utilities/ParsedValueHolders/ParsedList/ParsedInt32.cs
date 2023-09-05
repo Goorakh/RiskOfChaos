@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace RiskOfChaos.Utilities.ParsedValueHolders
+namespace RiskOfChaos.Utilities.ParsedValueHolders.ParsedList
 {
     public class ParsedInt32 : GenericParsedValue<int>
     {
