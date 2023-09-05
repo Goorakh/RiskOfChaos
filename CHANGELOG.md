@@ -15,6 +15,9 @@
 * Scrambled Text:
   * Fixed boss health bar text not updating if effect is activated after the boss spawned
 
+* Corrupt Random Item:
+  * Added configurable blacklist to make the effect not corrupt certain items
+
 **1.10.1 Changes:**
 
 * Added 2 new effects:
