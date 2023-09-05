@@ -25,6 +25,11 @@
 * Give Tonic Affliction:
   * Amount of affliction given to each player is now configurable
 
+* Steal All Player Items:
+  * Improved stealing interval to be a bit more spread out
+  * Added config for blacklisted item (won't be stolen)
+  * Added config to make enemies ignore AI blacklist while using your items
+
 **1.10.1 Changes:**
 
 * Added 2 new effects:

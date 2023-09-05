@@ -1,10 +1,16 @@
 ﻿using HG;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Comparers;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.Utilities.ParsedValueHolders.ParsedList;
+using RiskOfOptions.OptionConfigs;
 using RoR2;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -12,8 +18,30 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
     [ChaosEffect("monster_item_steal", DefaultSelectionWeight = 0.6f)]
-    public sealed class MonsterItemSteal : BaseEffect
+    public sealed class MonsterItemSteal : BaseEffect, ICoroutineEffect
     {
+        [EffectConfig]
+        static readonly ConfigHolder<bool> _ignoreAILendFilter =
+            ConfigFactory<bool>.CreateConfig("Ignore AI Item Blacklist", false)
+                               .Description("If the enemies should ignore the AI blacklist while having your items")
+                               .OptionConfig(new CheckBoxConfig())
+                               .Build();
+
+        [EffectConfig]
+        static readonly ConfigHolder<string> _itemBlacklistConfig =
+            ConfigFactory<string>.CreateConfig("Item Steal Blacklist", string.Empty)
+                                 .Description("A comma-separated list of items that will not be stolen from players. Both internal and English display names are accepted, with spaces and commas removed.")
+                                 .OptionConfig(new InputFieldConfig
+                                 {
+                                     submitOn = InputFieldConfig.SubmitEnum.OnSubmit
+                                 })
+                                 .Build();
+
+        static readonly ParsedItemList _itemBlacklist = new ParsedItemList(ItemIndexComparer.Instance)
+        {
+            ConfigHolder = _itemBlacklistConfig
+        };
+
         [EffectCanActivate]
         static bool CanActivate(in EffectCanActivateContext context)
         {
@@ -27,6 +55,11 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             });
         }
 
+        static bool itemStealFilter(ItemIndex itemIndex)
+        {
+            return ItemStealController.DefaultItemFilter(itemIndex) && !_itemBlacklist.Contains(itemIndex);
+        }
+
         static IEnumerable<ItemIndex> getStealableItemStacks(Inventory inventory)
         {
             if (!inventory)
@@ -34,10 +67,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             foreach (ItemIndex item in inventory.itemAcquisitionOrder)
             {
-                if (ItemStealController.DefaultItemFilter(item) && inventory.GetItemCount(item) > 0)
-                {
-                    yield return item;
-                }
+                if (!itemStealFilter(item))
+                    continue;
+                
+                yield return item;
             }
         }
 
@@ -49,6 +82,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         List<CharacterItemStealInitializer> _itemStealInitializers;
 
         public override void OnStart()
+        {
+        }
+
+        public IEnumerator OnStartCoroutine()
         {
             _itemStealInitializers = new List<CharacterItemStealInitializer>(CharacterMaster.readOnlyInstancesList.Count);
             foreach (CharacterMaster master in CharacterMaster.readOnlyInstancesList)
@@ -66,6 +103,41 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     tryStealItemsFrom(playerMaster);
                 }
             }, Util.GetBestMasterName);
+
+            List<ItemStealController> activeStealControllers = new List<ItemStealController>(_itemStealInitializers.Select(i => i.ItemStealController));
+
+            int stealIterations = 0;
+            float currentStealInterval = 0.3f;
+
+            while (activeStealControllers.Count > 0)
+            {
+                Util.ShuffleList(activeStealControllers);
+
+                for (int i = activeStealControllers.Count - 1; i >= 0; i--)
+                {
+                    ItemStealController itemStealController = activeStealControllers[i];
+                    if (!itemStealController)
+                    {
+                        activeStealControllers.RemoveAt(i);
+                        continue;
+                    }
+
+                    itemStealController.StepSteal();
+
+                    if (!itemStealController.inItemSteal)
+                    {
+                        activeStealControllers.RemoveAt(i);
+                    }
+
+                    yield return new WaitForSeconds(currentStealInterval);
+
+                    stealIterations++;
+                    if (stealIterations % 3 == 0)
+                    {
+                        currentStealInterval = Mathf.Max(0.1f, currentStealInterval * 0.925f);
+                    }
+                }
+            }
         }
 
         void tryStealItemsFrom(CharacterMaster master)
@@ -82,11 +154,15 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             }
         }
 
+        public void OnForceStopped()
+        {
+        }
+
         class CharacterItemStealInitializer
         {
             public readonly CharacterMaster Master;
 
-            ItemStealController _itemStealController;
+            public ItemStealController ItemStealController { get; private set; }
             ReturnStolenItemsOnGettingHit _returnStolenItems;
 
             bool _isStealing;
@@ -98,16 +174,23 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             ItemStealController getOrCreateItemStealController()
             {
-                if (!_itemStealController)
+                if (!ItemStealController)
                 {
                     GameObject bodyObject = Master.GetBodyObject();
                     if (!bodyObject)
                         return null;
 
                     GameObject itemStealControllerObj = GameObject.Instantiate(NetPrefabs.MonsterItemStealControllerPrefab);
-                    _itemStealController = itemStealControllerObj.GetComponent<ItemStealController>();
+                    ItemStealController = itemStealControllerObj.GetComponent<ItemStealController>();
 
-                    _itemStealController.stealInterval = RoR2Application.rng.RangeFloat(0.3f, 0.6f);
+                    if (_ignoreAILendFilter.Value)
+                    {
+                        ItemStealController.itemLendFilter = _ => true;
+                    }
+
+                    ItemStealController.itemStealFilter = itemStealFilter;
+
+                    ItemStealController.stealInterval = RoR2Application.rng.RangeFloat(0.3f, 0.6f);
 
                     if (!_returnStolenItems)
                     {
@@ -121,7 +204,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                             _returnStolenItems.maxPercentagePerItem = 100f;
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
-                            _returnStolenItems.itemStealController = _itemStealController;
+                            _returnStolenItems.itemStealController = ItemStealController;
 
                             HealthComponent healthComponent = bodyObject.GetComponent<CharacterBody>().healthComponent;
                             _returnStolenItems.healthComponent = healthComponent;
@@ -135,7 +218,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     itemStealControllerObj.GetComponent<NetworkedBodyAttachment>().AttachToGameObjectAndSpawn(bodyObject);
                 }
 
-                return _itemStealController;
+                return ItemStealController;
             }
 
             public void StartStealingFrom(Inventory inventory)
@@ -145,6 +228,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     return;
 
                 itemStealController.StartStealingFromInventory(inventory);
+
+                // We want to control the stealing manually, this is probably the best way to do it?
+                itemStealController.stealInterval = float.PositiveInfinity;
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                itemStealController.stealTimer = float.PositiveInfinity;
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
                 if (!_isStealing)
                 {
@@ -160,10 +249,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                 _isStealing = false;
 
-                if (_itemStealController)
+                if (ItemStealController)
                 {
-                    _itemStealController.onStealFinishServer.RemoveListener(onStealFinish);
-                    _itemStealController.LendImmediately(Master.inventory);
+                    ItemStealController.onStealFinishServer.RemoveListener(onStealFinish);
+                    ItemStealController.LendImmediately(Master.inventory);
                 }
             }
         }
