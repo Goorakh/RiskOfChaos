@@ -72,8 +72,22 @@ namespace RiskOfChaos.EffectDefinitions.UI
                     return;
             }
 
-            if (_excludeEffectNames.Value && ChaosEffectCatalog.FindEffectIndexByNameToken(token) != ChaosEffectIndex.Invalid)
-                return;
+            if (_excludeEffectNames.Value)
+            {
+                if (ChaosEffectCatalog.FindEffectIndexByNameToken(token) != ChaosEffectIndex.Invalid)
+                    return;
+
+                switch (token)
+                {
+                    case "CHAOS_ACTIVE_EFFECTS_BAR_TITLE":
+                    case "CHAOS_EFFECT_ACTIVATE":
+                    case "CHAOS_EFFECT_VOTING_RANDOM_OPTION_NAME":
+                    case "TIMED_TYPE_UNTIL_STAGE_END_FORMAT":
+                    case "TIMED_TYPE_FIXED_DURATION_FORMAT":
+                    case "TIMED_TYPE_PERMANENT_FORMAT":
+                        return;
+                }
+            }
 
             if (_tokenOverrideCache.TryGetValue(token, out string cachedOverride))
             {
