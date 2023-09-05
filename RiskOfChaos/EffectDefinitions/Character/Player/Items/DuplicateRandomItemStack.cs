@@ -29,7 +29,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                                  })
                                  .Build();
 
-        static readonly ParsedInt32 _maxItemStacks = new ParsedInt32();
+        static readonly ParsedInt32 _maxItemStacks = new ParsedInt32()
+        {
+            ConfigHolder = _maxItemStacksConfig
+        };
 
         [EffectConfig]
         static readonly ConfigHolder<string> _itemBlacklistConfig =
@@ -41,15 +44,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                                  })
                                  .Build();
 
-        static readonly ParsedItemList _itemBlacklist = new ParsedItemList(ItemIndexComparer.Instance);
-
-        [SystemInitializer(typeof(ChaosEffectCatalog))]
-        static void InitConfigs()
+        static readonly ParsedItemList _itemBlacklist = new ParsedItemList(ItemIndexComparer.Instance)
         {
-            _maxItemStacks.BindToConfig(_maxItemStacksConfig.Entry);
-
-            _itemBlacklist.BindToConfig(_itemBlacklistConfig.Entry);
-        }
+            ConfigHolder = _itemBlacklistConfig
+        };
 
         [EffectCanActivate]
         static bool CanActivate(in EffectCanActivateContext context)

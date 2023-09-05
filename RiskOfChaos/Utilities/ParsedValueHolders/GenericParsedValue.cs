@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using RiskOfChaos.ConfigHandling;
 using System;
 using System.Collections.Generic;
 
@@ -63,6 +64,11 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders
         public bool HasParsedValue => ValueState == ParsedValueState.Valid;
         T _parsedValue;
 
+        public ConfigHolder<string> ConfigHolder
+        {
+            init => BindToConfig(value);
+        }
+
         public GenericParsedValue()
         {
         }
@@ -92,6 +98,18 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders
             {
                 _boundToConfig.SettingChanged += onBoundConfigChanged;
                 ParsedInput = _boundToConfig.Value;
+            }
+        }
+
+        public void BindToConfig(ConfigHolder<string> holder)
+        {
+            if (holder.Entry != null)
+            {
+                BindToConfig(holder.Entry);
+            }
+            else
+            {
+                holder.OnBind += BindToConfig;
             }
         }
 

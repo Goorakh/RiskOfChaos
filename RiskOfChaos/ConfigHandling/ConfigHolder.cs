@@ -44,6 +44,9 @@ namespace RiskOfChaos.ConfigHandling
 
         public event EventHandler<ConfigChangedArgs<T>> SettingChanged;
 
+        public delegate void OnBindDelegate(ConfigEntry<T> entry);
+        public event OnBindDelegate OnBind;
+
         public ConfigHolder(string key, T defaultValue, ConfigDescription description, IEqualityComparer<T> equalityComparer, ValueConstrictor<T> valueConstrictor, ValueValidator<T> valueValidator, BaseOptionConfig optionConfig, string[] previousKeys)
         {
             if (string.IsNullOrEmpty(key))
@@ -123,6 +126,8 @@ namespace RiskOfChaos.ConfigHandling
             {
                 Entry.SettingChanged += Entry_SettingChanged;
                 invokeSettingChanged();
+
+                OnBind?.Invoke(Entry);
             }
 
             setupOption(modGuid, modName);
