@@ -39,6 +39,10 @@
   * Added config to change how many item stacks are uncorrupted per player
   * Added item blacklist config
 
+* Unscrap Random Item:
+  * Added config to change how many scrap stacks are unscrapped per player
+  * Added item blacklist config
+
 **1.10.1 Changes:**
 
 <details>
