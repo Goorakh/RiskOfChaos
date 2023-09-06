@@ -1,18 +1,51 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Comparers;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.Utilities.ParsedValueHolders.ParsedList;
+using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.Items;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
     [ChaosEffect("uncorrupt_random_item", DefaultSelectionWeight = 0.6f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
     public sealed class UncorruptRandomItem : BaseEffect
     {
+        [EffectConfig]
+        static readonly ConfigHolder<int> _uncorruptItemCount =
+            ConfigFactory<int>.CreateConfig("Uncorrupt Count", 1)
+                              .Description("How many items should be uncorrupted per player")
+                              .OptionConfig(new IntSliderConfig
+                              {
+                                  min = 1,
+                                  max = 10
+                              })
+                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
+                              .Build();
+
+        [EffectConfig]
+        static readonly ConfigHolder<string> _itemBlacklistConfig =
+            ConfigFactory<string>.CreateConfig("Item Blacklist", string.Empty)
+                                 .Description("A comma-separated list of items that should not be allowed to be uncorrupted or uncorrupted to. Both internal and English display names are accepted, with spaces and commas removed.")
+                                 .OptionConfig(new InputFieldConfig
+                                 {
+                                     submitOn = InputFieldConfig.SubmitEnum.OnSubmit
+                                 })
+                                 .Build();
+
+        static readonly ParsedItemList _itemBlacklist = new ParsedItemList(ItemIndexComparer.Instance)
+        {
+            ConfigHolder = _itemBlacklistConfig
+        };
+
         [EffectCanActivate]
         static bool CanActivate(in EffectCanActivateContext context)
         {
@@ -28,11 +61,19 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 ItemIndex transformedItem = transformationInfo.transformedItem;
                 ItemIndex originalItem = transformationInfo.originalItem;
 
+                if (_itemBlacklist.Contains(originalItem) || _itemBlacklist.Contains(transformedItem))
+                {
+#if DEBUG
+                    Log.Debug($"Excluding transform {ItemCatalog.GetItemDef(originalItem)} -> {ItemCatalog.GetItemDef(transformedItem)}: Blacklist");
+#endif
+
+                    continue;
+                }
+
                 Run run = Run.instance;
                 if (run)
                 {
-                    if (!run.IsItemAvailable(transformedItem) || run.IsItemExpansionLocked(transformedItem) ||
-                        !run.IsItemAvailable(originalItem) || run.IsItemExpansionLocked(originalItem))
+                    if (!run.IsItemAvailable(transformedItem) || !run.IsItemAvailable(originalItem))
                     {
                         continue;
                     }
@@ -66,13 +107,19 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             if (availableTransformableItems.Count == 0)
                 return;
 
-            ItemIndex itemToTransform = rng.NextElementUniform(availableTransformableItems);
-            uncorruptItem(master, rng, itemToTransform, reverseItemCorruptionMap[itemToTransform]);
+            int numItemsToUncorrupt = Mathf.Min(availableTransformableItems.Count, _uncorruptItemCount.Value);
+            for (int i = 0; i < numItemsToUncorrupt; i++)
+            {
+                ItemIndex itemToTransform = availableTransformableItems.GetAndRemoveRandom(rng);
+                uncorruptItem(master, rng, itemToTransform, reverseItemCorruptionMap[itemToTransform]);
+            }
         }
 
         static void uncorruptItem(CharacterMaster master, Xoroshiro128Plus rng, ItemIndex corruptItemIndex, List<ItemIndex> uncorruptItems)
         {
             Inventory inventory = master.inventory;
+            if (!inventory)
+                return;
 
             int corruptItemCount = inventory.GetItemCount(corruptItemIndex);
 

@@ -35,6 +35,10 @@
   * Added item blacklist config
   * Fixed item scrap pickup message appearing before effect activation message
 
+* Uncorrupt Random Item:
+  * Added config to change how many item stacks are uncorrupted per player
+  * Added item blacklist config
+
 **1.10.1 Changes:**
 
 * Added 2 new effects:
