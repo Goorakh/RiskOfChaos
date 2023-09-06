@@ -96,11 +96,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                 while (availableScrapItems.Count > 0)
                 {
-                    int scrapItemIndex = RNG.RangeInt(0, availableScrapItems.Count);
-                    ItemDef scrapItem = availableScrapItems[scrapItemIndex];
-                    availableScrapItems.RemoveAt(scrapItemIndex);
-
-                    if (tryConvertScrap(scrapItem))
+                    if (tryConvertScrap(availableScrapItems.GetAndRemoveRandom(RNG)))
                         return;
                 }
 

@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Items;
 using System.Collections.Generic;
@@ -98,10 +99,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                     return;
                 }
 
-                int index = RNG.RangeInt(0, availableItems.Count);
-                suppressedItemIndex = availableItems[index];
-                availableItems.RemoveAt(index);
-
+                suppressedItemIndex = availableItems.GetAndRemoveRandom(RNG);
                 transformedItemIndex = getTransformedItemIndex(suppressedItemIndex);
             } while (transformedItemIndex == ItemIndex.None || !SuppressedItemManager.SuppressItem(suppressedItemIndex, transformedItemIndex));
 

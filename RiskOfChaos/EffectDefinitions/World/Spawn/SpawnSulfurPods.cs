@@ -3,6 +3,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.Navigation;
@@ -57,11 +58,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             int spawnCount = Mathf.Max(1, Mathf.FloorToInt(RNG.RangeFloat(0.15f, 0.3f) * validSpawnNodes.Count));
             for (int i = 0; i < spawnCount; i++)
             {
-                int spawnNodeIndex = RNG.RangeInt(0, validSpawnNodes.Count);
-                NodeGraph.NodeIndex spawnNode = validSpawnNodes[spawnNodeIndex];
-                validSpawnNodes.RemoveAt(spawnNodeIndex);
-
-                if (spawnNodeGraph.GetNodePosition(spawnNode, out Vector3 position))
+                if (spawnNodeGraph.GetNodePosition(validSpawnNodes.GetAndRemoveRandom(RNG), out Vector3 position))
                 {
                     Vector3 normal = SpawnUtils.GetEnvironmentNormalAtPoint(position);
 
