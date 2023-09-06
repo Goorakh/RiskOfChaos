@@ -41,6 +41,8 @@
 
 **1.10.1 Changes:**
 
+<details>
+
 * Added 2 new effects:
   * Increase Skill Cooldowns: Increases cooldown for all skills, lasts 1 stage
   * Decrease Skill Cooldowns: Decreases cooldown for all skills, lasts 1 stage
@@ -56,8 +58,11 @@
 
 * Misc:
   * Seconds duration of effects is now displayed in the effect voting options and the chat activation message
+</details>
 
 **1.10.0 Changes:**
+
+<details>
 
 * Added 9 new effects:
   * Recruit Random Enemy: Converts a random enemy on the stage to the player team
@@ -91,7 +96,11 @@
 * Misc:
   * Added config options to change the colors of most UI elements of the mod
 
+</details>
+
 **1.9.1 Changes:**
+
+<details>
 
 * Added 1 new effect:
   * Delayed Attacks: All attacks have a 0.5 second delay before happening, lasts 90 seconds
@@ -135,7 +144,11 @@
   * Added the ability to set a keyboard shortcut to activate a specific effect at any time in a run
   * Updated default effect weight reduction percentage: 5% -> 0%
 
+</details>
+
 **1.9.0 Changes:**
+
+<details>
 
 * Added 5 new effects:
   * No sprinting: Disables sprinting for all characters, lasts 30 seconds
@@ -169,7 +182,11 @@
 * All Items are Void Potentials:
   * Fixed duplicate items drops if the effect is activated while Artifact of Command is active
 
+</details>
+
 **1.8.0 Changes:**
+
+<details>
 
 * Added 6 new effects:
   * Aspect Roulette: Randomly switches the elite aspect of all characters (only affects players if they already have an aspect equipment)
@@ -205,7 +222,11 @@
   * Fixed automatic effect activation getting delayed if Rewind Run Timer is activated while the run timer is paused
   * Updated Risk of Options dependency (2.5.3 -> 2.6.1)
 
+</details>
+
 **1.7.4 Changes:**
+
+<details>
 
 * Reworked 1 effect:
   * Pause Physics -> Laggy Physics
@@ -217,7 +238,11 @@
 * Roll Credits:
   * Slightly improved performance while active
 
+</details>
+
 **1.7.3 Changes:**
+
+<details>
 
 * Bouncy Projectiles:
   * Effect can now be activated several times per stage (max number of bounces increases with each instance of the effect)
@@ -226,7 +251,11 @@
 * Eradicate Random Item:
   * Fixed Strange Scrap not being usable as scrap
 
+</details>
+
 **1.7.2 Changes:**
+
+<details>
 
 * Added 1 new effect:
   * Roll Credits: Starts the game credits
@@ -237,7 +266,11 @@
 * Teleporting Attacks:
   * Fixed AOE attacks not teleporting the attacker if nothing was hit
 
+</details>
+
 **1.7.1 Changes:**
+
+<details>
 
 * UI:
   * Made active effects display take slightly less vertical space
@@ -258,7 +291,11 @@
 * Misc:
   * Fixed effects being able to activate during cutscenes
 
+</details>
+
 **1.7.0 Changes:**
+
+<details>
 
 * UI:
   * Active effects are now displayed on the HUD.
@@ -275,7 +312,11 @@
     * FixedDuration: Lasts for a set number of seconds.
     * Permanent: Lasts until the end of the run.
 
+</details>
+
 **1.6.0 Changes:**
+
+<details>
 
 * Added 4 new effects:
   * Spawn Jump Pad: Spawns a random jump pad at every player
@@ -298,7 +339,11 @@
 * Removed 1 effect:
   * Warbanner: Just caused a bunch of lag, and the warbanner visuals didn't communicate which team it belonged to, making it confusing too.
 
+</details>
+
 **1.5.0 Changes:**
+
+<details>
 
 * Added 9 new effects:
   * Reinforcements: Spawns allied survivors in drop pods around the map.
@@ -327,7 +372,11 @@
 * Increase Director Credits:
   * Credit increase percentage is now configurable
 
+</details>
+
 **1.4.1 Changes:**
+
+<details>
 
 * Added 1 new effect:
   * Steal All Player Items: Steals all items from every player and distributes them among enemies, damage the enemy that took items to gain them back (leaving the stage will also give all the items back)
@@ -352,7 +401,11 @@
 * Misc:
   * Fixed a bug that would sometimes cause 2 effects to activate at once
 
+</details>
+
 **1.4.0 Changes:**
+
+<details>
 
 * Added 5 new effects:
   * Blood Money: All interactable prices are converted into percent health cost, lasts 1 stage
@@ -373,7 +426,11 @@
 * Spawn Void Seed:
   * Fixed effect being able to activate if the stage doesn't allow one to spawn
 
+</details>
+
 **1.3.0 Changes:**
+
+<details>
 
 * Added 5 new effects:
   * Guaranteed Chance Effects: All percent-chance effects are guaranteed to happen (effectively infinite luck stat on everything), lasts 1 stage
@@ -396,7 +453,11 @@
   * Votes will now alternate being offset by vote option amount to prevent identical vote chat messages being blocked (for example, by default, every other vote will be 1-4 and 5-8)
   * Added "Manual Reconnect" button in Streamer Integration config. Which can be used to reconnect the mod to your Twitch channel in case it gets disconnected and is unable to automatically reconnect.
 
+</details>
+
 **1.2.1 Changes:**
+
+<details>
 
 * Twitch Voting:
   * Fixed certain effects never being able to activate when effect voting was enabled
@@ -408,7 +469,11 @@
 * Increase Proc Coefficients:
   * Fixed missing duration in display name
 
+</details>
+
 **1.2.0 Changes:**
+
+<details>
 
 * Added 8 new effects:
   * All Items Are Void Potentials: All dropped items become Void Potentials. The original item is always guaranteed to be an option to prevent potential softlocks. Lasts 1 stage.
@@ -435,7 +500,11 @@
 * Spawn Scavenger Bag
   * Now has a 1/5 chance of spawning a Lunar Scavenger bag
 
+</details>
+
 **1.1.0 Changes:**
+
+<details>
 
 * Added 1 new effect:
   * Spawn Void Seed: Spawns a void seed somewhere on the map
@@ -469,7 +538,11 @@
 * Spawn Random Boss:
   * Fixed DLC bosses being able to spawn without SOTV enabled
 
+</details>
+
 **1.0.0 Changes:**
+
+<details>
 
 * Twitch Integration:
   * Added Twitch Integration
@@ -477,7 +550,11 @@
 * Performance:
   * Fixed a significant lagspike when a random effect is selected for the first time
 
+</details>
+
 **0.9.0 Changes:**
+
+<details>
 
 * Added 4 new effects:
   * Disable Random Skill: Disables a random skill slot (Lasts 1 stage)
@@ -491,7 +568,11 @@
 * Multiplayer:
   * Fixed various server-client desync issues
 
+</details>
+
 **0.8.1 Changes:**
+
+<details>
 
 * Added 5 new effects:
   * Spawn Random Beacon: Spawns a random captain beacon on every player
@@ -512,7 +593,11 @@
 
 * Misc: Minor performance improvements
 
+</details>
+
 **0.8.0 Changes:**
+
+<details>
 
 * Potrolling: Pots now have invincibility for 1 second after spawning, so they can no longer explode immediately
 
@@ -534,7 +619,11 @@
   * +5 Minutes: Adds 5 minutes to the run timer
   * Trigger Random Family Event: Activates a random family event for the rest of the current stage
 
+</details>
+
 **0.7.0 Changes:**
+
+<details>
 
 * Effects will now activate in stages with the run timer paused
 * Fixed effects being able to activate while the game is paused if the time between effects config value is changed
@@ -543,7 +632,11 @@
 * Added Effect: Activate Random Equipment
 * Added Effect: Change Difficulty
 
+</details>
+
 **0.6.0 Changes:**
+
+<details>
 
 * Added Effect: Increase Chest Prices
 * Added Effect: Decrease Chest Prices
@@ -556,14 +649,22 @@
 
 * Added config entries for effect weight reduction per activation (decrease likelyhood of effect activating many times)
 
+</details>
+
 **0.5.0 Changes:**
+
+<details>
 
 * Added Effect: Potrolling
 * Added Effect: Wet Floor
 
 * Fixed changing the time between effects config mid-run not applying properly
 
+</details>
+
 **0.4.0 Changes:**
+
+<details>
 
 * Added Effect: Warbanner
 * Added Effect: Spawn Doppelganger
@@ -576,7 +677,11 @@
 
 * Fixed +50% Director Credits not properly applying more than once per stage
 
+</details>
+
 **0.3.0 Changes:**
+
+<details>
 
 * Added effect: Corrupt Random Item
 
@@ -589,7 +694,11 @@
 
 * Fixed Randomize Loadout only giving default skills and skins
 
+</details>
+
 **0.2.0 Changes:**
+
+<details>
 
 * Added effect: Give Random Elite Aspect
 * Fixed Randomize Loadout forcing players out of the intro pod
@@ -597,44 +706,82 @@
 * Give Random Item: If giving equipment, it will now search all equipment slots for an empty one instead of just the active one, and if none are found, the equipment will be dropped at the players feet instead.
 * Payday: Added config options to control how much money is given and if it should scale the amount given with interactible prices
 
+</details>
+
 **0.1.8 Changes:**
+
+<details>
 
 * Removed (now unnecessary) R2API.Networking dependency
 * Fixed language tokens not loading due to invalid folder structure in last upload (oops)
 
+</details>
+
 **0.1.7 Changes:**
+
+<details>
 
 * Added effect: +50% Gravity
 * Added effect: -50% Gravity
 * Fixed +50% Director Credits carrying over to future stages (would still apply to directors after stage load)
 
+</details>
+
 **0.1.6 Changes:**
+
+<details>
 
 * Fixed language tokens not loading (for real this time)
 
+</details>
+
 **0.1.5 Changes:**
+
+<details>
 
 * Added effect: Scrap Random Item
 * Randomize Loadout will no longer revive dead players
 
+</details>
+
 **0.1.4 Changes:**
+
+<details>
 
 * Added effect: Mitosis
 * Use R2API split assemblies
 
+</details>
+
 **0.1.3 Changes:**
+
+<details>
 
 * Added effect: You and a super intelligent Lemurian...
 
+</details>
+
 **0.1.2 Changes:**
+
+<details>
 
 * Fix Randomize Loadout spawning players as a new survivor if Artifact of Metamorphosis was enabled.
 * (Hopefully) fix language tokens sometimes not loading properly
 
+</details>
+
 **0.1.1 Changes:**
+
+<details>
 
 * README update
 
+</details>
+
 **0.1.0 Changes:**
 
+<details>
+
 * First release
+
+</details>
