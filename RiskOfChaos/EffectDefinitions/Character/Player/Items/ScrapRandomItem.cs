@@ -5,11 +5,14 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Comparers;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.Utilities.ParsedValueHolders.ParsedList;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
@@ -44,33 +47,63 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                                .OptionConfig(new CheckBoxConfig())
                                .Build();
 
+        [EffectConfig]
+        static readonly ConfigHolder<int> _scrapCount =
+            ConfigFactory<int>.CreateConfig("Scrap Count", 1)
+                              .Description("How many items/stacks should be scrapped per player")
+                              .OptionConfig(new IntSliderConfig
+                              {
+                                  min = 1,
+                                  max = 10
+                              })
+                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
+                              .Build();
+
+        [EffectConfig]
+        static readonly ConfigHolder<string> _itemBlacklistConfig =
+            ConfigFactory<string>.CreateConfig("Scrap Blacklist", string.Empty)
+                                 .Description("A comma-separated list of items that should not be allowed to be scrapped. Both internal and English display names are accepted, with spaces and commas removed.")
+                                 .OptionConfig(new InputFieldConfig
+                                 {
+                                     submitOn = InputFieldConfig.SubmitEnum.OnSubmit
+                                 })
+                                 .Build();
+
+        static readonly ParsedItemList _itemBlacklist = new ParsedItemList(ItemIndexComparer.Instance)
+        {
+            ConfigHolder = _itemBlacklistConfig
+        };
+
         static IEnumerable<ItemIndex> getAllScrappableItems(Inventory inventory)
         {
             if (!inventory)
                 yield break;
 
-            foreach (ItemIndex itemIndex in ItemCatalog.allItems)
+            foreach (ItemIndex itemIndex in inventory.itemAcquisitionOrder)
             {
-                int itemCount = inventory.GetItemCount(itemIndex);
-                if (itemCount > 0)
+                ItemDef itemDef = ItemCatalog.GetItemDef(itemIndex);
+                if (!itemDef || itemDef.hidden || !itemDef.canRemove || itemDef.ContainsTag(ItemTag.Scrap))
+                    continue;
+
+                ItemTierDef itemTierDef = ItemTierCatalog.GetItemTierDef(itemDef.tier);
+                if (!itemTierDef || !itemTierDef.canScrap)
+                    continue;
+
+                if (getScrapPickupForItemTier(itemDef.tier) == null)
                 {
-                    ItemDef itemDef = ItemCatalog.GetItemDef(itemIndex);
-                    if (itemDef)
-                    {
-                        ItemTierDef itemTierDef = ItemTierCatalog.GetItemTierDef(itemDef.tier);
-                        if (!itemDef.hidden &&
-                            itemDef.canRemove &&
-                            itemTierDef &&
-                            itemTierDef.canScrap &&
-                            itemDef.DoesNotContainTag(ItemTag.Scrap))
-                        {
-                            for (int i = 0; i < itemCount; i++)
-                            {
-                                yield return itemIndex;
-                            }
-                        }
-                    }
+                    Log.Warning($"{itemDef} ({itemTierDef}) should be scrappable, but no scrap item is defined");
+                    continue;
                 }
+
+                if (_itemBlacklist.Contains(itemIndex))
+                {
+#if DEBUG
+                    Log.Debug($"Not scrapping {itemDef}: Blacklist");
+#endif
+                    continue;
+                }
+
+                yield return itemIndex;
             }
         }
 
@@ -95,11 +128,34 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             if (!scrappableItems.Any())
                 return;
 
-            ItemDef itemToScrap = ItemCatalog.GetItemDef(RNG.NextElementUniform(scrappableItems.ToArray()));
-            scrapItem(characterMaster, inventory, itemToScrap);
+            WeightedSelection<ItemIndex> itemSelector = new WeightedSelection<ItemIndex>();
+            foreach (ItemIndex item in scrappableItems)
+            {
+                itemSelector.AddChoice(item, _scrapWholeStack.Value ? 1f : inventory.GetItemCount(item));
+            }
+
+            HashSet<ItemIndex> notifiedScrapItems = new HashSet<ItemIndex>();
+
+            for (int i = Mathf.Min(_scrapCount.Value, itemSelector.Count) - 1; i >= 0; i--)
+            {
+                ItemDef itemToScrap = ItemCatalog.GetItemDef(itemSelector.GetAndRemoveRandom(RNG));
+                scrapItem(characterMaster, inventory, itemToScrap, notifiedScrapItems);
+            }
+
+            RoR2Application.onNextUpdate += () =>
+            {
+                foreach (ItemIndex scrapItemIndex in notifiedScrapItems)
+                {
+                    PickupDef scrapPickup = PickupCatalog.GetPickupDef(PickupCatalog.FindPickupIndex(scrapItemIndex));
+                    if (scrapPickup == null)
+                        continue;
+
+                    Chat.AddPickupMessage(characterMaster.GetBody(), scrapPickup.nameToken, scrapPickup.baseColor, (uint)inventory.GetItemCount(scrapItemIndex));
+                }
+            };
         }
 
-        static void scrapItem(CharacterMaster characterMaster, Inventory inventory, ItemDef itemToScrap)
+        static void scrapItem(CharacterMaster characterMaster, Inventory inventory, ItemDef itemToScrap, HashSet<ItemIndex> notifiedScrapItems)
         {
             PickupDef scrapPickup = getScrapPickupForItemTier(itemToScrap.tier);
             if (scrapPickup == null)
@@ -120,7 +176,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             CharacterMasterNotificationQueue.PushItemTransformNotification(characterMaster, itemToScrap.itemIndex, scrapPickup.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
 
-            Chat.AddPickupMessage(characterMaster.GetBody(), scrapPickup.nameToken, scrapPickup.baseColor, (uint)inventory.GetItemCount(scrapPickup.itemIndex));
+            notifiedScrapItems?.Add(scrapPickup.itemIndex);
         }
 
         static PickupDef getScrapPickupForItemTier(ItemTier tier)

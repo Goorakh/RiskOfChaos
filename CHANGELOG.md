@@ -30,6 +30,11 @@
   * Added config for blacklisted item (won't be stolen)
   * Added config to make enemies ignore AI blacklist while using your items
 
+* Scrap Random Item:
+  * Added config to control how many items or stacks are scrapped per player
+  * Added item blacklist config
+  * Fixed item scrap pickup message appearing before effect activation message
+
 **1.10.1 Changes:**
 
 * Added 2 new effects:
