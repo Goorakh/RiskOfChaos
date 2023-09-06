@@ -1,11 +1,14 @@
 ﻿using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Linq;
 
@@ -58,6 +61,18 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             }
         }
 
+        [EffectConfig]
+        static readonly ConfigHolder<int> _transformItemCount =
+            ConfigFactory<int>.CreateConfig("Transform Item Count", 1)
+                              .Description("How many items should be transformed per player")
+                              .OptionConfig(new IntSliderConfig
+                              {
+                                  min = 1,
+                                  max = 10
+                              })
+                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
+                              .Build();
+
         [EffectCanActivate]
         static bool CanActivate(in EffectCanActivateContext context)
         {
@@ -74,7 +89,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
         static void upgradeRandomItem(CharacterMaster playerMaster, Xoroshiro128Plus rng)
         {
-            TryCloverVoidUpgradesReversePatch.TryCloverVoidUpgrades(playerMaster, 1, rng);
+            TryCloverVoidUpgradesReversePatch.TryCloverVoidUpgrades(playerMaster, _transformItemCount.Value, rng);
         }
     }
 }
