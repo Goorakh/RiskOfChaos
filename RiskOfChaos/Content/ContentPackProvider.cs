@@ -24,6 +24,7 @@ namespace RiskOfChaos.Content
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
             Items.AddItemDefsTo(_contentPack.itemDefs);
+            Buffs.AddBuffDefsTo(_contentPack.buffDefs);
             BodyPrefabs.AddBodyPrefabsTo(_contentPack.bodyPrefabs);
 
             args.ReportProgress(1f);

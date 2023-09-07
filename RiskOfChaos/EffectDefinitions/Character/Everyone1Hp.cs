@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectDefinitions.Character.Buff;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.EffectDefinitions.Character.Buff;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
@@ -12,15 +13,13 @@ namespace RiskOfChaos.EffectDefinitions.Character
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return canSelectBuff(RoR2Content.Buffs.PermanentCurse.buffIndex);
+            return canSelectBuff(Buffs.SetTo1Hp.buffIndex);
         }
 
         protected override BuffIndex getBuffIndexToApply()
         {
-            return RoR2Content.Buffs.PermanentCurse.buffIndex;
+            return Buffs.SetTo1Hp.buffIndex;
         }
-
-        protected override int buffCount => int.MaxValue;
 
         public override void OnStart()
         {
