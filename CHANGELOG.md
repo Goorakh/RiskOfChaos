@@ -27,7 +27,7 @@
 
 * Steal All Player Items:
   * Improved stealing interval to be a bit more spread out
-  * Added config for blacklisted item (won't be stolen)
+  * Added config for blacklisted items (won't be stolen)
   * Added config to make enemies ignore AI blacklist while using your items
 
 * Scrap Random Item:
