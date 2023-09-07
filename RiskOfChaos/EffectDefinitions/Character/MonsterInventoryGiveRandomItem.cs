@@ -4,9 +4,12 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Comparers;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.Utilities.ParsedValueHolders.ParsedList;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -17,6 +20,34 @@ namespace RiskOfChaos.EffectDefinitions.Character
     {
         static bool _dropTableDirty = false;
         static BasicPickupDropTable _dropTable;
+
+        [EffectConfig]
+        static readonly ConfigHolder<int> _itemCount =
+            ConfigFactory<int>.CreateConfig("Item Count", 1)
+                              .Description("The amount of items to give per effect activation")
+                              .OptionConfig(new IntSliderConfig
+                              {
+                                  min = 1,
+                                  max = 10
+                              })
+                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
+                              .Build();
+
+        [EffectConfig]
+        static readonly ConfigHolder<string> _itemBlacklistConfig =
+            ConfigFactory<string>.CreateConfig("Item Blacklist", string.Empty)
+                                 .Description("A comma-separated list of items and equipment that should not be included for the effect. Both internal and English display names are accepted, with spaces and commas removed.")
+                                 .OptionConfig(new InputFieldConfig
+                                 {
+                                     submitOn = InputFieldConfig.SubmitEnum.OnSubmit
+                                 })
+                                 .OnValueChanged(() => _dropTableDirty = true)
+                                 .Build();
+
+        static readonly ParsedPickupList _itemBlacklist = new ParsedPickupList(PickupIndexComparer.Instance)
+        {
+            ConfigHolder = _itemBlacklistConfig
+        };
 
         static ConfigHolder<float> createWeightConfig(string name, float defaultValue)
         {
@@ -91,11 +122,41 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (!_dropTable || self != _dropTable)
                     return;
 
-                self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.ArtifactKey.itemIndex), _bossWeight.Value);
-                self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.CaptainDefenseMatrix.itemIndex), _tier3Weight.Value);
-                self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.Pearl.itemIndex), _bossWeight.Value);
-                self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.ShinyPearl.itemIndex), _bossWeight.Value);
-                self.AddPickupIfMissing(PickupCatalog.FindPickupIndex(RoR2Content.Items.TonicAffliction.itemIndex), _lunarItemWeight.Value);
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                WeightedSelection<PickupIndex> selector = self.selector;
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+
+                for (int i = selector.Count - 1; i >= 0; i--)
+                {
+                    PickupIndex pickupIndex = selector.GetChoice(i).value;
+                    if (_itemBlacklist.Contains(pickupIndex))
+                    {
+#if DEBUG
+                        Log.Debug($"Removing {pickupIndex} from droptable: Blacklist");
+#endif
+                        selector.RemoveChoice(i);
+                    }
+                }
+
+                void tryAddPickup(PickupIndex pickup, float weight)
+                {
+                    if (!_itemBlacklist.Contains(pickup))
+                    {
+                        self.AddPickupIfMissing(pickup, weight);
+                    }
+                    else
+                    {
+#if DEBUG
+                        Log.Debug($"Not adding {pickup} to droptable: Blacklist");
+#endif
+                    }
+                }
+
+                tryAddPickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.ArtifactKey.itemIndex), _bossWeight.Value);
+                tryAddPickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.CaptainDefenseMatrix.itemIndex), _tier3Weight.Value);
+                tryAddPickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.Pearl.itemIndex), _bossWeight.Value);
+                tryAddPickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.ShinyPearl.itemIndex), _bossWeight.Value);
+                tryAddPickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.TonicAffliction.itemIndex), _lunarItemWeight.Value);
 
                 if (run.IsExpansionEnabled(ExpansionUtils.DLC1))
                 {
@@ -162,41 +223,64 @@ namespace RiskOfChaos.EffectDefinitions.Character
             return _monsterInventory;
         }
 
-        PickupDef _grantedPickupDef;
+        PickupDef[] _grantedPickupDefs;
 
-        public override void OnStart()
+        public override void OnPreStartServer()
         {
+            base.OnPreStartServer();
+
             if (!_dropTable || _dropTableDirty)
             {
                 regenerateDropTable();
             }
 
-            _grantedPickupDef = PickupCatalog.GetPickupDef(_dropTable.GenerateDrop(RNG));
-            _monsterInventory.TryGrant(_grantedPickupDef, true);
-
-            uint pickupCount;
-            if (_grantedPickupDef.itemIndex != ItemIndex.None)
+            _grantedPickupDefs = new PickupDef[_itemCount.Value];
+            for (int i = 0; i < _grantedPickupDefs.Length; i++)
             {
-                pickupCount = (uint)_monsterInventory.GetItemCount(_grantedPickupDef.itemIndex);
+                _grantedPickupDefs[i] = PickupCatalog.GetPickupDef(_dropTable.GenerateDrop(RNG));
             }
-            else
+        }
+
+        public override void OnStart()
+        {
+            Dictionary<PickupDef, uint> pickupCounts = new Dictionary<PickupDef, uint>();
+
+            foreach (PickupDef pickupDef in _grantedPickupDefs)
             {
-                pickupCount = 1;
+                _monsterInventory.TryGrant(pickupDef, true);
+
+                uint pickupCount;
+                if (pickupDef.itemIndex != ItemIndex.None)
+                {
+                    pickupCount = (uint)_monsterInventory.GetItemCount(pickupDef.itemIndex);
+                }
+                else
+                {
+                    pickupCount = 1;
+                }
+
+                pickupCounts[pickupDef] = pickupCount;
             }
 
-            Chat.SendBroadcastChat(new Chat.PlayerPickupChatMessage
+            foreach (KeyValuePair<PickupDef, uint> pickupCountPair in pickupCounts)
             {
-                baseToken = "MONSTER_INVENTORY_ADD_ITEM",
-                pickupToken = _grantedPickupDef.nameToken,
-                pickupColor = _grantedPickupDef.baseColor,
-                pickupQuantity = pickupCount
-            });
+                Chat.SendBroadcastChat(new Chat.PlayerPickupChatMessage
+                {
+                    baseToken = "MONSTER_INVENTORY_ADD_ITEM",
+                    pickupToken = pickupCountPair.Key.nameToken,
+                    pickupColor = pickupCountPair.Key.baseColor,
+                    pickupQuantity = pickupCountPair.Value
+                });
+            }
 
             CharacterMaster.readOnlyInstancesList.TryDo(master =>
             {
                 if (canGiveItems(master))
                 {
-                    master.inventory.TryGrant(_grantedPickupDef, true);
+                    foreach (PickupDef pickupDef in _grantedPickupDefs)
+                    {
+                        master.inventory.TryGrant(pickupDef, true);
+                    }
                 }
             }, Util.GetBestMasterName);
         }
@@ -205,14 +289,20 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             if (_monsterInventory)
             {
-                _monsterInventory.TryRemove(_grantedPickupDef);
+                foreach (PickupDef pickupDef in _grantedPickupDefs)
+                {
+                    _monsterInventory.TryRemove(pickupDef);
+                }
             }
 
             CharacterMaster.readOnlyInstancesList.TryDo(master =>
             {
                 if (canGiveItems(master))
                 {
-                    master.inventory.TryRemove(_grantedPickupDef);
+                    foreach (PickupDef pickupDef in _grantedPickupDefs)
+                    {
+                        master.inventory.TryRemove(pickupDef);
+                    }
                 }
             }, Util.GetBestMasterName);
         }

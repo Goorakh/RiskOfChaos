@@ -18,7 +18,7 @@
 * Corrupt Random Item:
   * Added configurable blacklist to make the effect not corrupt certain items
 
-* Give Random Item:
+* Give Random Item & Add Random Item to Monster Inventory:
   * Added configurable blacklist to exclude specific items or equipments from the effect
   * Amount of items given is now configurable
 
