@@ -52,6 +52,9 @@
 * Launch Everyone in Random Directions:
   * Added config to control the strength of the force applied to characters
 
+* Item Magnet & Item Repulsor:
+  * Added config to control the strength of the item attraction/repulsion
+
 **1.10.1 Changes:**
 
 <details>

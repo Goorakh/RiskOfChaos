@@ -69,9 +69,21 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
             {
                 _createdInstances.Add(attractToPlayers);
                 onAttractorComponentAdded(attractToPlayers);
+                updateAttractorComponent(attractToPlayers);
             }
         }
 
-        protected abstract void onAttractorComponentAdded(AttractToPlayers attractToPlayers);
+        protected void updateAllAttractorComponents()
+        {
+            _createdInstances.TryDo(updateAttractorComponent);
+        }
+
+        protected virtual void onAttractorComponentAdded(AttractToPlayers attractToPlayers)
+        {
+        }
+
+        protected virtual void updateAttractorComponent(AttractToPlayers attractToPlayers)
+        {
+        }
     }
 }
