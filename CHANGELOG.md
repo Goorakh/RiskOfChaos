@@ -49,6 +49,9 @@
 * Disable Random Skill & Force Activate Random Skill:
   * Added config to exclude specific skill slots from the effect
 
+* Launch Everyone in Random Directions:
+  * Added config to control the strength of the force applied to characters
+
 **1.10.1 Changes:**
 
 <details>

@@ -1,8 +1,11 @@
 ﻿using HG;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectDefinitions.World;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfOptions.OptionConfigs;
 using RoR2;
 using UnityEngine;
 
@@ -12,6 +15,20 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [IncompatibleEffects(typeof(DisableKnockback))]
     public sealed class LaunchEveryone : BaseEffect
     {
+        [EffectConfig]
+        static readonly ConfigHolder<float> _knockbackScale =
+            ConfigFactory<float>.CreateConfig("Force Multiplier", 1f)
+                                .Description("Scale of the force applied to all characters")
+                                .OptionConfig(new StepSliderConfig
+                                {
+                                    formatString = "{0:F2}x",
+                                    min = 0f,
+                                    max = 5f,
+                                    increment = 0.05f
+                                })
+                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
+                                .Build();
+
         public override void OnStart()
         {
             CharacterBody.readOnlyInstancesList.TryDo(launchInRandomDirection, FormatUtils.GetBestBodyName);
@@ -38,7 +55,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                              RNG.RangeFloat(-DEVIATION, DEVIATION)) * Vector3.up;
             }
 
-            applyForceToBody(body, direction * RNG.RangeFloat(50f, 150f));
+            applyForceToBody(body, direction * (RNG.RangeFloat(50f, 150f) * _knockbackScale.Value));
         }
 
         static void applyForceToBody(CharacterBody body, Vector3 force)
