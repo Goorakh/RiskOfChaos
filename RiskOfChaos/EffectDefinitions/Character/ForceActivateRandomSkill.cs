@@ -1,8 +1,13 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.ModifierController.SkillSlots;
+using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
@@ -10,13 +15,43 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [EffectConfigBackwardsCompatibility("Effect: Force Activate Random Skill (Lasts 1 stage)")]
     public sealed class ForceActivateRandomSkill : TimedEffect, ISkillSlotModificationProvider
     {
+        static ConfigHolder<bool> createSkillAllowedConfig(SkillSlot slot)
+        {
+            return ConfigFactory<bool>.CreateConfig($"Force {slot}", true)
+                                      .Description($"If {slot} skills should be allowed to be forced")
+                                      .OptionConfig(new CheckBoxConfig())
+                                      .Build();
+        }
+
+        [EffectConfig] static readonly ConfigHolder<bool> _allowForcePrimary = createSkillAllowedConfig(SkillSlot.Primary);
+        [EffectConfig] static readonly ConfigHolder<bool> _allowForceSecondary = createSkillAllowedConfig(SkillSlot.Secondary);
+        [EffectConfig] static readonly ConfigHolder<bool> _allowForceUtility = createSkillAllowedConfig(SkillSlot.Utility);
+        [EffectConfig] static readonly ConfigHolder<bool> _allowForceSpecial = createSkillAllowedConfig(SkillSlot.Special);
+
+        static bool canForceSkill(SkillSlot slot)
+        {
+            return slot switch
+            {
+                SkillSlot.Primary => _allowForcePrimary.Value,
+                SkillSlot.Secondary => _allowForceSecondary.Value,
+                SkillSlot.Utility => _allowForceUtility.Value,
+                SkillSlot.Special => _allowForceSpecial.Value,
+                _ => true,
+            };
+        }
+
+        static IEnumerable<SkillSlot> getAllForcableSkillSlots()
+        {
+            return SkillSlotModificationManager.Instance.NonLockedNonForceActivatedSkillSlots.Where(canForceSkill);
+        }
+
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return SkillSlotModificationManager.Instance && SkillSlotModificationManager.Instance.NonLockedNonForceActivatedSkillSlots.Length > 0;
+            return SkillSlotModificationManager.Instance && getAllForcableSkillSlots().Any();
         }
 
-        SkillSlot _forcedSkillSlot;
+        SkillSlot _forcedSkillSlot = SkillSlot.None;
 
         public event Action OnValueDirty;
 
@@ -32,7 +67,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             base.OnPreStartServer();
 
-            _forcedSkillSlot = RNG.NextElementUniform(SkillSlotModificationManager.Instance.NonLockedNonForceActivatedSkillSlots);
+            _forcedSkillSlot = RNG.NextElementUniform(getAllForcableSkillSlots().ToArray());
         }
 
         public override void OnStart()

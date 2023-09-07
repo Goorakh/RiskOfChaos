@@ -46,7 +46,7 @@
 * Benthic Transform Random Item:
   * Added config to change how many items are transformed per effect activation
 
-* Disable Random Skill:
+* Disable Random Skill & Force Activate Random Skill:
   * Added config to exclude specific skill slots from the effect
 
 **1.10.1 Changes:**
