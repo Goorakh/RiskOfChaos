@@ -18,9 +18,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
         {
             _projectileEntries = new SpawnEntry[]
             {
-                new SpawnEntry(Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Nullifier/NullifierDeathBombProjectile.prefab").WaitForCompletion(), 1f),
-                new SpawnEntry(Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/VoidJailer/VoidJailerDeathBombProjectile.prefab").WaitForCompletion(), 0.4f),
-                new SpawnEntry(Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/VoidMegaCrab/VoidMegaCrabDeathBombProjectile.prefab").WaitForCompletion(), 0.4f)
+                loadBasicSpawnEntry("RoR2/Base/Nullifier/NullifierDeathBombProjectile.prefab", 1f),
+                loadBasicSpawnEntry("RoR2/DLC1/VoidJailer/VoidJailerDeathBombProjectile.prefab", 0.4f),
+                loadBasicSpawnEntry("RoR2/DLC1/VoidMegaCrab/VoidMegaCrabDeathBombProjectile.prefab", 0.4f)
             };
         }
 

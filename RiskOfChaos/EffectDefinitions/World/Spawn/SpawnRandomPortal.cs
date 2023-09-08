@@ -15,25 +15,15 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [SystemInitializer]
         static void Init()
         {
-            static InteractableSpawnCard loadSpawnCard(string path)
-            {
-                return Addressables.LoadAssetAsync<InteractableSpawnCard>(path).WaitForCompletion();
-            }
-
-            static SpawnCardEntry getEntrySingle(string iscPath, float weight = 1f)
-            {
-                return new SpawnCardEntry(loadSpawnCard(iscPath), weight);
-            }
-
             _spawnCards = new SpawnCardEntry[]
             {
-                getEntrySingle("RoR2/Base/PortalGoldshores/iscGoldshoresPortal.asset", 1.2f),
-                getEntrySingle("RoR2/Base/PortalMS/iscMSPortal.asset", 1.2f),
-                getEntrySingle("RoR2/Base/PortalShop/iscShopPortal.asset", 1.2f),
-                getEntrySingle("RoR2/DLC1/GameModes/InfiniteTowerRun/InfiniteTowerAssets/iscInfiniteTowerPortal.asset"),
-                getEntrySingle("RoR2/DLC1/DeepVoidPortal/iscDeepVoidPortal.asset", 0.8f),
-                getEntrySingle("RoR2/DLC1/PortalVoid/iscVoidPortal.asset", 0.8f),
-                getEntrySingle("RoR2/DLC1/VoidOutroPortal/iscVoidOutroPortal.asset", 0.8f)
+                loadBasicSpawnEntry("RoR2/Base/PortalGoldshores/iscGoldshoresPortal.asset", 1.2f),
+                loadBasicSpawnEntry("RoR2/Base/PortalMS/iscMSPortal.asset", 1.2f),
+                loadBasicSpawnEntry("RoR2/Base/PortalShop/iscShopPortal.asset", 1.2f),
+                loadBasicSpawnEntry("RoR2/DLC1/GameModes/InfiniteTowerRun/InfiniteTowerAssets/iscInfiniteTowerPortal.asset"),
+                loadBasicSpawnEntry("RoR2/DLC1/DeepVoidPortal/iscDeepVoidPortal.asset", 0.8f),
+                loadBasicSpawnEntry("RoR2/DLC1/PortalVoid/iscVoidPortal.asset", 0.8f),
+                loadBasicSpawnEntry("RoR2/DLC1/VoidOutroPortal/iscVoidOutroPortal.asset", 0.8f)
             };
         }
 

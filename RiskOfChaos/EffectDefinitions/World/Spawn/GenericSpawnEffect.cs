@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
@@ -44,6 +45,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             {
                 return $"[ {string.Join(", ", _items)} ]";
             }
+        }
+
+        protected static SpawnEntry loadBasicSpawnEntry(string addressablePath, float weight = 1f)
+        {
+            return new SpawnEntry(Addressables.LoadAssetAsync<TSpawnType>(addressablePath).WaitForCompletion(), weight);
+        }
+
+        protected static SpawnEntry loadBasicSpawnEntry(string[] addressablePaths, float weight = 1f)
+        {
+            return new SpawnEntry(Array.ConvertAll(addressablePaths, p => Addressables.LoadAssetAsync<TSpawnType>(p).WaitForCompletion()), weight);
         }
 
         protected static bool areAnyAvailable<TSpawnEntry>(TSpawnEntry[] entries) where TSpawnEntry : SpawnEntry

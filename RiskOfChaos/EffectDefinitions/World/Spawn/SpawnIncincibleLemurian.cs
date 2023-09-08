@@ -17,15 +17,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [SystemInitializer]
         static void Init()
         {
-            SpawnCardEntry loadSpawnCard(string path, float weight)
-            {
-                return new SpawnCardEntry(Addressables.LoadAssetAsync<CharacterSpawnCard>(path).WaitForCompletion(), weight);
-            }
-
             _entries = new SpawnCardEntry[]
             {
-                loadSpawnCard("RoR2/Base/Lemurian/cscLemurian.asset", 95f),
-                loadSpawnCard("RoR2/Base/LemurianBruiser/cscLemurianBruiser.asset", 5f)
+                loadBasicSpawnEntry("RoR2/Base/Lemurian/cscLemurian.asset", 95f),
+                loadBasicSpawnEntry("RoR2/Base/LemurianBruiser/cscLemurianBruiser.asset", 5f)
             };
         }
 

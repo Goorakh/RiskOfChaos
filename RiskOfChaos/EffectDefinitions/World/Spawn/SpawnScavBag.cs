@@ -16,8 +16,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             _spawnEntries = new SpawnCardEntry[]
             {
-                new SpawnCardEntry(Addressables.LoadAssetAsync<InteractableSpawnCard>("RoR2/Base/Scav/iscScavBackpack.asset").WaitForCompletion(), 1f),
-                new SpawnCardEntry(Addressables.LoadAssetAsync<InteractableSpawnCard>("RoR2/Base/Scav/iscScavLunarBackpack.asset").WaitForCompletion(), 0.25f)
+                loadBasicSpawnEntry("RoR2/Base/Scav/iscScavBackpack.asset"),
+                loadBasicSpawnEntry("RoR2/Base/Scav/iscScavLunarBackpack.asset", 0.25f)
             };
         }
 

@@ -1,7 +1,9 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RoR2;
+using System;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
@@ -12,8 +14,15 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             public SpawnCardEntry(TSpawnCard[] items, float weight) : base(items, weight)
             {
             }
+            public SpawnCardEntry(string[] addressablePaths, float weight) : this(Array.ConvertAll(addressablePaths, p => Addressables.LoadAssetAsync<TSpawnCard>(p).WaitForCompletion()), weight)
+            {
+            }
 
             public SpawnCardEntry(TSpawnCard item, float weight) : base(item, weight)
+            {
+            }
+
+            public SpawnCardEntry(string addressablePath, float weight) : this(Addressables.LoadAssetAsync<TSpawnCard>(addressablePath).WaitForCompletion(), weight)
             {
             }
 
@@ -26,6 +35,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             {
                 return prefab && ExpansionUtils.IsObjectExpansionAvailable(prefab);
             }
+        }
+
+        protected static new SpawnCardEntry loadBasicSpawnEntry(string addressablePath, float weight = 1f)
+        {
+            return new SpawnCardEntry(addressablePath, weight);
+        }
+
+        protected static new SpawnCardEntry loadBasicSpawnEntry(string[] addressablePaths, float weight = 1f)
+        {
+            return new SpawnCardEntry(addressablePaths, weight);
         }
 
         [EffectCanActivate]

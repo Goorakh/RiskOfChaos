@@ -18,18 +18,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [SystemInitializer]
         static void Init()
         {
-            static SpawnEntry loadBeaconEntry(string path, float weight = 1f)
-            {
-                return new SpawnEntry(Addressables.LoadAssetAsync<GameObject>(path).WaitForCompletion(), weight);
-            }
-
             _beaconSpawnEntries = new SpawnEntry[]
             {
-                loadBeaconEntry("RoR2/Base/Captain/CaptainSupplyDrop, EquipmentRestock.prefab"),
-                loadBeaconEntry("RoR2/Base/Captain/CaptainSupplyDrop, Hacking.prefab"),
-                loadBeaconEntry("RoR2/Base/Captain/CaptainSupplyDrop, Healing.prefab"),
-                loadBeaconEntry("RoR2/Base/Captain/CaptainSupplyDrop, Plating.prefab"),
-                loadBeaconEntry("RoR2/Base/Captain/CaptainSupplyDrop, Shocking.prefab")
+                loadBasicSpawnEntry("RoR2/Base/Captain/CaptainSupplyDrop, EquipmentRestock.prefab"),
+                loadBasicSpawnEntry("RoR2/Base/Captain/CaptainSupplyDrop, Hacking.prefab"),
+                loadBasicSpawnEntry("RoR2/Base/Captain/CaptainSupplyDrop, Healing.prefab"),
+                loadBasicSpawnEntry("RoR2/Base/Captain/CaptainSupplyDrop, Plating.prefab"),
+                loadBasicSpawnEntry("RoR2/Base/Captain/CaptainSupplyDrop, Shocking.prefab")
             };
         }
 
