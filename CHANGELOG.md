@@ -66,6 +66,9 @@
 
 * Recruit Random Enemy:
   * Recruited enemy will now come with you to the next stage
+ 
+* Potrolling:
+  * Added config for amount of pots spawned
 
 * Mod Compatibility:
   * Fixed mod effectively removing all modded damage types
