@@ -55,6 +55,11 @@
 * Item Magnet & Item Repulsor:
   * Added config to control the strength of the item attraction/repulsion
 
+* Misc:
+  * Updated R2API.Core dependency: 5.0.3 -> 5.0.10
+  * Updated R2API.RecalculateStats dependency: 1.0.0 -> 1.2.0
+  * Updated R2API.Prefab dependency: 1.0.1 -> 1.0.3
+
 **1.10.1 Changes:**
 
 <details>
