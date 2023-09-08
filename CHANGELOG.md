@@ -55,6 +55,9 @@
 * Item Magnet & Item Repulsor:
   * Added config to control the strength of the item attraction/repulsion
 
+* Adaptive Recycling:
+  * Added config for amount of time between recycles
+
 * Mod Compatibility:
   * Fixed mod effectively removing all modded damage types
 
