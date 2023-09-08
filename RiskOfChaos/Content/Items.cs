@@ -75,11 +75,14 @@ namespace RiskOfChaos.Content
                             if (instance && instance.master.inventory.GetItemCount(InvincibleLemurianMarker) > 0)
                             {
                                 // Filter results to only target players (don't target player allies like drones)
-                                return results.Where(hurtBox =>
+                                IEnumerable<HurtBox> playerControlledTargets = results.Where(hurtBox =>
                                 {
                                     GameObject entityObject = HurtBox.FindEntityObject(hurtBox);
                                     return entityObject && entityObject.TryGetComponent(out CharacterBody characterBody) && characterBody.isPlayerControlled;
                                 });
+
+                                // If there are no players, use the default target so that the AI doesn't end up doing nothing
+                                return playerControlledTargets.Any() ? playerControlledTargets : results;
                             }
                             else
                             {
