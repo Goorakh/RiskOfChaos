@@ -51,6 +51,7 @@
 
 * Launch Everyone in Random Directions:
   * Added config to control the strength of the force applied to characters
+  * Effect will now always launch players upwards if fall damage is lethal to prevent the effect from instantly killing you
 
 * Item Magnet & Item Repulsor:
   * Added config to control the strength of the item attraction/repulsion
