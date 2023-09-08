@@ -63,6 +63,9 @@
   * Now has a 33% attack speed reduction
   * Fixed Leonard not attacking any enemies if he was recruited to the player team
 
+* Recruit Random Enemy:
+  * Recruited enemy will now come with you to the next stage
+
 * Mod Compatibility:
   * Fixed mod effectively removing all modded damage types
 

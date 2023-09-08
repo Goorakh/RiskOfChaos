@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.CharacterAI;
 using System.Collections.Generic;
@@ -71,6 +72,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     bossGroup.combatSquad.RemoveMember(master);
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
                 }
+
+                master.gameObject.SetDontDestroyOnLoad(true);
             }
         }
     }
