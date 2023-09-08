@@ -59,6 +59,10 @@
 * Adaptive Recycling:
   * Added config for amount of time between recycles
 
+* You and a super intelligent Lemurian...:
+  * Now has a 33% attack speed reduction
+  * Fixed Leonard not attacking any enemies if he was recruited to the player team
+
 * Mod Compatibility:
   * Fixed mod effectively removing all modded damage types
 

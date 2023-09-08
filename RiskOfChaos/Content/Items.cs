@@ -104,6 +104,7 @@ namespace RiskOfChaos.Content
 
                 if (inventory.GetItemCount(InvincibleLemurianMarker) > 0)
                 {
+                    args.attackSpeedReductionMultAdd += 0.5f;
                     args.moveSpeedReductionMultAdd += 1f;
                 }
             };
