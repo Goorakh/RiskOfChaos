@@ -23,7 +23,7 @@ namespace RiskOfChaos
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Gorakh";
         public const string PluginName = "RiskOfChaos";
-        public const string PluginVersion = "1.10.1";
+        public const string PluginVersion = "1.11.0";
 
         internal static string ModDirectory { get; private set; }
 

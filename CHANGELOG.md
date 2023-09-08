@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**1.11.0 Changes:**
 
 * Added 1 new effect:
   * Relocate Teleporter: Moves the stage teleporter to a random position on the map
