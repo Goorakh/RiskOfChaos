@@ -60,6 +60,7 @@
   * Added config for amount of time between recycles
 
 * You and a super intelligent Lemurian...:
+  * Now has a 5% chance to spawn as an Elder
   * Now has a 33% attack speed reduction
   * Fixed Leonard not attacking any enemies if he was recruited to the player team
 

@@ -4,29 +4,41 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.CharacterAI;
+using System;
 using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("spawn_invincible_lemurian", EffectWeightReductionPercentagePerActivation = 15f)]
-    public sealed class SpawnIncincibleLemurian : BaseEffect
+    public sealed class SpawnIncincibleLemurian : GenericDirectorSpawnEffect<CharacterSpawnCard>
     {
-        static readonly SpawnCard _cscLemurian = Addressables.LoadAssetAsync<SpawnCard>("RoR2/Base/Lemurian/cscLemurian.asset").WaitForCompletion();
+        static SpawnCardEntry[] _entries = Array.Empty<SpawnCardEntry>();
+
+        [SystemInitializer]
+        static void Init()
+        {
+            SpawnCardEntry loadSpawnCard(string path, float weight)
+            {
+                return new SpawnCardEntry(Addressables.LoadAssetAsync<CharacterSpawnCard>(path).WaitForCompletion(), weight);
+            }
+
+            _entries = new SpawnCardEntry[]
+            {
+                loadSpawnCard("RoR2/Base/Lemurian/cscLemurian.asset", 95f),
+                loadSpawnCard("RoR2/Base/LemurianBruiser/cscLemurianBruiser.asset", 5f)
+            };
+        }
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return DirectorCore.instance && _cscLemurian.HasValidSpawnLocation();
+            return areAnyAvailable(_entries);
         }
 
         public override void OnStart()
         {
-            DirectorPlacementRule placement = new DirectorPlacementRule
-            {
-                placementMode = SpawnUtils.GetBestValidRandomPlacementType()
-            };
-
-            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_cscLemurian, placement, new Xoroshiro128Plus(RNG.nextUlong))
+            CharacterSpawnCard spawnCard = getItemToSpawn(_entries, RNG);
+            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(spawnCard, SpawnUtils.GetBestValidRandomPlacementRule(), RNG)
             {
                 teamIndexOverride = TeamIndex.Monster,
                 ignoreTeamMemberLimit = true
