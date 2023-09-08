@@ -1,7 +1,9 @@
-﻿using RiskOfChaos.Utilities.Extensions;
+﻿using RiskOfChaos.ModCompatibility;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
 using System.Reflection;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.Damage
 {
@@ -50,7 +52,7 @@ namespace RiskOfChaos.ModifierController.Damage
 
         static void tryModifyDamageInfo(ref DamageInfo damageInfo)
         {
-            if (!Instance || damageInfo == null)
+            if (!NetworkServer.active || !Instance || !Instance.AnyModificationActive || damageInfo == null)
                 return;
 
             DamageInfo damageInfoCopy;
@@ -62,6 +64,11 @@ namespace RiskOfChaos.ModifierController.Damage
             {
                 Log.Error_NoCallerPrefix($"Failed to create shallow copy of {damageInfo}: {ex}");
                 return;
+            }
+
+            if (DamageAPICompat.Active)
+            {
+                DamageAPICompat.CopyModdedDamageTypes(damageInfo, damageInfoCopy);
             }
 
             damageInfo = Instance.getModifiedValue(damageInfoCopy);

@@ -55,6 +55,9 @@
 * Item Magnet & Item Repulsor:
   * Added config to control the strength of the item attraction/repulsion
 
+* Mod Compatibility:
+  * Fixed mod effectively removing all modded damage types
+
 * Misc:
   * Updated R2API.Core dependency: 5.0.3 -> 5.0.10
   * Updated R2API.RecalculateStats dependency: 1.0.0 -> 1.2.0
