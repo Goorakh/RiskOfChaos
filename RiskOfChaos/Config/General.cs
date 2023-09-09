@@ -30,6 +30,12 @@ namespace RiskOfChaos
                                     .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(TIME_BETWEEN_EFFECTS_MIN_VALUE))
                                     .Build();
 
+            public static readonly ConfigHolder<bool> RunEffectsTimerWhileRunTimerPaused =
+                ConfigFactory<bool>.CreateConfig("Dispatch Effects While Timer Paused", true)
+                                   .Description("If the mod should activate effects while the run timer is paused (in Bazaar, Gilded Coast, etc.)")
+                                   .OptionConfig(new CheckBoxConfig())
+                                   .Build();
+
             public static readonly ConfigHolder<Color> ActiveEffectsTextColor =
                 ConfigFactory<Color>.CreateConfig("Active Effect Text Color", Color.white)
                                     .Description("The color of the effect names in the \"Active Effects\" list")
@@ -43,6 +49,8 @@ namespace RiskOfChaos
                 DisableEffectDispatching.Bind(file, GENERAL_SECTION_NAME, CONFIG_GUID, CONFIG_NAME);
 
                 TimeBetweenEffects.Bind(file, GENERAL_SECTION_NAME, CONFIG_GUID, CONFIG_NAME);
+
+                RunEffectsTimerWhileRunTimerPaused.Bind(file, GENERAL_SECTION_NAME, CONFIG_GUID, CONFIG_NAME);
 
                 ActiveEffectsTextColor.Bind(file, GENERAL_SECTION_NAME, CONFIG_GUID, CONFIG_NAME);
             }

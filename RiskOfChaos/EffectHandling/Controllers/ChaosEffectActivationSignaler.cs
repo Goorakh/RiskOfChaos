@@ -27,7 +27,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 if (SceneExitController.isRunning)
                     return false;
 
-                if (!Run.instance || Run.instance.isGameOverServer)
+                if (!Run.instance || Run.instance.isGameOverServer || (Run.instance.isRunStopwatchPaused && !Configs.General.RunEffectsTimerWhileRunTimerPaused.Value))
                     return false;
 
                 if (!Stage.instance || Stage.instance.entryTime.timeSince < MIN_STAGE_TIME_REQUIRED_TO_DISPATCH)
