@@ -32,7 +32,14 @@ namespace RiskOfChaos.Utilities
 
                     if (skillVariants.Length > 0)
                     {
-                        loadout.bodyLoadoutManager.SetSkillVariant(bodyIndex, i, (uint)rng.RangeInt(0, skillVariants.Length));
+                        try
+                        {
+                            loadout.bodyLoadoutManager.SetSkillVariant(bodyIndex, i, (uint)rng.RangeInt(0, skillVariants.Length));
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Error_NoCallerPrefix($"Failed to set {BodyCatalog.GetBodyName(bodyIndex)} {(SkillSlot)i} skill: {e}");
+                        }
                     }
                 }
             }
@@ -42,7 +49,14 @@ namespace RiskOfChaos.Utilities
                 int bodySkinCount = BodyCatalog.GetBodySkins(bodyIndex).Length;
                 if (bodySkinCount > 0)
                 {
-                    loadout.bodyLoadoutManager.SetSkinIndex(bodyIndex, (uint)rng.RangeInt(0, bodySkinCount));
+                    try
+                    {
+                        loadout.bodyLoadoutManager.SetSkinIndex(bodyIndex, (uint)rng.RangeInt(0, bodySkinCount));
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error_NoCallerPrefix($"Failed to set {BodyCatalog.GetBodyName(bodyIndex)} skin: {e}");
+                    }
                 }
             }
 
