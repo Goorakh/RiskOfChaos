@@ -7,6 +7,8 @@
 
 **1.11.0 Changes:**
 
+<details>
+
 * Added 1 new effect:
   * Relocate Teleporter: Moves the stage teleporter to a random position on the map
 
@@ -83,6 +85,8 @@
   * Updated R2API.RecalculateStats dependency: 1.0.0 -> 1.2.0
   * Updated R2API.Prefab dependency: 1.0.1 -> 1.0.3
 
+</details>
+
 **1.10.1 Changes:**
 
 <details>
@@ -102,6 +106,7 @@
 
 * Misc:
   * Seconds duration of effects is now displayed in the effect voting options and the chat activation message
+
 </details>
 
 **1.10.0 Changes:**
