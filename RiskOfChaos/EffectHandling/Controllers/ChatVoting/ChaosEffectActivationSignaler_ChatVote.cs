@@ -146,7 +146,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
                     if (effectVoteDisplayController)
                     {
                         float voteTimeRemaining = _voteTimer.GetTimeRemaining();
-                        if (voteTimeRemaining <= START_FADE_TIME)
+                        if (voteTimeRemaining <= START_FADE_TIME && canDispatchEffects)
                         {
                             effectVoteDisplayController.SetVoteDisplayAlpha(Util.Remap(voteTimeRemaining, 0f, START_FADE_TIME, 0f, 1f));
                         }
