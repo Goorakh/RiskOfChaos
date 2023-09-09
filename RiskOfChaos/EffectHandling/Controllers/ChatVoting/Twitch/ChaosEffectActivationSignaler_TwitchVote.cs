@@ -12,6 +12,23 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
     [ChaosEffectActivationSignaler(Configs.ChatVoting.ChatVotingMode.Twitch)]
     public class ChaosEffectActivationSignaler_TwitchVote : ChaosEffectActivationSignaler_ChatVote
     {
+        public static bool IsConnectionMessageToken(string token)
+        {
+            switch (token)
+            {
+                case "TWITCH_EFFECT_VOTING_LOGIN_FAIL_FORMAT":
+                case "TWITCH_LOGIN_FAIL_NOT_LOGGED_IN":
+                case "TWITCH_EFFECT_VOTING_CONNECTION_ERROR":
+                case "TWITCH_EFFECT_VOTING_GENERIC_CLIENT_CONNECT_FAIL":
+                case "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_NO_PERMISSION":
+                case "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_INCORRECT_LOGIN":
+                case "TWITCH_EFFECT_VOTING_LOGIN_SUCCESS":
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         static TwitchLoginCredentials _loginCredentials = TwitchLoginCredentials.TryReadFromFile();
 
         [SystemInitializer]
@@ -105,7 +122,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
                 baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
                 paramTokens = new string[] { Language.GetString("TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_INCORRECT_LOGIN") }
             });
-                }
+        }
 
         static void onFailureToReceiveJoinConfirmation(object sender, OnFailureToReceiveJoinConfirmationArgs e)
         {

@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Patches;
@@ -71,6 +72,9 @@ namespace RiskOfChaos.EffectDefinitions.UI
                 case "CHAOS_EFFECT_UNHANDLED_EXCEPTION_MESSAGE":
                     return;
             }
+
+            if (ChaosEffectActivationSignaler_TwitchVote.IsConnectionMessageToken(token))
+                return;
 
             if (_excludeEffectNames.Value)
             {
