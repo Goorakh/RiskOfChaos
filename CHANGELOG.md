@@ -1,5 +1,10 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* Twitch Voting:
+  * Improved error messages if the Twitch Client fails to connect
+
 **1.11.0 Changes:**
 
 * Added 1 new effect:

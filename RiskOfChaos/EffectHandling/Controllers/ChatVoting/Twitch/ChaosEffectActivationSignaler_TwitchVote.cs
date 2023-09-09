@@ -4,6 +4,7 @@ using TwitchLib.Client;
 using TwitchLib.Client.Enums;
 using TwitchLib.Client.Events;
 using TwitchLib.Communication.Clients;
+using TwitchLib.Communication.Events;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
@@ -72,12 +73,66 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
                 _client.RemoveChatCommandIdentifier('!');
 
                 _client.OnConnectionError += onConnectionError;
+                _client.OnError += onClientError;
+                _client.OnFailureToReceiveJoinConfirmation += onFailureToReceiveJoinConfirmation;
+                _client.OnIncorrectLogin += onIncorrectLogin;
+                _client.OnNoPermissionError += onNoPermissionError;
 
                 if (!_client.Connect())
                 {
-                    Log.Warning("Twitch client failed to connect");
+                    Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                    {
+                        baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
+                        paramTokens = new string[] { Language.GetString("TWITCH_EFFECT_VOTING_GENERIC_CLIENT_CONNECT_FAIL") }
+                    });
                 }
             }
+        }
+
+        static void onNoPermissionError(object sender, System.EventArgs e)
+        {
+            Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+            {
+                baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
+                paramTokens = new string[] { Language.GetString("TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_NO_PERMISSION") }
+            });
+        }
+
+        static void onIncorrectLogin(object sender, OnIncorrectLoginArgs e)
+        {
+            Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+            {
+                baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
+                paramTokens = new string[] { Language.GetString("TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_INCORRECT_LOGIN") }
+            });
+                }
+
+        static void onFailureToReceiveJoinConfirmation(object sender, OnFailureToReceiveJoinConfirmationArgs e)
+        {
+            string details;
+            if (!string.IsNullOrWhiteSpace(e.Exception.Details))
+            {
+                details = e.Exception.Details;
+            }
+            else
+            {
+                details = Language.GetString("TWITCH_EFFECT_VOTING_GENERIC_CLIENT_CONNECT_FAIL");
+            }
+
+            Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+            {
+                baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
+                paramTokens = new string[] { details }
+            });
+        }
+
+        static void onClientError(object sender, OnErrorEventArgs e)
+        {
+            Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+            {
+                baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
+                paramTokens = new string[] { e.Exception.GetType().Name }
+            });
         }
 
         static void onConnectionError(object s, OnConnectionErrorArgs e)
@@ -210,6 +265,12 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             {
                 _client.OnJoinedChannel -= onJoinedChannel;
                 _client.OnMessageReceived -= onMessageReceived;
+
+                _client.OnConnectionError -= onConnectionError;
+                _client.OnError -= onClientError;
+                _client.OnFailureToReceiveJoinConfirmation -= onFailureToReceiveJoinConfirmation;
+                _client.OnIncorrectLogin -= onIncorrectLogin;
+                _client.OnNoPermissionError -= onNoPermissionError;
             }
 
             if (_joinedChannel != null)
