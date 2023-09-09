@@ -3,6 +3,7 @@
 **?.?.? Changes:**
 
 * Twitch Voting:
+  * Fixed vote options sometimes not being visible while dispatching is temporarily disabled
   * Improved error messages if the Twitch Client fails to connect
 
 **1.11.0 Changes:**
