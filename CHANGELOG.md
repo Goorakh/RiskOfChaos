@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Added 1 new effect:
+  * Inventory Swap: Swaps the inventories of each player with another player. Multiplayer only.
+
 * General:
   * Added config option to disable effect dispatching while run timer is paused
 
