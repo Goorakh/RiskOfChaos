@@ -36,7 +36,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
             {
             }
 
-            public void GiveItem(ItemDef itemDef, int count = 1)
+            public readonly void GiveItem(ItemDef itemDef, int count = 1)
             {
                 if (!itemDef)
                     throw new ArgumentNullException(nameof(itemDef));
@@ -44,7 +44,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                 GiveItem(itemDef.itemIndex, count);
             }
 
-            public void GiveItem(ItemIndex itemIndex, int count = 1)
+            public readonly void GiveItem(ItemIndex itemIndex, int count = 1)
             {
                 if (ItemStacks == null)
                 {
@@ -61,7 +61,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                 ItemStacks[(int)itemIndex] += count;
             }
 
-            public void ApplyTo(CharacterMaster master)
+            public readonly void ApplyTo(CharacterMaster master)
             {
                 Inventory inventory = master.inventory;
 
