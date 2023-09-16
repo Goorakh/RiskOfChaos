@@ -55,8 +55,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             return !context.IsNow || PlayerUtils.GetAllPlayerMasters(false).Any(master => getAllDuplicatableItemStacks(master.inventory).Any());
         }
 
-        readonly record struct ItemStack(ItemIndex ItemIndex, int ItemCount);
-
         static IEnumerable<ItemStack> getAllDuplicatableItemStacks(Inventory inventory)
         {
             if (!inventory)

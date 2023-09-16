@@ -22,7 +22,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             public CharacterBody Target;
             Inventory _targetInventory;
 
-            readonly record struct ItemStack(ItemIndex ItemIndex, int StackCount);
             ItemStack[] _itemStacksToTransfer = Array.Empty<ItemStack>();
             int _currentItemTransferIndex;
 
@@ -81,8 +80,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     {
                         ItemStack itemStack = _itemStacksToTransfer[i];
 
-                        OwnerInventory.RemoveItem(itemStack.ItemIndex, itemStack.StackCount);
-                        _targetInventory.GiveItem(itemStack.ItemIndex, itemStack.StackCount);
+                        OwnerInventory.RemoveItem(itemStack.ItemIndex, itemStack.ItemCount);
+                        _targetInventory.GiveItem(itemStack.ItemIndex, itemStack.ItemCount);
                     }
                 }
 
@@ -114,8 +113,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             void giveNextItem()
             {
                 ItemStack itemStack = _itemStacksToTransfer[_currentItemTransferIndex++];
-                OwnerInventory.RemoveItem(itemStack.ItemIndex, itemStack.StackCount);
-                ItemTransferOrb orb = ItemTransferOrb.DispatchItemTransferOrb(OwnerBody.corePosition, Target.inventory, itemStack.ItemIndex, itemStack.StackCount, orb =>
+                OwnerInventory.RemoveItem(itemStack.ItemIndex, itemStack.ItemCount);
+                ItemTransferOrb orb = ItemTransferOrb.DispatchItemTransferOrb(OwnerBody.corePosition, Target.inventory, itemStack.ItemIndex, itemStack.ItemCount, orb =>
                 {
                     ItemTransferOrb.DefaultOnArrivalBehavior(orb);
                     _inFlightOrbs.Remove(orb);
