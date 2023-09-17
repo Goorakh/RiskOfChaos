@@ -15,6 +15,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
     [ChaosEffect("swap_player_inventories")]
     public sealed class SwapPlayerInventories : BaseEffect
     {
+        [RequireComponent(typeof(CharacterBody))]
         class GiveInventoryTo : MonoBehaviour
         {
             public CharacterBody OwnerBody;
@@ -161,9 +162,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                     giveInventoryTo.OnFinishGivingInventory += eventWaiter.GetListener();
 
-                    if (giveInventoryTo.Target.TryGetComponent(out GiveInventoryTo targetInventoryGiver))
+                    foreach (GiveInventoryTo givingInventoryToUs in inventoryGiverControllers.Where(g => g.Target == giveInventoryTo.OwnerBody))
                     {
-                        targetInventoryGiver.OnFinishGivingInventory += eventWaiter.GetListener();
+                        givingInventoryToUs.OnFinishGivingInventory += eventWaiter.GetListener();
                     }
 
                     IgnoreItemTransformations.IgnoreTransformationsFor(inventory);
