@@ -2,11 +2,12 @@
 
 **?.?.? Changes:**
 
-* Added 4 new effects:
+* Added 5 new effects:
   * Inventory Swap: Swaps the inventories of each player with another player. Multiplayer only.
   * No Equipment Cooldowns: Removes all equipment cooldowns, lasts 60 seconds.
   * Disable Equipment: Disables all equipment activation, lasts 60 seconds.
   * All Items Are A Random Item: All items on the stage get turned into a random item. Essentially Artifact of Kin for items. Lasts 1 stage.
+  * All Chests are Free: All chests and interactables are free, lasts 30 seconds.
 
 * Spawn Void Seed:
   * Void Seed can now spawn at any spot on the stage, not just the ones normally available as Void Seed spawn locations
