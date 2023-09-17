@@ -14,6 +14,9 @@ namespace RiskOfChaos.EffectDefinitions.World
     [EffectConfigBackwardsCompatibility("Effect: All Items Are Void Potentials (Lasts 1 stage)")]
     public sealed class AllVoidPotentials : TimedEffect
     {
+        public delegate void OverrideAllowChoicesDelegate(PickupIndex originalPickup, ref bool allowChoices);
+        public static event OverrideAllowChoicesDelegate OverrideAllowChoices;
+
         static readonly GameObject _optionPickupPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/OptionPickup/OptionPickup.prefab").WaitForCompletion();
 
         [EffectCanActivate]
@@ -60,8 +63,11 @@ namespace RiskOfChaos.EffectDefinitions.World
             {
                 const int MAX_NUM_OPTIONS = 3;
 
+                bool allowChoices = true;
+                OverrideAllowChoices?.Invoke(pickupIndex, ref allowChoices);
+
                 PickupIndex[] availablePickups = PickupTransmutationManager.GetAvailableGroupFromPickupIndex(pickupIndex);
-                if (availablePickups != null && availablePickups.Length > 0)
+                if (allowChoices && availablePickups != null && availablePickups.Length > 0)
                 {
                     // The method returns a reference to an array, but since we will be shuffling it, make a shallow copy of it so the order of the original is not changed
                     PickupIndex[] shuffledPickupIndices = (PickupIndex[])availablePickups.Clone();

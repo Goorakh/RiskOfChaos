@@ -223,34 +223,9 @@ namespace RiskOfChaos.EffectDefinitions.World
             On.RoR2.PickupDropTable.GenerateDrop += PickupDropTable_GenerateDrop;
             On.RoR2.PickupDropTable.GenerateUniqueDrops += PickupDropTable_GenerateUniqueDrops;
 
-            foreach (ChestBehavior chestBehavior in GameObject.FindObjectsOfType<ChestBehavior>())
-            {
-                if (!chestBehavior.HasRolledPickup(_currentOverridePickupIndex))
-                {
-                    chestBehavior.Roll();
-                }
-            }
+            AllVoidPotentials.OverrideAllowChoices += AllVoidPotentials_OverrideAllowChoices;
 
-            foreach (OptionChestBehavior optionChestBehavior in GameObject.FindObjectsOfType<OptionChestBehavior>())
-            {
-                if (!optionChestBehavior.HasRolledPickup(_currentOverridePickupIndex))
-                {
-                    optionChestBehavior.Roll();
-                }
-            }
-
-            foreach (ShopTerminalBehavior shopTerminalBehavior in GameObject.FindObjectsOfType<ShopTerminalBehavior>())
-            {
-                if (shopTerminalBehavior.CurrentPickupIndex() != _currentOverridePickupIndex)
-                {
-                    shopTerminalBehavior.GenerateNewPickupServer();
-                }
-            }
-
-            foreach (VoidSuppressorBehavior voidSuppressorBehavior in GameObject.FindObjectsOfType<VoidSuppressorBehavior>())
-            {
-                voidSuppressorBehavior.RefreshItems();
-            }
+            rerollAllChests();
         }
 
         public override void OnEnd()
@@ -258,49 +233,62 @@ namespace RiskOfChaos.EffectDefinitions.World
             On.RoR2.PickupDropTable.GenerateDrop -= PickupDropTable_GenerateDrop;
             On.RoR2.PickupDropTable.GenerateUniqueDrops -= PickupDropTable_GenerateUniqueDrops;
 
+            AllVoidPotentials.OverrideAllowChoices -= AllVoidPotentials_OverrideAllowChoices;
+
+            rerollAllChests();
+
+            rerollCurrentOverridePickup();
+        }
+
+        static void rerollAllChests()
+        {
             foreach (ChestBehavior chestBehavior in GameObject.FindObjectsOfType<ChestBehavior>())
             {
-                if (chestBehavior.HasRolledPickup(_currentOverridePickupIndex))
-                {
-                    chestBehavior.Roll();
-                }
+                chestBehavior.Roll();
             }
 
             foreach (OptionChestBehavior optionChestBehavior in GameObject.FindObjectsOfType<OptionChestBehavior>())
             {
-                if (optionChestBehavior.HasRolledPickup(_currentOverridePickupIndex))
-                {
-                    optionChestBehavior.Roll();
-                }
+                optionChestBehavior.Roll();
             }
 
             foreach (ShopTerminalBehavior shopTerminalBehavior in GameObject.FindObjectsOfType<ShopTerminalBehavior>())
             {
-                if (shopTerminalBehavior.CurrentPickupIndex() == _currentOverridePickupIndex)
-                {
-                    shopTerminalBehavior.GenerateNewPickupServer();
-                }
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                bool originalHasBeenPurchased = shopTerminalBehavior.hasBeenPurchased;
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+
+                shopTerminalBehavior.SetHasBeenPurchased(false);
+                shopTerminalBehavior.GenerateNewPickupServer();
+
+                shopTerminalBehavior.SetHasBeenPurchased(originalHasBeenPurchased);
             }
 
             foreach (VoidSuppressorBehavior voidSuppressorBehavior in GameObject.FindObjectsOfType<VoidSuppressorBehavior>())
             {
                 voidSuppressorBehavior.RefreshItems();
             }
-
-            rerollCurrentOverridePickup();
         }
 
-        PickupIndex PickupDropTable_GenerateDrop(On.RoR2.PickupDropTable.orig_GenerateDrop orig, PickupDropTable self, Xoroshiro128Plus rng)
+        static PickupIndex PickupDropTable_GenerateDrop(On.RoR2.PickupDropTable.orig_GenerateDrop orig, PickupDropTable self, Xoroshiro128Plus rng)
         {
             orig(self, rng);
             return _currentOverridePickupIndex;
         }
 
-        PickupIndex[] PickupDropTable_GenerateUniqueDrops(On.RoR2.PickupDropTable.orig_GenerateUniqueDrops orig, PickupDropTable self, int maxDrops, Xoroshiro128Plus rng)
+        static PickupIndex[] PickupDropTable_GenerateUniqueDrops(On.RoR2.PickupDropTable.orig_GenerateUniqueDrops orig, PickupDropTable self, int maxDrops, Xoroshiro128Plus rng)
         {
             PickupIndex[] result = orig(self, maxDrops, rng);
             ArrayUtils.SetAll(result, _currentOverridePickupIndex);
             return result;
+        }
+
+        static void AllVoidPotentials_OverrideAllowChoices(PickupIndex originalPickup, ref bool allowChoices)
+        {
+            if (originalPickup == _currentOverridePickupIndex)
+            {
+                allowChoices = false;
+            }
         }
     }
 }
