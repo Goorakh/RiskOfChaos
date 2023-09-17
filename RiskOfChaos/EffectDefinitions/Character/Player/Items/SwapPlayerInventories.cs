@@ -2,6 +2,7 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Orbs;
 using System;
@@ -132,7 +133,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return getAllEligiblePlayers().Count() > 1;
+            return getAllEligiblePlayers().CountGreaterThanOrEqualTo(2);
         }
 
         public override void OnStart()
