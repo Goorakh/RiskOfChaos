@@ -5,6 +5,9 @@
 * Added 1 new effect:
   * Inventory Swap: Swaps the inventories of each player with another player. Multiplayer only.
 
+* Spawn Void Seed:
+  * Void Seed can now spawn at any spot on the stage, not just the ones normally available as Void Seed spawn locations
+
 * General:
   * Added config option to disable effect dispatching while run timer is paused
 

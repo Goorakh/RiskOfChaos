@@ -2,8 +2,9 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RoR2;
+using RoR2.Navigation;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
@@ -15,11 +16,18 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [SystemInitializer]
         static void Init()
         {
-            AsyncOperationHandle<InteractableSpawnCard> iscVoidCampLoadHandle = Addressables.LoadAssetAsync<InteractableSpawnCard>("RoR2/DLC1/VoidCamp/iscVoidCamp.asset");
-            iscVoidCampLoadHandle.Completed += handle =>
+            InteractableSpawnCard iscVoidCamp = Addressables.LoadAssetAsync<InteractableSpawnCard>("RoR2/DLC1/VoidCamp/iscVoidCamp.asset").WaitForCompletion();
+            if (iscVoidCamp)
             {
-                _iscVoidCamp = handle.Result;
-            };
+                _iscVoidCamp = GameObject.Instantiate(iscVoidCamp);
+                _iscVoidCamp.requiredFlags = NodeFlags.None;
+                _iscVoidCamp.forbiddenFlags = NodeFlags.None;
+                _iscVoidCamp.hullSize = HullClassification.Human;
+            }
+            else
+            {
+                Log.Error("Could not load iscVoidCamp asset");
+            }
         }
 
         [EffectCanActivate]
