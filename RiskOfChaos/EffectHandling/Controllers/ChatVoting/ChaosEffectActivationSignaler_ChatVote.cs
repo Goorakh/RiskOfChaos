@@ -5,11 +5,15 @@ using RiskOfChaos.UI.ChatVoting;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
+using System.Linq;
 
 namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 {
     public class ChaosEffectActivationSignaler_ChatVote : ChaosEffectActivationSignaler
     {
+        static ChaosEffectActivationSignaler_ChatVote _instance;
+        public static ChaosEffectActivationSignaler_ChatVote Instance => _instance;
+
         static int numVoteOptions => Configs.ChatVoting.NumEffectOptions.Value + (Configs.ChatVoting.IncludeRandomEffectInVote.Value ? 1 : 0);
 
         public override event SignalShouldDispatchEffectDelegate SignalShouldDispatchEffect;
@@ -65,6 +69,8 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
         protected virtual void OnEnable()
         {
+            SingletonHelper.Assign(ref _instance, this);
+
             if (Run.instance)
             {
                 _rng = new Xoroshiro128Plus(Run.instance.runRNG.nextUlong);
@@ -166,6 +172,8 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
         protected virtual void OnDisable()
         {
+            SingletonHelper.Unassign(ref _instance, this);
+
             Configs.General.TimeBetweenEffects.SettingChanged -= onTimeBetweenEffectsChanged;
             Configs.General.DisableEffectDispatching.SettingChanged -= onDisableEffectDispatchingChanged;
             Configs.ChatVoting.WinnerSelectionMode.SettingChanged -= onVoteWinnerSelectionModeChanged;
@@ -302,6 +310,11 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             }
 
             SignalShouldDispatchEffect?.Invoke(effectInfo, dispatchFlags);
+        }
+
+        public bool CurrentVoteContains(ChaosEffectInfo effectInfo)
+        {
+            return _effectVoteSelection != null && _effectVoteSelection.IsVoteActive && _effectVoteSelection.GetVoteOptions().Any(voteInfo => voteInfo.EffectInfo == effectInfo);
         }
     }
 }
