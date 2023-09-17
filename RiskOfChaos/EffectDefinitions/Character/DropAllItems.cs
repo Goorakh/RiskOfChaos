@@ -27,10 +27,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             public override int PickupDropletCount => ItemCount;
 
-            public ItemPickupInfo(Inventory inventory, PickupIndex pickupIndex, int itemCount) : base(inventory, pickupIndex)
+            public ItemPickupInfo(Inventory inventory, ItemIndex itemIndex, int itemCount) : base(inventory, PickupCatalog.FindPickupIndex(itemIndex))
             {
                 ItemCount = itemCount;
-                ItemIndex = PickupCatalog.GetPickupDef(pickupIndex).itemIndex;
+                ItemIndex = itemIndex;
             }
 
             public override void RemoveFromInventory()
@@ -44,10 +44,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
             public readonly EquipmentIndex EquipmentIndex;
             public readonly uint EquipmentSlotIndex;
 
-            public EquipmentPickupInfo(Inventory inventory, PickupIndex pickupIndex, uint equipmentSlotIndex) : base(inventory, pickupIndex)
+            public EquipmentPickupInfo(Inventory inventory, EquipmentIndex equipmentIndex, uint equipmentSlotIndex) : base(inventory, PickupCatalog.FindPickupIndex(equipmentIndex))
             {
                 EquipmentSlotIndex = equipmentSlotIndex;
-                EquipmentIndex = PickupCatalog.GetPickupDef(pickupIndex).equipmentIndex;
+                EquipmentIndex = equipmentIndex;
             }
 
             public override void RemoveFromInventory()
@@ -56,20 +56,22 @@ namespace RiskOfChaos.EffectDefinitions.Character
             }
         }
 
+        static IEnumerable<CharacterBody> getAllCharactersWithDroppableItems()
+        {
+            return CharacterBody.readOnlyInstancesList.Where(b => getPickupsToDrop(b).Any());
+        }
+
         [EffectCanActivate]
         static bool CanActivate(in EffectCanActivateContext context)
         {
-            return !context.IsNow || CharacterBody.readOnlyInstancesList.Any(b => getPickupsToDrop(b).Any());
+            return !context.IsNow || getAllCharactersWithDroppableItems().Any();
         }
 
         [EffectWeightMultiplierSelector]
         static float GetWeightMultiplier()
         {
-            IEnumerable<CharacterBody> charactersWithDroppableItems = CharacterBody.readOnlyInstancesList
-                                                                                   .Where(b => getPickupsToDrop(b).Any());
-
             // If only non-player characters have droppable items -> Decrease weight
-            return charactersWithDroppableItems.Any(b => b.isPlayerControlled) ? 1f : 0.5f;
+            return getAllCharactersWithDroppableItems().Any(b => b.isPlayerControlled) ? 1f : 0.5f;
         }
 
         public override void OnStart()
@@ -78,9 +80,9 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 Vector3 bodyPosition = body.corePosition;
 
-                List<PickupInfo> pickupsToDrop = getPickupsToDrop(body).ToList();
+                PickupInfo[] pickupsToDrop = getPickupsToDrop(body).ToArray();
 
-                Vector3 dropVelocity = Quaternion.AngleAxis(Random.Range(0f, 360f), Vector3.up) * ((Vector3.up * 40f) + (Vector3.forward * 5f));
+                Vector3 dropVelocity = Quaternion.AngleAxis(RNG.RangeFloat(0f, 360f), Vector3.up) * ((Vector3.up * 40f) + (Vector3.forward * 5f));
                 Quaternion rotationPerDrop = Quaternion.AngleAxis(360f / pickupsToDrop.Sum(p => p.PickupDropletCount), Vector3.up);
 
                 foreach (PickupInfo pickupInfo in pickupsToDrop)
@@ -109,7 +111,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 ItemDef itemDef = ItemCatalog.GetItemDef(i);
                 if (itemDef && !itemDef.hidden && itemDef.canRemove && itemDef.pickupModelPrefab)
                 {
-                    yield return new ItemPickupInfo(inventory, PickupCatalog.FindPickupIndex(itemDef.itemIndex), inventory.GetItemCount(itemDef));
+                    yield return new ItemPickupInfo(inventory, itemDef.itemIndex, inventory.GetItemCount(itemDef));
                 }
             }
 
@@ -122,7 +124,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     EquipmentDef equipmentDef = EquipmentCatalog.GetEquipmentDef(equipmentState.equipmentIndex);
                     if (equipmentDef && equipmentDef.pickupModelPrefab)
                     {
-                        yield return new EquipmentPickupInfo(inventory, PickupCatalog.FindPickupIndex(equipmentState.equipmentIndex), i);
+                        yield return new EquipmentPickupInfo(inventory, equipmentState.equipmentIndex, i);
                     }
                 }
             }
