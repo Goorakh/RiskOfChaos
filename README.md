@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 111 different effects.
+Currently features 113 different effects.
 
 ### Twitch Integration:
 
@@ -127,6 +127,8 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Decrease Skill Cooldowns: Decreases cooldown for all skills, lasts 1 stage
 * Relocate Teleporter: Moves the stage teleporter to a random position on the map
 * Inventory Swap: Swaps the inventories of each player with another player. Multiplayer only.
+* No Equipment Cooldowns: Removes all equipment cooldowns, lasts 60 seconds.
+* Disable Equipment: Disables all equipment activation, lasts 60 seconds.
 </details>
 
 FAQ:

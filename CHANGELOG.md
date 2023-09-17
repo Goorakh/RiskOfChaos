@@ -2,8 +2,10 @@
 
 **?.?.? Changes:**
 
-* Added 1 new effect:
+* Added 3 new effects:
   * Inventory Swap: Swaps the inventories of each player with another player. Multiplayer only.
+  * No Equipment Cooldowns: Removes all equipment cooldowns, lasts 60 seconds.
+  * Disable Equipment: Disables all equipment activation, lasts 60 seconds.
 
 * Spawn Void Seed:
   * Void Seed can now spawn at any spot on the stage, not just the ones normally available as Void Seed spawn locations
