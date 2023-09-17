@@ -1,5 +1,4 @@
 ﻿using RiskOfChaos.ConfigHandling;
-using RiskOfChaos.EffectDefinitions.Character.Equipment;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -13,7 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RiskOfChaos.EffectDefinitions.Character
+namespace RiskOfChaos.EffectDefinitions.Character.Equipment
 {
     [ChaosEffect("activate_random_equipment")]
     [IncompatibleEffects(typeof(DisableEquipmentActivation))]
