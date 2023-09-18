@@ -1,30 +1,56 @@
 ﻿using RoR2;
 using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace RiskOfChaos.Utilities
 {
     public static class EliteUtils
     {
-        static EquipmentIndex[] _baseEliteEquipments = Array.Empty<EquipmentIndex>();
+        static EliteUtils()
+        {
+            baseEliteEquipments = Array.Empty<EquipmentIndex>();
+            runAvailableEliteEquipments = Array.Empty<EquipmentIndex>();
+        }
+
+        static EquipmentIndex[] _baseEliteEquipments;
+        static EquipmentIndex[] baseEliteEquipments
+        {
+            get
+            {
+                return _baseEliteEquipments;
+            }
+            set
+            {
+                value ??= Array.Empty<EquipmentIndex>();
+
+                if (_baseEliteEquipments == null || !_baseEliteEquipments.SequenceEqual(value))
+                {
+                    _baseEliteEquipments = value;
+                    AllEliteEquipments = Array.AsReadOnly(value);
+                }
+            }
+        }
+
+        public static ReadOnlyCollection<EquipmentIndex> AllEliteEquipments { get; private set; }
 
         [SystemInitializer(typeof(EquipmentCatalog), typeof(EliteCatalog))]
         static void InitBaseEquipments()
         {
-            _baseEliteEquipments = EliteCatalog.eliteList
-                                               .Select(i => EliteCatalog.GetEliteDef(i).eliteEquipmentDef)
-                                               .Where(e => e.pickupModelPrefab && e.pickupModelPrefab.name != "NullModel" && e.dropOnDeathChance > 0f)
-                                               .Select(e => e.equipmentIndex)
-                                               .Distinct()
-                                               .OrderBy(i => i)
-                                               .ToArray();
+            baseEliteEquipments = EliteCatalog.eliteList
+                                              .Select(i => EliteCatalog.GetEliteDef(i).eliteEquipmentDef)
+                                              .Where(e => e.pickupModelPrefab && e.pickupModelPrefab.name != "NullModel" && e.dropOnDeathChance > 0f)
+                                              .Select(e => e.equipmentIndex)
+                                              .Distinct()
+                                              .OrderBy(i => i)
+                                              .ToArray();
 
 #if DEBUG
             foreach (EquipmentDef eliteEquipmentDef in EliteCatalog.eliteList.Select(i => EliteCatalog.GetEliteDef(i).eliteEquipmentDef).Distinct())
             {
                 EliteDef eliteDef = EliteCatalog.GetEliteDef(EliteCatalog.eliteList.FirstOrDefault(i => EliteCatalog.GetEliteDef(i).eliteEquipmentDef == eliteEquipmentDef));
 
-                if (Array.BinarySearch(_baseEliteEquipments, eliteEquipmentDef.equipmentIndex) < 0)
+                if (Array.BinarySearch(baseEliteEquipments, eliteEquipmentDef.equipmentIndex) < 0)
                 {
                     Log.Debug($"Excluded elite equipment {eliteEquipmentDef} ({Language.GetString(eliteEquipmentDef.nameToken)}) ({eliteDef})");
                 }
@@ -36,23 +62,42 @@ namespace RiskOfChaos.Utilities
 #endif
         }
 
-        static EquipmentIndex[] _runAvailableEliteEquipments = Array.Empty<EquipmentIndex>();
+        static EquipmentIndex[] _runAvailableEliteEquipments;
+        static EquipmentIndex[] runAvailableEliteEquipments
+        {
+            get
+            {
+                return _runAvailableEliteEquipments;
+            }
+            set
+            {
+                value ??= Array.Empty<EquipmentIndex>();
+
+                if (_runAvailableEliteEquipments == null || !_runAvailableEliteEquipments.SequenceEqual(value))
+                {
+                    _runAvailableEliteEquipments = value;
+                    RunAvailableEliteEquipments = Array.AsReadOnly(value);
+                }
+            }
+        }
+
+        public static ReadOnlyCollection<EquipmentIndex> RunAvailableEliteEquipments { get; private set; }
 
         [SystemInitializer]
         static void Init()
         {
             Run.onRunStartGlobal += run =>
             {
-                _runAvailableEliteEquipments = _baseEliteEquipments.Where(i => !run.IsEquipmentExpansionLocked(i)).OrderBy(i => i).ToArray();
+                runAvailableEliteEquipments = AllEliteEquipments.Where(i => !run.IsEquipmentExpansionLocked(i)).OrderBy(i => i).ToArray();
             };
 
             Run.onRunDestroyGlobal += _ =>
             {
-                _runAvailableEliteEquipments = Array.Empty<EquipmentIndex>();
+                runAvailableEliteEquipments = Array.Empty<EquipmentIndex>();
             };
         }
 
-        public static bool HasAnyAvailableEliteEquipments => _runAvailableEliteEquipments != null && _runAvailableEliteEquipments.Length > 0;
+        public static bool HasAnyAvailableEliteEquipments => runAvailableEliteEquipments.Length > 0;
 
         public static EquipmentIndex GetRandomEliteEquipmentIndex()
         {
@@ -64,12 +109,12 @@ namespace RiskOfChaos.Utilities
             if (!HasAnyAvailableEliteEquipments)
                 return EquipmentIndex.None;
 
-            return rng.NextElementUniform(_runAvailableEliteEquipments);
+            return rng.NextElementUniform(runAvailableEliteEquipments);
         }
 
         public static bool IsEliteEquipment(EquipmentIndex equipmentIndex)
         {
-            return Array.BinarySearch(_baseEliteEquipments, equipmentIndex) >= 0;
+            return Array.BinarySearch(baseEliteEquipments, equipmentIndex) >= 0;
         }
 
         public static EquipmentIndex SelectEliteEquipment(bool allowDirectorUnavailableElites)

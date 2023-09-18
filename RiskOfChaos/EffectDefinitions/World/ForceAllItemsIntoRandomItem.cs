@@ -26,6 +26,19 @@ namespace RiskOfChaos.EffectDefinitions.World
         static bool _dropTableDirty = false;
         static BasicPickupDropTable _dropTable;
 
+        static void onDropTableConfigChanged()
+        {
+            _dropTableDirty = true;
+        }
+
+        [EffectConfig]
+        static readonly ConfigHolder<bool> _allowEliteEquipments =
+            ConfigFactory<bool>.CreateConfig("Allow Elite Aspects", true)
+                               .Description("If elite aspects can be picked as the forced item")
+                               .OptionConfig(new CheckBoxConfig())
+                               .OnValueChanged(onDropTableConfigChanged)
+                               .Build();
+
         [EffectConfig]
         static readonly ConfigHolder<string> _itemBlacklistConfig =
             ConfigFactory<string>.CreateConfig("Item Blacklist", string.Empty)
@@ -34,7 +47,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                                  {
                                      submitOn = InputFieldConfig.SubmitEnum.OnSubmit
                                  })
-                                 .OnValueChanged(() => _dropTableDirty = true)
+                                 .OnValueChanged(onDropTableConfigChanged)
                                  .Build();
 
         static readonly ParsedPickupList _itemBlacklist = new ParsedPickupList(PickupIndexComparer.Instance)
@@ -54,7 +67,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                                            increment = 0.05f
                                        })
                                        .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
-                                       .OnValueChanged(() => _dropTableDirty = true)
+                                       .OnValueChanged(onDropTableConfigChanged)
                                        .Build();
         }
 
@@ -150,6 +163,21 @@ namespace RiskOfChaos.EffectDefinitions.World
                 tryAddPickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.CaptainDefenseMatrix.itemIndex), _tier3Weight.Value);
                 tryAddPickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.Pearl.itemIndex), _bossWeight.Value);
                 tryAddPickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.ShinyPearl.itemIndex), _bossWeight.Value);
+
+                if (_allowEliteEquipments.Value)
+                {
+                    foreach (EquipmentIndex eliteEquipmentIndex in EliteUtils.RunAvailableEliteEquipments)
+                    {
+                        EquipmentDef eliteEquipment = EquipmentCatalog.GetEquipmentDef(eliteEquipmentIndex);
+                        if (!eliteEquipment)
+                            continue;
+
+                        if (eliteEquipment.requiredExpansion && !run.IsExpansionEnabled(eliteEquipment.requiredExpansion))
+                            continue;
+
+                        tryAddPickup(PickupCatalog.FindPickupIndex(eliteEquipmentIndex), _equipmentWeight.Value);
+                    }
+                }
 
                 if (run.IsExpansionEnabled(ExpansionUtils.DLC1))
                 {
