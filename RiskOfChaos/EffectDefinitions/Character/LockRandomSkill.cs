@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RiskOfChaos.EffectDefinitions.Character.Player
+namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("lock_random_skill", 90f, DefaultSelectionWeight = 0.5f)]
     [EffectConfigBackwardsCompatibility("Effect: Disable Random Skill (Lasts 1 stage)")]
