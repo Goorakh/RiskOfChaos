@@ -5,6 +5,7 @@ using RoR2.UI;
 using RoR2.UI.SkinControllers;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
@@ -159,7 +160,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         void FixedUpdate()
         {
-            if (ActiveTimedEffectsProvider.Instance && _activeEffectsContainer.childCount != ActiveTimedEffectsProvider.Instance.ActiveEffectsCount)
+            if (ActiveTimedEffectsProvider.Instance && _activeEffectsContainer.childCount != ActiveTimedEffectsProvider.Instance.NumActiveDisplayedEffects)
             {
 #if DEBUG
                 Log.Debug("Displayed effects differ from active effects, updating display");
@@ -176,42 +177,30 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         bool isDisplayingEffect(ActiveEffectItemInfo effectItemInfo)
         {
-            foreach (ChaosActiveEffectItemController effectItemDisplayController in _activeEffectItems)
-            {
-                if (effectItemDisplayController.DisplayingEffect == effectItemInfo)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return _activeEffectItems.Exists(displayController => displayController.DisplayingEffect == effectItemInfo);
         }
 
         void onActiveEffectsChanged(ActiveEffectItemInfo[] activeEffects)
         {
+            _activeEffectItems.RemoveAll(display => !display);
+
+            // Remove displays for effects that should no longer show
             for (int i = _activeEffectItems.Count - 1; i >= 0; i--)
             {
-                if (!_activeEffectItems[i])
-                {
-                    _activeEffectItems.RemoveAt(i);
-                }
-                else if (Array.IndexOf(activeEffects, _activeEffectItems[i].DisplayingEffect) < 0)
+                if (!_activeEffectItems[i].DisplayingEffect.ShouldDisplay || Array.IndexOf(activeEffects, _activeEffectItems[i].DisplayingEffect) < 0)
                 {
                     Destroy(_activeEffectItems[i].gameObject);
                     _activeEffectItems.RemoveAt(i);
                 }
             }
 
-            for (int i = 0; i < activeEffects.Length; i++)
-            {
-                if (!isDisplayingEffect(activeEffects[i]))
-                {
-                    _activeEffectItems.Add(ChaosActiveEffectItemController.CreateEffectDisplayItem(_activeEffectsContainer, activeEffects[i]));
-                }
-            }
+            // Add display for effects that should be shown, but aren't
+            _activeEffectItems.AddRange(from effect in activeEffects
+                                        where effect.ShouldDisplay && !isDisplayingEffect(effect)
+                                        select ChaosActiveEffectItemController.CreateEffectDisplayItem(_activeEffectsContainer, effect));
 
             // Hacky way of "hiding" the panel if there aren't any effects.
-            _activeEffectsTitleLabel.gameObject.SetActive(activeEffects.Length > 0);
+            _activeEffectsTitleLabel.gameObject.SetActive(_activeEffectItems.Count > 0);
         }
     }
 }

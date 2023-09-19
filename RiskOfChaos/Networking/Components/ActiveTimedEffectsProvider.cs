@@ -36,7 +36,7 @@ namespace RiskOfChaos.Networking.Components
         const int kListActiveEffects = 43986584;
         readonly SyncListActiveEffectItemInfo _activeEffects = new SyncListActiveEffectItemInfo();
 
-        public int ActiveEffectsCount => _activeEffects.Count;
+        public int NumActiveDisplayedEffects { get; private set; }
 
         void Awake()
         {
@@ -72,10 +72,7 @@ namespace RiskOfChaos.Networking.Components
 
         void onTimedEffectStartServer(TimedEffectInfo effectInfo, TimedEffect effectInstance)
         {
-            if (effectInfo.ShouldDisplayOnHUD)
-            {
-                _activeEffects.Add(new ActiveEffectItemInfo(effectInfo, effectInstance));
-            }
+            _activeEffects.Add(new ActiveEffectItemInfo(effectInfo, effectInstance));
         }
 
         void onTimedEffectEndServer(ulong dispatchID)
@@ -97,6 +94,7 @@ namespace RiskOfChaos.Networking.Components
 
         void onActiveEffectsChanged()
         {
+            NumActiveDisplayedEffects = _activeEffects.Count(e => e.ShouldDisplay);
             OnActiveEffectsChanged?.Invoke(GetActiveEffects());
         }
 

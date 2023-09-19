@@ -16,6 +16,8 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
         public readonly float DurationSeconds;
         public readonly float TimeStarted;
 
+        public readonly bool ShouldDisplay;
+
         public ActiveEffectItemInfo(TimedEffectInfo effectInfo, TimedEffect effectInstance)
         {
             EffectInfo = effectInfo;
@@ -27,6 +29,8 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             DurationSeconds = effectInstance.DurationSeconds;
 
             TimeStarted = effectInstance.TimeStarted;
+
+            ShouldDisplay = effectInfo.ShouldDisplayOnHUD;
         }
 
         private ActiveEffectItemInfo(NetworkReader reader)
@@ -61,6 +65,8 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             }
 
             TimeStarted = reader.ReadSingle();
+
+            ShouldDisplay = reader.ReadBoolean();
         }
 
         public void Serialize(NetworkWriter writer)
@@ -86,6 +92,8 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             }
 
             writer.Write(TimeStarted);
+
+            writer.Write(ShouldDisplay);
         }
 
         public static ActiveEffectItemInfo Deserialize(NetworkReader reader)
