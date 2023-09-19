@@ -46,7 +46,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                     if (changedCurrentBody && !playerMaster.IsDeadAndOutOfLivesServer())
                     {
                         PreventMetamorphosisRespawn.PreventionEnabled = isMetamorphosisActive;
-                        playerMaster.Respawn(CharacterMasterExtensions.CharacterRespawnFlags.All);
+                        playerMaster.Respawn(CharacterRespawnFlags.All);
                         PreventMetamorphosisRespawn.PreventionEnabled = false;
                     }
                 }

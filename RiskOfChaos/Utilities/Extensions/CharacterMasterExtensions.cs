@@ -4,6 +4,18 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.Utilities.Extensions
 {
+    [Flags]
+    public enum CharacterRespawnFlags : byte
+    {
+        None,
+        KeepVehicle = 1 << 0,
+        SkipIntroState = 1 << 1,
+        KeepCurseStacks = 1 << 2,
+        KeepHealth = 1 << 3,
+        KeepState = KeepVehicle | KeepCurseStacks | KeepHealth,
+        All = byte.MaxValue
+    }
+
     public static class CharacterMasterExtensions
     {
         public static bool IsAlive(this CharacterMaster master)
@@ -17,17 +29,6 @@ namespace RiskOfChaos.Utilities.Extensions
                 CharacterBody body = master.GetBody();
                 return body && body.healthComponent.alive;
             }
-        }
-
-        [Flags]
-        public enum CharacterRespawnFlags : byte
-        {
-            None,
-            KeepVehicle = 1 << 0,
-            SkipIntroState = 1 << 1,
-            KeepCurseStacks = 1 << 2,
-            KeepState = KeepVehicle | KeepCurseStacks,
-            All = byte.MaxValue
         }
 
         public static CharacterBody Respawn(this CharacterMaster master, CharacterRespawnFlags flags)
@@ -55,6 +56,8 @@ namespace RiskOfChaos.Utilities.Extensions
 
             int curseStacks = body.GetBuffCount(RoR2Content.Buffs.PermanentCurse);
 
+            HealthSnapshot healthSnapshot = HealthSnapshot.FromBody(body);
+
             body = master.Respawn(body.footPosition, body.GetRotation());
 
             if ((flags & CharacterRespawnFlags.SkipIntroState) != 0)
@@ -78,6 +81,21 @@ namespace RiskOfChaos.Utilities.Extensions
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 body.SetBuffCount(RoR2Content.Buffs.PermanentCurse.buffIndex, curseStacks);
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
+            }
+
+            if ((flags & CharacterRespawnFlags.KeepHealth) != 0)
+            {
+                void bodyStart(CharacterBody b)
+                {
+                    if (b != body)
+                        return;
+
+                    healthSnapshot.ApplyTo(body);
+
+                    CharacterBody.onBodyStartGlobal -= bodyStart;
+                }
+
+                CharacterBody.onBodyStartGlobal += bodyStart;
             }
 
             return body;

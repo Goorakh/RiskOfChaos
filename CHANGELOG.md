@@ -9,6 +9,9 @@
   * All Items Are A Random Item: All items on the stage get turned into a random item. Essentially Artifact of Kin for items. Lasts 1 stage.
   * All Chests are Free: All chests and interactables are free, lasts 30 seconds.
 
+* Randomize Loadout & Enable Random Artifact (Metamorphosis):
+  * Fixed character respawn restoring health and shields to full
+
 * Spawn Void Seed:
   * Void Seed can now spawn at any spot on the stage, not just the ones normally available as Void Seed spawn locations
 

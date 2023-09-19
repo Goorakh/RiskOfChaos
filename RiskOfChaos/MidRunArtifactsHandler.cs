@@ -105,7 +105,7 @@ namespace RiskOfChaos
 
             foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
             {
-                playerBody.master.Respawn(CharacterMasterExtensions.CharacterRespawnFlags.KeepState);
+                playerBody.master.Respawn(CharacterRespawnFlags.KeepState);
             }
         }
 
