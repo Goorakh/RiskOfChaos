@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**1.12.0 Changes:**
 
 * Added 5 new effects:
   * Inventory Swap: Swaps the inventories of each player with another player. Multiplayer only.
