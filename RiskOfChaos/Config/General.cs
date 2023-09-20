@@ -9,6 +9,8 @@ namespace RiskOfChaos
     {
         public static class General
         {
+            public const string SECTION_NAME = "General";
+
             public static readonly ConfigHolder<bool> DisableEffectDispatching =
                 ConfigFactory<bool>.CreateConfig("Disable Effect Activation", false)
                                    .Description("If effect activation should be disabled completely")
@@ -41,23 +43,18 @@ namespace RiskOfChaos
                                    })
                                    .Build();
 
-            public static readonly ConfigHolder<Color> ActiveEffectsTextColor =
-                ConfigFactory<Color>.CreateConfig("Active Effect Text Color", Color.white)
-                                    .Description("The color of the effect names in the \"Active Effects\" list")
-                                    .OptionConfig(new ColorOptionConfig())
-                                    .Build();
-
             internal static void Bind(ConfigFile file)
             {
-                const string GENERAL_SECTION_NAME = "General";
+                void bindConfig<T>(ConfigHolder<T> config)
+                {
+                    config.Bind(file, SECTION_NAME, CONFIG_GUID, CONFIG_NAME);
+                }
 
-                DisableEffectDispatching.Bind(file, GENERAL_SECTION_NAME, CONFIG_GUID, CONFIG_NAME);
+                bindConfig(DisableEffectDispatching);
 
-                TimeBetweenEffects.Bind(file, GENERAL_SECTION_NAME, CONFIG_GUID, CONFIG_NAME);
+                bindConfig(TimeBetweenEffects);
 
-                RunEffectsTimerWhileRunTimerPaused.Bind(file, GENERAL_SECTION_NAME, CONFIG_GUID, CONFIG_NAME);
-
-                ActiveEffectsTextColor.Bind(file, GENERAL_SECTION_NAME, CONFIG_GUID, CONFIG_NAME);
+                bindConfig(RunEffectsTimerWhileRunTimerPaused);
             }
         }
     }

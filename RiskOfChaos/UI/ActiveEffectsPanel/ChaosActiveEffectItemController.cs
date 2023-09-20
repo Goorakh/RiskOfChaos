@@ -83,13 +83,13 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         void Start()
         {
-            Configs.General.ActiveEffectsTextColor.SettingChanged += ActiveEffectsTextColor_SettingChanged;
-            setTextColor(Configs.General.ActiveEffectsTextColor.Value);
+            Configs.UI.ActiveEffectsTextColor.SettingChanged += ActiveEffectsTextColor_SettingChanged;
+            setTextColor(Configs.UI.ActiveEffectsTextColor.Value);
         }
 
         void OnDestroy()
         {
-            Configs.General.ActiveEffectsTextColor.SettingChanged -= ActiveEffectsTextColor_SettingChanged;
+            Configs.UI.ActiveEffectsTextColor.SettingChanged -= ActiveEffectsTextColor_SettingChanged;
         }
 
         void ActiveEffectsTextColor_SettingChanged(object sender, ConfigChangedArgs<Color> e)

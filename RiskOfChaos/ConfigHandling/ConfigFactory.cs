@@ -22,6 +22,8 @@ namespace RiskOfChaos.ConfigHandling
 
         readonly List<string> _previousKeys = new List<string>();
 
+        readonly List<string> _previousSections = new List<string>();
+
         ConfigFactory(string key, T defaultValue)
         {
             _key = key;
@@ -85,6 +87,12 @@ namespace RiskOfChaos.ConfigHandling
             return this;
         }
 
+        public ConfigFactory<T> MovedFrom(string section)
+        {
+            _previousSections.Add(section);
+            return this;
+        }
+
         public ConfigHolder<T> Build()
         {
             ConfigHolder<T> configHolder = new ConfigHolder<T>(_key,
@@ -94,7 +102,8 @@ namespace RiskOfChaos.ConfigHandling
                                                                _valueConstrictor ?? CommonValueConstrictors.None<T>(),
                                                                _valueValidator ?? CommonValueValidators.None<T>(),
                                                                _optionConfig,
-                                                               _previousKeys.ToArray());
+                                                               _previousKeys.ToArray(),
+                                                               _previousSections.ToArray());
 
             foreach (EventHandler<ConfigChangedArgs<T>> listener in _configChangedListeners)
             {

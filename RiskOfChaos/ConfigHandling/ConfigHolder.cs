@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.Utilities;
 using RiskOfOptions;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
@@ -20,7 +21,7 @@ namespace RiskOfChaos.ConfigHandling
         readonly BaseOptionConfig _optionConfig;
 
         readonly string[] _previousKeys;
-        string[] _previousConfigSectionNames = Array.Empty<string>();
+        string[] _previousConfigSectionNames;
 
         ConfigFile _configFile;
         public ConfigEntry<T> Entry { get; private set; }
@@ -47,7 +48,7 @@ namespace RiskOfChaos.ConfigHandling
         public delegate void OnBindDelegate(ConfigEntry<T> entry);
         public event OnBindDelegate OnBind;
 
-        public ConfigHolder(string key, T defaultValue, ConfigDescription description, IEqualityComparer<T> equalityComparer, ValueConstrictor<T> valueConstrictor, ValueValidator<T> valueValidator, BaseOptionConfig optionConfig, string[] previousKeys)
+        public ConfigHolder(string key, T defaultValue, ConfigDescription description, IEqualityComparer<T> equalityComparer, ValueConstrictor<T> valueConstrictor, ValueValidator<T> valueValidator, BaseOptionConfig optionConfig, string[] previousKeys, string[] previousSections)
         {
             if (string.IsNullOrEmpty(key))
                 throw new ArgumentException($"'{nameof(key)}' cannot be null or empty.", nameof(key));
@@ -60,6 +61,7 @@ namespace RiskOfChaos.ConfigHandling
             ValueValidator = valueValidator ?? throw new ArgumentNullException(nameof(valueValidator));
             _optionConfig = optionConfig;
             _previousKeys = previousKeys ?? throw new ArgumentNullException(nameof(previousKeys));
+            _previousConfigSectionNames = previousSections ?? throw new ArgumentNullException(nameof(previousSections));
         }
 
         ~ConfigHolder()
@@ -104,7 +106,7 @@ namespace RiskOfChaos.ConfigHandling
                 }
             }
 
-            _previousConfigSectionNames = ownerEffect.PreviousConfigSectionNames;
+            ArrayUtil.AppendRange(ref _previousConfigSectionNames, ownerEffect.PreviousConfigSectionNames);
 
             Bind(ownerEffect.ConfigFile, ownerEffect.ConfigSectionName, ChaosEffectCatalog.CONFIG_MOD_GUID, ChaosEffectCatalog.CONFIG_MOD_NAME);
         }

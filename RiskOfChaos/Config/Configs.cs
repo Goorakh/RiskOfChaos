@@ -12,6 +12,8 @@ namespace RiskOfChaos
         {
             General.Bind(file);
 
+            UI.Bind(file);
+
             ChatVoting.Bind(file);
 
 #if DEBUG
