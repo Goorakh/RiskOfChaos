@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Config:
+  * Added mod icon to Risk of Options menu
+
 * UI:
   * Added config option to disable the "Active Effects" display
 

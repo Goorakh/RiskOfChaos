@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using UnityEngine;
 
 namespace RiskOfChaos.EffectHandling
 {
@@ -23,6 +24,7 @@ namespace RiskOfChaos.EffectHandling
         public const string CONFIG_MOD_NAME = $"Risk of Chaos: {CONFIG_SECTION_NAME}";
 
         static ConfigFile _effectConfigFile;
+        static readonly Sprite _effectsConfigIcon = Configs.GenericIcon;
 
         public static ResourceAvailability Availability = new ResourceAvailability();
 
@@ -42,7 +44,11 @@ namespace RiskOfChaos.EffectHandling
         {
             _effectConfigFile = config;
 
-            // ModSettingsManager.SetModIcon(effects_icon, GUID, NAME);
+            if (_effectsConfigIcon)
+            {
+                ModSettingsManager.SetModIcon(_effectsConfigIcon, CONFIG_MOD_GUID, CONFIG_MOD_NAME);
+            }
+
             ModSettingsManager.SetModDescription("Effect config options for Risk of Chaos", CONFIG_MOD_GUID, CONFIG_MOD_NAME);
         }
 
