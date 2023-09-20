@@ -1,6 +1,13 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* UI:
+  * Added config option to disable the "Active Effects" display
+
 **1.12.0 Changes:**
+
+<details>
 
 * Added 5 new effects:
   * Inventory Swap: Swaps the inventories of each player with another player. Multiplayer only.
@@ -21,6 +28,8 @@
 * Twitch Voting:
   * Fixed vote options sometimes not being visible while dispatching is temporarily disabled
   * Improved error messages if the Twitch Client fails to connect
+
+</details>
 
 **1.11.0 Changes:**
 
