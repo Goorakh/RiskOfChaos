@@ -5,6 +5,7 @@ using RiskOfChaos.UI.ChatVoting;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
@@ -300,7 +301,11 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             EffectDispatchFlags dispatchFlags;
             if (voteResult.IsRandom)
             {
-                effectInfo = ChaosEffectCatalog.PickActivatableEffect(_rng, EffectCanActivateContext.Now);
+                HashSet<ChaosEffectInfo> voteOptionEffects = new HashSet<ChaosEffectInfo>(_effectVoteSelection.GetVoteOptions()
+                                                                                                              .Select(vote => vote.EffectInfo)
+                                                                                                              .Where(effect => effect != null));
+
+                effectInfo = ChaosEffectCatalog.PickActivatableEffect(_rng, EffectCanActivateContext.Now, voteOptionEffects);
                 dispatchFlags = EffectDispatchFlags.None;
             }
             else

@@ -10,6 +10,9 @@
 * Increase & Decrease Projectile Speed:
   * No longer affects stationary attacks
 
+* Chat Voting:
+  * "Random Effect" option is now guaranteed to not be any of the other options in the vote
+
 * Config:
   * Added mod icon to Risk of Options menu
 
