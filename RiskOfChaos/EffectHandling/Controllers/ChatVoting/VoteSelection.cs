@@ -105,7 +105,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
         {
             int currentGreatestVoteCount = -1;
 
-            List<VoteOption> currentWinningVotes = new List<VoteOption>();
+            List<VoteOption> currentWinningVotes = new List<VoteOption>(_numOptions);
 
             for (int i = 0; i < _numOptions; i++)
             {
