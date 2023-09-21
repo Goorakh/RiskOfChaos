@@ -1,6 +1,13 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* Chat Voting:
+  * "Random Effect" option is now guaranteed to not be any of the other options in the vote
+
 **1.12.1 Changes:**
+
+<details>
 
 * Risk of Thunder:
   * Increased lightning strike radius (3->6)
@@ -10,14 +17,13 @@
 * Increase & Decrease Projectile Speed:
   * No longer affects stationary attacks
 
-* Chat Voting:
-  * "Random Effect" option is now guaranteed to not be any of the other options in the vote
-
 * Config:
   * Added mod icon to Risk of Options menu
 
 * UI:
   * Added config option to disable the "Active Effects" display
+
+</details>
 
 **1.12.0 Changes:**
 
