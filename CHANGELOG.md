@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**1.12.1 Changes:**
 
 * Risk of Thunder:
   * Increased lightning strike radius (3->6)
