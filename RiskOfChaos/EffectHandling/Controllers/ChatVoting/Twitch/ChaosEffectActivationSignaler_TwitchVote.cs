@@ -85,7 +85,13 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             {
                 WebSocketClient socketClient = new WebSocketClient();
 
-                _client = new TwitchClient(socketClient, ClientProtocol.WebSocket, new BepInExLogger<TwitchClient>());
+                BepInExLogger<TwitchClient> clientLogger = new BepInExLogger<TwitchClient>(!Configs.ChatVoting.ExtendedClientLogging.Value);
+                Configs.ChatVoting.ExtendedClientLogging.SettingChanged += (s, e) =>
+                {
+                    clientLogger.TreatInfoLogsAsDebug = !e.NewValue;
+                };
+
+                _client = new TwitchClient(socketClient, ClientProtocol.WebSocket, clientLogger);
                 _client.Initialize(_loginCredentials.BuildConnectionCredentials());
                 _client.RemoveChatCommandIdentifier('!');
 

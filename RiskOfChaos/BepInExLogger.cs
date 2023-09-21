@@ -5,6 +5,13 @@ namespace RiskOfChaos
 {
     internal class BepInExLogger<T> : ILogger<T>
     {
+        public bool TreatInfoLogsAsDebug;
+
+        public BepInExLogger(bool treatInfoLogsAsDebug)
+        {
+            TreatInfoLogsAsDebug = treatInfoLogsAsDebug;
+        }
+
         public IDisposable BeginScope<TState>(TState state)
         {
             return null;
@@ -23,12 +30,12 @@ namespace RiskOfChaos
             RiskOfChaos.Log.LogType(toBepInExLogLevel(logLevel), $"{eventId}: {formatter(state, exception)}");
         }
 
-        static BepInEx.Logging.LogLevel toBepInExLogLevel(LogLevel logLevel)
+        BepInEx.Logging.LogLevel toBepInExLogLevel(LogLevel logLevel)
         {
             return logLevel switch
             {
                 LogLevel.Trace or LogLevel.Debug => BepInEx.Logging.LogLevel.Debug,
-                LogLevel.Information => BepInEx.Logging.LogLevel.Info,
+                LogLevel.Information => TreatInfoLogsAsDebug ? BepInEx.Logging.LogLevel.Debug : BepInEx.Logging.LogLevel.Info,
                 LogLevel.Warning => BepInEx.Logging.LogLevel.Warning,
                 LogLevel.Error => BepInEx.Logging.LogLevel.Error,
                 LogLevel.Critical => BepInEx.Logging.LogLevel.Fatal,

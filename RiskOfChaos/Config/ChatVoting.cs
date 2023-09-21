@@ -99,6 +99,12 @@ namespace RiskOfChaos
                                     })
                                     .Build();
 
+            public static readonly ConfigHolder<bool> ExtendedClientLogging =
+                ConfigFactory<bool>.CreateConfig("Extended Client Logging", false)
+                                   .Description("More information is sent to the log file about data received from the chat connection. No sensitive information is logged, but keep this off if you care about the size of your log file.")
+                                   .OptionConfig(new CheckBoxConfig())
+                                   .Build();
+
             internal static void Bind(ConfigFile file)
             {
                 const string SECTION_NAME = "Streamer Integration";
@@ -126,6 +132,8 @@ namespace RiskOfChaos
                 bindConfig(VoteDisplayTextColor);
 
                 bindConfig(VoteDisplayBackgroundColor);
+
+                bindConfig(ExtendedClientLogging);
             }
         }
     }
