@@ -7,6 +7,9 @@
   * Now properly targets characters instead of just random map locations
   * Damage is now scaled (50 base, +25 per monster level)
 
+* Increase & Decrease Projectile Speed:
+  * No longer affects stationary attacks
+
 * Config:
   * Added mod icon to Risk of Options menu
 
