@@ -128,7 +128,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
         static IEnumerable<CharacterBody> getAllEligiblePlayers()
         {
-            return PlayerUtils.GetAllPlayerBodies(true).Where(b => b.inventory.itemAcquisitionOrder.Any(GiveInventoryTo.ItemTransferFilter));
+            return PlayerUtils.GetAllPlayerBodies(true).Where(b => b.inventory && b.inventory.itemAcquisitionOrder.Any(GiveInventoryTo.ItemTransferFilter));
         }
 
         [EffectCanActivate]
