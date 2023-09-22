@@ -1,7 +1,7 @@
 ﻿using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 
-namespace RiskOfChaos.Utilities
+namespace RiskOfChaos.Utilities.Pickup
 {
     public static class PickupUtils
     {

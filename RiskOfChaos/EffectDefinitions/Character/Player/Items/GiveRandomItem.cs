@@ -5,6 +5,7 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Comparers;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.ParsedValueHolders.ParsedList;
+using RiskOfChaos.Utilities.Pickup;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using UnityEngine;

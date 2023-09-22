@@ -2,6 +2,7 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.Utilities.Pickup;
 using RoR2;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
