@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**1.12.2 Changes:**
 
 * Reworked 1 effect:
   * Drop All Items -> Loose Pockets: Drops a random item from everyone's inventory every 0.9 seconds
