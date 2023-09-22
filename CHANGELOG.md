@@ -9,6 +9,11 @@
   * Added a limit to how many items each enemy can take from each player, default 2 stacks, configurable.
   * Renamed effect to "Steal Player Items"
 
+* Voidtouch Everyone:
+  * Added config option to make effect not voidtouch drones (enabled by default)
+  * Added config option to make effect not voidtouch any player allies (disabled by default)
+  * Fixed enemy AI sometimes targetting incorrect teams after being voidtouched
+
 * Decrease Teleporter Charge Rate:
   * Decreased default charge rate reduction: -50% -> -25%
 

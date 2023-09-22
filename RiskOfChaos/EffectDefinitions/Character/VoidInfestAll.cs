@@ -1,9 +1,15 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.CharacterAI;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character
@@ -12,46 +18,93 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [EffectConfigBackwardsCompatibility("Effect: Touch Void")]
     public sealed class VoidInfestAll : BaseEffect
     {
-        [EffectCanActivate]
-        static bool CanActivate()
+        [EffectConfig]
+        static readonly ConfigHolder<bool> _excludeAllAllies =
+            ConfigFactory<bool>.CreateConfig("Exclude Player Allies", false)
+                               .Description("Excludes all player allies from being voidtouched")
+                               .OptionConfig(new CheckBoxConfig())
+                               .Build();
+
+        [EffectConfig]
+        static readonly ConfigHolder<bool> _excludeDrones =
+            ConfigFactory<bool>.CreateConfig("Exclude Drones", true)
+                               .Description("Excludes all drones from being voidtouched")
+                               .OptionConfig(new CheckBoxConfig())
+                               .Build();
+
+        static IEnumerable<CharacterBody> getAllInfestableBodies()
         {
-            return ExpansionUtils.DLC1Enabled;
+            return CharacterBody.readOnlyInstancesList.Where(body =>
+            {
+                if (!body || body.isPlayerControlled)
+                    return false;
+
+                // No inventory: Can't carry aspect, effect will do nothing
+                if (!body.inventory)
+                    return false;
+
+                HealthComponent healthComponent = body.healthComponent;
+                if (!healthComponent || !healthComponent.alive)
+                    return false;
+
+                if (_excludeAllAllies.Value)
+                {
+                    if (body.teamComponent.teamIndex == TeamIndex.Player)
+                        return false;
+
+                    CharacterMaster master = body.master;
+                    if (master)
+                    {
+                        MinionOwnership minionOwnership = master.minionOwnership;
+                        if (minionOwnership)
+                        {
+                            CharacterMaster ownerMaster = minionOwnership.ownerMaster;
+                            if (ownerMaster && ownerMaster.playerCharacterMasterController)
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                }
+
+                if (_excludeDrones.Value && (body.bodyFlags & CharacterBody.BodyFlags.Mechanical) != 0)
+                    return false;
+
+                return true;
+            });
+        }
+
+        [EffectCanActivate]
+        static bool CanActivate(in EffectCanActivateContext context)
+        {
+            return ExpansionUtils.DLC1Enabled && (!context.IsNow || getAllInfestableBodies().Any());
         }
 
         public override void OnStart()
         {
-            EquipmentIndex voidEliteEquipmentIndex = DLC1Content.Elites.Void.eliteEquipmentDef.equipmentIndex;
+            List<BaseAI> aiToReset = new List<BaseAI>();
 
-            CharacterBody.readOnlyInstancesList.TryDo(body =>
+            getAllInfestableBodies().TryDo(body =>
             {
-                if (!body || body.isPlayerControlled)
-                    return;
-
-                HealthComponent healthComponent = body.healthComponent;
-                if (!healthComponent.alive)
-                    return;
-
                 CharacterMaster master = body.master;
-                if (!master)
-                    return;
 
-                master.teamIndex = TeamIndex.Void;
                 body.teamComponent.teamIndex = TeamIndex.Void;
 
                 Inventory inventory = body.inventory;
                 if (inventory)
                 {
-                    inventory.SetEquipmentIndex(voidEliteEquipmentIndex);
+                    inventory.SetEquipmentIndex(DLC1Content.Elites.Void.eliteEquipmentDef.equipmentIndex);
                 }
 
-                if (master.TryGetComponent(out BaseAI baseAI))
+                if (master)
                 {
-                    baseAI.enemyAttention = 0f;
-                    baseAI.ForceAcquireNearestEnemyIfNoCurrentEnemy();
-                }
+                    master.teamIndex = TeamIndex.Void;
 
-                // Make sure void infested allies don't stay until the next stage
-                master.gameObject.SetDontDestroyOnLoad(false);
+                    aiToReset.AddRange(master.GetComponents<BaseAI>());
+
+                    // Make sure void infested allies don't stay until the next stage
+                    master.gameObject.SetDontDestroyOnLoad(false);
+                }
 
                 if (EntityStates.VoidInfestor.Infest.successfulInfestEffectPrefab)
                 {
@@ -60,6 +113,13 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                 BossUtils.TryRefreshBossTitleFor(body);
             }, FormatUtils.GetBestBodyName);
+
+            foreach (BaseAI baseAI in aiToReset)
+            {
+                baseAI.enemyAttention = 0f;
+                baseAI.currentEnemy.Reset();
+                baseAI.ForceAcquireNearestEnemyIfNoCurrentEnemy();
+            }
         }
     }
 }
