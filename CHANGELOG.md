@@ -6,7 +6,7 @@
   * Decreased default charge rate reduction: -50% -> -25%
 
 * All Items Are A Random Item:
-  * Default selection weight: 1 -> 0.8
+  * Decreased default selection weight: 1 -> 0.8
 
 * Chat Voting:
   * "Random Effect" option is now guaranteed to not be any of the other options in the vote
