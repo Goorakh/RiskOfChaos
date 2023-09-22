@@ -1,8 +1,12 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.Pickup;
+using RiskOfOptions.OptionConfigs;
 using RoR2;
+using System;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character
@@ -10,6 +14,20 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [ChaosTimedEffect("drop_items", 20f, AllowDuplicates = false)]
     public sealed class DropItems : TimedEffect
     {
+        [EffectConfig]
+        static readonly ConfigHolder<float> _itemDropFrequency =
+            ConfigFactory<float>.CreateConfig("Item Drop Frequency", 0.9f)
+                                .Description("How often items will be dropped")
+                                .OptionConfig(new StepSliderConfig
+                                {
+                                    formatString = "{0:F2}s",
+                                    min = 0f,
+                                    max = 5f,
+                                    increment = 0.05f
+                                })
+                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
+                                .Build();
+
         [RequireComponent(typeof(CharacterBody))]
         class DropItemsOnTimer : MonoBehaviour
         {
@@ -62,7 +80,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             void scheduleNextDrop()
             {
-                _dropItemTimer = 0.8f;
+                _dropItemTimer = _itemDropFrequency.Value;
             }
 
             void tryDropRandomItem()
@@ -70,7 +88,13 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (!_body || !_inventory)
                     return;
 
-                WeightedSelection<PickupInfo> droppableItemSelection = new WeightedSelection<PickupInfo>();
+                int equipmentSlotCount = _inventory.GetEquipmentSlotCount();
+
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                const int MIN_CAPACITY = WeightedSelection<PickupInfo>.minCapacity;
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+
+                WeightedSelection<PickupInfo> droppableItemSelection = new WeightedSelection<PickupInfo>(Math.Max(MIN_CAPACITY, _inventory.itemAcquisitionOrder.Count + equipmentSlotCount));
 
                 foreach (ItemIndex item in _inventory.itemAcquisitionOrder)
                 {
@@ -81,7 +105,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     }
                 }
 
-                int equipmentSlotCount = _inventory.GetEquipmentSlotCount();
                 for (uint i = 0; i < equipmentSlotCount; i++)
                 {
                     EquipmentIndex equipmentIndex = _inventory.GetEquipment(i).equipmentIndex;

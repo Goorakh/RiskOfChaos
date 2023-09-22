@@ -28,7 +28,7 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Increase Monster Spawns: Increases monster director credits for the rest of the current stage (+50% by default, configurable)
 * Sequence All Players: Activates a shrine of order on all players
 * Spawn Scavenger Bag: Spawns a scavenger bag near a random player
-* Loose Pockets: Drops a random item from everyone's inventory every 0.8 seconds
+* Loose Pockets: Drops a random item from everyone's inventory every 0.9 seconds
 * Meteor Shower: Activates the glowing meteorite equipment
 * Randomize Loadout: Randomizes all player's loadouts (skills and skins)
 * You and a super intelligent Lemurian...: Spawns an invincible Lemurian in a random location on the map with an infinite damage stat (instantly die if you touch it)
