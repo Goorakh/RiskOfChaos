@@ -6,6 +6,7 @@
   * Decreased default charge rate reduction: -50% -> -25%
 
 * All Items Are A Random Item:
+  * Fixed Scavenger bags ignoring override item
   * Decreased default selection weight: 1 -> 0.8
 
 * Chat Voting:

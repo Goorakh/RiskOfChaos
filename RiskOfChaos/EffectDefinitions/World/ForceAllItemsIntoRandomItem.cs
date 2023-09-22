@@ -12,6 +12,7 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.ParsedValueHolders.ParsedList;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -251,6 +252,8 @@ namespace RiskOfChaos.EffectDefinitions.World
             On.RoR2.PickupDropTable.GenerateDrop += PickupDropTable_GenerateDrop;
             On.RoR2.PickupDropTable.GenerateUniqueDrops += PickupDropTable_GenerateUniqueDrops;
 
+            On.RoR2.ChestBehavior.PickFromList += ChestBehavior_PickFromList;
+
             AllVoidPotentials.OverrideAllowChoices += AllVoidPotentials_OverrideAllowChoices;
 
             rerollAllChests();
@@ -260,6 +263,8 @@ namespace RiskOfChaos.EffectDefinitions.World
         {
             On.RoR2.PickupDropTable.GenerateDrop -= PickupDropTable_GenerateDrop;
             On.RoR2.PickupDropTable.GenerateUniqueDrops -= PickupDropTable_GenerateUniqueDrops;
+
+            On.RoR2.ChestBehavior.PickFromList -= ChestBehavior_PickFromList;
 
             AllVoidPotentials.OverrideAllowChoices -= AllVoidPotentials_OverrideAllowChoices;
 
@@ -309,6 +314,14 @@ namespace RiskOfChaos.EffectDefinitions.World
             PickupIndex[] result = orig(self, maxDrops, rng);
             ArrayUtils.SetAll(result, _currentOverridePickupIndex);
             return result;
+        }
+        
+        static void ChestBehavior_PickFromList(On.RoR2.ChestBehavior.orig_PickFromList orig, ChestBehavior self, List<PickupIndex> dropList)
+        {
+            dropList.Clear();
+            dropList.Add(_currentOverridePickupIndex);
+
+            orig(self, dropList);
         }
 
         static void AllVoidPotentials_OverrideAllowChoices(PickupIndex originalPickup, ref bool allowChoices)
