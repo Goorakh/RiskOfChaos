@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Decrease Teleporter Charge Rate:
+  * Decreased default charge rate reduction: -50% -> -25%
+
 * All Items Are A Random Item:
   * Default selection weight: 1 -> 0.8
 
