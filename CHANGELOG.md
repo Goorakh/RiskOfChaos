@@ -14,6 +14,9 @@
   * Added config option to make effect not voidtouch any player allies (disabled by default)
   * Fixed enemy AI sometimes targetting incorrect teams after being voidtouched
 
+* Bouncy Projectiles:
+  * No longer bounces off of enemies that would be hurt by the projectile
+
 * Decrease Teleporter Charge Rate:
   * Decreased default charge rate reduction: -50% -> -25%
 

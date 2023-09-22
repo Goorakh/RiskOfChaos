@@ -80,6 +80,7 @@ namespace RiskOfChaos.Patches
 
             float _lastBounceTime = float.NegativeInfinity;
 
+            ProjectileController _projectileController;
             ProjectileSimple _projectileSimple;
 
             Vector3 _lastVelocityDirection;
@@ -90,6 +91,7 @@ namespace RiskOfChaos.Patches
 
             void Awake()
             {
+                _projectileController = GetComponent<ProjectileController>();
                 _projectileSimple = GetComponent<ProjectileSimple>();
                 _rigidbody = GetComponent<Rigidbody>();
             }
@@ -133,7 +135,7 @@ namespace RiskOfChaos.Patches
 
             public bool TryBounce(ProjectileImpactInfo impactInfo)
             {
-                if (!isBouncingEnabled || _timesBounced >= maxBounces || _lastBounceTime >= Time.fixedTime - 0.1f)
+                if (!isBouncingEnabled || _timesBounced >= maxBounces || _lastBounceTime >= Time.fixedTime - 0.1f || hitEnemy(impactInfo))
                     return false;
 
                 if (_projectileSimple)
@@ -146,6 +148,21 @@ namespace RiskOfChaos.Patches
                 _timesBounced++;
                 _lastBounceTime = Time.fixedTime;
                 return true;
+            }
+
+            bool hitEnemy(ProjectileImpactInfo impactInfo)
+            {
+                if (!_projectileController || !_projectileController.teamFilter)
+                    return false;
+
+                if (!impactInfo.collider || !impactInfo.collider.TryGetComponent(out HurtBox hurtBox))
+                    return false;
+
+                HealthComponent healthComponent = hurtBox.healthComponent;
+                if (!healthComponent)
+                    return false;
+
+                return FriendlyFireManager.ShouldDirectHitProceed(healthComponent, _projectileController.teamFilter.teamIndex);
             }
         }
     }
