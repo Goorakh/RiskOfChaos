@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Reworked 1 effect:
+  * Drop All Items -> Loose Pockets: Drops a random item from everyone's inventory every 0.8 seconds
+
 * Decrease Teleporter Charge Rate:
   * Decreased default charge rate reduction: -50% -> -25%
 

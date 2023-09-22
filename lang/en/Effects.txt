@@ -22,7 +22,7 @@
 		"EFFECT_INCREASE_DIRECTOR_CREDITS_NAME": "+{0:P0} Monster Spawns",
 		"EFFECT_ORDER_INVENTORY_NAME": "Sequence All Players",
 		"EFFECT_SPAWN_SCAV_BAG_NAME": "Spawn Scavenger Bag",
-		"EFFECT_DROP_ALL_ITEMS_NAME": "Drop All Items",
+		"EFFECT_DROP_ITEMS_NAME": "Loose Pockets",
 		"EFFECT_METEOR_NAME": "Meteor Shower",
 		"EFFECT_RANDOMIZE_LOADOUT_NAME": "Randomize Loadout",
 		"EFFECT_SPAWN_INVINCIBLE_LEMURIAN_NAME": "You and a super intelligent Lemurian...",
