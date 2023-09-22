@@ -81,7 +81,7 @@
 		"EFFECT_FORCE_ACTIVATE_RANDOM_SKILL_NAME": "Force Activate Random Skill",
 		"EFFECT_SPAWN_RANDOM_ENEMY_NAME": "Spawn Random Enemy",
 		"EFFECT_SPAWN_RANDOM_ALLY_NAME": "Spawn Random Ally",
-		"EFFECT_MONSTER_ITEM_STEAL_NAME": "Steal All Player Items",
+		"EFFECT_MONSTER_ITEM_STEAL_NAME": "Steal Player Items",
 		"EFFECT_SPAWN_SURVIVORS_NAME": "Reinforcements",
 		"EFFECT_BOUNCY_PROJECTILES_NAME": "Bouncy Projectiles",
 		"EFFECT_SUPPRESS_RANDOM_ITEM_NAME": "Eradicate Random Item",

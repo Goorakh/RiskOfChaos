@@ -87,7 +87,7 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Force Activate Random Skill: Forces a random skill to constantly activate, lasts 90 seconds
 * Spawn Random Enemy: Spawns a random enemy for every player
 * Spawn Random Ally: Spawns a random ally for every player
-* Steal All Player Items: Steals all items from every player and distributes them among enemies, damage the enemy that took items to gain them back (leaving the stage will also give all the items back)
+* Steal Player Items: Steals items from every player and distributes them among enemies, damage the enemy that took items to gain them back (leaving the stage will also give all the items back)
 * Reinforcements: Spawns allied survivors in drop pods around the map.
 * Bouncy Projectiles: All projectiles and bullets bounce on the surface they hit. Lasts 1 stage.
 * Eradicate Random Item: Permanently removes a random item from the game for the rest of the run

@@ -5,6 +5,10 @@
 * Reworked 1 effect:
   * Drop All Items -> Loose Pockets: Drops a random item from everyone's inventory every 0.9 seconds
 
+* Steal All Player Items:
+  * Added a limit to how many items each enemy can take from each player, default 2 stacks, configurable.
+  * Renamed effect to "Steal Player Items"
+
 * Decrease Teleporter Charge Rate:
   * Decreased default charge rate reduction: -50% -> -25%
 
