@@ -48,10 +48,14 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 }
             }
 
-            if (body.characterMotor && body.characterMotor.isGrounded && !body.characterMotor.isFlying)
+            if (!body.characterMotor || !body.characterMotor.isGrounded || body.characterMotor.isFlying)
+            {
+                return true;
+            }
+            else
+            {
                 return false;
-
-            return true;
+            }
         }
 
         void launchInRandomDirection(CharacterBody body)
