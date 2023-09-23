@@ -1,7 +1,10 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities.CatalogIndexCollection;
+using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Linq;
 
@@ -11,6 +14,18 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
     [EffectConfigBackwardsCompatibility("Effect: Give Everyone a Random Debuff (Lasts 1 stage)")]
     public sealed class RandomDebuff : ApplyBuffEffect
     {
+        [EffectConfig]
+        static readonly ConfigHolder<int> _stackableDebuffCount =
+            ConfigFactory<int>.CreateConfig("Debuff Stack Count", 10)
+                              .Description("How many stacks of the debuff should be given, if the random debuff is stackable")
+                              .OptionConfig(new IntSliderConfig
+                              {
+                                  min = 1,
+                                  max = 15
+                              })
+                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
+                              .Build();
+
         static readonly BuffIndexCollection _debuffBlacklist = new BuffIndexCollection(new string[]
         {
             "bdEntangle", // Immobile
@@ -82,6 +97,18 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         static bool CanActivate()
         {
             return _availableBuffIndices != null && filterSelectableBuffs(_availableBuffIndices).Any();
+        }
+
+        int _buffStackCount;
+
+        protected override int buffCount => _buffStackCount;
+
+        public override void OnPreStartServer()
+        {
+            base.OnPreStartServer();
+
+            BuffDef buffDef = BuffCatalog.GetBuffDef(_buffIndex);
+            _buffStackCount = buffDef && buffDef.canStack ? _stackableDebuffCount.Value : 1;
         }
 
 #if DEBUG

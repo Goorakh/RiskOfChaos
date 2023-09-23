@@ -1,6 +1,13 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* Give Everyone a Random Buff & Debuff:
+  * Now gives several stacks if the random buff/debuff is stackable.
+
 **1.12.2 Changes:**
+
+<details>
 
 * Reworked 1 effect:
   * Drop All Items -> Loose Pockets: Drops a random item from everyone's inventory every 0.9 seconds
@@ -26,6 +33,8 @@
 
 * Chat Voting:
   * "Random Effect" option is now guaranteed to not be any of the other options in the vote
+
+</details>
 
 **1.12.1 Changes:**
 

@@ -1,11 +1,15 @@
 ﻿using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities.CatalogIndexCollection;
+using RiskOfOptions.OptionConfigs;
 using RoR2;
+using System;
 using System.Linq;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Buff
@@ -14,6 +18,18 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
     [EffectConfigBackwardsCompatibility("Effect: Give Everyone a Random Buff (Lasts 1 stage)")]
     public sealed class RandomBuff : ApplyBuffEffect
     {
+        [EffectConfig]
+        static readonly ConfigHolder<int> _stackableBuffCount =
+            ConfigFactory<int>.CreateConfig("Buff Stack Count", 5)
+                              .Description("How many stacks of the buff should be given, if the random buff is stackable")
+                              .OptionConfig(new IntSliderConfig
+                              {
+                                  min = 1,
+                                  max = 15
+                              })
+                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
+                              .Build();
+
         static bool _hasAppliedPatches = false;
         static void tryApplyPatches()
         {
@@ -25,56 +41,42 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             {
                 ILCursor c = new ILCursor(il);
 
-                int victimBodyLocalIndex = -1;
-                if (c.TryGotoNext(MoveType.After,
-                                  x => x.MatchLdloc(out victimBodyLocalIndex),
-                                  x => x.MatchLdsfld(typeof(RoR2Content.Buffs), nameof(RoR2Content.Buffs.AffixPoison)),
-                                  x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<CharacterBody>(_ => _.HasBuff(default(BuffDef))))))
+                bool tryPatchOnDeathSpawn(Type buffDeclaringType, string buffFieldName, string spawnedBodyName)
                 {
-                    c.Emit(OpCodes.Ldloc, victimBodyLocalIndex);
-                    c.EmitDelegate((CharacterBody victimBody) =>
+                    c.Index = 0;
+
+                    int victimBodyLocalIndex = -1;
+                    if (c.TryGotoNext(MoveType.After,
+                                  x => x.MatchLdloc(out victimBodyLocalIndex),
+                                  x => x.MatchLdsfld(buffDeclaringType, buffFieldName),
+                                  x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<CharacterBody>(_ => _.HasBuff(default(BuffDef))))))
                     {
-                        return victimBody && victimBody.bodyIndex != BodyCatalog.FindBodyIndex("UrchinTurretBody");
-                    });
-                    c.Emit(OpCodes.And);
+                        c.Emit(OpCodes.Ldloc, victimBodyLocalIndex);
+                        c.EmitDelegate((CharacterBody victimBody) =>
+                        {
+                            return victimBody && victimBody.bodyIndex != BodyCatalog.FindBodyIndex(spawnedBodyName);
+                        });
+                        c.Emit(OpCodes.And);
+
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
-                else
+
+                if (!tryPatchOnDeathSpawn(typeof(RoR2Content.Buffs), nameof(RoR2Content.Buffs.AffixPoison), "UrchinTurretBody"))
                 {
                     Log.Warning("Failed to find malachite urchin patch location");
                 }
 
-                c.Index = 0;
-                if (c.TryGotoNext(MoveType.After,
-                                  x => x.MatchLdloc(out victimBodyLocalIndex),
-                                  x => x.MatchLdsfld(typeof(DLC1Content.Buffs), nameof(DLC1Content.Buffs.EliteEarth)),
-                                  x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<CharacterBody>(_ => _.HasBuff(default(BuffDef))))))
-                {
-                    c.Emit(OpCodes.Ldloc, victimBodyLocalIndex);
-                    c.EmitDelegate((CharacterBody victimBody) =>
-                    {
-                        return victimBody && victimBody.bodyIndex != BodyCatalog.FindBodyIndex("AffixEarthHealerBody");
-                    });
-                    c.Emit(OpCodes.And);
-                }
-                else
+                if (!tryPatchOnDeathSpawn(typeof(DLC1Content.Buffs), nameof(DLC1Content.Buffs.EliteEarth), "AffixEarthHealerBody"))
                 {
                     Log.Warning("Failed to find healing core patch location");
                 }
 
-                c.Index = 0;
-                if (c.TryGotoNext(MoveType.After,
-                                  x => x.MatchLdloc(out victimBodyLocalIndex),
-                                  x => x.MatchLdsfld(typeof(DLC1Content.Buffs), nameof(DLC1Content.Buffs.EliteVoid)),
-                                  x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<CharacterBody>(_ => _.HasBuff(default(BuffDef))))))
-                {
-                    c.Emit(OpCodes.Ldloc, victimBodyLocalIndex);
-                    c.EmitDelegate((CharacterBody victimBody) =>
-                    {
-                        return victimBody && victimBody.bodyIndex != BodyCatalog.FindBodyIndex("VoidInfestorBody");
-                    });
-                    c.Emit(OpCodes.And);
-                }
-                else
+                if (!tryPatchOnDeathSpawn(typeof(DLC1Content.Buffs), nameof(DLC1Content.Buffs.EliteVoid), "VoidInfestorBody"))
                 {
                     Log.Warning("Failed to find void infestor patch location");
                 }
@@ -215,10 +217,17 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             return _availableBuffIndices != null && filterSelectableBuffs(_availableBuffIndices).Any();
         }
 
+        int _buffStackCount;
+
+        protected override int buffCount => _buffStackCount;
+
         public override void OnPreStartServer()
         {
             base.OnPreStartServer();
             tryApplyPatches();
+
+            BuffDef buffDef = BuffCatalog.GetBuffDef(_buffIndex);
+            _buffStackCount = buffDef && buffDef.canStack ? _stackableBuffCount.Value : 1;
         }
 
 #if DEBUG
