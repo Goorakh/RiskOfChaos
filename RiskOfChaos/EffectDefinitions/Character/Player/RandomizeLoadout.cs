@@ -34,10 +34,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                         anyChanges = true;
 
                         if (playerBody && bodyIndex == playerBody.bodyIndex)
-                    {
-                        changedCurrentBody = true;
+                        {
+                            changedCurrentBody = true;
+                        }
                     }
-                }
                 }
 
                 if (anyChanges)
@@ -60,7 +60,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             bool skillsChanged;
             try
             {
-                skillsChanged = randomizeLoadoutSkills(bodyLoadoutManager, bodyIndex);
+                skillsChanged = randomizeLoadoutSkills(master, bodyLoadoutManager, bodyIndex);
             }
             catch (Exception ex)
             {
@@ -71,7 +71,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             bool skinChanged;
             try
             {
-                skinChanged = randomizeLoadoutSkin(bodyLoadoutManager, bodyIndex);
+                skinChanged = randomizeLoadoutSkin(master, bodyLoadoutManager, bodyIndex);
             }
             catch (Exception ex)
             {
@@ -101,10 +101,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             return getWeightedIndexSelection(count, currentIndex, canSelectIndex).Evaluate(RNG.nextNormalizedFloat);
         }
 
-        bool randomizeLoadoutSkills(Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex)
+        bool randomizeLoadoutSkills(CharacterMaster master, Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex)
         {
-            // TODO: Find a proper solution for client players in multiplayer
-            UserProfile userProfile = LocalUserManager.GetFirstLocalUser()?.userProfile;
+            NetworkUser networkUser = master && master.playerCharacterMasterController ? master.playerCharacterMasterController.networkUser : null;
 
             bool anyChanges = false;
 
@@ -127,7 +126,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                             return false;
 
                         SkillFamily.Variant variant = skillVariants[skillIndex];
-                        return !variant.unlockableDef || (userProfile != null && userProfile.HasUnlockable(variant.unlockableDef));
+                        return !variant.unlockableDef || (!networkUser && networkUser.unlockables.Contains(variant.unlockableDef));
                     });
 
                     if (currentSkillVariantIndex != newSkillVariantIndex)
@@ -142,19 +141,19 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             return anyChanges;
         }
 
-        bool randomizeLoadoutSkin(Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex)
+        bool randomizeLoadoutSkin(CharacterMaster master, Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex)
         {
+            NetworkUser networkUser = master && master.playerCharacterMasterController ? master.playerCharacterMasterController.networkUser : null;
+
             int bodySkinCount = BodyCatalog.GetBodySkins(bodyIndex).Length;
             if (bodySkinCount > 1) // Only 1: No other options, don't bother trying to randomize it
             {
                 uint currentSkinIndex = bodyLoadoutManager.GetSkinIndex(bodyIndex);
 
-                // TODO: Find a proper solution for client players in multiplayer
-                UserProfile userProfile = LocalUserManager.GetFirstLocalUser()?.userProfile;
                 uint newSkinIndex = evaluateWeightedIndexSelection(bodySkinCount, currentSkinIndex, skinIndex =>
                 {
                     SkinDef skinDef = SkinCatalog.GetBodySkinDef(bodyIndex, (int)skinIndex);
-                    return skinDef && (!skinDef.unlockableDef || (userProfile != null && userProfile.HasUnlockable(skinDef.unlockableDef)));
+                    return skinDef && (!skinDef.unlockableDef || (!networkUser && networkUser.unlockables.Contains(skinDef.unlockableDef)));
                 });
 
                 if (currentSkinIndex != newSkinIndex)
