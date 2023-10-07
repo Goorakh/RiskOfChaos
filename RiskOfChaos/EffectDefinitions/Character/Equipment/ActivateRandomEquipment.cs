@@ -140,10 +140,25 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
             return _availableEquipments.Where(e => e.IsAvailable);
         }
 
-        [EffectCanActivate]
-        static bool CanActivate()
+        static IEnumerable<CharacterBody> getAllEquipmentActivators()
         {
-            return getAllAvailableEquipments().Any();
+            IEnumerable<CharacterBody> activatorBodies;
+            if (_allowNonPlayerEquipmentUse.Value)
+            {
+                activatorBodies = CharacterBody.readOnlyInstancesList.Where(c => c.healthComponent && c.healthComponent.alive);
+            }
+            else
+            {
+                activatorBodies = PlayerUtils.GetAllPlayerBodies(true);
+            }
+
+            return activatorBodies.Where(c => c.equipmentSlot);
+        }
+
+        [EffectCanActivate]
+        static bool CanActivate(in EffectCanActivateContext context)
+        {
+            return getAllAvailableEquipments().Any() && (!context.IsNow || getAllEquipmentActivators().Any());
         }
 
         EquipmentDef[] _equipmentActivationOrder = Array.Empty<EquipmentDef>();
@@ -170,28 +185,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
 
         public override void OnStart()
         {
-            IEnumerable<CharacterBody> bodies;
-            if (_allowNonPlayerEquipmentUse.Value)
-            {
-                bodies = CharacterBody.readOnlyInstancesList;
-            }
-            else
-            {
-                bodies = PlayerUtils.GetAllPlayerBodies(true);
-            }
-
             // ToArray since equipments might modify the underlying collection by spawning a new character
-            bodies.ToArray().TryDo(activateRandomEquipment, FormatUtils.GetBestBodyName);
+            getAllEquipmentActivators().ToArray().TryDo(activateRandomEquipment, FormatUtils.GetBestBodyName);
         }
 
         void activateRandomEquipment(CharacterBody body)
         {
-            if (!body)
-                return;
-
             EquipmentSlot equipmentSlot = body.equipmentSlot;
-            if (!equipmentSlot)
-                return;
 
             foreach (EquipmentDef equipment in _equipmentActivationOrder)
             {
