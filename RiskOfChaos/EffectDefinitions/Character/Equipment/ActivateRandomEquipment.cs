@@ -135,10 +135,15 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
             }
         }
 
+        static IEnumerable<ActivatableEquipment> getAllAvailableEquipments()
+        {
+            return _availableEquipments.Where(e => e.IsAvailable);
+        }
+
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return _availableEquipments.Length > 0;
+            return getAllAvailableEquipments().Any();
         }
 
         EquipmentDef[] _equipmentActivationOrder = Array.Empty<EquipmentDef>();
@@ -147,7 +152,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
         {
             base.OnPreStartServer();
 
-            ActivatableEquipment[] availableEquipments = _availableEquipments.Where(e => e.IsAvailable).ToArray();
+            ActivatableEquipment[] availableEquipments = getAllAvailableEquipments().ToArray();
             int availableEquipmentsCount = availableEquipments.Length;
 
             WeightedSelection<EquipmentDef> equipmentSelector = new WeightedSelection<EquipmentDef>(availableEquipmentsCount);
