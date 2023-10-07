@@ -126,7 +126,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                             return false;
 
                         SkillFamily.Variant variant = skillVariants[skillIndex];
-                        return !variant.unlockableDef || (!networkUser && networkUser.unlockables.Contains(variant.unlockableDef));
+                        return !variant.unlockableDef || !networkUser || networkUser.unlockables.Contains(variant.unlockableDef);
                     });
 
                     if (currentSkillVariantIndex != newSkillVariantIndex)
@@ -153,7 +153,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                 uint newSkinIndex = evaluateWeightedIndexSelection(bodySkinCount, currentSkinIndex, skinIndex =>
                 {
                     SkinDef skinDef = SkinCatalog.GetBodySkinDef(bodyIndex, (int)skinIndex);
-                    return skinDef && (!skinDef.unlockableDef || (!networkUser && networkUser.unlockables.Contains(skinDef.unlockableDef)));
+                    return skinDef && (!skinDef.unlockableDef || !networkUser || networkUser.unlockables.Contains(skinDef.unlockableDef));
                 });
 
                 if (currentSkinIndex != newSkinIndex)
