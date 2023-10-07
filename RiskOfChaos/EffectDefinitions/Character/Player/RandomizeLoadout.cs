@@ -29,13 +29,15 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
                 for (BodyIndex bodyIndex = 0; bodyIndex < (BodyIndex)BodyCatalog.bodyCount; bodyIndex++)
                 {
-                    bool anyChangesForThisBodyIndex = randomizeLoadoutForBodyIndex(playerMaster, bodyLoadoutManager, bodyIndex);
-                    anyChanges |= anyChangesForThisBodyIndex;
+                    if (randomizeLoadoutForBodyIndex(playerMaster, bodyLoadoutManager, bodyIndex))
+                    {
+                        anyChanges = true;
 
-                    if (anyChangesForThisBodyIndex && playerBody && bodyIndex == playerBody.bodyIndex)
+                        if (playerBody && bodyIndex == playerBody.bodyIndex)
                     {
                         changedCurrentBody = true;
                     }
+                }
                 }
 
                 if (anyChanges)
