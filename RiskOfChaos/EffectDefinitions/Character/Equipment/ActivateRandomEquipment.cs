@@ -176,8 +176,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
                 availableEquipments[i].AddToWeightedSelection(equipmentSelector);
             }
 
-            _equipmentActivationOrder = new EquipmentDef[availableEquipmentsCount];
-            for (int i = 0; i < availableEquipmentsCount; i++)
+            _equipmentActivationOrder = new EquipmentDef[equipmentSelector.Count];
+            for (int i = 0; i < _equipmentActivationOrder.Length; i++)
             {
                 _equipmentActivationOrder[i] = equipmentSelector.GetAndRemoveRandom(RNG);
             }
