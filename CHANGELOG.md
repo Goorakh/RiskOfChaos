@@ -11,6 +11,9 @@
 * Randomize Loadout:
   * Should now no longer give non-unlocked skills and skins to client players in multiplayer
 
+* Randomize Loadout & Enable Random Artifact (Metamorphosis):
+  * Desperado stacks are no longer reset
+
 **1.12.2 Changes:**
 
 <details>

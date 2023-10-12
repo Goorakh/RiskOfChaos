@@ -1,4 +1,5 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities.BodySnapshots;
+using RoR2;
 using System;
 using UnityEngine.Networking;
 
@@ -12,7 +13,12 @@ namespace RiskOfChaos.Utilities.Extensions
         SkipIntroState = 1 << 1,
         KeepCurseStacks = 1 << 2,
         KeepHealth = 1 << 3,
-        KeepState = KeepVehicle | KeepCurseStacks | KeepHealth,
+        KeepDesperado = 1 << 4,
+
+        KeepStatusEffects = KeepCurseStacks | KeepDesperado,
+
+        KeepState = KeepVehicle | KeepStatusEffects | KeepHealth,
+
         All = byte.MaxValue
     }
 
@@ -28,6 +34,17 @@ namespace RiskOfChaos.Utilities.Extensions
             {
                 CharacterBody body = master.GetBody();
                 return body && body.healthComponent.alive;
+            }
+        }
+
+        record struct ConditionalBodySnapshot(IBodySnapshot Snapshot, CharacterRespawnFlags RequiredFlag)
+        {
+            public readonly void TryApplyTo(CharacterBody body, CharacterRespawnFlags flags)
+            {
+                if ((flags & RequiredFlag) != 0)
+                {
+                    Snapshot.ApplyTo(body);
+                }
             }
         }
 
@@ -54,9 +71,12 @@ namespace RiskOfChaos.Utilities.Extensions
                 }
             }
 
-            int curseStacks = body.GetBuffCount(RoR2Content.Buffs.PermanentCurse);
-
-            HealthSnapshot healthSnapshot = HealthSnapshot.FromBody(body);
+            ConditionalBodySnapshot[] snapshots = new ConditionalBodySnapshot[]
+            {
+                new ConditionalBodySnapshot(BuffSnapshot.FromBody(body, RoR2Content.Buffs.PermanentCurse.buffIndex), CharacterRespawnFlags.KeepCurseStacks),
+                new ConditionalBodySnapshot(BuffSnapshot.FromBody(body, RoR2Content.Buffs.BanditSkull.buffIndex), CharacterRespawnFlags.KeepDesperado),
+                new ConditionalBodySnapshot(HealthSnapshot.FromBody(body), CharacterRespawnFlags.KeepHealth),
+            };
 
             body = master.Respawn(body.footPosition, body.GetRotation());
 
@@ -76,26 +96,9 @@ namespace RiskOfChaos.Utilities.Extensions
                 }
             }
 
-            if ((flags & CharacterRespawnFlags.KeepCurseStacks) != 0)
+            foreach (ConditionalBodySnapshot conditionalSnapshot in snapshots)
             {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                body.SetBuffCount(RoR2Content.Buffs.PermanentCurse.buffIndex, curseStacks);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-            }
-
-            if ((flags & CharacterRespawnFlags.KeepHealth) != 0)
-            {
-                void bodyStart(CharacterBody b)
-                {
-                    if (b != body)
-                        return;
-
-                    healthSnapshot.ApplyTo(body);
-
-                    CharacterBody.onBodyStartGlobal -= bodyStart;
-                }
-
-                CharacterBody.onBodyStartGlobal += bodyStart;
+                conditionalSnapshot.TryApplyTo(body, flags);
             }
 
             return body;
