@@ -2,41 +2,48 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using System.Runtime.CompilerServices;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosTimedEffect("random_difficulty", TimedEffectType.UntilStageEnd, DefaultSelectionWeight = 0.6f, AllowDuplicates = false, HideFromEffectsListWhenPermanent = true)]
+    [ChaosTimedEffect("random_difficulty", TimedEffectType.UntilStageEnd, DefaultSelectionWeight = 0.6f, HideFromEffectsListWhenPermanent = true)]
     public sealed class RandomDifficulty : TimedEffect
     {
-        static int difficultiesCount
+        static readonly Stack<DifficultyIndex> _previousDifficulties = new Stack<DifficultyIndex>();
+
+        static void clearPreviousDifficulties()
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                return DifficultyCatalog.difficultyDefs.Length;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-            }
+            _previousDifficulties.Clear();
         }
 
-        DifficultyIndex _previousDifficulty;
+        static RandomDifficulty()
+        {
+            Run.onRunStartGlobal += _ =>
+            {
+                clearPreviousDifficulties();
+            };
+
+            Run.onRunDestroyGlobal += _ =>
+            {
+                clearPreviousDifficulties();
+            };
+        }
 
         public override void OnStart()
         {
-            _previousDifficulty = Run.instance.selectedDifficulty;
+            DifficultyIndex currentDifficulty = Run.instance.selectedDifficulty;
 
-            int totalDifficultiesCount = difficultiesCount;
+            const int TOTAL_DIFFICULTIES_COUNT = (int)DifficultyIndex.Count;
 
             // -1 since the current difficulty will be excluded
-            WeightedSelection<DifficultyIndex> newDifficultySelection = new WeightedSelection<DifficultyIndex>(totalDifficultiesCount - 1);
-            for (int i = 0; i < totalDifficultiesCount; i++)
+            WeightedSelection<DifficultyIndex> newDifficultySelection = new WeightedSelection<DifficultyIndex>(TOTAL_DIFFICULTIES_COUNT - 1);
+            for (DifficultyIndex i = 0; i < (DifficultyIndex)TOTAL_DIFFICULTIES_COUNT; i++)
             {
-                if (i == (int)_previousDifficulty)
+                if (i == currentDifficulty)
                     continue;
-
-                newDifficultySelection.AddChoice((DifficultyIndex)i, 1f / Mathf.Abs(i - (int)_previousDifficulty));
+                
+                newDifficultySelection.AddChoice(i, 1f / Mathf.Abs(i - currentDifficulty));
             }
 
             DifficultyIndex newDifficultyIndex = newDifficultySelection.GetRandom(RNG);
@@ -46,13 +53,27 @@ namespace RiskOfChaos.EffectDefinitions.World
             DifficultyDef selectedDifficultyDef = DifficultyCatalog.GetDifficultyDef(newDifficultyIndex);
             Log.Debug($"Selected difficulty: {(selectedDifficultyDef != null ? Language.GetString(selectedDifficultyDef.nameToken) : "NULL")}");
 #endif
+
+            _previousDifficulties.Push(currentDifficulty);
         }
 
         public override void OnEnd()
         {
             if (Run.instance)
             {
-                Run.instance.selectedDifficulty = _previousDifficulty;
+                if (_previousDifficulties.Count > 0)
+                {
+#if DEBUG
+                    DifficultyDef restoredDifficultyDef = DifficultyCatalog.GetDifficultyDef(_previousDifficulties.Peek());
+                    Log.Debug($"Restoring difficulty: {(restoredDifficultyDef != null ? Language.GetString(restoredDifficultyDef.nameToken) : "NULL")}");
+#endif
+
+                    Run.instance.selectedDifficulty = _previousDifficulties.Pop();
+                }
+                else
+                {
+                    Log.Error("Ending effect, but no difficulty to restore! This should never happen.");
+                }
             }
         }
     }

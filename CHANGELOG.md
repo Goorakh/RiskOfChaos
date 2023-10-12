@@ -8,6 +8,11 @@
 * One Hit KO:
   * Fixed characters having more than 1 hp if they had barrier before the effect activated
 
+* Change Difficulty:
+  * Effect can now have multiple instances active at once (can change serveral times per stage)
+  * Removed modded difficulty support
+    * Too much to fix compatibility-wise, wasn't worth the effort.
+
 * Randomize Loadout:
   * Added config options to disable effect changing skins or skills
   * Should now no longer give non-unlocked skills and skins to client players in multiplayer
