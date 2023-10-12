@@ -5,6 +5,9 @@
 * Give Everyone a Random Buff & Debuff:
   * Now gives several stacks if the random buff/debuff is stackable.
 
+* Randomize Loadout:
+  * Should now no longer give non-unlocked skills and skins to client players in multiplayer
+
 **1.12.2 Changes:**
 
 <details>
