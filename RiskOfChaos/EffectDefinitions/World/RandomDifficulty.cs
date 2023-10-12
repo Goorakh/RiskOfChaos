@@ -59,21 +59,23 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         public override void OnEnd()
         {
-            if (Run.instance)
+            if (_previousDifficulties.Count > 0)
             {
-                if (_previousDifficulties.Count > 0)
+                DifficultyIndex restoredDifficultyIndex = _previousDifficulties.Pop();
+
+                if (Run.instance)
                 {
 #if DEBUG
-                    DifficultyDef restoredDifficultyDef = DifficultyCatalog.GetDifficultyDef(_previousDifficulties.Peek());
+                    DifficultyDef restoredDifficultyDef = DifficultyCatalog.GetDifficultyDef(restoredDifficultyIndex);
                     Log.Debug($"Restoring difficulty: {(restoredDifficultyDef != null ? Language.GetString(restoredDifficultyDef.nameToken) : "NULL")}");
 #endif
 
-                    Run.instance.selectedDifficulty = _previousDifficulties.Pop();
+                    Run.instance.selectedDifficulty = restoredDifficultyIndex;
                 }
-                else
-                {
-                    Log.Error("Ending effect, but no difficulty to restore! This should never happen.");
-                }
+            }
+            else if (Run.instance)
+            {
+                Log.Error("Ending effect, but no difficulty to restore! This should never happen.");
             }
         }
     }
