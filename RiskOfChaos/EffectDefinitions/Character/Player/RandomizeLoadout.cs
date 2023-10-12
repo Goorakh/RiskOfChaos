@@ -1,9 +1,13 @@
 ﻿using HG;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.Skills;
 using System;
@@ -13,6 +17,26 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
     [ChaosEffect("randomize_loadout", DefaultSelectionWeight = 0.7f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
     public sealed class RandomizeLoadout : BaseEffect
     {
+        [EffectConfig]
+        static readonly ConfigHolder<bool> _randomizeSkills =
+            ConfigFactory<bool>.CreateConfig("Randomize Skills", true)
+                               .Description("If the effect should randomize character skills")
+                               .OptionConfig(new CheckBoxConfig())
+                               .Build();
+
+        [EffectConfig]
+        static readonly ConfigHolder<bool> _randomizeSkin =
+            ConfigFactory<bool>.CreateConfig("Randomize Skin", true)
+                               .Description("If the effect should randomize character skins")
+                               .OptionConfig(new CheckBoxConfig())
+                               .Build();
+
+        [EffectCanActivate]
+        static bool CanActivate()
+        {
+            return _randomizeSkills.Value || _randomizeSkin.Value;
+        }
+
         public override void OnStart()
         {
             bool isMetamorphosisActive = RunArtifactManager.instance && RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.randomSurvivorOnRespawnArtifactDef);
@@ -57,29 +81,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
         bool randomizeLoadoutForBodyIndex(CharacterMaster master, Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex)
         {
-            bool skillsChanged;
-            try
-            {
-                skillsChanged = randomizeLoadoutSkills(master, bodyLoadoutManager, bodyIndex);
-            }
-            catch (Exception ex)
-            {
-                Log.Error_NoCallerPrefix($"Failed to randomize {Util.GetBestMasterName(master)} ({BodyCatalog.GetBodyName(bodyIndex)}) skills: {ex}");
-                skillsChanged = false;
-            }
-
-            bool skinChanged;
-            try
-            {
-                skinChanged = randomizeLoadoutSkin(master, bodyLoadoutManager, bodyIndex);
-            }
-            catch (Exception ex)
-            {
-                Log.Error_NoCallerPrefix($"Failed to randomize {Util.GetBestMasterName(master)} ({BodyCatalog.GetBodyName(bodyIndex)}) skin: {ex}");
-                skinChanged = false;
-            }
-
-            return skillsChanged || skinChanged;
+            return tryRandomizeLoadoutSkills(master, bodyLoadoutManager, bodyIndex) | tryRandomizeLoadoutSkin(master, bodyLoadoutManager, bodyIndex);
         }
 
         static WeightedSelection<uint> getWeightedIndexSelection(int count, uint currentIndex, Predicate<uint> canSelectIndex)
@@ -99,6 +101,22 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
         uint evaluateWeightedIndexSelection(int count, uint currentIndex, Predicate<uint> canSelectIndex)
         {
             return getWeightedIndexSelection(count, currentIndex, canSelectIndex).Evaluate(RNG.nextNormalizedFloat);
+        }
+
+        bool tryRandomizeLoadoutSkills(CharacterMaster master, Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex)
+        {
+            if (!_randomizeSkills.Value)
+                return false;
+
+            try
+            {
+                return randomizeLoadoutSkills(master, bodyLoadoutManager, bodyIndex);
+            }
+            catch (Exception ex)
+            {
+                Log.Error_NoCallerPrefix($"Failed to randomize {Util.GetBestMasterName(master)} ({BodyCatalog.GetBodyName(bodyIndex)}) skills: {ex}");
+                return false;
+            }
         }
 
         bool randomizeLoadoutSkills(CharacterMaster master, Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex)
@@ -139,6 +157,22 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             }
 
             return anyChanges;
+        }
+
+        bool tryRandomizeLoadoutSkin(CharacterMaster master, Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex)
+        {
+            if (!_randomizeSkin.Value)
+                return false;
+
+            try
+            {
+                return randomizeLoadoutSkin(master, bodyLoadoutManager, bodyIndex);
+            }
+            catch (Exception ex)
+            {
+                Log.Error_NoCallerPrefix($"Failed to randomize {Util.GetBestMasterName(master)} ({BodyCatalog.GetBodyName(bodyIndex)}) skin: {ex}");
+                return false;
+            }
         }
 
         bool randomizeLoadoutSkin(CharacterMaster master, Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex)

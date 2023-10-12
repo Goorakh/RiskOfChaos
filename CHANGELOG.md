@@ -9,6 +9,7 @@
   * Fixed characters having more than 1 hp if they had barrier before the effect activated
 
 * Randomize Loadout:
+  * Added config options to disable effect changing skins or skills
   * Should now no longer give non-unlocked skills and skins to client players in multiplayer
 
 * Randomize Loadout & Enable Random Artifact (Metamorphosis):
