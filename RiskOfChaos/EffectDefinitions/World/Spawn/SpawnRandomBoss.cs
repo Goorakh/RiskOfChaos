@@ -20,8 +20,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             public BossSpawnEntry(CharacterSpawnCard[] items, float weight) : base(items, weight)
             {
             }
+            public BossSpawnEntry(string[] spawnCardPaths, float weight) : base(spawnCardPaths, weight)
+            {
+            }
 
             public BossSpawnEntry(CharacterSpawnCard item, float weight) : base(item, weight)
+            {
+            }
+            public BossSpawnEntry(string spawnCardPath, float weight) : base(spawnCardPath, weight)
             {
             }
 
@@ -44,6 +50,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             }
         }
 
+        static new BossSpawnEntry loadBasicSpawnEntry(string addressablePath, float weight = 1f)
+        {
+            return new BossSpawnEntry(addressablePath, weight);
+        }
+
+        static new BossSpawnEntry loadBasicSpawnEntry(string[] addressablePaths, float weight = 1f)
+        {
+            return new BossSpawnEntry(addressablePaths, weight);
+        }
+
         static BossSpawnEntry[] _bossSpawnEntries;
 
         static readonly GameObject _bossCombatSquadPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Core/BossCombatSquad.prefab").WaitForCompletion();
@@ -51,41 +67,30 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [SystemInitializer]
         static void Init()
         {
-            static BossSpawnEntry getBossEntrySingle(string assetPath, float weight)
-            {
-                return new BossSpawnEntry(Addressables.LoadAssetAsync<CharacterSpawnCard>(assetPath).WaitForCompletion(), weight);
-            }
-
-            static BossSpawnEntry getBossEntryMany(string[] assetPaths, float weight)
-            {
-                CharacterSpawnCard[] spawnCards = Array.ConvertAll(assetPaths, path => Addressables.LoadAssetAsync<CharacterSpawnCard>(path).WaitForCompletion());
-                return new BossSpawnEntry(spawnCards, weight);
-            }
-
             _bossSpawnEntries = new BossSpawnEntry[]
             {
-                getBossEntrySingle("RoR2/Base/Beetle/cscBeetleQueen.asset", 1f),
-                getBossEntrySingle("RoR2/Base/Brother/cscBrother.asset", 0.5f),
-                getBossEntrySingle("RoR2/Base/Brother/cscBrotherHurt.asset", 0.4f),
-                getBossEntrySingle("RoR2/Base/ClayBoss/cscClayBoss.asset", 1f),
-                getBossEntrySingle("RoR2/Base/ElectricWorm/cscElectricWorm.asset", 0.75f),
-                getBossEntrySingle("RoR2/Base/Grandparent/cscGrandparent.asset", 1f),
-                getBossEntrySingle("RoR2/Base/Gravekeeper/cscGravekeeper.asset", 1f),
-                getBossEntrySingle("RoR2/Base/ImpBoss/cscImpBoss.asset", 1f),
-                getBossEntrySingle("RoR2/Base/MagmaWorm/cscMagmaWorm.asset", 0.85f),
-                getBossEntrySingle("RoR2/Base/RoboBallBoss/cscRoboBallBoss.asset", 1f),
-                getBossEntrySingle("RoR2/Base/RoboBallBoss/cscSuperRoboBallBoss.asset", 1f),
-                getBossEntrySingle("RoR2/Base/Scav/cscScavBoss.asset", 0.9f),
-                getBossEntrySingle("RoR2/Base/ScavLunar/cscScavLunar.asset", 0.8f),
-                getBossEntrySingle("RoR2/Base/Titan/cscTitanBlackBeach.asset", 1f),
-                getBossEntrySingle("RoR2/Base/Titan/cscTitanGold.asset", 0.9f),
-                getBossEntrySingle("RoR2/Base/Vagrant/cscVagrant.asset", 1f),
-                getBossEntrySingle("RoR2/Junk/BrotherGlass/cscBrotherGlass.asset", 0.7f),
-                getBossEntrySingle("RoR2/DLC1/MajorAndMinorConstruct/cscMegaConstruct.asset", 1f),
-                getBossEntrySingle("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase1.asset", 0.1f),
-                getBossEntrySingle("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase2.asset", 0.1f),
-                getBossEntrySingle("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase3.asset", 0.075f),
-                getBossEntrySingle("RoR2/DLC1/VoidMegaCrab/cscVoidMegaCrab.asset", 0.5f),
+                loadBasicSpawnEntry("RoR2/Base/Beetle/cscBeetleQueen.asset", 1f),
+                loadBasicSpawnEntry("RoR2/Base/Brother/cscBrother.asset", 0.5f),
+                loadBasicSpawnEntry("RoR2/Base/Brother/cscBrotherHurt.asset", 0.4f),
+                loadBasicSpawnEntry("RoR2/Base/ClayBoss/cscClayBoss.asset", 1f),
+                loadBasicSpawnEntry("RoR2/Base/ElectricWorm/cscElectricWorm.asset", 0.75f),
+                loadBasicSpawnEntry("RoR2/Base/Grandparent/cscGrandparent.asset", 1f),
+                loadBasicSpawnEntry("RoR2/Base/Gravekeeper/cscGravekeeper.asset", 1f),
+                loadBasicSpawnEntry("RoR2/Base/ImpBoss/cscImpBoss.asset", 1f),
+                loadBasicSpawnEntry("RoR2/Base/MagmaWorm/cscMagmaWorm.asset", 0.85f),
+                loadBasicSpawnEntry("RoR2/Base/RoboBallBoss/cscRoboBallBoss.asset", 1f),
+                loadBasicSpawnEntry("RoR2/Base/RoboBallBoss/cscSuperRoboBallBoss.asset", 1f),
+                loadBasicSpawnEntry("RoR2/Base/Scav/cscScavBoss.asset", 0.9f),
+                loadBasicSpawnEntry("RoR2/Base/ScavLunar/cscScavLunar.asset", 0.8f),
+                loadBasicSpawnEntry("RoR2/Base/Titan/cscTitanBlackBeach.asset", 1f),
+                loadBasicSpawnEntry("RoR2/Base/Titan/cscTitanGold.asset", 0.9f),
+                loadBasicSpawnEntry("RoR2/Base/Vagrant/cscVagrant.asset", 1f),
+                loadBasicSpawnEntry("RoR2/Junk/BrotherGlass/cscBrotherGlass.asset", 0.7f),
+                loadBasicSpawnEntry("RoR2/DLC1/MajorAndMinorConstruct/cscMegaConstruct.asset", 1f),
+                loadBasicSpawnEntry("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase1.asset", 0.1f),
+                loadBasicSpawnEntry("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase2.asset", 0.1f),
+                loadBasicSpawnEntry("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase3.asset", 0.075f),
+                loadBasicSpawnEntry("RoR2/DLC1/VoidMegaCrab/cscVoidMegaCrab.asset", 0.5f),
             };
         }
 
