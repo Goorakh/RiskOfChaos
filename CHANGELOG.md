@@ -5,6 +5,9 @@
 * Give Everyone a Random Buff & Debuff:
   * Now gives several stacks if the random buff/debuff is stackable.
 
+* One Hit KO:
+  * Fixed characters having more than 1 hp if they had barrier before the effect activated
+
 * Randomize Loadout:
   * Should now no longer give non-unlocked skills and skins to client players in multiplayer
 

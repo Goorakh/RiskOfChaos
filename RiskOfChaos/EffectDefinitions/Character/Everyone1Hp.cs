@@ -30,5 +30,16 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             base.OnStart();
         }
+
+        protected override void onBuffApplied(CharacterBody body)
+        {
+            base.onBuffApplied(body);
+
+            HealthComponent healthComponent = body.healthComponent;
+            if (healthComponent)
+            {
+                healthComponent.Networkbarrier = 0f;
+            }
+        }
     }
 }
