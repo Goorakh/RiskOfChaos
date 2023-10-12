@@ -50,7 +50,10 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         public override void OnEnd()
         {
-            Run.instance.selectedDifficulty = _previousDifficulty;
+            if (Run.instance)
+            {
+                Run.instance.selectedDifficulty = _previousDifficulty;
+            }
         }
     }
 }
