@@ -235,7 +235,9 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             readonly void preSpawnSetupCallback(CharacterMaster master)
             {
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 if (_combatSquad && _combatSquad.isActiveAndEnabled && !_combatSquad.defeatedServer)
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
                 {
                     _combatSquad.AddMember(master);
                 }

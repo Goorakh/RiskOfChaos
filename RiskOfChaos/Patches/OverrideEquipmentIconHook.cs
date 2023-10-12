@@ -46,7 +46,10 @@ namespace RiskOfChaos.Patches
             if (_hasAppliedPatches)
                 return;
 
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             MethodInfo EquipmentIcon_SetDisplayData_MI = SymbolExtensions.GetMethodInfo<EquipmentIcon>(_ => _.SetDisplayData(default));
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+
             if (EquipmentIcon_SetDisplayData_MI != null)
             {
                 new Hook(EquipmentIcon_SetDisplayData_MI, EquipmentIcon_SetDisplayData);

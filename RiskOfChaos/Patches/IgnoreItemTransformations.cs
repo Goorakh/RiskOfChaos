@@ -57,7 +57,9 @@ namespace RiskOfChaos.Patches
         {
             ILCursor c = new ILCursor(il);
 
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             const string InventoryReplacementCandidate_time_NAME = nameof(ContagiousItemManager.InventoryReplacementCandidate.time);
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
             int inventoryReplacementCandidateLocalIndex = -1;
             if (c.TryGotoNext(MoveType.After,

@@ -22,7 +22,9 @@ namespace RiskOfChaos.Patches
         {
             ILCursor c = new ILCursor(il);
 
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             MethodInfo ObjectiveTracker_IsDirty_MI = SymbolExtensions.GetMethodInfo<ObjectivePanelController.ObjectiveTracker>(_ => _.IsDirty());
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
             int patchCount = 0;
             while (c.TryGotoNext(MoveType.After, x => x.MatchCallOrCallvirt(ObjectiveTracker_IsDirty_MI)))
