@@ -2,3 +2,6 @@
 
 # CS0649: Field 'GiveRandomItem._effectInfo' is never assigned to, and will always have its default value
 dotnet_diagnostic.CS0649.severity = none
+
+# CS0067: The event 'DisableProcs.OnValueDirty' is never used
+dotnet_diagnostic.CS0067.severity = suggestion
