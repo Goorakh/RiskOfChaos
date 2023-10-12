@@ -48,7 +48,10 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             };
         }
 
-        [ConCommand(commandName = "roc_twitch_login")]
+        const string ROC_TWUTCH_LOGIN_COMMAND = "roc_twitch_login";
+        const string ROC_TWITCH_LOGIN_COMMAND_USAGE = $"{ROC_TWUTCH_LOGIN_COMMAND} [username] [oauth]";
+
+        [ConCommand(commandName = ROC_TWUTCH_LOGIN_COMMAND, helpText = $"Saves Twitch connection credentials so the mod can connect to your Twitch channel. Usage: {ROC_TWITCH_LOGIN_COMMAND_USAGE}")]
         static void CCLogin(ConCommandArgs args)
         {
             if (args.Count == 0)
@@ -59,23 +62,33 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
                 }
                 else
                 {
-                    Debug.Log("Not currently logged in");
+                    Debug.Log($"Not currently logged in, command usage: {ROC_TWITCH_LOGIN_COMMAND_USAGE}");
                 }
 
-                Debug.Log("Command usage: roc_twitch_login [username] [oauth]");
                 return;
             }
 
             args.CheckArgumentCount(2);
 
-            TwitchLoginCredentials newLoginCredentials = new TwitchLoginCredentials(args[0], args[1]);
+            string username = args[0];
+            string oauth = args[1];
+
+            TwitchLoginCredentials newLoginCredentials = new TwitchLoginCredentials(username, oauth);
             if (_loginCredentials != newLoginCredentials)
             {
                 _loginCredentials = newLoginCredentials;
                 _loginCredentials.WriteToFile();
 
                 onClientCredentialsChanged();
+
+                Debug.Log($"Saved new login: {username}");
             }
+            else
+            {
+                Debug.Log($"Already logged in as {username}");
+            }
+
+            Debug.Log("Login info is successfully saved, please also run the `clear` command if you are streaming to avoid accidentally showing the auth token");
         }
 
         static TwitchClient _client;
