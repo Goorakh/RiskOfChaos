@@ -2,6 +2,9 @@
 using R2API.Networking.Interfaces;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.Networking;
+using RiskOfChaos.SaveHandling;
+using RiskOfChaos.SaveHandling.DataContainers;
+using RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers;
 using RoR2;
 using System;
 using System.Collections.Generic;
@@ -57,6 +60,22 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     }
                 }
             }
+
+            public readonly byte[] GetSerializedData()
+            {
+                NetworkWriter writer = new NetworkWriter();
+                try
+                {
+                    EffectInstance.Serialize(writer);
+                }
+                catch (Exception e)
+                {
+                    Log.Error_NoCallerPrefix($"Caught exception in {EffectInfo} {nameof(BaseEffect.Serialize)}: {e}");
+                    return Array.Empty<byte>();
+                }
+
+                return writer.ToArray();
+            }
         }
 
         readonly List<ActiveTimedEffectInfo> _activeTimedEffects = new List<ActiveTimedEffectInfo>();
@@ -77,6 +96,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
             _effectDispatcher.OnEffectDispatched += onEffectDispatched;
 
             Stage.onServerStageComplete += onServerStageComplete;
+
+            if (NetworkServer.active && SaveManager.UseSaveData)
+            {
+                SaveManager.CollectSaveData += SaveManager_CollectSaveData;
+                SaveManager.LoadSaveData += SaveManager_LoadSaveData;
+            }
         }
 
         void Update()
@@ -113,6 +138,36 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             endTimedEffects(TimedEffectFlags.All, false);
             _activeTimedEffects.Clear();
+
+            SaveManager.CollectSaveData -= SaveManager_CollectSaveData;
+            SaveManager.LoadSaveData -= SaveManager_LoadSaveData;
+        }
+
+        void SaveManager_LoadSaveData(in SaveContainer container)
+        {
+            TimedEffectHandlerData data = container.TimedEffectHandlerData;
+            if (data is null)
+                return;
+
+            if (data.ActiveTimedEffects is not null)
+            {
+                foreach (SerializableActiveEffect activeEffect in data.ActiveTimedEffects)
+                {
+                    _effectDispatcher.DispatchEffectFromSerializedDataServer(activeEffect.Effect.EffectInfo, activeEffect.SerializedEffectData, EffectDispatchFlags.LoadedFromSave);
+                }
+            }
+        }
+
+        void SaveManager_CollectSaveData(ref SaveContainer container)
+        {
+            container.TimedEffectHandlerData = new TimedEffectHandlerData
+            {
+                ActiveTimedEffects = _activeTimedEffects.Select(a => new SerializableActiveEffect
+                {
+                    Effect = new SerializableEffect(a.EffectInfo),
+                    SerializedEffectData = a.GetSerializedData()
+                }).ToArray()
+            };
         }
 
         void onEffectDispatched(ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, BaseEffect effectInstance)

@@ -8,5 +8,8 @@ namespace RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers
     {
         [DataMember(Name = "rng")]
         public SerializableRng EffectRNG;
+
+        [DataMember(Name = "edc")]
+        public ulong EffectDispatchCount;
     }
 }

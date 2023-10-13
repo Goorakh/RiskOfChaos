@@ -1,7 +1,6 @@
-﻿using System;
+﻿using RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers;
+using System;
 using System.Runtime.Serialization;
-using RiskOfChaos.EffectDefinitions.World;
-using RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers;
 
 namespace RiskOfChaos.SaveHandling.DataContainers
 {
@@ -16,6 +15,9 @@ namespace RiskOfChaos.SaveHandling.DataContainers
 
         [DataMember(Name = "ed")]
         public EffectDispatcherData DispatcherData;
+
+        [DataMember(Name = "ted")]
+        public TimedEffectHandlerData TimedEffectHandlerData;
 
         [DataMember(Name = "e")]
         public EffectsDataContainer Effects;

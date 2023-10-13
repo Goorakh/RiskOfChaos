@@ -112,16 +112,19 @@ namespace RiskOfChaos.EffectHandling.Controllers
         {
             container.DispatcherData = new EffectDispatcherData
             {
-                EffectRNG = new SerializableRng(_effectRNG)
+                EffectRNG = new SerializableRng(_effectRNG),
+                EffectDispatchCount = _effectDispatchCount
             };
         }
 
         void SaveManager_LoadSaveData(in SaveContainer container)
         {
-            if (container.DispatcherData is null)
+            EffectDispatcherData data = container.DispatcherData;
+            if (data is null)
                 return;
 
-            _effectRNG = container.DispatcherData.EffectRNG;
+            _effectRNG = data.EffectRNG;
+            _effectDispatchCount = data.EffectDispatchCount;
         }
 
         public void SkipAllScheduledEffects()
@@ -158,12 +161,20 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        void NetworkedEffectDispatchedMessage_OnReceive(ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, byte[] serializedEffectData)
+        public void DispatchEffectFromSerializedDataServer(ChaosEffectInfo effectInfo, byte[] serializedEffectData, EffectDispatchFlags flags = EffectDispatchFlags.None)
         {
-            if (NetworkServer.active)
+            if (!NetworkServer.active)
+            {
+                Log.Warning("Called on client");
                 return;
+            }
 
-            BaseEffect effectInstance = dispatchEffect(effectInfo, dispatchFlags | EffectDispatchFlags.DontStart);
+            dispatchEffectFromSerializedData(effectInfo, serializedEffectData, flags);
+        }
+
+        BaseEffect dispatchEffectFromSerializedData(ChaosEffectInfo effectInfo, byte[] serializedEffectData, EffectDispatchFlags flags = EffectDispatchFlags.None)
+        {
+            BaseEffect effectInstance = dispatchEffect(effectInfo, flags | EffectDispatchFlags.DontStart);
             if (effectInstance != null)
             {
                 NetworkReader networkReader = new NetworkReader(serializedEffectData);
@@ -177,6 +188,23 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     Log.Error_NoCallerPrefix($"Caught exception in {effectInfo} {nameof(BaseEffect.Deserialize)}: {ex}");
                 }
 
+                if ((flags & EffectDispatchFlags.DontStart) == 0)
+                {
+                    startEffect(effectInfo, flags, effectInstance);
+                }
+            }
+
+            return effectInstance;
+        }
+
+        void NetworkedEffectDispatchedMessage_OnReceive(ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, byte[] serializedEffectData)
+        {
+            if (NetworkServer.active)
+                return;
+
+            BaseEffect effectInstance = dispatchEffectFromSerializedData(effectInfo, serializedEffectData, dispatchFlags | EffectDispatchFlags.DontStart);
+            if (effectInstance != null)
+            {
                 startEffect(effectInfo, dispatchFlags, effectInstance);
 
 #if DEBUG
@@ -228,6 +256,9 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         BaseEffect dispatchEffect(ChaosEffectInfo effect, EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None)
         {
+            if (effect is null)
+                throw new ArgumentNullException(nameof(effect));
+
             bool isServer = NetworkServer.active;
             if (!isServer && !effect.IsNetworked)
             {
@@ -237,11 +268,14 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             if (isServer)
             {
-                Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                if ((dispatchFlags & EffectDispatchFlags.DontSendChatMessage) == 0)
                 {
-                    baseToken = "CHAOS_EFFECT_ACTIVATE",
-                    paramTokens = new string[] { effect.GetDisplayName() }
-                });
+                    Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                    {
+                        baseToken = "CHAOS_EFFECT_ACTIVATE",
+                        paramTokens = new string[] { effect.GetDisplayName() }
+                    });
+                }
 
                 bool canActivate = (dispatchFlags & EffectDispatchFlags.CheckCanActivate) == 0 || effect.CanActivate(EffectCanActivateContext.Now);
 
@@ -260,7 +294,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
             CreateEffectInstanceArgs createEffectArgs;
             if (isServer)
             {
-                createEffectArgs = new CreateEffectInstanceArgs(_effectDispatchCount++, _effectRNG.nextUlong);
+                createEffectArgs = new CreateEffectInstanceArgs(_effectDispatchCount, _effectRNG.nextUlong);
+
+                if ((dispatchFlags & EffectDispatchFlags.DontCount) == 0)
+                {
+                    _effectDispatchCount++;
+                }
             }
             else
             {
@@ -296,7 +335,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                             Log.Error_NoCallerPrefix($"Caught exception in {effect} {nameof(BaseEffect.Serialize)}: {ex}");
                         }
 
-                        new NetworkedEffectDispatchedMessage(effect, dispatchFlags, networkWriter.AsArray()).Send(NetworkDestination.Clients);
+                        new NetworkedEffectDispatchedMessage(effect, dispatchFlags, networkWriter.ToArray()).Send(NetworkDestination.Clients);
                     }
                 }
 

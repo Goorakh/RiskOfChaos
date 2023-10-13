@@ -88,16 +88,16 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 foreach (SerializableEffectActivationCount serializedActivationCount in container.ActivationCounterData.ActivationCounts)
                 {
-                    ChaosEffectIndex effectIndex = ChaosEffectCatalog.FindEffectIndex(serializedActivationCount.EffectIdentifier);
+                    ChaosEffectIndex effectIndex = serializedActivationCount.Effect.EffectIndex;
                     if (effectIndex <= ChaosEffectIndex.Invalid)
                     {
-                        Log.Info($"Unknown effect in save data: '{serializedActivationCount.EffectIdentifier}'");
+                        Log.Info($"Unknown effect in save data: '{serializedActivationCount.Effect}'");
                         continue;
                     }
 
                     if ((int)effectIndex >= _effectActivationCounts.Length)
                     {
-                        Log.Error($"Effect index '{serializedActivationCount.EffectIdentifier}' out of range: i={effectIndex}, must be in the range 0<=i<{_effectActivationCounts.Length}");
+                        Log.Error($"Effect index '{serializedActivationCount.Effect}' out of range: i={effectIndex}, must be in the range 0<=i<{_effectActivationCounts.Length}");
                         continue;
                     }
 
@@ -140,7 +140,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void onEffectAboutToDispatchServer(ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, bool willStart)
         {
-            if (!willStart)
+            if (!willStart || (dispatchFlags & EffectDispatchFlags.DontCount) != 0)
                 return;
 
             try

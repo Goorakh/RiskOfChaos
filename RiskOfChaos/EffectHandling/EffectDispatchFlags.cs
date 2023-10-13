@@ -9,5 +9,9 @@ namespace RiskOfChaos.EffectHandling
         DontPlaySound = 1 << 0,
         DontStart = 1 << 1,
         CheckCanActivate = 1 << 2,
+        DontSendChatMessage = 1 << 3,
+        DontCount = 1 << 4,
+
+        LoadedFromSave = DontPlaySound | DontSendChatMessage | DontCount
     }
 }

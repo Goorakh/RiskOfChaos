@@ -7,8 +7,8 @@ namespace RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers
     [Serializable]
     public class SerializableEffectActivationCount
     {
-        [DataMember(Name = "ei")]
-        public string EffectIdentifier;
+        [DataMember(Name = "e")]
+        public SerializableEffect Effect;
 
         [DataMember(Name = "ra")]
         public int RunActivations;
@@ -19,7 +19,7 @@ namespace RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers
 
         public SerializableEffectActivationCount(ChaosEffectActivationCounter counter)
         {
-            EffectIdentifier = ChaosEffectCatalog.GetEffectInfo(counter.EffectIndex).Identifier;
+            Effect = new SerializableEffect(counter.EffectIndex);
             RunActivations = counter.RunActivations;
         }
 
