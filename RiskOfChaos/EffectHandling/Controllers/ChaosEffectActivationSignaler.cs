@@ -1,4 +1,5 @@
 ﻿using RoR2;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -12,6 +13,25 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         public abstract void SkipAllScheduledEffects();
         public abstract void RewindEffectScheduling(float numSeconds);
+
+        public static ChaosEffectInfo PickEffect(Xoroshiro128Plus rng, out EffectDispatchFlags flags)
+        {
+            return PickEffect(rng, null, out flags);
+        }
+
+        public static ChaosEffectInfo PickEffect(Xoroshiro128Plus rng, HashSet<ChaosEffectInfo> excludeEffects, out EffectDispatchFlags flags)
+        {
+            if (Configs.General.SeededEffectSelection.Value)
+            {
+                flags = EffectDispatchFlags.CheckCanActivate;
+                return ChaosEffectCatalog.PickEffect(rng, excludeEffects);
+            }
+            else
+            {
+                flags = EffectDispatchFlags.None;
+                return ChaosEffectCatalog.PickActivatableEffect(rng, EffectCanActivateContext.Now, excludeEffects);
+            }
+        }
 
         protected const float MIN_STAGE_TIME_REQUIRED_TO_DISPATCH = 2f;
         protected virtual bool canDispatchEffects

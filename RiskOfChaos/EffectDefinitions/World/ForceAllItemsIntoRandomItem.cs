@@ -6,21 +6,27 @@ using RiskOfChaos.EffectHandling.Controllers.ChatVoting;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.SaveHandling;
+using RiskOfChaos.SaveHandling.DataContainers;
+using RiskOfChaos.SaveHandling.DataContainers.Effects;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Comparers;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.ParsedValueHolders.ParsedList;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosTimedEffect("force_all_items_into_random_item", TimedEffectType.UntilStageEnd, AllowDuplicates = false, ConfigName = "All Items Are A Random Item", DefaultSelectionWeight = 0.8f)]
+    [ChaosTimedEffect(EFFECT_IDENTIFIER, TimedEffectType.UntilStageEnd, AllowDuplicates = false, ConfigName = "All Items Are A Random Item", DefaultSelectionWeight = 0.8f)]
     public sealed class ForceAllItemsIntoRandomItem : TimedEffect
     {
+        public const string EFFECT_IDENTIFIER = "force_all_items_into_random_item";
+
         [InitEffectInfo]
         static readonly TimedEffectInfo _effectInfo;
 
@@ -185,42 +191,73 @@ namespace RiskOfChaos.EffectDefinitions.World
                 }
             };
 
-            Stage.onServerStageBegin += _ =>
+            ChaosEffectActivationSignaler_ChatVote.OnEffectVotingFinishedServer += (in EffectVoteResult result) =>
             {
-                if (ChaosEffectActivationSignaler_ChatVote.Instance &&
-                    ChaosEffectActivationSignaler_ChatVote.Instance.enabled &&
-                    ChaosEffectActivationSignaler_ChatVote.Instance.CurrentVoteContains(_effectInfo))
-                {
-                    return;
-                }
-
                 if (TimedChaosEffectHandler.Instance &&
                     TimedChaosEffectHandler.Instance.IsTimedEffectActive(_effectInfo))
                 {
                     return;
                 }
 
-                rerollCurrentOverridePickup();
-            };
-
-            Run.onRunStartGlobal += _ =>
-            {
-                if (NetworkServer.active)
+                // If the effect was in this vote, but *didn't* win, reroll for next time
+                EffectVoteInfo[] voteOptions = result.VoteSelection.GetVoteOptions();
+                if (Array.Exists(voteOptions, v => v.EffectInfo == _effectInfo) && result.WinningOption.EffectInfo != _effectInfo)
                 {
                     rerollCurrentOverridePickup();
                 }
             };
+            
+            Run.onRunStartGlobal += run =>
+            {
+                if (NetworkServer.active)
+                {
+                    _pickNextItemRNG = new Xoroshiro128Plus(run.seed);
+                    rerollCurrentOverridePickup();
+                }
+            };
+
+            if (SaveManager.UseSaveData)
+            {
+                SaveManager.CollectSaveData += (ref SaveContainer container) =>
+                {
+                    container.Effects.ForceAllItemsIntoRandomItem_Data = new ForceAllItemsIntoRandomItem_Data
+                    {
+                        PickNextItemRNG = new SerializableRng(_pickNextItemRNG),
+                        CurrentPickupName = _currentOverridePickupIndex.isValid ? PickupCatalog.GetPickupDef(_currentOverridePickupIndex).internalName : string.Empty
+                    };
+                };
+
+                SaveManager.LoadSaveData += (in SaveContainer container) =>
+                {
+                    ForceAllItemsIntoRandomItem_Data data = container.Effects.ForceAllItemsIntoRandomItem_Data;
+
+                    _pickNextItemRNG = data.PickNextItemRNG;
+                    _currentOverridePickupIndex = PickupCatalog.FindPickupIndex(data.CurrentPickupName);
+
+#if DEBUG
+                    Log.Debug($"Loaded current pickup ({_currentOverridePickupIndex}) from save data");
+#endif
+                };
+            }
         }
+
+        static Xoroshiro128Plus _pickNextItemRNG;
 
         static PickupIndex _currentOverridePickupIndex;
         static void rerollCurrentOverridePickup()
         {
+            if (_pickNextItemRNG == null)
+            {
+                Log.Error("Unable to roll pickup, no RNG instance");
+                return;
+            }
+
             if (!_dropTable || _dropTableDirty)
             {
                 regenerateDropTable();
             }
 
-            _currentOverridePickupIndex = _dropTable.GenerateDrop(RoR2Application.rng);
+            _currentOverridePickupIndex = _dropTable.GenerateDrop(_pickNextItemRNG);
 
 #if DEBUG
             Log.Debug($"Rolled {_currentOverridePickupIndex}");

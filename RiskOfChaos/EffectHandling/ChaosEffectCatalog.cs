@@ -13,6 +13,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using static Rewired.InputMapper;
 
 namespace RiskOfChaos.EffectHandling
 {
@@ -171,6 +172,26 @@ namespace RiskOfChaos.EffectHandling
             ModSettingsManager.AddOption(option, CONFIG_MOD_GUID, CONFIG_MOD_NAME);
         }
 
+        public static WeightedSelection<ChaosEffectInfo> GetAllEffects(HashSet<ChaosEffectInfo> excludeEffects = null)
+        {
+            _pickNextEffectSelection.Clear();
+
+            foreach (ChaosEffectInfo effect in _effects)
+            {
+                if (excludeEffects == null || !excludeEffects.Contains(effect))
+                {
+                    _pickNextEffectSelection.AddChoice(effect, effect.TotalSelectionWeight);
+                }
+            }
+
+            return _pickNextEffectSelection;
+        }
+
+        public static ChaosEffectInfo PickEffect(Xoroshiro128Plus rng, HashSet<ChaosEffectInfo> excludeEffects = null)
+        {
+            return pickEffectFromSelection(rng, GetAllEffects(excludeEffects));
+        }
+
         public static WeightedSelection<ChaosEffectInfo> GetAllActivatableEffects(in EffectCanActivateContext context, HashSet<ChaosEffectInfo> excludeEffects = null)
         {
             _pickNextEffectSelection.Clear();
@@ -188,8 +209,11 @@ namespace RiskOfChaos.EffectHandling
 
         public static ChaosEffectInfo PickActivatableEffect(Xoroshiro128Plus rng, in EffectCanActivateContext context, HashSet<ChaosEffectInfo> excludeEffects = null)
         {
-            WeightedSelection<ChaosEffectInfo> weightedSelection = GetAllActivatableEffects(context, excludeEffects);
+            return pickEffectFromSelection(rng, GetAllActivatableEffects(context, excludeEffects));
+        }
 
+        static ChaosEffectInfo pickEffectFromSelection(Xoroshiro128Plus rng, WeightedSelection<ChaosEffectInfo> weightedSelection)
+        {
             ChaosEffectInfo effect;
             if (weightedSelection.Count > 0)
             {

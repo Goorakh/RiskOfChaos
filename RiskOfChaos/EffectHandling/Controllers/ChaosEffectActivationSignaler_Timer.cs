@@ -1,4 +1,7 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.SaveHandling;
+using RiskOfChaos.SaveHandling.DataContainers;
+using RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers;
 using RoR2;
 using UnityEngine.Networking;
 
@@ -43,7 +46,13 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     _effectDispatchTimer.SkipAllScheduledActivations();
                 }
 
-                _nextEffectRNG = new Xoroshiro128Plus(Run.instance.runRNG.nextUlong);
+                _nextEffectRNG = new Xoroshiro128Plus(Run.instance.seed);
+            }
+
+            if (SaveManager.UseSaveData)
+            {
+                SaveManager.CollectSaveData += SaveManager_CollectSaveData;
+                SaveManager.LoadSaveData += SaveManager_LoadSaveData;
             }
         }
 
@@ -58,6 +67,22 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
 
             _nextEffectRNG = null;
+
+            SaveManager.CollectSaveData -= SaveManager_CollectSaveData;
+            SaveManager.LoadSaveData -= SaveManager_LoadSaveData;
+        }
+
+        void SaveManager_LoadSaveData(in SaveContainer container)
+        {
+            _nextEffectRNG = container.ActivationSignalerData.NextEffectRng;
+        }
+
+        void SaveManager_CollectSaveData(ref SaveContainer container)
+        {
+            container.ActivationSignalerData = new EffectActivationSignalerData
+            {
+                NextEffectRng = new SerializableRng(_nextEffectRNG)
+            };
         }
 
         void onTimeBetweenEffectsConfigChanged(object s, ConfigChangedArgs<float> args)
@@ -81,7 +106,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 return;
             }
 
-            SignalShouldDispatchEffect?.Invoke(ChaosEffectCatalog.PickActivatableEffect(_nextEffectRNG, EffectCanActivateContext.Now));
+            SignalShouldDispatchEffect?.Invoke(PickEffect(_nextEffectRNG, out EffectDispatchFlags flags), flags);
         }
     }
 }

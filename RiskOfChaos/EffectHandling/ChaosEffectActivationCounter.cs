@@ -1,4 +1,6 @@
-﻿namespace RiskOfChaos.EffectHandling
+﻿using System;
+
+namespace RiskOfChaos.EffectHandling
 {
     public struct ChaosEffectActivationCounter
     {

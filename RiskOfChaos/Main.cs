@@ -3,6 +3,7 @@ using HarmonyLib;
 using R2API.Utils;
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.ModCompatibility;
 using RiskOfChaos.Networking;
 using RiskOfChaos.Utilities;
 using System.Diagnostics;
@@ -17,6 +18,7 @@ namespace RiskOfChaos
     [BepInDependency(R2API.PrefabAPI.PluginGUID)]
     [BepInDependency(R2API.DamageAPI.PluginGUID, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.rune580.riskofoptions")]
+    [BepInDependency(ProperSave.ProperSavePlugin.GUID, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     public class Main : BaseUnityPlugin
     {
@@ -48,6 +50,11 @@ namespace RiskOfChaos
 
             AdditionalResourceAvailability.InitHooks();
 
+            if (ProperSaveCompat.Active)
+            {
+                ProperSaveCompat.Init();
+            }
+
             Harmony harmony = new Harmony(PluginGUID);
             harmony.PatchAll();
 
@@ -62,6 +69,14 @@ namespace RiskOfChaos
             Configs.Init(Config);
 
             ChaosEffectCatalog.InitConfig(Config);
+        }
+
+        void OnDestroy()
+        {
+            if (ProperSaveCompat.Active)
+            {
+                ProperSaveCompat.Cleanup();
+            }
         }
     }
 }

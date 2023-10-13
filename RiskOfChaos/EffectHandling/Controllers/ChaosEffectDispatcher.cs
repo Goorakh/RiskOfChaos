@@ -2,6 +2,9 @@
 using R2API.Networking.Interfaces;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.Networking;
+using RiskOfChaos.SaveHandling;
+using RiskOfChaos.SaveHandling.DataContainers;
+using RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers;
 using RoR2;
 using System;
 using UnityEngine;
@@ -44,10 +47,16 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
                 if (Run.instance)
                 {
-                    _effectRNG = new Xoroshiro128Plus(Run.instance.runRNG.nextUlong);
+                    _effectRNG = new Xoroshiro128Plus(Run.instance.seed);
                 }
 
                 _effectDispatchCount = 0;
+
+                if (SaveManager.UseSaveData)
+                {
+                    SaveManager.CollectSaveData += SaveManager_CollectSaveData;
+                    SaveManager.LoadSaveData += SaveManager_LoadSaveData;
+                }
             }
             else
             {
@@ -94,6 +103,25 @@ namespace RiskOfChaos.EffectHandling.Controllers
             _effectRNG = null;
 
             NetworkedEffectDispatchedMessage.OnReceive -= NetworkedEffectDispatchedMessage_OnReceive;
+
+            SaveManager.CollectSaveData -= SaveManager_CollectSaveData;
+            SaveManager.LoadSaveData -= SaveManager_LoadSaveData;
+        }
+
+        void SaveManager_CollectSaveData(ref SaveContainer container)
+        {
+            container.DispatcherData = new EffectDispatcherData
+            {
+                EffectRNG = new SerializableRng(_effectRNG)
+            };
+        }
+
+        void SaveManager_LoadSaveData(in SaveContainer container)
+        {
+            if (container.DispatcherData is null)
+                return;
+
+            _effectRNG = container.DispatcherData.EffectRNG;
         }
 
         public void SkipAllScheduledEffects()

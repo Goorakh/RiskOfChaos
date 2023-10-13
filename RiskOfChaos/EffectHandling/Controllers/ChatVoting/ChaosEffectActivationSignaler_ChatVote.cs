@@ -15,6 +15,9 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
         static ChaosEffectActivationSignaler_ChatVote _instance;
         public static ChaosEffectActivationSignaler_ChatVote Instance => _instance;
 
+        public delegate void OnEffectVotingFinishedDelegate(in EffectVoteResult result);
+        public static event OnEffectVotingFinishedDelegate OnEffectVotingFinishedServer;
+
         static int numVoteOptions => Configs.ChatVoting.NumEffectOptions.Value + (Configs.ChatVoting.IncludeRandomEffectInVote.Value ? 1 : 0);
 
         public override event SignalShouldDispatchEffectDelegate SignalShouldDispatchEffect;
@@ -74,7 +77,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
             if (Run.instance)
             {
-                _rng = new Xoroshiro128Plus(Run.instance.runRNG.nextUlong);
+                _rng = new Xoroshiro128Plus(Run.instance.seed);
             }
 
             _effectVoteSelection = new UniqueVoteSelection<string, EffectVoteInfo>(numVoteOptions)
@@ -284,6 +287,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             {
                 if (_effectVoteSelection.TryGetVoteResult(out EffectVoteInfo voteResult))
                 {
+                    OnEffectVotingFinishedServer?.Invoke(new EffectVoteResult(_effectVoteSelection, voteResult));
                     startEffect(voteResult);
                 }
                 else

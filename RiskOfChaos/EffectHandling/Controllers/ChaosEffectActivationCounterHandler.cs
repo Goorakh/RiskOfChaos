@@ -1,5 +1,9 @@
-﻿using RoR2;
+﻿using RiskOfChaos.SaveHandling;
+using RiskOfChaos.SaveHandling.DataContainers;
+using RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers;
+using RoR2;
 using System;
+using System.Linq;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectHandling.Controllers
@@ -41,6 +45,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
             _effectDispatcher.OnEffectAboutToDispatchServer += onEffectAboutToDispatchServer;
 
             resetAllCounters();
+
+            if (SaveManager.UseSaveData)
+            {
+                SaveManager.CollectSaveData += SaveManager_CollectSaveData;
+                SaveManager.LoadSaveData += SaveManager_LoadSaveData;
+            }
         }
 
         void OnDisable()
@@ -52,6 +62,48 @@ namespace RiskOfChaos.EffectHandling.Controllers
             _effectDispatcher.OnEffectAboutToDispatchServer -= onEffectAboutToDispatchServer;
 
             resetAllCounters();
+
+            SaveManager.CollectSaveData -= SaveManager_CollectSaveData;
+            SaveManager.LoadSaveData -= SaveManager_LoadSaveData;
+        }
+
+        void SaveManager_CollectSaveData(ref SaveContainer container)
+        {
+            container.ActivationCounterData = new EffectActivationCounterData
+            {
+                ActivationCounts = _effectActivationCounts.Select(counter => new SerializableEffectActivationCount(counter))
+                                                          .Where(c => c.RunActivations > 0)
+                                                          .ToArray()
+            };
+        }
+
+        void SaveManager_LoadSaveData(in SaveContainer container)
+        {
+            if (container.ActivationCounterData is null)
+                return;
+
+            resetAllCounters();
+
+            if (container.ActivationCounterData.ActivationCounts is not null)
+            {
+                foreach (SerializableEffectActivationCount serializedActivationCount in container.ActivationCounterData.ActivationCounts)
+                {
+                    ChaosEffectIndex effectIndex = ChaosEffectCatalog.FindEffectIndex(serializedActivationCount.EffectIdentifier);
+                    if (effectIndex <= ChaosEffectIndex.Invalid)
+                    {
+                        Log.Info($"Unknown effect in save data: '{serializedActivationCount.EffectIdentifier}'");
+                        continue;
+                    }
+
+                    if ((int)effectIndex >= _effectActivationCounts.Length)
+                    {
+                        Log.Error($"Effect index '{serializedActivationCount.EffectIdentifier}' out of range: i={effectIndex}, must be in the range 0<=i<{_effectActivationCounts.Length}");
+                        continue;
+                    }
+
+                    serializedActivationCount.ApplyTo(ref _effectActivationCounts[(int)effectIndex]);
+                }
+            }
         }
 
         void resetAllCounters()

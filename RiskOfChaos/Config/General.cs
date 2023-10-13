@@ -43,6 +43,15 @@ namespace RiskOfChaos
                                    })
                                    .Build();
 
+            public static readonly ConfigHolder<bool> SeededEffectSelection =
+                ConfigFactory<bool>.CreateConfig("Seeded Effect Selection", false)
+                                   .Description("")
+                                   .OptionConfig(new CheckBoxConfig
+                                   {
+                                       checkIfDisabled = effectDispatchingDisabled
+                                   })
+                                   .Build();
+
             internal static void Bind(ConfigFile file)
             {
                 void bindConfig<T>(ConfigHolder<T> config)
@@ -55,6 +64,8 @@ namespace RiskOfChaos
                 bindConfig(TimeBetweenEffects);
 
                 bindConfig(RunEffectsTimerWhileRunTimerPaused);
+
+                bindConfig(SeededEffectSelection);
             }
         }
     }
