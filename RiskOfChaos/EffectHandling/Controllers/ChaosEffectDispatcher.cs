@@ -18,10 +18,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
         static ChaosEffectDispatcher _instance;
         public static ChaosEffectDispatcher Instance => _instance;
 
-        public delegate void EffectDispatchedDelegate(ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, BaseEffect effectInstance);
+        public delegate void EffectDispatchedDelegate(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs args, BaseEffect effectInstance);
         public event EffectDispatchedDelegate OnEffectDispatched;
 
-        public delegate void EffectAboutToDispatchDelegate(ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, bool willStart);
+        public delegate void EffectAboutToDispatchDelegate(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs args, bool willStart);
         public event EffectAboutToDispatchDelegate OnEffectAboutToDispatchServer;
 
         ChaosEffectActivationSignaler[] _effectActivationSignalers;
@@ -161,7 +161,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        public void DispatchEffectFromSerializedDataServer(ChaosEffectInfo effectInfo, byte[] serializedEffectData, EffectDispatchFlags flags = EffectDispatchFlags.None)
+        public void DispatchEffectFromSerializedDataServer(ChaosEffectInfo effectInfo, byte[] serializedEffectData, in ChaosEffectDispatchArgs args = default)
         {
             if (!NetworkServer.active)
             {
@@ -169,12 +169,15 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 return;
             }
 
-            dispatchEffectFromSerializedData(effectInfo, serializedEffectData, flags);
+            dispatchEffectFromSerializedData(effectInfo, serializedEffectData, args);
         }
 
-        BaseEffect dispatchEffectFromSerializedData(ChaosEffectInfo effectInfo, byte[] serializedEffectData, EffectDispatchFlags flags = EffectDispatchFlags.None)
+        BaseEffect dispatchEffectFromSerializedData(ChaosEffectInfo effectInfo, byte[] serializedEffectData, in ChaosEffectDispatchArgs args = default)
         {
-            BaseEffect effectInstance = dispatchEffect(effectInfo, flags | EffectDispatchFlags.DontStart);
+            ChaosEffectDispatchArgs dispatchArgs = args;
+            dispatchArgs.DispatchFlags |= EffectDispatchFlags.DontStart;
+
+            BaseEffect effectInstance = dispatchEffect(effectInfo, dispatchArgs);
             if (effectInstance != null)
             {
                 NetworkReader networkReader = new NetworkReader(serializedEffectData);
@@ -188,24 +191,27 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     Log.Error_NoCallerPrefix($"Caught exception in {effectInfo} {nameof(BaseEffect.Deserialize)}: {ex}");
                 }
 
-                if ((flags & EffectDispatchFlags.DontStart) == 0)
+                if (!args.HasFlag(EffectDispatchFlags.DontStart))
                 {
-                    startEffect(effectInfo, flags, effectInstance);
+                    startEffect(effectInfo, args, effectInstance);
                 }
             }
 
             return effectInstance;
         }
 
-        void NetworkedEffectDispatchedMessage_OnReceive(ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, byte[] serializedEffectData)
+        void NetworkedEffectDispatchedMessage_OnReceive(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs args, byte[] serializedEffectData)
         {
             if (NetworkServer.active)
                 return;
 
-            BaseEffect effectInstance = dispatchEffectFromSerializedData(effectInfo, serializedEffectData, dispatchFlags | EffectDispatchFlags.DontStart);
+            ChaosEffectDispatchArgs dispatchArgs = args;
+            dispatchArgs.DispatchFlags |= EffectDispatchFlags.DontStart;
+
+            BaseEffect effectInstance = dispatchEffectFromSerializedData(effectInfo, serializedEffectData, dispatchArgs);
             if (effectInstance != null)
             {
-                startEffect(effectInfo, dispatchFlags, effectInstance);
+                startEffect(effectInfo, args, effectInstance);
 
 #if DEBUG
                 Log.Debug($"Started networked effect {effectInfo}");
@@ -235,15 +241,15 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        void ActivationSignaler_SignalShouldDispatchEffect(ChaosEffectInfo effect, EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None)
+        void ActivationSignaler_SignalShouldDispatchEffect(ChaosEffectInfo effect, in ChaosEffectDispatchArgs args)
         {
             if (Configs.General.DisableEffectDispatching.Value)
                 return;
 
-            DispatchEffect(effect, dispatchFlags);
+            DispatchEffect(effect, args);
         }
 
-        public void DispatchEffect(ChaosEffectInfo effect, EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None)
+        public void DispatchEffect(ChaosEffectInfo effect, in ChaosEffectDispatchArgs args = default)
         {
             if (!NetworkServer.active)
             {
@@ -251,10 +257,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 return;
             }
 
-            dispatchEffect(effect, dispatchFlags);
+            dispatchEffect(effect, args);
         }
 
-        BaseEffect dispatchEffect(ChaosEffectInfo effect, EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None)
+        BaseEffect dispatchEffect(ChaosEffectInfo effect, in ChaosEffectDispatchArgs args = default)
         {
             if (effect is null)
                 throw new ArgumentNullException(nameof(effect));
@@ -268,7 +274,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             if (isServer)
             {
-                if ((dispatchFlags & EffectDispatchFlags.DontSendChatMessage) == 0)
+                if (!args.HasFlag(EffectDispatchFlags.DontSendChatMessage))
                 {
                     Chat.SendBroadcastChat(new Chat.SimpleChatMessage
                     {
@@ -277,9 +283,9 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     });
                 }
 
-                bool canActivate = (dispatchFlags & EffectDispatchFlags.CheckCanActivate) == 0 || effect.CanActivate(EffectCanActivateContext.Now);
+                bool canActivate = !args.HasFlag(EffectDispatchFlags.CheckCanActivate) || effect.CanActivate(EffectCanActivateContext.Now);
 
-                OnEffectAboutToDispatchServer?.Invoke(effect, dispatchFlags, canActivate);
+                OnEffectAboutToDispatchServer?.Invoke(effect, args, canActivate);
 
                 if (!canActivate)
                 {
@@ -296,7 +302,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 createEffectArgs = new CreateEffectInstanceArgs(_effectDispatchCount, _effectRNG.nextUlong);
 
-                if ((dispatchFlags & EffectDispatchFlags.DontCount) == 0)
+                if (!args.HasFlag(EffectDispatchFlags.DontCount))
                 {
                     _effectDispatchCount++;
                 }
@@ -335,20 +341,20 @@ namespace RiskOfChaos.EffectHandling.Controllers
                             Log.Error_NoCallerPrefix($"Caught exception in {effect} {nameof(BaseEffect.Serialize)}: {ex}");
                         }
 
-                        new NetworkedEffectDispatchedMessage(effect, dispatchFlags, networkWriter.ToArray()).Send(NetworkDestination.Clients);
+                        new NetworkedEffectDispatchedMessage(effect, args, networkWriter.ToArray()).Send(NetworkDestination.Clients);
                     }
                 }
 
-                if ((dispatchFlags & EffectDispatchFlags.DontStart) == 0)
+                if (!args.HasFlag(EffectDispatchFlags.DontStart))
                 {
-                    startEffect(effect, dispatchFlags, effectInstance);
+                    startEffect(effect, args, effectInstance);
                 }
             }
 
             return effectInstance;
         }
 
-        void startEffect(ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, BaseEffect effectInstance)
+        void startEffect(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs args, BaseEffect effectInstance)
         {
             try
             {
@@ -360,7 +366,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 Chat.AddMessage(Language.GetString("CHAOS_EFFECT_UNHANDLED_EXCEPTION_MESSAGE"));
             }
 
-            OnEffectDispatched?.Invoke(effectInfo, dispatchFlags, effectInstance);
+            OnEffectDispatched?.Invoke(effectInfo, args, effectInstance);
         }
     }
 }

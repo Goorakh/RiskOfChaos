@@ -50,8 +50,9 @@ namespace RiskOfChaos.EffectDefinitions.Meta
 
             for (int i = _numEffectsToActivate.Value - 1; i >= 0; i--)
             {
-                ChaosEffectInfo effect = ChaosEffectActivationSignaler.PickEffect(RNG, excludeEffects, out EffectDispatchFlags flags);
-                ChaosEffectDispatcher.Instance.DispatchEffect(effect, flags | EffectDispatchFlags.DontPlaySound);
+                ChaosEffectInfo effect = ChaosEffectActivationSignaler.PickEffect(RNG, excludeEffects, out ChaosEffectDispatchArgs dispatchArgs);
+                dispatchArgs.DispatchFlags |= EffectDispatchFlags.DontPlaySound;
+                ChaosEffectDispatcher.Instance.DispatchEffect(effect, dispatchArgs);
 
                 if (!allowDuplicateEffects)
                 {

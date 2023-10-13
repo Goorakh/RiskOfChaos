@@ -302,7 +302,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
         void startEffect(EffectVoteInfo voteResult)
         {
             ChaosEffectInfo effectInfo;
-            EffectDispatchFlags dispatchFlags;
+            ChaosEffectDispatchArgs dispatchArgs;
             if (voteResult.IsRandom)
             {
                 HashSet<ChaosEffectInfo> voteOptionEffects = new HashSet<ChaosEffectInfo>(_effectVoteSelection.GetVoteOptions()
@@ -310,15 +310,23 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
                                                                                                               .Where(effect => effect != null));
 
                 effectInfo = ChaosEffectCatalog.PickActivatableEffect(_rng, EffectCanActivateContext.Now, voteOptionEffects);
-                dispatchFlags = EffectDispatchFlags.None;
+
+                dispatchArgs = new ChaosEffectDispatchArgs
+                {
+                    DispatchFlags = EffectDispatchFlags.None
+                };
             }
             else
             {
                 effectInfo = voteResult.EffectInfo;
-                dispatchFlags = EffectDispatchFlags.CheckCanActivate;
+
+                dispatchArgs = new ChaosEffectDispatchArgs
+                {
+                    DispatchFlags = EffectDispatchFlags.CheckCanActivate
+                };
             }
 
-            SignalShouldDispatchEffect?.Invoke(effectInfo, dispatchFlags);
+            SignalShouldDispatchEffect?.Invoke(effectInfo, dispatchArgs);
         }
 
         public bool CurrentVoteContains(ChaosEffectInfo effectInfo)

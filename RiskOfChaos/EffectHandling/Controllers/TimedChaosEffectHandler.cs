@@ -153,7 +153,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 foreach (SerializableActiveEffect activeEffect in data.ActiveTimedEffects)
                 {
-                    _effectDispatcher.DispatchEffectFromSerializedDataServer(activeEffect.Effect.EffectInfo, activeEffect.SerializedEffectData, EffectDispatchFlags.LoadedFromSave);
+                    _effectDispatcher.DispatchEffectFromSerializedDataServer(activeEffect.Effect.EffectInfo, activeEffect.SerializedEffectData, new ChaosEffectDispatchArgs
+                    {
+                        DispatchFlags = EffectDispatchFlags.LoadedFromSave
+                    });
                 }
             }
         }
@@ -170,7 +173,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             };
         }
 
-        void onEffectDispatched(ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, BaseEffect effectInstance)
+        void onEffectDispatched(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs dispatchArgs, BaseEffect effectInstance)
         {
             if (effectInfo is TimedEffectInfo timedEffectInfo && effectInstance is TimedEffect timedEffectInstance)
             {

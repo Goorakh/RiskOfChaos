@@ -114,7 +114,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 return;
             }
 
-            SignalShouldDispatchEffect?.Invoke(PickEffect(_nextEffectRNG, out EffectDispatchFlags flags), flags);
+            SignalShouldDispatchEffect?.Invoke(PickEffect(_nextEffectRNG, out ChaosEffectDispatchArgs args), args);
         }
     }
 }

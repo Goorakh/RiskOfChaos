@@ -7,28 +7,31 @@ namespace RiskOfChaos.EffectHandling.Controllers
 {
     public abstract class ChaosEffectActivationSignaler : MonoBehaviour
     {
-        public delegate void SignalShouldDispatchEffectDelegate(ChaosEffectInfo effect, EffectDispatchFlags dispatchFlags = EffectDispatchFlags.None);
-
+        public delegate void SignalShouldDispatchEffectDelegate(ChaosEffectInfo effect, in ChaosEffectDispatchArgs args = default);
         public abstract event SignalShouldDispatchEffectDelegate SignalShouldDispatchEffect;
 
         public abstract void SkipAllScheduledEffects();
         public abstract void RewindEffectScheduling(float numSeconds);
 
-        public static ChaosEffectInfo PickEffect(Xoroshiro128Plus rng, out EffectDispatchFlags flags)
+        public static ChaosEffectInfo PickEffect(Xoroshiro128Plus rng, out ChaosEffectDispatchArgs dispatchArgs)
         {
-            return PickEffect(rng, null, out flags);
+            return PickEffect(rng, null, out dispatchArgs);
         }
 
-        public static ChaosEffectInfo PickEffect(Xoroshiro128Plus rng, HashSet<ChaosEffectInfo> excludeEffects, out EffectDispatchFlags flags)
+        public static ChaosEffectInfo PickEffect(Xoroshiro128Plus rng, HashSet<ChaosEffectInfo> excludeEffects, out ChaosEffectDispatchArgs dispatchArgs)
         {
             if (Configs.General.SeededEffectSelection.Value)
             {
-                flags = EffectDispatchFlags.CheckCanActivate;
+                dispatchArgs = new ChaosEffectDispatchArgs
+                {
+                    DispatchFlags = EffectDispatchFlags.CheckCanActivate
+                };
+
                 return ChaosEffectCatalog.PickEffect(rng, excludeEffects);
             }
             else
             {
-                flags = EffectDispatchFlags.None;
+                dispatchArgs = new ChaosEffectDispatchArgs();
                 return ChaosEffectCatalog.PickActivatableEffect(rng, EffectCanActivateContext.Now, excludeEffects);
             }
         }

@@ -1,5 +1,6 @@
 ﻿using R2API.Networking.Interfaces;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.Utilities.Extensions;
 using UnityEngine.Networking;
 
@@ -7,17 +8,17 @@ namespace RiskOfChaos.Networking
 {
     public sealed class NetworkedEffectDispatchedMessage : INetMessage
     {
-        public delegate void OnReceiveDelegate(ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, byte[] serializedEffectData);
+        public delegate void OnReceiveDelegate(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs args, byte[] serializedEffectData);
         public static event OnReceiveDelegate OnReceive;
 
         ChaosEffectIndex _effectIndex;
-        EffectDispatchFlags _dispatchFlags;
+        ChaosEffectDispatchArgs _dispatchArgs;
         byte[] _serializedEffectData;
 
-        public NetworkedEffectDispatchedMessage(ChaosEffectInfo effectInfo, EffectDispatchFlags dispatchFlags, byte[] serializedEffectData)
+        public NetworkedEffectDispatchedMessage(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs args, byte[] serializedEffectData)
         {
             _effectIndex = effectInfo.EffectIndex;
-            _dispatchFlags = dispatchFlags;
+            _dispatchArgs = args;
             _serializedEffectData = serializedEffectData;
         }
 
@@ -28,20 +29,20 @@ namespace RiskOfChaos.Networking
         void ISerializableObject.Serialize(NetworkWriter writer)
         {
             writer.WriteChaosEffectIndex(_effectIndex);
-            writer.WritePackedUInt32((uint)_dispatchFlags);
+            _dispatchArgs.Serialize(writer);
             writer.WriteBytesFull(_serializedEffectData);
         }
 
         void ISerializableObject.Deserialize(NetworkReader reader)
         {
             _effectIndex = reader.ReadChaosEffectIndex();
-            _dispatchFlags = (EffectDispatchFlags)reader.ReadPackedUInt32();
+            _dispatchArgs = new ChaosEffectDispatchArgs(reader);
             _serializedEffectData = reader.ReadBytesAndSize();
         }
 
         void INetMessage.OnReceived()
         {
-            OnReceive?.Invoke(ChaosEffectCatalog.GetEffectInfo(_effectIndex), _dispatchFlags, _serializedEffectData);
+            OnReceive?.Invoke(ChaosEffectCatalog.GetEffectInfo(_effectIndex), _dispatchArgs, _serializedEffectData);
         }
     }
 }
