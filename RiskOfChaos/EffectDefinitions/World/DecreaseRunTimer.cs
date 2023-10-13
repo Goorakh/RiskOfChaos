@@ -32,10 +32,15 @@ namespace RiskOfChaos.EffectDefinitions.World
             get => _numMinutesToRemove.Value * 60;
         }
 
-        [EffectCanActivate]
-        static bool CanActivate(in EffectCanActivateContext context)
+        [EffectWeightMultiplierSelector]
+        static float GetEffectWeightMultiplier()
         {
-            return Run.instance.GetRunStopwatch() + context.Delay >= numSecondsToRemove;
+            if (!Run.instance)
+                return 0f;
+
+            // scale weight up linearly from 0-1 as run time gets closer to the amount of time to remove
+            float currentTime = Run.instance.GetRunStopwatch();
+            return currentTime > numSecondsToRemove ? 1f : currentTime / numSecondsToRemove;
         }
 
         [EffectNameFormatArgs]
