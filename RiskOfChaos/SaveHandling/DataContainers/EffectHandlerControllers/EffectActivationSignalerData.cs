@@ -8,5 +8,8 @@ namespace RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers
     {
         [DataMember(Name = "rng")]
         public SerializableRng NextEffectRng;
+
+        [DataMember(Name = "leat")]
+        public float LastEffectActivationTime;
     }
 }

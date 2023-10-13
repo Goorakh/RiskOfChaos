@@ -66,6 +66,12 @@ namespace RiskOfChaos.EffectHandling
             _nextActivationTime = 0f;
         }
 
+        public void SetLastActivationTime(float value)
+        {
+            _lastActivationTime = value;
+            _nextActivationTime = value >= 0f ? value + Period : 0f;
+        }
+
         public void ScheduleNextActivation()
         {
             _lastActivationTime = _nextActivationTime;
@@ -128,6 +134,11 @@ namespace RiskOfChaos.EffectHandling
         public readonly float GetTimeRemaining()
         {
             return _nextActivationTime - currentTime;
+        }
+
+        public readonly float GetLastActivationTime()
+        {
+            return _lastActivationTime;
         }
     }
 }

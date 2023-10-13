@@ -74,14 +74,22 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void SaveManager_LoadSaveData(in SaveContainer container)
         {
-            _nextEffectRNG = container.ActivationSignalerData.NextEffectRng;
+            EffectActivationSignalerData data = container.ActivationSignalerData;
+
+            _nextEffectRNG = data.NextEffectRng;
+            _effectDispatchTimer.SetLastActivationTimeStopwatch(data.LastEffectActivationTime);
+
+#if DEBUG
+            Log.Debug($"Loaded timer data, remaining={_effectDispatchTimer.GetTimeRemaining()}");
+#endif
         }
 
         void SaveManager_CollectSaveData(ref SaveContainer container)
         {
             container.ActivationSignalerData = new EffectActivationSignalerData
             {
-                NextEffectRng = new SerializableRng(_nextEffectRNG)
+                NextEffectRng = new SerializableRng(_nextEffectRNG),
+                LastEffectActivationTime = _effectDispatchTimer.GetLastActivationTimeStopwatch()
             };
         }
 

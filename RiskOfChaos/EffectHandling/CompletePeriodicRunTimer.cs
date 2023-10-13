@@ -125,5 +125,16 @@ namespace RiskOfChaos.EffectHandling
         {
             return currentTimer.GetTimeRemaining();
         }
+
+        public float GetLastActivationTimeStopwatch()
+        {
+            return _stopwatchEffectDispatchTimer.GetLastActivationTime();
+        }
+
+        public void SetLastActivationTimeStopwatch(float lastActivationTime)
+        {
+            _stopwatchEffectDispatchTimer.SetLastActivationTime(lastActivationTime);
+            _realtimeEffectDispatchTimer.SkipAllScheduledActivations();
+        }
     }
 }
