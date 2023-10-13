@@ -237,7 +237,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
             ChaosEffectIndex index = ChaosEffectCatalog.FindEffectIndex(args[0]);
             if (index > ChaosEffectIndex.Invalid)
             {
-                _instance.dispatchEffect(ChaosEffectCatalog.GetEffectInfo(index));
+                _instance.dispatchEffect(ChaosEffectCatalog.GetEffectInfo(index), new ChaosEffectDispatchArgs
+                {
+                    DispatchFlags = EffectDispatchFlags.DontCount
+                });
             }
         }
 
