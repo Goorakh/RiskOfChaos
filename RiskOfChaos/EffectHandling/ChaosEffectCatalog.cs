@@ -13,7 +13,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using static Rewired.InputMapper;
 
 namespace RiskOfChaos.EffectHandling
 {
