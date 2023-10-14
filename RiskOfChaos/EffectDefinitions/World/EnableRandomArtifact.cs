@@ -10,6 +10,7 @@ using RoR2;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
@@ -99,8 +100,10 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         ArtifactDef _enabledArtifact;
 
-        public override void OnStart()
+        public override void OnPreStartServer()
         {
+            base.OnPreStartServer();
+
             WeightedSelection<ArtifactIndex> artifactIndexSelection = new WeightedSelection<ArtifactIndex>(ArtifactCatalog.artifactCount);
 
             foreach (ArtifactIndex index in getAllAvailableArtifactIndices())
@@ -109,6 +112,22 @@ namespace RiskOfChaos.EffectDefinitions.World
             }
 
             _enabledArtifact = ArtifactCatalog.GetArtifactDef(artifactIndexSelection.Evaluate(RNG.nextNormalizedFloat));
+        }
+
+        public override void Serialize(NetworkWriter writer)
+        {
+            base.Serialize(writer);
+            writer.WritePackedIndex32((int)_enabledArtifact.artifactIndex);
+        }
+
+        public override void Deserialize(NetworkReader reader)
+        {
+            base.Deserialize(reader);
+            _enabledArtifact = ArtifactCatalog.GetArtifactDef((ArtifactIndex)reader.ReadPackedIndex32());
+        }
+
+        public override void OnStart()
+        {
             RunArtifactManager.instance.SetArtifactEnabledServer(_enabledArtifact, true);
         }
 
