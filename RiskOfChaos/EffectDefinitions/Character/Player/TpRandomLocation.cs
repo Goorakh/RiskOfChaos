@@ -21,28 +21,21 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
         public override void OnStart()
         {
-            DirectorPlacementRule.PlacementMode placementMode = SpawnUtils.GetBestValidRandomPlacementType();
+            DirectorPlacementRule positionSelectorPlacementRule = SpawnUtils.GetBestValidRandomPlacementRule();
 
             PlayerUtils.GetAllPlayerBodies(true).TryDo(playerBody =>
             {
-                teleportToRandomLocation(playerBody, placementMode);
+                teleportToRandomLocation(playerBody, positionSelectorPlacementRule);
             }, FormatUtils.GetBestBodyName);
         }
 
-        void teleportToRandomLocation(CharacterBody playerBody, DirectorPlacementRule.PlacementMode targetPositionPlacementMode)
+        void teleportToRandomLocation(CharacterBody playerBody, DirectorPlacementRule positionSelectorPlacementRule)
         {
-            teleportToPosition(playerBody, generateTargetPosition(playerBody, targetPositionPlacementMode));
+            teleportToPosition(playerBody, generateTargetPosition(playerBody, positionSelectorPlacementRule));
         }
 
-        Vector3 generateTargetPosition(CharacterBody playerBody, DirectorPlacementRule.PlacementMode targetPositionPlacementMode)
+        Vector3 generateTargetPosition(CharacterBody playerBody, DirectorPlacementRule positionSelectorPlacementRule)
         {
-            DirectorPlacementRule positionSelectorPlacementRule = new DirectorPlacementRule
-            {
-                placementMode = targetPositionPlacementMode,
-                position = playerBody.footPosition,
-                minDistance = 50f
-            };
-
             WeightedSelection<MapNodeGroup.GraphType> graphTypeSelection = new WeightedSelection<MapNodeGroup.GraphType>();
 
             const float OPPOSITE_GRAPH_TYPE_WEIGHT = 0.5f;
