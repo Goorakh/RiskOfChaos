@@ -29,15 +29,15 @@ namespace RiskOfChaos.EffectDefinitions.World.Physics
         {
             if (TimeElapsed - _lastPhysicsEnabledRollTime >= PHYSICS_ENABLED_ROLL_FREQUENCY)
             {
-                bool changedPhysicsSpeed = RNG.nextNormalizedFloat <= CHANGE_PHYSICS_SPEED_PROBABILITY;
+                bool changedPhysicsSpeed = RoR2Application.rng.nextNormalizedFloat <= CHANGE_PHYSICS_SPEED_PROBABILITY;
                 if (changedPhysicsSpeed)
                 {
-                    _physicsSpeedMultiplier = 1f + ((RNG.nextBool ? -1 : 1) * Mathf.Pow(RNG.nextNormalizedFloat, 2f) * 0.35f);
+                    _physicsSpeedMultiplier = 1f + ((RoR2Application.rng.nextBool ? -1 : 1) * Mathf.Pow(RoR2Application.rng.nextNormalizedFloat, 2f) * 0.35f);
                 }
 
                 bool lastPhysicsActive = _physicsActive;
 
-                _physicsActive = RNG.nextNormalizedFloat <= PHYSICS_ENABLED_PROBABILITY;
+                _physicsActive = RoR2Application.rng.nextNormalizedFloat <= PHYSICS_ENABLED_PROBABILITY;
                 _lastPhysicsEnabledRollTime = TimeElapsed;
 
                 if (lastPhysicsActive != _physicsActive || changedPhysicsSpeed)
