@@ -10,6 +10,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         [DataMember(Name = "f")]
         public EffectDispatchFlags DispatchFlags = EffectDispatchFlags.None;
 
+        [IgnoreDataMember]
         public ulong? OverrideRNGSeed;
 
         public ChaosEffectDispatchArgs()
