@@ -9,6 +9,9 @@ namespace RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers
         [DataMember(Name = "e")]
         public SerializableEffect Effect;
 
+        [DataMember(Name = "da")]
+        public SerializableChaosEffectDispatchArgs DispatchArgs;
+
         [DataMember(Name = "sed")]
         public byte[] SerializedEffectData;
     }

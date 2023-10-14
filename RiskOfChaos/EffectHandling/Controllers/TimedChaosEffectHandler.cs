@@ -26,9 +26,9 @@ namespace RiskOfChaos.EffectHandling.Controllers
         public delegate void TimedEffectEndDelegate(ulong dispatchID);
         public static event TimedEffectEndDelegate OnTimedEffectEndServer;
 
-        readonly record struct ActiveTimedEffectInfo(TimedEffectInfo EffectInfo, TimedEffect EffectInstance, TimedEffectType TimedType)
+        readonly record struct ActiveTimedEffectInfo(TimedEffectInfo EffectInfo, TimedEffect EffectInstance, TimedEffectType TimedType, ChaosEffectDispatchArgs DispatchArgs)
         {
-            public ActiveTimedEffectInfo(TimedEffectInfo effectInfo, TimedEffect effectInstance) : this(effectInfo, effectInstance, effectInstance.TimedType)
+            public ActiveTimedEffectInfo(TimedEffectInfo effectInfo, TimedEffect effectInstance, ChaosEffectDispatchArgs dispatchArgs) : this(effectInfo, effectInstance, effectInstance.TimedType, dispatchArgs)
             {
             }
 
@@ -153,10 +153,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 foreach (SerializableActiveEffect activeEffect in data.ActiveTimedEffects)
                 {
-                    _effectDispatcher.DispatchEffectFromSerializedDataServer(activeEffect.Effect.EffectInfo, activeEffect.SerializedEffectData, new ChaosEffectDispatchArgs
-                    {
-                        DispatchFlags = EffectDispatchFlags.LoadedFromSave
-                    });
+                    ChaosEffectDispatchArgs dispatchArgs = activeEffect.DispatchArgs;
+                    dispatchArgs.DispatchFlags = EffectDispatchFlags.LoadedFromSave;
+
+                    _effectDispatcher.DispatchEffectFromSerializedDataServer(activeEffect.Effect.EffectInfo, activeEffect.SerializedEffectData, dispatchArgs);
                 }
             }
         }
@@ -165,10 +165,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
         {
             container.TimedEffectHandlerData = new TimedEffectHandlerData
             {
-                ActiveTimedEffects = _activeTimedEffects.Select(a => new SerializableActiveEffect
+                ActiveTimedEffects = _activeTimedEffects.Select(e => new SerializableActiveEffect
                 {
-                    Effect = new SerializableEffect(a.EffectInfo),
-                    SerializedEffectData = a.GetSerializedData()
+                    Effect = new SerializableEffect(e.EffectInfo),
+                    DispatchArgs = e.DispatchArgs,
+                    SerializedEffectData = e.GetSerializedData()
                 }).ToArray()
             };
         }
@@ -177,7 +178,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         {
             if (effectInfo is TimedEffectInfo timedEffectInfo && effectInstance is TimedEffect timedEffectInstance)
             {
-                registerTimedEffect(new ActiveTimedEffectInfo(timedEffectInfo, timedEffectInstance));
+                registerTimedEffect(new ActiveTimedEffectInfo(timedEffectInfo, timedEffectInstance, dispatchArgs));
             }
         }
 

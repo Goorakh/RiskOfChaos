@@ -239,7 +239,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 _instance.dispatchEffect(ChaosEffectCatalog.GetEffectInfo(index), new ChaosEffectDispatchArgs
                 {
-                    DispatchFlags = EffectDispatchFlags.DontCount
+                    DispatchFlags = EffectDispatchFlags.DontCount,
+                    OverrideRNGSeed = args.Count > 1 ? args.GetArgULong(1) : null
                 });
             }
         }
@@ -303,12 +304,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             CreateEffectInstanceArgs createEffectArgs;
             if (isServer)
             {
-                createEffectArgs = new CreateEffectInstanceArgs(_effectDispatchCount, _effectRNG.nextUlong);
-
-                if (!args.HasFlag(EffectDispatchFlags.DontCount))
-                {
-                    _effectDispatchCount++;
-                }
+                createEffectArgs = new CreateEffectInstanceArgs(_effectDispatchCount++, args.OverrideRNGSeed.GetValueOrDefault(_effectRNG.nextUlong));
             }
             else
             {
