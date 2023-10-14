@@ -27,7 +27,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     DispatchFlags = EffectDispatchFlags.CheckCanActivate
                 };
 
-                return ChaosEffectCatalog.PickEffect(rng, excludeEffects);
+                return ChaosEffectCatalog.PickEnabledEffect(rng, excludeEffects);
             }
             else
             {

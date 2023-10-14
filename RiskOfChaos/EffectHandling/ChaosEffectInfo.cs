@@ -244,7 +244,7 @@ namespace RiskOfChaos.EffectHandling
             return effectInstance;
         }
 
-        public virtual bool CanActivate(in EffectCanActivateContext context)
+        public virtual bool IsEnabled()
         {
             if (!NetworkServer.active)
             {
@@ -255,7 +255,26 @@ namespace RiskOfChaos.EffectHandling
             if (IsEnabledConfig != null && !IsEnabledConfig.Value)
             {
 #if DEBUG
-                Log.Debug($"effect {Identifier} cannot activate due to: Disabled in config");
+                Log.Debug($"effect {Identifier} is not enabled due to: Disabled in config");
+#endif
+                return false;
+            }
+
+            return true;
+        }
+
+        public virtual bool CanActivate(in EffectCanActivateContext context)
+        {
+            if (!NetworkServer.active)
+            {
+                Log.Warning("Called on client");
+                return false;
+            }
+
+            if (!IsEnabled())
+            {
+#if DEBUG
+                Log.Debug($"effect {Identifier} cannot activate due to: Effect not enabled");
 #endif
                 return false;
             }

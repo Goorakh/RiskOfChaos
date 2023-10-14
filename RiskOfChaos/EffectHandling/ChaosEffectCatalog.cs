@@ -171,13 +171,13 @@ namespace RiskOfChaos.EffectHandling
             ModSettingsManager.AddOption(option, CONFIG_MOD_GUID, CONFIG_MOD_NAME);
         }
 
-        public static WeightedSelection<ChaosEffectInfo> GetAllEffects(HashSet<ChaosEffectInfo> excludeEffects = null)
+        public static WeightedSelection<ChaosEffectInfo> GetAllEnabledEffects(HashSet<ChaosEffectInfo> excludeEffects = null)
         {
             _pickNextEffectSelection.Clear();
 
             foreach (ChaosEffectInfo effect in _effects)
             {
-                if (excludeEffects == null || !excludeEffects.Contains(effect))
+                if (effect.IsEnabled() && (excludeEffects == null || !excludeEffects.Contains(effect)))
                 {
                     _pickNextEffectSelection.AddChoice(effect, effect.TotalSelectionWeight);
                 }
@@ -186,9 +186,9 @@ namespace RiskOfChaos.EffectHandling
             return _pickNextEffectSelection;
         }
 
-        public static ChaosEffectInfo PickEffect(Xoroshiro128Plus rng, HashSet<ChaosEffectInfo> excludeEffects = null)
+        public static ChaosEffectInfo PickEnabledEffect(Xoroshiro128Plus rng, HashSet<ChaosEffectInfo> excludeEffects = null)
         {
-            return pickEffectFromSelection(rng, GetAllEffects(excludeEffects));
+            return pickEffectFromSelection(rng, GetAllEnabledEffects(excludeEffects));
         }
 
         public static WeightedSelection<ChaosEffectInfo> GetAllActivatableEffects(in EffectCanActivateContext context, HashSet<ChaosEffectInfo> excludeEffects = null)
