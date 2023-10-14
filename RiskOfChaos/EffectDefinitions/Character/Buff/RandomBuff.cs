@@ -217,17 +217,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             return _availableBuffIndices != null && filterSelectableBuffs(_availableBuffIndices).Any();
         }
 
-        int _buffStackCount;
-
-        protected override int buffCount => _buffStackCount;
-
         public override void OnPreStartServer()
         {
             base.OnPreStartServer();
             tryApplyPatches();
 
             BuffDef buffDef = BuffCatalog.GetBuffDef(_buffIndex);
-            _buffStackCount = buffDef && buffDef.canStack ? _stackableBuffCount.Value : 1;
+            buffCount = buffDef && buffDef.canStack ? _stackableBuffCount.Value : 1;
         }
 
 #if DEBUG

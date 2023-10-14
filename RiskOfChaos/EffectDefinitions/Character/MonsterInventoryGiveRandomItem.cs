@@ -241,6 +241,28 @@ namespace RiskOfChaos.EffectDefinitions.Character
             }
         }
 
+        public override void Serialize(NetworkWriter writer)
+        {
+            base.Serialize(writer);
+
+            writer.WritePackedUInt32((uint)_grantedPickupDefs.Length);
+            foreach (PickupDef pickup in _grantedPickupDefs)
+            {
+                writer.Write(pickup.pickupIndex);
+            }
+        }
+
+        public override void Deserialize(NetworkReader reader)
+        {
+            base.Deserialize(reader);
+
+            _grantedPickupDefs = new PickupDef[reader.ReadPackedUInt32()];
+            for (int i = 0; i < _grantedPickupDefs.Length; i++)
+            {
+                _grantedPickupDefs[i] = PickupCatalog.GetPickupDef(reader.ReadPickupIndex());
+            }
+        }
+
         public override void OnStart()
         {
             Dictionary<PickupDef, uint> pickupCounts = new Dictionary<PickupDef, uint>();

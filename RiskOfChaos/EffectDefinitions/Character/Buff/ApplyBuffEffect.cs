@@ -8,6 +8,7 @@ using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
@@ -115,13 +116,29 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 
         protected abstract BuffIndex getBuffIndexToApply();
 
-        protected virtual int buffCount => 1;
+        protected int buffCount { get; set; } = 1;
 
         public override void OnPreStartServer()
         {
             base.OnPreStartServer();
 
             _buffIndex = getBuffIndexToApply();
+        }
+
+        public override void Serialize(NetworkWriter writer)
+        {
+            base.Serialize(writer);
+
+            writer.WritePackedIndex32((int)_buffIndex);
+            writer.WritePackedUInt32((uint)buffCount);
+        }
+
+        public override void Deserialize(NetworkReader reader)
+        {
+            base.Deserialize(reader);
+
+            _buffIndex = (BuffIndex)reader.ReadPackedIndex32();
+            buffCount = (int)reader.ReadPackedUInt32();
         }
 
         public override void OnStart()

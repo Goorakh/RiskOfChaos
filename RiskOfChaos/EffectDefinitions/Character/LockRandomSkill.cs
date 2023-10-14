@@ -8,6 +8,7 @@ using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
@@ -68,6 +69,20 @@ namespace RiskOfChaos.EffectDefinitions.Character
             base.OnPreStartServer();
 
             _lockedSkillSlot = RNG.NextElementUniform(getAllLockableSkillSlots().ToList());
+        }
+
+        public override void Serialize(NetworkWriter writer)
+        {
+            base.Serialize(writer);
+
+            writer.Write((sbyte)_lockedSkillSlot);
+        }
+
+        public override void Deserialize(NetworkReader reader)
+        {
+            base.Deserialize(reader);
+
+            _lockedSkillSlot = (SkillSlot)reader.ReadSByte();
         }
 
         public override void OnStart()

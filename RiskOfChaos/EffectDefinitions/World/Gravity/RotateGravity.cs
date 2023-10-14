@@ -5,6 +5,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfOptions.OptionConfigs;
 using System;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Gravity
 {
@@ -42,6 +43,18 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
             _gravityRotation = Quaternion.Euler(RNG.RangeFloat(-maxDeviation, maxDeviation),
                                                 RNG.RangeFloat(-maxDeviation, maxDeviation),
                                                 RNG.RangeFloat(-maxDeviation, maxDeviation));
+        }
+
+        public override void Serialize(NetworkWriter writer)
+        {
+            base.Serialize(writer);
+            writer.Write(_gravityRotation);
+        }
+
+        public override void Deserialize(NetworkReader reader)
+        {
+            base.Deserialize(reader);
+            _gravityRotation = reader.ReadQuaternion();
         }
 
         public override void ModifyValue(ref Vector3 gravity)
