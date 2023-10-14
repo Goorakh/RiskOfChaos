@@ -41,6 +41,19 @@ namespace RiskOfChaos.EffectDefinitions.World
                     {
                         return orig(itemDef, expansionAvailability) && itemDef != item;
                     };
+
+                    On.RoR2.GameCompletionStatsHelper.ctor += (orig, self) =>
+                    {
+                        orig(self);
+
+                        PickupDef scrapPickupDef = PickupCatalog.GetPickupDef(PickupCatalog.FindPickupIndex(item.itemIndex));
+                        if (scrapPickupDef != null)
+                        {
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                            self.encounterablePickups.Remove(scrapPickupDef);
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+                        }
+                    };
                 }
             }
 

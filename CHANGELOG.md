@@ -26,6 +26,9 @@
 * Randomize Loadout & Enable Random Artifact (Metamorphosis):
   * Desperado stacks are no longer reset
 
+* Misc
+  * Fixed strange scrap counting towards game completion in logbook
+
 **1.12.2 Changes:**
 
 <details>
