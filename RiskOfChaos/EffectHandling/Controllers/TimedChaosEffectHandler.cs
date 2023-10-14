@@ -156,7 +156,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     ChaosEffectDispatchArgs dispatchArgs = activeEffect.DispatchArgs;
                     dispatchArgs.DispatchFlags = EffectDispatchFlags.LoadedFromSave;
 
-                    _effectDispatcher.DispatchEffectFromSerializedDataServer(activeEffect.Effect.EffectInfo, activeEffect.SerializedEffectData, dispatchArgs);
+                    _effectDispatcher.DispatchEffectFromSerializedDataServer(activeEffect.Effect.EffectInfo, activeEffect.SerializedEffectDataBytes, dispatchArgs);
                 }
             }
         }
@@ -169,7 +169,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 {
                     Effect = new SerializableEffect(e.EffectInfo),
                     DispatchArgs = e.DispatchArgs,
-                    SerializedEffectData = e.GetSerializedData()
+                    SerializedEffectDataBytes = e.GetSerializedData()
                 }).ToArray()
             };
         }

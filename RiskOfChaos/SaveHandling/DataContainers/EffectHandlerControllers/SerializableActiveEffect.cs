@@ -13,6 +13,19 @@ namespace RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers
         public SerializableChaosEffectDispatchArgs DispatchArgs;
 
         [DataMember(Name = "sed")]
-        public byte[] SerializedEffectData;
+        public string SerializedEffectDataBase64;
+
+        [IgnoreDataMember]
+        public byte[] SerializedEffectDataBytes
+        {
+            get
+            {
+                return Convert.FromBase64String(SerializedEffectDataBase64);
+            }
+            set
+            {
+                SerializedEffectDataBase64 = Convert.ToBase64String(value);
+            }
+        }
     }
 }
