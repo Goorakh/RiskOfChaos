@@ -9,6 +9,97 @@ namespace RiskOfChaos.Utilities
 {
     public static class SpawnUtils
     {
+        public static class ExtraPlacementModes
+        {
+            public const DirectorPlacementRule.PlacementMode NearestNodeWithConditions = (DirectorPlacementRule.PlacementMode)134;
+
+            [SystemInitializer]
+            static void Init()
+            {
+                On.RoR2.DirectorCore.TrySpawnObject += (orig, self, directorSpawnRequest) =>
+                {
+                    GameObject result = orig(self, directorSpawnRequest);
+                    if (result)
+                        return result;
+
+                    SpawnCard spawnCard = directorSpawnRequest.spawnCard;
+                    if (!spawnCard)
+                        return null;
+
+                    NodeGraph nodeGraph = SceneInfo.instance.GetNodeGraph(spawnCard.nodeGraphType);
+                    if (!nodeGraph)
+                        return null;
+
+                    DirectorPlacementRule placementRule = directorSpawnRequest.placementRule;
+
+                    Quaternion getRotationFacingTargetPositionFromPoint(Vector3 point)
+                    {
+                        Vector3 targetPosition = placementRule.targetPosition;
+                        point.y = targetPosition.y;
+                        return Util.QuaternionSafeLookRotation(placementRule.targetPosition - point);
+                    }
+
+                    GameObject spawnAt(Vector3 position)
+                    {
+                        return spawnCard.DoSpawn(position, getRotationFacingTargetPositionFromPoint(position), directorSpawnRequest).spawnedInstance;
+                    }
+
+                    switch (placementRule.placementMode)
+                    {
+                        case NearestNodeWithConditions:
+                            List<NodeGraph.NodeIndex> validNodes = nodeGraph.FindNodesInRangeWithFlagConditions(placementRule.position, placementRule.minDistance, placementRule.maxDistance, (HullMask)(1 << (int)spawnCard.hullSize), spawnCard.requiredFlags, spawnCard.forbiddenFlags, placementRule.preventOverhead);
+                            int nodesRemoved = validNodes.RemoveAll(n => !nodeGraph.GetNodePosition(n, out _));
+#if DEBUG
+                            if (nodesRemoved > 0)
+                            {
+                                Log.Debug($"Excluded {nodesRemoved} invalid nodes");
+                            }
+#endif
+
+                            NodeGraph.NodeIndex? closestValidNodeIndex = null;
+                            float closestNodeSqrDistance = float.PositiveInfinity;
+
+                            foreach (NodeGraph.NodeIndex nodeIndex in validNodes)
+                            {
+                                if (nodeGraph.GetNodePosition(nodeIndex, out Vector3 position))
+                                {
+                                    float sqrDistance = (placementRule.position - position).sqrMagnitude;
+
+                                    if (!closestValidNodeIndex.HasValue || sqrDistance < closestNodeSqrDistance)
+                                    {
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                                        bool positionFree = self.CheckPositionFree(nodeGraph, nodeIndex, spawnCard);
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+
+                                        if (positionFree)
+                                        {
+                                            closestValidNodeIndex = nodeIndex;
+                                            closestNodeSqrDistance = sqrDistance;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (closestValidNodeIndex.HasValue)
+                            {
+                                NodeGraph.NodeIndex nodeIndex = closestValidNodeIndex.Value;
+
+                                if (spawnCard.occupyPosition)
+                                    self.AddOccupiedNode(nodeGraph, nodeIndex);
+
+                                nodeGraph.GetNodePosition(nodeIndex, out Vector3 position);
+                                return spawnAt(position);
+                            }
+
+                            Log.Info($"ExtraPlacementModes.NearestNodeWithConditions: Could not find nodes satisfying conditions for {spawnCard.name}. targetPosition={placementRule.targetPosition}, minDistance={placementRule.minDistance}, maxDistance={placementRule.maxDistance}, hullSize={spawnCard.hullSize}, requiredFlags={spawnCard.requiredFlags}, forbiddenFlags={spawnCard.forbiddenFlags}, preventOverhead={placementRule.preventOverhead}");
+                            break;
+                    }
+
+                    return null;
+                };
+            }
+        }
+
         static readonly SpawnCard _positionHelperSpawnCard;
 
         static SpawnUtils()
@@ -143,6 +234,27 @@ namespace RiskOfChaos.Utilities
                 return new DirectorPlacementRule
                 {
                     placementMode = DirectorPlacementRule.PlacementMode.Approximate,
+                    position = selectedPlayer.footPosition,
+                    minDistance = minPlayerDistance,
+                    maxDistance = maxPlayerDistance
+                };
+            }
+            else
+            {
+                return GetBestValidRandomPlacementRule();
+            }
+        }
+
+        public static DirectorPlacementRule GetPlacementRule_AtRandomPlayerNearestNode(Xoroshiro128Plus rng, float minPlayerDistance, float maxPlayerDistance)
+        {
+            CharacterBody[] playerBodies = PlayerUtils.GetAllPlayerBodies(true).ToArray();
+            if (playerBodies.Length > 0)
+            {
+                CharacterBody selectedPlayer = rng.NextElementUniform(playerBodies);
+
+                return new DirectorPlacementRule
+                {
+                    placementMode = ExtraPlacementModes.NearestNodeWithConditions,
                     position = selectedPlayer.footPosition,
                     minDistance = minPlayerDistance,
                     maxDistance = maxPlayerDistance

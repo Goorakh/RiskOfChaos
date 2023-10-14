@@ -134,7 +134,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         public override void OnStart()
         {
-            DirectorPlacementRule placementRule = SpawnUtils.GetPlacementRule_AtRandomPlayerApproximate(RNG, 30f, 50f);
+            DirectorPlacementRule placementRule = SpawnUtils.GetPlacementRule_AtRandomPlayerNearestNode(RNG, 30f, float.PositiveInfinity);
 
             DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_selectedSpawnCard, placementRule, RNG)
             {

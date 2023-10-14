@@ -55,13 +55,15 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             MasterCopySpawnCard copySpawnCard = MasterCopySpawnCard.FromMaster(master, true, true);
 
-            DirectorPlacementRule placement = new DirectorPlacementRule
+            DirectorPlacementRule placementRule = new DirectorPlacementRule
             {
-                placementMode = DirectorPlacementRule.PlacementMode.Direct,
-                position = body.footPosition
+                placementMode = SpawnUtils.ExtraPlacementModes.NearestNodeWithConditions,
+                position = body.footPosition,
+                minDistance = body.bestFitRadius * 2f,
+                maxDistance = float.PositiveInfinity
             };
 
-            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(copySpawnCard, placement, new Xoroshiro128Plus(RNG.nextUlong))
+            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(copySpawnCard, placementRule, new Xoroshiro128Plus(RNG.nextUlong))
             {
                 summonerBodyObject = body.gameObject,
                 teamIndexOverride = master.teamIndex,
@@ -85,7 +87,12 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 }
             };
 
-            DirectorCore.instance.TrySpawnObject(spawnRequest);
+            spawnRequest.SpawnWithFallbackPlacement(new DirectorPlacementRule
+            {
+                placementMode = DirectorPlacementRule.PlacementMode.Direct,
+                position = body.footPosition
+            });
+
             UnityEngine.Object.Destroy(copySpawnCard);
         }
     }
