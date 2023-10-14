@@ -3,6 +3,9 @@ using RiskOfChaos.Components;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.SaveHandling;
+using RiskOfChaos.SaveHandling.DataContainers;
+using RiskOfChaos.SaveHandling.DataContainers.Effects;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -13,9 +16,11 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("suppress_random_item", EffectWeightReductionPercentagePerActivation = 10f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
+    [ChaosEffect(EFFECT_IDENTIFIER, EffectWeightReductionPercentagePerActivation = 10f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
     public sealed class SuppressRandomItem : BaseEffect
     {
+        public const string EFFECT_IDENTIFIER = "suppress_random_item";
+
         [SystemInitializer(typeof(ItemCatalog), typeof(ItemTierCatalog))]
         static void FixStrangeScrap()
         {
@@ -60,6 +65,60 @@ namespace RiskOfChaos.EffectDefinitions.World
             fixScrapItem(DLC1Content.Items.ScrapWhiteSuppressed, ItemTier.Tier1);
             fixScrapItem(DLC1Content.Items.ScrapGreenSuppressed, ItemTier.Tier2);
             fixScrapItem(DLC1Content.Items.ScrapRedSuppressed, ItemTier.Tier3);
+        }
+
+        [SystemInitializer]
+        static void Init()
+        {
+            if (SaveManager.UseSaveData)
+            {
+                SaveManager.CollectSaveData += SaveManager_CollectSaveData;
+                SaveManager.LoadSaveData += SaveManager_LoadSaveData;
+            }
+
+            Run.onRunStartGlobal += _ =>
+            {
+                _suppressedItems.Clear();
+            };
+
+            Run.onRunDestroyGlobal += _ =>
+            {
+                _suppressedItems.Clear();
+            };
+        }
+
+        static List<ItemDef> _suppressedItems = new List<ItemDef>();
+
+        static void SaveManager_CollectSaveData(ref SaveContainer container)
+        {
+            if (container.Effects is null)
+                return;
+
+            container.Effects.SuppressRandomItem_Data = new SuppressRandomItem_Data
+            {
+                SuppressedItems = _suppressedItems.Select(i => i.name).ToArray()
+            };
+        }
+
+        static void SaveManager_LoadSaveData(in SaveContainer container)
+        {
+            SuppressRandomItem_Data data = container.Effects?.SuppressRandomItem_Data;
+            if (data is null)
+            {
+                _suppressedItems.Clear();
+            }
+            else
+            {
+                _suppressedItems = data.SuppressedItems.Select(ItemCatalog.FindItemIndex)
+                                                       .Select(ItemCatalog.GetItemDef)
+                                                       .Where(i => i)
+                                                       .ToList();
+
+                foreach (ItemDef item in _suppressedItems)
+                {
+                    SuppressedItemManager.SuppressItem(item.itemIndex, getTransformedItemIndex(item.itemIndex));
+                }
+            }
         }
 
         [EffectCanActivate]
@@ -117,6 +176,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             } while (transformedItemIndex == ItemIndex.None || !SuppressedItemManager.SuppressItem(suppressedItemIndex, transformedItemIndex));
 
             ItemDef suppressedItem = ItemCatalog.GetItemDef(suppressedItemIndex);
+            _suppressedItems.Add(suppressedItem);
 
             ItemTierDef itemTierDef = ItemTierCatalog.GetItemTierDef(suppressedItem.tier);
             Chat.SendBroadcastChat(new ColoredTokenChatMessage

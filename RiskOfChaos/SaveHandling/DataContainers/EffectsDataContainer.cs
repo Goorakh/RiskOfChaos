@@ -13,5 +13,8 @@ namespace RiskOfChaos.SaveHandling.DataContainers
 
         [DataMember(Name = RandomDifficulty.EFFECT_IDENTIFIER)]
         public RandomDifficulty_Data RandomDifficulty_Data;
+
+        [DataMember(Name = SuppressRandomItem.EFFECT_IDENTIFIER)]
+        public SuppressRandomItem_Data SuppressRandomItem_Data;
     }
 }
