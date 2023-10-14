@@ -2,6 +2,12 @@
 
 **?.?.? Changes:**
 
+* Added ProperSave support
+  * Active effects and internal state are saved at the start of each stage
+
+* Mitosis:
+  * Fixed spawned copies overlapping the original's collider, resulting in flying characters getting flung away
+
 * Give Everyone a Random Buff & Debuff:
   * Now gives several stacks if the random buff/debuff is stackable.
 
