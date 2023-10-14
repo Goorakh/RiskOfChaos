@@ -326,7 +326,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
 
             CreateEffectInstanceArgs createEffectArgs;
-            if (isServer)
+            if (isServer && !args.HasFlag(EffectDispatchFlags.SkipServerInit))
             {
                 createEffectArgs = new CreateEffectInstanceArgs(_effectDispatchCount++, args.OverrideRNGSeed.GetValueOrDefault(_effectRNG.nextUlong));
             }
