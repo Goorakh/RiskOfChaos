@@ -10,5 +10,8 @@ namespace RiskOfChaos.SaveHandling.DataContainers
     {
         [DataMember(Name = ForceAllItemsIntoRandomItem.EFFECT_IDENTIFIER)]
         public ForceAllItemsIntoRandomItem_Data ForceAllItemsIntoRandomItem_Data;
+
+        [DataMember(Name = RandomDifficulty.EFFECT_IDENTIFIER)]
+        public RandomDifficulty_Data RandomDifficulty_Data;
     }
 }
