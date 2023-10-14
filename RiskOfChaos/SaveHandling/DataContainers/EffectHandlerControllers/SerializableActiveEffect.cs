@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RiskOfChaos.EffectHandling.Controllers;
+using System;
 using System.Runtime.Serialization;
 
 namespace RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers
@@ -10,7 +11,7 @@ namespace RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers
         public SerializableEffect Effect;
 
         [DataMember(Name = "da")]
-        public SerializableChaosEffectDispatchArgs DispatchArgs;
+        public ChaosEffectDispatchArgs DispatchArgs;
 
         [DataMember(Name = "sed")]
         public string SerializedEffectDataBase64;

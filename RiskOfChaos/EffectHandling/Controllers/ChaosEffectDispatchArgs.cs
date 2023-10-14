@@ -1,10 +1,16 @@
-﻿using UnityEngine.Networking;
+﻿using System;
+using System.Runtime.Serialization;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling.Controllers
 {
+    [Serializable]
     public struct ChaosEffectDispatchArgs
     {
+        [DataMember(Name = "f")]
         public EffectDispatchFlags DispatchFlags = EffectDispatchFlags.None;
+
+        [DataMember(Name = "os")]
         public ulong? OverrideRNGSeed;
 
         public ChaosEffectDispatchArgs()
