@@ -2,6 +2,7 @@
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using System;
 using UnityEngine;
@@ -38,11 +39,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
         {
             base.OnPreStartServer();
 
-            float maxDeviation = _maxDeviation.Value;
-
-            _gravityRotation = Quaternion.Euler(RNG.RangeFloat(-maxDeviation, maxDeviation),
-                                                RNG.RangeFloat(-maxDeviation, maxDeviation),
-                                                RNG.RangeFloat(-maxDeviation, maxDeviation));
+            _gravityRotation = QuaternionUtils.RandomDeviation(_maxDeviation.Value, RNG);
         }
 
         public override void Serialize(NetworkWriter writer)
