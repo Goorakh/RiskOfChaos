@@ -31,11 +31,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(getItemToSpawn(_spawnEntries, RNG), SpawnUtils.GetPlacementRule_AtRandomPlayerNearestNode(RNG), new Xoroshiro128Plus(RNG.nextUlong));
 
-            if (!DirectorCore.instance.TrySpawnObject(spawnRequest))
-            {
-                spawnRequest.placementRule = SpawnUtils.GetBestValidRandomPlacementRule();
-                DirectorCore.instance.TrySpawnObject(spawnRequest);
-            }
+            spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());
         }
     }
 }

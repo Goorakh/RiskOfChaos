@@ -189,12 +189,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 }
             };
 
-            GameObject spawnedObject = DirectorCore.instance.TrySpawnObject(spawnRequest);
-            if (!spawnedObject)
-            {
-                spawnRequest.placementRule = SpawnUtils.GetBestValidRandomPlacementRule();
-                spawnedObject = DirectorCore.instance.TrySpawnObject(spawnRequest);
-            }
+            spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());
         }
     }
 }
