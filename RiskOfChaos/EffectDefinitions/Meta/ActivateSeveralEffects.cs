@@ -50,7 +50,7 @@ namespace RiskOfChaos.EffectDefinitions.Meta
 
             for (int i = _numEffectsToActivate.Value - 1; i >= 0; i--)
             {
-                ChaosEffectInfo effect = ChaosEffectActivationSignaler.PickEffect(RNG, excludeEffects, out ChaosEffectDispatchArgs dispatchArgs);
+                ChaosEffectInfo effect = ChaosEffectActivationSignaler.PickEffect(new Xoroshiro128Plus(RNG.nextUlong), excludeEffects, out ChaosEffectDispatchArgs dispatchArgs);
                 dispatchArgs.DispatchFlags |= EffectDispatchFlags.DontPlaySound;
                 dispatchArgs.OverrideRNGSeed = RNG.nextUlong;
                 ChaosEffectDispatcher.Instance.DispatchEffect(effect, dispatchArgs);
