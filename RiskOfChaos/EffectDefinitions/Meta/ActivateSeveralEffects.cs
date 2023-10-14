@@ -52,6 +52,7 @@ namespace RiskOfChaos.EffectDefinitions.Meta
             {
                 ChaosEffectInfo effect = ChaosEffectActivationSignaler.PickEffect(RNG, excludeEffects, out ChaosEffectDispatchArgs dispatchArgs);
                 dispatchArgs.DispatchFlags |= EffectDispatchFlags.DontPlaySound;
+                dispatchArgs.OverrideRNGSeed = RNG.nextUlong;
                 ChaosEffectDispatcher.Instance.DispatchEffect(effect, dispatchArgs);
 
                 if (!allowDuplicateEffects)
