@@ -32,11 +32,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
 
         public override void OnStart()
         {
+            GameObject projectilePrefab = getItemToSpawn(_projectileEntries, RNG);
+
             foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
             {
                 ProjectileManager.instance.FireProjectile(new FireProjectileInfo
                 {
-                    projectilePrefab = getItemToSpawn(_projectileEntries, RNG),
+                    projectilePrefab = projectilePrefab,
                     position = playerBody.corePosition
                 });
             }
