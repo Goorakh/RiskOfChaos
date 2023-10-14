@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace RiskOfChaos.SaveHandling
+namespace RiskOfChaos.SaveHandling.DataContainers
 {
     [Serializable]
     public class SerializableRng
