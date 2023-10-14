@@ -169,7 +169,31 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 return;
             }
 
-            dispatchEffectFromSerializedData(effectInfo, serializedEffectData, args);
+            ChaosEffectDispatchArgs dispatchArgs = args;
+            dispatchArgs.DispatchFlags |= EffectDispatchFlags.DontStart | EffectDispatchFlags.SkipServerInit;
+            BaseEffect effectInstance = dispatchEffectFromSerializedData(effectInfo, serializedEffectData, dispatchArgs);
+            if (effectInstance != null)
+            {
+                NetworkReader reader = new NetworkReader(serializedEffectData);
+
+                try
+                {
+                    effectInstance.Deserialize(reader);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error_NoCallerPrefix($"Caught exception in {effectInfo} {nameof(BaseEffect.Deserialize)}: {ex}");
+                    Chat.AddMessage(Language.GetString("CHAOS_EFFECT_UNHANDLED_EXCEPTION_MESSAGE"));
+                    return;
+                }
+
+                if (effectInfo.IsNetworked)
+                {
+                    new NetworkedEffectDispatchedMessage(effectInfo, args, serializedEffectData).Send(NetworkDestination.Clients);
+                }
+
+                startEffect(effectInfo, args, effectInstance);
+            }
         }
 
         BaseEffect dispatchEffectFromSerializedData(ChaosEffectInfo effectInfo, byte[] serializedEffectData, in ChaosEffectDispatchArgs args = default)
@@ -315,7 +339,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             BaseEffect effectInstance = effect.CreateInstance(createEffectArgs);
             if (effectInstance != null)
             {
-                if (isServer)
+                if (isServer && !args.HasFlag(EffectDispatchFlags.SkipServerInit))
                 {
                     try
                     {

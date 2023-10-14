@@ -11,7 +11,8 @@ namespace RiskOfChaos.EffectHandling
         CheckCanActivate = 1 << 2,
         DontSendChatMessage = 1 << 3,
         DontCount = 1 << 4,
+        SkipServerInit = 1 << 5,
 
-        LoadedFromSave = DontPlaySound | DontSendChatMessage | DontCount
+        LoadedFromSave = DontPlaySound | DontSendChatMessage | DontCount | SkipServerInit
     }
 }
