@@ -10,9 +10,9 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.ParsedValueHolders.ParsedList;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
@@ -74,12 +74,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             ConfigHolder = _itemBlacklistConfig
         };
 
-        static IEnumerable<ItemIndex> getAllScrappableItems(Inventory inventory)
+        static IEnumerable<ItemIndex> getAllScrappableItems()
         {
-            if (!inventory)
-                yield break;
-
-            foreach (ItemIndex itemIndex in inventory.itemAcquisitionOrder)
+            foreach (ItemIndex itemIndex in ItemCatalog.allItems)
             {
                 ItemDef itemDef = ItemCatalog.GetItemDef(itemIndex);
                 if (!itemDef || itemDef.hidden || !itemDef.canRemove || itemDef.ContainsTag(ItemTag.Scrap))
@@ -107,10 +104,32 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             }
         }
 
+        static IEnumerable<ItemIndex> getAllScrappableItems(Inventory inventory)
+        {
+            if (!inventory)
+                return Enumerable.Empty<ItemIndex>();
+
+            return getAllScrappableItems().Where(i => inventory.GetItemCount(i) > 0);
+        }
+
         [EffectCanActivate]
         static bool CanActivate(in EffectCanActivateContext context)
         {
             return _scrapPickupByItemTier != null && (!context.IsNow || PlayerUtils.GetAllPlayerMasters(false).Any(cm => getAllScrappableItems(cm.inventory).Any()));
+        }
+
+        ItemIndex[] _itemScrapOrder;
+
+        public override void OnPreStartServer()
+        {
+            base.OnPreStartServer();
+
+            _itemScrapOrder = getAllScrappableItems().ToArray();
+            Util.ShuffleArray(_itemScrapOrder, new Xoroshiro128Plus(RNG.nextUlong));
+
+#if DEBUG
+            Log.Debug($"Scrap order: [{string.Join(", ", _itemScrapOrder.Select(FormatUtils.GetBestItemDisplayName))}]");
+#endif
         }
 
         public override void OnStart()
@@ -124,21 +143,15 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             if (!inventory)
                 return;
 
-            IEnumerable<ItemIndex> scrappableItems = getAllScrappableItems(inventory);
-            if (!scrappableItems.Any())
-                return;
-
-            WeightedSelection<ItemIndex> itemSelector = new WeightedSelection<ItemIndex>();
-            foreach (ItemIndex item in scrappableItems)
-            {
-                itemSelector.AddChoice(item, _scrapWholeStack.Value ? 1f : inventory.GetItemCount(item));
-            }
-
             HashSet<ItemIndex> notifiedScrapItems = new HashSet<ItemIndex>();
 
-            for (int i = Mathf.Min(_scrapCount.Value, itemSelector.Count) - 1; i >= 0; i--)
+            for (int i = _scrapCount.Value - 1; i >= 0; i--)
             {
-                ItemDef itemToScrap = ItemCatalog.GetItemDef(itemSelector.GetAndRemoveRandom(RNG));
+                int itemToScrapIndex = Array.FindIndex(_itemScrapOrder, i => inventory.GetItemCount(i) > 0);
+                if (itemToScrapIndex == -1) // No more items to scrap, inventory is out of scrappable items
+                    break;
+
+                ItemDef itemToScrap = ItemCatalog.GetItemDef(_itemScrapOrder[itemToScrapIndex]);
                 scrapItem(characterMaster, inventory, itemToScrap, notifiedScrapItems);
             }
 
