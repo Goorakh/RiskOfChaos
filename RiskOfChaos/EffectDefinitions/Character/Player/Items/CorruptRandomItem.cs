@@ -10,6 +10,7 @@ using RiskOfChaos.Utilities.ParsedValueHolders.ParsedList;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.Items;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -39,17 +40,14 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             return ExpansionUtils.DLC1Enabled && PlayerUtils.GetAllPlayerMasters(false).Any(m => getAllCorruptableItems(m.inventory).Any());
         }
 
-        static IEnumerable<ItemIndex> getAllCorruptableItems(Inventory inventory)
+        static IEnumerable<ItemIndex> getAllCorruptableItems()
         {
             Run run = Run.instance;
-            if (!run || !inventory)
+            if (!run)
                 yield break;
 
-            foreach (ItemIndex item in inventory.itemAcquisitionOrder)
+            foreach (ItemIndex item in ItemCatalog.allItems)
             {
-                if (inventory.GetItemCount(item) <= 0)
-                    continue;
-
                 ItemIndex transformedItem = ContagiousItemManager.GetTransformedItemIndex(item);
                 if (transformedItem == ItemIndex.None || !run.IsItemAvailable(transformedItem) || run.IsItemExpansionLocked(transformedItem))
                     continue;
@@ -66,6 +64,28 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             }
         }
 
+        static IEnumerable<ItemIndex> getAllCorruptableItems(Inventory inventory)
+        {
+            if (!inventory)
+                return Enumerable.Empty<ItemIndex>();
+
+            return getAllCorruptableItems().Where(i => inventory.GetItemCount(i) > 0);
+        }
+
+        ItemIndex[] _itemCorruptOrder;
+
+        public override void OnPreStartServer()
+        {
+            base.OnPreStartServer();
+
+            _itemCorruptOrder = getAllCorruptableItems().ToArray();
+            Util.ShuffleArray(_itemCorruptOrder, new Xoroshiro128Plus(RNG.nextUlong));
+
+#if DEBUG
+            Log.Debug($"Corrupt order: [{string.Join(", ", _itemCorruptOrder.Select(i => Language.GetString(ItemCatalog.GetItemDef(i).nameToken)))}]");
+#endif
+        }
+
         public override void OnStart()
         {
             PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
@@ -74,11 +94,11 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 if (!inventory)
                     return;
 
-                ItemIndex[] allCorruptableItems = getAllCorruptableItems(inventory).ToArray();
-                if (allCorruptableItems.Length <= 0)
+                int itemToCorruptIndex = Array.FindIndex(_itemCorruptOrder, i => inventory.GetItemCount(i) > 0);
+                if (itemToCorruptIndex == -1) // This inventory has none of the corruptable items
                     return;
 
-                ContagiousItemManager.TryForceReplacement(inventory, RNG.NextElementUniform(allCorruptableItems));
+                ContagiousItemManager.TryForceReplacement(inventory, _itemCorruptOrder[itemToCorruptIndex]);
             }, Util.GetBestMasterName);
         }
     }
