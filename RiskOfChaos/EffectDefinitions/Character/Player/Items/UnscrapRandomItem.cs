@@ -127,16 +127,17 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             _unscrapOrder = _printableItemsByTier.SelectMany(kvp =>
             {
-                if (_scrapItemsByTier.TryGetValue(kvp.Key, out ItemIndex[] scrapItems))
+                if (_scrapItemsByTier.TryGetValue(kvp.Key, out ItemIndex[] scrapItems) && scrapItems.Length > 0)
                 {
                     ItemIndex[] printableItems = kvp.Value.Where(canUnscrapToItem).ToArray();
-                    return scrapItems.Select(i => new UnscrapInfo(i, printableItems));
+                    if (printableItems.Length > 0)
+                    {
+                        return scrapItems.Select(i => new UnscrapInfo(i, printableItems));
+                    }
                 }
-                else
-                {
-                    return Enumerable.Empty<UnscrapInfo>();
-                }
-            }).Where(u => u.PrintableItems.Length > 0).ToArray();
+
+                return Enumerable.Empty<UnscrapInfo>();
+            }).ToArray();
 
             Util.ShuffleArray(_unscrapOrder, new Xoroshiro128Plus(RNG.nextUlong));
 
