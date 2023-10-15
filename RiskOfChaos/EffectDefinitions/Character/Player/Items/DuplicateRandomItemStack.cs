@@ -9,6 +9,7 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.ParsedValueHolders.ParsedList;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -88,6 +89,49 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             }
         }
 
+        ItemIndex[] _itemDuplicationOrder;
+
+        public override void OnPreStartServer()
+        {
+            base.OnPreStartServer();
+
+            _itemDuplicationOrder = ItemCatalog.allItems.ToArray();
+            Util.ShuffleArray(_itemDuplicationOrder, new Xoroshiro128Plus(RNG.nextUlong));
+
+#if DEBUG
+            Log.Debug($"Duplication order: [{string.Join(", ", _itemDuplicationOrder.Select(i =>
+            {
+                ItemDef item = ItemCatalog.GetItemDef(i);
+                if (!string.IsNullOrEmpty(item.nameToken))
+                {
+                    string displayName = Language.GetString(item.nameToken);
+                    if (!string.IsNullOrEmpty(displayName) && displayName != item.nameToken)
+                    {
+                        return displayName;
+                    }
+                }
+
+                return item.name;
+            }))}]");
+#endif
+        }
+
+        bool tryGetStackToDuplicate(ItemStack[] availableItemStacks, out ItemStack result)
+        {
+            for (int i = 0; i < _itemDuplicationOrder.Length; i++)
+            {
+                int itemStackIndex = Array.FindIndex(availableItemStacks, s => s.ItemIndex == _itemDuplicationOrder[i]);
+                if (itemStackIndex != -1)
+                {
+                    result = availableItemStacks[itemStackIndex];
+                    return true;
+                }
+            }
+
+            result = default;
+            return false;
+        }
+
         public override void OnStart()
         {
             PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
@@ -100,10 +144,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 if (duplicatableItemStacks.Length <= 0)
                     return;
 
-                ItemStack itemStack = RNG.NextElementUniform(duplicatableItemStacks);
-                inventory.GiveItem(itemStack.ItemIndex, itemStack.ItemCount);
+                if (tryGetStackToDuplicate(duplicatableItemStacks, out ItemStack itemStack))
+                {
+                    inventory.GiveItem(itemStack.ItemIndex, itemStack.ItemCount);
 
-                GenericPickupController.SendPickupMessage(playerMaster, PickupCatalog.FindPickupIndex(itemStack.ItemIndex));
+                    GenericPickupController.SendPickupMessage(playerMaster, PickupCatalog.FindPickupIndex(itemStack.ItemIndex));
+                }
             }, Util.GetBestMasterName);
         }
     }
