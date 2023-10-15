@@ -33,7 +33,16 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         public override void OnStart()
         {
-            CharacterBody.readOnlyInstancesList.TryDo(launchInRandomDirection, FormatUtils.GetBestBodyName);
+            // Launch all the players first so the effect is as consistent as possible with the same seed
+            PlayerUtils.GetAllPlayerBodies(true).TryDo(b =>
+            {
+                launchInRandomDirection(b, new Xoroshiro128Plus(RNG.nextUlong));
+            }, FormatUtils.GetBestBodyName);
+
+            CharacterBody.readOnlyInstancesList.Where(b => !b.isPlayerControlled).TryDo(b =>
+            {
+                launchInRandomDirection(b, RNG);
+            }, FormatUtils.GetBestBodyName);
         }
 
         static bool canLaunchDown(CharacterBody body)
@@ -58,22 +67,22 @@ namespace RiskOfChaos.EffectDefinitions.Character
             }
         }
 
-        void launchInRandomDirection(CharacterBody body)
+        static Vector3 getLaunchDirection(CharacterBody body, Xoroshiro128Plus rng)
         {
-            if (!body)
-                return;
-
-            Vector3 direction;
             if (canLaunchDown(body))
             {
-                direction = RNG.PointOnUnitSphere();
+                return rng.PointOnUnitSphere();
             }
             else
             {
-                direction = QuaternionUtils.RandomDeviation(70f, RNG) * Vector3.up;
+                return QuaternionUtils.RandomDeviation(70f, rng) * Vector3.up;
             }
+        }
 
-            applyForceToBody(body, direction * (RNG.RangeFloat(50f, 150f) * _knockbackScale.Value));
+        static void launchInRandomDirection(CharacterBody body, Xoroshiro128Plus rng)
+        {
+            Vector3 direction = getLaunchDirection(body, new Xoroshiro128Plus(rng.nextUlong));
+            applyForceToBody(body, direction * (rng.RangeFloat(50f, 150f) * _knockbackScale.Value));
         }
 
         static void applyForceToBody(CharacterBody body, Vector3 force)
