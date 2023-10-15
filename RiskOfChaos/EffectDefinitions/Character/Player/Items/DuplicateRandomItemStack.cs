@@ -99,20 +99,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             Util.ShuffleArray(_itemDuplicationOrder, new Xoroshiro128Plus(RNG.nextUlong));
 
 #if DEBUG
-            Log.Debug($"Duplication order: [{string.Join(", ", _itemDuplicationOrder.Select(i =>
-            {
-                ItemDef item = ItemCatalog.GetItemDef(i);
-                if (!string.IsNullOrEmpty(item.nameToken))
-                {
-                    string displayName = Language.GetString(item.nameToken);
-                    if (!string.IsNullOrEmpty(displayName) && displayName != item.nameToken)
-                    {
-                        return displayName;
-                    }
-                }
-
-                return item.name;
-            }))}]");
+            Log.Debug($"Duplication order: [{string.Join(", ", _itemDuplicationOrder.Select(FormatUtils.GetBestItemDisplayName))}]");
 #endif
         }
 
