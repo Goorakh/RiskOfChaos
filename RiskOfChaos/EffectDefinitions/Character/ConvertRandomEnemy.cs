@@ -38,22 +38,53 @@ namespace RiskOfChaos.EffectDefinitions.Character
             return !context.IsNow || getAllConvertableEnemies().Any();
         }
 
+        CharacterBody _enemyToConvert;
+
+        public override void OnPreStartServer()
+        {
+            base.OnPreStartServer();
+
+            BodyIndex[] convertOrder = Enumerable.Range(0, BodyCatalog.bodyCount)
+                                                 .Cast<BodyIndex>()
+                                                 .ToArray();
+
+            Util.ShuffleArray(convertOrder, new Xoroshiro128Plus(RNG.nextUlong));
+
+#if DEBUG
+            Log.Debug($"Convert order: [{string.Join(", ", convertOrder.Select(BodyCatalog.GetBodyName))}]");
+#endif
+
+            CharacterBody[] allConvertableEnemies = getAllConvertableEnemies().ToArray();
+            foreach (BodyIndex bodyIndex in convertOrder)
+            {
+                CharacterBody[] availableBodies = allConvertableEnemies.Where(b => b.bodyIndex == bodyIndex).ToArray();
+                if (availableBodies.Length > 0)
+                {
+                    _enemyToConvert = RNG.NextElementUniform(availableBodies);
+                    return;
+                }
+            }
+
+            Log.Error("No available enemy to convert");
+        }
+
         public override void OnStart()
         {
-            CharacterBody body = RNG.NextElementUniform(getAllConvertableEnemies().ToArray());
+            if (!_enemyToConvert)
+                return;
 
             // TODO: This is not networked, clients will still see the old indicator if one was present before the effect
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
-            GameObject positionIndicator = body.teamComponent.indicator;
+            GameObject positionIndicator = _enemyToConvert.teamComponent.indicator;
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
             if (positionIndicator)
             {
                 GameObject.Destroy(positionIndicator);
             }
 
-            body.teamComponent.teamIndex = TeamIndex.Player;
+            _enemyToConvert.teamComponent.teamIndex = TeamIndex.Player;
 
-            CharacterMaster master = body.master;
+            CharacterMaster master = _enemyToConvert.master;
             if (master)
             {
                 master.teamIndex = TeamIndex.Player;
@@ -65,7 +96,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     ai.ForceAcquireNearestEnemyIfNoCurrentEnemy();
                 }
 
-                BossGroup bossGroup = BossGroup.FindBossGroup(body);
+                BossGroup bossGroup = BossGroup.FindBossGroup(_enemyToConvert);
                 if (bossGroup)
                 {
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
