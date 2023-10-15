@@ -2,8 +2,10 @@
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -25,6 +27,105 @@ namespace RiskOfChaos.EffectDefinitions.World
             return _optionPickupPrefab && (!RunArtifactManager.instance || !RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.commandArtifactDef));
         }
 
+        sealed class PickupOptionGenerator
+        {
+            public readonly PickupIndex SourcePickup;
+            readonly Xoroshiro128Plus _rng;
+
+            readonly PickupIndex[] _availableOptions;
+
+            public bool HasAnyOptions => _availableOptions.Length > 0;
+
+            public PickupOptionGenerator(PickupIndex sourcePickup, Xoroshiro128Plus rng)
+            {
+                SourcePickup = sourcePickup;
+                _rng = rng;
+
+                PickupIndex[] pickupGroup = PickupTransmutationManager.GetAvailableGroupFromPickupIndex(SourcePickup);
+                if (pickupGroup != null && pickupGroup.Length > 0)
+                {
+                    int sourcePickupIndex = Array.IndexOf(pickupGroup, SourcePickup);
+                    if (sourcePickupIndex != -1)
+                    {
+                        pickupGroup = (PickupIndex[])pickupGroup.Clone();
+                        ArrayUtils.ArrayRemoveAtAndResize(ref pickupGroup, sourcePickupIndex);
+                    }
+
+                    _availableOptions = pickupGroup;
+                }
+                else
+                {
+                    _availableOptions = Array.Empty<PickupIndex>();
+                }
+            }
+
+            public PickupOptionGenerator(NetworkReader reader) : this(reader.ReadPickupIndex(), reader.ReadRNG())
+            {
+            }
+
+            public void Serialize(NetworkWriter writer)
+            {
+                writer.Write(SourcePickup);
+                writer.WriteRNG(_rng);
+            }
+
+            public PickupIndex[] GenerateOptions()
+            {
+                if (_availableOptions == null || _availableOptions.Length == 0)
+                    return Array.Empty<PickupIndex>();
+
+                PickupIndex[] shuffledPickupIndices = (PickupIndex[])_availableOptions.Clone();
+                Util.ShuffleArray(shuffledPickupIndices, new Xoroshiro128Plus(_rng.nextUlong));
+                return shuffledPickupIndices;
+            }
+        }
+
+        readonly Dictionary<PickupIndex, PickupOptionGenerator> _pickupOptionGenerators = new Dictionary<PickupIndex, PickupOptionGenerator>();
+
+        public override void OnPreStartServer()
+        {
+            base.OnPreStartServer();
+
+            foreach (PickupDef pickup in PickupCatalog.allPickups)
+            {
+                PickupOptionGenerator optionGenerator = new PickupOptionGenerator(pickup.pickupIndex, new Xoroshiro128Plus(RNG.nextUlong));
+
+                if (!optionGenerator.HasAnyOptions)
+                    continue;
+
+                if (_pickupOptionGenerators.ContainsKey(pickup.pickupIndex))
+                {
+                    Log.Error($"Duplicate option generators for {pickup.internalName}");
+                    continue;
+                }
+
+                _pickupOptionGenerators.Add(pickup.pickupIndex, optionGenerator);
+            }
+        }
+
+        public override void Serialize(NetworkWriter writer)
+        {
+            base.Serialize(writer);
+
+            writer.WritePackedUInt32((uint)_pickupOptionGenerators.Count);
+            foreach (PickupOptionGenerator optionGenerator in _pickupOptionGenerators.Values)
+            {
+                optionGenerator.Serialize(writer);
+            }
+        }
+
+        public override void Deserialize(NetworkReader reader)
+        {
+            base.Deserialize(reader);
+
+            uint generatorCount = reader.ReadPackedUInt32();
+            for (uint i = 0; i < generatorCount; i++)
+            {
+                PickupOptionGenerator optionGenerator = new PickupOptionGenerator(reader);
+                _pickupOptionGenerators[optionGenerator.SourcePickup] = optionGenerator;
+            }
+        }
+
         public override void OnStart()
         {
             PickupDropletController.onDropletHitGroundServer += onDropletHitGroundServer;
@@ -35,7 +136,21 @@ namespace RiskOfChaos.EffectDefinitions.World
             PickupDropletController.onDropletHitGroundServer -= onDropletHitGroundServer;
         }
 
-        static void onDropletHitGroundServer(ref GenericPickupController.CreatePickupInfo createPickupInfo, ref bool shouldSpawn)
+        bool tryGetAvailableOptionsFor(PickupIndex sourcePickup, out PickupIndex[] options)
+        {
+            if (sourcePickup.isValid && _pickupOptionGenerators.TryGetValue(sourcePickup, out PickupOptionGenerator optionGenerator))
+            {
+                options = optionGenerator.GenerateOptions();
+                return options != null && options.Length > 0;
+            }
+            else
+            {
+                options = null;
+                return false;
+            }
+        }
+
+        void onDropletHitGroundServer(ref GenericPickupController.CreatePickupInfo createPickupInfo, ref bool shouldSpawn)
         {
             if (!shouldSpawn)
                 return;
@@ -61,28 +176,15 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             if (dropletDisplay.TryGetComponent(out PickupPickerController pickupPickerController))
             {
-                const int MAX_NUM_OPTIONS = 3;
+                const int NUM_ADDITIONAL_OPTIONS = 2;
 
                 bool allowChoices = true;
                 OverrideAllowChoices?.Invoke(pickupIndex, ref allowChoices);
 
-                PickupIndex[] availablePickups = PickupTransmutationManager.GetAvailableGroupFromPickupIndex(pickupIndex);
-                if (allowChoices && availablePickups != null && availablePickups.Length > 0)
+                if (allowChoices && tryGetAvailableOptionsFor(pickupIndex, out PickupIndex[] availableOptions))
                 {
-                    // The method returns a reference to an array, but since we will be shuffling it, make a shallow copy of it so the order of the original is not changed
-                    PickupIndex[] shuffledPickupIndices = (PickupIndex[])availablePickups.Clone();
-                    Util.ShuffleArray(shuffledPickupIndices, RoR2Application.rng);
-
-                    int pickupsLength = shuffledPickupIndices.Length;
-
-                    int originalPickupIndex = Array.IndexOf(shuffledPickupIndices, pickupIndex);
-                    if (originalPickupIndex != -1)
-                    {
-                        ArrayUtils.ArrayRemoveAtAndResize(ref shuffledPickupIndices, originalPickupIndex);
-                    }
-
-                    int numOptions = Mathf.Min(pickupsLength, MAX_NUM_OPTIONS);
-                    PickupPickerController.Option[] options = new PickupPickerController.Option[numOptions];
+                    int numExtraOptions = Math.Min(availableOptions.Length, NUM_ADDITIONAL_OPTIONS);
+                    PickupPickerController.Option[] options = new PickupPickerController.Option[1 + numExtraOptions];
 
                     // Guarantee the original item is always an option
                     options[0] = new PickupPickerController.Option
@@ -91,12 +193,12 @@ namespace RiskOfChaos.EffectDefinitions.World
                         pickupIndex = pickupIndex
                     };
 
-                    for (int i = 1; i < numOptions; i++)
+                    for (int i = 0; i < numExtraOptions; i++)
                     {
-                        options[i] = new PickupPickerController.Option
+                        options[i + 1] = new PickupPickerController.Option
                         {
                             available = true,
-                            pickupIndex = shuffledPickupIndices[i]
+                            pickupIndex = availableOptions[i]
                         };
                     }
 
