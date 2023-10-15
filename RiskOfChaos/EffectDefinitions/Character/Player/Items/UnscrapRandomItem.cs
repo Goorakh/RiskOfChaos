@@ -9,6 +9,7 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.ParsedValueHolders.ParsedList;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -45,8 +46,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         };
 
         static Dictionary<ItemTier, ItemIndex[]> _printableItemsByTier = new Dictionary<ItemTier, ItemIndex[]>();
+        static Dictionary<ItemTier, ItemIndex[]> _scrapItemsByTier = new Dictionary<ItemTier, ItemIndex[]>();
 
-        [SystemInitializer(typeof(ItemCatalog))]
+        [SystemInitializer(typeof(ItemCatalog), typeof(ItemTierCatalog))]
         static void Init()
         {
             _printableItemsByTier = ItemCatalog.allItemDefs.Where(i => !i.hidden
@@ -57,26 +59,16 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                                                            .GroupBy(itemDef => itemDef.tier)
                                                            .ToDictionary(g => g.Key,
                                                                          g => g.Select(g => g.itemIndex).ToArray());
+
+            _scrapItemsByTier = ItemCatalog.allItemDefs.Where(i => !i.hidden && (i.ContainsTag(ItemTag.Scrap) || i.ContainsTag(ItemTag.PriorityScrap)))
+                                                       .GroupBy(i => i.tier)
+                                                       .ToDictionary(g => g.Key,
+                                                                     g => g.Select(g => g.itemIndex).ToArray());
         }
 
-        [EffectCanActivate]
-        static bool CanActivate(in EffectCanActivateContext context)
+        static IEnumerable<ItemDef> getAllScrapItems()
         {
-            return !context.IsNow || PlayerUtils.GetAllPlayerMasters(false).Any(m =>
-            {
-                return m && getAllScrapItems(m.inventory).Any(i =>
-                {
-                    return _printableItemsByTier.TryGetValue(i.tier, out ItemIndex[] printableItems) && printableItems.Any(canUnscrapToItem);
-                });
-            });
-        }
-
-        static IEnumerable<ItemDef> getAllScrapItems(Inventory inventory)
-        {
-            if (!inventory)
-                yield break;
-
-            foreach (ItemIndex item in inventory.itemAcquisitionOrder)
+            foreach (ItemIndex item in ItemCatalog.allItems)
             {
                 ItemDef itemDef = ItemCatalog.GetItemDef(item);
                 if (itemDef.ContainsTag(ItemTag.Scrap) || itemDef.ContainsTag(ItemTag.PriorityScrap))
@@ -94,6 +86,14 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             }
         }
 
+        static IEnumerable<ItemDef> getAllScrapItems(Inventory inventory)
+        {
+            if (!inventory)
+                return Enumerable.Empty<ItemDef>();
+
+            return getAllScrapItems().Where(i => inventory.GetItemCount(i) > 0);
+        }
+
         static bool canUnscrapToItem(ItemIndex item)
         {
             Run run = Run.instance;
@@ -106,12 +106,54 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             return true;
         }
 
-        public override void OnStart()
+        [EffectCanActivate]
+        static bool CanActivate(in EffectCanActivateContext context)
         {
-            PlayerUtils.GetAllPlayerMasters(false).TryDo(tryUnscrapRandomItem, Util.GetBestMasterName);
+            return !context.IsNow || PlayerUtils.GetAllPlayerMasters(false).Any(m =>
+            {
+                return m && getAllScrapItems(m.inventory).Any(i =>
+                {
+                    return _printableItemsByTier.TryGetValue(i.tier, out ItemIndex[] printableItems) && printableItems.Any(canUnscrapToItem);
+                });
+            });
         }
 
-        void tryUnscrapRandomItem(CharacterMaster master)
+        readonly record struct UnscrapInfo(ItemIndex ScrapItemIndex, ItemIndex[] PrintableItems);
+        UnscrapInfo[] _unscrapOrder;
+
+        public override void OnPreStartServer()
+        {
+            base.OnPreStartServer();
+
+            _unscrapOrder = _printableItemsByTier.SelectMany(kvp =>
+            {
+                if (_scrapItemsByTier.TryGetValue(kvp.Key, out ItemIndex[] scrapItems))
+                {
+                    ItemIndex[] printableItems = kvp.Value.Where(canUnscrapToItem).ToArray();
+                    return scrapItems.Select(i => new UnscrapInfo(i, printableItems));
+                }
+                else
+                {
+                    return Enumerable.Empty<UnscrapInfo>();
+                }
+            }).Where(u => u.PrintableItems.Length > 0).ToArray();
+
+            Util.ShuffleArray(_unscrapOrder, new Xoroshiro128Plus(RNG.nextUlong));
+
+#if DEBUG
+            Log.Debug($"Unscrap order: [{string.Join(", ", _unscrapOrder.Select(u => $"({FormatUtils.GetBestItemDisplayName(u.ScrapItemIndex)})"))}]");
+#endif
+        }
+
+        public override void OnStart()
+        {
+            PlayerUtils.GetAllPlayerMasters(false).TryDo(m =>
+            {
+                tryUnscrapRandomItem(m, new Xoroshiro128Plus(RNG.nextUlong));
+            }, Util.GetBestMasterName);
+        }
+
+        void tryUnscrapRandomItem(CharacterMaster master, Xoroshiro128Plus rng)
         {
             if (!master)
                 return;
@@ -120,55 +162,28 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             if (!inventory)
                 return;
 
-            List<ItemDef> availableScrapItems = getAllScrapItems(inventory).ToList();
-            if (availableScrapItems.Count <= 0)
-                return;
-
-            int numScrapConverted = 0;
-            while (availableScrapItems.Count > 0)
+            for (int i = _unscrapItemCount.Value - 1; i >= 0; i--)
             {
-                if (tryConvertScrap(master, inventory, availableScrapItems.GetAndRemoveRandom(RNG)))
-                {
-                    if (++numScrapConverted >= _unscrapItemCount.Value)
-                        break;
-                }
-            }
+                int unscrapInfoIndex = Array.FindIndex(_unscrapOrder, u => inventory.GetItemCount(u.ScrapItemIndex) > 0);
+                if (unscrapInfoIndex == -1) // This inventory has no more items to unscrap
+                    break;
 
-            if (numScrapConverted == 0)
-            {
-                Log.Warning($"{Util.GetBestMasterName(master)} has scrap items, but none could be converted to an item");
-            }
-        }
+                UnscrapInfo unscrapInfo = _unscrapOrder[unscrapInfoIndex];
 
-        bool tryConvertScrap(CharacterMaster master, Inventory inventory, ItemDef scrapItem)
-        {
-            int scrapCount = inventory.GetItemCount(scrapItem);
+                int scrapCount = inventory.GetItemCount(unscrapInfo.ScrapItemIndex);
+                inventory.RemoveItem(unscrapInfo.ScrapItemIndex, scrapCount);
 
-            if (_printableItemsByTier.TryGetValue(scrapItem.tier, out ItemIndex[] availableItems))
-            {
-                List<ItemIndex> runAvailableItems = availableItems.Where(canUnscrapToItem).ToList();
-                if (runAvailableItems.Count <= 0)
-                    return false;
-
-                ItemIndex newItem = RNG.NextElementUniform(runAvailableItems);
+                ItemIndex newItem = rng.NextElementUniform(unscrapInfo.PrintableItems);
                 inventory.GiveItem(newItem, scrapCount);
 
-                CharacterMasterNotificationQueue.SendTransformNotification(master, scrapItem.itemIndex, newItem, CharacterMasterNotificationQueue.TransformationType.Default);
-            }
-            else
-            {
-                return false;
-            }
+                CharacterMasterNotificationQueue.SendTransformNotification(master, unscrapInfo.ScrapItemIndex, newItem, CharacterMasterNotificationQueue.TransformationType.Default);
 
-            inventory.RemoveItem(scrapItem, scrapCount);
-
-            if (scrapItem == DLC1Content.Items.RegeneratingScrap)
-            {
-                inventory.GiveItem(DLC1Content.Items.RegeneratingScrapConsumed, scrapCount);
-                CharacterMasterNotificationQueue.SendTransformNotification(master, DLC1Content.Items.RegeneratingScrap.itemIndex, DLC1Content.Items.RegeneratingScrapConsumed.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                if (unscrapInfo.ScrapItemIndex == DLC1Content.Items.RegeneratingScrap.itemIndex)
+                {
+                    inventory.GiveItem(DLC1Content.Items.RegeneratingScrapConsumed, scrapCount);
+                    CharacterMasterNotificationQueue.SendTransformNotification(master, DLC1Content.Items.RegeneratingScrap.itemIndex, DLC1Content.Items.RegeneratingScrapConsumed.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                }
             }
-
-            return true;
         }
     }
 }
