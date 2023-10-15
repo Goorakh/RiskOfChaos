@@ -34,7 +34,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             readonly PickupIndex[] _availableOptions;
 
-            public bool HasAnyOptions => _availableOptions.Length > 0;
+            public bool HasAnyOptions => _availableOptions != null && _availableOptions.Length > 0;
 
             public PickupOptionGenerator(PickupIndex sourcePickup, Xoroshiro128Plus rng)
             {
@@ -71,7 +71,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             public PickupIndex[] GenerateOptions()
             {
-                if (_availableOptions == null || _availableOptions.Length == 0)
+                if (!HasAnyOptions)
                     return Array.Empty<PickupIndex>();
 
                 PickupIndex[] shuffledPickupIndices = (PickupIndex[])_availableOptions.Clone();
