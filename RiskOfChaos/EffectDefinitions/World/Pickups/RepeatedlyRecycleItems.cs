@@ -6,8 +6,10 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Pickups
 {
@@ -44,9 +46,178 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                                 .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0.1f))
                                 .Build();
 
+        const float RECYCLE_IGNORE_GROUP_CHANCE = 0.05f;
+
+        const float MIN_RECYCLE_DURATION = 0.75f;
+
+        static float generateBaseRecycleDuration(Xoroshiro128Plus rng)
+        {
+            return rng.RangeFloat(MIN_RECYCLE_DURATION, 3f);
+        }
+
+        readonly record struct RecycleStep(PickupIndex PickupIndex, float Duration);
+
+        bool _isSeeded;
+        Dictionary<PickupIndex, int> _recycleStepIndexLookup;
+        RecycleStep[] _recycleSteps;
+
+        public override void OnPreStartServer()
+        {
+            base.OnPreStartServer();
+
+            _isSeeded = Configs.General.SeededEffectSelection.Value;
+            if (_isSeeded)
+            {
+                List<PickupIndex> remainingPickups = _allAvailablePickupIndices.ToList();
+                int cycleLength = remainingPickups.Count;
+
+                _recycleSteps = new RecycleStep[cycleLength];
+                _recycleStepIndexLookup = new Dictionary<PickupIndex, int>(cycleLength);
+
+                void registerPickupForCycle(PickupIndex pickup, int cycleIndex)
+                {
+                    _recycleSteps[cycleIndex] = new RecycleStep(pickup, generateBaseRecycleDuration(RNG));
+                    _recycleStepIndexLookup.Add(pickup, cycleIndex);
+                }
+
+                registerPickupForCycle(remainingPickups.GetAndRemoveRandom(RNG), 0);
+
+                for (int i = 1; i < cycleLength; i++)
+                {
+                    PickupIndex previousPickup = _recycleSteps[i - 1].PickupIndex;
+
+                    PickupIndex[] transmutationGroup = PickupTransmutationManager.GetAvailableGroupFromPickupIndex(previousPickup);
+                    if (transmutationGroup != null && transmutationGroup.Length > 0)
+                        transmutationGroup = transmutationGroup.Where(remainingPickups.Contains).ToArray();
+
+                    if (transmutationGroup == null || transmutationGroup.Length == 0 || RNG.nextNormalizedFloat <= RECYCLE_IGNORE_GROUP_CHANCE)
+                    {
+                        registerPickupForCycle(remainingPickups.GetAndRemoveRandom(RNG), i);
+                    }
+                    else
+                    {
+                        PickupIndex pickup = RNG.NextElementUniform(transmutationGroup);
+                        registerPickupForCycle(pickup, i);
+                        remainingPickups.Remove(pickup);
+                    }
+                }
+
+                if (remainingPickups.Count > 0)
+                {
+                    Log.Error($"Didn't use all pickups, missing: [{string.Join(",", remainingPickups)}]");
+                }
+            }
+        }
+
+        public override void Serialize(NetworkWriter writer)
+        {
+            base.Serialize(writer);
+
+            writer.Write(_isSeeded);
+            if (_isSeeded)
+            {
+                writer.WritePackedUInt32((uint)_recycleSteps.Length);
+                foreach (RecycleStep step in _recycleSteps)
+                {
+                    writer.Write(step.PickupIndex);
+                    writer.Write(step.Duration);
+                }
+            }
+        }
+
+        public override void Deserialize(NetworkReader reader)
+        {
+            base.Deserialize(reader);
+
+            _isSeeded = reader.ReadBoolean();
+            if (_isSeeded)
+            {
+                uint stepCount = reader.ReadPackedUInt32();
+                _recycleSteps = new RecycleStep[stepCount];
+                _recycleStepIndexLookup = new Dictionary<PickupIndex, int>((int)stepCount);
+
+                for (int i = 0; i < stepCount; i++)
+                {
+                    PickupIndex pickup = reader.ReadPickupIndex();
+                    float duration = reader.ReadSingle();
+
+                    _recycleSteps[i] = new RecycleStep(pickup, duration);
+                    _recycleStepIndexLookup.Add(pickup, i);
+                }
+            }
+        }
+
+        public override void OnStart()
+        {
+            On.RoR2.GenericPickupController.Start += GenericPickupController_Start;
+            GameObject.FindObjectsOfType<GenericPickupController>().TryDo(tryAddComponent);
+        }
+
+        void GenericPickupController_Start(On.RoR2.GenericPickupController.orig_Start orig, GenericPickupController self)
+        {
+            orig(self);
+            tryAddComponent(self);
+        }
+
+        void tryAddComponent(GenericPickupController pickupController)
+        {
+            if (!pickupController.GetComponent<RecycleOnTimer>())
+            {
+                RecycleOnTimer recycleOnTimer = pickupController.gameObject.AddComponent<RecycleOnTimer>();
+                recycleOnTimer.Initialize(this);
+            }
+        }
+
+        public override void OnEnd()
+        {
+            On.RoR2.GenericPickupController.Start -= GenericPickupController_Start;
+
+            InstanceUtils.DestroyAllTrackedInstances<RecycleOnTimer>();
+        }
+
+        float getRecycleTimer(PickupIndex pickup)
+        {
+            if (_isSeeded)
+            {
+                if (_recycleStepIndexLookup.TryGetValue(pickup, out int stepIndex))
+                {
+                    return _recycleSteps[stepIndex].Duration * _recycleTimerScale.Value;
+                }
+                else
+                {
+                    Log.Error($"Pickup not accounted for: {pickup}");
+                }
+            }
+
+            return generateBaseRecycleDuration(RoR2Application.rng) * _recycleTimerScale.Value;
+        }
+
+        PickupIndex getNextPickup(PickupIndex current)
+        {
+            if (_isSeeded)
+            {
+                if (_recycleStepIndexLookup.TryGetValue(current, out int stepIndex))
+                {
+                    return _recycleSteps[(stepIndex + 1) % _recycleSteps.Length].PickupIndex;
+                }
+                else
+                {
+                    Log.Error($"Pickup not accounted for: {current}");
+                }
+            }
+
+            PickupIndex[] availablePickups = PickupTransmutationManager.GetAvailableGroupFromPickupIndex(current);
+            availablePickups = availablePickups?.Where(p => p != current).ToArray();
+            if (availablePickups == null || availablePickups.Length == 0 || RoR2Application.rng.nextNormalizedFloat <= RECYCLE_IGNORE_GROUP_CHANCE)
+                availablePickups = _allAvailablePickupIndices;
+
+            return RoR2Application.rng.NextElementUniform(availablePickups);
+        }
+
         [RequireComponent(typeof(GenericPickupController))]
         sealed class RecycleOnTimer : MonoBehaviour
         {
+            RepeatedlyRecycleItems _effectInstance;
             GenericPickupController _pickupController;
 
             const float INITIAL_RECYCLE_TIME_MULTIPLIER = 0.75f;
@@ -58,27 +229,22 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                 _pickupController = GetComponent<GenericPickupController>();
             }
 
-            void OnEnable()
+            public void Initialize(RepeatedlyRecycleItems effectInstance)
             {
+                _effectInstance = effectInstance;
+
                 startRecycleTimer();
-                _recycleTimer *= INITIAL_RECYCLE_TIME_MULTIPLIER;
+                _recycleTimer = Mathf.Max(MIN_RECYCLE_DURATION, _recycleTimer * INITIAL_RECYCLE_TIME_MULTIPLIER);
             }
 
             void startRecycleTimer()
             {
-                _recycleTimer = RoR2Application.rng.RangeFloat(0.75f, 3f) * _recycleTimerScale.Value;
+                _recycleTimer = _effectInstance.getRecycleTimer(_pickupController.pickupIndex);
             }
 
             void setToRandomItem()
             {
-                PickupIndex currentPickup = _pickupController.pickupIndex;
-
-                PickupIndex[] availablePickups = PickupTransmutationManager.GetAvailableGroupFromPickupIndex(currentPickup);
-                availablePickups = availablePickups?.Where(p => p != currentPickup).ToArray();
-                if (availablePickups == null || availablePickups.Length == 0 || RoR2Application.rng.nextNormalizedFloat <= 0.05f)
-                    availablePickups = _allAvailablePickupIndices;
-
-                _pickupController.NetworkpickupIndex = RoR2Application.rng.NextElementUniform(availablePickups);
+                _pickupController.NetworkpickupIndex = _effectInstance.getNextPickup(_pickupController.pickupIndex);
                 EffectManager.SimpleEffect(LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/OmniEffect/OmniRecycleEffect"), _pickupController.pickupDisplay.transform.position, Quaternion.identity, true);
             }
 
@@ -96,33 +262,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
             {
                 InstanceTracker.Remove(this);
             }
-        }
-
-        public override void OnStart()
-        {
-            On.RoR2.GenericPickupController.Start += GenericPickupController_Start;
-            GameObject.FindObjectsOfType<GenericPickupController>().TryDo(tryAddComponent);
-        }
-
-        static void GenericPickupController_Start(On.RoR2.GenericPickupController.orig_Start orig, GenericPickupController self)
-        {
-            orig(self);
-            tryAddComponent(self);
-        }
-
-        static void tryAddComponent(GenericPickupController pickupController)
-        {
-            if (!pickupController.GetComponent<RecycleOnTimer>())
-            {
-                pickupController.gameObject.AddComponent<RecycleOnTimer>();
-            }
-        }
-
-        public override void OnEnd()
-        {
-            On.RoR2.GenericPickupController.Start -= GenericPickupController_Start;
-
-            InstanceUtils.DestroyAllTrackedInstances<RecycleOnTimer>();
         }
     }
 }
