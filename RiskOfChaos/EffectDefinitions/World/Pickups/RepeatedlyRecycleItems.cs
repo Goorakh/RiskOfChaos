@@ -67,7 +67,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
 
         const float RECYCLE_IGNORE_GROUP_CHANCE = 0.05f;
 
-        const float MIN_RECYCLE_DURATION = 0.75f;
+        const float MIN_RECYCLE_DURATION = 1f;
 
         static float generateBaseRecycleDuration(Xoroshiro128Plus rng)
         {

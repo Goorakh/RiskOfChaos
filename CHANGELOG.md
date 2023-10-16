@@ -28,6 +28,7 @@
 
 * Adaptive Recycling:
   * Fixed effect being able to occasionally pick invalid items
+  * Increased minimum pickup duration: 0.75s -> 1s
 
 * Misc
   * Fixed strange scrap counting towards game completion in logbook
