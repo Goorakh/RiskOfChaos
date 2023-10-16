@@ -36,6 +36,9 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
 
         PickupDropTable createDropTable()
         {
+            if (!Configs.General.SeededEffectSelection.Value)
+                return DropTable;
+
             SequentialPickupDropTable rolledPickupsSequence = ScriptableObject.CreateInstance<SequentialPickupDropTable>();
             rolledPickupsSequence.canDropBeReplaced = false;
             rolledPickupsSequence.Pickups = RolledPickups;
