@@ -109,7 +109,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                     if (transmutationGroup != null && transmutationGroup.Length > 0)
                         transmutationGroup = transmutationGroup.Where(remainingPickups.Contains).ToArray();
 
-                    if (transmutationGroup == null || transmutationGroup.Length == 0 || RNG.nextNormalizedFloat <= RECYCLE_IGNORE_GROUP_CHANCE)
+                    if (RNG.nextNormalizedFloat <= RECYCLE_IGNORE_GROUP_CHANCE || transmutationGroup == null || transmutationGroup.Length == 0)
                     {
                         registerPickupForCycle(remainingPickups.GetAndRemoveRandom(RNG), i);
                     }
