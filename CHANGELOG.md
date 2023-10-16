@@ -26,6 +26,9 @@
 * Randomize Loadout & Enable Random Artifact (Metamorphosis):
   * Desperado stacks are no longer reset
 
+* Adaptive Recycling:
+  * Fixed effect being able to occasionally pick invalid items
+
 * Misc
   * Fixed strange scrap counting towards game completion in logbook
 

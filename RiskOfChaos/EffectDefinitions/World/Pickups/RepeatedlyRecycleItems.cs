@@ -24,11 +24,30 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
             _allAvailablePickupIndices = PickupCatalog.allPickupIndices.Where(i =>
             {
                 PickupDef pickupDef = PickupCatalog.GetPickupDef(i);
-                return pickupDef != null &&
-                       pickupDef.displayPrefab &&
-                       pickupDef.dropletDisplayPrefab &&
-                       !string.IsNullOrWhiteSpace(pickupDef.nameToken) &&
-                       Language.GetString(pickupDef.nameToken) != pickupDef.nameToken;
+                if (pickupDef == null)
+                    return false;
+
+                if (!pickupDef.displayPrefab ||
+                    !pickupDef.dropletDisplayPrefab ||
+                    string.IsNullOrWhiteSpace(pickupDef.nameToken) ||
+                    Language.GetString(pickupDef.nameToken) == pickupDef.nameToken)
+                {
+                    return false;
+                }
+
+                switch (pickupDef.internalName)
+                {
+                    case "EquipmentIndex.EliteSecretSpeedEquipment":
+                    case "EquipmentIndex.EliteGoldEquipment":
+                    case "EquipmentIndex.GhostGun":
+                    case "EquipmentIndex.IrradiatingLaser":
+                    case "EquipmentIndex.LunarPortalOnUse":
+                    case "EquipmentIndex.SoulJar":
+                    case "MiscPickupIndex.VoidCoin":
+                        return false;
+                }
+
+                return true;
             }).ToArray();
         }
 
