@@ -47,9 +47,6 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
 
         PickupDropTable createDropTable(GameObject shrineObject)
         {
-            if (!Configs.General.SeededEffectSelection.Value)
-                return DropTable;
-
             SequentialPickupDropTable rolledPickupsSequence = _sequentialDropTablesPool.GetOrCreateNew();
             rolledPickupsSequence.canDropBeReplaced = false;
             rolledPickupsSequence.Pickups = RolledPickups;
