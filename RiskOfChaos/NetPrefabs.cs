@@ -55,6 +55,8 @@ namespace RiskOfChaos
 
         public static GameObject SulfurPodBasePrefab { get; private set; }
 
+        public static GameObject DummyDamageInflictorPrefab { get; private set; }
+
         static GameObject createEmptyPrefabObject(string name, bool networked = true)
         {
             GameObject tmp = new GameObject(name);
@@ -239,6 +241,14 @@ namespace RiskOfChaos
                 GameObject.Destroy(tmp);
             }
 
+            // DummyDamageInflictorPrefab
+            {
+                DummyDamageInflictorPrefab = createEmptyPrefabObject("DummyDamageInflictor");
+                DummyDamageInflictorPrefab.AddComponent<SetDontDestroyOnLoad>();
+                DummyDamageInflictorPrefab.AddComponent<DestroyOnRunEnd>();
+                DummyDamageInflictorPrefab.AddComponent<DummyDamageInflictor>();
+            }
+
             Run.onRunStartGlobal += onRunStart;
         }
 
@@ -258,6 +268,8 @@ namespace RiskOfChaos
             GameObject.Instantiate(DamageInfoModificationControllerPrefab);
 
             NetworkServer.Spawn(GameObject.Instantiate(ActiveTimedEffectsProviderPrefab));
+
+            NetworkServer.Spawn(GameObject.Instantiate(DummyDamageInflictorPrefab));
         }
     }
 }

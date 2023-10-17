@@ -14,6 +14,10 @@
 * One Hit KO:
   * Fixed characters having more than 1 hp if they had barrier before the effect activated
 
+* The Floor is Lava:
+  * Changed burn dps: 15% of character damage stat -> 3% of max health per second (configurable)
+  * Fixed burn damage being affected by items
+
 * Change Difficulty:
   * Effect can now have multiple instances active at once (can change serveral times per stage)
   * Removed modded difficulty support
