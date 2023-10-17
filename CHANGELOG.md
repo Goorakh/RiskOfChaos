@@ -19,6 +19,11 @@
   * Removed modded difficulty support
     * Too much to fix compatibility-wise, wasn't worth the effort.
 
+* Gambling Addiction:
+  * Explicit drops are now carried over.
+    * Ex. If a multishop containing a syringe turns into a shrine, the first shrine drop will be a syringe, second item will a random item from the multishop drop table
+    * Printers turned into shrines now only drop the original printer item instead of a random item of the same tier
+
 * Randomize Loadout:
   * Added config options to disable effect changing skins or skills
   * Should now no longer give non-unlocked skills and skins to client players in multiplayer
