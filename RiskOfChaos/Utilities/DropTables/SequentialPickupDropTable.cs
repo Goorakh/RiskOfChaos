@@ -1,12 +1,19 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities.Pool;
+using RoR2;
 using System;
 
 namespace RiskOfChaos.Utilities.DropTables
 {
-    public class SequentialPickupDropTable : PickupDropTable
+    public class SequentialPickupDropTable : PickupDropTable, IPooledObject
     {
         int _currentPickupIndex;
         public PickupIndex[] Pickups = Array.Empty<PickupIndex>();
+
+        void IPooledObject.ResetValues()
+        {
+            _currentPickupIndex = 0;
+            Pickups = Array.Empty<PickupIndex>();
+        }
 
         PickupIndex getNextPickup()
         {

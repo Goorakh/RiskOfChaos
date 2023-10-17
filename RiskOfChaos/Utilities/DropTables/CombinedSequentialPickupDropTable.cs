@@ -1,16 +1,23 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities.Pool;
+using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace RiskOfChaos.Utilities.DropTables
 {
-    public class CombinedSequentialPickupDropTable : PickupDropTable
+    public class CombinedSequentialPickupDropTable : PickupDropTable, IPooledObject
     {
         int _currentDropCount;
 
         public readonly record struct DropTableEntry(PickupDropTable DropTable, int Count);
         public DropTableEntry[] Entries = Array.Empty<DropTableEntry>();
+
+        void IPooledObject.ResetValues()
+        {
+            _currentDropCount = 0;
+            Entries = Array.Empty<DropTableEntry>();
+        }
 
         DropTableEntry? getDropTableEntryForCount(int count)
         {

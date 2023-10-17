@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.DropTables;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.Utilities.Pool;
 using RoR2;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,16 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
 {
     public readonly struct ShrineReplacementData
     {
+        static readonly ScriptableObjectPool<SequentialPickupDropTable> _sequentialDropTablesPool = new ScriptableObjectPool<SequentialPickupDropTable>();
+        static readonly ScriptableObjectPool<CombinedSequentialPickupDropTable> _combinationDropTablesPool = new ScriptableObjectPool<CombinedSequentialPickupDropTable>();
+
+        [SystemInitializer]
+        static void Init()
+        {
+            _sequentialDropTablesPool.WarmUp(15);
+            _combinationDropTablesPool.WarmUp(15);
+        }
+
         public readonly GameObject OriginalObject;
         public readonly Transform OriginalObjectTransform;
         public readonly PickupDropTable DropTable;
@@ -34,23 +45,26 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
         {
         }
 
-        PickupDropTable createDropTable()
+        PickupDropTable createDropTable(GameObject shrineObject)
         {
             if (!Configs.General.SeededEffectSelection.Value)
                 return DropTable;
 
-            SequentialPickupDropTable rolledPickupsSequence = ScriptableObject.CreateInstance<SequentialPickupDropTable>();
+            SequentialPickupDropTable rolledPickupsSequence = _sequentialDropTablesPool.GetOrCreateNew();
             rolledPickupsSequence.canDropBeReplaced = false;
             rolledPickupsSequence.Pickups = RolledPickups;
 
             rolledPickupsSequence.FinalizeManualSetup();
 
-            ObjectCleanup.OnStageEnd(rolledPickupsSequence);
+            OnDestroyCallback.AddCallback(shrineObject, _ =>
+            {
+                _sequentialDropTablesPool.Return(rolledPickupsSequence);
+            });
 
             if (UseForcedPickupDropTable)
                 return rolledPickupsSequence;
 
-            CombinedSequentialPickupDropTable combinedDropTable = ScriptableObject.CreateInstance<CombinedSequentialPickupDropTable>();
+            CombinedSequentialPickupDropTable combinedDropTable = _combinationDropTablesPool.GetOrCreateNew();
             combinedDropTable.canDropBeReplaced = false;
             combinedDropTable.Entries = new CombinedSequentialPickupDropTable.DropTableEntry[]
             {
@@ -60,7 +74,10 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
 
             combinedDropTable.FinalizeManualSetup();
 
-            ObjectCleanup.OnStageEnd(combinedDropTable);
+            OnDestroyCallback.AddCallback(shrineObject, _ =>
+            {
+                _combinationDropTablesPool.Return(combinedDropTable);
+            });
 
             return combinedDropTable;
         }
@@ -86,7 +103,7 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
 
             if (spawnResult.success && spawnResult.spawnedInstance && spawnResult.spawnedInstance.TryGetComponent(out ShrineChanceBehavior shrineChanceBehavior))
             {
-                shrineChanceBehavior.dropTable = createDropTable();
+                shrineChanceBehavior.dropTable = createDropTable(spawnResult.spawnedInstance);
 
                 if (shrineChanceBehavior.TryGetComponent(out PurchaseInteraction shrinePurchaseInteraction))
                 {
