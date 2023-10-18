@@ -218,7 +218,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(spawnCard, placementRule, new Xoroshiro128Plus(rng.nextUlong));
 
             GameObject spawnedObject = spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());
-            if (spawnedObject)
+            if (spawnedObject && Configs.General.SeededEffectSelection.Value)
             {
                 RNGOverridePatch.OverrideRNG(spawnedObject, new Xoroshiro128Plus(rng.nextUlong));
             }
