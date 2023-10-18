@@ -45,6 +45,57 @@ namespace RiskOfChaos.Patches
             IL.RoR2.ShopTerminalBehavior.Start += replaceTreasureRNG;
             IL.RoR2.ShrineChanceBehavior.Start += replaceTreasureRNG;
             IL.RoR2.VoidSuppressorBehavior.Start += replaceTreasureRNG;
+
+            IL.RoR2.CampDirector.PopulateCamp += il =>
+            {
+                ILCursor c = new ILCursor(il);
+
+                if (c.TryGotoNext(MoveType.After,
+                                  x => x.MatchCallOrCallvirt<DirectorCore>(nameof(DirectorCore.TrySpawnObject))))
+                {
+                    c.Emit(OpCodes.Dup);
+                    c.Emit(OpCodes.Ldarg_0);
+                    c.EmitDelegate((GameObject spawnedInteractable, CampDirector instance) =>
+                    {
+                        if (Configs.General.SeededEffectSelection.Value && spawnedInteractable)
+                        {
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                            Xoroshiro128Plus campDirectorRNG = instance.rng;
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+
+                            OverrideRNG(spawnedInteractable, new Xoroshiro128Plus(campDirectorRNG));
+                        }
+                    });
+
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                    const string CAMP_DIRECTOR_RNG_FIELD_NAME = nameof(CampDirector.rng);
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+
+                    if (c.TryGotoPrev(MoveType.After,
+                                      x => x.MatchLdfld<CampDirector>(CAMP_DIRECTOR_RNG_FIELD_NAME)))
+                    {
+                        c.EmitDelegate((Xoroshiro128Plus rng) =>
+                        {
+                            if (Configs.General.SeededEffectSelection.Value)
+                            {
+                                return new Xoroshiro128Plus(rng);
+                            }
+                            else
+                            {
+                                return rng;
+                            }
+                        });
+                    }
+                    else
+                    {
+                        Log.Error("Failed to find object spawn rng hook location");
+                    }
+                }
+                else
+                {
+                    Log.Error("Failed to find TrySpawnObject hook location");
+                }
+            };
         }
 
         public static void OverrideRNG(GameObject obj, Xoroshiro128Plus overrideRNG)
@@ -56,7 +107,7 @@ namespace RiskOfChaos.Patches
 
             rngTracker.RNG = overrideRNG;
         }
-        // 24
+
         class RNGOverrideTracker : MonoBehaviour
         {
             public Xoroshiro128Plus RNG;
