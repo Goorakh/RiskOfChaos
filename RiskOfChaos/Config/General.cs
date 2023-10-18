@@ -45,7 +45,7 @@ namespace RiskOfChaos
 
             public static readonly ConfigHolder<bool> SeededEffectSelection =
                 ConfigFactory<bool>.CreateConfig("Seeded Effect Selection", false)
-                                   .Description("")
+                                   .Description("If the effects should be consistent with the run seed, only really changes anything if you're setting run seeds manually")
                                    .OptionConfig(new CheckBoxConfig
                                    {
                                        checkIfDisabled = effectDispatchingDisabled
