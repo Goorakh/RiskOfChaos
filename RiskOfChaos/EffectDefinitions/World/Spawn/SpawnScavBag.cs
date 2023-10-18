@@ -1,7 +1,9 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
 using RoR2;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
@@ -29,9 +31,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         public override void OnStart()
         {
-            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(getItemToSpawn(_spawnEntries, RNG), SpawnUtils.GetPlacementRule_AtRandomPlayerNearestNode(RNG), new Xoroshiro128Plus(RNG.nextUlong));
+            InteractableSpawnCard bagSpawnCard = getItemToSpawn(_spawnEntries, new Xoroshiro128Plus(RNG.nextUlong));
+            DirectorPlacementRule placementRule = SpawnUtils.GetPlacementRule_AtRandomPlayerNearestNode(new Xoroshiro128Plus(RNG.nextUlong));
 
-            spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());
+            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(bagSpawnCard, placementRule, new Xoroshiro128Plus(RNG.nextUlong));
+
+            GameObject scavBagObj = spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());
+            if (scavBagObj && Configs.General.SeededEffectSelection.Value)
+            {
+                RNGOverridePatch.OverrideRNG(scavBagObj, new Xoroshiro128Plus(RNG.nextUlong));
+            }
         }
     }
 }
