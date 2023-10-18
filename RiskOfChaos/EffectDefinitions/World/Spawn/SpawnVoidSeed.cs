@@ -46,7 +46,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             GameObject voidSeedObj = DirectorCore.instance.TrySpawnObject(spawnRequest);
             if (voidSeedObj && Configs.General.SeededEffectSelection.Value)
             {
-                VoidCampOverrideRNGSeedPatch.OverrideRNG(voidSeedObj, new Xoroshiro128Plus(RNG.nextUlong));
+                RNGOverridePatch.OverrideRNG(voidSeedObj, new Xoroshiro128Plus(RNG.nextUlong));
             }
         }
     }

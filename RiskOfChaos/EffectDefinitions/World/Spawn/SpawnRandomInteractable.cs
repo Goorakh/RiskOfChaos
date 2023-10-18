@@ -2,6 +2,7 @@
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.Navigation;
@@ -198,19 +199,28 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         public override void OnStart()
         {
-            InteractableSpawnCard spawnCard = getItemToSpawn(_spawnCards, RNG);
+            InteractableSpawnCard spawnCard = getItemToSpawn(_spawnCards, new Xoroshiro128Plus(RNG.nextUlong));
 
             foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
             {
-                DirectorPlacementRule placementRule = new DirectorPlacementRule
-                {
-                    position = playerBody.footPosition,
-                    placementMode = DirectorPlacementRule.PlacementMode.NearestNode
-                };
+                spawnInteractable(spawnCard, playerBody, new Xoroshiro128Plus(RNG.nextUlong));
+            }
+        }
 
-                DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(spawnCard, placementRule, new Xoroshiro128Plus(RNG.nextUlong));
+        static void spawnInteractable(InteractableSpawnCard spawnCard, CharacterBody playerBody, Xoroshiro128Plus rng)
+        {
+            DirectorPlacementRule placementRule = new DirectorPlacementRule
+            {
+                position = playerBody.footPosition,
+                placementMode = DirectorPlacementRule.PlacementMode.NearestNode
+            };
 
-                spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());
+            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(spawnCard, placementRule, new Xoroshiro128Plus(rng.nextUlong));
+
+            GameObject spawnedObject = spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());
+            if (spawnedObject)
+            {
+                RNGOverridePatch.OverrideRNG(spawnedObject, new Xoroshiro128Plus(rng.nextUlong));
             }
         }
     }
