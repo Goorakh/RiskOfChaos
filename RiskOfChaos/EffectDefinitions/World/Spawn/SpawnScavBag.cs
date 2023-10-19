@@ -37,7 +37,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(bagSpawnCard, placementRule, new Xoroshiro128Plus(RNG.nextUlong));
 
             GameObject scavBagObj = spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());
-            if (scavBagObj && Configs.General.SeededEffectSelection.Value)
+            if (scavBagObj && Configs.EffectSelection.SeededEffectSelection.Value)
             {
                 RNGOverridePatch.OverrideRNG(scavBagObj, new Xoroshiro128Plus(RNG.nextUlong));
             }

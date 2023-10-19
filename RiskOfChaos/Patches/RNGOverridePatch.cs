@@ -57,7 +57,7 @@ namespace RiskOfChaos.Patches
                     c.Emit(OpCodes.Ldarg_0);
                     c.EmitDelegate((GameObject spawnedInteractable, CampDirector instance) =>
                     {
-                        if (Configs.General.SeededEffectSelection.Value && spawnedInteractable)
+                        if (Configs.EffectSelection.SeededEffectSelection.Value && spawnedInteractable)
                         {
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
                             Xoroshiro128Plus campDirectorRNG = instance.rng;
@@ -76,7 +76,7 @@ namespace RiskOfChaos.Patches
                     {
                         c.EmitDelegate((Xoroshiro128Plus rng) =>
                         {
-                            if (Configs.General.SeededEffectSelection.Value)
+                            if (Configs.EffectSelection.SeededEffectSelection.Value)
                             {
                                 return new Xoroshiro128Plus(rng);
                             }

@@ -28,6 +28,8 @@ namespace RiskOfChaos
         {
             General.Bind(file);
 
+            EffectSelection.Bind(file);
+
             UI.Bind(file);
 
             ChatVoting.Bind(file);

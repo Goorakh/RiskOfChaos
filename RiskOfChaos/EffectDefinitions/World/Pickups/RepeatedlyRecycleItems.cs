@@ -84,7 +84,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
         {
             base.OnPreStartServer();
 
-            _isSeeded = Configs.General.SeededEffectSelection.Value;
+            _isSeeded = Configs.EffectSelection.SeededEffectSelection.Value;
             if (_isSeeded)
             {
                 List<PickupIndex> remainingPickups = _allAvailablePickupIndices.ToList();

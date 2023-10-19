@@ -59,7 +59,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             base.OnPreStartServer();
 
-            _isSeeded = Configs.General.SeededEffectSelection.Value;
+            _isSeeded = Configs.EffectSelection.SeededEffectSelection.Value;
             if (_isSeeded)
             {
                 _totalAspectStepsDuration = 0f;

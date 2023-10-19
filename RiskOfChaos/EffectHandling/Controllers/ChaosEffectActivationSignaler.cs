@@ -20,7 +20,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         public static ChaosEffectInfo PickEffect(Xoroshiro128Plus rng, HashSet<ChaosEffectInfo> excludeEffects, out ChaosEffectDispatchArgs dispatchArgs)
         {
-            if (Configs.General.SeededEffectSelection.Value)
+            if (Configs.EffectSelection.SeededEffectSelection.Value)
             {
                 dispatchArgs = new ChaosEffectDispatchArgs
                 {

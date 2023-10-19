@@ -56,7 +56,7 @@ namespace RiskOfChaos.EffectHandling
                 float weight = _selectionWeightConfig.Value;
 
                 // For seeded selection to be deterministic, effect weights have to stay constant, so no variable weights allowed in this mode
-                if (Configs.General.SeededEffectSelection.Value)
+                if (Configs.EffectSelection.SeededEffectSelection.Value)
                     return weight;
 
                 float weightMultiplierPerActivation = 1f - _weightReductionPerActivation.Value;
