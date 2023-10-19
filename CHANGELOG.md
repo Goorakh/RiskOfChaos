@@ -17,6 +17,7 @@
 * The Floor is Lava:
   * Changed burn dps: 15% of character damage stat -> 3% of max health per second (configurable)
   * Fixed burn damage being affected by items
+  * Fixed burn sometimes not being removed on effect end
 
 * Change Difficulty:
   * Effect can now have multiple instances active at once (can change serveral times per stage)

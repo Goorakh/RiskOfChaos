@@ -29,6 +29,8 @@ namespace RiskOfChaos.EffectDefinitions.World
         [RequireComponent(typeof(CharacterBody))]
         sealed class GroundedDamageController : MonoBehaviour
         {
+            const DotController.DotIndex DOT_INDEX = DotController.DotIndex.PercentBurn;
+
             CharacterBody _body;
             CharacterMotor _motor;
 
@@ -45,6 +47,8 @@ namespace RiskOfChaos.EffectDefinitions.World
             void OnDestroy()
             {
                 InstanceTracker.Remove(this);
+
+                removeDOT();
             }
 
             void FixedUpdate()
@@ -58,8 +62,6 @@ namespace RiskOfChaos.EffectDefinitions.World
                     if (!_motor)
                         return;
                 }
-
-                const DotController.DotIndex DOT_INDEX = DotController.DotIndex.PercentBurn;
 
                 if (_motor.isGrounded)
                 {
@@ -75,13 +77,17 @@ namespace RiskOfChaos.EffectDefinitions.World
                 }
                 else
                 {
-                    DotController dotController = DotController.FindDotController(_body.gameObject);
-                    if (dotController)
-                    {
-                        dotController.RemoveDOT(DOT_INDEX);
-                    }
-
+                    removeDOT();
                     _groundedTimer = 0f;
+                }
+            }
+
+            void removeDOT()
+            {
+                DotController dotController = DotController.FindDotController(_body.gameObject);
+                if (dotController)
+                {
+                    dotController.RemoveDOT(DOT_INDEX);
                 }
             }
 
