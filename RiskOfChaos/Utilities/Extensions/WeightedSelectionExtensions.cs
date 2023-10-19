@@ -35,6 +35,9 @@ namespace RiskOfChaos.Utilities.Extensions
 
         public static T GetRandom<T>(this WeightedSelection<T> selection, Xoroshiro128Plus rng)
         {
+            if (selection.Count == 0)
+                throw new IndexOutOfRangeException("Selection is empty, no element can be picked");
+
 #if DEBUG
             int choiceIndex = selection.EvaluateToChoiceIndex(rng.nextNormalizedFloat);
             WeightedSelection<T>.ChoiceInfo effectChoice = selection.GetChoice(choiceIndex);
@@ -52,6 +55,9 @@ namespace RiskOfChaos.Utilities.Extensions
 
         public static T GetAndRemoveRandom<T>(this WeightedSelection<T> selection, Xoroshiro128Plus rng)
         {
+            if (selection.Count == 0)
+                throw new IndexOutOfRangeException("Selection is empty, no element can be picked");
+
             int choiceIndex = selection.EvaluateToChoiceIndex(rng.nextNormalizedFloat);
             WeightedSelection<T>.ChoiceInfo effectChoice = selection.GetChoice(choiceIndex);
 
