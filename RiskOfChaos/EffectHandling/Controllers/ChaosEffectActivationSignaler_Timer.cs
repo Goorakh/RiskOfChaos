@@ -2,6 +2,7 @@
 using RiskOfChaos.SaveHandling;
 using RiskOfChaos.SaveHandling.DataContainers;
 using RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using UnityEngine.Networking;
 
@@ -14,6 +15,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         CompletePeriodicRunTimer _effectDispatchTimer;
         Xoroshiro128Plus _nextEffectRNG;
+
+        ChaosEffectInfo[] _overrideAvailableEffects;
 
         public override void SkipAllScheduledEffects()
         {
@@ -46,7 +49,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     _effectDispatchTimer.SkipAllScheduledActivations();
                 }
 
-                _nextEffectRNG = new Xoroshiro128Plus(Run.instance.seed);
+                _nextEffectRNG = new Xoroshiro128Plus(Run.instance.stageRng);
             }
 
             if (SaveManager.UseSaveData)
@@ -54,6 +57,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 SaveManager.CollectSaveData += SaveManager_CollectSaveData;
                 SaveManager.LoadSaveData += SaveManager_LoadSaveData;
             }
+
+            Stage.onStageStartGlobal += onStageStart;
         }
 
         void OnDisable()
@@ -70,6 +75,60 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             SaveManager.CollectSaveData -= SaveManager_CollectSaveData;
             SaveManager.LoadSaveData -= SaveManager_LoadSaveData;
+
+            Stage.onStageStartGlobal -= onStageStart;
+        }
+
+        void onStageStart(Stage stage)
+        {
+            if (!NetworkServer.active)
+                return;
+
+            if (stage.sceneDef.sceneType == SceneType.Stage)
+            {
+                setupAvailableEffectsList();
+
+                if (Configs.EffectSelection.PerStageEffectListEnabled.Value)
+                {
+                    _nextEffectRNG = new Xoroshiro128Plus(Run.instance.stageRng);
+                }
+            }
+        }
+
+        void setupAvailableEffectsList()
+        {
+            _overrideAvailableEffects = null;
+            if (Configs.EffectSelection.PerStageEffectListEnabled.Value)
+            {
+                Xoroshiro128Plus rng = new Xoroshiro128Plus(Run.instance.stageRng);
+
+                int effectsListSize = Configs.EffectSelection.PerStageEffectListSize.Value;
+
+                WeightedSelection<ChaosEffectInfo> effectSelection = ChaosEffectCatalog.GetAllEnabledEffects();
+
+                if (effectSelection.Count < effectsListSize)
+                {
+                    Log.Warning($"Cannot generate effect list of size {effectsListSize}, only {effectSelection.Count} effects available. Effect list of size {effectSelection.Count} will be generated instead");
+                    effectsListSize = effectSelection.Count;
+                }
+
+                if (effectsListSize <= 0)
+                {
+                    Log.Error($"Invalid effect list size: {effectsListSize}, per-stage effects will not be used");
+                    return;
+                }
+
+                _overrideAvailableEffects = new ChaosEffectInfo[effectsListSize];
+
+                for (int i = 0; i < effectsListSize; i++)
+                {
+                    _overrideAvailableEffects[i] = effectSelection.GetAndRemoveRandom(new Xoroshiro128Plus(rng.nextUlong));
+                }
+
+#if DEBUG
+                Log.Debug($"Available effects: [{string.Join<ChaosEffectInfo>(", ", _overrideAvailableEffects)}]");
+#endif
+            }
         }
 
         void SaveManager_LoadSaveData(in SaveContainer container)
@@ -106,6 +165,18 @@ namespace RiskOfChaos.EffectHandling.Controllers
             _effectDispatchTimer.Update();
         }
 
+        ChaosEffectInfo pickNextEffect(Xoroshiro128Plus rng, out ChaosEffectDispatchArgs args)
+        {
+            if (_overrideAvailableEffects != null)
+            {
+                return PickEffectFromList(rng, _overrideAvailableEffects, out args);
+            }
+            else
+            {
+                return PickEffect(rng, out args);
+            }
+        }
+
         void dispatchRandomEffect()
         {
             if (!NetworkServer.active)
@@ -114,7 +185,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 return;
             }
 
-            SignalShouldDispatchEffect?.Invoke(PickEffect(_nextEffectRNG, out ChaosEffectDispatchArgs args), args);
+            ChaosEffectInfo effect = pickNextEffect(new Xoroshiro128Plus(_nextEffectRNG.nextUlong), out ChaosEffectDispatchArgs args);
+            SignalShouldDispatchEffect?.Invoke(effect, args);
         }
     }
 }

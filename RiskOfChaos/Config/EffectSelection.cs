@@ -17,6 +17,25 @@ namespace RiskOfChaos
                                    .MovedFrom(General.SECTION_NAME)
                                    .Build();
 
+            static bool perStageEffectListDisabled() => !PerStageEffectListEnabled.Value;
+
+            public static readonly ConfigHolder<bool> PerStageEffectListEnabled =
+                ConfigFactory<bool>.CreateConfig("Per-Stage Effect List", false)
+                                   .Description("If enabled, a subsection of all effects is generated each stage and only effects from this list are activated.\nNot supported in any chat voting mode")
+                                   .OptionConfig(new CheckBoxConfig())
+                                   .Build();
+
+            public static readonly ConfigHolder<int> PerStageEffectListSize =
+                ConfigFactory<int>.CreateConfig("Effect List Size", 20)
+                                  .Description("The size of the per-stage effect list\nNot supported in any chat voting mode")
+                                  .OptionConfig(new IntSliderConfig
+                                  {
+                                      min = 1,
+                                      max = 100,
+                                      checkIfDisabled = perStageEffectListDisabled
+                                  })
+                                  .Build();
+
             internal static void Bind(ConfigFile file)
             {
                 void bindConfig<T>(ConfigHolder<T> config)
@@ -25,6 +44,10 @@ namespace RiskOfChaos
                 }
 
                 bindConfig(SeededEffectSelection);
+
+                bindConfig(PerStageEffectListEnabled);
+
+                bindConfig(PerStageEffectListSize);
             }
         }
     }

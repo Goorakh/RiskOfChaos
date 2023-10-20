@@ -41,6 +41,11 @@ namespace RiskOfChaos.SaveHandling
 
             SaveContainer container = SaveContainer.CreateEmpty();
             CollectSaveData?.Invoke(ref container);
+
+#if DEBUG
+            Log.Debug("Collected save data");
+#endif
+
             return container;
         }
 
@@ -51,6 +56,10 @@ namespace RiskOfChaos.SaveHandling
 
             _currentSaveContainer = saveContainer;
             _loadSaveData?.Invoke(saveContainer);
+
+#if DEBUG
+            Log.Debug("Loaded save file");
+#endif
         }
     }
 }

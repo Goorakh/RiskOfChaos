@@ -1,5 +1,7 @@
-﻿using RoR2;
+﻿using RiskOfChaos.EffectDefinitions;
+using RoR2;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -24,7 +26,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 dispatchArgs = new ChaosEffectDispatchArgs
                 {
-                    DispatchFlags = EffectDispatchFlags.CheckCanActivate
+                    DispatchFlags = EffectDispatchFlags.CheckCanActivate,
+                    OverrideRNGSeed = rng.nextUlong
                 };
 
                 return ChaosEffectCatalog.PickEnabledEffect(rng, excludeEffects);
@@ -33,6 +36,34 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 dispatchArgs = new ChaosEffectDispatchArgs();
                 return ChaosEffectCatalog.PickActivatableEffect(rng, EffectCanActivateContext.Now, excludeEffects);
+            }
+        }
+
+        public static ChaosEffectInfo PickEffectFromList(Xoroshiro128Plus rng, IEnumerable<ChaosEffectInfo> pickableEffects, out ChaosEffectDispatchArgs dispatchArgs)
+        {
+            if (Configs.EffectSelection.SeededEffectSelection.Value)
+            {
+                dispatchArgs = new ChaosEffectDispatchArgs
+                {
+                    DispatchFlags = EffectDispatchFlags.CheckCanActivate,
+                    OverrideRNGSeed = rng.nextUlong
+                };
+            }
+            else
+            {
+                dispatchArgs = new ChaosEffectDispatchArgs();
+
+                pickableEffects = pickableEffects.Where(e => e.CanActivate(EffectCanActivateContext.Now));
+            }
+
+            if (pickableEffects.Any())
+            {
+                return rng.NextElementUniform(pickableEffects.ToArray());
+            }
+            else
+            {
+                Log.Warning("No effect was activatable, defaulting to Nothing");
+                return Nothing.EffectInfo;
             }
         }
 
