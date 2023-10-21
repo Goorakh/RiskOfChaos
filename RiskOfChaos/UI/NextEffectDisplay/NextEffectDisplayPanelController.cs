@@ -122,7 +122,7 @@ namespace RiskOfChaos.UI.NextEffectDisplay
             if (Configs.UI.DisplayNextEffect.Value)
             {
                 ChaosEffectDispatcher effectDispatcher = ChaosEffectDispatcher.Instance;
-                if (effectDispatcher)
+                if (effectDispatcher && effectDispatcher.TotalRunDispatchCount > 0)
                 {
                     ChaosEffectActivationSignaler effectSignaler = effectDispatcher.GetCurrentEffectSignaler();
                     if (effectSignaler)

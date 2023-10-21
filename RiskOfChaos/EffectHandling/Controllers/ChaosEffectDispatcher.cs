@@ -30,6 +30,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
         Xoroshiro128Plus _effectRNG;
         ulong _effectDispatchCount;
 
+        public ulong TotalRunDispatchCount => _effectDispatchCount;
+
         void Awake()
         {
             _effectActivationSignalers = GetComponents<ChaosEffectActivationSignaler>();
