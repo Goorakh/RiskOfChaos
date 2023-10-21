@@ -1,7 +1,9 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.UI.ActiveEffectsPanel;
 using RiskOfChaos.UI.ChatVoting;
+using RiskOfChaos.UI.NextEffectDisplay;
 using RoR2;
+using RoR2.UI;
 using UnityEngine;
 
 namespace RiskOfChaos.UI
@@ -22,16 +24,24 @@ namespace RiskOfChaos.UI
 
         public static ChaosUIController Instance => _instance;
 
+        public HUD HUD { get; private set; }
+
         public ChaosEffectVoteDisplayController EffectVoteDisplayController { get; private set; }
 
         public ChaosActiveEffectsDisplayController ActiveEffectsDisplayController { get; private set; }
 
+        public NextEffectDisplayPanelController NextEffectDisplayController { get; private set; }
+
         void Awake()
         {
+            HUD = GetComponent<HUD>();
+
             EffectVoteDisplayController = ChaosEffectVoteDisplayController.Create(this);
 
             ActiveEffectsDisplayController = ChaosActiveEffectsDisplayController.Create(this);
             setActiveEffectsDisplayActive(!Configs.UI.HideActiveEffectsPanel.Value);
+
+            NextEffectDisplayController = NextEffectDisplayPanelController.Create(this);
         }
 
         void OnEnable()

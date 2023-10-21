@@ -4,6 +4,7 @@ using RiskOfChaos.SaveHandling.DataContainers;
 using RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling.Controllers
@@ -187,6 +188,23 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             ChaosEffectInfo effect = pickNextEffect(new Xoroshiro128Plus(_nextEffectRNG.nextUlong), out ChaosEffectDispatchArgs args);
             SignalShouldDispatchEffect?.Invoke(effect, args);
+        }
+
+        public override float GetTimeUntilNextEffect()
+        {
+            return Mathf.Max(0f, _effectDispatchTimer.GetTimeRemaining());
+        }
+
+        public override ChaosEffectIndex GetUpcomingEffect()
+        {
+            if (!Configs.EffectSelection.SeededEffectSelection.Value)
+                return ChaosEffectIndex.Invalid;
+
+            if (_nextEffectRNG is null)
+                return ChaosEffectIndex.Invalid;
+
+            Xoroshiro128Plus rngCopy = new Xoroshiro128Plus(_nextEffectRNG);
+            return pickNextEffect(new Xoroshiro128Plus(rngCopy.nextUlong), out _)?.EffectIndex ?? ChaosEffectIndex.Invalid;
         }
     }
 }

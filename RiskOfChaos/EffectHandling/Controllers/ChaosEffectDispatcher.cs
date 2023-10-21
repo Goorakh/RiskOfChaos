@@ -7,6 +7,7 @@ using RiskOfChaos.SaveHandling.DataContainers;
 using RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers;
 using RoR2;
 using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -125,6 +126,17 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             _effectRNG = data.EffectRNG;
             _effectDispatchCount = data.EffectDispatchCount;
+        }
+
+        public ChaosEffectActivationSignaler GetCurrentEffectSignaler()
+        {
+            if (!NetworkServer.active)
+            {
+                Log.Warning("Called on client");
+                return null;
+            }
+
+            return _effectActivationSignalers.FirstOrDefault(s => s && s.enabled);
         }
 
         public void SkipAllScheduledEffects()

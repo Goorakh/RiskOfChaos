@@ -2,6 +2,7 @@
 	strings:
 	{
 		"CHAOS_ACTIVE_EFFECTS_BAR_TITLE": "Active Effects:",
+		"CHAOS_NEXT_EFFECT_DISPLAY_FORMAT": "Next Effect: {0} (in {1}s)",
 
 		"ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_HEADER": "Reconnect Failed",
 		

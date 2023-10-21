@@ -29,6 +29,12 @@ namespace RiskOfChaos
                                     .MovedFrom(General.SECTION_NAME)
                                     .Build();
 
+            public static readonly ConfigHolder<bool> DisplayNextEffect =
+                ConfigFactory<bool>.CreateConfig("Display Next Effect", true)
+                                   .Description("Displays the next effect that will happen.\nOnly works if chat voting is disabled and seeded mode is enabled")
+                                   .OptionConfig(new CheckBoxConfig())
+                                   .Build();
+
             internal static void Bind(ConfigFile file)
             {
                 void bindConfig<T>(ConfigHolder<T> config)
@@ -39,6 +45,8 @@ namespace RiskOfChaos
                 bindConfig(HideActiveEffectsPanel);
 
                 bindConfig(ActiveEffectsTextColor);
+
+                bindConfig(DisplayNextEffect);
             }
         }
     }

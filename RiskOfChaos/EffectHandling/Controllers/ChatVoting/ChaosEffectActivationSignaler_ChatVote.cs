@@ -7,6 +7,7 @@ using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 {
@@ -332,6 +333,11 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
         public bool CurrentVoteContains(ChaosEffectInfo effectInfo)
         {
             return _effectVoteSelection != null && _effectVoteSelection.IsVoteActive && _effectVoteSelection.GetVoteOptions().Any(voteInfo => voteInfo.EffectInfo == effectInfo);
+        }
+
+        public override float GetTimeUntilNextEffect()
+        {
+            return Mathf.Max(0f, _voteTimer.GetTimeRemaining());
         }
     }
 }

@@ -104,5 +104,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 return true;
             }
         }
+
+        public abstract float GetTimeUntilNextEffect();
+
+        public virtual ChaosEffectIndex GetUpcomingEffect()
+        {
+            return ChaosEffectIndex.Invalid;
+        }
     }
 }
