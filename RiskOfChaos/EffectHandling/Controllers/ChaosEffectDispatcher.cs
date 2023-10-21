@@ -30,7 +30,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         Xoroshiro128Plus _effectRNG;
         ulong _effectDispatchCount;
 
-        public ulong TotalRunDispatchCount => _effectDispatchCount;
+        public bool HasAttemptedDispatchAnyEffectServer { get; private set; }
 
         void Awake()
         {
@@ -65,6 +65,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 NetworkedEffectDispatchedMessage.OnReceive += NetworkedEffectDispatchedMessage_OnReceive;
             }
+
+            HasAttemptedDispatchAnyEffectServer = false;
         }
 
         void Update()
@@ -324,6 +326,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
                         paramTokens = new string[] { effect.GetDisplayName() }
                     });
                 }
+
+                HasAttemptedDispatchAnyEffectServer = true;
 
                 bool canActivate = !args.HasFlag(EffectDispatchFlags.CheckCanActivate) || effect.CanActivate(EffectCanActivateContext.Now);
 
