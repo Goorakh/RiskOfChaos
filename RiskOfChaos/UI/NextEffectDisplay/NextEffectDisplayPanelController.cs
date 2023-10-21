@@ -101,7 +101,7 @@ namespace RiskOfChaos.UI.NextEffectDisplay
             RectTransform rectTransform = nextEffectDisplay.AddComponent<RectTransform>();
             rectTransform.SetParent(leftCluster, false);
             rectTransform.localPosition = new Vector2(0f, NO_NOTIFICATION_Y_POSITION);
-            rectTransform.localScale = Vector3.one * 0.75f;
+            rectTransform.localScale = Vector3.one * 0.85f;
 
             NextEffectDisplayPanelController panelController = nextEffectDisplay.AddComponent<NextEffectDisplayPanelController>();
             panelController._ownerHud = chaosUIController.HUD;
