@@ -153,7 +153,7 @@ namespace RiskOfChaos.UI.NextEffectDisplay
             Vector3 targetPosition = transform.localPosition;
             targetPosition.y = isNotificationShowing() ? NOTIFICATION_Y_POSITION : NO_NOTIFICATION_Y_POSITION;
 
-            transform.localPosition = Vector3.SmoothDamp(transform.localPosition, targetPosition, ref _velocity, 0.1f, float.PositiveInfinity, Time.fixedDeltaTime);
+            transform.localPosition = Vector3.SmoothDamp(transform.localPosition, targetPosition, ref _velocity, 0.1f, float.PositiveInfinity, Time.fixedUnscaledDeltaTime);
         }
 
         public void SetEffectDisplay(EffectDisplayData displayData)
