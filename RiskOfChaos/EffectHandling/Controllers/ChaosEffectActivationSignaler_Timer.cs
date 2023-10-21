@@ -1,9 +1,12 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using HG;
+using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.SaveHandling;
 using RiskOfChaos.SaveHandling.DataContainers;
 using RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using System;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -17,7 +20,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         CompletePeriodicRunTimer _effectDispatchTimer;
         Xoroshiro128Plus _nextEffectRNG;
 
-        ChaosEffectInfo[] _overrideAvailableEffects;
+        OverrideEffect[] _overrideAvailableEffects;
 
         public override void SkipAllScheduledEffects()
         {
@@ -119,15 +122,15 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     return;
                 }
 
-                _overrideAvailableEffects = new ChaosEffectInfo[effectsListSize];
+                _overrideAvailableEffects = new OverrideEffect[effectsListSize];
 
                 for (int i = 0; i < effectsListSize; i++)
                 {
-                    _overrideAvailableEffects[i] = effectSelection.GetAndRemoveRandom(new Xoroshiro128Plus(rng.nextUlong));
+                    _overrideAvailableEffects[i] = new OverrideEffect(effectSelection.GetAndRemoveRandom(new Xoroshiro128Plus(rng.nextUlong)), null);
                 }
 
 #if DEBUG
-                Log.Debug($"Available effects: [{string.Join<ChaosEffectInfo>(", ", _overrideAvailableEffects)}]");
+                Log.Debug($"Available effects: [{string.Join(", ", _overrideAvailableEffects)}]");
 #endif
             }
         }
@@ -205,6 +208,51 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             Xoroshiro128Plus rngCopy = new Xoroshiro128Plus(_nextEffectRNG);
             return pickNextEffect(new Xoroshiro128Plus(rngCopy.nextUlong), out _)?.EffectIndex ?? ChaosEffectIndex.Invalid;
+        }
+
+        void tryRemoveStageEffect(ChaosEffectIndex effectIndex)
+        {
+            if (_overrideAvailableEffects == null)
+            {
+                Debug.Log("Per-stage effects selection not active");
+                return;
+            }
+
+            for (int i = 0; i < _overrideAvailableEffects.Length; i++)
+            {
+                if (_overrideAvailableEffects[i].Effect.EffectIndex == effectIndex)
+                {
+                    _overrideAvailableEffects[i] = new OverrideEffect(Nothing.EffectInfo, _overrideAvailableEffects[i].GetWeight());
+                    Debug.Log($"Removed '{ChaosEffectCatalog.GetEffectInfo(effectIndex).GetDisplayName(EffectNameFormatFlags.None)}' from available effects list");
+
+                    return;
+                }
+            }
+
+            Debug.Log($"{ChaosEffectCatalog.GetEffectInfo(effectIndex).GetDisplayName(EffectNameFormatFlags.None)} is not in available stage effects");
+        }
+
+        [ConCommand(commandName = "roc_remove_stage_effect", flags = ConVarFlags.SenderMustBeServer, helpText = "Removes an effect from the current stage effect pool")]
+        static void CCRemoveStageEffect(ConCommandArgs args)
+        {
+            ChaosEffectDispatcher dispatcher = ChaosEffectDispatcher.Instance;
+            if (!dispatcher)
+                return;
+
+            ChaosEffectActivationSignaler effectSignaler = dispatcher.GetCurrentEffectSignaler();
+            if (!effectSignaler)
+                return;
+
+            ChaosEffectIndex effectIndex = args.GetArgChaosEffectIndex(0);
+
+            if (effectSignaler is ChaosEffectActivationSignaler_Timer timerEffectSignaler)
+            {
+                timerEffectSignaler.tryRemoveStageEffect(effectIndex);
+            }
+            else
+            {
+                Debug.Log("Current effect mode does not support stage effects");
+            }
         }
     }
 }

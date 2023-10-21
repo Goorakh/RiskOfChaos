@@ -58,7 +58,47 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             if (pickableEffects.Any())
             {
-                return rng.NextElementUniform(pickableEffects.ToArray());
+                WeightedSelection<ChaosEffectInfo> effectSelector = new WeightedSelection<ChaosEffectInfo>();
+                foreach (ChaosEffectInfo effect in pickableEffects)
+                {
+                    effectSelector.AddChoice(effect, effect.TotalSelectionWeight);
+                }
+
+                return effectSelector.Evaluate(rng.nextNormalizedFloat);
+            }
+            else
+            {
+                Log.Warning("No effect was activatable, defaulting to Nothing");
+                return Nothing.EffectInfo;
+            }
+        }
+
+        public static ChaosEffectInfo PickEffectFromList(Xoroshiro128Plus rng, IEnumerable<OverrideEffect> overrideEffects, out ChaosEffectDispatchArgs dispatchArgs)
+        {
+            if (Configs.EffectSelection.SeededEffectSelection.Value)
+            {
+                dispatchArgs = new ChaosEffectDispatchArgs
+                {
+                    DispatchFlags = EffectDispatchFlags.CheckCanActivate,
+                    OverrideRNGSeed = rng.nextUlong
+                };
+            }
+            else
+            {
+                dispatchArgs = new ChaosEffectDispatchArgs();
+
+                overrideEffects = overrideEffects.Where(e => e.Effect.CanActivate(EffectCanActivateContext.Now));
+            }
+
+            if (overrideEffects.Any())
+            {
+                WeightedSelection<ChaosEffectInfo> effectSelector = new WeightedSelection<ChaosEffectInfo>();
+                foreach (OverrideEffect overrideEffect in overrideEffects)
+                {
+                    effectSelector.AddChoice(overrideEffect.Effect, overrideEffect.GetWeight());
+                }
+
+                return effectSelector.Evaluate(rng.nextNormalizedFloat);
             }
             else
             {
