@@ -254,9 +254,6 @@ namespace RiskOfChaos.EffectHandling
 
             if (IsEnabledConfig != null && !IsEnabledConfig.Value)
             {
-#if DEBUG
-                Log.Debug($"effect {Identifier} is not enabled due to: Disabled in config");
-#endif
                 return false;
             }
 
