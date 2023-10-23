@@ -22,6 +22,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         OverrideEffect[] _overrideAvailableEffects;
 
+        ChaosEffectIndex _nextEffectIndex = ChaosEffectIndex.Invalid;
+
         public override void SkipAllScheduledEffects()
         {
             _effectDispatchTimer?.SkipAllScheduledActivations();
@@ -63,6 +65,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
 
             Stage.onStageStartGlobal += onStageStart;
+
+            updateNextEffect();
         }
 
         void OnDisable()
@@ -191,14 +195,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             ChaosEffectInfo effect = pickNextEffect(new Xoroshiro128Plus(_nextEffectRNG.nextUlong), out ChaosEffectDispatchArgs args);
             SignalShouldDispatchEffect?.Invoke(effect, args);
+
+            updateNextEffect();
         }
 
-        public override float GetTimeUntilNextEffect()
-        {
-            return Mathf.Max(0f, _effectDispatchTimer.GetTimeRemaining());
-        }
-
-        public override ChaosEffectIndex GetUpcomingEffect()
+        ChaosEffectIndex getNextEffect()
         {
             if (!Configs.EffectSelection.SeededEffectSelection.Value)
                 return ChaosEffectIndex.Invalid;
@@ -208,6 +209,21 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             Xoroshiro128Plus rngCopy = new Xoroshiro128Plus(_nextEffectRNG);
             return pickNextEffect(new Xoroshiro128Plus(rngCopy.nextUlong), out _)?.EffectIndex ?? ChaosEffectIndex.Invalid;
+        }
+
+        void updateNextEffect()
+        {
+            _nextEffectIndex = getNextEffect();
+        }
+
+        public override float GetTimeUntilNextEffect()
+        {
+            return Mathf.Max(0f, _effectDispatchTimer.GetTimeRemaining());
+        }
+
+        public override ChaosEffectIndex GetUpcomingEffect()
+        {
+            return _nextEffectIndex;
         }
 
         void tryRemoveStageEffect(ChaosEffectIndex effectIndex)
@@ -224,6 +240,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 {
                     _overrideAvailableEffects[i] = new OverrideEffect(Nothing.EffectInfo, _overrideAvailableEffects[i].GetWeight());
                     Debug.Log($"Removed '{ChaosEffectCatalog.GetEffectInfo(effectIndex).GetDisplayName(EffectNameFormatFlags.None)}' from available effects list");
+
+                    updateNextEffect();
 
                     return;
                 }
