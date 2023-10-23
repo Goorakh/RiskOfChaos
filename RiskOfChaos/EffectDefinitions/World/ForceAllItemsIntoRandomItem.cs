@@ -216,6 +216,16 @@ namespace RiskOfChaos.EffectDefinitions.World
                 }
             };
 
+            Stage.onServerStageBegin += _ =>
+            {
+                if (Configs.EffectSelection.PerStageEffectListEnabled.Value &&
+                    Configs.ChatVoting.VotingMode.Value == Configs.ChatVoting.ChatVotingMode.Disabled)
+                {
+                    _pickNextItemRNG = new Xoroshiro128Plus(Run.instance.stageRng);
+                    rerollCurrentOverridePickup();
+                }
+            };
+
             if (SaveManager.UseSaveData)
             {
                 SaveManager.CollectSaveData += (ref SaveContainer container) =>
