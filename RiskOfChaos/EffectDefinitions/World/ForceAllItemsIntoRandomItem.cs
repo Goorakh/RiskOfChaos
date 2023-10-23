@@ -243,7 +243,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         static Xoroshiro128Plus _pickNextItemRNG;
 
-        static PickupIndex _currentOverridePickupIndex;
+        static PickupIndex _currentOverridePickupIndex = PickupIndex.none;
         static void rerollCurrentOverridePickup()
         {
             if (_pickNextItemRNG == null)
