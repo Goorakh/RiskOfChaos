@@ -1,5 +1,5 @@
 ﻿using R2API;
-using RiskOfChaos.Networking.Components;
+using RiskOfChaos.Networking.Components.Effects;
 using RoR2;
 using RoR2.UI;
 using RoR2.UI.SkinControllers;

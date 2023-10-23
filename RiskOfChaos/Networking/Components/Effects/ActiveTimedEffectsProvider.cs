@@ -7,7 +7,7 @@ using System;
 using System.Linq;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.Networking.Components
+namespace RiskOfChaos.Networking.Components.Effects
 {
     public class ActiveTimedEffectsProvider : NetworkBehaviour
     {

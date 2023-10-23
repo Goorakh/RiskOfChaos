@@ -9,6 +9,7 @@ using RiskOfChaos.ModifierController.Projectile;
 using RiskOfChaos.ModifierController.SkillSlots;
 using RiskOfChaos.ModifierController.TimeScale;
 using RiskOfChaos.Networking.Components;
+using RiskOfChaos.Networking.Components.Effects;
 using RiskOfChaos.Networking.Components.Gravity;
 using RoR2;
 using UnityEngine;
@@ -49,7 +50,7 @@ namespace RiskOfChaos
         };
         public static GameObject[] GeyserPrefabs { get; private set; }
 
-        public static GameObject ActiveTimedEffectsProviderPrefab { get; private set; }
+        public static GameObject EffectsNetworkerPrefab { get; private set; }
 
         public static GameObject ItemStealerPositionIndicatorPrefab { get; private set; }
 
@@ -196,13 +197,14 @@ namespace RiskOfChaos
                 }
             }
 
-            // ActiveTimedEffectsProviderPrefab
+            // EffectsNetworkerPrefab
             {
-                ActiveTimedEffectsProviderPrefab = createEmptyPrefabObject("ActiveTimedEffectsProvider");
+                EffectsNetworkerPrefab = createEmptyPrefabObject("EffectsNetworker");
 
-                ActiveTimedEffectsProviderPrefab.AddComponent<SetDontDestroyOnLoad>();
-                ActiveTimedEffectsProviderPrefab.AddComponent<DestroyOnRunEnd>();
-                ActiveTimedEffectsProviderPrefab.AddComponent<ActiveTimedEffectsProvider>();
+                EffectsNetworkerPrefab.AddComponent<SetDontDestroyOnLoad>();
+                EffectsNetworkerPrefab.AddComponent<DestroyOnRunEnd>();
+                EffectsNetworkerPrefab.AddComponent<ActiveTimedEffectsProvider>();
+                EffectsNetworkerPrefab.AddComponent<NextEffectProvider>();
             }
 
             // ItemStealerPositionIndicatorPrefab
@@ -267,7 +269,7 @@ namespace RiskOfChaos
 
             GameObject.Instantiate(DamageInfoModificationControllerPrefab);
 
-            NetworkServer.Spawn(GameObject.Instantiate(ActiveTimedEffectsProviderPrefab));
+            NetworkServer.Spawn(GameObject.Instantiate(EffectsNetworkerPrefab));
 
             NetworkServer.Spawn(GameObject.Instantiate(DummyDamageInflictorPrefab));
         }

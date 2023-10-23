@@ -1,6 +1,7 @@
 ﻿using R2API;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
+using RiskOfChaos.Networking.Components.Effects;
 using RiskOfChaos.Trackers;
 using RiskOfChaos.UI.ChatVoting;
 using RoR2;
@@ -121,14 +122,10 @@ namespace RiskOfChaos.UI.NextEffectDisplay
         {
             if (Configs.UI.DisplayNextEffect.Value)
             {
-                ChaosEffectDispatcher effectDispatcher = ChaosEffectDispatcher.Instance;
-                if (effectDispatcher && effectDispatcher.HasAttemptedDispatchAnyEffectServer)
+                NextEffectProvider nextEffectProvider = NextEffectProvider.Instance;
+                if (nextEffectProvider)
                 {
-                    ChaosEffectActivationSignaler effectSignaler = effectDispatcher.GetCurrentEffectSignaler();
-                    if (effectSignaler)
-                    {
-                        return new EffectDisplayData(effectSignaler.GetUpcomingEffect(), effectSignaler.GetTimeUntilNextEffect());
-                    }
+                    return new EffectDisplayData(nextEffectProvider.NetworkNextEffectIndex, nextEffectProvider.NetworkNextEffectActivationTime.timeUntilClamped);
                 }
             }
 
