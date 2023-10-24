@@ -208,7 +208,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 return ChaosEffectIndex.Invalid;
 
             Xoroshiro128Plus rngCopy = new Xoroshiro128Plus(_nextEffectRNG);
-            return pickNextEffect(new Xoroshiro128Plus(rngCopy.nextUlong), out _)?.EffectIndex ?? ChaosEffectIndex.Invalid;
+
+            ChaosEffectInfo nextEffect = pickNextEffect(new Xoroshiro128Plus(rngCopy.nextUlong), out _);
+            if (nextEffect is null)
+                return ChaosEffectIndex.Invalid;
+
+            return nextEffect.EffectIndex;
         }
 
         void updateNextEffect()
