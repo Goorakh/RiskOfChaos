@@ -92,40 +92,38 @@ namespace RiskOfChaos.EffectHandling.Controllers
             if (!NetworkServer.active)
                 return;
 
-            if (stage.sceneDef.sceneType == SceneType.Stage)
+            if (Configs.EffectSelection.PerStageEffectListEnabled.Value)
             {
-                setupAvailableEffectsList();
-
-                if (Configs.EffectSelection.PerStageEffectListEnabled.Value)
+                if (stage.sceneDef.sceneType == SceneType.Stage)
                 {
                     _nextEffectRNG = new Xoroshiro128Plus(Run.instance.stageRng);
+
+                    setupAvailableEffectsList();
+                    updateNextEffect();
                 }
+            }
+            else
+            {
+                _overrideAvailableEffects = null;
             }
         }
 
         void setupAvailableEffectsList()
         {
-            _overrideAvailableEffects = null;
-            if (Configs.EffectSelection.PerStageEffectListEnabled.Value)
+            Xoroshiro128Plus rng = new Xoroshiro128Plus(Run.instance.stageRng);
+
+            int effectsListSize = Configs.EffectSelection.PerStageEffectListSize.Value;
+
+            WeightedSelection<ChaosEffectInfo> effectSelection = ChaosEffectCatalog.GetAllEnabledEffects();
+
+            if (effectSelection.Count < effectsListSize)
             {
-                Xoroshiro128Plus rng = new Xoroshiro128Plus(Run.instance.stageRng);
+                Log.Info($"Cannot generate effect list of size {effectsListSize}, only {effectSelection.Count} effects available. Effect list of size {effectSelection.Count} will be generated instead");
+                effectsListSize = effectSelection.Count;
+            }
 
-                int effectsListSize = Configs.EffectSelection.PerStageEffectListSize.Value;
-
-                WeightedSelection<ChaosEffectInfo> effectSelection = ChaosEffectCatalog.GetAllEnabledEffects();
-
-                if (effectSelection.Count < effectsListSize)
-                {
-                    Log.Warning($"Cannot generate effect list of size {effectsListSize}, only {effectSelection.Count} effects available. Effect list of size {effectSelection.Count} will be generated instead");
-                    effectsListSize = effectSelection.Count;
-                }
-
-                if (effectsListSize <= 0)
-                {
-                    Log.Error($"Invalid effect list size: {effectsListSize}, per-stage effects will not be used");
-                    return;
-                }
-
+            if (effectsListSize > 0)
+            {
                 _overrideAvailableEffects = new OverrideEffect[effectsListSize];
 
                 for (int i = 0; i < effectsListSize; i++)
@@ -136,6 +134,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
 #if DEBUG
                 Log.Debug($"Available effects: [{string.Join(", ", _overrideAvailableEffects)}]");
 #endif
+            }
+            else
+            {
+                Log.Error($"Invalid effect list size: {effectsListSize}, per-stage effects will not be used");
+                _overrideAvailableEffects = null;
             }
         }
 
