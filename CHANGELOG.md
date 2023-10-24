@@ -2,6 +2,16 @@
 
 **?.?.? Changes:**
 
+* Effect selection:
+  * Added effect seeding option
+    * Picks effects based on run seed instead of randomly picking each time. Use if setting run seeds manually (Not supported in chat voting mode)
+  * Added per-stage effect list option
+    * A portion of all effects are picked out each stage to be activatable instead of all effects (Not supported in chat voting mode)
+
+* UI:
+  * Added option to display the next effect that will happen.
+    * Only supported in seeded mode and with chat voting disabled.
+
 * Added ProperSave support
   * Active effects and internal state are saved at the start of each stage
 
