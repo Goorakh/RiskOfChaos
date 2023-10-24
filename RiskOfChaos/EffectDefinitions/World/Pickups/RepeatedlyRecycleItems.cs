@@ -65,6 +65,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                                 .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0.1f))
                                 .Build();
 
+        static bool isPickupAvailable(PickupIndex pickup)
+        {
+            return Run.instance.IsPickupAvailable(pickup);
+        }
+
         const float RECYCLE_IGNORE_GROUP_CHANCE = 0.05f;
 
         const float MIN_RECYCLE_DURATION = 1f;
@@ -87,8 +92,12 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
             _isSeeded = Configs.EffectSelection.SeededEffectSelection.Value;
             if (_isSeeded)
             {
-                List<PickupIndex> remainingPickups = _allAvailablePickupIndices.ToList();
+                List<PickupIndex> remainingPickups = _allAvailablePickupIndices.Where(isPickupAvailable).ToList();
                 int cycleLength = remainingPickups.Count;
+
+#if DEBUG
+                Log.Debug($"Non-included pickups: [{string.Join(", ", _allAvailablePickupIndices.Except(remainingPickups))}]");
+#endif
 
                 _recycleSteps = new RecycleStep[cycleLength];
                 _recycleStepIndexLookup = new Dictionary<PickupIndex, int>(cycleLength);
@@ -107,7 +116,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
 
                     PickupIndex[] transmutationGroup = PickupTransmutationManager.GetAvailableGroupFromPickupIndex(previousPickup);
                     if (transmutationGroup != null && transmutationGroup.Length > 0)
-                        transmutationGroup = transmutationGroup.Where(remainingPickups.Contains).ToArray();
+                        transmutationGroup = transmutationGroup.Where(p => isPickupAvailable(p) && remainingPickups.Contains(p)).ToArray();
 
                     if (RNG.nextNormalizedFloat <= RECYCLE_IGNORE_GROUP_CHANCE || transmutationGroup == null || transmutationGroup.Length == 0)
                     {
@@ -204,7 +213,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                 }
                 else
                 {
-                    Log.Error($"Pickup not accounted for: {pickup}");
+                    return 1f;
                 }
             }
 
@@ -221,12 +230,12 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                 }
                 else
                 {
-                    Log.Error($"Pickup not accounted for: {current}");
+                    return _recycleSteps[0].PickupIndex;
                 }
             }
 
             PickupIndex[] availablePickups = PickupTransmutationManager.GetAvailableGroupFromPickupIndex(current);
-            availablePickups = availablePickups?.Where(p => p != current).ToArray();
+            availablePickups = availablePickups?.Where(p => isPickupAvailable(p) && p != current).ToArray();
             if (availablePickups == null || availablePickups.Length == 0 || RoR2Application.rng.nextNormalizedFloat <= RECYCLE_IGNORE_GROUP_CHANCE)
                 availablePickups = _allAvailablePickupIndices;
 
@@ -263,7 +272,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
 
             void setToRandomItem()
             {
-                _pickupController.NetworkpickupIndex = _effectInstance.getNextPickup(_pickupController.pickupIndex);
+                PickupIndex nextPickup = _effectInstance.getNextPickup(_pickupController.pickupIndex);
+                if (!nextPickup.isValid || nextPickup == _pickupController.pickupIndex)
+                    return;
+
+                _pickupController.NetworkpickupIndex = nextPickup;
                 EffectManager.SimpleEffect(LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/OmniEffect/OmniRecycleEffect"), _pickupController.pickupDisplay.transform.position, Quaternion.identity, true);
             }
 
