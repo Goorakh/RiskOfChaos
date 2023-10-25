@@ -74,7 +74,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 Run run = Run.instance;
                 if (run)
                 {
-                    if (!run.IsItemAvailable(transformedItem) || !run.IsItemAvailable(originalItem))
+                    if (!run.IsItemEnabled(transformedItem) || !run.IsItemEnabled(originalItem))
                     {
                         continue;
                     }

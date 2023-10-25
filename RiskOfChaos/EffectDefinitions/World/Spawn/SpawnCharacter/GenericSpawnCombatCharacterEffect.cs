@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.CatalogIndexCollection;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Navigation;
 using System;
@@ -259,10 +260,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
         {
             if (masterPrefab.masterIndex == MasterCatalog.FindMasterIndex("EquipmentDroneMaster"))
             {
-                List<EquipmentIndex> availableEquipment = EquipmentCatalog.equipmentList.Where(Run.instance.IsEquipmentAvailable).ToList();
+                List<EquipmentIndex> availableEquipment = EquipmentCatalog.equipmentList.Where(Run.instance.IsEquipmentEnabled).ToList();
                 if (availableEquipment.Count > 0)
                 {
-                    EquipmentIndex equipmentIndex = RoR2Application.rng.NextElementUniform(availableEquipment);
+                    EquipmentIndex equipmentIndex = RNG.NextElementUniform(availableEquipment);
 
 #if DEBUG
                     Log.Debug($"Gave {Language.GetString(EquipmentCatalog.GetEquipmentDef(equipmentIndex).nameToken, "en")} to spawned equipment drone");

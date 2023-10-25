@@ -49,7 +49,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             foreach (ItemIndex item in ItemCatalog.allItems)
             {
                 ItemIndex transformedItem = ContagiousItemManager.GetTransformedItemIndex(item);
-                if (transformedItem == ItemIndex.None || !run.IsItemAvailable(transformedItem) || run.IsItemExpansionLocked(transformedItem))
+                if (!run.IsItemEnabled(transformedItem))
                     continue;
 
                 if (_itemBlacklist.Contains(item) || _itemBlacklist.Contains(transformedItem))

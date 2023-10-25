@@ -97,7 +97,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         static bool canUnscrapToItem(ItemIndex item)
         {
             Run run = Run.instance;
-            if (run && !run.IsItemAvailable(item))
+            if (run && !run.IsItemEnabled(item))
                 return false;
 
             if (_itemBlacklist.Contains(item))

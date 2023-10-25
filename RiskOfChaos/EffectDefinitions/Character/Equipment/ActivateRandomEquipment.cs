@@ -64,7 +64,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
                                                              .Build();
             }
 
-            public readonly bool IsAvailable => _equipmentWeightConfig.Value > 0f && (!Run.instance || Run.instance.IsEquipmentAvailable(_equipmentDef.equipmentIndex));
+            public readonly bool IsAvailable => _equipmentWeightConfig.Value > 0f && (!Run.instance || Run.instance.IsEquipmentEnabled(_equipmentDef.equipmentIndex));
 
             public readonly void BindConfig(ChaosEffectInfo effectInfo)
             {

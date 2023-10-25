@@ -67,7 +67,23 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
 
         static bool isPickupAvailable(PickupIndex pickup)
         {
-            return Run.instance.IsPickupAvailable(pickup);
+            if (Run.instance.IsPickupEnabled(pickup))
+                return true;
+
+            PickupDef pickupDef = PickupCatalog.GetPickupDef(pickup);
+            if (pickupDef.itemIndex != ItemIndex.None)
+            {
+                ItemDef item = ItemCatalog.GetItemDef(pickupDef.itemIndex);
+                if (item.ContainsTag(ItemTag.WorldUnique))
+                {
+#if DEBUG
+                    Log.Debug($"Including worldunique pickup: {pickup}");
+#endif
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         const float RECYCLE_IGNORE_GROUP_CHANCE = 0.05f;
