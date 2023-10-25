@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.EffectHandling;
 using RiskOfOptions.OptionConfigs;
 
 namespace RiskOfChaos
@@ -28,12 +29,6 @@ namespace RiskOfChaos
             public static readonly ConfigHolder<int> PerStageEffectListSize =
                 ConfigFactory<int>.CreateConfig("Effect List Size", 20)
                                   .Description("The size of the per-stage effect list\nNot supported in any chat voting mode")
-                                  .OptionConfig(new IntSliderConfig
-                                  {
-                                      min = 1,
-                                      max = 100,
-                                      checkIfDisabled = perStageEffectListDisabled
-                                  })
                                   .Build();
 
             internal static void Bind(ConfigFile file)
@@ -47,7 +42,17 @@ namespace RiskOfChaos
 
                 bindConfig(PerStageEffectListEnabled);
 
-                bindConfig(PerStageEffectListSize);
+                ChaosEffectCatalog.Availability.CallWhenAvailable(() =>
+                {
+                    PerStageEffectListSize.SetOptionConfig(new IntSliderConfig
+                    {
+                        min = 1,
+                        max = ChaosEffectCatalog.EffectCount,
+                        checkIfDisabled = perStageEffectListDisabled
+                    });
+
+                    bindConfig(PerStageEffectListSize);
+                });
             }
         }
     }

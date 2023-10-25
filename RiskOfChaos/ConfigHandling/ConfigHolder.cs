@@ -18,7 +18,7 @@ namespace RiskOfChaos.ConfigHandling
         public readonly ValueConstrictor<T> ValueConstrictor;
         public readonly ValueValidator<T> ValueValidator;
 
-        readonly BaseOptionConfig _optionConfig;
+        BaseOptionConfig _optionConfig;
 
         readonly string[] _previousKeys;
         string[] _previousConfigSectionNames;
@@ -80,6 +80,14 @@ namespace RiskOfChaos.ConfigHandling
         void invokeSettingChanged()
         {
             SettingChanged?.Invoke(this, new ConfigChangedArgs<T>(this));
+        }
+
+        public void SetOptionConfig(BaseOptionConfig newConfig)
+        {
+            if (Entry != null)
+                Log.Warning("Config already binded, setting config options will not work");
+
+            _optionConfig = newConfig;
         }
 
         public override void Bind(ChaosEffectInfo ownerEffect)
