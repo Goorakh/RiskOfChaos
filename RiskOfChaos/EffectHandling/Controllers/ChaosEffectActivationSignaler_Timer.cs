@@ -1,12 +1,11 @@
-﻿using HG;
-using RiskOfChaos.ConfigHandling;
+﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.SaveHandling;
 using RiskOfChaos.SaveHandling.DataContainers;
 using RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -113,33 +112,38 @@ namespace RiskOfChaos.EffectHandling.Controllers
             Xoroshiro128Plus rng = new Xoroshiro128Plus(Run.instance.stageRng);
 
             int effectsListSize = Configs.EffectSelection.PerStageEffectListSize.Value;
-
-            WeightedSelection<ChaosEffectInfo> effectSelection = ChaosEffectCatalog.GetAllEnabledEffects();
-
-            if (effectSelection.Count < effectsListSize)
-            {
-                Log.Info($"Cannot generate effect list of size {effectsListSize}, only {effectSelection.Count} effects available. Effect list of size {effectSelection.Count} will be generated instead");
-                effectsListSize = effectSelection.Count;
-            }
-
-            if (effectsListSize > 0)
-            {
-                _overrideAvailableEffects = new OverrideEffect[effectsListSize];
-
-                for (int i = 0; i < effectsListSize; i++)
-                {
-                    _overrideAvailableEffects[i] = new OverrideEffect(effectSelection.GetAndRemoveRandom(new Xoroshiro128Plus(rng.nextUlong)), null);
-                }
-
-#if DEBUG
-                Log.Debug($"Available effects: [{string.Join(", ", _overrideAvailableEffects)}]");
-#endif
-            }
-            else
+            if (effectsListSize <= 0)
             {
                 Log.Error($"Invalid effect list size: {effectsListSize}, per-stage effects will not be used");
                 _overrideAvailableEffects = null;
             }
+
+            ChaosEffectInfo[] enabledEffects = ChaosEffectCatalog.AllEffects.Where(e => e.IsEnabled()).ToArray();
+            if (enabledEffects.Length <= 0)
+            {
+                Log.Warning("No effects enabled, per-stage effect list cannot be generated");
+                _overrideAvailableEffects = new OverrideEffect[] { new OverrideEffect(Nothing.EffectInfo, null) };
+                return;
+            }
+
+            if (enabledEffects.Length < effectsListSize)
+            {
+                Log.Info($"Cannot generate effect list of size {effectsListSize}, only {enabledEffects.Length} effects available. Effect list of size {enabledEffects.Length} will be generated instead");
+                effectsListSize = enabledEffects.Length;
+            }
+
+            Util.ShuffleArray(enabledEffects, new Xoroshiro128Plus(rng.nextUlong));
+
+            _overrideAvailableEffects = new OverrideEffect[effectsListSize];
+
+            for (int i = 0; i < effectsListSize; i++)
+            {
+                _overrideAvailableEffects[i] = new OverrideEffect(enabledEffects[i], null);
+            }
+
+#if DEBUG
+            Log.Debug($"Available effects: [{string.Join(", ", _overrideAvailableEffects)}]");
+#endif
         }
 
         void SaveManager_LoadSaveData(in SaveContainer container)
