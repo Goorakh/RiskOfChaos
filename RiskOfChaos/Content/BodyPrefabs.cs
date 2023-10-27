@@ -70,6 +70,7 @@ namespace RiskOfChaos.Content
                 ChaosFakeInteractorBodyPrefab.AddComponent<DestroyOnRunEnd>();
 
                 ChaosFakeInteractorBodyPrefab.AddComponent<ChaosInteractor>();
+                ChaosFakeInteractorBodyPrefab.AddComponent<ExcludeFromBodyInstancesList>();
 
                 static void trySpawnChaosInteractor()
                 {

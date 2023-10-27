@@ -53,6 +53,7 @@
 
 * Misc
   * Fixed strange scrap counting towards game completion in logbook
+  * Fixed some effects sometimes placing character VFX at world origin
 
 **1.12.2 Changes:**
 
