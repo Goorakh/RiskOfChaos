@@ -1,7 +1,12 @@
 ﻿using HarmonyLib;
+using HG;
+using MonoMod.Utils;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Patches;
+using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
 using UnityEngine;
@@ -12,6 +17,52 @@ namespace RiskOfChaos.EffectDefinitions.World
     [EffectConfigBackwardsCompatibility("Effect: Blood Money (Lasts 1 stage)")]
     public sealed class AllCostsHealth : TimedEffect
     {
+        [InitEffectInfo]
+        static readonly TimedEffectInfo _effectInfo;
+
+        static ConfigHolder<bool>[] _enabledConfigByCostType = Array.Empty<ConfigHolder<bool>>();
+
+        [SystemInitializer(typeof(CostTypeCatalog), typeof(ChaosEffectCatalog))]
+        static void Init()
+        {
+            _enabledConfigByCostType = new ConfigHolder<bool>[CostTypeCatalog.costTypeCount];
+
+            for (CostTypeIndex i = 0; i < (CostTypeIndex)CostTypeCatalog.costTypeCount; i++)
+            {
+                if (i == CostTypeIndex.None || i == CostTypeIndex.PercentHealth)
+                    continue;
+
+                CostTypeDef costTypeDef = CostTypeCatalog.GetCostTypeDef(i);
+                if (costTypeDef is null)
+                    continue;
+
+                string key = i switch
+                {
+                    CostTypeIndex.VolatileBattery => "Fuel Array",
+                    CostTypeIndex.ArtifactShellKillerItem => "Artifact Key",
+                    CostTypeIndex.TreasureCacheItem => "Rusted Key",
+                    CostTypeIndex.TreasureCacheVoidItem => "Encrusted Key",
+                    _ => i.ToString().SpacedPascalCase()
+                };
+
+                ConfigHolder<bool> costTypeEnabledConfig =
+                    ConfigFactory<bool>.CreateConfig($"Convert {key} Costs", true)
+                                       .Description($"If the effect should be able to turn {key} costs into health costs")
+                                       .OptionConfig(new CheckBoxConfig())
+                                       .Build();
+
+                costTypeEnabledConfig.Bind(_effectInfo);
+
+                _enabledConfigByCostType[(int)i] = costTypeEnabledConfig;
+            }
+        }
+
+        static bool canConvertCostType(CostTypeIndex costType)
+        {
+            ConfigHolder<bool> enabledConfig = ArrayUtils.GetSafe(_enabledConfigByCostType, (int)costType);
+            return enabledConfig is not null && enabledConfig.Value;
+        }
+
         public override void OnStart()
         {
             InstanceTracker.GetInstancesList<PurchaseInteraction>().Do(handlePurchaseInteraction);
@@ -89,7 +140,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         static void handlePurchaseInteraction(PurchaseInteraction purchaseInteraction)
         {
-            if (!purchaseInteraction)
+            if (!purchaseInteraction || !canConvertCostType(purchaseInteraction.costType))
                 return;
 
             int healthCost;

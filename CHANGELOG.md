@@ -51,6 +51,9 @@
   * Increased minimum pickup duration: 0.75s -> 1s
   * Fixed effect being able to pick items and equipment not available in the run item pool
 
+* Blood Money:
+  * Added config options to exclude specific cost types from the effect
+
 * Scrap Random Item:
   * Fixed item notifications not showing for non-host players in multiplayer
 
