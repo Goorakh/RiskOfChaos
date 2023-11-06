@@ -19,6 +19,11 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         public override void OnStart()
         {
             PickupDef aspectPickupDef = PickupCatalog.GetPickupDef(PickupCatalog.FindPickupIndex(EliteUtils.GetRandomEliteEquipmentIndex(RNG)));
+            if (aspectPickupDef is null)
+            {
+                Log.Error($"Invalid aspect pickup def");
+                return;
+            }
 
             PlayerUtils.GetAllPlayerMasters(true).TryDo(playerMaster =>
             {
