@@ -51,6 +51,9 @@
   * Increased minimum pickup duration: 0.75s -> 1s
   * Fixed effect being able to pick items and equipment not available in the run item pool
 
+* Scrap Random Item:
+  * Fixed item notifications not showing for non-host players in multiplayer
+
 * Misc
   * Fixed strange scrap counting towards game completion in logbook
   * Fixed some effects sometimes placing character VFX at world origin

@@ -187,7 +187,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             inventory.RemoveItem(itemToScrap, itemCount);
             inventory.GiveItem(scrapPickup.itemIndex, itemCount);
 
-            CharacterMasterNotificationQueue.PushItemTransformNotification(characterMaster, itemToScrap.itemIndex, scrapPickup.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+            CharacterMasterNotificationQueue.SendTransformNotification(characterMaster, itemToScrap.itemIndex, scrapPickup.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
 
             notifiedScrapItems?.Add(scrapPickup.itemIndex);
         }
