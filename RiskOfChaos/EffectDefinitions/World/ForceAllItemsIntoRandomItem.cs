@@ -334,6 +334,14 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             foreach (ShopTerminalBehavior shopTerminalBehavior in GameObject.FindObjectsOfType<ShopTerminalBehavior>())
             {
+                if (shopTerminalBehavior.CurrentPickupIndex() == PickupIndex.none)
+                {
+#if DEBUG
+                    Log.Debug($"Skipping reroll of {shopTerminalBehavior}, no current pickup");
+#endif
+                    continue;
+                }
+
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 bool originalHasBeenPurchased = shopTerminalBehavior.hasBeenPurchased;
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public

@@ -61,6 +61,9 @@
 * Force Activate Random Skill:
   * Fixed Beetles freezing in place if their secondary is forced
 
+* All Items Are A Random Item:
+  * Fixed trishops having items rerolled after being purchased
+
 * Misc
   * Fixed strange scrap counting towards game completion in logbook
   * Fixed some effects sometimes placing character VFX at world origin
