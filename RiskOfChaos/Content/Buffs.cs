@@ -26,6 +26,14 @@ namespace RiskOfChaos.Content
                         args.baseCurseAdd += 1e15f;
                     }
                 };
+
+                On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
+                {
+                    orig(self);
+
+                    // Use shatter death animation
+                    self.isGlass |= self.HasBuff(SetTo1Hp);
+                };
             }
         }
 

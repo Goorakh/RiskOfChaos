@@ -23,6 +23,7 @@
 
 * One Hit KO:
   * Fixed characters having more than 1 hp if they had barrier before the effect activated
+  * All characters will now use the fragile death animation while the effect is active
 
 * The Floor is Lava:
   * Changed burn dps: 15% of character damage stat -> 3% of max health per second (configurable)
