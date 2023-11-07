@@ -2,13 +2,42 @@
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RiskOfChaos.ModifierController.SkillSlots;
+using RiskOfChaos.Utilities;
 using RoR2;
+using RoR2.CharacterAI;
+using System;
 using System.Linq;
+using UnityEngine;
 
 namespace RiskOfChaos.Patches
 {
     static class ForceActivateSkillSlot
     {
+        static BodySkillPair[] _ignoreSkillSlots = Array.Empty<BodySkillPair>();
+
+        [SystemInitializer(typeof(BodyCatalog))]
+        static void InitIgnoreSkillSlots()
+        {
+            _ignoreSkillSlots = new BodySkillPair[]
+            {
+                // Beetle secondary is some unfinished ability that locks them in place forever, ignore it
+                new BodySkillPair("BeetleBody", SkillSlot.Secondary)
+            };
+        }
+
+        static bool shouldIgnoreSkillSlot(BodyIndex bodyIndex, SkillSlot slot)
+        {
+            foreach (BodySkillPair ignoreSkillPair in _ignoreSkillSlots)
+            {
+                if (ignoreSkillPair.BodyIndex == bodyIndex && ignoreSkillPair.SkillSlot == slot)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         [SystemInitializer]
         static void Init()
         {
@@ -52,15 +81,34 @@ namespace RiskOfChaos.Patches
                 {
                     ILCursor cursor = foundCursors[1];
                     cursor.Emit(OpCodes.Ldc_I4, (int)slotIndex);
-                    cursor.EmitDelegate((bool buttonState, SkillSlot skillSlot) =>
+                    cursor.Emit(OpCodes.Ldarg_0);
+                    cursor.EmitDelegate((bool origButtonState, SkillSlot skillSlot, MonoBehaviour instance) =>
                     {
-                        if (SkillSlotModificationManager.Instance && SkillSlotModificationManager.Instance.IsSkillSlotForceActivated(skillSlot))
+                        CharacterBody body;
+                        switch (instance)
+                        {
+                            case PlayerCharacterMasterController playerCharacter:
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                                body = playerCharacter.body;
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+                                break;
+                            case BaseAI ai:
+                                body = ai.body;
+                                break;
+                            default:
+                                body = null;
+                                Log.Error($"Unhandled instance type: {instance}");
+                                break;
+                        }
+
+                        if (body && !shouldIgnoreSkillSlot(body.bodyIndex, skillSlot) &&
+                            SkillSlotModificationManager.Instance && SkillSlotModificationManager.Instance.IsSkillSlotForceActivated(skillSlot))
                         {
                             // Don't actually have it active *all* the time, since some skills require the key to not be held
                             return RoR2Application.rng.nextNormalizedFloat > 0.2f;
                         }
 
-                        return buttonState;
+                        return origButtonState;
                     });
                 }
 

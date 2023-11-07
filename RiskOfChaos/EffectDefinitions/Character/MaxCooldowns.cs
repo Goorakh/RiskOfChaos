@@ -10,12 +10,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [ChaosEffect("max_cooldowns", IsNetworked = true)]
     public sealed class MaxCooldowns : BaseEffect
     {
-        record struct BodySkillPair(BodyIndex BodyIndex, SkillSlot SkillSlot)
-        {
-            public BodySkillPair(string bodyName, SkillSlot slot) : this(BodyCatalog.FindBodyIndex(bodyName), slot)
-            {
-            }
-        }
         static BodySkillPair[] _ignoreSkillSlots = Array.Empty<BodySkillPair>();
 
         [SystemInitializer(typeof(BodyCatalog))]
