@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Added 1 new effect:
+  * Bouncy Items: Item drops will bounce on the ground before settling, lasts 60 seconds
+
 * Effect selection:
   * Added effect seeding option
     * Picks effects based on run seed instead of randomly picking each time. Use if setting run seeds manually (Not supported in chat voting mode)

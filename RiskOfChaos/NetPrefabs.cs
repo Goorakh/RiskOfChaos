@@ -5,6 +5,7 @@ using RiskOfChaos.ModifierController.Damage;
 using RiskOfChaos.ModifierController.Gravity;
 using RiskOfChaos.ModifierController.Knockback;
 using RiskOfChaos.ModifierController.PhysicsModification;
+using RiskOfChaos.ModifierController.Pickups;
 using RiskOfChaos.ModifierController.Projectile;
 using RiskOfChaos.ModifierController.SkillSlots;
 using RiskOfChaos.ModifierController.TimeScale;
@@ -39,6 +40,8 @@ namespace RiskOfChaos
         public static GameObject PhysicsModificationControllerPrefab { get; private set; }
 
         public static GameObject AttackDelayModificationControllerPrefab { get; private set; }
+
+        public static GameObject PickupModificationControllerPrefab { get; private set; }
 
         static readonly string[] _geyserPrefabPaths = new string[]
         {
@@ -178,6 +181,15 @@ namespace RiskOfChaos
                 AttackDelayModificationControllerPrefab.AddComponent<AttackDelayModificationManager>();
             }
 
+            // PickupModificationControllerPrefab
+            {
+                PickupModificationControllerPrefab = createEmptyPrefabObject("PickupModificationController", false);
+
+                PickupModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
+                PickupModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
+                PickupModificationControllerPrefab.AddComponent<PickupModificationManager>();
+            }
+
             // GeyserPrefabs
             {
                 int geyserCount = _geyserPrefabPaths.Length;
@@ -268,6 +280,7 @@ namespace RiskOfChaos
             NetworkServer.Spawn(GameObject.Instantiate(AttackDelayModificationControllerPrefab));
 
             GameObject.Instantiate(DamageInfoModificationControllerPrefab);
+            GameObject.Instantiate(PickupModificationControllerPrefab);
 
             NetworkServer.Spawn(GameObject.Instantiate(EffectsNetworkerPrefab));
 

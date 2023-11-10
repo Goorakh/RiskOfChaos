@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 115 different effects.
+Currently features 116 different effects.
 
 ### Twitch Integration:
 
@@ -131,6 +131,7 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Disable Equipment: Disables all equipment activation, lasts 60 seconds.
 * All Items Are A Random Item: All items on the stage get turned into a random item. Essentially Artifact of Kin for items. Lasts 1 stage.
 * All Chests are Free: All chests and interactables are free, lasts 30 seconds.
+* Bouncy Items: Item drops will bounce on the ground before settling, lasts 60 seconds
 </details>
 
 FAQ:
