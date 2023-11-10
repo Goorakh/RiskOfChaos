@@ -70,6 +70,9 @@
 * Loose Pockets:
   * Default duration: 20s -> 10s
 
+* Freeze!:
+  * Default freeze duration: 4s -> 2.5s
+
 * Misc
   * Fixed strange scrap counting towards game completion in logbook
   * Fixed some effects sometimes placing character VFX at world origin
