@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosTimedEffect("drop_items", 20f, AllowDuplicates = false)]
+    [ChaosTimedEffect("drop_items", 10f, AllowDuplicates = false)]
     public sealed class DropItems : TimedEffect
     {
         [EffectConfig]

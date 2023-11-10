@@ -67,6 +67,9 @@
 * All Items Are A Random Item:
   * Fixed trishops having items rerolled after being purchased
 
+* Loose Pockets:
+  * Default duration: 20s -> 10s
+
 * Misc
   * Fixed strange scrap counting towards game completion in logbook
   * Fixed some effects sometimes placing character VFX at world origin
