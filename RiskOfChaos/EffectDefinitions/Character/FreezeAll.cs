@@ -34,8 +34,14 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     bool originalCanBeFrozen = canBeFrozen;
 
                     canBeFrozen = true;
-                    setStateOnHurt.SetFrozen(_freezeDuration.Value);
-                    canBeFrozen = originalCanBeFrozen;
+                    try
+                    {
+                        setStateOnHurt.SetFrozen(_freezeDuration.Value);
+                    }
+                    finally
+                    {
+                        canBeFrozen = originalCanBeFrozen;
+                    }
                 }
             }, FormatUtils.GetBestBodyName);
         }
