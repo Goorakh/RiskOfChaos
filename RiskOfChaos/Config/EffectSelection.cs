@@ -27,7 +27,7 @@ namespace RiskOfChaos
                                    .Build();
 
             public static readonly ConfigHolder<int> PerStageEffectListSize =
-                ConfigFactory<int>.CreateConfig("Effect List Size", 20)
+                ConfigFactory<int>.CreateConfig("Effect List Size", 50)
                                   .Description("The size of the per-stage effect list\nNot supported in any chat voting mode")
                                   .Build();
 
