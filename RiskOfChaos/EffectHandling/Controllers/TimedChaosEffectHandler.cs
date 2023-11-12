@@ -273,14 +273,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         IEnumerable<ActiveTimedEffectInfo> getActiveTimedEffectsFor(TimedEffectInfo effectInfo)
         {
-            foreach (ActiveTimedEffectInfo timedEffect in _activeTimedEffects)
-            {
-                if (timedEffect.EffectInfo == effectInfo)
-                {
-                    yield return timedEffect;
+            return _activeTimedEffects.Where(e => e.EffectInfo == effectInfo);
                 }
-            }
-        }
 
         public bool IsTimedEffectActive(TimedEffectInfo effectInfo)
         {
@@ -289,17 +283,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         public int GetEffectActiveCount(TimedEffectInfo effectInfo)
         {
-            int count = 0;
-
-            foreach (ActiveTimedEffectInfo timedEffect in _activeTimedEffects)
-            {
-                if (timedEffect.EffectInfo == effectInfo)
-                {
-                    count++;
-                }
-            }
-
-            return count;
+            return getActiveTimedEffectsFor(effectInfo).Count();
         }
 
         public IEnumerable<TEffect> GetActiveEffectInstancesOfType<TEffect>() where TEffect : TimedEffect
