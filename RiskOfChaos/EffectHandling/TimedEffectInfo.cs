@@ -65,7 +65,7 @@ namespace RiskOfChaos.EffectHandling
             if (!base.CanActivate(context))
                 return false;
 
-            if (!AllowDuplicates)
+            if (TimedType != TimedEffectType.FixedDuration && !AllowDuplicates)
             {
                 if (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.AnyInstanceOfEffectActive(this, context))
                 {

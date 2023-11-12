@@ -22,7 +22,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         public delegate void EffectDispatchedDelegate(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs args, BaseEffect effectInstance);
         public event EffectDispatchedDelegate OnEffectDispatched;
 
-        public delegate void EffectAboutToDispatchDelegate(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs args, bool willStart);
+        public delegate void EffectAboutToDispatchDelegate(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs args, ref bool willStart);
         public event EffectAboutToDispatchDelegate OnEffectAboutToDispatchServer;
 
         ChaosEffectActivationSignaler[] _effectActivationSignalers;
@@ -331,7 +331,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
                 bool canActivate = !args.HasFlag(EffectDispatchFlags.CheckCanActivate) || effect.CanActivate(EffectCanActivateContext.Now);
 
-                OnEffectAboutToDispatchServer?.Invoke(effect, args, canActivate);
+                OnEffectAboutToDispatchServer?.Invoke(effect, args, ref canActivate);
 
                 if (!canActivate)
                 {

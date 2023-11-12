@@ -18,7 +18,9 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         public readonly bool ShouldDisplay;
 
-        public ActiveEffectItemInfo(TimedEffectInfo effectInfo, TimedEffect effectInstance)
+        public readonly uint Version;
+
+        public ActiveEffectItemInfo(TimedEffectInfo effectInfo, TimedEffect effectInstance, uint version)
         {
             EffectInfo = effectInfo;
             DispatchID = effectInstance.DispatchID;
@@ -31,6 +33,8 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             TimeStarted = effectInstance.TimeStarted;
 
             ShouldDisplay = effectInfo.ShouldDisplayOnHUD;
+
+            Version = version;
         }
 
         private ActiveEffectItemInfo(NetworkReader reader)
@@ -67,6 +71,8 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             TimeStarted = reader.ReadSingle();
 
             ShouldDisplay = reader.ReadBoolean();
+
+            Version = reader.ReadPackedUInt32();
         }
 
         public void Serialize(NetworkWriter writer)
@@ -94,6 +100,8 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             writer.Write(TimeStarted);
 
             writer.Write(ShouldDisplay);
+
+            writer.WritePackedUInt32(Version);
         }
 
         public static ActiveEffectItemInfo Deserialize(NetworkReader reader)
@@ -108,7 +116,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         public bool Equals(ActiveEffectItemInfo other)
         {
-            return DispatchID == other.DispatchID;
+            return EffectInfo == other.EffectInfo && DispatchID == other.DispatchID && Version == other.Version;
         }
 
         public override int GetHashCode()

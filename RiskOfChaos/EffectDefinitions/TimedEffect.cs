@@ -7,6 +7,8 @@ namespace RiskOfChaos.EffectDefinitions
 {
     public abstract class TimedEffect : BaseEffect
     {
+        public bool IsNetDirty;
+
         public TimedEffectType TimedType { get; internal set; }
         public float DurationSeconds { get; internal set; } = -1f;
 
@@ -40,6 +42,24 @@ namespace RiskOfChaos.EffectDefinitions
 
                 return DurationSeconds - TimeElapsed;
             }
+        }
+
+        public void SetTimeRemaining(float newTimeRemaining)
+        {
+            if (!NetworkServer.active)
+            {
+                Log.Warning("Called on client");
+                return;
+            }
+
+            if (TimedType != TimedEffectType.FixedDuration)
+            {
+                Log.Error("Cannot set time remaining on non-fixed duration effect");
+                return;
+            }
+
+            DurationSeconds = TimeElapsed + newTimeRemaining;
+            IsNetDirty = true;
         }
 
         public override void OnPreStartServer()

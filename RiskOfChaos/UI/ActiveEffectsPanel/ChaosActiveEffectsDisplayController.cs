@@ -184,6 +184,16 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
         {
             _activeEffectItems.RemoveAll(display => !display);
 
+            for (int i = 0; i < _activeEffectItems.Count; i++)
+            {
+                ulong dispatchID = _activeEffectItems[i].DisplayingEffect.DispatchID;
+                int activeEffectsIndex = Array.FindIndex(activeEffects, a => a.DispatchID == dispatchID);
+                if (activeEffectsIndex != -1)
+                {
+                    _activeEffectItems[i].DisplayingEffect = activeEffects[activeEffectsIndex];
+                }
+            }
+
             // Remove displays for effects that should no longer show
             for (int i = _activeEffectItems.Count - 1; i >= 0; i--)
             {

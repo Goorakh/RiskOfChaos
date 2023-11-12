@@ -35,7 +35,7 @@ namespace RiskOfChaos.EffectHandling
 
         readonly ChaosEffectCanActivateMethod[] _canActivateMethods = Array.Empty<ChaosEffectCanActivateMethod>();
 
-        readonly ReadOnlyCollection<TimedEffectInfo> _incompatibleEffects = Empty<TimedEffectInfo>.ReadOnlyCollection;
+        public readonly ReadOnlyCollection<TimedEffectInfo> IncompatibleEffects = Empty<TimedEffectInfo>.ReadOnlyCollection;
 
         public readonly ConfigHolder<bool> IsEnabledConfig;
         readonly ConfigHolder<float> _selectionWeightConfig;
@@ -122,7 +122,7 @@ namespace RiskOfChaos.EffectHandling
             if (incompatibleEffectTypes.Length > 0)
             {
                 List<TimedEffectInfo> incompatibleEffects = new List<TimedEffectInfo>(incompatibleEffectTypes.Length);
-                _incompatibleEffects = new ReadOnlyCollection<TimedEffectInfo>(incompatibleEffects);
+                IncompatibleEffects = new ReadOnlyCollection<TimedEffectInfo>(incompatibleEffects);
 
                 ChaosEffectCatalog.Availability.CallWhenAvailable(() =>
                 {
@@ -285,9 +285,9 @@ namespace RiskOfChaos.EffectHandling
                 }
             }
 
-            if (TimedChaosEffectHandler.Instance)
+            if (!Configs.EffectSelection.SeededEffectSelection.Value && TimedChaosEffectHandler.Instance)
             {
-                foreach (TimedEffectInfo incompatibleEffect in _incompatibleEffects)
+                foreach (TimedEffectInfo incompatibleEffect in IncompatibleEffects)
                 {
                     if (TimedChaosEffectHandler.Instance.AnyInstanceOfEffectActive(incompatibleEffect, context))
                     {

@@ -7,6 +7,7 @@ namespace RiskOfChaos.Networking
         public static void RegisterMessages()
         {
             NetworkingAPI.RegisterMessageType<NetworkedEffectDispatchedMessage>();
+            NetworkingAPI.RegisterMessageType<NetworkedEffectSetSerializedDataMessage>();
             NetworkingAPI.RegisterMessageType<NetworkedTimedEffectEndMessage>();
 
             NetworkingAPI.RegisterMessageType<TeleportBodyMessage>();

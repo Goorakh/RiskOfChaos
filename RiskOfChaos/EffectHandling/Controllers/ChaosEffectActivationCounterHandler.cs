@@ -138,7 +138,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 #endif
         }
 
-        void onEffectAboutToDispatchServer(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs dispatchArgs, bool willStart)
+        void onEffectAboutToDispatchServer(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs dispatchArgs, ref bool willStart)
         {
             if (!willStart || dispatchArgs.HasFlag(EffectDispatchFlags.DontCount))
                 return;

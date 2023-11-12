@@ -60,6 +60,7 @@ namespace RiskOfChaos.Networking.Components.Effects
 
             TimedChaosEffectHandler.OnTimedEffectStartServer += onTimedEffectStartServer;
             TimedChaosEffectHandler.OnTimedEffectEndServer += onTimedEffectEndServer;
+            TimedChaosEffectHandler.OnTimedEffectDirtyServer += onTimedEffectDirtyServer;
         }
 
         void OnDisable()
@@ -68,11 +69,12 @@ namespace RiskOfChaos.Networking.Components.Effects
 
             TimedChaosEffectHandler.OnTimedEffectStartServer -= onTimedEffectStartServer;
             TimedChaosEffectHandler.OnTimedEffectEndServer -= onTimedEffectEndServer;
+            TimedChaosEffectHandler.OnTimedEffectDirtyServer -= onTimedEffectDirtyServer;
         }
 
         void onTimedEffectStartServer(TimedEffectInfo effectInfo, TimedEffect effectInstance)
         {
-            _activeEffects.Add(new ActiveEffectItemInfo(effectInfo, effectInstance));
+            _activeEffects.Add(new ActiveEffectItemInfo(effectInfo, effectInstance, 0));
         }
 
         void onTimedEffectEndServer(ulong dispatchID)
@@ -82,6 +84,18 @@ namespace RiskOfChaos.Networking.Components.Effects
                 if (_activeEffects[i].DispatchID == dispatchID)
                 {
                     _activeEffects.RemoveAt(i);
+                    return;
+                }
+            }
+        }
+
+        void onTimedEffectDirtyServer(TimedEffectInfo effectInfo, TimedEffect effectInstance)
+        {
+            for (int i = 0; i < _activeEffects.Count; i++)
+            {
+                if (_activeEffects[i].DispatchID == effectInstance.DispatchID)
+                {
+                    _activeEffects[i] = new ActiveEffectItemInfo(effectInfo, effectInstance, _activeEffects[i].Version + 1);
                     return;
                 }
             }

@@ -11,6 +11,10 @@
   * Added per-stage effect list option
     * A portion of all effects are picked out each stage to be activatable instead of all effects (Not supported in chat voting mode)
 
+* Effect activation:
+  * Effects that disallow duplicates will now "refresh" the active effect's timer instead of not being activatable.
+  * Fixed new effects not having priority over active ones. All active incompatible effects will be ended instead.
+
 * UI:
   * Added option to display the next effect that will happen.
     * Only supported in seeded mode and with chat voting disabled.

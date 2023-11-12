@@ -26,6 +26,9 @@ namespace RiskOfChaos.EffectHandling.Controllers
         public delegate void TimedEffectEndDelegate(ulong dispatchID);
         public static event TimedEffectEndDelegate OnTimedEffectEndServer;
 
+        public delegate void TimedEffectDirtyDelegate(TimedEffectInfo effectInfo, TimedEffect effectInstance);
+        public static event TimedEffectDirtyDelegate OnTimedEffectDirtyServer;
+
         readonly record struct ActiveTimedEffectInfo(TimedEffectInfo EffectInfo, TimedEffect EffectInstance, TimedEffectType TimedType, ChaosEffectDispatchArgs DispatchArgs)
         {
             public ActiveTimedEffectInfo(TimedEffectInfo effectInfo, TimedEffect effectInstance, ChaosEffectDispatchArgs dispatchArgs) : this(effectInfo, effectInstance, effectInstance.TimedType, dispatchArgs)
@@ -92,7 +95,9 @@ namespace RiskOfChaos.EffectHandling.Controllers
             SingletonHelper.Assign(ref _instance, this);
 
             NetworkedTimedEffectEndMessage.OnReceive += NetworkedTimedEffectEndMessage_OnReceive;
+            NetworkedEffectSetSerializedDataMessage.OnReceive += NetworkedEffectSetSerializedDataMessage_OnReceive;
 
+            _effectDispatcher.OnEffectAboutToDispatchServer += onEffectAboutToDispatchServer;
             _effectDispatcher.OnEffectDispatched += onEffectDispatched;
 
             Stage.onServerStageComplete += onServerStageComplete;
@@ -111,16 +116,33 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 for (int i = _activeTimedEffects.Count - 1; i >= 0; i--)
                 {
                     ActiveTimedEffectInfo timedEffectInfo = _activeTimedEffects[i];
-                    if (!timedEffectInfo.MatchesFlag(TimedEffectFlags.FixedDuration))
-                        continue;
-
-                    if (timedEffectInfo.EffectInstance.TimeRemaining <= 0f)
+                    if (timedEffectInfo.MatchesFlag(TimedEffectFlags.FixedDuration))
                     {
+                        if (timedEffectInfo.EffectInstance.TimeRemaining <= 0f)
+                        {
 #if DEBUG
-                        Log.Debug($"Ending fixed duration timed effect {timedEffectInfo.EffectInfo} (ID={timedEffectInfo.EffectInstance.DispatchID})");
+                            Log.Debug($"Ending fixed duration timed effect {timedEffectInfo.EffectInfo} (ID={timedEffectInfo.EffectInstance.DispatchID})");
 #endif
 
-                        endTimedEffectAtIndex(i, true);
+                            endTimedEffectAtIndex(i, true);
+                            continue;
+                        }
+                    }
+
+                    if (timedEffectInfo.EffectInstance.IsNetDirty)
+                    {
+#if DEBUG
+                        Log.Debug($"Effect {timedEffectInfo.EffectInfo} (ID={timedEffectInfo.EffectInstance.DispatchID}) dirty, updating clients");
+#endif
+
+                        if (timedEffectInfo.EffectInfo.IsNetworked)
+                        {
+                            new NetworkedEffectSetSerializedDataMessage(timedEffectInfo.EffectInstance.DispatchID, timedEffectInfo.GetSerializedData()).Send(NetworkDestination.Clients);
+                        }
+
+                        OnTimedEffectDirtyServer?.Invoke(timedEffectInfo.EffectInfo, timedEffectInfo.EffectInstance);
+
+                        timedEffectInfo.EffectInstance.IsNetDirty = false;
                     }
                 }
             }
@@ -131,7 +153,9 @@ namespace RiskOfChaos.EffectHandling.Controllers
             SingletonHelper.Unassign(ref _instance, this);
 
             NetworkedTimedEffectEndMessage.OnReceive -= NetworkedTimedEffectEndMessage_OnReceive;
+            NetworkedEffectSetSerializedDataMessage.OnReceive -= NetworkedEffectSetSerializedDataMessage_OnReceive;
 
+            _effectDispatcher.OnEffectAboutToDispatchServer -= onEffectAboutToDispatchServer;
             _effectDispatcher.OnEffectDispatched -= onEffectDispatched;
 
             Stage.onServerStageComplete -= onServerStageComplete;
@@ -174,6 +198,33 @@ namespace RiskOfChaos.EffectHandling.Controllers
             };
         }
 
+        void onEffectAboutToDispatchServer(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs args, ref bool willStart)
+        {
+            if (willStart)
+            {
+                for (int i = _activeTimedEffects.Count - 1; i >= 0; i--)
+                {
+                    TimedEffectInfo activeEffectInfo = _activeTimedEffects[i].EffectInfo;
+                    if (effectInfo.IncompatibleEffects.Contains(activeEffectInfo) || activeEffectInfo.IncompatibleEffects.Contains(effectInfo))
+                    {
+#if DEBUG
+                        Log.Debug($"Ending timed effect {activeEffectInfo} (ID={_activeTimedEffects[i].EffectInstance.DispatchID}) due to: incompatible effect about to start ({effectInfo})");
+#endif
+                        endTimedEffectAtIndex(i, true);
+                    }
+                }
+
+                if (effectInfo is TimedEffectInfo timedEffect && !timedEffect.AllowDuplicates && timedEffect.TimedType == TimedEffectType.FixedDuration)
+                {
+                    foreach (ActiveTimedEffectInfo activeEffects in getActiveTimedEffectsFor(timedEffect))
+                    {
+                        activeEffects.EffectInstance.SetTimeRemaining(timedEffect.DurationSeconds);
+                        willStart = false;
+                    }
+                }
+            }
+        }
+
         void onEffectDispatched(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs dispatchArgs, BaseEffect effectInstance)
         {
             if (effectInfo is TimedEffectInfo timedEffectInfo && effectInstance is TimedEffect timedEffectInstance)
@@ -188,6 +239,19 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 if (!activeTimedEffectInfo.MatchesFlag(TimedEffectFlags.FixedDuration) ||
                     activeTimedEffectInfo.EffectInstance.TimeRemaining > context.Delay)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        bool tryGetActiveEffectIndexByDispatchID(ulong dispatchID, out int index)
+        {
+            for (index = 0; index < _activeTimedEffects.Count; index++)
+            {
+                if (_activeTimedEffects[index].EffectInstance.DispatchID == dispatchID)
                 {
                     return true;
                 }
@@ -222,22 +286,18 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void endTimedEffectWithDispatchID(ulong dispatchID, bool sendClientMessage)
         {
-            for (int i = 0; i < _activeTimedEffects.Count; i++)
+            if (tryGetActiveEffectIndexByDispatchID(dispatchID, out int activeEffectIndex))
             {
-                ActiveTimedEffectInfo timedEffect = _activeTimedEffects[i];
-                if (timedEffect.EffectInstance != null && timedEffect.EffectInstance.DispatchID == dispatchID)
-                {
-                    endTimedEffectAtIndex(i, sendClientMessage);
+                endTimedEffectAtIndex(activeEffectIndex, sendClientMessage);
 
 #if DEBUG
-                    Log.Debug($"Timed effect {timedEffect.EffectInfo} (ID={dispatchID}) ended");
+                Log.Debug($"Timed effect {_activeTimedEffects[activeEffectIndex].EffectInfo} (ID={dispatchID}) ended");
 #endif
-
-                    return;
-                }
             }
-
-            Log.Warning($"No timed effect registered with ID {dispatchID}");
+            else
+            {
+                Log.Warning($"No timed effect registered with ID {dispatchID}");
+            }
         }
 
         void endTimedEffectAtIndex(int index, bool sendClientMessage)
@@ -261,6 +321,22 @@ namespace RiskOfChaos.EffectHandling.Controllers
             endTimedEffectWithDispatchID(effectDispatchID, false);
         }
 
+        void NetworkedEffectSetSerializedDataMessage_OnReceive(ulong effectDispatchID, byte[] serializedEffectData)
+        {
+            if (NetworkServer.active)
+                return;
+
+            if (tryGetActiveEffectIndexByDispatchID(effectDispatchID, out int activeEffectIndex))
+            {
+                NetworkReader reader = new NetworkReader(serializedEffectData);
+                _activeTimedEffects[activeEffectIndex].EffectInstance.Deserialize(reader);
+            }
+            else
+            {
+                Log.Warning($"No active effect with id {effectDispatchID}");
+            }
+        }
+
         void registerTimedEffect(in ActiveTimedEffectInfo activeEffectInfo)
         {
             _activeTimedEffects.Add(activeEffectInfo);
@@ -274,7 +350,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         IEnumerable<ActiveTimedEffectInfo> getActiveTimedEffectsFor(TimedEffectInfo effectInfo)
         {
             return _activeTimedEffects.Where(e => e.EffectInfo == effectInfo);
-                }
+        }
 
         public bool IsTimedEffectActive(TimedEffectInfo effectInfo)
         {

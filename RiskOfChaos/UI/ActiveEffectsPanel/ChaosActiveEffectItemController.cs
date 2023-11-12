@@ -71,8 +71,11 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             {
                 return _displayingEffect;
             }
-            private set
+            set
             {
+                if (_displayingEffect == value)
+                    return;
+
                 _displayingEffect = value;
                 updateEffectLabel();
             }
