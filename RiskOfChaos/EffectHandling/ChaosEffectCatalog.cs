@@ -9,6 +9,7 @@ using RiskOfOptions.Options;
 using RoR2;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -55,6 +56,8 @@ namespace RiskOfChaos.EffectHandling
         [SystemInitializer]
         static void Init()
         {
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
             _effects = HG.Reflection.SearchableAttribute.GetInstances<ChaosEffectAttribute>()
                                                         .Cast<ChaosEffectAttribute>()
                                                         .Where(attr => attr.Validate())
@@ -112,6 +115,9 @@ namespace RiskOfChaos.EffectHandling
             }
 
             Availability.MakeAvailable();
+
+            stopwatch.Stop();
+            Log.Info($"Effect catalog initialized in {stopwatch.Elapsed.TotalSeconds:F1} seconds");
         }
 
         static void checkFindEffectIndex()
