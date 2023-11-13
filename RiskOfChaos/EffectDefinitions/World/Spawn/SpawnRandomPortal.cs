@@ -35,7 +35,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         public override void OnStart()
         {
-            DirectorPlacementRule placementRule = SpawnUtils.GetPlacementRule_AtRandomPlayerNearestNode(new Xoroshiro128Plus(RNG.nextUlong));
+            DirectorPlacementRule placementRule = SpawnUtils.GetPlacementRule_AtRandomPlayerNearestNode(new Xoroshiro128Plus(RNG.nextUlong), 0f, float.PositiveInfinity);
             DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(getItemToSpawn(_spawnCards, RNG), placementRule, new Xoroshiro128Plus(RNG.nextUlong));
 
             spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());

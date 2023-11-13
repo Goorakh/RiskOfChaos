@@ -72,10 +72,13 @@
   * Fixed trishops having items rerolled after being purchased
 
 * Spawn Random Interactable:
-  * Fixed interactables being able to spawn inside occupied nodes.
+  * Fixed interactables being able to spawn in occupied nodes (inside already spawned objects).
+
+* Spawn Random Portal:
+  * Fixed portals being able to spawn in occupied nodes.
 
 * Spawn Jump Pad:
-  * Fixed jump pads being able to be spawned inside other interactables
+  * Fixed jump pads being able to be spawned in occupied nodes
   * Fixed jump pads not aligning properly to the ground they spawn on
 
 * Loose Pockets:
