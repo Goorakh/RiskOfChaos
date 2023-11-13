@@ -2,16 +2,30 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RoR2;
+using RoR2.Navigation;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("spawn_geyser")]
-    public sealed class SpawnGeyser : GenericSpawnEffect<GameObject>
+    public sealed class SpawnGeyser : GenericDirectorSpawnEffect<InteractableSpawnCard>
     {
-        static readonly SpawnEntry[] _spawnEntries = NetPrefabs.GeyserPrefabs.Select(p => new SpawnEntry(p, 1f)).ToArray();
+        static readonly SpawnCardEntry[] _spawnEntries = NetPrefabs.GeyserPrefabs.Select(p =>
+        {
+            InteractableSpawnCard spawnCard = ScriptableObject.CreateInstance<InteractableSpawnCard>();
+
+            spawnCard.name = $"sc{p.name}";
+            spawnCard.prefab = p;
+            spawnCard.sendOverNetwork = true;
+            spawnCard.hullSize = HullClassification.Human;
+            spawnCard.nodeGraphType = MapNodeGroup.GraphType.Ground;
+            spawnCard.occupyPosition = true;
+
+            spawnCard.orientToFloor = true;
+
+            return new SpawnCardEntry(spawnCard, 1f);
+        }).ToArray();
 
         [EffectCanActivate]
         static bool CanActivate()
@@ -21,31 +35,43 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         public override void OnStart()
         {
-            GameObject geyserPrefab = getItemToSpawn(_spawnEntries, RNG);
+            InteractableSpawnCard geyserSpawnCard = getItemToSpawn(_spawnEntries, RNG);
 
             foreach (CharacterBody body in PlayerUtils.GetAllPlayerBodies(true))
             {
                 DirectorPlacementRule placementRule = new DirectorPlacementRule
                 {
                     position = body.footPosition,
-                    placementMode = DirectorPlacementRule.PlacementMode.NearestNode
+                    minDistance = 0f,
+                    maxDistance = float.PositiveInfinity,
+                    placementMode = SpawnUtils.ExtraPlacementModes.NearestNodeWithConditions
                 };
 
-                GameObject geyser = GameObject.Instantiate(geyserPrefab);
-                geyser.transform.position = placementRule.EvaluateToPosition(RNG);
+                DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(geyserSpawnCard, placementRule, new Xoroshiro128Plus(RNG.nextUlong));
 
-                JumpVolume jumpVolume = geyser.GetComponentInChildren<JumpVolume>();
-                if (jumpVolume)
+                Xoroshiro128Plus geyserRNG = new Xoroshiro128Plus(RNG.nextUlong);
+                spawnRequest.onSpawnedServer = result =>
                 {
-                    const float MAX_DEVIATION = 50f;
+                    if (!result.success || !result.spawnedInstance)
+                        return;
 
-                    Quaternion deviation = Quaternion.AngleAxis(RNG.RangeFloat(-MAX_DEVIATION, MAX_DEVIATION), Vector3.right) *
-                                           Quaternion.AngleAxis(RNG.RangeFloat(-180f, 180f), Vector3.up);
+                    JumpVolume jumpVolume = result.spawnedInstance.GetComponentInChildren<JumpVolume>();
+                    if (jumpVolume)
+                    {
+                        const float MAX_DEVIATION = 50f;
 
-                    jumpVolume.jumpVelocity = deviation * (Vector3.up * RNG.RangeFloat(30f, 90f));
-                }
+                        Quaternion deviation = Quaternion.AngleAxis(geyserRNG.RangeFloat(-MAX_DEVIATION, MAX_DEVIATION), Vector3.right) *
+                                               Quaternion.AngleAxis(geyserRNG.RangeFloat(-180f, 180f), Vector3.up);
 
-                NetworkServer.Spawn(geyser);
+                        jumpVolume.jumpVelocity = deviation * (Vector3.up * geyserRNG.RangeFloat(30f, 90f));
+                    }
+                };
+
+                spawnRequest.SpawnWithFallbackPlacement(new DirectorPlacementRule
+                {
+                    position = body.footPosition,
+                    placementMode = DirectorPlacementRule.PlacementMode.Direct
+                });
             }
         }
     }

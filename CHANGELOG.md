@@ -71,6 +71,10 @@
 * All Items Are A Random Item:
   * Fixed trishops having items rerolled after being purchased
 
+* Spawn Jump Pad:
+  * Fixed jump pads being able to be spawned inside other interactables
+  * Fixed jump pads not aligning properly to the ground they spawn on
+
 * Loose Pockets:
   * Default duration: 20s -> 10s
 

@@ -199,13 +199,16 @@ namespace RiskOfChaos
                     GameObject geyserPrefab = Addressables.LoadAssetAsync<GameObject>(_geyserPrefabPaths[i]).WaitForCompletion();
                     string prefabName = geyserPrefab.name;
 
-                    GameObject tmpNetworkGeyserPrefab = GameObject.Instantiate(geyserPrefab);
+                    GameObject geyserHolderPrefab = new GameObject(Main.PluginGUID + "_Networked" + prefabName);
+                    GameObject geyser = GameObject.Instantiate(geyserPrefab);
+                    geyser.transform.SetParent(geyserHolderPrefab.transform, true);
+                    geyser.transform.localPosition = Vector3.zero;
 
-                    tmpNetworkGeyserPrefab.AddComponent<NetworkIdentity>();
-                    tmpNetworkGeyserPrefab.AddComponent<SyncJumpVolumeVelocity>();
-                    GeyserPrefabs[i] = tmpNetworkGeyserPrefab.InstantiateClone(Main.PluginGUID + "_Networked" + prefabName, true);
+                    geyserHolderPrefab.AddComponent<NetworkIdentity>();
+                    geyserHolderPrefab.AddComponent<SyncJumpVolumeVelocity>();
+                    GeyserPrefabs[i] = geyserHolderPrefab.InstantiateClone(Main.PluginGUID + "_Networked" + prefabName, true);
 
-                    GameObject.Destroy(tmpNetworkGeyserPrefab);
+                    GameObject.Destroy(geyserHolderPrefab);
                 }
             }
 
