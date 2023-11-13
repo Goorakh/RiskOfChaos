@@ -89,7 +89,7 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
                     return false;
 
                 EntityStateMachine bodyStateMachine = EntityStateMachine.FindByCustomName(body.gameObject, "Body");
-                if (!bodyStateMachine || !bodyStateMachine.IsInMainState() && !bodyStateMachine.CurrentStateInheritsFrom(typeof(BaseCharacterMain)))
+                if (!bodyStateMachine || (!bodyStateMachine.IsInMainState() && !bodyStateMachine.CurrentStateInheritsFrom(typeof(BaseCharacterMain))))
                     return false;
 
                 return true;
@@ -117,7 +117,7 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
                     moveSpeed *= body.sprintingSpeedMultiplier;
 
                 float unscaledMultiplier = velocity / moveSpeed;
-                float scaledMultiplier = TIME_SCALE_COEFFICIENT * unscaledMultiplier + MIN_TIME_SCALE_MULTIPLIER;
+                float scaledMultiplier = (TIME_SCALE_COEFFICIENT * unscaledMultiplier) + MIN_TIME_SCALE_MULTIPLIER;
 
                 return Mathf.Clamp(scaledMultiplier, MIN_TIME_SCALE_MULTIPLIER, MAX_TIME_SCALE_MULTIPLIER);
             }

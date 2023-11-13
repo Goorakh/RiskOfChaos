@@ -18,7 +18,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
             public int NumVotes
             {
-                get
+                readonly get
                 {
                     return _numVotes;
                 }

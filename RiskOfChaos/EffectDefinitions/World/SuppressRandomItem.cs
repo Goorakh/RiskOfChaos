@@ -144,17 +144,13 @@ namespace RiskOfChaos.EffectDefinitions.World
             if (!itemDef)
                 return ItemIndex.None;
 
-            switch (itemDef.tier)
+            return itemDef.tier switch
             {
-                case ItemTier.Tier1:
-                    return DLC1Content.Items.ScrapWhiteSuppressed.itemIndex;
-                case ItemTier.Tier2:
-                    return DLC1Content.Items.ScrapGreenSuppressed.itemIndex;
-                case ItemTier.Tier3:
-                    return DLC1Content.Items.ScrapRedSuppressed.itemIndex;
-                default:
-                    return ItemIndex.None;
-            }
+                ItemTier.Tier1 => DLC1Content.Items.ScrapWhiteSuppressed.itemIndex,
+                ItemTier.Tier2 => DLC1Content.Items.ScrapGreenSuppressed.itemIndex,
+                ItemTier.Tier3 => DLC1Content.Items.ScrapRedSuppressed.itemIndex,
+                _ => ItemIndex.None,
+            };
         }
 
         public override void OnStart()

@@ -24,22 +24,22 @@ namespace RiskOfChaos.Networking.Components
                 StolenItemCount = stolenItemCount;
             }
 
-            public override bool Equals(object obj)
+            public override readonly bool Equals(object obj)
             {
                 return obj is InventoryInfo info && Equals(info);
             }
 
-            public bool Equals(InventoryInfo other)
+            public readonly bool Equals(InventoryInfo other)
             {
                 return EqualityComparer<Inventory>.Default.Equals(Inventory, other.Inventory) &&
                        StolenItemCount == other.StolenItemCount;
             }
 
-            public override int GetHashCode()
+            public override readonly int GetHashCode()
             {
                 int hashCode = 1658819947;
-                hashCode = hashCode * -1521134295 + EqualityComparer<Inventory>.Default.GetHashCode(Inventory);
-                hashCode = hashCode * -1521134295 + StolenItemCount.GetHashCode();
+                hashCode = (hashCode * -1521134295) + EqualityComparer<Inventory>.Default.GetHashCode(Inventory);
+                hashCode = (hashCode * -1521134295) + StolenItemCount.GetHashCode();
                 return hashCode;
             }
 
