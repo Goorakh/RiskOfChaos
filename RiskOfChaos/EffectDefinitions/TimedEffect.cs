@@ -10,10 +10,9 @@ namespace RiskOfChaos.EffectDefinitions
         public bool IsNetDirty;
 
         public TimedEffectType TimedType { get; internal set; }
-        public float DurationSeconds { get; internal set; } = -1f;
 
-        float _effectStartTime;
-        public float TimeStarted => _effectStartTime;
+        public float DurationSeconds { get; internal set; } = -1f;
+        public float TimeStarted { get; private set; }
 
         public float TimeElapsed
         {
@@ -26,7 +25,7 @@ namespace RiskOfChaos.EffectDefinitions
                     return 0f;
                 }
 
-                return run.GetRunTime(RunTimerType.Realtime) - _effectStartTime;
+                return run.GetRunTime(RunTimerType.Realtime) - TimeStarted;
             }
         }
 
@@ -42,38 +41,37 @@ namespace RiskOfChaos.EffectDefinitions
 
                 return DurationSeconds - TimeElapsed;
             }
-        }
-
-        public void SetTimeRemaining(float newTimeRemaining)
-        {
-            if (!NetworkServer.active)
+            set
             {
-                Log.Warning("Called on client");
-                return;
-            }
+                if (!NetworkServer.active)
+                {
+                    Log.Warning("Called on client");
+                    return;
+                }
 
-            if (TimedType != TimedEffectType.FixedDuration)
-            {
-                Log.Error("Cannot set time remaining on non-fixed duration effect");
-                return;
-            }
+                if (DurationSeconds < 0f)
+                {
+                    Log.Warning($"Cannot set time remaining for effect {this}, no duration specified");
+                    return;
+                }
 
-            DurationSeconds = TimeElapsed + newTimeRemaining;
-            IsNetDirty = true;
+                DurationSeconds = TimeElapsed + value;
+                IsNetDirty = true;
+            }
         }
 
         public override void OnPreStartServer()
         {
             base.OnPreStartServer();
 
-            _effectStartTime = Run.instance.GetRunTime(RunTimerType.Realtime);
+            TimeStarted = Run.instance.GetRunTime(RunTimerType.Realtime);
         }
 
         public override void Serialize(NetworkWriter writer)
         {
             base.Serialize(writer);
 
-            writer.Write(_effectStartTime);
+            writer.Write(TimeStarted);
 
             writer.Write((byte)TimedType);
             if (TimedType == TimedEffectType.FixedDuration)
@@ -86,7 +84,7 @@ namespace RiskOfChaos.EffectDefinitions
         {
             base.Deserialize(reader);
 
-            _effectStartTime = reader.ReadSingle();
+            TimeStarted = reader.ReadSingle();
 
             TimedType = (TimedEffectType)reader.ReadByte();
 
