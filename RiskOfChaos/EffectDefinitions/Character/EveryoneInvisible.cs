@@ -1,33 +1,22 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
-using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
+﻿using RiskOfChaos.EffectDefinitions.Character.Buff;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RoR2;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("everyone_invisible", 30f, AllowDuplicates = false)]
-    public sealed class EveryoneInvisible : TimedEffect
+    public sealed class EveryoneInvisible : ApplyBuffEffect
     {
-        public override void OnStart()
+        [EffectCanActivate]
+        static bool CanActivate()
         {
-            CharacterBody.readOnlyInstancesList.TryDo(handleBody, FormatUtils.GetBestBodyName);
-
-            CharacterBody.onBodyStartGlobal += handleBody;
+            return canSelectBuff(RoR2Content.Buffs.Cloak.buffIndex);
         }
 
-        public override void OnEnd()
+        protected override BuffIndex getBuffIndexToApply()
         {
-            CharacterBody.onBodyStartGlobal -= handleBody;
-
-            CharacterBody.readOnlyInstancesList.TryDo(body =>
-            {
-                body.RemoveBuff(RoR2Content.Buffs.Cloak);
-            }, FormatUtils.GetBestBodyName);
-        }
-
-        void handleBody(CharacterBody body)
-        {
-            body.AddBuff(RoR2Content.Buffs.Cloak);
+            return RoR2Content.Buffs.Cloak.buffIndex;
         }
     }
 }
