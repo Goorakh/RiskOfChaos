@@ -35,10 +35,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
                                         return;
 
-                                    foreach (IncreaseKnockback effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<IncreaseKnockback>())
-                                    {
-                                        effectInstance.OnValueDirty?.Invoke();
-                                    }
+                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseKnockback>(e => e.OnValueDirty);
                                 })
                                 .Build();
 

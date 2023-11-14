@@ -31,10 +31,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
                                         return;
 
-                                    foreach (IncreaseProcCoefficients effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<IncreaseProcCoefficients>())
-                                    {
-                                        effectInstance.OnValueDirty?.Invoke();
-                                    }
+                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseProcCoefficients>(e => e.OnValueDirty);
                                 })
                                 .Build();
 

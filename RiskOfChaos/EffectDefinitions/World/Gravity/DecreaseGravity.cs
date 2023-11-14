@@ -30,10 +30,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
                                         return;
 
-                                    foreach (DecreaseGravity effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<DecreaseGravity>())
-                                    {
-                                        effectInstance.OnValueDirty?.Invoke();
-                                    }
+                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<DecreaseGravity>(e => e.OnValueDirty);
                                 })
                                 .Build();
 

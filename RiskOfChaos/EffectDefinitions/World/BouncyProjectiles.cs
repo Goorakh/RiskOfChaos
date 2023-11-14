@@ -45,10 +45,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
                 return;
 
-            foreach (BouncyProjectiles effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<BouncyProjectiles>())
-            {
-                effectInstance.OnValueDirty?.Invoke();
-            }
+            TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<BouncyProjectiles>(e => e.OnValueDirty);
         }
 
         [EffectCanActivate]

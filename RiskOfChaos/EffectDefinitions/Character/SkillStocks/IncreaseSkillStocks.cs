@@ -29,10 +29,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.SkillStocks
                                   if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
                                       return;
 
-                                  foreach (IncreaseSkillStocks instance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<IncreaseSkillStocks>())
-                                  {
-                                      instance.OnValueDirty?.Invoke();
-                                  }
+                                  TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseSkillStocks>(e => e.OnValueDirty);
                               })
                               .Build();
 

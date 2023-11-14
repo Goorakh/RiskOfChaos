@@ -30,10 +30,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
                                         return;
 
-                                    foreach (IncreaseSkillCooldowns activeInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<IncreaseSkillCooldowns>())
-                                    {
-                                        activeInstance?.OnValueDirty?.Invoke();
-                                    }
+                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseSkillCooldowns>(e => e.OnValueDirty);
                                 })
                                 .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                 .Build();

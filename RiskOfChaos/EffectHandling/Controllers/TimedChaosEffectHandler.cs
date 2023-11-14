@@ -373,6 +373,15 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
+        public void InvokeEventOnAllInstancesOfEffect<TEffect>(Func<TEffect, Action> eventGetter) where TEffect : TimedEffect
+        {
+            foreach (TEffect effectInstance in GetActiveEffectInstancesOfType<TEffect>())
+            {
+                Action action = eventGetter(effectInstance);
+                action?.Invoke();
+            }
+        }
+
         [ConCommand(commandName = "roc_end_all_effects", flags = ConVarFlags.SenderMustBeServer, helpText = "Ends all active timed effects")]
         static void CCEndAllTimedEffects(ConCommandArgs args)
         {

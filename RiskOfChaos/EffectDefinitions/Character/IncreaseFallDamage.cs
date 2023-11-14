@@ -33,10 +33,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
                                         return;
 
-                                    foreach (IncreaseFallDamage effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<IncreaseFallDamage>())
-                                    {
-                                        effectInstance.OnValueDirty?.Invoke();
-                                    }
+                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseFallDamage>(e => e.OnValueDirty);
                                 })
                                 .Build();
 

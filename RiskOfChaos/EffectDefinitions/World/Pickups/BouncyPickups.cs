@@ -28,10 +28,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                                   if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
                                       return;
 
-                                  foreach (BouncyPickups effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<BouncyPickups>())
-                                  {
-                                      effectInstance.OnValueDirty?.Invoke();
-                                  }
+                                  TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<BouncyPickups>(e => e.OnValueDirty);
                               })
                               .Build();
 

@@ -30,10 +30,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
                                         return;
 
-                                    foreach (DelayAttacks delayAttacks in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<DelayAttacks>())
-                                    {
-                                        delayAttacks.OnValueDirty?.Invoke();
-                                    }
+                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<DelayAttacks>(e => e.OnValueDirty);
                                 })
                                 .Build();
 

@@ -29,10 +29,7 @@ namespace RiskOfChaos.EffectDefinitions.World.ProjectileSpeed
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
                                         return;
 
-                                    foreach (DecreaseProjectileSpeed effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<DecreaseProjectileSpeed>())
-                                    {
-                                        effectInstance.OnValueDirty?.Invoke();
-                                    }
+                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<DecreaseProjectileSpeed>(e => e.OnValueDirty);
                                 })
                                 .Build();
 
