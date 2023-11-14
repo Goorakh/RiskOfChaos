@@ -10,6 +10,7 @@ using RiskOfChaos.Utilities.ParsedValueHolders.ParsedList;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -20,6 +21,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
     {
         static bool _dropTableDirty = false;
         static BasicPickupDropTable _dropTable;
+
+        static void markDropTableDirty()
+        {
+            _dropTableDirty = true;
+        }
 
         [EffectConfig]
         static readonly ConfigHolder<int> _itemCount =
@@ -41,13 +47,21 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                  {
                                      submitOn = InputFieldConfig.SubmitEnum.OnSubmit
                                  })
-                                 .OnValueChanged(() => _dropTableDirty = true)
+                                 .OnValueChanged(markDropTableDirty)
                                  .Build();
 
         static readonly ParsedPickupList _itemBlacklist = new ParsedPickupList(PickupIndexComparer.Instance)
         {
             ConfigHolder = _itemBlacklistConfig
         };
+
+        [EffectConfig]
+        static readonly ConfigHolder<bool> _applyAIBlacklist =
+            ConfigFactory<bool>.CreateConfig("Apply AI Blacklist", true)
+                               .Description("If the effect should apply enemy item blacklist rules to the items it gives")
+                               .OptionConfig(new CheckBoxConfig())
+                               .OnValueChanged(markDropTableDirty)
+                               .Build();
 
         static ConfigHolder<float> createWeightConfig(string name, float defaultValue)
         {
@@ -61,7 +75,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                            increment = 0.05f
                                        })
                                        .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
-                                       .OnValueChanged(() => _dropTableDirty = true)
+                                       .OnValueChanged(markDropTableDirty)
                                        .Build();
         }
 
@@ -100,6 +114,30 @@ namespace RiskOfChaos.EffectDefinitions.Character
             _dropTable.voidTier3Weight = _voidTier3Weight.Value;
             _dropTable.voidBossWeight = _voidBossWeight.Value;
 
+            List<ItemTag> bannedItemTags = new List<ItemTag>();
+
+            if (_applyAIBlacklist.Value)
+            {
+                bannedItemTags.AddRange(new ItemTag[]
+                {
+                    ItemTag.AIBlacklist,
+                    ItemTag.Scrap,
+                    ItemTag.CannotCopy,
+                    ItemTag.PriorityScrap
+                });
+            }
+
+            _dropTable.bannedItemTags = bannedItemTags.Distinct().ToArray();
+
+#if DEBUG
+            IEnumerable<ItemIndex> blacklistedItems = bannedItemTags.SelectMany(t => ItemCatalog.GetItemsWithTag(t))
+                                                                    .Concat(ItemCatalog.allItems.Where(i => isBlacklisted(PickupCatalog.FindPickupIndex(i))))
+                                                                    .Distinct()
+                                                                    .OrderBy(i => i);
+
+            Log.Debug($"Excluded items: [{string.Join(", ", blacklistedItems.Select(FormatUtils.GetBestItemDisplayName))}]");
+#endif
+
             // If this is done mid-run, Regenerate has to be called, since it's only done by the game on run start
             Run run = Run.instance;
             if (run)
@@ -110,6 +148,27 @@ namespace RiskOfChaos.EffectDefinitions.Character
             }
 
             _dropTableDirty = false;
+        }
+
+        static bool isBlacklisted(PickupIndex pickupIndex)
+        {
+            if (_itemBlacklist.Contains(pickupIndex))
+                return true;
+
+            if (_applyAIBlacklist.Value)
+            {
+                PickupDef pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
+                if (pickupDef is not null)
+                {
+                    ItemIndex itemIndex = pickupDef.itemIndex;
+
+                    // Eulogy Zero
+                    if (itemIndex == DLC1Content.Items.RandomlyLunar.itemIndex)
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         [SystemInitializer]
@@ -129,7 +188,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 for (int i = selector.Count - 1; i >= 0; i--)
                 {
                     PickupIndex pickupIndex = selector.GetChoice(i).value;
-                    if (_itemBlacklist.Contains(pickupIndex))
+                    if (isBlacklisted(pickupIndex))
                     {
 #if DEBUG
                         Log.Debug($"Removing {pickupIndex} from droptable: Blacklist");
@@ -140,7 +199,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                 void tryAddPickup(PickupIndex pickup, float weight)
                 {
-                    if (!_itemBlacklist.Contains(pickup))
+                    if (!isBlacklisted(pickup))
                     {
                         self.AddPickupIfMissing(pickup, weight);
                     }
