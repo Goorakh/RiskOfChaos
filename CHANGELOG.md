@@ -75,6 +75,7 @@
 
 * All Items Are A Random Item:
   * Fixed trishops having items rerolled after being purchased
+  * Fixed being able to use Artifact of Command to get around the forced item
 
 * Spawn Random Interactable:
   * Fixed interactables being able to spawn in occupied nodes (inside already spawned objects).
