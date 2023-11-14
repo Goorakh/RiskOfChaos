@@ -2,8 +2,10 @@
 
 **?.?.? Changes:**
 
-* Added 1 new effect:
+* Added 3 new effects:
   * Bouncy Items: Item drops will bounce on the ground before settling, lasts 60 seconds
+  * Increase Skill Charges: Adds 1 charge to every skill, lasts 1 stage
+  * Decrease Skill Charges: Removes 1 charge to every skill (cannot reduce below 1), lasts 1 stage
 
 * Effect selection:
   * Added effect seeding option

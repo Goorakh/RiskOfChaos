@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 
 #pragma warning disable CS0652 // Comparison to integral constant is useless; the constant is outside the range of the type
 
@@ -40,6 +41,18 @@ namespace RiskOfChaos.Utilities
                 return uint.MinValue;
 
             return (uint)value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static sbyte Int8(int value)
+        {
+            if (value > sbyte.MaxValue)
+                return sbyte.MaxValue;
+
+            if (value < sbyte.MinValue)
+                return sbyte.MinValue;
+
+            return (sbyte)value;
         }
     }
 }

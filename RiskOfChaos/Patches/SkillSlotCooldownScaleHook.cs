@@ -15,13 +15,10 @@ namespace RiskOfChaos.Patches
 
         static float getCooldownScale(SkillSlot skillSlot)
         {
-            if (skillSlot < 0 || skillSlot >= (SkillSlot)SkillSlotModificationManager.SKILL_SLOT_COUNT)
-                return 1f;
-
             if (!SkillSlotModificationManager.Instance)
                 return 1f;
 
-            return SkillSlotModificationManager.Instance.NetworkSkillSlotCooldownScales[(int)skillSlot];
+            return SkillSlotModificationManager.Instance.GetCooldownScale(skillSlot);
         }
 
         static float getCooldownScale(GenericSkill skill)
