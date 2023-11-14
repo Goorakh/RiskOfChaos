@@ -375,6 +375,9 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         public void InvokeEventOnAllInstancesOfEffect<TEffect>(Func<TEffect, Action> eventGetter) where TEffect : TimedEffect
         {
+            if (eventGetter is null)
+                throw new ArgumentNullException(nameof(eventGetter));
+
             foreach (TEffect effectInstance in GetActiveEffectInstancesOfType<TEffect>())
             {
                 Action action = eventGetter(effectInstance);
