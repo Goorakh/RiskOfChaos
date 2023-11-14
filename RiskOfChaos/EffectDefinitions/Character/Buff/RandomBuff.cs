@@ -6,6 +6,7 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.CatalogIndexCollection;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
@@ -29,6 +30,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                               })
                               .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
                               .Build();
+
+        static uint configStackCount => ClampedConversion.UInt32(_stackableBuffCount.Value);
 
         static bool _hasAppliedPatches = false;
         static void tryApplyPatches()
@@ -223,7 +226,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             tryApplyPatches();
 
             BuffDef buffDef = BuffCatalog.GetBuffDef(_buffIndex);
-            buffCount = buffDef && buffDef.canStack ? _stackableBuffCount.Value : 1;
+            _buffCount = buffDef && buffDef.canStack ? configStackCount : 1;
         }
 
 #if DEBUG
