@@ -1,9 +1,8 @@
-﻿using RiskOfChaos.EffectDefinitions.Character.Buff;
-using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RoR2;
 
-namespace RiskOfChaos.EffectDefinitions.Character
+namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
     [ChaosTimedEffect("everyone_invisible", 30f, AllowDuplicates = false)]
     public sealed class EveryoneInvisible : ApplyBuffEffect

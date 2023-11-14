@@ -1,11 +1,10 @@
 ﻿using RiskOfChaos.Content;
-using RiskOfChaos.EffectDefinitions.Character.Buff;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RoR2;
 
-namespace RiskOfChaos.EffectDefinitions.Character
+namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
     [ChaosTimedEffect("everyone_1hp", 30f, AllowDuplicates = false)]
     public sealed class Everyone1Hp : ApplyBuffEffect
