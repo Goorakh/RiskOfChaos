@@ -26,6 +26,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                               })
                               .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
                               .Build();
+
         static uint configStackCount => ClampedConversion.UInt32(_stackableDebuffCount.Value);
 
         static readonly BuffIndexCollection _debuffBlacklist = new BuffIndexCollection(new string[]
