@@ -87,6 +87,9 @@
   * Fixed jump pads being able to be spawned in occupied nodes
   * Fixed jump pads not aligning properly to the ground they spawn on
 
+* You and a super intelligent Lemurian...:
+  * Gave Leonard his allowance
+
 * Loose Pockets:
   * Default duration: 20s -> 10s
 

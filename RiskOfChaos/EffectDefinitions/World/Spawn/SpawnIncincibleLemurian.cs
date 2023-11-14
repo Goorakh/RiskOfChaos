@@ -5,6 +5,7 @@ using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.CharacterAI;
 using System;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
@@ -56,6 +57,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     {
                         baseAI.fullVision = true;
                         baseAI.neverRetaliateFriendlies = true;
+                    }
+                }
+
+                GameObject bodyObject = characterMaster.GetBodyObject();
+                if (bodyObject)
+                {
+                    if (bodyObject.TryGetComponent(out DeathRewards deathRewards))
+                    {
+                        deathRewards.goldReward = 1_000_000;
+                        deathRewards.spawnValue = int.MaxValue;
                     }
                 }
             };
