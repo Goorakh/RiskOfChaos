@@ -18,6 +18,11 @@ namespace RiskOfChaos.EffectDefinitions
 
         public TimedEffectType TimedType { get; internal set; }
 
+        public bool MatchesFlag(TimedEffectFlags flags)
+        {
+            return (flags & (TimedEffectFlags)(1 << (byte)TimedType)) != 0;
+        }
+
         public float DurationSeconds { get; internal set; } = -1f;
         public float TimeStarted { get; private set; }
 

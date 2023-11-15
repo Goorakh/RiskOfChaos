@@ -31,11 +31,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         readonly record struct ActiveTimedEffectInfo(TimedEffect EffectInstance, ChaosEffectDispatchArgs DispatchArgs)
         {
-            public readonly bool MatchesFlag(TimedEffectFlags flags)
-            {
-                return (flags & (TimedEffectFlags)(1 << (byte)EffectInstance.TimedType)) != 0;
-            }
-
             public readonly void End(bool sendClientMessage = true)
             {
                 try
@@ -112,7 +107,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 for (int i = _activeTimedEffects.Count - 1; i >= 0; i--)
                 {
                     ActiveTimedEffectInfo timedEffectInfo = _activeTimedEffects[i];
-                    if (timedEffectInfo.MatchesFlag(TimedEffectFlags.FixedDuration))
+                    if (timedEffectInfo.EffectInstance.MatchesFlag(TimedEffectFlags.FixedDuration))
                     {
                         if (timedEffectInfo.EffectInstance.TimeRemaining <= 0f)
                         {
@@ -233,7 +228,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         {
             foreach (ActiveTimedEffectInfo activeTimedEffectInfo in getActiveTimedEffectsFor(effectInfo))
             {
-                if (!activeTimedEffectInfo.MatchesFlag(TimedEffectFlags.FixedDuration) ||
+                if (!activeTimedEffectInfo.EffectInstance.MatchesFlag(TimedEffectFlags.FixedDuration) ||
                     activeTimedEffectInfo.EffectInstance.TimeRemaining > context.Delay)
                 {
                     return true;
@@ -269,7 +264,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             for (int i = _activeTimedEffects.Count - 1; i >= 0; i--)
             {
                 ActiveTimedEffectInfo timedEffect = _activeTimedEffects[i];
-                if (timedEffect.MatchesFlag(flags))
+                if (timedEffect.EffectInstance.MatchesFlag(flags))
                 {
 #if DEBUG
                     Log.Debug($"Ending timed effect matching flags {flags}: {timedEffect.EffectInstance.EffectInfo} (ID={timedEffect.EffectInstance.DispatchID})");
