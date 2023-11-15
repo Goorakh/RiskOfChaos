@@ -196,27 +196,27 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void onEffectAboutToDispatchServer(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs args, ref bool willStart)
         {
-            if (willStart)
+            if (!willStart)
+                return;
+            
+            for (int i = _activeTimedEffects.Count - 1; i >= 0; i--)
             {
-                for (int i = _activeTimedEffects.Count - 1; i >= 0; i--)
+                TimedEffectInfo activeEffectInfo = _activeTimedEffects[i].EffectInstance.EffectInfo;
+                if (effectInfo.IncompatibleEffects.Contains(activeEffectInfo) || activeEffectInfo.IncompatibleEffects.Contains(effectInfo))
                 {
-                    TimedEffectInfo activeEffectInfo = _activeTimedEffects[i].EffectInstance.EffectInfo;
-                    if (effectInfo.IncompatibleEffects.Contains(activeEffectInfo) || activeEffectInfo.IncompatibleEffects.Contains(effectInfo))
-                    {
 #if DEBUG
-                        Log.Debug($"Ending timed effect {activeEffectInfo} (ID={_activeTimedEffects[i].EffectInstance.DispatchID}) due to: incompatible effect about to start ({effectInfo})");
+                    Log.Debug($"Ending timed effect {activeEffectInfo} (ID={_activeTimedEffects[i].EffectInstance.DispatchID}) due to: incompatible effect about to start ({effectInfo})");
 #endif
-                        endTimedEffectAtIndex(i, true);
-                    }
+                    endTimedEffectAtIndex(i, true);
                 }
+            }
 
-                if (effectInfo is TimedEffectInfo timedEffect && !timedEffect.AllowDuplicates && timedEffect.TimedType == TimedEffectType.FixedDuration)
+            if (effectInfo is TimedEffectInfo timedEffect && !timedEffect.AllowDuplicates && timedEffect.TimedType == TimedEffectType.FixedDuration)
+            {
+                foreach (ActiveTimedEffectInfo activeEffects in getActiveTimedEffectsFor(timedEffect))
                 {
-                    foreach (ActiveTimedEffectInfo activeEffects in getActiveTimedEffectsFor(timedEffect))
-                    {
-                        activeEffects.EffectInstance.TimeRemaining = timedEffect.DurationSeconds;
-                        willStart = false;
-                    }
+                    activeEffects.EffectInstance.TimeRemaining = timedEffect.DurationSeconds;
+                    willStart = false;
                 }
             }
         }
