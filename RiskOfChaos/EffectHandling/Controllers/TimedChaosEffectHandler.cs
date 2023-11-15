@@ -98,7 +98,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             NetworkedEffectSetSerializedDataMessage.OnReceive += NetworkedEffectSetSerializedDataMessage_OnReceive;
 
             _effectDispatcher.OnEffectAboutToDispatchServer += onEffectAboutToDispatchServer;
-            _effectDispatcher.OnEffectDispatched += onEffectDispatched;
+            _effectDispatcher.OnEffectAboutToStart += onEffectAboutToStart;
 
             Stage.onServerStageComplete += onServerStageComplete;
 
@@ -156,7 +156,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             NetworkedEffectSetSerializedDataMessage.OnReceive -= NetworkedEffectSetSerializedDataMessage_OnReceive;
 
             _effectDispatcher.OnEffectAboutToDispatchServer -= onEffectAboutToDispatchServer;
-            _effectDispatcher.OnEffectDispatched -= onEffectDispatched;
+            _effectDispatcher.OnEffectAboutToStart -= onEffectAboutToStart;
 
             Stage.onServerStageComplete -= onServerStageComplete;
 
@@ -225,7 +225,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        void onEffectDispatched(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs dispatchArgs, BaseEffect effectInstance)
+        void onEffectAboutToStart(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs dispatchArgs, BaseEffect effectInstance)
         {
             if (effectInfo is TimedEffectInfo timedEffectInfo && effectInstance is TimedEffect timedEffectInstance)
             {
@@ -309,8 +309,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 OnTimedEffectEndServer?.Invoke(timedEffect.EffectInstance.DispatchID);
             }
 
-            timedEffect.End(sendClientMessage);
             _activeTimedEffects.RemoveAt(index);
+            timedEffect.End(sendClientMessage);
         }
 
         void NetworkedTimedEffectEndMessage_OnReceive(ulong effectDispatchID)

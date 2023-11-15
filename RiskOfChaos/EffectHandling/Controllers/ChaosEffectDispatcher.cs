@@ -22,6 +22,9 @@ namespace RiskOfChaos.EffectHandling.Controllers
         public delegate void EffectDispatchedDelegate(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs args, BaseEffect effectInstance);
         public event EffectDispatchedDelegate OnEffectDispatched;
 
+        public delegate void EffectPreStartDelegate(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs args, BaseEffect effectInstance);
+        public event EffectPreStartDelegate OnEffectAboutToStart;
+
         public delegate void EffectAboutToDispatchDelegate(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs args, ref bool willStart);
         public event EffectAboutToDispatchDelegate OnEffectAboutToDispatchServer;
 
@@ -397,6 +400,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void startEffect(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs args, BaseEffect effectInstance)
         {
+            OnEffectAboutToStart?.Invoke(effectInfo, args, effectInstance);
+
             try
             {
                 effectInstance.OnStart();
