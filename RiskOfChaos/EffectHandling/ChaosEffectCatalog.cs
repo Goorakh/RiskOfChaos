@@ -35,6 +35,7 @@ namespace RiskOfChaos.EffectHandling
         public static ReadOnlyArray<TimedEffectInfo> AllTimedEffects { get; private set; }
 
         static readonly Dictionary<string, ChaosEffectIndex> _effectIndexByNameToken = new Dictionary<string, ChaosEffectIndex>();
+        static readonly Dictionary<Type, ChaosEffectIndex> _effectIndexByType = new Dictionary<Type, ChaosEffectIndex>();
 
         static int _effectCount;
         public static int EffectCount => _effectCount;
@@ -79,6 +80,15 @@ namespace RiskOfChaos.EffectHandling
                 else
                 {
                     _effectIndexByNameToken.Add(effect.NameToken, effect.EffectIndex);
+                }
+
+                if (_effectIndexByType.ContainsKey(effect.EffectType))
+                {
+                    Log.Error($"Duplicate effect type: {effect.EffectType}");
+                }
+                else
+                {
+                    _effectIndexByType.Add(effect.EffectType, effect.EffectIndex);
                 }
             }
 
@@ -169,6 +179,32 @@ namespace RiskOfChaos.EffectHandling
                 return effectIndex;
 
             return ChaosEffectIndex.Invalid;
+        }
+
+        public static ChaosEffectIndex FindEffectIndexByType(Type type)
+        {
+            if (_effectIndexByType.TryGetValue(type, out ChaosEffectIndex effectIndex))
+            {
+                return effectIndex;
+            }
+            else
+            {
+                Log.Error($"{type} is not an effect type");
+                return ChaosEffectIndex.Invalid;
+            }
+        }
+
+        public static ChaosEffectInfo FindEffectInfoByType(Type type)
+        {
+            ChaosEffectIndex effectIndex = FindEffectIndexByType(type);
+            if (effectIndex != ChaosEffectIndex.Invalid)
+            {
+                return GetEffectInfo(effectIndex);
+            }
+            else
+            {
+                return null;
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

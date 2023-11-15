@@ -8,7 +8,7 @@ namespace RiskOfChaos.EffectDefinitions
     public sealed class Nothing : BaseEffect
     {
         [InitEffectInfo]
-        public static readonly ChaosEffectInfo EffectInfo;
+        public static readonly new ChaosEffectInfo EffectInfo;
 
         public override void OnStart()
         {

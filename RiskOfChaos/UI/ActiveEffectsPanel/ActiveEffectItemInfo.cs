@@ -20,19 +20,19 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         public readonly uint Version;
 
-        public ActiveEffectItemInfo(TimedEffectInfo effectInfo, TimedEffect effectInstance, uint version)
+        public ActiveEffectItemInfo(TimedEffect effectInstance, uint version)
         {
-            EffectInfo = effectInfo;
+            EffectInfo = effectInstance.EffectInfo;
             DispatchID = effectInstance.DispatchID;
 
-            DisplayName = effectInfo.GetDisplayName(EffectNameFormatFlags.RuntimeFormatArgs);
+            DisplayName = EffectInfo.GetDisplayName(EffectNameFormatFlags.RuntimeFormatArgs);
 
             TimedType = effectInstance.TimedType;
             DurationSeconds = effectInstance.DurationSeconds;
 
             TimeStarted = effectInstance.TimeStarted;
 
-            ShouldDisplay = effectInfo.ShouldDisplayOnHUD;
+            ShouldDisplay = EffectInfo.ShouldDisplayOnHUD;
 
             Version = version;
         }

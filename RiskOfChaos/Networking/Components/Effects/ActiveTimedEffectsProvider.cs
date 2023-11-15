@@ -72,9 +72,9 @@ namespace RiskOfChaos.Networking.Components.Effects
             TimedChaosEffectHandler.OnTimedEffectDirtyServer -= onTimedEffectDirtyServer;
         }
 
-        void onTimedEffectStartServer(TimedEffectInfo effectInfo, TimedEffect effectInstance)
+        void onTimedEffectStartServer(TimedEffect effectInstance)
         {
-            _activeEffects.Add(new ActiveEffectItemInfo(effectInfo, effectInstance, 0));
+            _activeEffects.Add(new ActiveEffectItemInfo(effectInstance, 0));
         }
 
         void onTimedEffectEndServer(ulong dispatchID)
@@ -89,13 +89,13 @@ namespace RiskOfChaos.Networking.Components.Effects
             }
         }
 
-        void onTimedEffectDirtyServer(TimedEffectInfo effectInfo, TimedEffect effectInstance)
+        void onTimedEffectDirtyServer(TimedEffect effectInstance)
         {
             for (int i = 0; i < _activeEffects.Count; i++)
             {
                 if (_activeEffects[i].DispatchID == effectInstance.DispatchID)
                 {
-                    _activeEffects[i] = new ActiveEffectItemInfo(effectInfo, effectInstance, _activeEffects[i].Version + 1);
+                    _activeEffects[i] = new ActiveEffectItemInfo(effectInstance, _activeEffects[i].Version + 1);
                     return;
                 }
             }

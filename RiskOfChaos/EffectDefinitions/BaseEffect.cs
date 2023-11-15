@@ -12,6 +12,13 @@ namespace RiskOfChaos.EffectDefinitions
 
         protected readonly Xoroshiro128Plus RNG = new Xoroshiro128Plus(0UL);
 
+        public readonly ChaosEffectInfo EffectInfo;
+
+        public BaseEffect()
+        {
+            EffectInfo = ChaosEffectCatalog.FindEffectInfoByType(GetType());
+        }
+
         void initializeRNG()
         {
             RNG.ResetSeed(_rngSeed);

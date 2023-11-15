@@ -19,10 +19,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
         static ChaosEffectDispatcher _instance;
         public static ChaosEffectDispatcher Instance => _instance;
 
-        public delegate void EffectDispatchedDelegate(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs args, BaseEffect effectInstance);
+        public delegate void EffectDispatchedDelegate(BaseEffect effectInstance, in ChaosEffectDispatchArgs args);
         public event EffectDispatchedDelegate OnEffectDispatched;
 
-        public delegate void EffectPreStartDelegate(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs args, BaseEffect effectInstance);
+        public delegate void EffectPreStartDelegate(BaseEffect effectInstance, in ChaosEffectDispatchArgs args);
         public event EffectPreStartDelegate OnEffectAboutToStart;
 
         public delegate void EffectAboutToDispatchDelegate(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs args, ref bool willStart);
@@ -201,7 +201,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 }
                 catch (Exception ex)
                 {
-                    Log.Error_NoCallerPrefix($"Caught exception in {effectInfo} {nameof(BaseEffect.Deserialize)}: {ex}");
+                    Log.Error_NoCallerPrefix($"Caught exception in {effectInstance.EffectInfo} {nameof(BaseEffect.Deserialize)}: {ex}");
                     Chat.AddMessage(Language.GetString("CHAOS_EFFECT_UNHANDLED_EXCEPTION_MESSAGE"));
                     return;
                 }
@@ -211,7 +211,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     new NetworkedEffectDispatchedMessage(effectInfo, args, serializedEffectData).Send(NetworkDestination.Clients);
                 }
 
-                startEffect(effectInfo, args, effectInstance);
+                startEffect(effectInstance, args);
             }
         }
 
@@ -231,12 +231,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 }
                 catch (Exception ex)
                 {
-                    Log.Error_NoCallerPrefix($"Caught exception in {effectInfo} {nameof(BaseEffect.Deserialize)}: {ex}");
+                    Log.Error_NoCallerPrefix($"Caught exception in {effectInstance.EffectInfo} {nameof(BaseEffect.Deserialize)}: {ex}");
                 }
 
                 if (!args.HasFlag(EffectDispatchFlags.DontStart))
                 {
-                    startEffect(effectInfo, args, effectInstance);
+                    startEffect(effectInstance, args);
                 }
             }
 
@@ -254,10 +254,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
             BaseEffect effectInstance = dispatchEffectFromSerializedData(effectInfo, serializedEffectData, dispatchArgs);
             if (effectInstance != null)
             {
-                startEffect(effectInfo, args, effectInstance);
+                startEffect(effectInstance, args);
 
 #if DEBUG
-                Log.Debug($"Started networked effect {effectInfo}");
+                Log.Debug($"Started networked effect {effectInstance.EffectInfo}");
 #endif
             }
         }
@@ -368,11 +368,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     }
                     catch (Exception ex)
                     {
-                        Log.Error_NoCallerPrefix($"Caught exception in {effect} {nameof(BaseEffect.OnPreStartServer)}: {ex}");
+                        Log.Error_NoCallerPrefix($"Caught exception in {effectInstance.EffectInfo} {nameof(BaseEffect.OnPreStartServer)}: {ex}");
                         Chat.AddMessage(Language.GetString("CHAOS_EFFECT_UNHANDLED_EXCEPTION_MESSAGE"));
                     }
 
-                    if (effect.IsNetworked)
+                    if (effectInstance.EffectInfo.IsNetworked)
                     {
                         NetworkWriter networkWriter = new NetworkWriter();
 
@@ -382,25 +382,25 @@ namespace RiskOfChaos.EffectHandling.Controllers
                         }
                         catch (Exception ex)
                         {
-                            Log.Error_NoCallerPrefix($"Caught exception in {effect} {nameof(BaseEffect.Serialize)}: {ex}");
+                            Log.Error_NoCallerPrefix($"Caught exception in {effectInstance.EffectInfo} {nameof(BaseEffect.Serialize)}: {ex}");
                         }
 
-                        new NetworkedEffectDispatchedMessage(effect, args, networkWriter.ToArray()).Send(NetworkDestination.Clients);
+                        new NetworkedEffectDispatchedMessage(effectInstance.EffectInfo, args, networkWriter.ToArray()).Send(NetworkDestination.Clients);
                     }
                 }
 
                 if (!args.HasFlag(EffectDispatchFlags.DontStart))
                 {
-                    startEffect(effect, args, effectInstance);
+                    startEffect(effectInstance, args);
                 }
             }
 
             return effectInstance;
         }
 
-        void startEffect(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs args, BaseEffect effectInstance)
+        void startEffect(BaseEffect effectInstance, in ChaosEffectDispatchArgs args)
         {
-            OnEffectAboutToStart?.Invoke(effectInfo, args, effectInstance);
+            OnEffectAboutToStart?.Invoke(effectInstance, args);
 
             try
             {
@@ -408,11 +408,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
             catch (Exception ex)
             {
-                Log.Error_NoCallerPrefix($"Caught exception in {effectInfo} {nameof(BaseEffect.OnStart)}: {ex}");
+                Log.Error_NoCallerPrefix($"Caught exception in {effectInstance.EffectInfo} {nameof(BaseEffect.OnStart)}: {ex}");
                 Chat.AddMessage(Language.GetString("CHAOS_EFFECT_UNHANDLED_EXCEPTION_MESSAGE"));
             }
 
-            OnEffectDispatched?.Invoke(effectInfo, args, effectInstance);
+            OnEffectDispatched?.Invoke(effectInstance, args);
         }
     }
 }

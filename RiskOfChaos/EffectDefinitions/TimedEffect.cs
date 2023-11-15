@@ -7,6 +7,13 @@ namespace RiskOfChaos.EffectDefinitions
 {
     public abstract class TimedEffect : BaseEffect
     {
+        public readonly new TimedEffectInfo EffectInfo;
+
+        public TimedEffect() : base()
+        {
+            EffectInfo = base.EffectInfo as TimedEffectInfo;
+        }
+
         public bool IsNetDirty;
 
         public TimedEffectType TimedType { get; internal set; }

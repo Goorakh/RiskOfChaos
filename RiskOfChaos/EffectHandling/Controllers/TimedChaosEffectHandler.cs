@@ -20,24 +20,20 @@ namespace RiskOfChaos.EffectHandling.Controllers
         static TimedChaosEffectHandler _instance;
         public static TimedChaosEffectHandler Instance => _instance;
 
-        public delegate void TimedEffectStartDelegate(TimedEffectInfo effectInfo, TimedEffect effectInstance);
+        public delegate void TimedEffectStartDelegate(TimedEffect effectInstance);
         public static event TimedEffectStartDelegate OnTimedEffectStartServer;
 
         public delegate void TimedEffectEndDelegate(ulong dispatchID);
         public static event TimedEffectEndDelegate OnTimedEffectEndServer;
 
-        public delegate void TimedEffectDirtyDelegate(TimedEffectInfo effectInfo, TimedEffect effectInstance);
+        public delegate void TimedEffectDirtyDelegate(TimedEffect effectInstance);
         public static event TimedEffectDirtyDelegate OnTimedEffectDirtyServer;
 
-        readonly record struct ActiveTimedEffectInfo(TimedEffectInfo EffectInfo, TimedEffect EffectInstance, TimedEffectType TimedType, ChaosEffectDispatchArgs DispatchArgs)
+        readonly record struct ActiveTimedEffectInfo(TimedEffect EffectInstance, ChaosEffectDispatchArgs DispatchArgs)
         {
-            public ActiveTimedEffectInfo(TimedEffectInfo effectInfo, TimedEffect effectInstance, ChaosEffectDispatchArgs dispatchArgs) : this(effectInfo, effectInstance, effectInstance.TimedType, dispatchArgs)
-            {
-            }
-
             public readonly bool MatchesFlag(TimedEffectFlags flags)
             {
-                return (flags & (TimedEffectFlags)(1 << (byte)TimedType)) != 0;
+                return (flags & (TimedEffectFlags)(1 << (byte)EffectInstance.TimedType)) != 0;
             }
 
             public readonly void End(bool sendClientMessage = true)
@@ -48,10 +44,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 }
                 catch (Exception ex)
                 {
-                    Log.Error_NoCallerPrefix($"Caught exception in {EffectInfo} {nameof(TimedEffect.OnEnd)}: {ex}");
+                    Log.Error_NoCallerPrefix($"Caught exception in {EffectInstance.EffectInfo} {nameof(TimedEffect.OnEnd)}: {ex}");
                 }
-
-                if (EffectInfo.IsNetworked && sendClientMessage)
+                
+                if (EffectInstance.EffectInfo.IsNetworked && sendClientMessage)
                 {
                     if (NetworkServer.active)
                     {
@@ -73,7 +69,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 }
                 catch (Exception e)
                 {
-                    Log.Error_NoCallerPrefix($"Caught exception in {EffectInfo} {nameof(BaseEffect.Serialize)}: {e}");
+                    Log.Error_NoCallerPrefix($"Caught exception in {EffectInstance.EffectInfo} {nameof(BaseEffect.Serialize)}: {e}");
                     return Array.Empty<byte>();
                 }
 
@@ -121,7 +117,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                         if (timedEffectInfo.EffectInstance.TimeRemaining <= 0f)
                         {
 #if DEBUG
-                            Log.Debug($"Ending fixed duration timed effect {timedEffectInfo.EffectInfo} (ID={timedEffectInfo.EffectInstance.DispatchID})");
+                            Log.Debug($"Ending fixed duration timed effect {timedEffectInfo.EffectInstance.EffectInfo} (ID={timedEffectInfo.EffectInstance.DispatchID})");
 #endif
 
                             endTimedEffectAtIndex(i, true);
@@ -132,15 +128,15 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     if (timedEffectInfo.EffectInstance.IsNetDirty)
                     {
 #if DEBUG
-                        Log.Debug($"Effect {timedEffectInfo.EffectInfo} (ID={timedEffectInfo.EffectInstance.DispatchID}) dirty, updating clients");
+                        Log.Debug($"Effect {timedEffectInfo.EffectInstance.EffectInfo} (ID={timedEffectInfo.EffectInstance.DispatchID}) dirty, updating clients");
 #endif
 
-                        if (timedEffectInfo.EffectInfo.IsNetworked)
+                        if (timedEffectInfo.EffectInstance.EffectInfo.IsNetworked)
                         {
                             new NetworkedEffectSetSerializedDataMessage(timedEffectInfo.EffectInstance.DispatchID, timedEffectInfo.GetSerializedData()).Send(NetworkDestination.Clients);
                         }
 
-                        OnTimedEffectDirtyServer?.Invoke(timedEffectInfo.EffectInfo, timedEffectInfo.EffectInstance);
+                        OnTimedEffectDirtyServer?.Invoke(timedEffectInfo.EffectInstance);
 
                         timedEffectInfo.EffectInstance.IsNetDirty = false;
                     }
@@ -191,7 +187,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 ActiveTimedEffects = _activeTimedEffects.Select(e => new SerializableActiveEffect
                 {
-                    Effect = new SerializableEffect(e.EffectInfo),
+                    Effect = new SerializableEffect(e.EffectInstance.EffectInfo),
                     DispatchArgs = e.DispatchArgs,
                     SerializedEffectData = e.GetSerializedData()
                 }).ToArray()
@@ -204,7 +200,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 for (int i = _activeTimedEffects.Count - 1; i >= 0; i--)
                 {
-                    TimedEffectInfo activeEffectInfo = _activeTimedEffects[i].EffectInfo;
+                    TimedEffectInfo activeEffectInfo = _activeTimedEffects[i].EffectInstance.EffectInfo;
                     if (effectInfo.IncompatibleEffects.Contains(activeEffectInfo) || activeEffectInfo.IncompatibleEffects.Contains(effectInfo))
                     {
 #if DEBUG
@@ -225,11 +221,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        void onEffectAboutToStart(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs dispatchArgs, BaseEffect effectInstance)
+        void onEffectAboutToStart(BaseEffect effectInstance, in ChaosEffectDispatchArgs dispatchArgs)
         {
-            if (effectInfo is TimedEffectInfo timedEffectInfo && effectInstance is TimedEffect timedEffectInstance)
+            if (effectInstance is TimedEffect timedEffectInstance)
             {
-                registerTimedEffect(new ActiveTimedEffectInfo(timedEffectInfo, timedEffectInstance, dispatchArgs));
+                registerTimedEffect(new ActiveTimedEffectInfo(timedEffectInstance, dispatchArgs));
             }
         }
 
@@ -276,7 +272,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 if (timedEffect.MatchesFlag(flags))
                 {
 #if DEBUG
-                    Log.Debug($"Ending timed effect matching flags {flags}: {timedEffect.EffectInfo} (ID={timedEffect.EffectInstance.DispatchID})");
+                    Log.Debug($"Ending timed effect matching flags {flags}: {timedEffect.EffectInstance.EffectInfo} (ID={timedEffect.EffectInstance.DispatchID})");
 #endif
 
                     endTimedEffectAtIndex(i, sendClientMessage);
@@ -291,7 +287,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 endTimedEffectAtIndex(activeEffectIndex, sendClientMessage);
 
 #if DEBUG
-                Log.Debug($"Timed effect {_activeTimedEffects[activeEffectIndex].EffectInfo} (ID={dispatchID}) ended");
+                Log.Debug($"Timed effect {_activeTimedEffects[activeEffectIndex].EffectInstance.EffectInfo} (ID={dispatchID}) ended");
 #endif
             }
             else
@@ -343,13 +339,13 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             if (NetworkServer.active)
             {
-                OnTimedEffectStartServer?.Invoke(activeEffectInfo.EffectInfo, activeEffectInfo.EffectInstance);
+                OnTimedEffectStartServer?.Invoke(activeEffectInfo.EffectInstance);
             }
         }
 
         IEnumerable<ActiveTimedEffectInfo> getActiveTimedEffectsFor(TimedEffectInfo effectInfo)
         {
-            return _activeTimedEffects.Where(e => e.EffectInfo == effectInfo);
+            return _activeTimedEffects.Where(e => e.EffectInstance.EffectInfo == effectInfo);
         }
 
         public bool IsTimedEffectActive(TimedEffectInfo effectInfo)
