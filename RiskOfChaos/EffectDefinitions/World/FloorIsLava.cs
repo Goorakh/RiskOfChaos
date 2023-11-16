@@ -15,7 +15,7 @@ namespace RiskOfChaos.EffectDefinitions.World
     {
         [EffectConfig]
         static readonly ConfigHolder<int> _percentDamagePerSecond =
-            ConfigFactory<int>.CreateConfig("Percent Damage Per Second", 3)
+            ConfigFactory<int>.CreateConfig("Percent Damage Per Second", 25)
                               .Description("How much damage should be inflicted for characters touching the ground. Value of 3 means 3% of max health in damage per second.")
                               .OptionConfig(new IntSliderConfig
                               {

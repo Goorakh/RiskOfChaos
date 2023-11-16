@@ -39,7 +39,7 @@
   * All characters will now use the fragile death animation while the effect is active
 
 * The Floor is Lava:
-  * Changed burn dps: 15% of character damage stat -> 3% of max health per second (configurable)
+  * Changed burn dps: 15% of character damage stat -> 25% of max health per second (configurable)
   * Fixed burn damage being affected by items
   * Fixed burn sometimes not being removed on effect end
 
