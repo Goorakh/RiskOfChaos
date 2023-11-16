@@ -26,10 +26,35 @@ namespace RiskOfChaos.EffectDefinitions.World
                               .ValueConstrictor(CommonValueConstrictors.Clamped(1, 100))
                               .Build();
 
+        static int getGroundedDamagePerSecond(float groundedTime)
+        {
+            const float DAMAGE_START_TIME = 0.25f;
+            const float DAMAGE_RAMP_END_TIME = 1.5f;
+
+            if (groundedTime < DAMAGE_START_TIME)
+                return 0;
+
+            if (groundedTime <= DAMAGE_RAMP_END_TIME)
+            {
+                return Mathf.RoundToInt(Util.Remap(groundedTime, DAMAGE_START_TIME, DAMAGE_RAMP_END_TIME, 0f, _percentDamagePerSecond.Value));
+            }
+            else
+            {
+                return _percentDamagePerSecond.Value;
+            }
+        }
+
         [RequireComponent(typeof(CharacterBody))]
         sealed class GroundedDamageController : MonoBehaviour
         {
             const DotController.DotIndex DOT_INDEX = DotController.DotIndex.PercentBurn;
+            static DotController.DotDef _dotDef;
+
+            [SystemInitializer(typeof(DotController))]
+            static void Init()
+            {
+                _dotDef = DotController.GetDotDef(DOT_INDEX);
+            }
 
             CharacterBody _body;
             CharacterMotor _motor;
@@ -48,7 +73,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             {
                 InstanceTracker.Remove(this);
 
-                removeDOT();
+                removeDOTStacks(int.MaxValue);
             }
 
             void FixedUpdate()
@@ -66,28 +91,33 @@ namespace RiskOfChaos.EffectDefinitions.World
                 if (_motor.isGrounded)
                 {
                     _groundedTimer += Time.fixedDeltaTime;
-                    if (_groundedTimer >= 0.25f && !_body.gameObject.HasDOT(DOT_INDEX))
-                    {
-                        for (int i = 0; i < _percentDamagePerSecond.Value; i++)
-                        {
-                            // AttackerObject has to be non-null for DOT to be applied, and passing in _body.gameObject will consider the character's items and stats for the dot damage
-                            DotController.InflictDot(_body.gameObject, DummyDamageInflictor.Instance.gameObject, DOT_INDEX);
-                        }
-                    }
                 }
                 else
                 {
-                    removeDOT();
                     _groundedTimer = 0f;
+                }
+
+                int missingDOTStacks = getGroundedDamagePerSecond(_groundedTimer) - _body.GetBuffCount(_dotDef.associatedBuff);
+                if (missingDOTStacks > 0)
+                {
+                    for (int i = 0; i < missingDOTStacks; i++)
+                    {
+                        // AttackerObject has to be non-null for DOT to be applied, and passing in _body.gameObject will consider the character's items and stats for the dot damage
+                        DotController.InflictDot(_body.gameObject, DummyDamageInflictor.Instance.gameObject, DOT_INDEX);
+                    }
+                }
+                else if (missingDOTStacks < 0)
+                {
+                    removeDOTStacks(-missingDOTStacks);
                 }
             }
 
-            void removeDOT()
+            void removeDOTStacks(int stacksToRemove)
             {
                 DotController dotController = DotController.FindDotController(_body.gameObject);
                 if (dotController)
                 {
-                    dotController.RemoveDOT(DOT_INDEX);
+                    dotController.RemoveDOTStacks(DOT_INDEX, stacksToRemove);
                 }
             }
 

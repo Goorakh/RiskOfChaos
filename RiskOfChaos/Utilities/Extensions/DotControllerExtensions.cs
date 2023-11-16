@@ -13,13 +13,16 @@ namespace RiskOfChaos.Utilities.Extensions
             return dotController && dotController.HasDotActive(dotIndex);
         }
 
-        public static void RemoveDOT(this DotController controller, DotController.DotIndex dotIndex)
+        public static void RemoveDOTStacks(this DotController controller, DotController.DotIndex dotIndex, int stacks)
         {
             if (!NetworkServer.active)
             {
                 Log.Warning("Called on client");
                 return;
             }
+
+            if (stacks <= 0)
+                return;
 
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
             List<DotController.DotStack> dotStackList = controller.dotStackList;
@@ -32,6 +35,11 @@ namespace RiskOfChaos.Utilities.Extensions
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
                     controller.RemoveDotStackAtServer(i);
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
+
+                    if (--stacks <= 0)
+                    {
+                        return;
+                    }
                 }
             }
         }
