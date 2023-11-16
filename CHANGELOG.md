@@ -10,7 +10,7 @@
 
 * Effect selection:
   * Added effect seeding option
-    * Picks effects based on run seed instead of randomly picking each time. Use if setting run seeds manually (Not supported in chat voting mode)
+    * Picks effects based on run seed instead of randomly picking each time. Use if you are setting run seeds manually, otherwise it is functionally identical to normal mode (Not supported in chat voting mode)
   * Added per-stage effect list option
     * A portion of all effects are picked out each stage to be activatable instead of all effects (Not supported in chat voting mode)
 
