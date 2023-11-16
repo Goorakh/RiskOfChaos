@@ -24,7 +24,7 @@ namespace RiskOfChaos.Patches
             foreach (ChatBoxTracker chatBoxTracker in InstanceTracker.GetInstancesList<ChatBoxTracker>())
             {
                 // Fix chat scroll
-                chatBoxTracker.ChatBox.Invoke(nameof(ChatBox.ScrollToBottom), 0.1f);
+                chatBoxTracker.ChatBox.Invoke(nameof(ChatBox.ScrollToBottom), 0.5f);
             }
 
 #if DEBUG
