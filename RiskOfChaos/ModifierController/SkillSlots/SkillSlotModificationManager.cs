@@ -315,10 +315,7 @@ namespace RiskOfChaos.ModifierController.SkillSlots
 
         void Awake()
         {
-            for (int i = 0; i < _skillSlotCooldownScales.Length; i++)
-            {
-                _skillSlotCooldownScales[i] = 1f;
-            }
+            ArrayUtils.SetAll(_skillSlotCooldownScales, 1f);
         }
 
         void OnEnable()
