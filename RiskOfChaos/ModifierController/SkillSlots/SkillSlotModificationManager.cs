@@ -200,6 +200,9 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             [param: In]
             set
             {
+                if (value is null)
+                    throw new ArgumentNullException(nameof(value));
+
                 if (value.Length != SKILL_SLOT_COUNT)
                 {
                     Log.Error($"Cooldown scales array must have a size of exactly {SKILL_SLOT_COUNT}");
@@ -255,6 +258,9 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             [param: In]
             set
             {
+                if (value is null)
+                    throw new ArgumentNullException(nameof(value));
+
                 if (value.Length != SKILL_SLOT_COUNT)
                 {
                     Log.Error($"Stock adds array must have a size of exactly {SKILL_SLOT_COUNT}");
