@@ -16,6 +16,11 @@ namespace RiskOfChaos.ModifierController.SkillSlots
 
         public const int SKILL_SLOT_COUNT = (int)SkillSlot.Special + 1;
 
+        public delegate void SkillSlotLockedDelegate(SkillSlot slot);
+
+        public static event SkillSlotLockedDelegate OnSkillSlotLocked;
+        public static event SkillSlotLockedDelegate OnSkillSlotUnlocked;
+
         static uint getSlotBitMask(SkillSlot skillSlot)
         {
             sbyte skillSlotLockedBit = (sbyte)skillSlot;
@@ -74,6 +79,9 @@ namespace RiskOfChaos.ModifierController.SkillSlots
 
         void syncLockedSkillSlots(uint lockedSkillSlotsMask)
         {
+            // Creates mask where 1's mark any change in the locked skills mask
+            uint changedSlotsMask = NetworkLockedSkillSlotsMask ^ lockedSkillSlotsMask;
+
             NetworkLockedSkillSlotsMask = lockedSkillSlotsMask;
 
             List<SkillSlot> nonLockedSkillSlots = new List<SkillSlot>(SKILL_SLOT_COUNT);
@@ -87,6 +95,23 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             }
 
             NonLockedSkillSlots = nonLockedSkillSlots.ToArray();
+
+            for (SkillSlot i = 0; i < (SkillSlot)SKILL_SLOT_COUNT; i++)
+            {
+                if (isSkillSlotBitSet(changedSlotsMask, i)) // If this slot was changed
+                {
+                    if (isSkillSlotBitSet(lockedSkillSlotsMask, i))
+                    {
+                        // Slot was changed to being locked
+                        OnSkillSlotLocked?.Invoke(i);
+                    }
+                    else
+                    {
+                        // Slot was changed to being unlocked
+                        OnSkillSlotUnlocked?.Invoke(i);
+                    }
+                }
+            }
         }
 
         public bool IsSkillSlotLocked(SkillSlot skillSlot)

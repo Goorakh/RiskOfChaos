@@ -74,6 +74,9 @@
 * Force Activate Random Skill:
   * Fixed Beetles freezing in place if their secondary is forced
 
+* Disable Random Skill:
+  * Added minor visual indicator when a skill is unlocked again
+
 * All Items Are A Random Item:
   * Fixed trishops having items rerolled after being purchased
   * Fixed being able to use Artifact of Command to get around the forced item

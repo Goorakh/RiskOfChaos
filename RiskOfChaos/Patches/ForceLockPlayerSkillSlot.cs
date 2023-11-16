@@ -3,6 +3,7 @@ using MonoMod.RuntimeDetour;
 using RiskOfChaos.ModifierController.SkillSlots;
 using RoR2;
 using RoR2.Skills;
+using RoR2.UI;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -25,6 +26,8 @@ namespace RiskOfChaos.Patches
             On.RoR2.GenericSkill.CanExecute += GenericSkill_CanExecute;
             On.RoR2.GenericSkill.IsReady += GenericSkill_IsReady;
             new Hook(AccessTools.DeclaredPropertyGetter(typeof(GenericSkill), nameof(GenericSkill.icon)), GenericSkill_get_icon);
+
+            SkillSlotModificationManager.OnSkillSlotUnlocked += SkillSlotModificationManager_OnSkillSlotUnlocked;
         }
 
         static bool isSkillLocked(GenericSkill skill)
@@ -60,6 +63,20 @@ namespace RiskOfChaos.Patches
             }
 
             return defaultIcon;
+        }
+
+        static void SkillSlotModificationManager_OnSkillSlotUnlocked(SkillSlot slot)
+        {
+            foreach (SkillIcon icon in GameObject.FindObjectsOfType<SkillIcon>())
+            {
+                if (icon.targetSkillSlot == slot)
+                {
+                    if (icon.flashPanelObject)
+                    {
+                        icon.flashPanelObject.SetActive(true);
+                    }
+                }
+            }
         }
     }
 }
