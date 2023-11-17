@@ -133,12 +133,20 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
                 switch (currentScene.sceneType)
                 {
-                    case SceneType.Stage:
-                    case SceneType.Intermission:
-                    case SceneType.Invalid when currentScene.cachedName == "ai_test" || currentScene.cachedName == "moon":
-                        break;
-                    default:
+                    case SceneType.Menu:
+                    case SceneType.Cutscene:
                         return false;
+                    case SceneType.Invalid:
+                        switch (currentScene.cachedName)
+                        {
+                            case "ai_test":
+                            case "moon":
+                                break;
+                            default:
+                                return false;
+                        }
+
+                        break;
                 }
 
                 return true;
