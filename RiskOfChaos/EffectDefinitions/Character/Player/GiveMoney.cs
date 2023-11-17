@@ -1,8 +1,7 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
-using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 
@@ -44,16 +43,19 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             }
         }
 
+        [EffectCanActivate]
+        static bool CanActivate()
+        {
+            return TeamManager.instance;
+        }
+
         public override void OnStart()
         {
             uint amount = scaledAmountToGive;
             if (amount == 0)
                 return;
 
-            PlayerUtils.GetAllPlayerMasters(false).TryDo(master =>
-            {
-                master.GiveMoney(amount);
-            }, Util.GetBestMasterName);
+            TeamManager.instance.GiveTeamMoney(TeamIndex.Player, amount);
         }
     }
 }
