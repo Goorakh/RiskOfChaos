@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities.Extensions;
@@ -105,16 +106,22 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 }
 
                 master.gameObject.SetDontDestroyOnLoad(true);
-                
-                CharacterBody body = master.GetBody();
-                if (body)
+            }
+
+            if (master && master.inventory.GetItemCount(Items.InvincibleLemurianMarker) > 0)
+            {
+                Chat.SendBroadcastChat(new Chat.SimpleChatMessage
                 {
-                    Chat.SendBroadcastChat(new SubjectChatMessage
-                    {
-                        baseToken = "RECRUIT_ENEMY_MESSAGE",
-                        subjectAsCharacterBody = body
-                    });
-                }
+                    baseToken = "INVINCIBLE_LEMURIAN_RECRUIT_MESSAGE"
+                });
+            }
+            else
+            {
+                Chat.SendBroadcastChat(new SubjectChatMessage
+                {
+                    baseToken = "RECRUIT_ENEMY_MESSAGE",
+                    subjectAsCharacterBody = _enemyToConvert
+                });
             }
         }
     }
