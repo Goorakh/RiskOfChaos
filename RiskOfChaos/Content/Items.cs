@@ -17,7 +17,7 @@ namespace RiskOfChaos.Content
 
         static Items()
         {
-            // InvincibleLemurianHelper
+            // InvincibleLemurianMarker
             {
                 InvincibleLemurianMarker = ScriptableObject.CreateInstance<ItemDef>();
                 InvincibleLemurianMarker.name = nameof(InvincibleLemurianMarker);
@@ -89,6 +89,23 @@ namespace RiskOfChaos.Content
                                 return results;
                             }
                         });
+                    }
+                };
+
+                On.RoR2.Projectile.ProjectileController.Start += static (orig, self) =>
+                {
+                    orig(self);
+
+                    if (!self.owner || !self.owner.TryGetComponent(out CharacterBody ownerBody))
+                        return;
+
+                    Inventory ownerInventory = ownerBody.inventory;
+                    if (!ownerInventory)
+                        return;
+
+                    if (ownerInventory.GetItemCount(InvincibleLemurianMarker) > 0)
+                    {
+                        self.cannotBeDeleted = true;
                     }
                 };
             }

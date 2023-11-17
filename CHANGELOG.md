@@ -92,6 +92,7 @@
   * Fixed jump pads not aligning properly to the ground they spawn on
 
 * You and a super intelligent Lemurian...:
+  * The Lemurian's projectiles can no longer be deleted (Captain defense matrix, blast shower, etc.)
   * Gave Leonard his allowance
 
 * Loose Pockets:
