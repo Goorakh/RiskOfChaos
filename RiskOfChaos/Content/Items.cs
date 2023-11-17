@@ -108,6 +108,36 @@ namespace RiskOfChaos.Content
                         self.cannotBeDeleted = true;
                     }
                 };
+
+                GlobalEventManager.onCharacterDeathGlobal += static (report) =>
+                {
+                    if (!NetworkServer.active)
+                        return;
+
+                    if (!report.victimMaster || report.victimMaster.IsExtraLifePendingServer())
+                        return;
+
+                    if (report.victimMaster.inventory.GetItemCount(InvincibleLemurianMarker) <= 0)
+                        return;
+
+                    if (report.victimTeamIndex == TeamIndex.Player)
+                    {
+                        Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                        {
+                            baseToken = "INVINCIBLE_LEMURIAN_DEATH_ALLY_MESSAGE"
+                        });
+                    }
+                    else
+                    {
+                        // The promised million dollars
+                        TeamManager.instance.GiveTeamMoney(TeamIndex.Player, 1_000_000);
+
+                        Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                        {
+                            baseToken = "INVINCIBLE_LEMURIAN_DEATH_REWARD_MESSAGE"
+                        });
+                    }
+                };
             }
 
             RecalculateStatsAPI.GetStatCoefficients += static (body, args) =>

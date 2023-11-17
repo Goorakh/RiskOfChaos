@@ -59,16 +59,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                         baseAI.neverRetaliateFriendlies = true;
                     }
                 }
-
-                GameObject bodyObject = characterMaster.GetBodyObject();
-                if (bodyObject)
-                {
-                    if (bodyObject.TryGetComponent(out DeathRewards deathRewards))
-                    {
-                        deathRewards.goldReward = 1_000_000;
-                        deathRewards.spawnValue = int.MaxValue;
-                    }
-                }
             };
 
             DirectorCore.instance.TrySpawnObject(spawnRequest);
