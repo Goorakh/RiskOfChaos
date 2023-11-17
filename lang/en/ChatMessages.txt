@@ -17,5 +17,8 @@
 
 		"INVINCIBLE_LEMURIAN_DEATH_ALLY_MESSAGE": "<color=#E9848D><size=110%>His presence fades... Your memory will forever echo in his heart...</size></color>",
 		"INVINCIBLE_LEMURIAN_DEATH_REWARD_MESSAGE": "<color=#E9848D><size=110%>His presence fades... You are rewarded...</size></color>",
+
+		"RECRUIT_ENEMY_MESSAGE": "<style=cWorldEvent><color=#FFFFFF>{0}</color> has been brought to your side</style>",
+		"RECRUIT_ENEMY_MESSAGE_2P": "<style=cWorldEvent>You have been brought to their side</style>",
 	}
 }

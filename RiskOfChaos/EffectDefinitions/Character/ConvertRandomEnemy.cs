@@ -105,6 +105,16 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 }
 
                 master.gameObject.SetDontDestroyOnLoad(true);
+                
+                CharacterBody body = master.GetBody();
+                if (body)
+                {
+                    Chat.SendBroadcastChat(new SubjectChatMessage
+                    {
+                        baseToken = "RECRUIT_ENEMY_MESSAGE",
+                        subjectAsCharacterBody = body
+                    });
+                }
             }
         }
     }

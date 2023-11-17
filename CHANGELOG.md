@@ -96,6 +96,9 @@
   * The Lemurian's projectiles can no longer be deleted (Captain defense matrix, blast shower, etc.)
   * Gave Leonard his allowance
 
+* Recruit Random Enemy:
+  * Added chat message telling you which enemy was recruited
+
 * Loose Pockets:
   * Default duration: 20s -> 10s
 
