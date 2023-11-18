@@ -95,6 +95,7 @@
 
 * You and a super intelligent Lemurian...:
   * The Lemurian's projectiles can no longer be deleted (Captain defense matrix, blast shower, etc.)
+  * Added custom death messages
   * Gave Leonard his allowance
 
 * Recruit Random Enemy:

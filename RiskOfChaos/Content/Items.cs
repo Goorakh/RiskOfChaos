@@ -1,6 +1,7 @@
 ﻿using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using R2API;
+using RiskOfChaos.Patches;
 using RoR2;
 using RoR2.CharacterAI;
 using RoR2.ContentManagement;
@@ -136,6 +137,17 @@ namespace RiskOfChaos.Content
                         {
                             baseToken = "INVINCIBLE_LEMURIAN_DEATH_REWARD_MESSAGE"
                         });
+                    }
+                };
+
+                CustomPlayerDeathMessageTokenPatch.OverridePlayerDeathMessageToken += static (DamageReport damageReport, ref string messageToken) =>
+                {
+                    if (damageReport is null || !damageReport.attackerMaster)
+                        return;
+
+                    if (damageReport.attackerMaster.inventory.GetItemCount(InvincibleLemurianMarker) > 0)
+                    {
+                        messageToken = "PLAYER_DEATH_QUOTE_INVINCIBLE_LEMURIAN";
                     }
                 };
             }
