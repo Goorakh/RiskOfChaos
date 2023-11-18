@@ -130,5 +130,6 @@
 		"EFFECT_INCREASE_SKILL_STOCKS_NAME": "+{0} Skill Charge{1}",
 		"EFFECT_DECREASE_SKILL_STOCKS_NAME": "-{0} Skill Charge{1}",
 		"EFFECT_HIDE_ALL_PICKUP_DISPLAYS_NAME": "Mystery Items",
+		"EFFECT_SHRINKING_HOLDOUT_ZONES_NAME": "Focused Teleporter Charging",
 	}
 }

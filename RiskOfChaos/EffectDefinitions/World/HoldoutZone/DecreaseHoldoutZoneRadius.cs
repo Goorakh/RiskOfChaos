@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfOptions.OptionConfigs;
+using RoR2;
 
 namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
 {
@@ -33,9 +34,9 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
             };
         }
 
-        protected override void modifyRadius(ref float radius)
+        protected override void modifyRadius(HoldoutZoneController controller, ref float radius)
         {
-            base.modifyRadius(ref radius);
+            base.modifyRadius(controller, ref radius);
             radius *= 1f - _radiusDecrease.Value;
         }
     }

@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 119 different effects.
+Currently features 120 different effects.
 
 ### Twitch Integration:
 
@@ -135,6 +135,7 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Increase Skill Charges: Adds 1 charge to every skill, lasts 1 stage
 * Decrease Skill Charges: Removes 1 charge from every skill (cannot reduce below 1), lasts 1 stage
 * Mystery Items: All item pickup models are hidden, lasts 60 seconds
+* Focused Teleporter Charging: Holdout zone radius decreases with charge percentage, lasts 1 stage
 </details>
 
 FAQ:

@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfOptions.OptionConfigs;
+using RoR2;
 
 namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
 {
@@ -33,9 +34,9 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
             };
         }
 
-        protected override void modifyChargeRate(ref float rate)
+        protected override void modifyChargeRate(HoldoutZoneController controller, ref float rate)
         {
-            base.modifyChargeRate(ref rate);
+            base.modifyChargeRate(controller, ref rate);
             rate *= 1f - _chargeRateDecrease.Value;
         }
     }

@@ -19,9 +19,14 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
                 };
             }
 
-            public static event HoldoutZoneController.CalcRadiusDelegate ModifyRadius;
-            public static event HoldoutZoneController.CalcChargeRateDelegate ModifyChargeRate;
-            public static event HoldoutZoneController.CalcColorDelegate ModifyColor;
+            public delegate void ModifyRadiusDelegate(HoldoutZoneController controller, ref float radius);
+            public static event ModifyRadiusDelegate ModifyRadius;
+
+            public delegate void ModifyChargeRateDelegate(HoldoutZoneController controller, ref float chargeRate);
+            public static event ModifyChargeRateDelegate ModifyChargeRate;
+
+            public delegate void ModifyColorDelegate(HoldoutZoneController controller, ref Color color);
+            public static event ModifyColorDelegate ModifyColor;
 
             HoldoutZoneController _holdoutZoneController;
 
@@ -52,17 +57,17 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
 
             void calcRadius(ref float radius)
             {
-                ModifyRadius?.Invoke(ref radius);
+                ModifyRadius?.Invoke(_holdoutZoneController, ref radius);
             }
 
             void calcChargeRate(ref float rate)
             {
-                ModifyChargeRate?.Invoke(ref rate);
+                ModifyChargeRate?.Invoke(_holdoutZoneController, ref rate);
             }
 
             void calcColor(ref Color color)
             {
-                ModifyColor?.Invoke(ref color);
+                ModifyColor?.Invoke(_holdoutZoneController, ref color);
             }
         }
 
@@ -86,15 +91,15 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
             }
         }
 
-        protected virtual void modifyRadius(ref float radius)
+        protected virtual void modifyRadius(HoldoutZoneController controller, ref float radius)
         {
         }
 
-        protected virtual void modifyChargeRate(ref float rate)
+        protected virtual void modifyChargeRate(HoldoutZoneController controller, ref float rate)
         {
         }
 
-        protected virtual void modifyColor(ref Color color)
+        protected virtual void modifyColor(HoldoutZoneController controller, ref Color color)
         {
         }
     }
