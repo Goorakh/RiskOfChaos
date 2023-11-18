@@ -6,23 +6,15 @@ namespace RiskOfChaos.Content.ItemBehaviors
 {
     public sealed class InvincibleLemurianItemBehavior : BaseItemBodyBehavior
     {
-        [ItemDefAssociation(useOnServer = true, useOnClient = true)]
+        [ItemDefAssociation(useOnServer = true, useOnClient = false)]
         static ItemDef GetItemDef()
         {
             return Items.InvincibleLemurianMarker;
         }
 
-        string _originalNameToken;
-
-        void OnEnable()
-        {
-            _originalNameToken = body ? body.baseNameToken : "UNKNOWN";
-            body.baseNameToken = "INVINCIBLE_LEMURIAN_BODY_NAME";
-        }
-
         void FixedUpdate()
         {
-            if (!NetworkServer.active || !body)
+            if (!body)
                 return;
 
             if (!body.HasBuff(RoR2Content.Buffs.Immune))
@@ -35,15 +27,10 @@ namespace RiskOfChaos.Content.ItemBehaviors
         {
             if (body)
             {
-                if (NetworkServer.active)
+                if (body.HasBuff(RoR2Content.Buffs.Immune))
                 {
-                    if (body.HasBuff(RoR2Content.Buffs.Immune))
-                    {
-                        body.RemoveBuff(RoR2Content.Buffs.Immune);
-                    }
+                    body.RemoveBuff(RoR2Content.Buffs.Immune);
                 }
-
-                body.baseNameToken = _originalNameToken;
             }
         }
     }

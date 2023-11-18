@@ -110,6 +110,39 @@ namespace RiskOfChaos.Content
                     }
                 };
 
+                CharacterTokenOverridePatch.OverrideNameToken += static (CharacterBody body, ref string nameToken) =>
+                {
+                    if (!body)
+                        return;
+
+                    Inventory inventory = body.inventory;
+                    if (!inventory)
+                        return;
+
+                    if (inventory.GetItemCount(InvincibleLemurianMarker) > 0)
+                    {
+                        nameToken = "INVINCIBLE_LEMURIAN_BODY_NAME";
+                    }
+                };
+
+                CharacterTokenOverridePatch.OverrideDisplayName += static (CharacterBody body, ref string displayName) =>
+                {
+                    if (!body)
+                        return;
+
+                    Inventory inventory = body.inventory;
+                    if (!inventory)
+                        return;
+
+                    if (inventory.GetItemCount(InvincibleLemurianMarker) > 0)
+                    {
+                        if (body.bodyIndex == BodyCatalog.FindBodyIndex("LemurianBruiserBody"))
+                        {
+                            displayName = Language.GetStringFormatted("INVINCIBLE_LEMURIAN_ELDER_BODY_NAME_FORMAT", displayName);
+                        }
+                    }
+                };
+
                 GlobalEventManager.onCharacterDeathGlobal += static (report) =>
                 {
                     if (!NetworkServer.active)
