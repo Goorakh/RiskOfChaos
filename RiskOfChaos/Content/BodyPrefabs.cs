@@ -52,7 +52,7 @@ namespace RiskOfChaos.Content
 
                 CharacterBody body = ChaosFakeInteractorBodyPrefab.GetComponent<CharacterBody>();
 
-                body.baseNameToken = "CHAOS_FAKE_INTERACTOR_BODY";
+                body.baseNameToken = "CHAOS_FAKE_INTERACTOR_BODY_NAME";
                 body.baseMaxHealth = 1e9F; // 10^9
                 body.baseRegen = 1e9F; // 10^9
 
