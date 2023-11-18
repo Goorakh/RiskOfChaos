@@ -3,10 +3,12 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -35,6 +37,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                               .Build();
 
         static readonly MaxCapacityQueue<DeadCharacterInfo> _trackedDeadCharacters = new MaxCapacityQueue<DeadCharacterInfo>(_maxTrackedCharactersCount.Value);
+        static readonly List<DeadCharacterInfo> _trackedDeadPlayers = new List<DeadCharacterInfo>();
 
         [SystemInitializer]
         static void InitListeners()
@@ -48,28 +51,40 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (!victimMaster || victimMaster.IsExtraLifePendingServer())
                     return;
 
-                _trackedDeadCharacters.Enqueue(new DeadCharacterInfo(damageReport));
+                if (victimMaster.playerCharacterMasterController)
+                {
+                    _trackedDeadPlayers.Add(new DeadCharacterInfo(damageReport));
+                }
+                else
+                {
+                    _trackedDeadCharacters.Enqueue(new DeadCharacterInfo(damageReport));
+                }
             };
 
             Run.onRunDestroyGlobal += _ =>
             {
                 _trackedDeadCharacters.Clear();
+                _trackedDeadPlayers.Clear();
             };
 
             Stage.onServerStageComplete += _ =>
             {
                 _trackedDeadCharacters.Clear();
+                _trackedDeadPlayers.Clear();
             };
         }
 
         [EffectCanActivate]
         static bool CanActivate(in EffectCanActivateContext context)
         {
-            return !context.IsNow || _trackedDeadCharacters.Count > 0;
+            return !context.IsNow || _trackedDeadCharacters.Count > 0 || _trackedDeadPlayers.Count > 0;
         }
 
         public override void OnStart()
         {
+            _trackedDeadPlayers.TryDo(player => player.Respawn());
+            _trackedDeadPlayers.Clear();
+
             _trackedDeadCharacters.TryDo(character => character.Respawn());
             _trackedDeadCharacters.Clear();
         }
@@ -90,6 +105,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         readonly struct DeadCharacterInfo : MasterSummon.IInventorySetupCallback
         {
+            readonly CharacterMaster _master;
+
             readonly Vector3 _bodyPosition;
             readonly Quaternion _bodyRotation;
 
@@ -109,6 +126,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             public DeadCharacterInfo(DamageReport deathReport)
             {
+                _master = deathReport.victimMaster;
+
                 _deathReport = deathReport;
 
                 _bodyIndex = deathReport.victimBodyIndex;
@@ -167,24 +186,34 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             public readonly void Respawn()
             {
-                MasterCatalog.MasterIndex masterIndex = MasterCatalog.FindAiMasterIndexForBody(_bodyIndex);
-                if (!masterIndex.isValid)
+                CharacterMaster master = _master;
+                if (master)
                 {
-                    Log.Warning($"No master index found for {BodyCatalog.GetBodyName(_bodyIndex)}");
-                    return;
+                    PreventMetamorphosisRespawn.PreventionEnabled = RunArtifactManager.instance && RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.randomSurvivorOnRespawnArtifactDef);
+                    master.Respawn(_bodyPosition, _bodyRotation);
+                    PreventMetamorphosisRespawn.PreventionEnabled = false;
                 }
-
-                CharacterMaster master = new MasterSummon()
+                else
                 {
-                    masterPrefab = MasterCatalog.GetMasterPrefab(masterIndex),
-                    position = _bodyPosition,
-                    rotation = _bodyRotation,
-                    ignoreTeamMemberLimit = true,
-                    teamIndexOverride = _teamIndex,
-                    loadout = _loadout,
-                    inventorySetupCallback = this,
-                    preSpawnSetupCallback = preSpawnSetupCallback
-                }.Perform();
+                    MasterCatalog.MasterIndex masterIndex = MasterCatalog.FindAiMasterIndexForBody(_bodyIndex);
+                    if (!masterIndex.isValid)
+                    {
+                        Log.Warning($"No master index found for {BodyCatalog.GetBodyName(_bodyIndex)}");
+                        return;
+                    }
+
+                    master = new MasterSummon()
+                    {
+                        masterPrefab = MasterCatalog.GetMasterPrefab(masterIndex),
+                        position = _bodyPosition,
+                        rotation = _bodyRotation,
+                        ignoreTeamMemberLimit = true,
+                        teamIndexOverride = _teamIndex,
+                        loadout = _loadout,
+                        inventorySetupCallback = this,
+                        preSpawnSetupCallback = preSpawnSetupCallback
+                    }.Perform();
+                }
 
                 if (_loadout != null)
                 {

@@ -93,6 +93,9 @@
   * Fixed jump pads being able to be spawned in occupied nodes
   * Fixed jump pads not aligning properly to the ground they spawn on
 
+* Revive Dead Characters:
+  * Fixed effect reviving players in multiplayer as AI controlled allies
+
 * You and a super intelligent Lemurian...:
   * The Lemurian's projectiles can no longer be deleted (Captain defense matrix, blast shower, etc.)
   * Added custom death messages
