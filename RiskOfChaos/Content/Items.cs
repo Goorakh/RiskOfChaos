@@ -2,6 +2,8 @@
 using MonoMod.Cil;
 using R2API;
 using RiskOfChaos.Patches;
+using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.CharacterAI;
 using RoR2.ContentManagement;
@@ -164,7 +166,7 @@ namespace RiskOfChaos.Content
                     else
                     {
                         // The promised million dollars
-                        TeamManager.instance.GiveTeamMoney(TeamIndex.Player, 1_000_000);
+                        PlayerUtils.GetAllPlayerMasters(false).TryDo(m => m.GiveMoney(1_000_000), Util.GetBestMasterName);
 
                         Chat.SendBroadcastChat(new Chat.SimpleChatMessage
                         {
