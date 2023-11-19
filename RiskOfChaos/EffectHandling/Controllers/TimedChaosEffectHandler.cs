@@ -207,7 +207,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 foreach (ActiveTimedEffectInfo activeEffects in getActiveTimedEffectsFor(timedEffect))
                 {
-                    activeEffects.EffectInstance.TimeRemaining = timedEffect.DurationSeconds;
+                    activeEffects.EffectInstance.TimeRemaining += timedEffect.DurationSeconds;
                     willStart = false;
                 }
             }

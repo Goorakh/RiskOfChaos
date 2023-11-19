@@ -17,7 +17,7 @@
 
 * Effect activation:
   * Fixed effects not being able to activate in Void Fields
-  * Effects that disallow duplicates will now "refresh" the active effect's timer instead of not being activatable.
+  * Effects that disallow duplicates will now add to the active effect's timer instead of not being activatable.
   * Fixed new effects not having priority over active ones. All active incompatible effects will be ended instead.
 
 * UI:
