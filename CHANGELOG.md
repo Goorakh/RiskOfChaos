@@ -114,6 +114,8 @@
 * Misc
   * Fixed strange scrap counting towards game completion in logbook
   * Fixed some effects sometimes placing character VFX at world origin
+  * Updated R2API.Core dependency version: 5.0.10 -> 5.0.11
+  * Updated Risk of Options dependency version: 2.6.1 -> 2.7.1
 
 **1.12.2 Changes:**
 
