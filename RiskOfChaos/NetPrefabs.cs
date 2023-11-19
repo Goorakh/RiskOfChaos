@@ -13,6 +13,7 @@ using RiskOfChaos.Networking.Components;
 using RiskOfChaos.Networking.Components.Effects;
 using RiskOfChaos.Networking.Components.Gravity;
 using RoR2;
+using System;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -51,7 +52,7 @@ namespace RiskOfChaos
             "RoR2/DLC1/ancientloft/AncientLoft_Geyser.prefab",
             "RoR2/DLC1/snowyforest/SFGeyser.prefab"
         };
-        public static GameObject[] GeyserPrefabs { get; private set; }
+        public static GameObject[] GeyserPrefabs { get; private set; } = Array.Empty<GameObject>();
 
         public static GameObject EffectsNetworkerPrefab { get; private set; }
 
