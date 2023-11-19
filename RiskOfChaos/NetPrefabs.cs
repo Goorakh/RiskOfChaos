@@ -46,11 +46,11 @@ namespace RiskOfChaos
 
         static readonly string[] _geyserPrefabPaths = new string[]
         {
-        "RoR2/Base/Common/Props/Geyser.prefab",
-        "RoR2/Base/artifactworld/AWGeyser.prefab",
-        "RoR2/Base/moon/MoonGeyser.prefab",
-        "RoR2/DLC1/ancientloft/AncientLoft_Geyser.prefab",
-        "RoR2/DLC1/snowyforest/SFGeyser.prefab"
+            "RoR2/Base/Common/Props/Geyser.prefab",
+            "RoR2/Base/artifactworld/AWGeyser.prefab",
+            "RoR2/Base/moon/MoonGeyser.prefab",
+            "RoR2/DLC1/ancientloft/AncientLoft_Geyser.prefab",
+            "RoR2/DLC1/snowyforest/SFGeyser.prefab"
         };
         public static GameObject[] GeyserPrefabs { get; private set; } = Array.Empty<GameObject>();
 
