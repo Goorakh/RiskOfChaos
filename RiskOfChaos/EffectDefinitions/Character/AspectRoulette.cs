@@ -205,7 +205,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (!_body.isPlayerControlled || currentEquipment == EquipmentIndex.None || EliteUtils.IsEliteEquipment(currentEquipment))
                 {
                     inventory.SetEquipmentIndex(aspectEquipment);
-                    BossUtils.TryRefreshBossTitleFor(_body);
                 }
             }
 

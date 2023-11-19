@@ -90,14 +90,17 @@ namespace RiskOfChaos.Components
 
         void onAppliedBuffStacksChanged()
         {
-            BossUtils.TryRefreshBossTitleFor(_body);
-
             // Refresh some of the elite buffs
             if (_body.inventory)
             {
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                _body.OnInventoryChanged();
+                _body.inventory.HandleInventoryChanged();
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
+            }
+            else
+            {
+                // Make sure boss title is refreshed even if this body has no inventory
+                BossUtils.TryRefreshBossTitleFor(_body);
             }
         }
 

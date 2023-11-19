@@ -110,8 +110,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 {
                     EffectManager.SimpleImpactEffect(EntityStates.VoidInfestor.Infest.successfulInfestEffectPrefab, body.corePosition, Vector3.up, true);
                 }
-
-                BossUtils.TryRefreshBossTitleFor(body);
             }, FormatUtils.GetBestBodyName);
 
             foreach (BaseAI baseAI in aiToReset)
