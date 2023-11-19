@@ -20,14 +20,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
         static TimedChaosEffectHandler _instance;
         public static TimedChaosEffectHandler Instance => _instance;
 
-        public delegate void TimedEffectStartDelegate(TimedEffect effectInstance);
-        public static event TimedEffectStartDelegate OnTimedEffectStartServer;
+        public delegate void TimedEffectStatusDelegate(TimedEffect effectInstance);
 
-        public delegate void TimedEffectEndDelegate(ulong dispatchID);
-        public static event TimedEffectEndDelegate OnTimedEffectEndServer;
-
-        public delegate void TimedEffectDirtyDelegate(TimedEffect effectInstance);
-        public static event TimedEffectDirtyDelegate OnTimedEffectDirtyServer;
+        public static event TimedEffectStatusDelegate OnTimedEffectStartServer;
+        public static event TimedEffectStatusDelegate OnTimedEffectEndServer;
+        public static event TimedEffectStatusDelegate OnTimedEffectDirtyServer;
 
         readonly record struct ActiveTimedEffectInfo(TimedEffect EffectInstance, ChaosEffectDispatchArgs DispatchArgs)
         {
@@ -297,7 +294,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             if (NetworkServer.active)
             {
-                OnTimedEffectEndServer?.Invoke(timedEffect.EffectInstance.DispatchID);
+                OnTimedEffectEndServer?.Invoke(timedEffect.EffectInstance);
             }
 
             _activeTimedEffects.RemoveAt(index);

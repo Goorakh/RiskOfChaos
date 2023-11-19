@@ -77,11 +77,11 @@ namespace RiskOfChaos.Networking.Components.Effects
             _activeEffects.Add(new ActiveEffectItemInfo(effectInstance, 0));
         }
 
-        void onTimedEffectEndServer(ulong dispatchID)
+        void onTimedEffectEndServer(TimedEffect effectInstance)
         {
             for (int i = 0; i < _activeEffects.Count; i++)
             {
-                if (_activeEffects[i].DispatchID == dispatchID)
+                if (_activeEffects[i].DispatchID == effectInstance.DispatchID)
                 {
                     _activeEffects.RemoveAt(i);
                     return;
