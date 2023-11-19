@@ -29,10 +29,13 @@ namespace RiskOfChaos.EffectDefinitions.Character
         AspectStep[] _playerAspectSteps;
         float _totalAspectStepsDuration;
 
+        const float MIN_ASPECT_DURATION = 1f;
+        const float MAX_ASPECT_DURATION = 7.5f;
+
         static AspectStep generateStep(Xoroshiro128Plus rng)
         {
             EquipmentIndex aspectEquipmentIndex = EliteUtils.SelectEliteEquipment(new Xoroshiro128Plus(rng.nextUlong), _allowDirectorUnavailableElites.Value);
-            return new AspectStep(aspectEquipmentIndex, rng.RangeFloat(1f, 7.5f));
+            return new AspectStep(aspectEquipmentIndex, rng.RangeFloat(MIN_ASPECT_DURATION, MAX_ASPECT_DURATION));
         }
 
         AspectStep getCurrentAspectStep(CharacterBody body)
@@ -64,10 +67,12 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 _totalAspectStepsDuration = 0f;
 
-                List<AspectStep> aspectSteps = new List<AspectStep>();
-
                 // Generate as many steps as needed for the fixed duration, otherwise create a cycle long enough people probably won't notice the looping
                 float time = TimedType == TimedEffectType.FixedDuration ? DurationSeconds : 120f;
+
+                const float AVERAGE_ASPECT_DURATION = (MIN_ASPECT_DURATION + MAX_ASPECT_DURATION) / 2f;
+                List<AspectStep> aspectSteps = new List<AspectStep>(Mathf.CeilToInt(time / AVERAGE_ASPECT_DURATION));
+
                 while (time > 0f)
                 {
                     AspectStep step = generateStep(RNG);
