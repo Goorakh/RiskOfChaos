@@ -397,19 +397,14 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             if (pickupIndex == _currentOverridePickupIndex)
             {
-                return new PickupPickerController.Option[]
+                ArrayUtils.SetAll(options, new PickupPickerController.Option
                 {
-                    new PickupPickerController.Option
-                    {
-                        pickupIndex = _currentOverridePickupIndex,
-                        available = true
-                    }
-                };
+                    pickupIndex = _currentOverridePickupIndex,
+                    available = true
+                });
             }
-            else
-            {
-                return options;
-            }
+
+            return options;
         }
     }
 }
