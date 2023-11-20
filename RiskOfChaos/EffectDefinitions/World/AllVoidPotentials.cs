@@ -150,6 +150,49 @@ namespace RiskOfChaos.EffectDefinitions.World
             }
         }
 
+        PickupPickerController.Option[] getPickableOptions(PickupIndex sourcePickup)
+        {
+            const int NUM_ADDITIONAL_OPTIONS = 2;
+
+            bool allowChoices = true;
+            OverrideAllowChoices?.Invoke(sourcePickup, ref allowChoices);
+
+            if (allowChoices && tryGetAvailableOptionsFor(sourcePickup, out PickupIndex[] availableOptions))
+            {
+                int numExtraOptions = Math.Min(availableOptions.Length, NUM_ADDITIONAL_OPTIONS);
+                PickupPickerController.Option[] options = new PickupPickerController.Option[1 + numExtraOptions];
+
+                // Guarantee the original item is always an option
+                options[0] = new PickupPickerController.Option
+                {
+                    available = true,
+                    pickupIndex = sourcePickup
+                };
+
+                for (int i = 0; i < numExtraOptions; i++)
+                {
+                    options[i + 1] = new PickupPickerController.Option
+                    {
+                        available = true,
+                        pickupIndex = availableOptions[i]
+                    };
+                }
+
+                return options;
+            }
+            else
+            {
+                return new PickupPickerController.Option[]
+                {
+                    new PickupPickerController.Option
+                    {
+                        available = true,
+                        pickupIndex = sourcePickup
+                    }
+                };
+            }
+        }
+
         void onDropletHitGroundServer(ref GenericPickupController.CreatePickupInfo createPickupInfo, ref bool shouldSpawn)
         {
             if (!shouldSpawn)
@@ -176,45 +219,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             if (dropletDisplay.TryGetComponent(out PickupPickerController pickupPickerController))
             {
-                const int NUM_ADDITIONAL_OPTIONS = 2;
-
-                bool allowChoices = true;
-                OverrideAllowChoices?.Invoke(pickupIndex, ref allowChoices);
-
-                if (allowChoices && tryGetAvailableOptionsFor(pickupIndex, out PickupIndex[] availableOptions))
-                {
-                    int numExtraOptions = Math.Min(availableOptions.Length, NUM_ADDITIONAL_OPTIONS);
-                    PickupPickerController.Option[] options = new PickupPickerController.Option[1 + numExtraOptions];
-
-                    // Guarantee the original item is always an option
-                    options[0] = new PickupPickerController.Option
-                    {
-                        available = true,
-                        pickupIndex = pickupIndex
-                    };
-
-                    for (int i = 0; i < numExtraOptions; i++)
-                    {
-                        options[i + 1] = new PickupPickerController.Option
-                        {
-                            available = true,
-                            pickupIndex = availableOptions[i]
-                        };
-                    }
-
-                    pickupPickerController.SetOptionsServer(options);
-                }
-                else
-                {
-                    pickupPickerController.SetOptionsServer(new PickupPickerController.Option[]
-                    {
-                        new PickupPickerController.Option
-                        {
-                            available = true,
-                            pickupIndex = pickupIndex
-                        }
-                    });
-                }
+                pickupPickerController.SetOptionsServer(getPickableOptions(pickupIndex));
             }
 
             NetworkServer.Spawn(dropletDisplay);
