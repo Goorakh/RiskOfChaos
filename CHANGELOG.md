@@ -69,6 +69,7 @@
 
 * Blood Money:
   * Added config options to exclude specific cost types from the effect
+    * Only money and lunar coin costs are enabled by default
 
 * Scrap Random Item:
   * Fixed item notifications not showing for non-host players in multiplayer

@@ -45,8 +45,14 @@ namespace RiskOfChaos.EffectDefinitions.World
                     _ => i.ToString().SpacedPascalCase()
                 };
 
+                bool defaultEnabled = i switch
+                {
+                    CostTypeIndex.Money or CostTypeIndex.LunarCoin or CostTypeIndex.VoidCoin => true,
+                    _ => false
+                };
+
                 ConfigHolder<bool> costTypeEnabledConfig =
-                    ConfigFactory<bool>.CreateConfig($"Convert {key} Costs", true)
+                    ConfigFactory<bool>.CreateConfig($"Convert {key} Costs", defaultEnabled)
                                        .Description($"If the effect should be able to turn {key} costs into health costs")
                                        .OptionConfig(new CheckBoxConfig())
                                        .Build();
