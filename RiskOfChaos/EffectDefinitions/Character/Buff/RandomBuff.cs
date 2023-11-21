@@ -169,6 +169,25 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             "BuffTerminationReady", // Doesn't work without item
             "BuffTerminationVFX", // Does nothing
             #endregion
+
+            #region WolfoQoL compat
+            "visual_HelFire",
+            "visual_EnemyBurn",
+            "visual_BugFlight",
+            "visual_ShadowIntangible",
+            "visual_SprintArmor",
+            "visual_Frozen",
+            "visual_HeadstomperReady",
+            "visual_HeadstomperCooldown",
+            "visual_BonusJump",
+            "visual_ShieldDelay",
+            "visual_OutOfCombatArmorCooldown",
+            "visual_VolcanoEgg",
+            "visual_TinctureIgnition",
+            "visual_FrostRelicGrowth",
+            "visual_FakeShurikenStock",
+            "visual_ImpendingVagrantExplosion"
+	        #endregion
         });
 
         static BuffIndex[] _availableBuffIndices;

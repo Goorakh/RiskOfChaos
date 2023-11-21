@@ -33,6 +33,9 @@
 * Give Everyone a Random Buff & Debuff:
   * Now gives several stacks if the random buff/debuff is stackable.
 
+* Give Everyone a Random Buff:
+  * WolfoQoL compatibility
+
 * Add Random Item to Monster Inventory:
   * Added config option for applying the enemy item blacklist, enabled by default
 
