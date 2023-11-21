@@ -62,6 +62,8 @@ namespace RiskOfChaos.Patches
             _hasAppliedPatches = true;
         }
 
+        static Rect? _defaultEquipmentIconRect;
+
         delegate void orig_SetDisplayData(EquipmentIcon self, EquipmentIcon.DisplayData displayData);
         static void EquipmentIcon_SetDisplayData(orig_SetDisplayData orig, EquipmentIcon self, EquipmentIcon.DisplayData displayData)
         {
@@ -70,7 +72,14 @@ namespace RiskOfChaos.Patches
             // Bad way of doing it, don't really care, odds of this causing a conflict is super low anyway
             if (self.iconImage)
             {
-                self.iconImage.uvRect = new Rect(0f, 0f, 1f, 1f);
+                if (!_defaultEquipmentIconRect.HasValue)
+                {
+                    _defaultEquipmentIconRect = self.iconImage.uvRect;
+                }
+                else
+                {
+                    self.iconImage.uvRect = _defaultEquipmentIconRect.Value;
+                }
             }
 
             IconOverrideInfo iconOverride = new IconOverrideInfo(self);
