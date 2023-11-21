@@ -9,6 +9,10 @@
   * Mystery Items: All item pickup models are hidden, lasts 60 seconds
   * Focused Teleporter Charging: Holdout zone radius decreases with charge percentage, lasts 1 stage
 
+* Removed 1 effect:
+  * Sequence All Players
+    * Almost always killed you if it activates late-run, did basically nothing if it activates early
+
 * Effect selection:
   * Added effect seeding option
     * Picks effects based on run seed instead of randomly picking each time. Use if you are setting run seeds manually, otherwise it is functionally identical to normal mode (Not supported in chat voting mode)

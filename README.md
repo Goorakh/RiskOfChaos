@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 120 different effects.
+Currently features 119 different effects.
 
 ### Twitch Integration:
 
@@ -26,7 +26,6 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Freeze!: Freezes every character on the stage for 4 seconds
 * Payday: Gives all players an amount of money equivalent to 4 large chests. (Amount can be configured)
 * Increase Monster Spawns: Increases monster director credits for the rest of the current stage (+50% by default, configurable)
-* Sequence All Players: Activates a shrine of order on all players
 * Spawn Scavenger Bag: Spawns a scavenger bag near a random player
 * Loose Pockets: Drops a random item from everyone's inventory every 0.9 seconds
 * Meteor Shower: Activates the glowing meteorite equipment
