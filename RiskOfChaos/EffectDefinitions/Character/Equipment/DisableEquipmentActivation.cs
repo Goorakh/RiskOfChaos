@@ -31,11 +31,14 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
             }
         }
 
+        bool _addedServerHooks;
+
         public override void OnStart()
         {
             if (NetworkServer.active)
             {
                 On.RoR2.EquipmentSlot.PerformEquipmentAction += EquipmentSlot_PerformEquipmentAction;
+                _addedServerHooks = true;
             }
 
             OverrideEquipmentIconHook.OverrideEquipmentIcon += overrideEquipmentIcon;
@@ -43,7 +46,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
 
         public override void OnEnd()
         {
-            if (NetworkServer.active)
+            if (_addedServerHooks)
             {
                 On.RoR2.EquipmentSlot.PerformEquipmentAction -= EquipmentSlot_PerformEquipmentAction;
             }
