@@ -14,7 +14,7 @@ namespace RiskOfChaos.Content
             // SetTo1Hp
             {
                 SetTo1Hp = ScriptableObject.CreateInstance<BuffDef>();
-                SetTo1Hp.name = nameof(SetTo1Hp);
+                SetTo1Hp.name = "bd" + nameof(SetTo1Hp);
                 SetTo1Hp.isHidden = true;
                 SetTo1Hp.isDebuff = true;
                 SetTo1Hp.canStack = false;
