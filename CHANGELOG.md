@@ -44,7 +44,7 @@
   * Added config option for applying the enemy item blacklist, enabled by default
 
 * One Hit KO:
-  * Fixed characters having more than 1 hp if they had barrier before the effect activated
+  * Fixed barrier not decaying during effect
   * All characters will now use the fragile death animation while the effect is active
 
 * The Floor is Lava:

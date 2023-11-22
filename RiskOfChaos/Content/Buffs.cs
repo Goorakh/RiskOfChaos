@@ -31,8 +31,18 @@ namespace RiskOfChaos.Content
                 {
                     orig(self);
 
-                    // Use shatter death animation
-                    self.isGlass |= self.HasBuff(SetTo1Hp);
+                    if (self.HasBuff(SetTo1Hp))
+                    {
+                        // Use shatter death animation
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                        self.isGlass = true;
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+
+                        // Make sure barrier still decays, default behaviour means barrier decay will be so small it basically will never decay
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                        self.barrierDecayRate = self.maxBarrier;
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+                    }
                 };
             }
         }
