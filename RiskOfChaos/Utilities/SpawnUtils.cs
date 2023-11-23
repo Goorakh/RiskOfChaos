@@ -166,12 +166,9 @@ namespace RiskOfChaos.Utilities
             if (forbiddenFlags.HasValue)
                 _positionHelperSpawnCard.forbiddenFlags = forbiddenFlags.Value;
 
+            try
+            {
             GameObject positionMarkerObject = directorCore.TrySpawnObject(new DirectorSpawnRequest(_positionHelperSpawnCard, placementRule, rng));
-
-            _positionHelperSpawnCard.hullSize = originalHullSize;
-            _positionHelperSpawnCard.nodeGraphType = originalNodeGraphType;
-            _positionHelperSpawnCard.requiredFlags = originalRequiredFlags;
-            _positionHelperSpawnCard.forbiddenFlags = originalForbiddenFlags;
 
             if (!positionMarkerObject)
             {
@@ -184,6 +181,14 @@ namespace RiskOfChaos.Utilities
             GameObject.Destroy(positionMarkerObject);
 
             return position;
+        }
+            finally
+            {
+                _positionHelperSpawnCard.hullSize = originalHullSize;
+                _positionHelperSpawnCard.nodeGraphType = originalNodeGraphType;
+                _positionHelperSpawnCard.requiredFlags = originalRequiredFlags;
+                _positionHelperSpawnCard.forbiddenFlags = originalForbiddenFlags;
+            }
         }
 
         public static DirectorPlacementRule GetPlacementRule_AtRandomPlayerDirect(Xoroshiro128Plus rng)
