@@ -1,5 +1,6 @@
 ﻿using RoR2;
 using RoR2.Navigation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -168,20 +169,20 @@ namespace RiskOfChaos.Utilities
 
             try
             {
-            GameObject positionMarkerObject = directorCore.TrySpawnObject(new DirectorSpawnRequest(_positionHelperSpawnCard, placementRule, rng));
+                GameObject positionMarkerObject = directorCore.TrySpawnObject(new DirectorSpawnRequest(_positionHelperSpawnCard, placementRule, rng));
 
-            if (!positionMarkerObject)
-            {
-                Log.Warning("Unable to spawn position marker object");
-                return placementRule.targetPosition;
+                if (!positionMarkerObject)
+                {
+                    Log.Warning("Unable to spawn position marker object");
+                    return placementRule.targetPosition;
+                }
+
+                Vector3 position = positionMarkerObject.transform.position;
+
+                GameObject.Destroy(positionMarkerObject);
+
+                return position;
             }
-
-            Vector3 position = positionMarkerObject.transform.position;
-
-            GameObject.Destroy(positionMarkerObject);
-
-            return position;
-        }
             finally
             {
                 _positionHelperSpawnCard.hullSize = originalHullSize;
@@ -340,6 +341,131 @@ namespace RiskOfChaos.Utilities
             }
 
             return result;
+        }
+
+        [Flags]
+        public enum NodeGraphFlags : byte
+        {
+            None = 0,
+            Ground = 1 << 0,
+            Air = 1 << 1,
+            Rail = 1 << 2,
+            All = byte.MaxValue
+        }
+
+        public record struct NodeReference(NodeGraph NodeGraph, NodeGraph.NodeIndex NodeIndex)
+        {
+            public readonly bool TryGetPosition(out Vector3 position)
+            {
+                return NodeGraph.GetNodePosition(NodeIndex, out position);
+            }
+        }
+
+        public readonly record struct NodeSelectionRules(NodeGraphFlags GraphMask, bool RequireFree, HullMask HullMask, NodeFlags RequiredFlags, NodeFlags ForbiddenFlags);
+
+        public static IEnumerable<NodeReference> GetNodes(NodeSelectionRules nodeSelectionRules)
+        {
+            SceneInfo sceneInfo = SceneInfo.instance;
+            if (!sceneInfo)
+            {
+                Log.Error("No SceneInfo");
+                yield break;
+            }
+
+            IEnumerable<NodeGraph.NodeIndex> getValidNodes(NodeGraph nodeGraph)
+            {
+                return nodeGraph.GetActiveNodesForHullMaskWithFlagConditions(nodeSelectionRules.HullMask, nodeSelectionRules.RequiredFlags, nodeSelectionRules.ForbiddenFlags);
+            }
+
+            if (sceneInfo.groundNodes && (nodeSelectionRules.GraphMask & NodeGraphFlags.Ground) != 0)
+            {
+                foreach (NodeGraph.NodeIndex nodeIndex in getValidNodes(sceneInfo.groundNodes))
+                {
+                    yield return new NodeReference(sceneInfo.groundNodes, nodeIndex);
+                }
+            }
+
+            if (sceneInfo.airNodes && (nodeSelectionRules.GraphMask & NodeGraphFlags.Air) != 0)
+            {
+                foreach (NodeGraph.NodeIndex nodeIndex in getValidNodes(sceneInfo.airNodes))
+                {
+                    yield return new NodeReference(sceneInfo.airNodes, nodeIndex);
+                }
+            }
+
+            if (sceneInfo.railNodes && (nodeSelectionRules.GraphMask & NodeGraphFlags.Rail) != 0)
+            {
+                foreach (NodeGraph.NodeIndex nodeIndex in getValidNodes(sceneInfo.railNodes))
+                {
+                    yield return new NodeReference(sceneInfo.railNodes, nodeIndex);
+                }
+            }
+        }
+
+        public static IEnumerable<Vector3> GenerateDistributedSpawnPositions(NodeSelectionRules selectionRules, float selectionFraction, Xoroshiro128Plus rng)
+        {
+            SceneInfo sceneInfo = SceneInfo.instance;
+            if (!sceneInfo)
+            {
+                Log.Error("No positions could be generated, no sceneInfo");
+                yield break;
+            }
+
+            NodeReference[] nodes = GetNodes(selectionRules).ToArray();
+
+            if (nodes.Length <= 0)
+            {
+                Log.Error("No valid nodes matches flags");
+                yield break;
+            }
+
+            Util.ShuffleArray(nodes, new Xoroshiro128Plus(rng.nextUlong));
+
+            int targetNodesCount = Mathf.Max(1, Mathf.FloorToInt(nodes.Length * selectionFraction));
+
+            int nodeIndex;
+            for (nodeIndex = 0; nodeIndex < nodes.Length; nodeIndex++)
+            {
+                if (nodeIndex >= targetNodesCount)
+                    break;
+
+                NodeReference node = nodes[nodeIndex];
+
+                if (selectionRules.RequireFree)
+                {
+                    DirectorCore directorCore = DirectorCore.instance;
+                    if (directorCore)
+                    {
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                        DirectorCore.NodeReference[] occupiedNodes = directorCore.occupiedNodes;
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+                        if (Array.IndexOf(occupiedNodes, new DirectorCore.NodeReference(node.NodeGraph, node.NodeIndex)) >= 0)
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        Log.Warning("No DirectorCore instance");
+                    }
+                }
+
+                if (node.TryGetPosition(out Vector3 position))
+                {
+                    yield return position;
+                }
+            }
+
+            if (targetNodesCount > nodeIndex)
+            {
+                Log.Warning($"Not enough nodes were valid, skipping {targetNodesCount - nodeIndex} of the requested nodes");
+            }
+            else
+            {
+#if DEBUG
+                Log.Debug($"Generated {targetNodesCount} positions");
+#endif
+            }
         }
     }
 }
