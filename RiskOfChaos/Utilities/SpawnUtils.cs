@@ -138,14 +138,14 @@ namespace RiskOfChaos.Utilities
         {
             if (!_positionHelperSpawnCard.prefab)
             {
-                Log.Warning("Null position helper prefab");
+                Log.Error("Null position helper prefab");
                 return Vector3.zero;
             }
 
             DirectorCore directorCore = DirectorCore.instance;
             if (!directorCore)
             {
-                Log.Warning($"No {nameof(DirectorCore)} instance found");
+                Log.Error($"No {nameof(DirectorCore)} instance found");
                 return Vector3.zero;
             }
 
