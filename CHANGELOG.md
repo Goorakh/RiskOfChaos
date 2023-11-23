@@ -113,6 +113,9 @@
 * Recruit Random Enemy:
   * Added chat message telling you which enemy was recruited
 
+* Orbital Bombardment:
+  * Added regular airstrikes to effect
+
 * Loose Pockets:
   * Default duration: 20s -> 10s
 

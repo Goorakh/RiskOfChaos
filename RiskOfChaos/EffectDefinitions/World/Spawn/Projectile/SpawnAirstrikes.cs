@@ -2,33 +2,34 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RoR2;
+using RoR2.Navigation;
 using RoR2.Projectile;
 using System.Collections;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
 {
     [ChaosEffect("spawn_airstrikes", DefaultSelectionWeight = 0.9f, EffectWeightReductionPercentagePerActivation = 10f)]
     public sealed class SpawnAirstrikes : BaseEffect, ICoroutineEffect
     {
+        static readonly SpawnUtils.NodeSelectionRules _strikePositionSelectorRules = new SpawnUtils.NodeSelectionRules(SpawnUtils.NodeGraphFlags.Ground, false, HullMask.Human, NodeFlags.None, NodeFlags.None);
+
         static GameObject _diabloStrikePrefab;
+        static GameObject _orbitalProbePrefab;
 
         [SystemInitializer]
         static void Init()
         {
-            AsyncOperationHandle<GameObject> diabloStrikeHandle = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Captain/CaptainAirstrikeAltProjectile.prefab");
-            diabloStrikeHandle.Completed += static diabloStrikeHandle =>
-            {
-                _diabloStrikePrefab = diabloStrikeHandle.Result;
-            };
+            _diabloStrikePrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Captain/CaptainAirstrikeAltProjectile.prefab").WaitForCompletion();
+            _orbitalProbePrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Captain/CaptainAirstrikeProjectile1.prefab").WaitForCompletion();
         }
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return _diabloStrikePrefab && DirectorCore.instance && ProjectileManager.instance;
+            return _diabloStrikePrefab && _orbitalProbePrefab && DirectorCore.instance && ProjectileManager.instance && SpawnUtils.GetNodes(_strikePositionSelectorRules).Any();
         }
 
         public override void OnStart()
@@ -37,26 +38,39 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
 
         public IEnumerator OnStartCoroutine()
         {
-            const int NUM_SPAWNS = 50;
-
-            DirectorPlacementRule placementRule = SpawnUtils.GetBestValidRandomPlacementRule();
-
-            for (int i = 0; i < NUM_SPAWNS; i++)
+            foreach (Vector3 position in SpawnUtils.GenerateDistributedSpawnPositions(_strikePositionSelectorRules,
+                                                                                      0.03f,
+                                                                                      new Xoroshiro128Plus(RNG.nextUlong)))
             {
-                Vector3 spawnPosition = placementRule.EvaluateToPosition(RNG);
-
-                Quaternion rotation = QuaternionUtils.PointLocalDirectionAt(Vector3.up, SpawnUtils.GetEnvironmentNormalAtPoint(spawnPosition))
-                                    * QuaternionUtils.RandomDeviation(5f, RNG);
+                Quaternion rotation = QuaternionUtils.PointLocalDirectionAt(Vector3.up, SpawnUtils.GetEnvironmentNormalAtPoint(position))
+                                    * QuaternionUtils.RandomDeviation(5f, RoR2Application.rng);
 
                 ProjectileManager.instance.FireProjectile(new FireProjectileInfo
                 {
                     projectilePrefab = _diabloStrikePrefab,
-                    position = spawnPosition,
+                    position = position,
                     rotation = rotation,
                     damage = 400f * 75f
                 });
 
                 yield return new WaitForSeconds(RNG.RangeFloat(0.05f, 0.25f));
+            }
+
+            yield return new WaitForSeconds(10f);
+
+            foreach (Vector3 position in SpawnUtils.GenerateDistributedSpawnPositions(_strikePositionSelectorRules,
+                                                                                      0.075f,
+                                                                                      new Xoroshiro128Plus(RNG.nextUlong)))
+            {
+                ProjectileManager.instance.FireProjectile(new FireProjectileInfo
+                {
+                    projectilePrefab = _orbitalProbePrefab,
+                    position = position,
+                    rotation = Quaternion.Euler(0f, RoR2Application.rng.RangeFloat(0f, 360f), 0f),
+                    damage = 10f * 20f
+                });
+
+                yield return new WaitForSeconds(RNG.RangeFloat(0f, 0.1f));
             }
         }
 
