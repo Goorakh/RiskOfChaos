@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.EntityLogic;
@@ -74,7 +75,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             for (int i = _numPodSpawns.Value - 1; i >= 0; i--)
             {
-                spawnSurvivor(getItemToSpawn(_survivorEntries, RNG), new Xoroshiro128Plus(RNG.nextUlong));
+                spawnSurvivor(getItemToSpawn(_survivorEntries, RNG), RNG.Branch());
 
                 yield return new WaitForSeconds(RNG.RangeFloat(0.1f, 0.3f));
             }
@@ -95,7 +96,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     ignoreTeamMemberLimit = true,
                     teamIndexOverride = TeamIndex.Player,
                     useAmbientLevel = true,
-                    loadout = LoadoutUtils.GetRandomLoadoutFor(masterPrefabObj.GetComponent<CharacterMaster>(), new Xoroshiro128Plus(rng.nextUlong))
+                    loadout = LoadoutUtils.GetRandomLoadoutFor(masterPrefabObj.GetComponent<CharacterMaster>(), rng.Branch())
                 }.Perform();
 
                 if (!master.hasBody)
@@ -106,13 +107,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 CharacterBody characterBody = master.GetBody();
 
                 DirectorPlacementRule placementRule = SpawnUtils.GetBestValidRandomPlacementRule();
-                Vector3 spawnPosition = placementRule.EvaluateToPosition(new Xoroshiro128Plus(rng.nextUlong),
+                Vector3 spawnPosition = placementRule.EvaluateToPosition(rng.Branch(),
                                                                          characterBody.hullClassification,
                                                                          MapNodeGroup.GraphType.Ground,
                                                                          NodeFlags.None,
                                                                          NodeFlags.NoCharacterSpawn);
 
-                spawnSurvivorPodFor(characterBody, spawnPosition, new Xoroshiro128Plus(rng.nextUlong));
+                spawnSurvivorPodFor(characterBody, spawnPosition, rng.Branch());
             }
             else
             {

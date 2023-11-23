@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.Navigation;
@@ -70,20 +71,20 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         public override void OnStart()
         {
             CharacterBody[] playerBodies = PlayerUtils.GetAllPlayerBodies(true).ToArray();
-            Util.ShuffleArray(playerBodies, new Xoroshiro128Plus(RNG.nextUlong));
+            Util.ShuffleArray(playerBodies, RNG.Branch());
 
             int spawnsRemaining = _droneSpawnCount.Value;
             foreach (CharacterBody playerBody in playerBodies)
             {
-                spawnDroneAt(playerBody, new Xoroshiro128Plus(RNG.nextUlong));
-
+                spawnDroneAt(playerBody, RNG.Branch());
+                
                 if (--spawnsRemaining <= 0)
                     return;
             }
 
             for (int i = 0; i < spawnsRemaining; i++)
             {
-                spawnDroneAt(RNG.NextElementUniform(playerBodies), new Xoroshiro128Plus(RNG.nextUlong));
+                spawnDroneAt(RNG.NextElementUniform(playerBodies), RNG.Branch());
             }
         }
 

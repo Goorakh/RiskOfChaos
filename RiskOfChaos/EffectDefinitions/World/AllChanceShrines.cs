@@ -27,7 +27,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             // ToList is required here since PerformReplacement will modify the enumerable returned by getAllReplacementsData
             getAllReplacementsData().ToList().TryDo(replacementData =>
             {
-                replacementData.PerformReplacement(new Xoroshiro128Plus(RNG.nextUlong));
+                replacementData.PerformReplacement(RNG.Branch());
             });
         }
     }

@@ -36,7 +36,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             // Launch all the players first so the effect is as consistent as possible with the same seed
             PlayerUtils.GetAllPlayerBodies(true).TryDo(b =>
             {
-                launchInRandomDirection(b, new Xoroshiro128Plus(RNG.nextUlong));
+                launchInRandomDirection(b, RNG.Branch());
             }, FormatUtils.GetBestBodyName);
 
             CharacterBody.readOnlyInstancesList.Where(b => !b.isPlayerControlled).TryDo(b =>
@@ -81,7 +81,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         static void launchInRandomDirection(CharacterBody body, Xoroshiro128Plus rng)
         {
-            Vector3 direction = getLaunchDirection(body, new Xoroshiro128Plus(rng.nextUlong));
+            Vector3 direction = getLaunchDirection(body, rng.Branch());
             applyForceToBody(body, direction * (rng.RangeFloat(50f, 150f) * _knockbackScale.Value));
         }
 

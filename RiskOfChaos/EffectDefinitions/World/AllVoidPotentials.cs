@@ -75,7 +75,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                     return Array.Empty<PickupIndex>();
 
                 PickupIndex[] shuffledPickupIndices = (PickupIndex[])_availableOptions.Clone();
-                Util.ShuffleArray(shuffledPickupIndices, new Xoroshiro128Plus(_rng.nextUlong));
+                Util.ShuffleArray(shuffledPickupIndices, _rng.Branch());
                 return shuffledPickupIndices;
             }
         }
@@ -88,7 +88,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             foreach (PickupDef pickup in PickupCatalog.allPickups)
             {
-                PickupOptionGenerator optionGenerator = new PickupOptionGenerator(pickup.pickupIndex, new Xoroshiro128Plus(RNG.nextUlong));
+                PickupOptionGenerator optionGenerator = new PickupOptionGenerator(pickup.pickupIndex, RNG.Branch());
 
                 if (!optionGenerator.HasAnyOptions)
                     continue;

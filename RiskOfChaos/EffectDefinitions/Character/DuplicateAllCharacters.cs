@@ -63,7 +63,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 maxDistance = float.PositiveInfinity
             };
 
-            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(copySpawnCard, placementRule, new Xoroshiro128Plus(RNG.nextUlong))
+            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(copySpawnCard, placementRule, RNG.Branch())
             {
                 summonerBodyObject = body.gameObject,
                 teamIndexOverride = master.teamIndex,

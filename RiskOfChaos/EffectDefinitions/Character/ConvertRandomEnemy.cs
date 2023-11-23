@@ -49,7 +49,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                                  .Cast<BodyIndex>()
                                                  .ToArray();
 
-            Util.ShuffleArray(convertOrder, new Xoroshiro128Plus(RNG.nextUlong));
+            Util.ShuffleArray(convertOrder, RNG.Branch());
 
 #if DEBUG
             Log.Debug($"Convert order: [{string.Join(", ", convertOrder.Select(BodyCatalog.GetBodyName))}]");

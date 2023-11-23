@@ -1,4 +1,5 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities.Extensions;
+using RoR2;
 using RoR2.Navigation;
 using System;
 using System.Collections.Generic;
@@ -419,7 +420,7 @@ namespace RiskOfChaos.Utilities
                 yield break;
             }
 
-            Util.ShuffleArray(nodes, new Xoroshiro128Plus(rng.nextUlong));
+            Util.ShuffleArray(nodes, rng.Branch());
 
             int targetNodesCount = Mathf.Max(1, Mathf.FloorToInt(nodes.Length * selectionFraction));
 

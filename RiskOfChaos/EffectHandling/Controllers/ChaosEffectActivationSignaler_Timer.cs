@@ -132,7 +132,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 effectsListSize = enabledEffects.Length;
             }
 
-            Util.ShuffleArray(enabledEffects, new Xoroshiro128Plus(rng.nextUlong));
+            Util.ShuffleArray(enabledEffects, rng.Branch());
 
             _overrideAvailableEffects = new OverrideEffect[effectsListSize];
 
@@ -200,7 +200,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 return;
             }
 
-            ChaosEffectInfo effect = pickNextEffect(new Xoroshiro128Plus(_nextEffectRNG.nextUlong), out ChaosEffectDispatchArgs args);
+            ChaosEffectInfo effect = pickNextEffect(_nextEffectRNG.Branch(), out ChaosEffectDispatchArgs args);
             SignalShouldDispatchEffect?.Invoke(effect, args);
 
             updateNextEffect();
@@ -216,7 +216,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             Xoroshiro128Plus rngCopy = new Xoroshiro128Plus(_nextEffectRNG);
 
-            ChaosEffectInfo nextEffect = pickNextEffect(new Xoroshiro128Plus(rngCopy.nextUlong), out _);
+            ChaosEffectInfo nextEffect = pickNextEffect(rngCopy.Branch(), out _);
             if (nextEffect is null)
                 return ChaosEffectIndex.Invalid;
 

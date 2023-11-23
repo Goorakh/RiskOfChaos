@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Navigation;
 using RoR2.Projectile;
@@ -40,7 +41,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
         {
             foreach (Vector3 position in SpawnUtils.GenerateDistributedSpawnPositions(_strikePositionSelectorRules,
                                                                                       0.03f,
-                                                                                      new Xoroshiro128Plus(RNG.nextUlong)))
+                                                                                      RNG.Branch()))
             {
                 Quaternion rotation = QuaternionUtils.PointLocalDirectionAt(Vector3.up, SpawnUtils.GetEnvironmentNormalAtPoint(position))
                                     * QuaternionUtils.RandomDeviation(5f, RoR2Application.rng);
@@ -60,7 +61,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
 
             foreach (Vector3 position in SpawnUtils.GenerateDistributedSpawnPositions(_strikePositionSelectorRules,
                                                                                       0.075f,
-                                                                                      new Xoroshiro128Plus(RNG.nextUlong)))
+                                                                                      RNG.Branch()))
             {
                 ProjectileManager.instance.FireProjectile(new FireProjectileInfo
                 {

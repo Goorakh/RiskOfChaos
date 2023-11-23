@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Navigation;
 using System.Linq;
@@ -47,9 +48,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     placementMode = SpawnUtils.ExtraPlacementModes.NearestNodeWithConditions
                 };
 
-                DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(geyserSpawnCard, placementRule, new Xoroshiro128Plus(RNG.nextUlong));
+                DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(geyserSpawnCard, placementRule, RNG.Branch());
 
-                Xoroshiro128Plus geyserRNG = new Xoroshiro128Plus(RNG.nextUlong);
+                Xoroshiro128Plus geyserRNG = RNG.Branch();
                 spawnRequest.onSpawnedServer = result =>
                 {
                     if (!result.success || !result.spawnedInstance)

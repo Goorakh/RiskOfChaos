@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
@@ -34,7 +35,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         static AspectStep generateStep(Xoroshiro128Plus rng)
         {
-            EquipmentIndex aspectEquipmentIndex = EliteUtils.SelectEliteEquipment(new Xoroshiro128Plus(rng.nextUlong), _allowDirectorUnavailableElites.Value);
+            EquipmentIndex aspectEquipmentIndex = EliteUtils.SelectEliteEquipment(rng.Branch(), _allowDirectorUnavailableElites.Value);
             return new AspectStep(aspectEquipmentIndex, rng.RangeFloat(MIN_ASPECT_DURATION, MAX_ASPECT_DURATION));
         }
 

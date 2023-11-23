@@ -253,7 +253,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                 nodeGraphType = bodyPrefab.GetComponent<CharacterMotor>() ? MapNodeGroup.GraphType.Ground : MapNodeGroup.GraphType.Air;
             }
 
-            return placementRule.EvaluateToPosition(new Xoroshiro128Plus(rng.nextUlong), bodyPrefab.hullClassification, nodeGraphType, NodeFlags.None, NodeFlags.NoCharacterSpawn);
+            return placementRule.EvaluateToPosition(rng.Branch(), bodyPrefab.hullClassification, nodeGraphType, NodeFlags.None, NodeFlags.NoCharacterSpawn);
         }
 
         protected void setupPrefab(CharacterMaster masterPrefab)
@@ -290,11 +290,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                 }
             }
 
-            _spawnData.Loadout = LoadoutUtils.GetRandomLoadoutFor(masterPrefab, new Xoroshiro128Plus(RNG.nextUlong));
+            _spawnData.Loadout = LoadoutUtils.GetRandomLoadoutFor(masterPrefab, RNG.Branch());
 
             if (RNG.nextNormalizedFloat <= eliteChance)
             {
-                _spawnData.OverrideEquipment = EliteUtils.SelectEliteEquipment(new Xoroshiro128Plus(RNG.nextUlong), allowDirectorUnavailableElites);
+                _spawnData.OverrideEquipment = EliteUtils.SelectEliteEquipment(RNG.Branch(), allowDirectorUnavailableElites);
             }
 
             modifySpawnData(ref _spawnData);

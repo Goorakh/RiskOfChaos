@@ -83,7 +83,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         {
             PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
             {
-                upgradeRandomItem(playerMaster, new Xoroshiro128Plus(RNG.nextUlong));
+                upgradeRandomItem(playerMaster, RNG.Branch());
             }, Util.GetBestMasterName);
         }
 

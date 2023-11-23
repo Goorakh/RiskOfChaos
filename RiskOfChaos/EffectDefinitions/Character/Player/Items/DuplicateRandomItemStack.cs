@@ -96,7 +96,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             base.OnPreStartServer();
 
             _itemDuplicationOrder = ItemCatalog.allItems.ToArray();
-            Util.ShuffleArray(_itemDuplicationOrder, new Xoroshiro128Plus(RNG.nextUlong));
+            Util.ShuffleArray(_itemDuplicationOrder, RNG.Branch());
 
 #if DEBUG
             Log.Debug($"Duplication order: [{string.Join(", ", _itemDuplicationOrder.Select(FormatUtils.GetBestItemDisplayName))}]");

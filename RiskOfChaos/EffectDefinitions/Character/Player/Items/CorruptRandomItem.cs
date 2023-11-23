@@ -79,7 +79,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             base.OnPreStartServer();
 
             _itemCorruptOrder = getAllCorruptableItems().ToArray();
-            Util.ShuffleArray(_itemCorruptOrder, new Xoroshiro128Plus(RNG.nextUlong));
+            Util.ShuffleArray(_itemCorruptOrder, RNG.Branch());
 
 #if DEBUG
             Log.Debug($"Corrupt order: [{string.Join(", ", _itemCorruptOrder.Select(FormatUtils.GetBestItemDisplayName))}]");

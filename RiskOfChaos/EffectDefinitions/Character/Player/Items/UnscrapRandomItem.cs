@@ -139,7 +139,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 return Enumerable.Empty<UnscrapInfo>();
             }).ToArray();
 
-            Util.ShuffleArray(_unscrapOrder, new Xoroshiro128Plus(RNG.nextUlong));
+            Util.ShuffleArray(_unscrapOrder, RNG.Branch());
 
 #if DEBUG
             Log.Debug($"Unscrap order: [{string.Join(", ", _unscrapOrder.Select(u => $"({FormatUtils.GetBestItemDisplayName(u.ScrapItemIndex)})"))}]");
@@ -150,7 +150,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         {
             PlayerUtils.GetAllPlayerMasters(false).TryDo(m =>
             {
-                tryUnscrapRandomItem(m, new Xoroshiro128Plus(RNG.nextUlong));
+                tryUnscrapRandomItem(m, RNG.Branch());
             }, Util.GetBestMasterName);
         }
 

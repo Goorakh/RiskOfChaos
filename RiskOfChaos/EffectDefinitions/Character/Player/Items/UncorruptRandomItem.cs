@@ -100,7 +100,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             base.OnPreStartServer();
 
             _itemUncorruptionOrder = getReverseItemCorruptionMap().Select(kvp => new ItemUncorruptionInfo(kvp.Key, kvp.Value.ToArray())).ToArray();
-            Util.ShuffleArray(_itemUncorruptionOrder, new Xoroshiro128Plus(RNG.nextUlong));
+            Util.ShuffleArray(_itemUncorruptionOrder, RNG.Branch());
 
 #if DEBUG
             Log.Debug($"Uncorruption order: [{string.Join(", ", _itemUncorruptionOrder.Select(u => FormatUtils.GetBestItemDisplayName(u.CorruptedItem)))}]");
@@ -111,7 +111,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         {
             PlayerUtils.GetAllPlayerMasters(false).TryDo(master =>
             {
-                uncorruptRandomItem(master, new Xoroshiro128Plus(RNG.nextUlong));
+                uncorruptRandomItem(master, RNG.Branch());
             }, Util.GetBestMasterName);
         }
 
@@ -127,7 +127,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 if (itemUncorruptIndex == -1)
                     break;
 
-                uncorruptItem(master, new Xoroshiro128Plus(rng.nextUlong), _itemUncorruptionOrder[itemUncorruptIndex]);
+                uncorruptItem(master, rng.Branch(), _itemUncorruptionOrder[itemUncorruptIndex]);
             }
         }
 

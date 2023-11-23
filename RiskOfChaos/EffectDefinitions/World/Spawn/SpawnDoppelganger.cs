@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2.Artifacts;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
@@ -8,7 +9,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
     {
         public override void OnStart()
         {
-            DoppelgangerInvasionManager.PerformInvasion(new Xoroshiro128Plus(RNG.nextUlong));
+            DoppelgangerInvasionManager.PerformInvasion(RNG.Branch());
         }
     }
 }

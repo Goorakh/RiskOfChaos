@@ -2,6 +2,7 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Navigation;
 using UnityEngine;
@@ -41,12 +42,12 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             DirectorPlacementRule placementRule = SpawnUtils.GetBestValidRandomPlacementRule();
 
-            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_iscVoidCamp, placementRule, new Xoroshiro128Plus(RNG.nextUlong));
+            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_iscVoidCamp, placementRule, RNG.Branch());
 
             GameObject voidSeedObj = DirectorCore.instance.TrySpawnObject(spawnRequest);
             if (voidSeedObj && Configs.EffectSelection.SeededEffectSelection.Value)
             {
-                RNGOverridePatch.OverrideRNG(voidSeedObj, new Xoroshiro128Plus(RNG.nextUlong));
+                RNGOverridePatch.OverrideRNG(voidSeedObj, RNG.Branch());
             }
         }
     }

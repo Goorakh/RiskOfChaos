@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Utilities.Pool;
+﻿using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.Utilities.Pool;
 using RoR2;
 using System;
 using System.Collections.Generic;
@@ -77,7 +78,7 @@ namespace RiskOfChaos.Utilities.DropTables
 
                 int remainingDrops = maxDrops - result.Count;
                 int remainingTableDrops = Math.Min(remainingDrops, entry.Value.Count);
-                result.AddRange(entry.Value.DropTable.GenerateUniqueDropsPreReplacement(remainingTableDrops, new Xoroshiro128Plus(rng.nextUlong)));
+                result.AddRange(entry.Value.DropTable.GenerateUniqueDropsPreReplacement(remainingTableDrops, rng.Branch()));
                 _currentDropCount += remainingTableDrops;
             }
 

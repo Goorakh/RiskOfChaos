@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Navigation;
 using System.Linq;
@@ -33,12 +34,12 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             foreach (Vector3 position in SpawnUtils.GenerateDistributedSpawnPositions(_placementSelectionRules,
                                                                                       RNG.RangeFloat(0.15f, 0.3f),
-                                                                                      new Xoroshiro128Plus(RNG.nextUlong)))
+                                                                                      RNG.Branch()))
             {
                 Vector3 normal = SpawnUtils.GetEnvironmentNormalAtPoint(position);
 
                 Quaternion rotation = Quaternion.AngleAxis(RNG.RangeFloat(0f, 360f), normal)
-                                    * QuaternionUtils.RandomDeviation(15f, new Xoroshiro128Plus(RNG.nextUlong))
+                                    * QuaternionUtils.RandomDeviation(15f, RNG.Branch())
                                     * QuaternionUtils.PointLocalDirectionAt(Vector3.up, normal);
 
                 if (NetPrefabs.SulfurPodBasePrefab)

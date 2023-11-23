@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Navigation;
 using System;
@@ -199,11 +200,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         public override void OnStart()
         {
-            InteractableSpawnCard spawnCard = getItemToSpawn(_spawnCards, new Xoroshiro128Plus(RNG.nextUlong));
+            InteractableSpawnCard spawnCard = getItemToSpawn(_spawnCards, RNG.Branch());
 
             foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
             {
-                spawnInteractable(spawnCard, playerBody, new Xoroshiro128Plus(RNG.nextUlong));
+                spawnInteractable(spawnCard, playerBody, RNG.Branch());
             }
         }
 
@@ -217,12 +218,12 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 placementMode = SpawnUtils.ExtraPlacementModes.NearestNodeWithConditions
             };
 
-            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(spawnCard, placementRule, new Xoroshiro128Plus(rng.nextUlong));
+            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(spawnCard, placementRule, rng.Branch());
 
             GameObject spawnedObject = spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());
             if (spawnedObject && Configs.EffectSelection.SeededEffectSelection.Value)
             {
-                RNGOverridePatch.OverrideRNG(spawnedObject, new Xoroshiro128Plus(rng.nextUlong));
+                RNGOverridePatch.OverrideRNG(spawnedObject, rng.Branch());
             }
         }
     }
