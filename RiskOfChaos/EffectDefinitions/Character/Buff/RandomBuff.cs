@@ -2,7 +2,6 @@
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RiskOfChaos.ConfigHandling;
-using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -15,7 +14,7 @@ using System.Linq;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
-    [ChaosTimedEffect("random_buff", TimedEffectType.UntilStageEnd)]
+    [ChaosTimedEffect("random_buff", 90f)]
     [EffectConfigBackwardsCompatibility("Effect: Give Everyone a Random Buff (Lasts 1 stage)")]
     public sealed class RandomBuff : ApplyBuffEffect
     {

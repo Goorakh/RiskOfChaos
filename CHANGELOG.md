@@ -39,6 +39,10 @@
 
 * Give Everyone a Random Buff:
   * WolfoQoL compatibility
+  * Default duration: End of stage -> 90s
+
+* Give Everyone a Random Debuff:
+  * Default duration: End of stage -> 60s
 
 * Add Random Item to Monster Inventory:
   * Added config option for applying the enemy item blacklist, enabled by default

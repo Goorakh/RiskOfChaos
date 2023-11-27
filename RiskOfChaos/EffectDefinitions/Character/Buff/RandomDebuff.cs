@@ -1,5 +1,4 @@
 ﻿using RiskOfChaos.ConfigHandling;
-using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -11,7 +10,7 @@ using System.Linq;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
-    [ChaosTimedEffect("random_debuff", TimedEffectType.UntilStageEnd, DefaultSelectionWeight = 0.9f, EffectWeightReductionPercentagePerActivation = 15f)]
+    [ChaosTimedEffect("random_debuff", 60f, DefaultSelectionWeight = 0.9f, EffectWeightReductionPercentagePerActivation = 15f)]
     [EffectConfigBackwardsCompatibility("Effect: Give Everyone a Random Debuff (Lasts 1 stage)")]
     public sealed class RandomDebuff : ApplyBuffEffect
     {
