@@ -14,7 +14,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosTimedEffect("aspect_roulette", 90f, AllowDuplicates = false)]
+    [ChaosTimedEffect("aspect_roulette", 60f, AllowDuplicates = false)]
     public sealed class AspectRoulette : TimedEffect
     {
         [EffectConfig]

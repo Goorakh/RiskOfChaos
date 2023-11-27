@@ -122,6 +122,9 @@
 * Superhot:
   * Default duration: 90s -> 45s
 
+* Aspect Roulette:
+  * Default duration: 90s -> 60s
+
 * Freeze!:
   * Default freeze duration: 4s -> 2.5s
 
