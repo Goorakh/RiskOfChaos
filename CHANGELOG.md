@@ -119,6 +119,9 @@
 * Loose Pockets:
   * Default duration: 20s -> 10s
 
+* Superhot:
+  * Default duration: 90s -> 45s
+
 * Freeze!:
   * Default freeze duration: 4s -> 2.5s
 
