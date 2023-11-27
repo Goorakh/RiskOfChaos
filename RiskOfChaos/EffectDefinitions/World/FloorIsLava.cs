@@ -1,8 +1,10 @@
 ﻿using RiskOfChaos.Components;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.CatalogIndexCollection;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
@@ -47,15 +49,26 @@ namespace RiskOfChaos.EffectDefinitions.World
         [RequireComponent(typeof(CharacterBody))]
         sealed class GroundedDamageController : MonoBehaviour
         {
-            const DotController.DotIndex DOT_INDEX = DotController.DotIndex.PercentBurn;
+            static readonly MasterIndexCollection _overrideAlwaysGroundedMasters = new MasterIndexCollection(new string[]
+            {
+                "EngiTurretMaster",
+                "SquidTurretMaster",
+                "MinorConstructMaster",
+                "Turret1Master",
+                "VoidBarnacleNoCastMaster"
+            });
+
+            static DotController.DotIndex _dotIndex = DotController.DotIndex.None;
             static DotController.DotDef _dotDef;
 
-            [SystemInitializer(typeof(DotController))]
+            [SystemInitializer(typeof(CustomDOTs))]
             static void Init()
             {
-                _dotDef = DotController.GetDotDef(DOT_INDEX);
+                _dotIndex = CustomDOTs.PercentHealthDotIndex;
+                _dotDef = DotController.GetDotDef(_dotIndex);
             }
 
+            CharacterMaster _master;
             CharacterBody _body;
             CharacterMotor _motor;
 
@@ -64,6 +77,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             void Awake()
             {
                 _body = GetComponent<CharacterBody>();
+                _master = _body.master;
                 _motor = _body.characterMotor;
 
                 InstanceTracker.Add(this);
@@ -76,19 +90,23 @@ namespace RiskOfChaos.EffectDefinitions.World
                 removeDOTStacks(int.MaxValue);
             }
 
+            bool isGrounded()
+            {
+                if (_master && _overrideAlwaysGroundedMasters.Contains(_master.masterIndex))
+                    return true;
+
+                if (!_motor)
+                    _motor = _body.characterMotor;
+
+                return _motor && _motor.isGrounded;
+            }
+
             void FixedUpdate()
             {
                 if (!_body)
                     return;
 
-                if (!_motor)
-                {
-                    _motor = _body.characterMotor;
-                    if (!_motor)
-                        return;
-                }
-
-                if (_motor.isGrounded)
+                if (isGrounded())
                 {
                     _groundedTimer += Time.fixedDeltaTime;
                 }
@@ -103,7 +121,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                     for (int i = 0; i < missingDOTStacks; i++)
                     {
                         // AttackerObject has to be non-null for DOT to be applied, and passing in _body.gameObject will consider the character's items and stats for the dot damage
-                        DotController.InflictDot(_body.gameObject, DummyDamageInflictor.Instance.gameObject, DOT_INDEX);
+                        DotController.InflictDot(_body.gameObject, DummyDamageInflictor.Instance.gameObject, _dotIndex);
                     }
                 }
                 else if (missingDOTStacks < 0)
@@ -117,7 +135,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 DotController dotController = DotController.FindDotController(_body.gameObject);
                 if (dotController)
                 {
-                    dotController.RemoveDOTStacks(DOT_INDEX, stacksToRemove);
+                    dotController.RemoveDOTStacks(_dotIndex, stacksToRemove);
                 }
             }
 
