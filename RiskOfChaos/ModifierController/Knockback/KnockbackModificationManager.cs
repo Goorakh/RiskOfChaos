@@ -3,7 +3,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.Knockback
 {
-    public class KnockbackModificationManager : NetworkedValueModificationManager<IKnockbackModificationProvider, float>
+    public class KnockbackModificationManager : NetworkedValueModificationManager<float>
     {
         static KnockbackModificationManager _instance;
         public static KnockbackModificationManager Instance => _instance;

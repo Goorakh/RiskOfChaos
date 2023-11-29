@@ -6,13 +6,13 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController
 {
-    public abstract class ValueModificationManager<TModificationProvider, TValue> : MonoBehaviour, IValueModificationManager<TModificationProvider, TValue> where TModificationProvider : IValueModificationProvider<TValue>
+    public abstract class ValueModificationManager<TValue> : MonoBehaviour, IValueModificationManager<TValue>
     {
 #if DEBUG
         float _lastModificationDirtyLogAttemptTime = float.NegativeInfinity;
 #endif
 
-        protected readonly HashSet<TModificationProvider> _modificationProviders = new HashSet<TModificationProvider>();
+        protected readonly HashSet<ModificationProviderInfo<TValue>> _modificationProviders = new HashSet<ModificationProviderInfo<TValue>>();
 
         public event Action OnValueModificationUpdated;
 
@@ -43,7 +43,7 @@ namespace RiskOfChaos.ModifierController
             _modificationProvidersDirty = true;
         }
 
-        public void RegisterModificationProvider(TModificationProvider provider)
+        public void RegisterModificationProvider(IValueModificationProvider<TValue> provider)
         {
             if (!NetworkServer.active)
             {
@@ -51,14 +51,14 @@ namespace RiskOfChaos.ModifierController
                 return;
             }
 
-            if (_modificationProviders.Add(provider))
+            if (_modificationProviders.Add(new ModificationProviderInfo<TValue>(provider)))
             {
                 provider.OnValueDirty += onModificationProviderDirty;
                 onModificationProviderDirty();
             }
         }
 
-        public void UnregisterModificationProvider(TModificationProvider provider)
+        public void UnregisterModificationProvider(IValueModificationProvider<TValue> provider)
         {
             if (!NetworkServer.active)
             {
@@ -66,7 +66,7 @@ namespace RiskOfChaos.ModifierController
                 return;
             }
 
-            if (_modificationProviders.Remove(provider))
+            if (_modificationProviders.RemoveWhere(p => p.Equals(provider)) > 0)
             {
                 provider.OnValueDirty -= onModificationProviderDirty;
                 onModificationProviderDirty();
@@ -94,9 +94,9 @@ namespace RiskOfChaos.ModifierController
 
         protected virtual TValue getModifiedValue(TValue baseValue)
         {
-            foreach (TModificationProvider modificationProvider in _modificationProviders)
+            foreach (ModificationProviderInfo<TValue> modificationProvider in _modificationProviders)
             {
-                modificationProvider.ModifyValue(ref baseValue);
+                modificationProvider.ModificationProvider.ModifyValue(ref baseValue);
             }
 
             return baseValue;

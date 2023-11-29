@@ -4,7 +4,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.PhysicsModification
 {
-    public sealed class PhysicsModificationManager : NetworkedValueModificationManager<IPhysicsModificationProvider, PhysicsModificationInfo>
+    public sealed class PhysicsModificationManager : NetworkedValueModificationManager<PhysicsModificationInfo>
     {
         static PhysicsModificationManager _instance;
         public static PhysicsModificationManager Instance => _instance;

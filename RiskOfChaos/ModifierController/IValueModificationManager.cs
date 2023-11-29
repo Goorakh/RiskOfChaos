@@ -2,14 +2,14 @@
 
 namespace RiskOfChaos.ModifierController
 {
-    public interface IValueModificationManager<TModificationProvider, TValue> where TModificationProvider : IValueModificationProvider<TValue>
+    public interface IValueModificationManager<TValue>
     {
         event Action OnValueModificationUpdated;
 
         bool AnyModificationActive { get; }
 
-        void RegisterModificationProvider(TModificationProvider provider);
+        void RegisterModificationProvider(IValueModificationProvider<TValue> provider);
 
-        void UnregisterModificationProvider(TModificationProvider provider);
+        void UnregisterModificationProvider(IValueModificationProvider<TValue> provider);
     }
 }

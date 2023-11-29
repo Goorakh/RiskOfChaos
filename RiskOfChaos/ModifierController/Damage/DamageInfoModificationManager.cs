@@ -7,7 +7,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.Damage
 {
-    public class DamageInfoModificationManager : ValueModificationManager<IDamageInfoModificationProvider, DamageInfo>
+    public class DamageInfoModificationManager : ValueModificationManager<DamageInfo>
     {
         static bool _hasAppliedPatches = false;
         static void tryApplyPatches()

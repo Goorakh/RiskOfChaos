@@ -2,7 +2,7 @@
 
 namespace RiskOfChaos.ModifierController.AttackDelay
 {
-    public class AttackDelayModificationManager : NetworkedValueModificationManager<IAttackDelayModificationProvider, AttackDelayModificationInfo>
+    public class AttackDelayModificationManager : NetworkedValueModificationManager<AttackDelayModificationInfo>
     {
         static AttackDelayModificationManager _instance;
         public static AttackDelayModificationManager Instance => _instance;
