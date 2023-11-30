@@ -15,8 +15,6 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 
         protected abstract float multiplier { get; }
 
-        public bool ContributeToPlayerRealtimeTimeScalePatch => true;
-
         public abstract event Action OnValueDirty;
 
         public void ModifyValue(ref float value)

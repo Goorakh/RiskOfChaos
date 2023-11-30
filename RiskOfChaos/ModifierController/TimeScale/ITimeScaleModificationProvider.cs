@@ -2,6 +2,5 @@
 {
     public interface ITimeScaleModificationProvider : IValueModificationProvider<float>
     {
-        bool ContributeToPlayerRealtimeTimeScalePatch { get; }
     }
 }

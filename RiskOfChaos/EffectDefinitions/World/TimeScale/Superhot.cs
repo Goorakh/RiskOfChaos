@@ -17,8 +17,6 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
         {
             public event Action OnValueDirty;
 
-            public bool ContributeToPlayerRealtimeTimeScalePatch => false;
-
             CharacterMaster _master;
 
             float _lastTimeScaleMultiplier;
