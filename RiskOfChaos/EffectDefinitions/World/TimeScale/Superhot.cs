@@ -60,6 +60,9 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 
             void FixedUpdate()
             {
+                if (NetworkServer.dontListen && PauseManager.isPaused)
+                    return;
+
                 float deltaTime = Time.fixedUnscaledDeltaTime;
                 float targetTimeScaleMultiplier = getCurrentTimeScaleMultiplier(deltaTime);
 
