@@ -6,13 +6,6 @@ Heavily inspired by the "Chaos Mod" series of GTA games.
 
 Currently features 119 different effects.
 
-### Twitch Integration:
-
-Twitch integration allows viewers to vote for the next effect.
-
-To set up Twitch voting, set the General->Streamer Integration->Voting Mode config to "Twitch", then open [the console](https://riskofrain2.fandom.com/wiki/Developer_Console), and use the command "roc_twitch_login" then provide your channel name and oauth token (ex. "roc_twitch_login goorakh oauth:yourtokengoeshere"). Note: Login info is saved between game restarts, but you will have to re-enter it after updating the mod.
-If the game loses connection to your channel, it will automatically attempt to reconnect, if this doesn't work however, you can manually make it reconnect in the Streamer Integration options menu by pressing the Reconnect button
-
 <details>
 	<summary>Full list of effects</summary>
 
@@ -136,6 +129,13 @@ If the game loses connection to your channel, it will automatically attempt to r
 * Mystery Items: All item pickup models are hidden, lasts 60 seconds
 * Focused Teleporter Charging: Holdout zone radius decreases with charge percentage, lasts 1 stage
 </details>
+
+### Twitch Integration:
+
+Twitch integration allows viewers to vote for the next effect.
+
+To set up Twitch voting, set the General->Streamer Integration->Voting Mode config to "Twitch", then open [the console](https://riskofrain2.fandom.com/wiki/Developer_Console), and use the command "roc_twitch_login" then provide your channel name and oauth token (ex. "roc_twitch_login goorakh oauth:yourtokengoeshere"). Note: Login info is saved between game restarts, but you will have to re-enter it after updating the mod.
+If the game loses connection to your channel, it will automatically attempt to reconnect, if this doesn't work however, you can manually make it reconnect in the Streamer Integration options menu by pressing the Reconnect button
 
 FAQ:
 
