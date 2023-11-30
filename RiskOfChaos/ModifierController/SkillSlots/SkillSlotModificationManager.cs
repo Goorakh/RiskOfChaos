@@ -328,6 +328,11 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             SingletonHelper.Unassign(ref _instance, this);
         }
 
+        protected override SkillSlotModificationData interpolateValue(in SkillSlotModificationData a, in SkillSlotModificationData b, float t, ValueInterpolationFunctionType interpolationType)
+        {
+            return SkillSlotModificationData.Interpolate(a, b, t, interpolationType);
+        }
+
         protected override void updateValueModifications()
         {
             if (!NetworkServer.active)

@@ -1,6 +1,4 @@
 ﻿using RiskOfChaos.Utilities;
-using System.Runtime.InteropServices;
-using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.TimeScale
 {
@@ -19,6 +17,11 @@ namespace RiskOfChaos.ModifierController.TimeScale
             SingletonHelper.Unassign(ref _instance, this);
 
             TimeUtils.UnpausedTimeScale = 1f;
+        }
+
+        protected override float interpolateValue(in float a, in float b, float t, ValueInterpolationFunctionType interpolationType)
+        {
+            return interpolationType.Interpolate(a, b, t);
         }
 
         protected override void updateValueModifications()

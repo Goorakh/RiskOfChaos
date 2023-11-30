@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.ModifierController;
 using RiskOfChaos.ModifierController.TimeScale;
 using RoR2;
 using System;
@@ -24,7 +25,7 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 
         public override void OnStart()
         {
-            TimeScaleModificationManager.Instance.RegisterModificationProvider(this);
+            TimeScaleModificationManager.Instance.RegisterModificationProvider(this, ValueInterpolationFunctionType.InterpolateEaseInOut);
 
             On.RoR2.CharacterBody.RecalculateStats += CharacterBody_RecalculateStats;
             markAllPlayerStatsDirty();

@@ -74,6 +74,11 @@ namespace RiskOfChaos.ModifierController.Damage
             damageInfo = Instance.getModifiedValue(damageInfoCopy);
         }
 
+        protected override DamageInfo interpolateValue(in DamageInfo a, in DamageInfo b, float t, ValueInterpolationFunctionType interpolationType)
+        {
+            return b;
+        }
+
         protected override void updateValueModifications()
         {
         }

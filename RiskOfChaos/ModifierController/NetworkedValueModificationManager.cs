@@ -1,6 +1,8 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities.Extensions;
+using RoR2;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -41,6 +43,8 @@ namespace RiskOfChaos.ModifierController
             }
         }
 
+        protected virtual float modificationInterpolationTime => 1f;
+
         public override void OnStartClient()
         {
             base.OnStartClient();
@@ -78,7 +82,7 @@ namespace RiskOfChaos.ModifierController
             _modificationProvidersDirty = true;
         }
 
-        public void RegisterModificationProvider(IValueModificationProvider<TValue> provider)
+        public void RegisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType valueInterpolationType = ValueInterpolationFunctionType.Snap)
         {
             if (!NetworkServer.active)
             {
@@ -86,7 +90,7 @@ namespace RiskOfChaos.ModifierController
                 return;
             }
 
-            if (_modificationProviders.Add(new ModificationProviderInfo<TValue>(provider)))
+            if (_modificationProviders.Add(new ModificationProviderInfo<TValue>(provider, valueInterpolationType)))
             {
                 provider.OnValueDirty += onModificationProviderDirty;
                 onModificationProviderDirty();
@@ -104,6 +108,14 @@ namespace RiskOfChaos.ModifierController
             if (_modificationProviders.RemoveWhere(p => p.Equals(provider)) > 0)
             {
                 provider.OnValueDirty -= onModificationProviderDirty;
+                onModificationProviderDirty();
+            }
+        }
+
+        protected virtual void FixedUpdate()
+        {
+            if (_modificationProviders.Any(p => p.Age <= modificationInterpolationTime))
+            {
                 onModificationProviderDirty();
             }
         }
@@ -127,11 +139,17 @@ namespace RiskOfChaos.ModifierController
 
         protected abstract void updateValueModifications();
 
+        protected abstract TValue interpolateValue(in TValue a, in TValue b, float t, ValueInterpolationFunctionType interpolationType);
+
         protected virtual TValue getModifiedValue(TValue baseValue)
         {
             foreach (ModificationProviderInfo<TValue> modificationProvider in _modificationProviders)
             {
+                TValue valuePreModification = baseValue.ShallowCopy();
+
                 modificationProvider.ModificationProvider.ModifyValue(ref baseValue);
+
+                baseValue = interpolateValue(valuePreModification, baseValue, Mathf.InverseLerp(0f, modificationInterpolationTime, modificationProvider.Age), modificationProvider.InterpolationType);
             }
 
             return baseValue;

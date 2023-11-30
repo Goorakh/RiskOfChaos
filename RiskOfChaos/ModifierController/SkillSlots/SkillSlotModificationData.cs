@@ -16,5 +16,21 @@ namespace RiskOfChaos.ModifierController.SkillSlots
         {
             SlotIndex = slotIndex;
         }
+
+        public static SkillSlotModificationData Interpolate(SkillSlotModificationData a, SkillSlotModificationData b, float t, ValueInterpolationFunctionType interpolationType)
+        {
+            if (a.SlotIndex != b.SlotIndex)
+            {
+                Log.Error("Attempting to interpolate modification data for different skill slots");
+            }
+
+            return new SkillSlotModificationData(a.SlotIndex)
+            {
+                ForceIsLocked = b.ForceIsLocked,
+                ForceActivate = b.ForceActivate,
+                CooldownScale = interpolationType.Interpolate(a.CooldownScale, b.CooldownScale, t),
+                StockAdds = interpolationType.Interpolate(a.StockAdds, b.StockAdds, t)
+            };
+        }
     }
 }

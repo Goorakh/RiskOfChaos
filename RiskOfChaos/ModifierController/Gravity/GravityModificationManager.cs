@@ -34,6 +34,11 @@ namespace RiskOfChaos.ModifierController.Gravity
             }
         }
 
+        protected override Vector3 interpolateValue(in Vector3 a, in Vector3 b, float t, ValueInterpolationFunctionType interpolationType)
+        {
+            return interpolationType.Interpolate(a, b, t);
+        }
+
         protected override void updateValueModifications()
         {
             GravityTracker.SetGravityUntracked(getModifiedValue(GravityTracker.BaseGravity));

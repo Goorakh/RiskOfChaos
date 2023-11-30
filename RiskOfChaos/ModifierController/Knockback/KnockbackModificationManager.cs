@@ -25,6 +25,11 @@ namespace RiskOfChaos.ModifierController.Knockback
             }
         }
 
+        protected override float interpolateValue(in float a, in float b, float t, ValueInterpolationFunctionType interpolationType)
+        {
+            return interpolationType.Interpolate(a, b, t);
+        }
+
         protected override void updateValueModifications()
         {
             NetworkedTotalKnockbackMultiplier = getModifiedValue(1f);

@@ -39,6 +39,11 @@ namespace RiskOfChaos.ModifierController.PhysicsModification
             SingletonHelper.Unassign(ref _instance, this);
         }
 
+        protected override PhysicsModificationInfo interpolateValue(in PhysicsModificationInfo a, in PhysicsModificationInfo b, float t, ValueInterpolationFunctionType interpolationType)
+        {
+            return PhysicsModificationInfo.Interpolate(a, b, t, interpolationType);
+        }
+
         protected override void updateValueModifications()
         {
             PhysicsModificationInfo physicsModificationInfo = getModifiedValue(new PhysicsModificationInfo());

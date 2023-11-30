@@ -3,9 +3,9 @@ using UnityEngine;
 
 namespace RiskOfChaos.ModifierController
 {
-    public readonly record struct ModificationProviderInfo<T>(IValueModificationProvider<T> ModificationProvider, float TimeStarted) : IEquatable<IValueModificationProvider<T>>
+    public readonly record struct ModificationProviderInfo<T>(IValueModificationProvider<T> ModificationProvider, ValueInterpolationFunctionType InterpolationType, float TimeStarted) : IEquatable<IValueModificationProvider<T>>
     {
-        public ModificationProviderInfo(IValueModificationProvider<T> ModificationProvider) : this(ModificationProvider, Time.time)
+        public ModificationProviderInfo(IValueModificationProvider<T> ModificationProvider, ValueInterpolationFunctionType valueInterpolationType) : this(ModificationProvider, valueInterpolationType, Time.time)
         {
         }
 

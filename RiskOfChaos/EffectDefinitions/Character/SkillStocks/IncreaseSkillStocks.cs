@@ -63,7 +63,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.SkillStocks
 
         public void ModifyValue(ref SkillSlotModificationData value)
         {
-            value.AddStocksSafe(_stockAdds.Value);
+            value.StockAdds += _stockAdds.Value;
         }
     }
 }

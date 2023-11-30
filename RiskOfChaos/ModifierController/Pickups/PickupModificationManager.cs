@@ -17,6 +17,11 @@
 
         public uint BounceCount { get; private set; }
 
+        protected override PickupModificationInfo interpolateValue(in PickupModificationInfo a, in PickupModificationInfo b, float t, ValueInterpolationFunctionType interpolationType)
+        {
+            return PickupModificationInfo.Interpolate(a, b, t, interpolationType);
+        }
+
         protected override void updateValueModifications()
         {
             PickupModificationInfo modificationInfo = getModifiedValue(new PickupModificationInfo());
