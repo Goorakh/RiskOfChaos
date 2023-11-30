@@ -247,8 +247,8 @@ namespace RiskOfChaos.ModifierController.SkillSlots
 
         const uint SKILL_SLOT_STOCK_ADDS_DIRTY_BIT = 1u << 4;
 
-        sbyte[] _skillSlotStockAdds = new sbyte[SKILL_SLOT_COUNT];
-        public sbyte[] NetworkSkillSlotStockAdds
+        int[] _skillSlotStockAdds = new int[SKILL_SLOT_COUNT];
+        public int[] NetworkSkillSlotStockAdds
         {
             get
             {
@@ -290,7 +290,7 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             return _skillSlotStockAdds[(int)skillSlot];
         }
 
-        void syncNetworkSkillSlotStockAdds(sbyte[] stockAdds)
+        void syncNetworkSkillSlotStockAdds(int[] stockAdds)
         {
             NetworkSkillSlotStockAdds = stockAdds;
 
@@ -340,7 +340,7 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             uint forceActivateSkillSlotsMask = 0;
 
             float[] skillCooldownScales = new float[SKILL_SLOT_COUNT];
-            sbyte[] skillStockAdds = new sbyte[SKILL_SLOT_COUNT];
+            int[] skillStockAdds = new int[SKILL_SLOT_COUNT];
 
             for (int i = 0; i < SKILL_SLOT_COUNT; i++)
             {
@@ -438,7 +438,7 @@ namespace RiskOfChaos.ModifierController.SkillSlots
 
                 for (int i = 0; i < SKILL_SLOT_COUNT; i++)
                 {
-                    _skillSlotStockAdds[i] = reader.ReadSByte();
+                    _skillSlotStockAdds[i] = reader.ReadInt32();
                 }
 
                 return;
@@ -468,7 +468,7 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             {
                 for (int i = 0; i < SKILL_SLOT_COUNT; i++)
                 {
-                    _skillSlotStockAdds[i] = reader.ReadSByte();
+                    _skillSlotStockAdds[i] = reader.ReadInt32();
                 }
 
                 syncNetworkSkillSlotStockAdds(_skillSlotStockAdds);

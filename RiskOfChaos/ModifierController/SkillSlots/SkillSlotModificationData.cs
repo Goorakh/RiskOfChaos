@@ -1,5 +1,4 @@
-﻿using RiskOfChaos.Utilities;
-using RoR2;
+﻿using RoR2;
 
 namespace RiskOfChaos.ModifierController.SkillSlots
 {
@@ -11,16 +10,11 @@ namespace RiskOfChaos.ModifierController.SkillSlots
         public bool ForceActivate = false;
 
         public float CooldownScale = 1f;
-        public sbyte StockAdds = 0;
+        public int StockAdds = 0;
 
         public SkillSlotModificationData(SkillSlot slotIndex)
         {
             SlotIndex = slotIndex;
-        }
-
-        public void AddStocksSafe(int diff)
-        {
-            StockAdds = ClampedConversion.Int8(StockAdds + diff);
         }
     }
 }
