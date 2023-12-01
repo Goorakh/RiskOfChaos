@@ -29,6 +29,7 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 
             On.RoR2.CharacterBody.RecalculateStats += CharacterBody_RecalculateStats;
             markAllPlayerStatsDirty();
+            OnValueDirty += markAllPlayerStatsDirty;
         }
 
         public override void OnEnd()
@@ -40,6 +41,7 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 
             On.RoR2.CharacterBody.RecalculateStats -= CharacterBody_RecalculateStats;
             markAllPlayerStatsDirty();
+            OnValueDirty -= markAllPlayerStatsDirty;
         }
 
         static void markAllPlayerStatsDirty()
