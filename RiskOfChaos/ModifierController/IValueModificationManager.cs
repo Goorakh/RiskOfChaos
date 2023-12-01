@@ -8,7 +8,7 @@ namespace RiskOfChaos.ModifierController
 
         bool AnyModificationActive { get; }
 
-        void RegisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType);
+        void RegisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime);
 
         void UnregisterModificationProvider(IValueModificationProvider<TValue> provider);
     }

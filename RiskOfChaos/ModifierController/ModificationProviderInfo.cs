@@ -3,13 +3,14 @@ using UnityEngine;
 
 namespace RiskOfChaos.ModifierController
 {
-    public readonly record struct ModificationProviderInfo<T>(IValueModificationProvider<T> ModificationProvider, ValueInterpolationFunctionType InterpolationType, float TimeStarted) : IEquatable<IValueModificationProvider<T>>
+    public readonly record struct ModificationProviderInfo<T>(IValueModificationProvider<T> ModificationProvider,
+                                                              ValueInterpolationFunctionType InterpolationType,
+                                                              float InterpolationTime,
+                                                              float TimeStarted) : IEquatable<IValueModificationProvider<T>>
     {
-        public ModificationProviderInfo(IValueModificationProvider<T> ModificationProvider, ValueInterpolationFunctionType valueInterpolationType) : this(ModificationProvider, valueInterpolationType, Time.time)
-        {
-        }
-
         public readonly float Age => Time.time - TimeStarted;
+
+        public readonly bool IsInterpolating => Age <= InterpolationTime;
 
         public readonly bool Equals(ModificationProviderInfo<T> other)
         {

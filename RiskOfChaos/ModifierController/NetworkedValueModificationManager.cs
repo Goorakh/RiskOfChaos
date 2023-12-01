@@ -43,8 +43,6 @@ namespace RiskOfChaos.ModifierController
             }
         }
 
-        protected virtual float modificationInterpolationTime => 1f;
-
         public override void OnStartClient()
         {
             base.OnStartClient();
@@ -82,7 +80,7 @@ namespace RiskOfChaos.ModifierController
             _modificationProvidersDirty = true;
         }
 
-        public void RegisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType valueInterpolationType = ValueInterpolationFunctionType.Snap)
+        public void RegisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType valueInterpolationType = ValueInterpolationFunctionType.Snap, float valueInterpolationTime = 1f)
         {
             if (!NetworkServer.active)
             {
@@ -90,7 +88,7 @@ namespace RiskOfChaos.ModifierController
                 return;
             }
 
-            if (_modificationProviders.Add(new ModificationProviderInfo<TValue>(provider, valueInterpolationType)))
+            if (_modificationProviders.Add(new ModificationProviderInfo<TValue>(provider, valueInterpolationType, valueInterpolationTime, Time.time)))
             {
                 provider.OnValueDirty += onModificationProviderDirty;
                 onModificationProviderDirty();
@@ -114,7 +112,7 @@ namespace RiskOfChaos.ModifierController
 
         protected virtual void FixedUpdate()
         {
-            if (_modificationProviders.Any(p => p.Age <= modificationInterpolationTime))
+            if (_modificationProviders.Any(p => p.IsInterpolating))
             {
                 onModificationProviderDirty();
             }
@@ -149,7 +147,7 @@ namespace RiskOfChaos.ModifierController
 
                 modificationProvider.ModificationProvider.ModifyValue(ref baseValue);
 
-                baseValue = interpolateValue(valuePreModification, baseValue, Mathf.InverseLerp(0f, modificationInterpolationTime, modificationProvider.Age), modificationProvider.InterpolationType);
+                baseValue = interpolateValue(valuePreModification, baseValue, Mathf.InverseLerp(0f, modificationProvider.InterpolationTime, modificationProvider.Age), modificationProvider.InterpolationType);
             }
 
             return baseValue;
