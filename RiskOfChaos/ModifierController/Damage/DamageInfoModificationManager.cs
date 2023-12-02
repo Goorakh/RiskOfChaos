@@ -39,14 +39,18 @@ namespace RiskOfChaos.ModifierController.Damage
         static DamageInfoModificationManager _instance;
         public static DamageInfoModificationManager Instance => _instance;
 
-        void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             SingletonHelper.Assign(ref _instance, this);
             tryApplyPatches();
         }
 
-        void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
+
             SingletonHelper.Unassign(ref _instance, this);
         }
 
@@ -71,15 +75,15 @@ namespace RiskOfChaos.ModifierController.Damage
                 DamageAPICompat.CopyModdedDamageTypes(damageInfo, damageInfoCopy);
             }
 
-            damageInfo = Instance.getModifiedValue(damageInfoCopy);
+            damageInfo = Instance.GetModifiedValue(damageInfoCopy);
         }
 
-        protected override DamageInfo interpolateValue(in DamageInfo a, in DamageInfo b, float t, ValueInterpolationFunctionType interpolationType)
+        public override DamageInfo InterpolateValue(in DamageInfo a, in DamageInfo b, float t, ValueInterpolationFunctionType interpolationType)
         {
             return b;
         }
 
-        protected override void updateValueModifications()
+        public override void UpdateValueModifications()
         {
         }
     }

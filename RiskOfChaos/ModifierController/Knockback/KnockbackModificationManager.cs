@@ -25,23 +25,27 @@ namespace RiskOfChaos.ModifierController.Knockback
             }
         }
 
-        protected override float interpolateValue(in float a, in float b, float t, ValueInterpolationFunctionType interpolationType)
+        public override float InterpolateValue(in float a, in float b, float t, ValueInterpolationFunctionType interpolationType)
         {
             return interpolationType.Interpolate(a, b, t);
         }
 
-        protected override void updateValueModifications()
+        public override void UpdateValueModifications()
         {
-            NetworkedTotalKnockbackMultiplier = getModifiedValue(1f);
+            NetworkedTotalKnockbackMultiplier = GetModifiedValue(1f);
         }
 
-        void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             SingletonHelper.Assign(ref _instance, this);
         }
 
-        void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
+
             SingletonHelper.Unassign(ref _instance, this);
         }
 

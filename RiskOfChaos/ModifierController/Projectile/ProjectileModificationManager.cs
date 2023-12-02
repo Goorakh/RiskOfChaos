@@ -76,14 +76,14 @@ namespace RiskOfChaos.ModifierController.Projectile
             }
         }
 
-        protected override ProjectileModificationData interpolateValue(in ProjectileModificationData a, in ProjectileModificationData b, float t, ValueInterpolationFunctionType interpolationType)
+        public override ProjectileModificationData InterpolateValue(in ProjectileModificationData a, in ProjectileModificationData b, float t, ValueInterpolationFunctionType interpolationType)
         {
             return ProjectileModificationData.Interpolate(a, b, t, interpolationType);
         }
 
-        protected override void updateValueModifications()
+        public override void UpdateValueModifications()
         {
-            ProjectileModificationData modificationData = getModifiedValue(new ProjectileModificationData());
+            ProjectileModificationData modificationData = GetModifiedValue(new ProjectileModificationData());
             NetworkedTotalProjectileSpeedMultiplier = modificationData.SpeedMultiplier;
 
             NetworkedProjectileBounceCount = modificationData.ProjectileBounceCount;
@@ -91,13 +91,17 @@ namespace RiskOfChaos.ModifierController.Projectile
             NetworkedOrbBounceCount = modificationData.OrbBounceCount;
         }
 
-        void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             SingletonHelper.Assign(ref _instance, this);
         }
 
-        void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
+
             SingletonHelper.Unassign(ref _instance, this);
         }
 

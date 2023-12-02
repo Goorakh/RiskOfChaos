@@ -9,8 +9,10 @@ namespace RiskOfChaos.ModifierController.Gravity
         static GravityModificationManager _instance;
         public static GravityModificationManager Instance => _instance;
 
-        void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             SingletonHelper.Assign(ref _instance, this);
 
             if (NetworkServer.active)
@@ -19,8 +21,10 @@ namespace RiskOfChaos.ModifierController.Gravity
             }
         }
 
-        void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
+
             SingletonHelper.Unassign(ref _instance, this);
 
             GravityTracker.OnBaseGravityChanged -= onBaseGravityChanged;
@@ -30,18 +34,18 @@ namespace RiskOfChaos.ModifierController.Gravity
         {
             if (AnyModificationActive)
             {
-                onModificationProviderDirty();
+                MarkValueModificationsDirty();
             }
         }
 
-        protected override Vector3 interpolateValue(in Vector3 a, in Vector3 b, float t, ValueInterpolationFunctionType interpolationType)
+        public override Vector3 InterpolateValue(in Vector3 a, in Vector3 b, float t, ValueInterpolationFunctionType interpolationType)
         {
             return interpolationType.Interpolate(a, b, t);
         }
 
-        protected override void updateValueModifications()
+        public override void UpdateValueModifications()
         {
-            GravityTracker.SetGravityUntracked(getModifiedValue(GravityTracker.BaseGravity));
+            GravityTracker.SetGravityUntracked(GetModifiedValue(GravityTracker.BaseGravity));
         }
     }
 }

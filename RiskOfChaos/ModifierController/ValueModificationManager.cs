@@ -1,121 +1,68 @@
-﻿using RiskOfChaos.Utilities.Extensions;
-using RoR2;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController
 {
     public abstract class ValueModificationManager<TValue> : MonoBehaviour, IValueModificationManager<TValue>
     {
-#if DEBUG
-        float _lastModificationDirtyLogAttemptTime = float.NegativeInfinity;
-#endif
-
-        protected readonly HashSet<ModificationProviderInfo<TValue>> _modificationProviders = new HashSet<ModificationProviderInfo<TValue>>();
+        ValueModificationManagerLogic<TValue> _logic;
 
         public event Action OnValueModificationUpdated;
 
-        public bool AnyModificationActive { get; private set; }
+        public bool AnyModificationActive => _logic.AnyModificationActive;
 
-        bool _modificationProvidersDirty;
-
-        protected void onModificationProviderDirty()
+        protected virtual void Awake()
         {
-            if (!NetworkServer.active)
-            {
-                Log.Warning("Called on client");
-                return;
-            }
-
-            if (_modificationProvidersDirty)
-                return;
-
-#if DEBUG
-            if (Time.unscaledTime >= _lastModificationDirtyLogAttemptTime + 0.25f)
-                Log.Debug_NoCallerPrefix($"{name} modification marked dirty");
-
-            _lastModificationDirtyLogAttemptTime = Time.unscaledTime;
-#endif
-
-            RoR2Application.onNextUpdate += updateValueModifiers;
-
-            _modificationProvidersDirty = true;
+            _logic = new ValueModificationManagerLogic<TValue>(this);
         }
 
-        public void RegisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType valueInterpolationType = ValueInterpolationFunctionType.Snap, float valueInterpolationTime = 1f)
+        protected virtual void OnEnable()
         {
-            if (!NetworkServer.active)
-            {
-                Log.Warning("Called on client");
-                return;
-            }
+            _logic.OnValueModificationUpdated += _logic_OnValueModificationUpdated;
+        }
 
-            if (_modificationProviders.Add(new ModificationProviderInfo<TValue>(provider, valueInterpolationType, valueInterpolationTime, Time.time)))
-            {
-                provider.OnValueDirty += onModificationProviderDirty;
-                onModificationProviderDirty();
-            }
+        protected virtual void OnDisable()
+        {
+            _logic.OnValueModificationUpdated -= _logic_OnValueModificationUpdated;
+        }
+
+        void _logic_OnValueModificationUpdated()
+        {
+            OnValueModificationUpdated?.Invoke();
+        }
+
+        public void RegisterModificationProvider(IValueModificationProvider<TValue> provider)
+        {
+            RegisterModificationProvider(provider, ValueInterpolationFunctionType.Snap, 0f);
+        }
+
+        public void RegisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime)
+        {
+            _logic.RegisterModificationProvider(provider, blendType, valueInterpolationTime);
         }
 
         public void UnregisterModificationProvider(IValueModificationProvider<TValue> provider)
         {
-            if (!NetworkServer.active)
-            {
-                Log.Warning("Called on client");
-                return;
-            }
-
-            if (_modificationProviders.RemoveWhere(p => p.Equals(provider)) > 0)
-            {
-                provider.OnValueDirty -= onModificationProviderDirty;
-                onModificationProviderDirty();
-            }
+            _logic.UnregisterModificationProvider(provider);
         }
 
         protected virtual void FixedUpdate()
         {
-            if (_modificationProviders.Any(p => p.IsInterpolating))
-            {
-                onModificationProviderDirty();
-            }
+            _logic.Update();
         }
 
-        void updateValueModifiers()
+        public void MarkValueModificationsDirty()
         {
-            _modificationProvidersDirty = false;
-
-            if (!NetworkServer.active)
-            {
-                Log.Warning("Called on client");
-                return;
-            }
-
-            AnyModificationActive = _modificationProviders.Count > 0;
-
-            updateValueModifications();
-
-            OnValueModificationUpdated?.Invoke();
+            _logic.MarkValueModificationsDirty();
         }
 
-        protected abstract void updateValueModifications();
+        public abstract void UpdateValueModifications();
 
-        protected abstract TValue interpolateValue(in TValue a, in TValue b, float t, ValueInterpolationFunctionType interpolationType);
+        public abstract TValue InterpolateValue(in TValue a, in TValue b, float t, ValueInterpolationFunctionType interpolationType);
 
-        protected virtual TValue getModifiedValue(TValue baseValue)
+        public virtual TValue GetModifiedValue(TValue baseValue)
         {
-            foreach (ModificationProviderInfo<TValue> modificationProvider in _modificationProviders)
-            {
-                TValue valuePreModification = baseValue.ShallowCopy();
-
-                modificationProvider.ModificationProvider.ModifyValue(ref baseValue);
-
-                baseValue = interpolateValue(valuePreModification, baseValue, Mathf.InverseLerp(0f, modificationProvider.InterpolationTime, modificationProvider.Age), modificationProvider.InterpolationType);
-            }
-
-            return baseValue;
+            return _logic.GetModifiedValue(baseValue);
         }
     }
 }

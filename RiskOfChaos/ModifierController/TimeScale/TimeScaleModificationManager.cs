@@ -7,26 +7,30 @@ namespace RiskOfChaos.ModifierController.TimeScale
         static TimeScaleModificationManager _instance;
         public static TimeScaleModificationManager Instance => _instance;
 
-        void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             SingletonHelper.Assign(ref _instance, this);
         }
 
-        void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
+
             SingletonHelper.Unassign(ref _instance, this);
 
             TimeUtils.UnpausedTimeScale = 1f;
         }
 
-        protected override float interpolateValue(in float a, in float b, float t, ValueInterpolationFunctionType interpolationType)
+        public override float InterpolateValue(in float a, in float b, float t, ValueInterpolationFunctionType interpolationType)
         {
             return interpolationType.Interpolate(a, b, t);
         }
 
-        protected override void updateValueModifications()
+        public override void UpdateValueModifications()
         {
-            TimeUtils.UnpausedTimeScale = getModifiedValue(1f);
+            TimeUtils.UnpausedTimeScale = GetModifiedValue(1f);
         }
     }
 }

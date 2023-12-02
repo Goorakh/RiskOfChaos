@@ -313,34 +313,34 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             syncNetworkSkillSlotStockAdds(_skillSlotStockAdds);
         }
 
-        void Awake()
+        protected override void Awake()
         {
+            base.Awake();
+
             ArrayUtils.SetAll(_skillSlotCooldownScales, 1f);
         }
 
-        void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             SingletonHelper.Assign(ref _instance, this);
         }
 
-        void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
+
             SingletonHelper.Unassign(ref _instance, this);
         }
 
-        protected override SkillSlotModificationData interpolateValue(in SkillSlotModificationData a, in SkillSlotModificationData b, float t, ValueInterpolationFunctionType interpolationType)
+        public override SkillSlotModificationData InterpolateValue(in SkillSlotModificationData a, in SkillSlotModificationData b, float t, ValueInterpolationFunctionType interpolationType)
         {
             return SkillSlotModificationData.Interpolate(a, b, t, interpolationType);
         }
 
-        protected override void updateValueModifications()
+        public override void UpdateValueModifications()
         {
-            if (!NetworkServer.active)
-            {
-                Log.Warning("Called on client");
-                return;
-            }
-
             uint forceLockedSkillSlotsMask = 0;
             uint forceActivateSkillSlotsMask = 0;
 
@@ -349,7 +349,7 @@ namespace RiskOfChaos.ModifierController.SkillSlots
 
             for (int i = 0; i < SKILL_SLOT_COUNT; i++)
             {
-                SkillSlotModificationData modificationData = getModifiedValue(new SkillSlotModificationData((SkillSlot)i));
+                SkillSlotModificationData modificationData = GetModifiedValue(new SkillSlotModificationData((SkillSlot)i));
 
                 uint maskBit = getSlotBitMask(modificationData.SlotIndex);
 

@@ -5,26 +5,30 @@
         static PickupModificationManager _instance;
         public static PickupModificationManager Instance => _instance;
 
-        void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             SingletonHelper.Assign(ref _instance, this);
         }
 
-        void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
+
             SingletonHelper.Unassign(ref _instance, this);
         }
 
         public uint BounceCount { get; private set; }
 
-        protected override PickupModificationInfo interpolateValue(in PickupModificationInfo a, in PickupModificationInfo b, float t, ValueInterpolationFunctionType interpolationType)
+        public override PickupModificationInfo InterpolateValue(in PickupModificationInfo a, in PickupModificationInfo b, float t, ValueInterpolationFunctionType interpolationType)
         {
             return PickupModificationInfo.Interpolate(a, b, t, interpolationType);
         }
 
-        protected override void updateValueModifications()
+        public override void UpdateValueModifications()
         {
-            PickupModificationInfo modificationInfo = getModifiedValue(new PickupModificationInfo());
+            PickupModificationInfo modificationInfo = GetModifiedValue(new PickupModificationInfo());
             BounceCount = modificationInfo.BounceCount;
         }
     }

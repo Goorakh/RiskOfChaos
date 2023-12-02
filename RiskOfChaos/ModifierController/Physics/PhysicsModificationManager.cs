@@ -29,24 +29,28 @@ namespace RiskOfChaos.ModifierController.PhysicsModification
         const float AUTO_SIMULATE_EPSILON = 0.01f;
         public bool ShouldAutoSimulatePhysics => Mathf.Abs(_totalSimulationSpeedMultiplier - 1f) <= AUTO_SIMULATE_EPSILON;
 
-        void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             SingletonHelper.Assign(ref _instance, this);
         }
 
-        void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
+
             SingletonHelper.Unassign(ref _instance, this);
         }
 
-        protected override PhysicsModificationInfo interpolateValue(in PhysicsModificationInfo a, in PhysicsModificationInfo b, float t, ValueInterpolationFunctionType interpolationType)
+        public override PhysicsModificationInfo InterpolateValue(in PhysicsModificationInfo a, in PhysicsModificationInfo b, float t, ValueInterpolationFunctionType interpolationType)
         {
             return PhysicsModificationInfo.Interpolate(a, b, t, interpolationType);
         }
 
-        protected override void updateValueModifications()
+        public override void UpdateValueModifications()
         {
-            PhysicsModificationInfo physicsModificationInfo = getModifiedValue(new PhysicsModificationInfo());
+            PhysicsModificationInfo physicsModificationInfo = GetModifiedValue(new PhysicsModificationInfo());
 
             // Only values >0 are supported
             NetworkedTotalSimulationSpeedMultiplier = Mathf.Max(1f / 10000f, physicsModificationInfo.SpeedMultiplier);
