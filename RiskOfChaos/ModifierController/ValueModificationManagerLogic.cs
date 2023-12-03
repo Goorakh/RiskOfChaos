@@ -2,9 +2,7 @@
 using RoR2;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController
 {
@@ -65,7 +63,7 @@ namespace RiskOfChaos.ModifierController
 #endif
 
             RoR2Application.onNextUpdate += updateValueModifiers;
-
+            
             _modificationProvidersDirty = true;
         }
 
