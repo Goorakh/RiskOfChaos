@@ -34,9 +34,9 @@ namespace RiskOfChaos.ModifierController.AttackDelay
             SingletonHelper.Unassign(ref _instance, this);
         }
 
-        public override AttackDelayModificationInfo InterpolateValue(in AttackDelayModificationInfo a, in AttackDelayModificationInfo b, float t, ValueInterpolationFunctionType interpolationType)
+        public override AttackDelayModificationInfo InterpolateValue(in AttackDelayModificationInfo a, in AttackDelayModificationInfo b, float t)
         {
-            return AttackDelayModificationInfo.Interpolate(a, b, t, interpolationType);
+            return AttackDelayModificationInfo.Interpolate(a, b, t, ValueInterpolationFunctionType.Linear);
         }
 
         public override void UpdateValueModifications()

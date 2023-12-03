@@ -6,8 +6,8 @@ namespace RiskOfChaos.ModifierController
     public enum ValueInterpolationFunctionType : byte
     {
         Snap,
-        InterpolateLinear,
-        InterpolateEaseInOut
+        Linear,
+        EaseInOut
     }
 
     public static class ValueBlendExtensions
@@ -17,8 +17,8 @@ namespace RiskOfChaos.ModifierController
             return type switch
             {
                 ValueInterpolationFunctionType.Snap => b,
-                ValueInterpolationFunctionType.InterpolateLinear => Mathf.Lerp(a, b, t),
-                ValueInterpolationFunctionType.InterpolateEaseInOut => Mathf.SmoothStep(a, b, t),
+                ValueInterpolationFunctionType.Linear => Mathf.Lerp(a, b, t),
+                ValueInterpolationFunctionType.EaseInOut => Mathf.SmoothStep(a, b, t),
                 _ => throw new NotImplementedException($"Blend type {type} not implemented"),
             };
         }
@@ -38,8 +38,8 @@ namespace RiskOfChaos.ModifierController
             return type switch
             {
                 ValueInterpolationFunctionType.Snap => b,
-                ValueInterpolationFunctionType.InterpolateLinear => Vector3.Lerp(a, b, t),
-                ValueInterpolationFunctionType.InterpolateEaseInOut => Vector3.Slerp(a, b, t),
+                ValueInterpolationFunctionType.Linear => Vector3.Lerp(a, b, t),
+                ValueInterpolationFunctionType.EaseInOut => Vector3.Slerp(a, b, t),
                 _ => throw new NotImplementedException($"Blend type {type} not implemented"),
             };
         }

@@ -16,7 +16,7 @@ namespace RiskOfChaos.ModifierController
         float _lastModificationDirtyLogAttemptTime = float.NegativeInfinity;
 #endif
 
-        protected readonly HashSet<ModificationProviderInfo<TValue>> _modificationProviders = new HashSet<ModificationProviderInfo<TValue>>();
+        protected readonly List<ModificationProviderInfo<TValue>> _modificationProviders = new List<ModificationProviderInfo<TValue>>();
 
         bool _anyModificationActive;
         public bool AnyModificationActive
@@ -69,27 +69,80 @@ namespace RiskOfChaos.ModifierController
             _modificationProvidersDirty = true;
         }
 
-        public void RegisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime)
+        public void ClearAllModificationProviders()
         {
-            if (_modificationProviders.Add(new ModificationProviderInfo<TValue>(provider, blendType, valueInterpolationTime, Time.time)))
+            if (AnyModificationActive)
             {
-                provider.OnValueDirty += MarkValueModificationsDirty;
+                _modificationProviders.Clear();
                 MarkValueModificationsDirty();
             }
         }
 
-        public void UnregisterModificationProvider(IValueModificationProvider<TValue> provider)
+        public void RegisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime)
         {
-            if (_modificationProviders.RemoveWhere(p => p.Equals(provider)) > 0)
+            ModificationProviderInfo<TValue> providerInfo = new ModificationProviderInfo<TValue>(provider);
+            _modificationProviders.Add(providerInfo);
+
+            provider.OnValueDirty += MarkValueModificationsDirty;
+            MarkValueModificationsDirty();
+
+            if (valueInterpolationTime > 0f)
             {
-                provider.OnValueDirty -= MarkValueModificationsDirty;
-                MarkValueModificationsDirty();
+                providerInfo.StartInterpolatingIn(blendType, valueInterpolationTime);
+            }
+        }
+
+        public void UnregisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime)
+        {
+            for (int i = _modificationProviders.Count - 1; i >= 0; i--)
+            {
+                if (_modificationProviders[i].Equals(provider))
+                {
+                    _modificationProviders[i].ModificationProvider.OnValueDirty -= MarkValueModificationsDirty;
+                    MarkValueModificationsDirty();
+
+                    if (valueInterpolationTime > 0f)
+                    {
+                        _modificationProviders[i].StartInterpolatingOut(blendType, valueInterpolationTime);
+                    }
+                    else
+                    {
+                        _modificationProviders.RemoveAt(i);
+                    }
+                }
             }
         }
 
         public void Update()
         {
-            if (_modificationProviders.Any(p => p.IsInterpolating))
+            bool modificationsDirty = false;
+
+            for (int i = _modificationProviders.Count - 1; i >= 0; i--)
+            {
+                ModificationProviderInfo<TValue> provider = _modificationProviders[i];
+                if (provider.InterpolationState.IsInterpolating)
+                {
+                    modificationsDirty = true;
+                }
+                else if (provider.InterpolationDirection > ModificationProviderInterpolationDirection.None) // Interpolation has finished
+                {
+#if DEBUG
+                    Log.Debug($"{provider.ModificationProvider} value interpolation finished ({provider.InterpolationDirection})");
+#endif
+
+                    // If out interpolation finished, the modification is done and should be removed
+                    if (provider.InterpolationDirection == ModificationProviderInterpolationDirection.Out)
+                    {
+                        _modificationProviders.RemoveAt(i);
+                    }
+
+                    provider.OnInterpolationFinished();
+
+                    modificationsDirty = true;
+                }
+            }
+
+            if (modificationsDirty)
             {
                 MarkValueModificationsDirty();
             }
@@ -98,12 +151,6 @@ namespace RiskOfChaos.ModifierController
         void updateValueModifiers()
         {
             _modificationProvidersDirty = false;
-
-            if (!NetworkServer.active)
-            {
-                Log.Warning("Called on client");
-                return;
-            }
 
             AnyModificationActive = _modificationProviders.Count > 0;
 
@@ -117,22 +164,22 @@ namespace RiskOfChaos.ModifierController
             _wrappedManager.UpdateValueModifications();
         }
 
-        public TValue InterpolateValue(in TValue a, in TValue b, float t, ValueInterpolationFunctionType interpolationType)
+        public TValue InterpolateValue(in TValue a, in TValue b, float t)
         {
-            return _wrappedManager.InterpolateValue(a, b, t, interpolationType);
+            return _wrappedManager.InterpolateValue(a, b, t);
         }
 
         public TValue GetModifiedValue(TValue baseValue)
         {
             foreach (ModificationProviderInfo<TValue> modificationProviderInfo in _modificationProviders)
             {
-                if (modificationProviderInfo.IsInterpolating)
+                if (modificationProviderInfo.InterpolationState.IsInterpolating)
                 {
                     TValue valuePreModification = baseValue.ShallowCopy();
 
                     modificationProviderInfo.ModificationProvider.ModifyValue(ref baseValue);
 
-                    baseValue = InterpolateValue(valuePreModification, baseValue, Mathf.InverseLerp(0f, modificationProviderInfo.InterpolationTime, modificationProviderInfo.Age), modificationProviderInfo.InterpolationType);
+                    baseValue = InterpolateValue(valuePreModification, baseValue, modificationProviderInfo.InterpolationState.CurrentFraction);
                 }
                 else
                 {

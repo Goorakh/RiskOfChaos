@@ -76,9 +76,9 @@ namespace RiskOfChaos.ModifierController.Projectile
             }
         }
 
-        public override ProjectileModificationData InterpolateValue(in ProjectileModificationData a, in ProjectileModificationData b, float t, ValueInterpolationFunctionType interpolationType)
+        public override ProjectileModificationData InterpolateValue(in ProjectileModificationData a, in ProjectileModificationData b, float t)
         {
-            return ProjectileModificationData.Interpolate(a, b, t, interpolationType);
+            return ProjectileModificationData.Interpolate(a, b, t, ValueInterpolationFunctionType.Linear);
         }
 
         public override void UpdateValueModifications()

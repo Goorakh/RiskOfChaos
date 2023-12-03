@@ -38,9 +38,9 @@ namespace RiskOfChaos.ModifierController.Gravity
             }
         }
 
-        public override Vector3 InterpolateValue(in Vector3 a, in Vector3 b, float t, ValueInterpolationFunctionType interpolationType)
+        public override Vector3 InterpolateValue(in Vector3 a, in Vector3 b, float t)
         {
-            return interpolationType.Interpolate(a, b, t);
+            return ValueInterpolationFunctionType.Linear.Interpolate(a, b, t);
         }
 
         public override void UpdateValueModifications()

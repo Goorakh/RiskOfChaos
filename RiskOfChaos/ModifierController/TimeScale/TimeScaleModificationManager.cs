@@ -23,9 +23,9 @@ namespace RiskOfChaos.ModifierController.TimeScale
             TimeUtils.UnpausedTimeScale = 1f;
         }
 
-        public override float InterpolateValue(in float a, in float b, float t, ValueInterpolationFunctionType interpolationType)
+        public override float InterpolateValue(in float a, in float b, float t)
         {
-            return interpolationType.Interpolate(a, b, t);
+            return ValueInterpolationFunctionType.Linear.Interpolate(a, b, t);
         }
 
         public override void UpdateValueModifications()

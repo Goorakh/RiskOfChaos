@@ -1,35 +1,56 @@
 ﻿using System;
-using UnityEngine;
 
 namespace RiskOfChaos.ModifierController
 {
-    public readonly record struct ModificationProviderInfo<T>(IValueModificationProvider<T> ModificationProvider,
-                                                              ValueInterpolationFunctionType InterpolationType,
-                                                              float InterpolationTime,
-                                                              float TimeStarted) : IEquatable<IValueModificationProvider<T>>
+    public class ModificationProviderInfo<T> : IEquatable<IValueModificationProvider<T>>
     {
-        public readonly float Age => Time.time - TimeStarted;
+        public readonly IValueModificationProvider<T> ModificationProvider;
 
-        public readonly bool IsInterpolating => Age <= InterpolationTime;
+        InterpolationState _interpolationState;
+        public InterpolationState InterpolationState => _interpolationState;
 
-        public readonly bool Equals(ModificationProviderInfo<T> other)
+        public ModificationProviderInterpolationDirection InterpolationDirection { get; private set; }
+
+        public ModificationProviderInfo(IValueModificationProvider<T> modificationProvider)
+        {
+            ModificationProvider = modificationProvider;
+        }
+
+        public void StartInterpolatingIn(ValueInterpolationFunctionType interpolationType, float duration)
+        {
+            _interpolationState.StartInterpolating(interpolationType, duration, false);
+            InterpolationDirection = ModificationProviderInterpolationDirection.In;
+        }
+
+        public void StartInterpolatingOut(ValueInterpolationFunctionType interpolationType, float duration)
+        {
+            _interpolationState.StartInterpolating(interpolationType, duration, true);
+            InterpolationDirection = ModificationProviderInterpolationDirection.Out;
+        }
+
+        public void OnInterpolationFinished()
+        {
+            InterpolationDirection = ModificationProviderInterpolationDirection.None;
+        }
+
+        public bool Equals(ModificationProviderInfo<T> other)
         {
             return Equals(other.ModificationProvider);
         }
 
-        public readonly bool Equals(IValueModificationProvider<T> other)
+        public bool Equals(IValueModificationProvider<T> other)
         {
             return ReferenceEquals(ModificationProvider, other);
         }
 
-        public readonly override int GetHashCode()
+        public override int GetHashCode()
         {
             return ModificationProvider.GetHashCode();
         }
 
         public override string ToString()
         {
-            return $"{ModificationProvider} ({Age:F1})";
+            return ModificationProvider.ToString();
         }
     }
 }

@@ -8,15 +8,17 @@ namespace RiskOfChaos.ModifierController
 
         bool AnyModificationActive { get; }
 
+        void ClearAllModificationProviders();
+
         void RegisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime);
 
-        void UnregisterModificationProvider(IValueModificationProvider<TValue> provider);
+        void UnregisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime);
 
         void MarkValueModificationsDirty();
 
         void UpdateValueModifications();
 
-        TValue InterpolateValue(in TValue a, in TValue b, float t, ValueInterpolationFunctionType interpolationType);
+        TValue InterpolateValue(in TValue a, in TValue b, float t);
 
         TValue GetModifiedValue(TValue baseValue);
     }

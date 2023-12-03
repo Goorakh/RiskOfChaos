@@ -78,9 +78,9 @@ namespace RiskOfChaos.ModifierController.Damage
             damageInfo = Instance.GetModifiedValue(damageInfoCopy);
         }
 
-        public override DamageInfo InterpolateValue(in DamageInfo a, in DamageInfo b, float t, ValueInterpolationFunctionType interpolationType)
+        public override DamageInfo InterpolateValue(in DamageInfo a, in DamageInfo b, float t)
         {
-            return b;
+            throw new NotSupportedException("DamageInfo interpolation is not supported");
         }
 
         public override void UpdateValueModifications()

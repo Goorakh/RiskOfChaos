@@ -25,7 +25,7 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 
         public override void OnStart()
         {
-            TimeScaleModificationManager.Instance.RegisterModificationProvider(this, ValueInterpolationFunctionType.InterpolateEaseInOut, 1f);
+            TimeScaleModificationManager.Instance.RegisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
 
             On.RoR2.CharacterBody.RecalculateStats += CharacterBody_RecalculateStats;
             markAllPlayerStatsDirty();
@@ -36,7 +36,7 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
         {
             if (TimeScaleModificationManager.Instance)
             {
-                TimeScaleModificationManager.Instance.UnregisterModificationProvider(this);
+                TimeScaleModificationManager.Instance.UnregisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
             }
 
             On.RoR2.CharacterBody.RecalculateStats -= CharacterBody_RecalculateStats;

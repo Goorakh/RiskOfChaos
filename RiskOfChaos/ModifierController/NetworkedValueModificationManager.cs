@@ -51,6 +51,13 @@ namespace RiskOfChaos.ModifierController
         {
             _logic.OnValueModificationUpdated -= _logic_OnValueModificationUpdated;
             _logic.OnAnyModificationActiveChanged -= _logic_OnAnyModificationActiveChanged;
+
+            ClearAllModificationProviders();
+        }
+
+        public void ClearAllModificationProviders()
+        {
+            _logic.ClearAllModificationProviders();
         }
 
         void _logic_OnValueModificationUpdated()
@@ -84,13 +91,18 @@ namespace RiskOfChaos.ModifierController
 
         public void UnregisterModificationProvider(IValueModificationProvider<TValue> provider)
         {
+            _logic.UnregisterModificationProvider(provider, ValueInterpolationFunctionType.Snap, 0f);
+        }
+
+        public void UnregisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime)
+        {
             if (!NetworkServer.active)
             {
                 Log.Warning("Called on client");
                 return;
             }
 
-            _logic.UnregisterModificationProvider(provider);
+            _logic.UnregisterModificationProvider(provider, blendType, valueInterpolationTime);
         }
 
         protected virtual void FixedUpdate()
@@ -111,7 +123,7 @@ namespace RiskOfChaos.ModifierController
 
         public abstract void UpdateValueModifications();
 
-        public abstract TValue InterpolateValue(in TValue a, in TValue b, float t, ValueInterpolationFunctionType interpolationType);
+        public abstract TValue InterpolateValue(in TValue a, in TValue b, float t);
 
         public virtual TValue GetModifiedValue(TValue baseValue)
         {
