@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 120 different effects.
+Currently features 124 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -129,6 +129,10 @@ Currently features 120 different effects.
 * Mystery Items: All item pickup models are hidden, lasts 60 seconds
 * Focused Teleporter Charging: Holdout zone radius decreases with charge percentage, lasts 1 stage
 * Sluggish Camera: Delays camera position by a small amount, lasts 45 seconds
+* Increase Recoil: Increases recoil by 10x, lasts 90 seconds
+* No Recoil: Disables all recoil, lasts 90 seconds
+* High FOV: Increases camera Field of View, lasts 90 seconds
+* Low FOV: Decreases camera Field of View, lasts 90 seconds
 </details>
 
 ### Twitch Integration:

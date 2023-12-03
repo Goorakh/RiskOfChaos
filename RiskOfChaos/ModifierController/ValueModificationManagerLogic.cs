@@ -63,7 +63,7 @@ namespace RiskOfChaos.ModifierController
 #endif
 
             RoR2Application.onNextUpdate += updateValueModifiers;
-            
+
             _modificationProvidersDirty = true;
         }
 

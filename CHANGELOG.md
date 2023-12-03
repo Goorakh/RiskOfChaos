@@ -9,6 +9,10 @@
   * Mystery Items: All item pickup models are hidden, lasts 60 seconds
   * Focused Teleporter Charging: Holdout zone radius decreases with charge percentage, lasts 1 stage
   * Sluggish Camera: Delays camera position by a small amount, lasts 45 seconds
+  * Increase Recoil: Increases recoil by 10x, lasts 90 seconds
+  * No Recoil: Disables all recoil, lasts 90 seconds
+  * High FOV: Increases camera Field of View, lasts 90 seconds
+  * Low FOV: Decreases camera Field of View, lasts 90 seconds
 
 * Removed 1 effect:
   * Sequence All Players
