@@ -43,5 +43,16 @@ namespace RiskOfChaos.ModifierController
                 _ => throw new NotImplementedException($"Blend type {type} not implemented"),
             };
         }
+
+        public static Quaternion Interpolate(this ValueInterpolationFunctionType type, in Quaternion a, in Quaternion b, float t)
+        {
+            return type switch
+            {
+                ValueInterpolationFunctionType.Snap => b,
+                ValueInterpolationFunctionType.Linear => Quaternion.Lerp(a, b, t),
+                ValueInterpolationFunctionType.EaseInOut => Quaternion.Slerp(a, b, t),
+                _ => throw new NotImplementedException($"Blend type {type} not implemented")
+            };
+        }
     }
 }

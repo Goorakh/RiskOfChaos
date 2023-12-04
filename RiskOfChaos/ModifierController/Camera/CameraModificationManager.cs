@@ -55,6 +55,8 @@ namespace RiskOfChaos.ModifierController.Camera
                 const float MAX_FOV = 170f;
 
                 result.cameraState.fov = Mathf.Clamp(result.cameraState.fov * _instance.NetworkFOVMultiplier, MIN_FOV, MAX_FOV);
+
+                result.cameraState.rotation *= _instance.NetworkCameraRotationOffset;
             }
         }
 
@@ -86,6 +88,20 @@ namespace RiskOfChaos.ModifierController.Camera
             }
         }
 
+        Quaternion _cameraRotationOffset = Quaternion.identity;
+        const uint CAMERA_ROTATION_OFFSET_DIRTY_BIT = 1 << 3;
+        public Quaternion NetworkCameraRotationOffset
+        {
+            get
+            {
+                return _cameraRotationOffset;
+            }
+            set
+            {
+                SetSyncVar(value, ref _cameraRotationOffset, CAMERA_ROTATION_OFFSET_DIRTY_BIT);
+            }
+        }
+
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -112,6 +128,7 @@ namespace RiskOfChaos.ModifierController.Camera
 
             NetworkRecoilMultiplier = modificationData.RecoilMultiplier;
             NetworkFOVMultiplier = modificationData.FOVMultiplier;
+            NetworkCameraRotationOffset = modificationData.RotationOffset;
         }
 
         protected override bool serialize(NetworkWriter writer, bool initialState, uint dirtyBits)
@@ -122,6 +139,7 @@ namespace RiskOfChaos.ModifierController.Camera
             {
                 writer.Write(_recoilMultiplier);
                 writer.Write(_FOVMultiplier);
+                writer.Write(_cameraRotationOffset);
 
                 return baseValue;
             }
@@ -140,6 +158,12 @@ namespace RiskOfChaos.ModifierController.Camera
                 anythingWritten = true;
             }
 
+            if ((dirtyBits & CAMERA_ROTATION_OFFSET_DIRTY_BIT) != 0)
+            {
+                writer.Write(_cameraRotationOffset);
+                anythingWritten = true;
+            }
+
             return baseValue || anythingWritten;
         }
 
@@ -151,6 +175,7 @@ namespace RiskOfChaos.ModifierController.Camera
             {
                 _recoilMultiplier = reader.ReadVector2();
                 _FOVMultiplier = reader.ReadSingle();
+                _cameraRotationOffset = reader.ReadQuaternion();
                 return;
             }
 
@@ -162,6 +187,11 @@ namespace RiskOfChaos.ModifierController.Camera
             if ((dirtyBits & FOV_MULTIPLIER_DIRTY_BIT) != 0)
             {
                 _FOVMultiplier = reader.ReadSingle();
+            }
+
+            if ((dirtyBits & CAMERA_ROTATION_OFFSET_DIRTY_BIT) != 0)
+            {
+                _cameraRotationOffset = reader.ReadQuaternion();
             }
         }
     }
