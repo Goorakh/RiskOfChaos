@@ -124,6 +124,9 @@
 * Recruit Random Enemy:
   * Added chat message telling you which enemy was recruited
 
+* Moon Detonation:
+  * Added moon escape sequence UI during effect
+
 * Orbital Bombardment:
   * Added regular airstrikes to effect
 

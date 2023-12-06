@@ -1,12 +1,16 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RoR2;
+using RoR2.UI;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
-    [ChaosTimedEffect("spawn_brother_haunt", 45f, DefaultSelectionWeight = 0.7f)]
+    [ChaosTimedEffect("spawn_brother_haunt", 45f, DefaultSelectionWeight = 0.7f, IsNetworked = true)]
     public sealed class SpawnBrotherHaunt : TimedEffect
     {
         static readonly GameObject _brotherHauntPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/BrotherHaunt/BrotherHauntMaster.prefab").WaitForCompletion();
@@ -26,26 +30,53 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         CharacterMaster _spawnedMaster;
 
+        readonly List<TimerText> _countdownTimers = new List<TimerText>();
+
         public override void OnStart()
         {
             RoR2Application.onFixedUpdate += fixedUpdate;
+
+            if (TimedType == TimedEffectType.FixedDuration)
+            {
+                foreach (HUD hud in HUD.readOnlyInstanceList)
+                {
+                    if (!hud.TryGetComponent(out ChildLocator childLocator))
+                        continue;
+
+                    RectTransform topCenterCluster = childLocator.FindChild("TopCenterCluster") as RectTransform;
+                    if (!topCenterCluster)
+                        continue;
+
+                    GameObject countdownPanel = GameObject.Instantiate(LegacyResourcesAPI.Load<GameObject>("Prefabs/UI/HudModules/HudCountdownPanel"), topCenterCluster);
+                    _countdownTimers.Add(countdownPanel.GetComponent<TimerText>());
+                }
+            }
         }
 
         float _nextRespawnAttemptTime = 0f;
         void fixedUpdate()
         {
-            if (_nextRespawnAttemptTime >= TimeElapsed)
+            if (NetworkServer.active)
             {
-                if (!_spawnedMaster || _spawnedMaster.IsDeadAndOutOfLivesServer())
+                if (_nextRespawnAttemptTime >= TimeElapsed)
                 {
+                    if (!_spawnedMaster || _spawnedMaster.IsDeadAndOutOfLivesServer())
+                    {
 #if DEBUG
-                    Log.Debug("Spawned master is null or dead, respawning...");
+                        Log.Debug("Spawned master is null or dead, respawning...");
 #endif
 
-                    _spawnedMaster = _brotherHauntSummon.Perform();
-                }
+                        _spawnedMaster = _brotherHauntSummon.Perform();
+                    }
 
-                _nextRespawnAttemptTime += 3f;
+                    _nextRespawnAttemptTime += 3f;
+                }
+            }
+
+            float timeRemaining = TimeRemaining;
+            foreach (TimerText countdownTimer in _countdownTimers)
+            {
+                countdownTimer.seconds = timeRemaining;
             }
         }
 
@@ -53,9 +84,19 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             RoR2Application.onFixedUpdate -= fixedUpdate;
 
-            if (_spawnedMaster)
+            foreach (TimerText countdownTimer in _countdownTimers)
             {
-                _spawnedMaster.TrueKill();
+                GameObject.Destroy(countdownTimer.gameObject);
+            }
+
+            _countdownTimers.Clear();
+
+            if (NetworkServer.active)
+            {
+                if (_spawnedMaster)
+                {
+                    _spawnedMaster.TrueKill();
+                }
             }
         }
     }
