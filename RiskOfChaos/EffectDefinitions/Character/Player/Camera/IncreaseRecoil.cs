@@ -16,12 +16,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _recoilMultiplier =
-            ConfigFactory<float>.CreateConfig("Recoil Multiplier", 10f)
+            ConfigFactory<float>.CreateConfig("Recoil Multiplier", 7f)
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     formatString = "{0:F1}X",
                                     min = 1f,
-                                    max = 50f,
+                                    max = 20f,
                                     increment = 0.5f
                                 })
                                 .OnValueChanged(() =>
