@@ -2,11 +2,10 @@
 
 **?.?.? Changes:**
 
-* Added 13 new effects:
+* Added 12 new effects:
   * Bouncy Items: Item drops will bounce on the ground before settling, lasts 60 seconds
   * Increase Skill Charges: Adds 1 charge to every skill, lasts 1 stage
   * Decrease Skill Charges: Removes 1 charge from every skill (cannot reduce below 1), lasts 1 stage
-  * Mystery Items: All item pickup models are hidden, lasts 60 seconds
   * Focused Teleporter Charging: Holdout zone radius decreases with charge percentage, lasts 1 stage
   * Sluggish Camera: Delays camera position by a small amount, lasts 45 seconds
   * Increase Recoil: Increases recoil by 10x, lasts 90 seconds
