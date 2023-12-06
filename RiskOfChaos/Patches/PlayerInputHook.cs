@@ -55,7 +55,7 @@ namespace RiskOfChaos.Patches
         public delegate void ModifyPlayerMoveInputDelegate(ref Vector2 moveInput);
         static event ModifyPlayerMoveInputDelegate _modifiyPlayerInput;
 
-        public static event ModifyPlayerMoveInputDelegate ModifiyPlayerMoveInput
+        public static event ModifyPlayerMoveInputDelegate ModifyPlayerMoveInput
         {
             add
             {
