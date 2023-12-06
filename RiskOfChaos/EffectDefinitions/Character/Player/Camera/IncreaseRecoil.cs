@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
-    [ChaosTimedEffect("increase_recoil", 90f, ConfigName = "Increase Recoil")]
+    [ChaosTimedEffect("increase_recoil", 90f, AllowDuplicates = false, ConfigName = "Increase Recoil")]
     [IncompatibleEffects(typeof(DisableRecoil))]
     public sealed class IncreaseRecoil : TimedEffect, ICameraModificationProvider
     {
@@ -49,10 +49,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 
         public void ModifyValue(ref CameraModificationData value)
         {
-            if (value.RecoilMultiplier.sqrMagnitude > 0f)
-            {
-                value.RecoilMultiplier += Vector2.one * _recoilMultiplier.Value;
-            }
+            value.RecoilMultiplier *= _recoilMultiplier.Value;
         }
 
         public override void OnStart()
