@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using RoR2;
 using System;
 using UnityEngine;
 
@@ -32,10 +33,11 @@ namespace RiskOfChaos.Patches
                     {
                         cursor.Index = patchIndex;
 
+                        cursor.Emit(OpCodes.Ldarg_0);
                         cursor.Emit(OpCodes.Ldloca, moveInputLocalIndex);
-                        cursor.EmitDelegate((ref Vector2 moveInput) =>
+                        cursor.EmitDelegate((PlayerCharacterMasterController playerMasterController, ref Vector2 moveInput) =>
                         {
-                            _modifiyPlayerInput?.Invoke(ref moveInput);
+                            _modifiyPlayerInput?.Invoke(playerMasterController, ref moveInput);
                         });
                     }
                     else
@@ -52,7 +54,7 @@ namespace RiskOfChaos.Patches
             _appliedMoveInputPatches = true;
         }
 
-        public delegate void ModifyPlayerMoveInputDelegate(ref Vector2 moveInput);
+        public delegate void ModifyPlayerMoveInputDelegate(PlayerCharacterMasterController playerMasterController, ref Vector2 moveInput);
         static event ModifyPlayerMoveInputDelegate _modifiyPlayerInput;
 
         public static event ModifyPlayerMoveInputDelegate ModifyPlayerMoveInput

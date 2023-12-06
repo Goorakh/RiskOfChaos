@@ -3,6 +3,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.ModifierController;
 using RiskOfChaos.ModifierController.Camera;
 using RiskOfChaos.Patches;
+using RoR2;
 using RoR2.CameraModes;
 using System;
 using UnityEngine;
@@ -57,7 +58,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
             result.lookInput *= -1;
         }
 
-        static void PlayerInputHook_ModifyPlayerMoveInput(ref Vector2 moveInput)
+        static void PlayerInputHook_ModifyPlayerMoveInput(PlayerCharacterMasterController playerMasterController, ref Vector2 moveInput)
         {
             moveInput.x *= -1;
         }
