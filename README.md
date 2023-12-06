@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 126 different effects.
+Currently features 127 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -135,6 +135,7 @@ Currently features 126 different effects.
 * Low FOV: Decreases camera Field of View, lasts 90 seconds
 * Flipped Camera: Flips the camera upside down, lasts 30 seconds
 * Void Implosion on Death: Spawns a void implosion on any character death, lasts 1 stage
+* Inverted Recoil: All recoil is inverted, lasts 90 seconds
 </details>
 
 ### Twitch Integration:
