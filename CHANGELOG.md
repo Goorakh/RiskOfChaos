@@ -11,7 +11,7 @@
   * Increase Recoil: Increases recoil by 10x, lasts 90 seconds
   * No Recoil: Disables all recoil, lasts 90 seconds
   * High FOV: Increases camera Field of View, lasts 90 seconds
-  * Low FOV: Decreases camera Field of View, lasts 90 seconds
+  * Low FOV: Decreases camera Field of View, lasts 45 seconds
   * Flipped Camera: Flips the camera upside down, lasts 30 seconds
   * Void Implosion on Death: Spawns a void implosion on any character death, lasts 1 stage
   * Inverted Recoil: All recoil is inverted, lasts 90 seconds

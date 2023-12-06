@@ -6,7 +6,7 @@ using System;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
-    [ChaosTimedEffect("low_fov", 90f)]
+    [ChaosTimedEffect("low_fov", 45f)]
     public sealed class LowFOV : TimedEffect, ICameraModificationProvider
     {
         [EffectCanActivate]
