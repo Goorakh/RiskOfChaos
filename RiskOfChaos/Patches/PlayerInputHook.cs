@@ -35,7 +35,7 @@ namespace RiskOfChaos.Patches
                         cursor.Emit(OpCodes.Ldloca, moveInputLocalIndex);
                         cursor.EmitDelegate((ref Vector2 moveInput) =>
                         {
-                            moveInput.x *= -1;
+                            _modifiyPlayerInput?.Invoke(ref moveInput);
                         });
                     }
                     else
