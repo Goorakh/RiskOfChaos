@@ -1,6 +1,5 @@
 using BepInEx;
 using HarmonyLib;
-using R2API.Utils;
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.ModCompatibility;
@@ -11,7 +10,6 @@ using System.IO;
 
 namespace RiskOfChaos
 {
-    [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
     [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInDependency(R2API.RecalculateStatsAPI.PluginGUID)]
     [BepInDependency(R2API.Networking.NetworkingAPI.PluginGUID)]
