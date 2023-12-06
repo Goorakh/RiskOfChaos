@@ -2,7 +2,7 @@
 
 **?.?.? Changes:**
 
-* Added 11 new effects:
+* Added 12 new effects:
   * Bouncy Items: Item drops will bounce on the ground before settling, lasts 60 seconds
   * Increase Skill Charges: Adds 1 charge to every skill, lasts 1 stage
   * Decrease Skill Charges: Removes 1 charge from every skill (cannot reduce below 1), lasts 1 stage
@@ -14,6 +14,7 @@
   * High FOV: Increases camera Field of View, lasts 90 seconds
   * Low FOV: Decreases camera Field of View, lasts 90 seconds
   * Flipped Camera: Flips the camera upside down, lasts 30 seconds
+  * Void Implosion on Death: Spawns a void implosion on any character death, lasts 1 stage
 
 * Removed 1 effect:
   * Sequence All Players

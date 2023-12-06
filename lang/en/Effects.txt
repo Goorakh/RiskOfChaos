@@ -137,5 +137,6 @@
 		"EFFECT_HIGH_FOV_NAME": "High FOV",
 		"EFFECT_LOW_FOV_NAME": "Low FOV",
 		"EFFECT_FLIP_CAMERA_NAME": "Flipped Camera",
+		"EFFECT_VOID_IMPLOSION_ON_DEATH_NAME": "Void Implosion on Death",
 	}
 }
