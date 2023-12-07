@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**1.13.0 Changes:**
 
 * Added 12 new effects:
   * Bouncy Items: Item drops will bounce on the ground before settling, lasts 60 seconds
