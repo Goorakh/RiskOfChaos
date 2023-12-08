@@ -99,6 +99,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 _dropTable = ScriptableObject.CreateInstance<BasicPickupDropTable>();
                 _dropTable.name = $"dt{nameof(MonsterInventoryGiveRandomItem)}";
+                _dropTable.canDropBeReplaced = false;
             }
 
             _dropTable.tier1Weight = _tier1Weight.Value;

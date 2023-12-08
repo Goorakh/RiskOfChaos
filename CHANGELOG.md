@@ -1,9 +1,18 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* Give Random Item, Add Random Item to Monster Inventory, & All Items are a Random Item:
+  * Fixed Eulogy Zero being able to influence the selection chance of items
+
 **1.13.1 Changes:**
+
+<details>
 
 * UI:
   * Fixed Next Effect panel sometimes not displaying effect name properly for non-host players in multiplayer
+
+</details>
 
 **1.13.0 Changes:**
 
