@@ -1,10 +1,8 @@
-﻿using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {

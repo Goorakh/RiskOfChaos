@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-
-namespace RiskOfChaos.ModifierController.Camera
+﻿namespace RiskOfChaos.ModifierController.Camera
 {
     public interface ICameraModificationProvider : IValueModificationProvider<CameraModificationData>
     {

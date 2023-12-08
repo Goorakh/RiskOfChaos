@@ -23,7 +23,7 @@ namespace RiskOfChaos.Trackers
         {
             InstanceTracker.Add(this);
         }
-        
+
         void FixedUpdate()
         {
             if (!PickupDisplay)

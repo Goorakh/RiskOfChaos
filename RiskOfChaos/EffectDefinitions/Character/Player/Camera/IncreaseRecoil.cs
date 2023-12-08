@@ -6,7 +6,6 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.ModifierController.Camera;
 using RiskOfOptions.OptionConfigs;
 using System;
-using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {

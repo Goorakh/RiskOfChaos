@@ -1,6 +1,4 @@
-﻿using Mono.Cecil.Cil;
-using MonoMod.Cil;
-using RiskOfChaos.ModifierController.SkillSlots;
+﻿using RiskOfChaos.ModifierController.SkillSlots;
 using RoR2;
 
 namespace RiskOfChaos.Patches

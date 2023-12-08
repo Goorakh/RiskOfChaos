@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 #pragma warning disable CS0652 // Comparison to integral constant is useless; the constant is outside the range of the type
 

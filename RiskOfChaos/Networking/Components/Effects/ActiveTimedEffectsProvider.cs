@@ -1,5 +1,4 @@
 ﻿using RiskOfChaos.EffectDefinitions;
-using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.Networking.SyncLists;
 using RiskOfChaos.UI.ActiveEffectsPanel;

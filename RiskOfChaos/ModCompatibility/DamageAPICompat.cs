@@ -1,7 +1,6 @@
 ﻿using BepInEx.Bootstrap;
 using R2API;
 using RoR2;
-using System;
 
 namespace RiskOfChaos.ModCompatibility
 {

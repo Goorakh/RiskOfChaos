@@ -206,7 +206,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                     rerollCurrentOverridePickup();
                 }
             };
-            
+
             Run.onRunStartGlobal += run =>
             {
                 if (NetworkServer.active)
@@ -374,7 +374,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             ArrayUtils.SetAll(result, _currentOverridePickupIndex);
             return result;
         }
-        
+
         static void ChestBehavior_PickFromList(On.RoR2.ChestBehavior.orig_PickFromList orig, ChestBehavior self, List<PickupIndex> dropList)
         {
             dropList.Clear();

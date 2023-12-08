@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace RiskOfChaos.ModifierController.PhysicsModification
+﻿namespace RiskOfChaos.ModifierController.PhysicsModification
 {
     public struct PhysicsModificationInfo
     {

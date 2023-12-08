@@ -1,11 +1,8 @@
-﻿using HarmonyLib;
-using MonoMod.RuntimeDetour;
-using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Patches;
 using RoR2;
 using RoR2.Skills;
 using RoR2.UI;
-using System;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;

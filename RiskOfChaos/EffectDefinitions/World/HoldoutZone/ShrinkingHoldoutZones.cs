@@ -14,7 +14,7 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
             new Keyframe(0.5f, 0.75f, 1f, 1f),
             new Keyframe(1f, 1f)
         });
-        
+
         protected override void modifyRadius(HoldoutZoneController controller, ref float radius)
         {
             base.modifyRadius(controller, ref radius);

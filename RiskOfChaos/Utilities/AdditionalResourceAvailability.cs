@@ -1,6 +1,4 @@
-﻿using RoR2;
-
-namespace RiskOfChaos.Utilities
+﻿namespace RiskOfChaos.Utilities
 {
     public static class AdditionalResourceAvailability
     {

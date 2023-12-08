@@ -5,8 +5,6 @@ using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.CharacterAI;
 using System;
-using UnityEngine;
-using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
@@ -48,7 +46,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 CharacterMaster characterMaster = result.spawnedInstance.GetComponent<CharacterMaster>();
                 if (!characterMaster)
                     return;
-                
+
                 characterMaster.inventory.GiveItem(Items.InvincibleLemurianMarker);
 
                 foreach (BaseAI baseAI in characterMaster.GetComponents<BaseAI>())

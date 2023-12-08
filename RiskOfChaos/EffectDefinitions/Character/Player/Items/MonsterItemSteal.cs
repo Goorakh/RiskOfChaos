@@ -84,7 +84,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             {
                 if (!itemStealFilter(item))
                     continue;
-                
+
                 yield return item;
             }
         }

@@ -1,7 +1,6 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.ConfigHandling;
 using RiskOfOptions.OptionConfigs;
-using UnityEngine;
 
 namespace RiskOfChaos
 {

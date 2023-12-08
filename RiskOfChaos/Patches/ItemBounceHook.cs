@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.ModifierController.Pickups;
 using RoR2;
-using System;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -120,7 +119,7 @@ namespace RiskOfChaos.Patches
                 _timeSinceLastBounce = 0f;
 
                 BouncesRemaining--;
-                
+
                 if (BouncesRemaining <= 0)
                 {
                     Destroy(this);

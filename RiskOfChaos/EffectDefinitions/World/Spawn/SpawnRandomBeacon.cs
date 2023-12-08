@@ -5,7 +5,6 @@ using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.Projectile;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn

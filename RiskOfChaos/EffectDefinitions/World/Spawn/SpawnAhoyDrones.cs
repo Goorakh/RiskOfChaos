@@ -77,7 +77,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             foreach (CharacterBody playerBody in playerBodies)
             {
                 spawnDroneAt(playerBody, RNG.Branch());
-                
+
                 if (--spawnsRemaining <= 0)
                     return;
             }

@@ -38,7 +38,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 {
                     Log.Error_NoCallerPrefix($"Caught exception in {EffectInstance.EffectInfo} {nameof(TimedEffect.OnEnd)}: {ex}");
                 }
-                
+
                 if (EffectInstance.EffectInfo.IsNetworked && sendClientMessage)
                 {
                     if (NetworkServer.active)
@@ -190,7 +190,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         {
             if (!willStart)
                 return;
-            
+
             for (int i = _activeTimedEffects.Count - 1; i >= 0; i--)
             {
                 TimedEffectInfo activeEffectInfo = _activeTimedEffects[i].EffectInstance.EffectInfo;

@@ -1,5 +1,4 @@
-﻿using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.DropTables;
+﻿using RiskOfChaos.Utilities.DropTables;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.Pool;
 using RoR2;

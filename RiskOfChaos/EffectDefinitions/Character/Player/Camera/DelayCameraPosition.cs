@@ -29,7 +29,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 
             if (context.viewerInfo.localUser is null)
                 return;
-            
+
             CameraRigController cameraRig = context.cameraInfo.cameraRigController;
             if (!cameraRig)
                 return;
