@@ -5,6 +5,9 @@
 * Give Random Item, Add Random Item to Monster Inventory, & All Items are a Random Item:
   * Fixed Eulogy Zero being able to influence the selection chance of items
 
+* UI:
+  * Fixed Active Effects display not refreshing effect names after changing config values
+
 **1.13.1 Changes:**
 
 <details>

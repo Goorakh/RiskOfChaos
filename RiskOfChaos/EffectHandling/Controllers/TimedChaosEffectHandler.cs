@@ -354,6 +354,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
             return getActiveTimedEffectsFor(effectInfo).Count();
         }
 
+        public IEnumerable<TimedEffect> GetAllActiveEffects()
+        {
+            return _activeTimedEffects.Select(t => t.EffectInstance);
+        }
+
         public IEnumerable<TEffect> GetActiveEffectInstancesOfType<TEffect>() where TEffect : TimedEffect
         {
             foreach (ActiveTimedEffectInfo timedEffect in _activeTimedEffects)

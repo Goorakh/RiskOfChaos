@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using System;
 using UnityEngine.Networking;
@@ -11,21 +12,22 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
         public readonly TimedEffectInfo EffectInfo;
         public readonly ulong DispatchID;
 
-        public readonly string DisplayName;
+        public readonly string[] DisplayNameFormatArgs;
+
         public readonly TimedEffectType TimedType;
         public readonly float DurationSeconds;
         public readonly float TimeStarted;
 
         public readonly bool ShouldDisplay;
 
-        public readonly uint Version;
+        public readonly string DisplayName => string.Format(EffectInfo.GetDisplayName(EffectNameFormatFlags.None), DisplayNameFormatArgs);
 
-        public ActiveEffectItemInfo(TimedEffect effectInstance, uint version)
+        public ActiveEffectItemInfo(TimedEffect effectInstance)
         {
             EffectInfo = effectInstance.EffectInfo;
             DispatchID = effectInstance.DispatchID;
 
-            DisplayName = EffectInfo.GetDisplayName(EffectNameFormatFlags.RuntimeFormatArgs);
+            DisplayNameFormatArgs = EffectInfo.GetDisplayNameFormatArgs();
 
             TimedType = effectInstance.TimedType;
             DurationSeconds = effectInstance.DurationSeconds;
@@ -33,8 +35,6 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             TimeStarted = effectInstance.TimeStarted;
 
             ShouldDisplay = EffectInfo.ShouldDisplayOnHUD;
-
-            Version = version;
         }
 
         private ActiveEffectItemInfo(NetworkReader reader)
@@ -54,13 +54,11 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
             DispatchID = reader.ReadPackedUInt64();
 
-            string displayName = reader.ReadString();
-            if (string.IsNullOrWhiteSpace(displayName))
+            DisplayNameFormatArgs = new string[reader.ReadPackedUInt32()];
+            for (int i = 0; i < DisplayNameFormatArgs.Length; i++)
             {
-                displayName = EffectInfo.GetDisplayName(EffectNameFormatFlags.RuntimeFormatArgs);
+                DisplayNameFormatArgs[i] = reader.ReadString();
             }
-
-            DisplayName = displayName;
 
             TimedType = (TimedEffectType)reader.ReadByte();
             if (TimedType == TimedEffectType.FixedDuration)
@@ -71,8 +69,6 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             TimeStarted = reader.ReadSingle();
 
             ShouldDisplay = reader.ReadBoolean();
-
-            Version = reader.ReadPackedUInt32();
         }
 
         public void Serialize(NetworkWriter writer)
@@ -88,8 +84,11 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             writer.WriteChaosEffectIndex(EffectInfo.EffectIndex);
             writer.WritePackedUInt64(DispatchID);
 
-            // If the effect name has custom runtime formatting, send the display name to clients. Otherwise, let the clients look up the effect name in their ChaosEffectCatalog instead to save on message size
-            writer.Write(EffectInfo.HasCustomDisplayNameFormatter ? DisplayName : string.Empty);
+            writer.WritePackedUInt32((uint)DisplayNameFormatArgs.Length);
+            foreach (string formatArg in DisplayNameFormatArgs)
+            {
+                writer.Write(formatArg);
+            }
 
             writer.Write((byte)TimedType);
             if (TimedType == TimedEffectType.FixedDuration)
@@ -100,8 +99,6 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             writer.Write(TimeStarted);
 
             writer.Write(ShouldDisplay);
-
-            writer.WritePackedUInt32(Version);
         }
 
         public static ActiveEffectItemInfo Deserialize(NetworkReader reader)
@@ -116,7 +113,13 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         public bool Equals(ActiveEffectItemInfo other)
         {
-            return EffectInfo == other.EffectInfo && DispatchID == other.DispatchID && Version == other.Version;
+            return EffectInfo == other.EffectInfo &&
+                   DispatchID == other.DispatchID &&
+                   ArrayUtil.ElementsEqual(DisplayNameFormatArgs, other.DisplayNameFormatArgs) &&
+                   TimedType == other.TimedType &&
+                   DurationSeconds == other.DurationSeconds &&
+                   TimeStarted == other.TimeStarted &&
+                   ShouldDisplay == other.ShouldDisplay;
         }
 
         public override int GetHashCode()
