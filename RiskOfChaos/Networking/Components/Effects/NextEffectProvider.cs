@@ -32,7 +32,12 @@ namespace RiskOfChaos.Networking.Components.Effects
             SingletonHelper.Unassign(ref _instance, this);
         }
 
-        static bool tryGetNextEffectState(out ChaosEffectIndex nextEffectIndex, out Run.FixedTimeStamp nextEffectActivationTime, out string[] nextEffectNameFormatArgs)
+        readonly record struct NextEffectState(ChaosEffectIndex EffectIndex, Run.FixedTimeStamp ActivationTime, string[] DisplayNameFormatArgs)
+        {
+            public static readonly NextEffectState None = new NextEffectState(ChaosEffectIndex.Invalid, Run.FixedTimeStamp.negativeInfinity, Array.Empty<string>());
+        }
+
+        static bool tryGetNextEffectState(out NextEffectState nextEffectState)
         {
             ChaosEffectDispatcher effectDispatcher = ChaosEffectDispatcher.Instance;
             if (effectDispatcher && effectDispatcher.HasAttemptedDispatchAnyEffectServer)
@@ -40,39 +45,29 @@ namespace RiskOfChaos.Networking.Components.Effects
                 ChaosEffectActivationSignaler effectSignaler = effectDispatcher.GetCurrentEffectSignaler();
                 if (effectSignaler)
                 {
-                    nextEffectIndex = effectSignaler.GetUpcomingEffect();
-                    nextEffectActivationTime = Run.FixedTimeStamp.now + effectSignaler.GetTimeUntilNextEffect();
-
+                    ChaosEffectIndex nextEffectIndex = effectSignaler.GetUpcomingEffect();
                     ChaosEffectInfo nextEffectInfo = ChaosEffectCatalog.GetEffectInfo(nextEffectIndex);
-                    if (nextEffectInfo.HasCustomDisplayNameFormatter)
-                    {
-                        nextEffectNameFormatArgs = nextEffectInfo.GetDisplayNameFormatArgs();
-                    }
-                    else
-                    {
-                        nextEffectNameFormatArgs = null;
-                    }
 
+                    Run.FixedTimeStamp activationTime = Run.FixedTimeStamp.now + effectSignaler.GetTimeUntilNextEffect();
+
+                    string[] displayNameFormatArgs = nextEffectInfo.GetDisplayNameFormatArgs();
+
+                    nextEffectState = new NextEffectState(nextEffectIndex, activationTime, displayNameFormatArgs);
                     return true;
                 }
             }
 
-            nextEffectIndex = ChaosEffectIndex.Invalid;
-            nextEffectActivationTime = Run.FixedTimeStamp.negativeInfinity;
-            nextEffectNameFormatArgs = null;
+            nextEffectState = NextEffectState.None;
             return false;
         }
 
-        void FixedUpdate()
+        void refreshNextEffectState()
         {
-            if (!hasAuthority)
-                return;
-
-            if (tryGetNextEffectState(out ChaosEffectIndex nextEffectIndex, out Run.FixedTimeStamp nextEffectActivationTime, out string[] nextEffectNameFormatArgs))
+            if (tryGetNextEffectState(out NextEffectState nextEffectState))
             {
-                NetworkNextEffectIndex = nextEffectIndex;
-                NetworkNextEffectActivationTime = nextEffectActivationTime;
-                NetworkNextEffectFormatArgs = nextEffectNameFormatArgs;
+                NetworkNextEffectIndex = nextEffectState.EffectIndex;
+                NetworkNextEffectActivationTime = nextEffectState.ActivationTime;
+                NetworkNextEffectFormatArgs = nextEffectState.DisplayNameFormatArgs;
             }
             else
             {
@@ -80,6 +75,14 @@ namespace RiskOfChaos.Networking.Components.Effects
                 NetworkNextEffectActivationTime = Run.FixedTimeStamp.negativeInfinity;
                 NetworkNextEffectFormatArgs = null;
             }
+        }
+
+        void FixedUpdate()
+        {
+            if (!hasAuthority)
+                return;
+
+            refreshNextEffectState();
         }
 
         public ChaosEffectIndex NetworkNextEffectIndex
