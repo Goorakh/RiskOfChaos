@@ -1,6 +1,13 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* UI:
+  * Fixed Next Effect panel not displaying effect name properly for non-host players in multiplayer
+
 **1.13.0 Changes:**
+
+<details>
 
 * Added 12 new effects:
   * Bouncy Items: Item drops will bounce on the ground before settling, lasts 60 seconds
@@ -147,6 +154,8 @@
   * Fixed some effects sometimes placing character VFX at world origin
   * Updated R2API.Core dependency version: 5.0.10 -> 5.0.11
   * Updated Risk of Options dependency version: 2.6.1 -> 2.7.1
+
+</details>
 
 **1.12.2 Changes:**
 

@@ -25,9 +25,9 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
                                 .Build();
 
         [EffectNameFormatArgs]
-        static object[] GetDisplayNameFormatArgs()
+        static string[] GetDisplayNameFormatArgs()
         {
-            return new object[] { _decreaseAmount.Value };
+            return new string[] { _decreaseAmount.Value.ToString("P0") };
         }
 
         protected override float multiplier => 1f - _decreaseAmount.Value;

@@ -303,6 +303,18 @@ namespace RiskOfChaos.EffectHandling
             return true;
         }
 
+        public string[] GetDisplayNameFormatArgs()
+        {
+            if (HasCustomDisplayNameFormatter)
+            {
+                return _getEffectNameFormatArgs();
+            }
+            else
+            {
+                return Array.Empty<string>();
+            }
+        }
+
         public virtual string GetDisplayName(EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)
         {
             if ((formatFlags & EffectNameFormatFlags.RuntimeFormatArgs) != 0 && HasCustomDisplayNameFormatter)

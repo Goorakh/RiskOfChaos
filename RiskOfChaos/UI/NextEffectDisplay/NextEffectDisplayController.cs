@@ -1,7 +1,6 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RoR2;
 using RoR2.UI;
-using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,7 +25,12 @@ namespace RiskOfChaos.UI.NextEffectDisplay
         {
             ChaosEffectInfo effectInfo = ChaosEffectCatalog.GetEffectInfo(displayData.EffectIndex);
 
-            string effectName = effectInfo is not null ? effectInfo.GetDisplayName(EffectNameFormatFlags.RuntimeFormatArgs) : "NULL";
+            string effectName = effectInfo?.GetDisplayName(EffectNameFormatFlags.None) ?? "NULL";
+
+            if (displayData.DisplayNameFormatArgs.Length > 0)
+            {
+                effectName = string.Format(effectName, displayData.DisplayNameFormatArgs);
+            }
 
             string timeRemainingString = displayData.TimeRemaining.ToString(displayData.TimeRemaining >= 10f ? "F0" : "F1");
 

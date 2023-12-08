@@ -1,9 +1,7 @@
 ﻿using R2API;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.Networking.Components.Effects;
 using RiskOfChaos.Trackers;
-using RiskOfChaos.UI.ChatVoting;
 using RoR2;
 using RoR2.UI;
 using TMPro;
@@ -125,7 +123,7 @@ namespace RiskOfChaos.UI.NextEffectDisplay
                 NextEffectProvider nextEffectProvider = NextEffectProvider.Instance;
                 if (nextEffectProvider)
                 {
-                    return new EffectDisplayData(nextEffectProvider.NetworkNextEffectIndex, nextEffectProvider.NetworkNextEffectActivationTime.timeUntilClamped);
+                    return new EffectDisplayData(nextEffectProvider.NetworkNextEffectIndex, nextEffectProvider.NetworkNextEffectActivationTime.timeUntilClamped, nextEffectProvider.NetworkNextEffectFormatArgs);
                 }
             }
 

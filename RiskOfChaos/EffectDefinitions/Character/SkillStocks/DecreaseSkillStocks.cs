@@ -40,10 +40,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.SkillStocks
         }
 
         [EffectNameFormatArgs]
-        static object[] GetEffectNameFormatArgs()
+        static string[] GetEffectNameFormatArgs()
         {
             int removedStocks = _stocksToRemove.Value;
-            return new object[] { removedStocks, removedStocks > 1 ? "s" : string.Empty };
+            return new string[] { removedStocks.ToString(), removedStocks > 1 ? "s" : string.Empty };
         }
 
         public override void OnStart()

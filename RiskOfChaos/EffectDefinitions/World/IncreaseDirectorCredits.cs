@@ -39,12 +39,9 @@ namespace RiskOfChaos.EffectDefinitions.World
         }
 
         [EffectNameFormatArgs]
-        static object[] GetEffectNameFormatArgs()
+        static string[] GetEffectNameFormatArgs()
         {
-            return new object[]
-            {
-                _creditIncrease.Value
-            };
+            return new string[] { _creditIncrease.Value.ToString("P0") };
         }
 
         class DirectorCreditModificationTracker : MonoBehaviour

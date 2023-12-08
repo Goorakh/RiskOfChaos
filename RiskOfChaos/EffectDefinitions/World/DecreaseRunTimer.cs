@@ -44,9 +44,9 @@ namespace RiskOfChaos.EffectDefinitions.World
         }
 
         [EffectNameFormatArgs]
-        static object[] GetEffectNameFormatArgs()
+        static string[] GetEffectNameFormatArgs()
         {
-            return new object[] { _numMinutesToRemove.Value };
+            return new string[] { _numMinutesToRemove.Value.ToString() };
         }
 
         public override void OnStart()

@@ -38,9 +38,9 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
         protected override float multiplier => 1f + _timeScaleIncrease.Value;
 
         [EffectNameFormatArgs]
-        static object[] GetDisplayNameFormatArgs()
+        static string[] GetDisplayNameFormatArgs()
         {
-            return new object[] { _timeScaleIncrease.Value };
+            return new string[] { _timeScaleIncrease.Value.ToString("P0") };
         }
     }
 }

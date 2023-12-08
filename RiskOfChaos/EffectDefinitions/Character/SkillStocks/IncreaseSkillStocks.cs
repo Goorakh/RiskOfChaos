@@ -40,10 +40,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.SkillStocks
         }
 
         [EffectNameFormatArgs]
-        static object[] GetEffectNameFormatArgs()
+        static string[] GetEffectNameFormatArgs()
         {
             int addedStocks = _stockAdds.Value;
-            return new object[] { addedStocks, addedStocks > 1 ? "s" : string.Empty };
+            return new string[] { addedStocks.ToString(), addedStocks > 1 ? "s" : string.Empty };
         }
 
         public override void OnStart()

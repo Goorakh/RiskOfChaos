@@ -281,16 +281,16 @@ namespace RiskOfChaos.EffectDefinitions.World
         }
 
         [EffectNameFormatArgs]
-        static object[] GetEffectNameFormatArgs()
+        static string[] GetEffectNameFormatArgs()
         {
             PickupDef pickupDef = PickupCatalog.GetPickupDef(_currentOverridePickupIndex);
             if (pickupDef != null)
             {
-                return new object[] { Util.GenerateColoredString(Language.GetString(pickupDef.nameToken), pickupDef.baseColor) };
+                return new string[] { Util.GenerateColoredString(Language.GetString(pickupDef.nameToken), pickupDef.baseColor) };
             }
             else
             {
-                return new object[] { "<color=red>[ERROR: PICKUP NOT ROLLED]</color>" };
+                return new string[] { "<color=red>[ERROR: PICKUP NOT ROLLED]</color>" };
             }
         }
 

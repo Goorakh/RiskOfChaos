@@ -1,4 +1,4 @@
 ﻿namespace RiskOfChaos.EffectHandling
 {
-    public delegate object[] EffectNameFormatArgsDelegate();
+    public delegate string[] EffectNameFormatArgsDelegate();
 }

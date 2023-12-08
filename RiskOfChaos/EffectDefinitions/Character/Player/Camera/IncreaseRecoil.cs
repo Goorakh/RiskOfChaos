@@ -34,9 +34,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
                                 .Build();
 
         [EffectNameFormatArgs]
-        static object[] GetEffectNameFormatArgs()
+        static string[] GetEffectNameFormatArgs()
         {
-            return new object[] { _recoilMultiplier.Value };
+            return new string[] { _recoilMultiplier.Value.ToString() };
         }
 
         [EffectCanActivate]

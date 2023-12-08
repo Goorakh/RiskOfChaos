@@ -34,12 +34,9 @@ namespace RiskOfChaos.EffectDefinitions.World.ProjectileSpeed
                                 .Build();
 
         [EffectNameFormatArgs]
-        static object[] GetDisplayNameFormatArgs()
+        static string[] GetDisplayNameFormatArgs()
         {
-            return new object[]
-            {
-                _projectileSpeedIncrease.Value
-            };
+            return new string[] { _projectileSpeedIncrease.Value.ToString("P0") };
         }
 
         public override event Action OnValueDirty;

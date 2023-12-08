@@ -38,12 +38,9 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                 .Build();
 
         [EffectNameFormatArgs]
-        static object[] GetEffectNameFormatArgs()
+        static string[] GetEffectNameFormatArgs()
         {
-            return new object[]
-            {
-                _damageIncreaseAmount.Value
-            };
+            return new string[] { _damageIncreaseAmount.Value.ToString("P0") };
         }
 
         static float damageMultiplier => 1f + _damageIncreaseAmount.Value;

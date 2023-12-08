@@ -42,9 +42,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
         }
 
         [EffectNameFormatArgs]
-        static object[] GetEffectNameFormatArgs()
+        static string[] GetEffectNameFormatArgs()
         {
-            return new object[] { _cooldownIncrease.Value };
+            return new string[] { _cooldownIncrease.Value.ToString("P0") };
         }
 
         public override void OnStart()

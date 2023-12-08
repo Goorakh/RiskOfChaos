@@ -36,12 +36,9 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                 .Build();
 
         [EffectNameFormatArgs]
-        static object[] GetDisplayNameFormatArgs()
+        static string[] GetDisplayNameFormatArgs()
         {
-            return new object[]
-            {
-                _multiplierPerActivation.Value
-            };
+            return new string[] { _multiplierPerActivation.Value.ToString() };
         }
 
         [EffectCanActivate]

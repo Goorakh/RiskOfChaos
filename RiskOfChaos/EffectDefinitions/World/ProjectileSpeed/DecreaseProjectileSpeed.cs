@@ -36,12 +36,9 @@ namespace RiskOfChaos.EffectDefinitions.World.ProjectileSpeed
         public override event Action OnValueDirty;
 
         [EffectNameFormatArgs]
-        static object[] GetDisplayNameFormatArgs()
+        static string[] GetDisplayNameFormatArgs()
         {
-            return new object[]
-            {
-                _projectileSpeedDecrease.Value
-            };
+            return new string[] { _projectileSpeedDecrease.Value.ToString("P0") };
         }
 
         protected override float speedMultiplier => 1f - _projectileSpeedDecrease.Value;

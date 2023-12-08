@@ -46,9 +46,9 @@ namespace RiskOfChaos.EffectDefinitions.World
         }
 
         [EffectNameFormatArgs]
-        static object[] GetEffectNameFormatArgs()
+        static string[] GetEffectNameFormatArgs()
         {
-            return new object[] { _knockbackMultiplier.Value };
+            return new string[] { _knockbackMultiplier.Value.ToString() };
         }
 
         public event Action OnValueDirty;

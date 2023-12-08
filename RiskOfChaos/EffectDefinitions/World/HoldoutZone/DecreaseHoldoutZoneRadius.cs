@@ -26,12 +26,9 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
                                 .Build();
 
         [EffectNameFormatArgs]
-        static object[] GetEffectNameFormatArgs()
+        static string[] GetEffectNameFormatArgs()
         {
-            return new object[]
-            {
-                _radiusDecrease.Value
-            };
+            return new string[] { _radiusDecrease.Value.ToString("P0") };
         }
 
         protected override void modifyRadius(HoldoutZoneController controller, ref float radius)

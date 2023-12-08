@@ -39,9 +39,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
         protected override float multiplier => 1f - _gravityDecrease.Value;
 
         [EffectNameFormatArgs]
-        static object[] GetEffectNameFormatArgs()
+        static string[] GetEffectNameFormatArgs()
         {
-            return new object[] { _gravityDecrease.Value };
+            return new string[] { _gravityDecrease.Value.ToString("P0") };
         }
     }
 }

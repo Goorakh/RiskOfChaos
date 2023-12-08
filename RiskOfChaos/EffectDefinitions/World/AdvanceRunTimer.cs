@@ -25,9 +25,9 @@ namespace RiskOfChaos.EffectDefinitions.World
                               .Build();
 
         [EffectNameFormatArgs]
-        static object[] GetEffectNameFormatArgs()
+        static string[] GetEffectNameFormatArgs()
         {
-            return new object[] { _numMinutesToAdd.Value };
+            return new string[] { _numMinutesToAdd.Value.ToString() };
         }
 
         public override void OnStart()

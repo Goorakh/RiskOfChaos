@@ -26,12 +26,9 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
                                 .Build();
 
         [EffectNameFormatArgs]
-        static object[] GetEffectNameFormatArgs()
+        static string[] GetEffectNameFormatArgs()
         {
-            return new object[]
-            {
-                _chargeRateDecrease.Value
-            };
+            return new string[] { _chargeRateDecrease.Value.ToString("P0") };
         }
 
         protected override void modifyChargeRate(HoldoutZoneController controller, ref float rate)
