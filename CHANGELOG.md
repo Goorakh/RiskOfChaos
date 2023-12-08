@@ -1,9 +1,9 @@
 ## Changelog
 
-**?.?.? Changes:**
+**1.13.1 Changes:**
 
 * UI:
-  * Fixed Next Effect panel not displaying effect name properly for non-host players in multiplayer
+  * Fixed Next Effect panel sometimes not displaying effect name properly for non-host players in multiplayer
 
 **1.13.0 Changes:**
 
