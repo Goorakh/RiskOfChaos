@@ -276,10 +276,14 @@ namespace RiskOfChaos.EffectHandling.Controllers
         {
             if (tryGetActiveEffectIndexByDispatchID(dispatchID, out int activeEffectIndex))
             {
+#if DEBUG
+                ActiveTimedEffectInfo timedEffectInfo = _activeTimedEffects[activeEffectIndex];
+#endif
+
                 endTimedEffectAtIndex(activeEffectIndex, sendClientMessage);
 
 #if DEBUG
-                Log.Debug($"Timed effect {_activeTimedEffects[activeEffectIndex].EffectInstance.EffectInfo} (ID={dispatchID}) ended");
+                Log.Debug($"Timed effect {timedEffectInfo.EffectInstance.EffectInfo} (ID={dispatchID}) ended");
 #endif
             }
             else
