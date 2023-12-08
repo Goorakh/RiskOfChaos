@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
@@ -123,7 +124,7 @@ namespace RiskOfChaos.Networking.Components.Effects
             {
                 value ??= Array.Empty<string>();
 
-                if (value.Length != _nextEffectFormatArgs.Length || !value.SequenceEqual(_nextEffectFormatArgs))
+                if (!ArrayUtil.ElementsEqual(_nextEffectFormatArgs, value))
                 {
                     _nextEffectFormatArgs = value;
                     SetDirtyBit(NEXT_EFFECT_FORMAT_ARGS_DIRTY_BIT);
