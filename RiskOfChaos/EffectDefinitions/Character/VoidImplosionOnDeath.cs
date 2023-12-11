@@ -13,6 +13,10 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("void_implosion_on_death", TimedEffectType.UntilStageEnd, AllowDuplicates = false)]
+    [EffectConfigBackwardsCompatibility(new string[]
+    {
+        "Effect: Void Implosion on Death"
+    })]
     public sealed class VoidImplosionOnDeath : TimedEffect
     {
         readonly record struct SerializableProjectilePrefab(string AssetPath)

@@ -1,6 +1,12 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* Renamed effect: Void Implosion on Death -> Everyone Implodes on Death
+
 **1.13.2 Changes:**
+
+<details>
 
 * Give Random Item, Add Random Item to Monster Inventory, & All Items are a Random Item:
   * Fixed Eulogy Zero being able to influence the selection chance of items
@@ -11,6 +17,8 @@
 
 * UI:
   * Fixed Active Effects display not refreshing effect names after changing config values
+
+</details>
 
 **1.13.1 Changes:**
 
