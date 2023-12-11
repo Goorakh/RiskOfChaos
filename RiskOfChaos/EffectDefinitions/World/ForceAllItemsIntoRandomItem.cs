@@ -202,7 +202,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
                 // If the effect was in this vote, but *didn't* win, reroll for next time
                 EffectVoteInfo[] voteOptions = result.VoteSelection.GetVoteOptions();
-                if (Array.Exists(voteOptions, v => v.EffectInfo == _effectInfo) && result.WinningOption.EffectInfo != _effectInfo)
+                if (result.WinningOption.EffectInfo != _effectInfo && Array.Exists(voteOptions, v => v.EffectInfo == _effectInfo))
                 {
                     rerollCurrentOverridePickup();
                 }
@@ -250,7 +250,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                     if (_currentOverridePickupIndex.isValid)
                     {
 #if DEBUG
-                    Log.Debug($"Loaded current pickup ({_currentOverridePickupIndex}) from save data");
+                        Log.Debug($"Loaded current pickup ({_currentOverridePickupIndex}) from save data");
 #endif
                     }
                     else
