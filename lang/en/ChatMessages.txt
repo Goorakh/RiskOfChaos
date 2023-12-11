@@ -24,6 +24,6 @@
 		"INVINCIBLE_LEMURIAN_RECRUIT_MESSAGE": "<color=#E9848D><size=110%>His presence... It feels closer than ever before...</size></color>",
 
 		"RECRUIT_ENEMY_MESSAGE": "<style=cWorldEvent><color=#FFFFFF>{0}</color> has been brought to your side</style>",
-		"RECRUIT_ENEMY_MESSAGE_2P": "<style=cWorldEvent>You have been brought to their side</style>",
+		"RECRUIT_BOSS_MESSAGE": "<style=cWorldEvent><color=#FF2C2C>{0}</color> has been brought to your side</style>",
 	}
 }

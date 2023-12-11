@@ -2,23 +2,25 @@
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.CharacterAI;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("convert_random_enemy")]
+    [ChaosEffect("convert_random_enemy", IsNetworked = true)]
     public sealed class ConvertRandomEnemy : BaseEffect
     {
         static IEnumerable<CharacterBody> getAllConvertableEnemies()
         {
             return CharacterBody.readOnlyInstancesList.Where(c =>
             {
-                if (!c || !c.teamComponent)
+                if (!c || !c.teamComponent || c.isPlayerControlled)
                     return false;
 
                 switch (c.teamComponent.teamIndex)
@@ -69,59 +71,86 @@ namespace RiskOfChaos.EffectDefinitions.Character
             Log.Error("No available enemy to convert");
         }
 
+        public override void Serialize(NetworkWriter writer)
+        {
+            base.Serialize(writer);
+
+            writer.Write(_enemyToConvert && !SaveManager.IsCollectingSaveData ? _enemyToConvert.networkIdentity : null);
+        }
+
+        public override void Deserialize(NetworkReader reader)
+        {
+            base.Deserialize(reader);
+
+            NetworkIdentity enemyToConvertNetId = reader.ReadNetworkIdentity();
+            _enemyToConvert = enemyToConvertNetId ? enemyToConvertNetId.GetComponent<CharacterBody>() : null;
+
+#if DEBUG
+            Log.Debug($"Deserialized target object: {_enemyToConvert}");
+#endif
+        }
+
         public override void OnStart()
         {
             if (!_enemyToConvert)
                 return;
 
-            // TODO: This is not networked, clients will still see the old indicator if one was present before the effect
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
             GameObject positionIndicator = _enemyToConvert.teamComponent.indicator;
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
             if (positionIndicator)
             {
+#if DEBUG
+                Log.Debug($"Destroying old position indicator: {positionIndicator}");
+#endif
+
                 GameObject.Destroy(positionIndicator);
             }
 
-            _enemyToConvert.teamComponent.teamIndex = TeamIndex.Player;
-
-            CharacterMaster master = _enemyToConvert.master;
-            if (master)
+            if (NetworkServer.active)
             {
-                master.teamIndex = TeamIndex.Player;
+                bool isBoss = _enemyToConvert.isBoss;
 
-                if (master.TryGetComponent(out BaseAI ai))
-                {
-                    ai.enemyAttention = 0f;
-                    ai.currentEnemy.Reset();
-                    ai.ForceAcquireNearestEnemyIfNoCurrentEnemy();
-                }
+                _enemyToConvert.teamComponent.teamIndex = TeamIndex.Player;
 
-                BossGroup bossGroup = BossGroup.FindBossGroup(_enemyToConvert);
-                if (bossGroup)
+                CharacterMaster master = _enemyToConvert.master;
+                if (master)
                 {
+                    master.teamIndex = TeamIndex.Player;
+
+                    if (master.TryGetComponent(out BaseAI ai))
+                    {
+                        ai.enemyAttention = 0f;
+                        ai.currentEnemy.Reset();
+                        ai.ForceAcquireNearestEnemyIfNoCurrentEnemy();
+                    }
+
+                    BossGroup bossGroup = BossGroup.FindBossGroup(_enemyToConvert);
+                    if (bossGroup)
+                    {
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                    bossGroup.combatSquad.RemoveMember(master);
+                        bossGroup.combatSquad.RemoveMember(master);
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
+                    }
+
+                    master.gameObject.SetDontDestroyOnLoad(true);
                 }
 
-                master.gameObject.SetDontDestroyOnLoad(true);
-            }
-
-            if (master && master.inventory.GetItemCount(Items.InvincibleLemurianMarker) > 0)
-            {
-                Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                if (master && master.inventory.GetItemCount(Items.InvincibleLemurianMarker) > 0)
                 {
-                    baseToken = "INVINCIBLE_LEMURIAN_RECRUIT_MESSAGE"
-                });
-            }
-            else
-            {
-                Chat.SendBroadcastChat(new SubjectChatMessage
+                    Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                    {
+                        baseToken = "INVINCIBLE_LEMURIAN_RECRUIT_MESSAGE"
+                    });
+                }
+                else
                 {
-                    baseToken = "RECRUIT_ENEMY_MESSAGE",
-                    subjectAsCharacterBody = _enemyToConvert
-                });
+                    Chat.SendBroadcastChat(new SubjectChatMessage
+                    {
+                        baseToken = isBoss ? "RECRUIT_BOSS_MESSAGE" : "RECRUIT_ENEMY_MESSAGE",
+                        subjectAsCharacterBody = _enemyToConvert
+                    });
+                }
             }
         }
     }

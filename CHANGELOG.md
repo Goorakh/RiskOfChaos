@@ -5,6 +5,10 @@
 * Give Random Item, Add Random Item to Monster Inventory, & All Items are a Random Item:
   * Fixed Eulogy Zero being able to influence the selection chance of items
 
+* Recruit Random Enemy:
+  * Fixed enemy position indicators not being removed for non-host players after the recruit.
+  * Added separate colored message if a boss is recruited
+
 * UI:
   * Fixed Active Effects display not refreshing effect names after changing config values
 
