@@ -247,9 +247,17 @@ namespace RiskOfChaos.EffectDefinitions.World
                     _pickNextItemRNG = data.PickNextItemRNG;
                     _currentOverridePickupIndex = PickupCatalog.FindPickupIndex(data.CurrentPickupName);
 
+                    if (_currentOverridePickupIndex.isValid)
+                    {
 #if DEBUG
                     Log.Debug($"Loaded current pickup ({_currentOverridePickupIndex}) from save data");
 #endif
+                    }
+                    else
+                    {
+                        Log.Warning($"Unable to load pickup from save data. No pickup found with name \"{data.CurrentPickupName}\". Rerolling.");
+                        rerollCurrentOverridePickup();
+                    }
                 };
             }
         }
