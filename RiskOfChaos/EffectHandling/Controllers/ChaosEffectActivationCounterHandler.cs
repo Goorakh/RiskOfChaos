@@ -79,10 +79,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void SaveManager_LoadSaveData(in SaveContainer container)
         {
+            resetAllCounters();
+
             if (container.ActivationCounterData is null)
                 return;
-
-            resetAllCounters();
 
             if (container.ActivationCounterData.ActivationCounts is not null)
             {
