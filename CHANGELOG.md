@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**1.13.2 Changes:**
 
 * Give Random Item, Add Random Item to Monster Inventory, & All Items are a Random Item:
   * Fixed Eulogy Zero being able to influence the selection chance of items
