@@ -53,7 +53,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         static void SaveManager_LoadSaveData(in SaveContainer container)
         {
-            RandomDifficulty_Data data = container.Effects.RandomDifficulty_Data;
+            RandomDifficulty_Data data = container.Effects?.RandomDifficulty_Data;
             if (data is null)
             {
                 _previousDifficulties.Clear();

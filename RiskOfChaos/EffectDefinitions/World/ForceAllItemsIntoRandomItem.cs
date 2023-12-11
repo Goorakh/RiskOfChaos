@@ -240,7 +240,9 @@ namespace RiskOfChaos.EffectDefinitions.World
 
                 SaveManager.LoadSaveData += (in SaveContainer container) =>
                 {
-                    ForceAllItemsIntoRandomItem_Data data = container.Effects.ForceAllItemsIntoRandomItem_Data;
+                    ForceAllItemsIntoRandomItem_Data data = container.Effects?.ForceAllItemsIntoRandomItem_Data;
+                    if (data is null)
+                        return;
 
                     _pickNextItemRNG = data.PickNextItemRNG;
                     _currentOverridePickupIndex = PickupCatalog.FindPickupIndex(data.CurrentPickupName);

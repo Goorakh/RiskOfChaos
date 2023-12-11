@@ -149,6 +149,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
         void SaveManager_LoadSaveData(in SaveContainer container)
         {
             EffectActivationSignalerData data = container.ActivationSignalerData;
+            if (data is null)
+                return;
 
             _nextEffectRNG = data.NextEffectRng;
             _effectDispatchTimer.SetLastActivationTimeStopwatch(data.LastEffectActivationTime);
