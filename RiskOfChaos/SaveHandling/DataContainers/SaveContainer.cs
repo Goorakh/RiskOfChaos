@@ -20,17 +20,6 @@ namespace RiskOfChaos.SaveHandling.DataContainers
         public TimedEffectHandlerData TimedEffectHandlerData;
 
         [DataMember(Name = "e")]
-        public EffectsDataContainer Effects;
-
-        public static SaveContainer CreateEmpty()
-        {
-            return new SaveContainer
-            {
-                ActivationSignalerData = new EffectActivationSignalerData(),
-                ActivationCounterData = new EffectActivationCounterData(),
-                DispatcherData = new EffectDispatcherData(),
-                Effects = new EffectsDataContainer()
-            };
-        }
+        public EffectsDataContainer Effects = new EffectsDataContainer();
     }
 }

@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.ModCompatibility;
 using RiskOfChaos.SaveHandling.DataContainers;
+using System;
 
 namespace RiskOfChaos.SaveHandling
 {
@@ -30,17 +31,33 @@ namespace RiskOfChaos.SaveHandling
 
         static SaveContainer _currentSaveContainer;
 
-        public static bool IsSaveDataLoaded => ProperSaveCompat.Active && ProperSaveCompat.LoadingComplete;
+        public static bool IsSaveDataLoaded => UseSaveData && ProperSaveCompat.LoadingComplete;
 
         public static bool UseSaveData => ProperSaveCompat.Active;
+
+        public static bool IsCollectingSaveData { get; private set; }
 
         internal static SaveContainer CollectAllSaveData()
         {
             if (!UseSaveData)
                 return null;
 
-            SaveContainer container = SaveContainer.CreateEmpty();
-            CollectSaveData?.Invoke(ref container);
+            SaveContainer container = new SaveContainer();
+
+            IsCollectingSaveData = true;
+            try
+            {
+                CollectSaveData?.Invoke(ref container);
+            }
+            catch (Exception e)
+            {
+                Log.Error_NoCallerPrefix($"Caught exception while collecting save data, nothing will be saved: {e}");
+                return null;
+            }
+            finally
+            {
+                IsCollectingSaveData = false;
+            }
 
 #if DEBUG
             Log.Debug("Collected save data");
