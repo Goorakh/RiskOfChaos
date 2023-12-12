@@ -12,6 +12,7 @@ using RiskOfChaos.SaveHandling.DataContainers;
 using RiskOfChaos.SaveHandling.DataContainers.Effects;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Comparers;
+using RiskOfChaos.Utilities.DropTables;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.ParsedValueHolders.ParsedList;
 using RiskOfOptions.OptionConfigs;
@@ -72,148 +73,48 @@ namespace RiskOfChaos.EffectDefinitions.World
                 return other is NameFormatter nameFormatter && Pickup == nameFormatter.Pickup;
             }
         }
-
-        static bool _dropTableDirty = false;
-        static BasicPickupDropTable _dropTable;
-
-        static void onDropTableConfigChanged()
-        {
-            _dropTableDirty = true;
-        }
-
+        
         [EffectConfig]
         static readonly ConfigHolder<bool> _allowEliteEquipments =
             ConfigFactory<bool>.CreateConfig("Allow Elite Aspects", true)
                                .Description("If elite aspects can be picked as the forced item")
                                .OptionConfig(new CheckBoxConfig())
-                               .OnValueChanged(onDropTableConfigChanged)
+                               .OnValueChanged(markDropTableDirty)
                                .Build();
 
+        static void markDropTableDirty()
+        {
+            _dropTable.MarkDirty();
+        }
+
         [EffectConfig]
-        static readonly ConfigHolder<string> _itemBlacklistConfig =
-            ConfigFactory<string>.CreateConfig("Item Blacklist", string.Empty)
-                                 .Description("A comma-separated list of items and equipment that should not be included for the effect. Both internal and English display names are accepted, with spaces and commas removed.")
-                                 .OptionConfig(new InputFieldConfig
-                                 {
-                                     submitOn = InputFieldConfig.SubmitEnum.OnSubmit
-                                 })
-                                 .OnValueChanged(onDropTableConfigChanged)
-                                 .Build();
+        static readonly ConfigurableDropTable _dropTable;
 
-        static readonly ParsedPickupList _itemBlacklist = new ParsedPickupList(PickupIndexComparer.Instance)
+        static ForceAllItemsIntoRandomItem()
         {
-            ConfigHolder = _itemBlacklistConfig
-        };
+            _dropTable = ScriptableObject.CreateInstance<ConfigurableDropTable>();
+            _dropTable.name = $"dt{nameof(ForceAllItemsIntoRandomItem)}";
+            _dropTable.canDropBeReplaced = false;
 
-        static ConfigHolder<float> createItemTierWeightConfig(string name, float defaultWeight)
-        {
-            return ConfigFactory<float>.CreateConfig($"Weight: {name}", defaultWeight)
-                                       .Description($"Controls how likely {name} are to be given\n\nA value of 0 means items from this tier will never be given")
-                                       .OptionConfig(new StepSliderConfig
-                                       {
-                                           formatString = "{0:F2}",
-                                           min = 0f,
-                                           max = 1f,
-                                           increment = 0.05f
-                                       })
-                                       .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
-                                       .OnValueChanged(onDropTableConfigChanged)
-                                       .Build();
-        }
+            _dropTable.RegisterDrop(DropType.Tier1, 0.9f);
+            _dropTable.RegisterDrop(DropType.Tier2, 1f);
+            _dropTable.RegisterDrop(DropType.Tier3, 0.7f);
+            _dropTable.RegisterDrop(DropType.Boss, 0.7f);
+            _dropTable.RegisterDrop(DropType.LunarEquipment, 0.2f);
+            _dropTable.RegisterDrop(DropType.LunarItem, 0.6f);
+            _dropTable.RegisterDrop(DropType.Equipment, 0.3f);
+            _dropTable.RegisterDrop(DropType.VoidTier1, 0.6f);
+            _dropTable.RegisterDrop(DropType.VoidTier2, 0.6f);
+            _dropTable.RegisterDrop(DropType.VoidTier3, 0.5f);
+            _dropTable.RegisterDrop(DropType.VoidBoss, 0.3f);
 
-        [EffectConfig] static readonly ConfigHolder<float> _tier1Weight = createItemTierWeightConfig("Common Items", 0.9f);
-        [EffectConfig] static readonly ConfigHolder<float> _tier2Weight = createItemTierWeightConfig("Uncommon Items", 1f);
-        [EffectConfig] static readonly ConfigHolder<float> _tier3Weight = createItemTierWeightConfig("Legendary Items", 0.7f);
-        [EffectConfig] static readonly ConfigHolder<float> _bossWeight = createItemTierWeightConfig("Boss Items", 0.7f);
-        [EffectConfig] static readonly ConfigHolder<float> _lunarEquipmentWeight = createItemTierWeightConfig("Lunar Equipments", 0.2f);
-        [EffectConfig] static readonly ConfigHolder<float> _lunarItemWeight = createItemTierWeightConfig("Lunar Items", 0.6f);
-        [EffectConfig] static readonly ConfigHolder<float> _equipmentWeight = createItemTierWeightConfig("Equipments", 0.3f);
-        [EffectConfig] static readonly ConfigHolder<float> _voidTier1Weight = createItemTierWeightConfig("Common Void Items", 0.6f);
-        [EffectConfig] static readonly ConfigHolder<float> _voidTier2Weight = createItemTierWeightConfig("Uncommon Void Items", 0.6f);
-        [EffectConfig] static readonly ConfigHolder<float> _voidTier3Weight = createItemTierWeightConfig("Legendary Void Items", 0.5f);
-        [EffectConfig] static readonly ConfigHolder<float> _voidBossWeight = createItemTierWeightConfig("Void Boss Items", 0.3f);
+            _dropTable.CreateItemBlacklistConfig("Item Blacklist", "A comma-separated list of items and equipment that should not be included for the effect. Both internal and English display names are accepted, with spaces and commas removed.");
 
-        static void regenerateDropTable()
-        {
-#if DEBUG
-            Log.Debug("regenerating drop table...");
-#endif
-
-            if (!_dropTable)
+            _dropTable.AddDrops += (List<ExplicitDrop> drops) =>
             {
-                _dropTable = ScriptableObject.CreateInstance<BasicPickupDropTable>();
-                _dropTable.name = $"dt{nameof(ForceAllItemsIntoRandomItem)}";
-                _dropTable.canDropBeReplaced = false;
-            }
-
-            _dropTable.tier1Weight = _tier1Weight.Value;
-            _dropTable.tier2Weight = _tier2Weight.Value;
-            _dropTable.tier3Weight = _tier3Weight.Value;
-            _dropTable.bossWeight = _bossWeight.Value;
-            _dropTable.lunarEquipmentWeight = _lunarEquipmentWeight.Value;
-            _dropTable.lunarItemWeight = _lunarItemWeight.Value;
-            _dropTable.lunarCombinedWeight = 0f;
-            _dropTable.equipmentWeight = _equipmentWeight.Value;
-            _dropTable.voidTier1Weight = _voidTier1Weight.Value;
-            _dropTable.voidTier2Weight = _voidTier2Weight.Value;
-            _dropTable.voidTier3Weight = _voidTier3Weight.Value;
-            _dropTable.voidBossWeight = _voidBossWeight.Value;
-
-            // If this is done mid-run, Regenerate has to be called, since it's only done by the game on run start
-            Run run = Run.instance;
-            if (run)
-            {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                _dropTable.Regenerate(run);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-            }
-
-            _dropTableDirty = false;
-        }
-
-        [SystemInitializer]
-        static void InitHooks()
-        {
-            On.RoR2.BasicPickupDropTable.GenerateWeightedSelection += (orig, self, run) =>
-            {
-                orig(self, run);
-
-                if (!_dropTable || self != _dropTable)
-                    return;
-
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                WeightedSelection<PickupIndex> selector = self.selector;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-
-                for (int i = selector.Count - 1; i >= 0; i--)
-                {
-                    PickupIndex pickupIndex = selector.GetChoice(i).value;
-                    if (_itemBlacklist.Contains(pickupIndex))
-                    {
-#if DEBUG
-                        Log.Debug($"Removing {pickupIndex} from droptable: Blacklist");
-#endif
-                        selector.RemoveChoice(i);
-                    }
-                }
-
-                void tryAddPickup(PickupIndex pickup, float weight)
-                {
-                    if (!_itemBlacklist.Contains(pickup))
-                    {
-                        self.AddPickupIfMissing(pickup, weight);
-                    }
-                    else
-                    {
-#if DEBUG
-                        Log.Debug($"Not adding {pickup} to droptable: Blacklist");
-#endif
-                    }
-                }
-
-                tryAddPickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.CaptainDefenseMatrix.itemIndex), _tier3Weight.Value);
-                tryAddPickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.Pearl.itemIndex), _bossWeight.Value);
-                tryAddPickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.ShinyPearl.itemIndex), _bossWeight.Value);
+                drops.Add(new ExplicitDrop(RoR2Content.Items.CaptainDefenseMatrix.itemIndex, DropType.Tier3, null));
+                drops.Add(new ExplicitDrop(RoR2Content.Items.Pearl.itemIndex, DropType.Boss, null));
+                drops.Add(new ExplicitDrop(RoR2Content.Items.ShinyPearl.itemIndex, DropType.Boss, null));
 
                 if (_allowEliteEquipments.Value)
                 {
@@ -223,18 +124,18 @@ namespace RiskOfChaos.EffectDefinitions.World
                         if (!eliteEquipment)
                             continue;
 
-                        if (eliteEquipment.requiredExpansion && !run.IsExpansionEnabled(eliteEquipment.requiredExpansion))
+                        if (eliteEquipment.requiredExpansion && !Run.instance.IsExpansionEnabled(eliteEquipment.requiredExpansion))
                             continue;
 
-                        tryAddPickup(PickupCatalog.FindPickupIndex(eliteEquipmentIndex), _equipmentWeight.Value);
+                        drops.Add(new ExplicitDrop(eliteEquipmentIndex, DropType.Equipment, null));
                     }
                 }
-
-                if (run.IsExpansionEnabled(ExpansionUtils.DLC1))
-                {
-                }
             };
+        }
 
+        [SystemInitializer]
+        static void InitHooks()
+        {
             ChaosEffectActivationSignaler_ChatVote.OnEffectVotingFinishedServer += (in EffectVoteResult result) =>
             {
                 if (TimedChaosEffectHandler.Instance &&
@@ -329,10 +230,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 return;
             }
 
-            if (!_dropTable || _dropTableDirty)
-            {
-                regenerateDropTable();
-            }
+            _dropTable.RegenerateIfNeeded();
 
             CurrentOverridePickupIndex = _dropTable.GenerateDrop(_pickNextItemRNG);
 

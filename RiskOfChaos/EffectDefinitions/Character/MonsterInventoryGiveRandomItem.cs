@@ -4,9 +4,8 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Comparers;
+using RiskOfChaos.Utilities.DropTables;
 using RiskOfChaos.Utilities.Extensions;
-using RiskOfChaos.Utilities.ParsedValueHolders.ParsedList;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Collections.Generic;
@@ -19,14 +18,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [ChaosTimedEffect("monster_inventory_give_random_item", TimedEffectType.Permanent, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun, EffectWeightReductionPercentagePerActivation = 15f, HideFromEffectsListWhenPermanent = true)]
     public sealed class MonsterInventoryGiveRandomItem : TimedEffect
     {
-        static bool _dropTableDirty = false;
-        static BasicPickupDropTable _dropTable;
-
-        static void markDropTableDirty()
-        {
-            _dropTableDirty = true;
-        }
-
         [EffectConfig]
         static readonly ConfigHolder<int> _itemCount =
             ConfigFactory<int>.CreateConfig("Item Count", 1)
@@ -40,20 +31,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                               .Build();
 
         [EffectConfig]
-        static readonly ConfigHolder<string> _itemBlacklistConfig =
-            ConfigFactory<string>.CreateConfig("Item Blacklist", string.Empty)
-                                 .Description("A comma-separated list of items and equipment that should not be included for the effect. Both internal and English display names are accepted, with spaces and commas removed.")
-                                 .OptionConfig(new InputFieldConfig
-                                 {
-                                     submitOn = InputFieldConfig.SubmitEnum.OnSubmit
-                                 })
-                                 .OnValueChanged(markDropTableDirty)
-                                 .Build();
-
-        static readonly ParsedPickupList _itemBlacklist = new ParsedPickupList(PickupIndexComparer.Instance)
-        {
-            ConfigHolder = _itemBlacklistConfig
-        };
+        static readonly ConfigurableDropTable _dropTable;
 
         [EffectConfig]
         static readonly ConfigHolder<bool> _applyAIBlacklist =
@@ -63,163 +41,68 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                .OnValueChanged(markDropTableDirty)
                                .Build();
 
-        static ConfigHolder<float> createWeightConfig(string name, float defaultValue)
+        static void markDropTableDirty()
         {
-            return ConfigFactory<float>.CreateConfig($"Weight: {name}", defaultValue)
-                                       .Description($"Controls how likely {name} are to be given\n\nA value of 0 means items from this tier will never be given")
-                                       .OptionConfig(new StepSliderConfig
-                                       {
-                                           formatString = "{0:F2}",
-                                           min = 0f,
-                                           max = 2f,
-                                           increment = 0.05f
-                                       })
-                                       .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
-                                       .OnValueChanged(markDropTableDirty)
-                                       .Build();
+            _dropTable.MarkDirty();
         }
 
-        [EffectConfig] static readonly ConfigHolder<float> _tier1Weight = createWeightConfig("Common Items", 1f);
-        [EffectConfig] static readonly ConfigHolder<float> _tier2Weight = createWeightConfig("Uncommon Items", 0.75f);
-        [EffectConfig] static readonly ConfigHolder<float> _tier3Weight = createWeightConfig("Legendary Items", 0.3f);
-        [EffectConfig] static readonly ConfigHolder<float> _bossWeight = createWeightConfig("Boss Items", 0.4f);
-        [EffectConfig] static readonly ConfigHolder<float> _lunarItemWeight = createWeightConfig("Lunar Items", 0.25f);
-        [EffectConfig] static readonly ConfigHolder<float> _voidTier1Weight = createWeightConfig("Common Void Items", 0.2f);
-        [EffectConfig] static readonly ConfigHolder<float> _voidTier2Weight = createWeightConfig("Uncommon Void Items", 0.15f);
-        [EffectConfig] static readonly ConfigHolder<float> _voidTier3Weight = createWeightConfig("Legendary Void Items", 0.1f);
-        [EffectConfig] static readonly ConfigHolder<float> _voidBossWeight = createWeightConfig("Void Boss Items", 0.1f);
-
-        static void regenerateDropTable()
+        static MonsterInventoryGiveRandomItem()
         {
-#if DEBUG
-            Log.Debug("regenerating drop table...");
-#endif
+            _dropTable = ScriptableObject.CreateInstance<ConfigurableDropTable>();
+            _dropTable.name = $"dt{nameof(MonsterInventoryGiveRandomItem)}";
+            _dropTable.canDropBeReplaced = false;
 
-            if (!_dropTable)
+            _dropTable.RegisterDrop(DropType.Tier1, 1f);
+            _dropTable.RegisterDrop(DropType.Tier2, 0.75f);
+            _dropTable.RegisterDrop(DropType.Tier3, 0.3f);
+            _dropTable.RegisterDrop(DropType.Boss, 0.4f);
+            _dropTable.RegisterDrop(DropType.LunarItem, 0.25f);
+            _dropTable.RegisterDrop(DropType.VoidTier1, 0.2f);
+            _dropTable.RegisterDrop(DropType.VoidTier2, 0.15f);
+            _dropTable.RegisterDrop(DropType.VoidTier3, 0.1f);
+            _dropTable.RegisterDrop(DropType.VoidBoss, 0.1f);
+
+            _dropTable.CreateItemBlacklistConfig("Item Blacklist", "A comma-separated list of items and equipment that should not be included for the effect. Both internal and English display names are accepted, with spaces and commas removed.");
+
+            _dropTable.OnPreGenerate += () =>
             {
-                _dropTable = ScriptableObject.CreateInstance<BasicPickupDropTable>();
-                _dropTable.name = $"dt{nameof(MonsterInventoryGiveRandomItem)}";
-                _dropTable.canDropBeReplaced = false;
-            }
-
-            _dropTable.tier1Weight = _tier1Weight.Value;
-            _dropTable.tier2Weight = _tier2Weight.Value;
-            _dropTable.tier3Weight = _tier3Weight.Value;
-            _dropTable.bossWeight = _bossWeight.Value;
-            _dropTable.lunarEquipmentWeight = 0f;
-            _dropTable.lunarItemWeight = _lunarItemWeight.Value;
-            _dropTable.lunarCombinedWeight = 0f;
-            _dropTable.equipmentWeight = 0f;
-            _dropTable.voidTier1Weight = _voidTier1Weight.Value;
-            _dropTable.voidTier2Weight = _voidTier2Weight.Value;
-            _dropTable.voidTier3Weight = _voidTier3Weight.Value;
-            _dropTable.voidBossWeight = _voidBossWeight.Value;
-
-            List<ItemTag> bannedItemTags = new List<ItemTag>();
-
-            if (_applyAIBlacklist.Value)
-            {
-                bannedItemTags.AddRange(new ItemTag[]
+                List<ItemTag> bannedItemTags = new List<ItemTag>(_dropTable.bannedItemTags);
+                if (_applyAIBlacklist.Value)
                 {
-                    ItemTag.AIBlacklist,
-                    ItemTag.Scrap,
-                    ItemTag.CannotCopy,
-                    ItemTag.PriorityScrap
-                });
-            }
-
-            _dropTable.bannedItemTags = bannedItemTags.Distinct().ToArray();
-
-#if DEBUG
-            IEnumerable<ItemIndex> blacklistedItems = bannedItemTags.SelectMany(t => ItemCatalog.GetItemsWithTag(t))
-                                                                    .Concat(ItemCatalog.allItems.Where(i => isBlacklisted(PickupCatalog.FindPickupIndex(i))))
-                                                                    .Distinct()
-                                                                    .OrderBy(i => i);
-
-            Log.Debug($"Excluded items: [{string.Join(", ", blacklistedItems.Select(FormatUtils.GetBestItemDisplayName))}]");
-#endif
-
-            // If this is done mid-run, Regenerate has to be called, since it's only done by the game on run start
-            Run run = Run.instance;
-            if (run)
-            {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                _dropTable.Regenerate(run);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-            }
-
-            _dropTableDirty = false;
-        }
-
-        static bool isBlacklisted(PickupIndex pickupIndex)
-        {
-            if (_itemBlacklist.Contains(pickupIndex))
-                return true;
-
-            if (_applyAIBlacklist.Value)
-            {
-                PickupDef pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
-                if (pickupDef is not null)
-                {
-                    ItemIndex itemIndex = pickupDef.itemIndex;
-
-                    // Eulogy Zero
-                    if (itemIndex == DLC1Content.Items.RandomlyLunar.itemIndex)
-                        return true;
-                }
-            }
-
-            return false;
-        }
-
-        [SystemInitializer]
-        static void InitHooks()
-        {
-            On.RoR2.BasicPickupDropTable.GenerateWeightedSelection += (orig, self, run) =>
-            {
-                orig(self, run);
-
-                if (!_dropTable || self != _dropTable)
-                    return;
-
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                WeightedSelection<PickupIndex> selector = self.selector;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-
-                for (int i = selector.Count - 1; i >= 0; i--)
-                {
-                    PickupIndex pickupIndex = selector.GetChoice(i).value;
-                    if (isBlacklisted(pickupIndex))
+                    bannedItemTags.AddRange(new ItemTag[]
                     {
-#if DEBUG
-                        Log.Debug($"Removing {pickupIndex} from droptable: Blacklist");
-#endif
-                        selector.RemoveChoice(i);
-                    }
+                        ItemTag.AIBlacklist,
+                        ItemTag.Scrap,
+                        ItemTag.CannotCopy,
+                        ItemTag.PriorityScrap
+                    });
                 }
 
-                void tryAddPickup(PickupIndex pickup, float weight)
-                {
-                    if (!isBlacklisted(pickup))
-                    {
-                        self.AddPickupIfMissing(pickup, weight);
-                    }
-                    else
-                    {
+                _dropTable.bannedItemTags = bannedItemTags.Distinct().ToArray();
+
 #if DEBUG
-                        Log.Debug($"Not adding {pickup} to droptable: Blacklist");
+                IEnumerable<ItemIndex> blacklistedItems = bannedItemTags.SelectMany(t => ItemCatalog.GetItemsWithTag(t))
+                                                                        .Distinct()
+                                                                        .OrderBy(i => i);
+
+                Log.Debug($"Excluded items: [{string.Join(", ", blacklistedItems.Select(FormatUtils.GetBestItemDisplayName))}]");
 #endif
-                    }
-                }
+            };
 
-                tryAddPickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.ArtifactKey.itemIndex), _bossWeight.Value);
-                tryAddPickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.CaptainDefenseMatrix.itemIndex), _tier3Weight.Value);
-                tryAddPickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.Pearl.itemIndex), _bossWeight.Value);
-                tryAddPickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.ShinyPearl.itemIndex), _bossWeight.Value);
-                tryAddPickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.TonicAffliction.itemIndex), _lunarItemWeight.Value);
+            _dropTable.AddDrops += (List<ExplicitDrop> drops) =>
+            {
+                drops.Add(new ExplicitDrop(RoR2Content.Items.ArtifactKey.itemIndex, DropType.Boss, null));
+                drops.Add(new ExplicitDrop(RoR2Content.Items.CaptainDefenseMatrix.itemIndex, DropType.Tier3, null));
+                drops.Add(new ExplicitDrop(RoR2Content.Items.Pearl.itemIndex, DropType.Boss, null));
+                drops.Add(new ExplicitDrop(RoR2Content.Items.ShinyPearl.itemIndex, DropType.Boss, null));
+                drops.Add(new ExplicitDrop(RoR2Content.Items.TonicAffliction.itemIndex, DropType.LunarItem, null));
+            };
 
-                if (run.IsExpansionEnabled(ExpansionUtils.DLC1))
+            _dropTable.RemoveDrops += (List<PickupIndex> removeDrops) =>
+            {
+                if (_applyAIBlacklist.Value)
                 {
+                    removeDrops.Add(PickupCatalog.FindPickupIndex(DLC1Content.Items.RandomlyLunar.itemIndex));
                 }
             };
         }
@@ -289,10 +172,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             base.OnPreStartServer();
 
-            if (!_dropTable || _dropTableDirty)
-            {
-                regenerateDropTable();
-            }
+            _dropTable.RegenerateIfNeeded();
 
             _grantedPickupDefs = new PickupDef[_itemCount.Value];
             for (int i = 0; i < _grantedPickupDefs.Length; i++)

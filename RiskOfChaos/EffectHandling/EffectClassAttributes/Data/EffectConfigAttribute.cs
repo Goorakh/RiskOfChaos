@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using HarmonyLib;
+using RiskOfChaos.ConfigHandling;
 using System;
 using System.Reflection;
 
@@ -11,39 +12,28 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes.Data
 
         public override void ApplyTo(MemberInfo member, ChaosEffectInfo effectInfo)
         {
-            if (getConfigInstance(member) is ConfigHolderBase configHolder)
+            switch (getConfigInstance(member))
             {
-                configHolder.Bind(effectInfo);
-            }
-            else
-            {
-                Log.Error($"{member.DeclaringType.FullName}.{member.Name} is not a valid config type");
+                case ConfigHolderBase configHolder:
+                    configHolder.Bind(effectInfo);
+                    break;
+                case IConfigProvider configProvider:
+                    configProvider.GetConfigs().Do(c => c.Bind(effectInfo));
+                    break;
+                default:
+                    Log.Error($"{member.DeclaringType.FullName}.{member.Name} is not a valid config type");
+                    break;
             }
         }
 
         static object getConfigInstance(MemberInfo member)
         {
-            if (member is FieldInfo field)
+            return member switch
             {
-                return field.GetValue(null);
-            }
-            else if (member is PropertyInfo property)
-            {
-                if (property.GetMethod == null)
-                {
-                    Log.Error("Attribute applied to property without a getter");
-                }
-                else
-                {
-                    return property.GetValue(null);
-                }
-            }
-            else
-            {
-                Log.Error($"Attribute applied to invalid MemberInfo: {member.MemberType} ({member.DeclaringType.FullName}.{member.Name})");
-            }
-
-            return null;
+                FieldInfo field => field.GetValue(null),
+                PropertyInfo property when property.GetMethod is not null => property.GetValue(null),
+                _ => throw new NotImplementedException($"Attribute applied to invalid MemberInfo: {member.MemberType} ({member.DeclaringType.FullName}.{member.Name})"),
+            };
         }
     }
 }
