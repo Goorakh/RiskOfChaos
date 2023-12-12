@@ -49,7 +49,7 @@ namespace RiskOfChaos.Networking.Components.Effects
 
                     Run.FixedTimeStamp activationTime = Run.FixedTimeStamp.now + effectSignaler.GetTimeUntilNextEffect();
 
-                    EffectNameFormatter displayNameFormatter = nextEffectInfo.GetDisplayNameFormatter();
+                    EffectNameFormatter displayNameFormatter = nextEffectInfo.LocalDisplayNameFormatter;
 
                     nextEffectState = new NextEffectState(nextEffectIndex, activationTime, displayNameFormatter);
                     return true;

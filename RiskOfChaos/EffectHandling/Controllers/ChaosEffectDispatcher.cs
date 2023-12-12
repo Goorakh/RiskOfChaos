@@ -92,7 +92,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                         Chat.SendBroadcastChat(new Chat.SimpleChatMessage
                         {
                             baseToken = "CHAOS_EFFECT_SHORTCUT_CANNOT_ACTIVATE",
-                            paramTokens = new string[] { effectInfo.GetDisplayName(EffectNameFormatFlags.RuntimeFormatArgs) }
+                            paramTokens = new string[] { effectInfo.GetLocalDisplayName(EffectNameFormatFlags.RuntimeFormatArgs) }
                         });
                     }
                 }
@@ -326,7 +326,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     Chat.SendBroadcastChat(new Chat.SimpleChatMessage
                     {
                         baseToken = "CHAOS_EFFECT_ACTIVATE",
-                        paramTokens = new string[] { effect.GetDisplayName() }
+                        paramTokens = new string[] { effect.GetLocalDisplayName() }
                     });
                 }
 

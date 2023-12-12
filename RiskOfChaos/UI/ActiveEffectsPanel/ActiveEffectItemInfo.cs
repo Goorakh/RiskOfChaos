@@ -21,14 +21,14 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         public readonly bool ShouldDisplay;
 
-        public readonly string DisplayName => NameFormatter.FormatEffectName(EffectInfo.GetDisplayName(EffectNameFormatFlags.None));
+        public readonly string DisplayName => EffectInfo.GetDisplayName(NameFormatter, EffectNameFormatFlags.RuntimeFormatArgs);
 
         public ActiveEffectItemInfo(TimedEffect effectInstance)
         {
             EffectInfo = effectInstance.EffectInfo;
             DispatchID = effectInstance.DispatchID;
 
-            NameFormatter = EffectInfo.GetDisplayNameFormatter();
+            NameFormatter = EffectInfo.LocalDisplayNameFormatter;
 
             TimedType = effectInstance.TimedType;
             DurationSeconds = effectInstance.DurationSeconds;

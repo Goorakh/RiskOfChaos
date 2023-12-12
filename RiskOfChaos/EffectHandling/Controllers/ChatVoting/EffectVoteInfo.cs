@@ -37,7 +37,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             }
             else
             {
-                effectName = EffectInfo.GetDisplayName();
+                effectName = EffectInfo.GetLocalDisplayName();
             }
 
             return $"{VoteNumber}: {effectName} ({VotePercentage * 100f:F0}%)";

@@ -3,6 +3,7 @@ using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using UnityEngine.Networking;
@@ -80,9 +81,9 @@ namespace RiskOfChaos.EffectHandling
             return true;
         }
 
-        public override string GetDisplayName(EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)
+        public override string GetDisplayName(EffectNameFormatter formatter, EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)
         {
-            string displayName = base.GetDisplayName(formatFlags);
+            string displayName = base.GetDisplayName(formatter, formatFlags);
 
             if ((formatFlags & EffectNameFormatFlags.TimedType) != 0)
             {

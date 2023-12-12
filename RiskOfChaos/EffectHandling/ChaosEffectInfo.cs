@@ -82,6 +82,21 @@ namespace RiskOfChaos.EffectHandling
         readonly GetEffectNameFormatterDelegate _getEffectNameFormatter;
         public bool HasCustomDisplayNameFormatter => _getEffectNameFormatter != null;
 
+        public EffectNameFormatter LocalDisplayNameFormatter
+        {
+            get
+            {
+                if (HasCustomDisplayNameFormatter)
+                {
+                    return _getEffectNameFormatter();
+                }
+                else
+                {
+                    return EffectNameFormatter_None.Instance;
+                }
+            }
+        }
+
         public readonly bool IsNetworked;
 
         public readonly string[] PreviousConfigSectionNames = Array.Empty<string>();
@@ -208,7 +223,7 @@ namespace RiskOfChaos.EffectHandling
 
         internal virtual void Validate()
         {
-            string displayName = GetDisplayName();
+            string displayName = GetLocalDisplayName();
             if (string.IsNullOrWhiteSpace(displayName))
             {
                 Log.Error($"{this}: Null or empty display name");
@@ -304,28 +319,21 @@ namespace RiskOfChaos.EffectHandling
             return true;
         }
 
-        public EffectNameFormatter GetDisplayNameFormatter()
+        public string GetLocalDisplayName(EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)
         {
-            if (HasCustomDisplayNameFormatter)
-            {
-                return _getEffectNameFormatter();
-            }
-            else
-            {
-                return EffectNameFormatter_None.Instance;
-            }
+            return GetDisplayName(LocalDisplayNameFormatter, formatFlags);
         }
 
-        public virtual string GetDisplayName(EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)
+        public virtual string GetDisplayName(EffectNameFormatter formatter, EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)
         {
-            if ((formatFlags & EffectNameFormatFlags.RuntimeFormatArgs) != 0 && HasCustomDisplayNameFormatter)
+            string displayName = Language.GetString(NameToken);
+
+            if ((formatFlags & EffectNameFormatFlags.RuntimeFormatArgs) != 0 && formatter is not null)
             {
-                return _getEffectNameFormatter().FormatEffectName(Language.GetString(NameToken));
+                displayName = formatter.FormatEffectName(displayName);
             }
-            else
-            {
-                return Language.GetString(NameToken);
-            }
+
+            return displayName;
         }
 
         public override string ToString()

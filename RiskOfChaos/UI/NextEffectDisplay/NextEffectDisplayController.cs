@@ -25,12 +25,7 @@ namespace RiskOfChaos.UI.NextEffectDisplay
         {
             ChaosEffectInfo effectInfo = ChaosEffectCatalog.GetEffectInfo(displayData.EffectIndex);
 
-            string effectName = effectInfo?.GetDisplayName(EffectNameFormatFlags.None) ?? "NULL";
-
-            if (displayData.NameFormatter is not null)
-            {
-                effectName = displayData.NameFormatter.FormatEffectName(effectName);
-            }
+            string effectName = effectInfo?.GetDisplayName(displayData.NameFormatter, EffectNameFormatFlags.RuntimeFormatArgs) ?? "NULL";
 
             string timeRemainingString = displayData.TimeRemaining.ToString(displayData.TimeRemaining >= 10f ? "F0" : "F1");
 
