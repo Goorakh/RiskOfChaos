@@ -1,10 +1,8 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
-using RiskOfChaos.Utilities;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using System;
-using System.Linq;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.Networking.Components.Effects
@@ -20,7 +18,7 @@ namespace RiskOfChaos.Networking.Components.Effects
         Run.FixedTimeStamp _nextEffectActivationTime = Run.FixedTimeStamp.negativeInfinity;
         const uint NEXT_EFFECT_ACTIVATION_TIME_DIRTY_BIT = 1 << 1;
 
-        string[] _nextEffectFormatArgs = Array.Empty<string>();
+        EffectNameFormatter _nextEffectNameFormatter = null;
         const uint NEXT_EFFECT_FORMAT_ARGS_DIRTY_BIT = 1 << 2;
 
         void OnEnable()
@@ -33,9 +31,9 @@ namespace RiskOfChaos.Networking.Components.Effects
             SingletonHelper.Unassign(ref _instance, this);
         }
 
-        readonly record struct NextEffectState(ChaosEffectIndex EffectIndex, Run.FixedTimeStamp ActivationTime, string[] DisplayNameFormatArgs)
+        readonly record struct NextEffectState(ChaosEffectIndex EffectIndex, Run.FixedTimeStamp ActivationTime, EffectNameFormatter DisplayNameFormatter)
         {
-            public static readonly NextEffectState None = new NextEffectState(ChaosEffectIndex.Invalid, Run.FixedTimeStamp.negativeInfinity, Array.Empty<string>());
+            public static readonly NextEffectState None = new NextEffectState(ChaosEffectIndex.Invalid, Run.FixedTimeStamp.negativeInfinity, null);
         }
 
         static bool tryGetNextEffectState(out NextEffectState nextEffectState)
@@ -51,9 +49,9 @@ namespace RiskOfChaos.Networking.Components.Effects
 
                     Run.FixedTimeStamp activationTime = Run.FixedTimeStamp.now + effectSignaler.GetTimeUntilNextEffect();
 
-                    string[] displayNameFormatArgs = nextEffectInfo.GetDisplayNameFormatArgs();
+                    EffectNameFormatter displayNameFormatter = nextEffectInfo.GetDisplayNameFormatter();
 
-                    nextEffectState = new NextEffectState(nextEffectIndex, activationTime, displayNameFormatArgs);
+                    nextEffectState = new NextEffectState(nextEffectIndex, activationTime, displayNameFormatter);
                     return true;
                 }
             }
@@ -68,13 +66,13 @@ namespace RiskOfChaos.Networking.Components.Effects
             {
                 NetworkNextEffectIndex = nextEffectState.EffectIndex;
                 NetworkNextEffectActivationTime = nextEffectState.ActivationTime;
-                NetworkNextEffectFormatArgs = nextEffectState.DisplayNameFormatArgs;
+                NetworkNextEffectNameFormatter = nextEffectState.DisplayNameFormatter;
             }
             else
             {
                 NetworkNextEffectIndex = ChaosEffectIndex.Invalid;
                 NetworkNextEffectActivationTime = Run.FixedTimeStamp.negativeInfinity;
-                NetworkNextEffectFormatArgs = null;
+                NetworkNextEffectNameFormatter = null;
             }
         }
 
@@ -114,20 +112,25 @@ namespace RiskOfChaos.Networking.Components.Effects
             }
         }
 
-        public string[] NetworkNextEffectFormatArgs
+        public EffectNameFormatter NetworkNextEffectNameFormatter
         {
             get
             {
-                return _nextEffectFormatArgs;
+                return _nextEffectNameFormatter;
             }
             set
             {
-                value ??= Array.Empty<string>();
+                if (value is null && _nextEffectNameFormatter is null)
+                    return;
 
-                if (!ArrayUtil.ElementsEqual(_nextEffectFormatArgs, value))
+                if (value is null ^ _nextEffectNameFormatter is null)
                 {
-                    _nextEffectFormatArgs = value;
+                    _nextEffectNameFormatter = value;
                     SetDirtyBit(NEXT_EFFECT_FORMAT_ARGS_DIRTY_BIT);
+                }
+                else
+                {
+                    SetSyncVar(value, ref _nextEffectNameFormatter, NEXT_EFFECT_FORMAT_ARGS_DIRTY_BIT);
                 }
             }
         }
@@ -139,11 +142,7 @@ namespace RiskOfChaos.Networking.Components.Effects
                 writer.WriteChaosEffectIndex(_nextEffectIndex);
                 writer.Write(_nextEffectActivationTime);
 
-                writer.WritePackedUInt32((uint)_nextEffectFormatArgs.Length);
-                foreach (string arg in _nextEffectFormatArgs)
-                {
-                    writer.Write(arg);
-                }
+                writer.Write(_nextEffectNameFormatter);
 
                 return true;
             }
@@ -166,12 +165,7 @@ namespace RiskOfChaos.Networking.Components.Effects
 
             if ((dirtyBits & NEXT_EFFECT_FORMAT_ARGS_DIRTY_BIT) != 0)
             {
-                writer.WritePackedUInt32((uint)_nextEffectFormatArgs.Length);
-                foreach (string arg in _nextEffectFormatArgs)
-                {
-                    writer.Write(arg);
-                }
-
+                writer.Write(_nextEffectNameFormatter);
                 anythingWritten = true;
             }
 
@@ -185,11 +179,7 @@ namespace RiskOfChaos.Networking.Components.Effects
                 _nextEffectIndex = reader.ReadChaosEffectIndex();
                 _nextEffectActivationTime = reader.ReadFixedTimeStamp();
 
-                _nextEffectFormatArgs = new string[reader.ReadPackedUInt32()];
-                for (int i = 0; i < _nextEffectFormatArgs.Length; i++)
-                {
-                    _nextEffectFormatArgs[i] = reader.ReadString();
-                }
+                _nextEffectNameFormatter = reader.ReadEffectNameFormatter();
 
                 return;
             }
@@ -207,11 +197,7 @@ namespace RiskOfChaos.Networking.Components.Effects
 
             if ((dirtyBits & NEXT_EFFECT_FORMAT_ARGS_DIRTY_BIT) != 0)
             {
-                _nextEffectFormatArgs = new string[reader.ReadPackedUInt32()];
-                for (int i = 0; i < _nextEffectFormatArgs.Length; i++)
-                {
-                    _nextEffectFormatArgs[i] = reader.ReadString();
-                }
+                _nextEffectNameFormatter = reader.ReadEffectNameFormatter();
             }
         }
     }

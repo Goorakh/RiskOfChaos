@@ -6,6 +6,7 @@ using RiskOfChaos.EffectHandling.Controllers.ChatVoting;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.SaveHandling;
 using RiskOfChaos.SaveHandling.DataContainers;
 using RiskOfChaos.SaveHandling.DataContainers.Effects;
@@ -29,6 +30,48 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         [InitEffectInfo]
         static readonly TimedEffectInfo _effectInfo;
+
+        sealed class NameFormatter : EffectNameFormatter
+        {
+            public PickupIndex Pickup { get; private set; }
+
+            public NameFormatter()
+            {
+            }
+
+            public NameFormatter(PickupIndex pickup)
+            {
+                Pickup = pickup;
+            }
+
+            public override void Serialize(NetworkWriter writer)
+            {
+                writer.Write(Pickup);
+            }
+
+            public override void Deserialize(NetworkReader reader)
+            {
+                Pickup = reader.ReadPickupIndex();
+            }
+
+            public override object[] GetFormatArgs()
+            {
+                PickupDef pickupDef = PickupCatalog.GetPickupDef(Pickup);
+                if (pickupDef != null)
+                {
+                    return new object[] { Util.GenerateColoredString(Language.GetString(pickupDef.nameToken), pickupDef.baseColor) };
+                }
+                else
+                {
+                    return new object[] { "<color=red>[ERROR: PICKUP NOT ROLLED]</color>" };
+                }
+            }
+
+            public override bool Equals(EffectNameFormatter other)
+            {
+                return other is NameFormatter nameFormatter && Pickup == nameFormatter.Pickup;
+            }
+        }
 
         static bool _dropTableDirty = false;
         static BasicPickupDropTable _dropTable;
@@ -291,18 +334,10 @@ namespace RiskOfChaos.EffectDefinitions.World
             return _currentOverridePickupIndex.isValid;
         }
 
-        [EffectNameFormatArgs]
-        static string[] GetEffectNameFormatArgs()
+        [GetEffectNameFormatter]
+        static EffectNameFormatter GetNameFormatter()
         {
-            PickupDef pickupDef = PickupCatalog.GetPickupDef(_currentOverridePickupIndex);
-            if (pickupDef != null)
-            {
-                return new string[] { Util.GenerateColoredString(Language.GetString(pickupDef.nameToken), pickupDef.baseColor) };
-            }
-            else
-            {
-                return new string[] { "<color=red>[ERROR: PICKUP NOT ROLLED]</color>" };
-            }
+            return new NameFormatter(_currentOverridePickupIndex);
         }
 
         public override void OnStart()

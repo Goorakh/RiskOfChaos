@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfOptions.OptionConfigs;
 using System;
 using UnityEngine.Networking;
@@ -38,10 +39,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
 
         protected override float multiplier => 1f - _gravityDecrease.Value;
 
-        [EffectNameFormatArgs]
-        static string[] GetEffectNameFormatArgs()
+        [GetEffectNameFormatter]
+        static EffectNameFormatter GetNameFormatter()
         {
-            return new string[] { _gravityDecrease.Value.ToString("P0") };
+            return new EffectNameFormatter_GenericFloat(_gravityDecrease.Value) { ValueFormat = "P0" };
         }
     }
 }

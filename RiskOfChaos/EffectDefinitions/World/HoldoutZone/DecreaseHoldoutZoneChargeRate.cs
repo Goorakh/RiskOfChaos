@@ -3,6 +3,7 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 
@@ -25,10 +26,10 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
                                 .ValueConstrictor(CommonValueConstrictors.Clamped01Float)
                                 .Build();
 
-        [EffectNameFormatArgs]
-        static string[] GetEffectNameFormatArgs()
+        [GetEffectNameFormatter]
+        static EffectNameFormatter GetNameFormatter()
         {
-            return new string[] { _chargeRateDecrease.Value.ToString("P0") };
+            return new EffectNameFormatter_GenericFloat(_chargeRateDecrease.Value) { ValueFormat = "P0" };
         }
 
         protected override void modifyChargeRate(HoldoutZoneController controller, ref float rate)

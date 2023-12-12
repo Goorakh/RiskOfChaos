@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfOptions.OptionConfigs;
 using System;
 using UnityEngine.Networking;
@@ -37,10 +38,10 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 
         protected override float multiplier => 1f - _timeScaleDecrease.Value;
 
-        [EffectNameFormatArgs]
-        static string[] GetDisplayNameFormatArgs()
+        [GetEffectNameFormatter]
+        static EffectNameFormatter GetNameFormatter()
         {
-            return new string[] { _timeScaleDecrease.Value.ToString("P0") };
+            return new EffectNameFormatter_GenericFloat(_timeScaleDecrease.Value) { ValueFormat = "P0" };
         }
     }
 }

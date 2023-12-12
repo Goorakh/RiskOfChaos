@@ -1,10 +1,10 @@
 ﻿using RiskOfChaos.EffectHandling;
-using System;
+using RiskOfChaos.EffectHandling.Formatting;
 
 namespace RiskOfChaos.UI.NextEffectDisplay
 {
-    public readonly record struct EffectDisplayData(ChaosEffectIndex EffectIndex, float TimeRemaining, string[] DisplayNameFormatArgs)
+    public readonly record struct EffectDisplayData(ChaosEffectIndex EffectIndex, float TimeRemaining, EffectNameFormatter NameFormatter)
     {
-        public static readonly EffectDisplayData None = new EffectDisplayData(ChaosEffectIndex.Invalid, -1f, Array.Empty<string>());
+        public static readonly EffectDisplayData None = new EffectDisplayData(ChaosEffectIndex.Invalid, -1f, null);
     }
 }

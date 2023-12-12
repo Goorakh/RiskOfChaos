@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
@@ -33,10 +34,10 @@ namespace RiskOfChaos.EffectDefinitions.World
             return instance && (!context.IsNow || instance.activationState <= TeleporterInteraction.ActivationState.IdleToCharging);
         }
 
-        [EffectNameFormatArgs]
-        static string[] GetEffectNameFormatArgs()
+        [GetEffectNameFormatter]
+        static EffectNameFormatter GetNameFormatter()
         {
-            return new string[] { _numShrinesPerActivation.Value.ToString() };
+            return new EffectNameFormatter_GenericInt32(_numShrinesPerActivation.Value);
         }
 
         public override void OnStart()

@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 
@@ -24,10 +25,10 @@ namespace RiskOfChaos.EffectDefinitions.World
                               .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
                               .Build();
 
-        [EffectNameFormatArgs]
-        static string[] GetEffectNameFormatArgs()
+        [GetEffectNameFormatter]
+        static EffectNameFormatter GetNameFormatter()
         {
-            return new string[] { _numMinutesToAdd.Value.ToString() };
+            return new EffectNameFormatter_PluralizedCount(_numMinutesToAdd.Value);
         }
 
         public override void OnStart()

@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using System;
@@ -12,7 +13,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
         public readonly TimedEffectInfo EffectInfo;
         public readonly ulong DispatchID;
 
-        public readonly string[] DisplayNameFormatArgs;
+        public readonly EffectNameFormatter NameFormatter;
 
         public readonly TimedEffectType TimedType;
         public readonly float DurationSeconds;
@@ -20,14 +21,14 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         public readonly bool ShouldDisplay;
 
-        public readonly string DisplayName => string.Format(EffectInfo.GetDisplayName(EffectNameFormatFlags.None), DisplayNameFormatArgs);
+        public readonly string DisplayName => NameFormatter.FormatEffectName(EffectInfo.GetDisplayName(EffectNameFormatFlags.None));
 
         public ActiveEffectItemInfo(TimedEffect effectInstance)
         {
             EffectInfo = effectInstance.EffectInfo;
             DispatchID = effectInstance.DispatchID;
 
-            DisplayNameFormatArgs = EffectInfo.GetDisplayNameFormatArgs();
+            NameFormatter = EffectInfo.GetDisplayNameFormatter();
 
             TimedType = effectInstance.TimedType;
             DurationSeconds = effectInstance.DurationSeconds;
@@ -54,11 +55,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
             DispatchID = reader.ReadPackedUInt64();
 
-            DisplayNameFormatArgs = new string[reader.ReadPackedUInt32()];
-            for (int i = 0; i < DisplayNameFormatArgs.Length; i++)
-            {
-                DisplayNameFormatArgs[i] = reader.ReadString();
-            }
+            NameFormatter = reader.ReadEffectNameFormatter();
 
             TimedType = (TimedEffectType)reader.ReadByte();
             if (TimedType == TimedEffectType.FixedDuration)
@@ -84,11 +81,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             writer.WriteChaosEffectIndex(EffectInfo.EffectIndex);
             writer.WritePackedUInt64(DispatchID);
 
-            writer.WritePackedUInt32((uint)DisplayNameFormatArgs.Length);
-            foreach (string formatArg in DisplayNameFormatArgs)
-            {
-                writer.Write(formatArg);
-            }
+            writer.Write(NameFormatter);
 
             writer.Write((byte)TimedType);
             if (TimedType == TimedEffectType.FixedDuration)
@@ -115,7 +108,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
         {
             return EffectInfo == other.EffectInfo &&
                    DispatchID == other.DispatchID &&
-                   ArrayUtil.ElementsEqual(DisplayNameFormatArgs, other.DisplayNameFormatArgs) &&
+                   NameFormatter == other.NameFormatter &&
                    TimedType == other.TimedType &&
                    DurationSeconds == other.DurationSeconds &&
                    TimeStarted == other.TimeStarted &&

@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.ModifierController.Damage;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
@@ -37,10 +38,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                 })
                                 .Build();
 
-        [EffectNameFormatArgs]
-        static string[] GetEffectNameFormatArgs()
+        [GetEffectNameFormatter]
+        static EffectNameFormatter GetEffectNameFormatter()
         {
-            return new string[] { _damageIncreaseAmount.Value.ToString("P0") };
+            return new EffectNameFormatter_GenericFloat(_damageIncreaseAmount.Value) { ValueFormat = "P0" };
         }
 
         static float damageMultiplier => 1f + _damageIncreaseAmount.Value;

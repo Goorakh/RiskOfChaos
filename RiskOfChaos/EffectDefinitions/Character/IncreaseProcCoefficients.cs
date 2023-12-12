@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.ModifierController.Damage;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
@@ -35,10 +36,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                 })
                                 .Build();
 
-        [EffectNameFormatArgs]
-        static string[] GetDisplayNameFormatArgs()
+        [GetEffectNameFormatter]
+        static EffectNameFormatter GetDisplayNameFormatter()
         {
-            return new string[] { _multiplierPerActivation.Value.ToString() };
+            return new EffectNameFormatter_GenericFloat(_multiplierPerActivation.Value);
         }
 
         [EffectCanActivate]

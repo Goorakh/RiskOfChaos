@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.ModifierController.SkillSlots;
 using RiskOfOptions.OptionConfigs;
 using System;
@@ -41,10 +42,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
             return SkillSlotModificationManager.Instance;
         }
 
-        [EffectNameFormatArgs]
-        static string[] GetEffectNameFormatArgs()
+        [GetEffectNameFormatter]
+        static EffectNameFormatter GetEffectNameFormatter()
         {
-            return new string[] { _cooldownDecrease.Value.ToString("P0") };
+            return new EffectNameFormatter_GenericFloat(_cooldownDecrease.Value) { ValueFormat = "P0" };
         }
 
         public override void OnStart()

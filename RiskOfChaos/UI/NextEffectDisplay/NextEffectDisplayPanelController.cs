@@ -123,7 +123,7 @@ namespace RiskOfChaos.UI.NextEffectDisplay
                 NextEffectProvider nextEffectProvider = NextEffectProvider.Instance;
                 if (nextEffectProvider)
                 {
-                    return new EffectDisplayData(nextEffectProvider.NetworkNextEffectIndex, nextEffectProvider.NetworkNextEffectActivationTime.timeUntilClamped, nextEffectProvider.NetworkNextEffectFormatArgs);
+                    return new EffectDisplayData(nextEffectProvider.NetworkNextEffectIndex, nextEffectProvider.NetworkNextEffectActivationTime.timeUntilClamped, nextEffectProvider.NetworkNextEffectNameFormatter);
                 }
             }
 

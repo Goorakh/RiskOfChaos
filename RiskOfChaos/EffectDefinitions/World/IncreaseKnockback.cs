@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.ModifierController.Knockback;
 using RiskOfOptions.OptionConfigs;
 using System;
@@ -45,10 +46,10 @@ namespace RiskOfChaos.EffectDefinitions.World
             return KnockbackModificationManager.Instance;
         }
 
-        [EffectNameFormatArgs]
-        static string[] GetEffectNameFormatArgs()
+        [GetEffectNameFormatter]
+        static EffectNameFormatter GetNameFormatter()
         {
-            return new string[] { _knockbackMultiplier.Value.ToString() };
+            return new EffectNameFormatter_GenericFloat(_knockbackMultiplier.Value);
         }
 
         public event Action OnValueDirty;

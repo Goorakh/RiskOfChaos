@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Collections.Generic;
@@ -38,10 +39,10 @@ namespace RiskOfChaos.EffectDefinitions.World
             return !context.IsNow || CombatDirector.instancesList.Count > 0;
         }
 
-        [EffectNameFormatArgs]
-        static string[] GetEffectNameFormatArgs()
+        [GetEffectNameFormatter]
+        static EffectNameFormatter GetNameFormatter()
         {
-            return new string[] { _creditIncrease.Value.ToString("P0") };
+            return new EffectNameFormatter_GenericFloat(_creditIncrease.Value) { ValueFormat = "P0" };
         }
 
         class DirectorCreditModificationTracker : MonoBehaviour

@@ -3,6 +3,7 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfOptions.OptionConfigs;
 
 namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
@@ -26,10 +27,10 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
                                 .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(INCREASE_AMOUNT_MIN_VALUE))
                                 .Build();
 
-        [EffectNameFormatArgs]
-        static string[] GetDisplayNameFormatArgs()
+        [GetEffectNameFormatter]
+        static EffectNameFormatter GetNameFormatter()
         {
-            return new string[] { _increaseAmount.Value.ToString("P0") };
+            return new EffectNameFormatter_GenericFloat(_increaseAmount.Value) { ValueFormat = "P0" };
         }
 
         protected override float multiplier => 1f + _increaseAmount.Value;

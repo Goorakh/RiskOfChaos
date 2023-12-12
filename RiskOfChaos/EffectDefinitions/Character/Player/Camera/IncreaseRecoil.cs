@@ -3,6 +3,7 @@ using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.ModifierController.Camera;
 using RiskOfOptions.OptionConfigs;
 using System;
@@ -32,10 +33,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
                                 })
                                 .Build();
 
-        [EffectNameFormatArgs]
-        static string[] GetEffectNameFormatArgs()
+        [GetEffectNameFormatter]
+        static EffectNameFormatter GetNameFormatter()
         {
-            return new string[] { _recoilMultiplier.Value.ToString() };
+            return new EffectNameFormatter_GenericFloat(_recoilMultiplier.Value);
         }
 
         [EffectCanActivate]

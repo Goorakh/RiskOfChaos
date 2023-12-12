@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.ModifierController.SkillSlots;
 using RiskOfOptions.OptionConfigs;
 using System;
@@ -39,11 +40,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.SkillStocks
             return SkillSlotModificationManager.Instance;
         }
 
-        [EffectNameFormatArgs]
-        static string[] GetEffectNameFormatArgs()
+        [GetEffectNameFormatter]
+        static EffectNameFormatter GetNameFormatter()
         {
-            int addedStocks = _stockAdds.Value;
-            return new string[] { addedStocks.ToString(), addedStocks > 1 ? "s" : string.Empty };
+            return new EffectNameFormatter_PluralizedCount(_stockAdds.Value);
         }
 
         public override void OnStart()

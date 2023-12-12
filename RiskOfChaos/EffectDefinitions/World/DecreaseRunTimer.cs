@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Runtime.CompilerServices;
@@ -43,10 +44,10 @@ namespace RiskOfChaos.EffectDefinitions.World
             return currentTime > numSecondsToRemove ? 1f : currentTime / numSecondsToRemove;
         }
 
-        [EffectNameFormatArgs]
-        static string[] GetEffectNameFormatArgs()
+        [GetEffectNameFormatter]
+        static EffectNameFormatter GetNameFormatter()
         {
-            return new string[] { _numMinutesToRemove.Value.ToString() };
+            return new EffectNameFormatter_PluralizedCount(_numMinutesToRemove.Value);
         }
 
         public override void OnStart()

@@ -7,6 +7,7 @@ using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
@@ -78,8 +79,8 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
-        readonly EffectNameFormatArgsDelegate _getEffectNameFormatArgs;
-        public bool HasCustomDisplayNameFormatter => _getEffectNameFormatArgs != null;
+        readonly GetEffectNameFormatterDelegate _getEffectNameFormatter;
+        public bool HasCustomDisplayNameFormatter => _getEffectNameFormatter != null;
 
         public readonly bool IsNetworked;
 
@@ -112,8 +113,8 @@ namespace RiskOfChaos.EffectHandling
                                                      .Select(m => m.CreateDelegate<EffectWeightMultiplierDelegate>())
                                                      .ToArray();
 
-            MethodInfo getEffectNameFormatArgsMethod = allMethods.WithAttribute<MethodInfo, EffectNameFormatArgsAttribute>().FirstOrDefault();
-            _getEffectNameFormatArgs = getEffectNameFormatArgsMethod?.CreateDelegate<EffectNameFormatArgsDelegate>();
+            MethodInfo getEffectNameFormatArgsMethod = allMethods.WithAttribute<MethodInfo, GetEffectNameFormatterAttribute>().FirstOrDefault();
+            _getEffectNameFormatter = getEffectNameFormatArgsMethod?.CreateDelegate<GetEffectNameFormatterDelegate>();
 
             Type[] incompatibleEffectTypes = EffectType.GetCustomAttributes<IncompatibleEffectsAttribute>(true)
                                                        .SelectMany(a => a.IncompatibleEffectTypes)
@@ -303,15 +304,15 @@ namespace RiskOfChaos.EffectHandling
             return true;
         }
 
-        public string[] GetDisplayNameFormatArgs()
+        public EffectNameFormatter GetDisplayNameFormatter()
         {
             if (HasCustomDisplayNameFormatter)
             {
-                return _getEffectNameFormatArgs();
+                return _getEffectNameFormatter();
             }
             else
             {
-                return Array.Empty<string>();
+                return EffectNameFormatter_None.Instance;
             }
         }
 
@@ -319,7 +320,7 @@ namespace RiskOfChaos.EffectHandling
         {
             if ((formatFlags & EffectNameFormatFlags.RuntimeFormatArgs) != 0 && HasCustomDisplayNameFormatter)
             {
-                return Language.GetStringFormatted(NameToken, _getEffectNameFormatArgs());
+                return _getEffectNameFormatter().FormatEffectName(Language.GetString(NameToken));
             }
             else
             {

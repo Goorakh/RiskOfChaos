@@ -3,7 +3,7 @@
 namespace RiskOfChaos.EffectHandling.EffectClassAttributes.Methods
 {
     [AttributeUsage(AttributeTargets.Method)]
-    public class EffectNameFormatArgsAttribute : Attribute
+    public class GetEffectNameFormatterAttribute : Attribute
     {
     }
 }
