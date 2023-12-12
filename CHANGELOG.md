@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**1.13.3 Changes:**
 
 * Renamed effect: Void Implosion on Death -> Everyone Implodes on Death
 
