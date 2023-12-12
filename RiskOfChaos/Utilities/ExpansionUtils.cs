@@ -3,39 +3,22 @@ using RoR2.ExpansionManagement;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.Utilities
 {
     public static class ExpansionUtils
     {
-        public const string DLC1_NAME = "DLC1";
-
         public static bool DLC1Enabled
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => IsExpansionEnabled(DLC1_NAME);
+            get => IsExpansionEnabled(DLC1);
         }
 
-        public static ExpansionDef DLC1
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => FindExpansionDef(DLC1_NAME);
-        }
+        public static readonly ExpansionDef DLC1 = Addressables.LoadAssetAsync<ExpansionDef>("RoR2/DLC1/Common/DLC1.asset").WaitForCompletion();
 
-        public static ExpansionDef FindExpansionDef(string name)
+        public static bool IsExpansionEnabled(ExpansionDef expansionDef)
         {
-            foreach (ExpansionDef expansion in ExpansionCatalog.expansionDefs)
-            {
-                if (expansion.name == name)
-                    return expansion;
-            }
-
-            return null;
-        }
-
-        public static bool IsExpansionEnabled(string name)
-        {
-            ExpansionDef expansionDef = FindExpansionDef(name);
             return expansionDef && Run.instance && Run.instance.IsExpansionEnabled(expansionDef);
         }
 
