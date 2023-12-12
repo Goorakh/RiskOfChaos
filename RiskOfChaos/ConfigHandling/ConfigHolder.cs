@@ -99,7 +99,7 @@ namespace RiskOfChaos.ConfigHandling
                 {
                     bool isEffectDisabled()
                     {
-                        return isEffectEnabledConfig != null && !isEffectEnabledConfig.Value;
+                        return !isEffectEnabledConfig.Value;
                     }
 
                     if (_optionConfig.checkIfDisabled == null)
