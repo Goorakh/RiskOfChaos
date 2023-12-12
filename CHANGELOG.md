@@ -4,6 +4,9 @@
 
 * Renamed effect: Void Implosion on Death -> Everyone Implodes on Death
 
+* Increase/Decrease Skill Cooldowns & Increase/Decrease Skill Charges:
+  * Fixed cooldown scale and charge modifications sometimes not updating for non-host players in multiplayer
+
 * UI:
   * Fixed certain effects sometimes not using the selected language for client players in multiplayer
 

@@ -1,5 +1,6 @@
 ﻿using HG;
 using RiskOfChaos.Trackers;
+using RiskOfChaos.Utilities;
 using RoR2;
 using System;
 using System.Collections.Generic;
@@ -196,8 +197,6 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             {
                 return _skillSlotCooldownScales;
             }
-
-            [param: In]
             set
             {
                 if (value is null)
@@ -216,7 +215,7 @@ namespace RiskOfChaos.ModifierController.SkillSlots
                     syncVarHookGuard = false;
                 }
 
-                if (!_skillSlotCooldownScales.SequenceEqual(value))
+                if (!ArrayUtil.ElementsEqual(_skillSlotCooldownScales, value))
                 {
                     SetDirtyBit(SKILL_SLOT_COOLDOWN_SCALES_DIRTY_BIT);
                     _skillSlotCooldownScales = value;
@@ -254,8 +253,6 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             {
                 return _skillSlotStockAdds;
             }
-
-            [param: In]
             set
             {
                 if (value is null)
@@ -274,7 +271,7 @@ namespace RiskOfChaos.ModifierController.SkillSlots
                     syncVarHookGuard = false;
                 }
 
-                if (!_skillSlotStockAdds.SequenceEqual(value))
+                if (!ArrayUtil.ElementsEqual(_skillSlotStockAdds, value))
                 {
                     SetDirtyBit(SKILL_SLOT_STOCK_ADDS_DIRTY_BIT);
                     _skillSlotStockAdds = value;
@@ -414,6 +411,8 @@ namespace RiskOfChaos.ModifierController.SkillSlots
                 {
                     writer.Write(_skillSlotCooldownScales[i]);
                 }
+
+                anythingWritten = true;
             }
 
             if ((dirtyBits & SKILL_SLOT_STOCK_ADDS_DIRTY_BIT) != 0)
@@ -422,6 +421,8 @@ namespace RiskOfChaos.ModifierController.SkillSlots
                 {
                     writer.Write(_skillSlotStockAdds[i]);
                 }
+
+                anythingWritten = true;
             }
 
             return result || anythingWritten;
