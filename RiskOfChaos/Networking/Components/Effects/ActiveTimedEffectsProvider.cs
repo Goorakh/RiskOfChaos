@@ -1,11 +1,11 @@
 ﻿using HarmonyLib;
 using RiskOfChaos.EffectDefinitions;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.Networking.SyncLists;
 using RiskOfChaos.UI.ActiveEffectsPanel;
 using System;
 using System.Linq;
-using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.Networking.Components.Effects
@@ -39,8 +39,6 @@ namespace RiskOfChaos.Networking.Components.Effects
 
         public int NumActiveDisplayedEffects { get; private set; }
 
-        float _lastEffectsRefreshTime = float.NegativeInfinity;
-
         void Awake()
         {
             _activeEffects.InitializeBehaviour(this, kListActiveEffects);
@@ -64,18 +62,7 @@ namespace RiskOfChaos.Networking.Components.Effects
             TimedChaosEffectHandler.OnTimedEffectStartServer += onTimedEffectStartServer;
             TimedChaosEffectHandler.OnTimedEffectEndServer += onTimedEffectEndServer;
             TimedChaosEffectHandler.OnTimedEffectDirtyServer += refreshEffectDisplay;
-        }
-
-        void FixedUpdate()
-        {
-            if (!hasAuthority)
-                return;
-
-            if (Time.fixedUnscaledTime > _lastEffectsRefreshTime + 2.5f)
-            {
-                TimedChaosEffectHandler.Instance.GetAllActiveEffects().Do(refreshEffectDisplay);
-                _lastEffectsRefreshTime = Time.fixedUnscaledTime;
-            }
+            ChaosEffectInfo.OnEffectNameFormatterDirty += ChaosEffectInfo_OnEffectNameFormatterDirty;
         }
 
         void OnDisable()
@@ -85,6 +72,15 @@ namespace RiskOfChaos.Networking.Components.Effects
             TimedChaosEffectHandler.OnTimedEffectStartServer -= onTimedEffectStartServer;
             TimedChaosEffectHandler.OnTimedEffectEndServer -= onTimedEffectEndServer;
             TimedChaosEffectHandler.OnTimedEffectDirtyServer -= refreshEffectDisplay;
+            ChaosEffectInfo.OnEffectNameFormatterDirty -= ChaosEffectInfo_OnEffectNameFormatterDirty;
+        }
+
+        void ChaosEffectInfo_OnEffectNameFormatterDirty(ChaosEffectInfo effectInfo)
+        {
+            if (effectInfo is TimedEffectInfo timedEffectInfo)
+            {
+                TimedChaosEffectHandler.Instance.GetActiveEffects(timedEffectInfo).Do(refreshEffectDisplay);
+            }
         }
 
         void onTimedEffectStartServer(TimedEffect effectInstance)

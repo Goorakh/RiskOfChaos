@@ -277,7 +277,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                     container.Effects.ForceAllItemsIntoRandomItem_Data = new ForceAllItemsIntoRandomItem_Data
                     {
                         PickNextItemRNG = new SerializableRng(_pickNextItemRNG),
-                        CurrentPickupName = _currentOverridePickupIndex.isValid ? PickupCatalog.GetPickupDef(_currentOverridePickupIndex).internalName : string.Empty
+                        CurrentPickupName = CurrentOverridePickupIndex.isValid ? PickupCatalog.GetPickupDef(CurrentOverridePickupIndex).internalName : string.Empty
                     };
                 };
 
@@ -288,12 +288,12 @@ namespace RiskOfChaos.EffectDefinitions.World
                         return;
 
                     _pickNextItemRNG = data.PickNextItemRNG;
-                    _currentOverridePickupIndex = PickupCatalog.FindPickupIndex(data.CurrentPickupName);
+                    CurrentOverridePickupIndex = PickupCatalog.FindPickupIndex(data.CurrentPickupName);
 
-                    if (_currentOverridePickupIndex.isValid)
+                    if (CurrentOverridePickupIndex.isValid)
                     {
 #if DEBUG
-                        Log.Debug($"Loaded current pickup ({_currentOverridePickupIndex}) from save data");
+                        Log.Debug($"Loaded current pickup ({CurrentOverridePickupIndex}) from save data");
 #endif
                     }
                     else
@@ -308,6 +308,19 @@ namespace RiskOfChaos.EffectDefinitions.World
         static Xoroshiro128Plus _pickNextItemRNG;
 
         static PickupIndex _currentOverridePickupIndex = PickupIndex.none;
+        public static PickupIndex CurrentOverridePickupIndex
+        {
+            get
+            {
+                return _currentOverridePickupIndex;
+            }
+            private set
+            {
+                _currentOverridePickupIndex = value;
+                _effectInfo.MarkNameFormatterDirty();
+            }
+        }
+
         static void rerollCurrentOverridePickup()
         {
             if (_pickNextItemRNG == null)
@@ -321,23 +334,23 @@ namespace RiskOfChaos.EffectDefinitions.World
                 regenerateDropTable();
             }
 
-            _currentOverridePickupIndex = _dropTable.GenerateDrop(_pickNextItemRNG);
+            CurrentOverridePickupIndex = _dropTable.GenerateDrop(_pickNextItemRNG);
 
 #if DEBUG
-            Log.Debug($"Rolled {_currentOverridePickupIndex}");
+            Log.Debug($"Rolled {CurrentOverridePickupIndex}");
 #endif
         }
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return _currentOverridePickupIndex.isValid;
+            return CurrentOverridePickupIndex.isValid;
         }
 
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
         {
-            return new NameFormatter(_currentOverridePickupIndex);
+            return new NameFormatter(CurrentOverridePickupIndex);
         }
 
         public override void OnStart()
@@ -411,27 +424,27 @@ namespace RiskOfChaos.EffectDefinitions.World
         static PickupIndex PickupDropTable_GenerateDrop(On.RoR2.PickupDropTable.orig_GenerateDrop orig, PickupDropTable self, Xoroshiro128Plus rng)
         {
             orig(self, rng);
-            return _currentOverridePickupIndex;
+            return CurrentOverridePickupIndex;
         }
 
         static PickupIndex[] PickupDropTable_GenerateUniqueDrops(On.RoR2.PickupDropTable.orig_GenerateUniqueDrops orig, PickupDropTable self, int maxDrops, Xoroshiro128Plus rng)
         {
             PickupIndex[] result = orig(self, maxDrops, rng);
-            ArrayUtils.SetAll(result, _currentOverridePickupIndex);
+            ArrayUtils.SetAll(result, CurrentOverridePickupIndex);
             return result;
         }
 
         static void ChestBehavior_PickFromList(On.RoR2.ChestBehavior.orig_PickFromList orig, ChestBehavior self, List<PickupIndex> dropList)
         {
             dropList.Clear();
-            dropList.Add(_currentOverridePickupIndex);
+            dropList.Add(CurrentOverridePickupIndex);
 
             orig(self, dropList);
         }
 
         static void AllVoidPotentials_OverrideAllowChoices(PickupIndex originalPickup, ref bool allowChoices)
         {
-            if (originalPickup == _currentOverridePickupIndex)
+            if (originalPickup == CurrentOverridePickupIndex)
             {
                 allowChoices = false;
             }
@@ -441,11 +454,11 @@ namespace RiskOfChaos.EffectDefinitions.World
         {
             PickupPickerController.Option[] options = orig(pickupIndex);
 
-            if (pickupIndex == _currentOverridePickupIndex)
+            if (pickupIndex == CurrentOverridePickupIndex)
             {
                 ArrayUtils.SetAll(options, new PickupPickerController.Option
                 {
-                    pickupIndex = _currentOverridePickupIndex,
+                    pickupIndex = CurrentOverridePickupIndex,
                     available = true
                 });
             }

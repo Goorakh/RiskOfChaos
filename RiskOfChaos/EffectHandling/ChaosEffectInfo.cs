@@ -80,15 +80,45 @@ namespace RiskOfChaos.EffectHandling
         }
 
         readonly GetEffectNameFormatterDelegate _getEffectNameFormatter;
-        public bool HasCustomDisplayNameFormatter => _getEffectNameFormatter != null;
+
+        EffectNameFormatter _cachedNameFormatter;
+
+        public static event Action<ChaosEffectInfo> OnEffectNameFormatterDirty;
+
+        bool _nameFormatterDirty;
+        public bool NameFormatterDirty
+        {
+            get
+            {
+                return _nameFormatterDirty;
+            }
+            private set
+            {
+                if (_nameFormatterDirty == value)
+                    return;
+
+                _nameFormatterDirty = value;
+
+                if (_nameFormatterDirty)
+                {
+                    OnEffectNameFormatterDirty?.Invoke(this);
+                }
+            }
+        }
 
         public EffectNameFormatter LocalDisplayNameFormatter
         {
             get
             {
-                if (HasCustomDisplayNameFormatter)
+                if (_getEffectNameFormatter != null)
                 {
-                    return _getEffectNameFormatter();
+                    if (_cachedNameFormatter is null || NameFormatterDirty)
+                    {
+                        _cachedNameFormatter = _getEffectNameFormatter();
+                        NameFormatterDirty = false;
+                    }
+
+                    return _cachedNameFormatter;
                 }
                 else
                 {
@@ -317,6 +347,11 @@ namespace RiskOfChaos.EffectHandling
             }
 
             return true;
+        }
+
+        public void MarkNameFormatterDirty()
+        {
+            NameFormatterDirty = true;
         }
 
         public string GetLocalDisplayName(EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)

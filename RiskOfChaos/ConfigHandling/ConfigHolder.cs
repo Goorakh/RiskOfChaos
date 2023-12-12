@@ -116,6 +116,11 @@ namespace RiskOfChaos.ConfigHandling
 
             ArrayUtil.AppendRange(ref _previousConfigSectionNames, ownerEffect.PreviousConfigSectionNames);
 
+            SettingChanged += (s, e) =>
+            {
+                ownerEffect.MarkNameFormatterDirty();
+            };
+
             Bind(ownerEffect.ConfigFile, ownerEffect.ConfigSectionName, ChaosEffectCatalog.CONFIG_MOD_GUID, ChaosEffectCatalog.CONFIG_MOD_NAME);
         }
 
