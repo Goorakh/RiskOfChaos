@@ -4,6 +4,9 @@
 
 * Renamed effect: Void Implosion on Death -> Everyone Implodes on Death
 
+* UI:
+  * Fixed certain effects sometimes not using the selected language for client players in multiplayer
+
 **1.13.2 Changes:**
 
 <details>
