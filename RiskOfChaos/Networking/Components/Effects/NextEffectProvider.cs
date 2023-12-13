@@ -38,26 +38,28 @@ namespace RiskOfChaos.Networking.Components.Effects
 
         static bool tryGetNextEffectState(out NextEffectState nextEffectState)
         {
-            ChaosEffectDispatcher effectDispatcher = ChaosEffectDispatcher.Instance;
-            if (effectDispatcher && effectDispatcher.HasAttemptedDispatchAnyEffectServer)
-            {
-                ChaosEffectActivationSignaler effectSignaler = effectDispatcher.GetCurrentEffectSignaler();
-                if (effectSignaler)
-                {
-                    ChaosEffectIndex nextEffectIndex = effectSignaler.GetUpcomingEffect();
-                    ChaosEffectInfo nextEffectInfo = ChaosEffectCatalog.GetEffectInfo(nextEffectIndex);
-
-                    Run.FixedTimeStamp activationTime = Run.FixedTimeStamp.now + effectSignaler.GetTimeUntilNextEffect();
-
-                    EffectNameFormatter displayNameFormatter = nextEffectInfo.LocalDisplayNameFormatter;
-
-                    nextEffectState = new NextEffectState(nextEffectIndex, activationTime, displayNameFormatter);
-                    return true;
-                }
-            }
-
             nextEffectState = NextEffectState.None;
-            return false;
+
+            ChaosEffectDispatcher effectDispatcher = ChaosEffectDispatcher.Instance;
+            if (!effectDispatcher || !effectDispatcher.HasAttemptedDispatchAnyEffectServer)
+                return false;
+
+            ChaosEffectActivationSignaler effectSignaler = effectDispatcher.GetCurrentEffectSignaler();
+            if (!effectSignaler)
+                return false;
+
+            ChaosEffectIndex nextEffectIndex = effectSignaler.GetUpcomingEffect();
+            if (nextEffectIndex == ChaosEffectIndex.Invalid)
+                return false;
+            
+            ChaosEffectInfo nextEffectInfo = ChaosEffectCatalog.GetEffectInfo(nextEffectIndex);
+
+            Run.FixedTimeStamp activationTime = Run.FixedTimeStamp.now + effectSignaler.GetTimeUntilNextEffect();
+
+            EffectNameFormatter displayNameFormatter = nextEffectInfo.LocalDisplayNameFormatter;
+
+            nextEffectState = new NextEffectState(nextEffectIndex, activationTime, displayNameFormatter);
+            return true;
         }
 
         void refreshNextEffectState()

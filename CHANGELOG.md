@@ -1,6 +1,13 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* Chat Voting:
+  * Fixed console error logspam
+
 **1.13.3 Changes:**
+
+<details>
 
 * Renamed effect: Void Implosion on Death -> Everyone Implodes on Death
 
@@ -9,6 +16,8 @@
 
 * UI:
   * Fixed certain effects sometimes not using the selected language for client players in multiplayer
+
+</details>
 
 **1.13.2 Changes:**
 
