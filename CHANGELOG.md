@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**1.13.4 Changes:**
 
 * Chat Voting:
   * Fixed console error logspam
