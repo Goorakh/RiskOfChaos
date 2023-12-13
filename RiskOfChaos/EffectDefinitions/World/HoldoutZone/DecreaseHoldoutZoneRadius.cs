@@ -1,16 +1,19 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
+using RiskOfChaos.ModifierController.HoldoutZone;
 using RiskOfOptions.OptionConfigs;
-using RoR2;
+using System;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
 {
     [ChaosTimedEffect("decrease_holdout_zone_radius", TimedEffectType.UntilStageEnd, ConfigName = "Decrease Teleporter Zone Radius")]
-    public sealed class DecreaseHoldoutZoneRadius : GenericHoldoutZoneModifierEffect
+    public sealed class DecreaseHoldoutZoneRadius : TimedEffect, IHoldoutZoneModificationProvider
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _radiusDecrease =
@@ -24,7 +27,22 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
                                     max = 1f
                                 })
                                 .ValueConstrictor(CommonValueConstrictors.Clamped01Float)
+                                .OnValueChanged(() =>
+                                {
+                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                                        return;
+
+                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<DecreaseHoldoutZoneRadius>(e => e.OnValueDirty);
+                                })
                                 .Build();
+
+        public event Action OnValueDirty;
+
+        [EffectCanActivate]
+        static bool CanActivate()
+        {
+            return HoldoutZoneModificationManager.Instance;
+        }
 
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
@@ -32,10 +50,22 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
             return new EffectNameFormatter_GenericFloat(_radiusDecrease.Value) { ValueFormat = "P0" };
         }
 
-        protected override void modifyRadius(HoldoutZoneController controller, ref float radius)
+        public override void OnStart()
         {
-            base.modifyRadius(controller, ref radius);
-            radius *= 1f - _radiusDecrease.Value;
+            HoldoutZoneModificationManager.Instance.RegisterModificationProvider(this);
+        }
+
+        public override void OnEnd()
+        {
+            if (HoldoutZoneModificationManager.Instance)
+            {
+                HoldoutZoneModificationManager.Instance.UnregisterModificationProvider(this);
+            }
+        }
+
+        public void ModifyValue(ref HoldoutZoneModificationInfo value)
+        {
+            value.RadiusMultiplier *= 1f - _radiusDecrease.Value;
         }
     }
 }

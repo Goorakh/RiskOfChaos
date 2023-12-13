@@ -4,6 +4,7 @@ using RiskOfChaos.ModifierController.AttackDelay;
 using RiskOfChaos.ModifierController.Camera;
 using RiskOfChaos.ModifierController.Damage;
 using RiskOfChaos.ModifierController.Gravity;
+using RiskOfChaos.ModifierController.HoldoutZone;
 using RiskOfChaos.ModifierController.Knockback;
 using RiskOfChaos.ModifierController.PhysicsModification;
 using RiskOfChaos.ModifierController.Pickups;
@@ -46,6 +47,8 @@ namespace RiskOfChaos
         public static GameObject PickupModificationControllerPrefab { get; private set; }
 
         public static GameObject CameraModificationControllerPrefab { get; private set; }
+
+        public static GameObject HoldoutZoneModificationControllerPrefab { get; private set; }
 
         static readonly string[] _geyserPrefabPaths = new string[]
         {
@@ -203,6 +206,15 @@ namespace RiskOfChaos
                 CameraModificationControllerPrefab.AddComponent<CameraModificationManager>();
             }
 
+            // HoldoutZoneModificationControllerPrefab
+            {
+                HoldoutZoneModificationControllerPrefab = createEmptyPrefabObject("HoldoutZoneModificationController", false);
+
+                HoldoutZoneModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
+                HoldoutZoneModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
+                HoldoutZoneModificationControllerPrefab.AddComponent<HoldoutZoneModificationManager>();
+            }
+
             // GeyserPrefabs
             {
                 int geyserCount = _geyserPrefabPaths.Length;
@@ -298,6 +310,7 @@ namespace RiskOfChaos
 
             GameObject.Instantiate(DamageInfoModificationControllerPrefab);
             GameObject.Instantiate(PickupModificationControllerPrefab);
+            GameObject.Instantiate(HoldoutZoneModificationControllerPrefab);
 
             NetworkServer.Spawn(GameObject.Instantiate(EffectsNetworkerPrefab));
 

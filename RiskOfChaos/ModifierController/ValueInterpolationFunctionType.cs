@@ -54,5 +54,18 @@ namespace RiskOfChaos.ModifierController
                 _ => throw new NotImplementedException($"Blend type {type} not implemented")
             };
         }
+
+        public static Color Interpolate(this ValueInterpolationFunctionType type, in Color a, in Color b, float t)
+        {
+            return type switch
+            {
+                ValueInterpolationFunctionType.Snap => b,
+                ValueInterpolationFunctionType.Linear => Color.Lerp(a, b, t),
+                _ => new Color(type.Interpolate(a.r, b.r, t),
+                               type.Interpolate(a.g, b.g, t),
+                               type.Interpolate(a.b, b.b, t),
+                               type.Interpolate(a.a, b.a, t)),
+            };
+        }
     }
 }

@@ -1,16 +1,19 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
+using RiskOfChaos.ModifierController.HoldoutZone;
 using RiskOfOptions.OptionConfigs;
-using RoR2;
+using System;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
 {
     [ChaosTimedEffect("increase_holdout_zone_charge_rate", TimedEffectType.UntilStageEnd, ConfigName = "Increase Teleporter Charge Rate")]
-    public sealed class IncreaseHoldoutZoneChargeRate : GenericHoldoutZoneModifierEffect
+    public sealed class IncreaseHoldoutZoneChargeRate : TimedEffect, IHoldoutZoneModificationProvider
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _chargeRateIncrease =
@@ -24,7 +27,22 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
                                     max = 2f
                                 })
                                 .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
+                                .OnValueChanged(() =>
+                                {
+                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                                        return;
+
+                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseHoldoutZoneChargeRate>(e => e.OnValueDirty);
+                                })
                                 .Build();
+
+        public event Action OnValueDirty;
+
+        [EffectCanActivate]
+        static bool CanActivate()
+        {
+            return HoldoutZoneModificationManager.Instance;
+        }
 
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
@@ -32,10 +50,22 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
             return new EffectNameFormatter_GenericFloat(_chargeRateIncrease.Value) { ValueFormat = "P0" };
         }
 
-        protected override void modifyChargeRate(HoldoutZoneController controller, ref float rate)
+        public override void OnStart()
         {
-            base.modifyChargeRate(controller, ref rate);
-            rate *= 1f + _chargeRateIncrease.Value;
+            HoldoutZoneModificationManager.Instance.RegisterModificationProvider(this);
+        }
+
+        public override void OnEnd()
+        {
+            if (HoldoutZoneModificationManager.Instance)
+            {
+                HoldoutZoneModificationManager.Instance.UnregisterModificationProvider(this);
+            }
+        }
+
+        public void ModifyValue(ref HoldoutZoneModificationInfo value)
+        {
+            value.ChargeRateMultiplier *= 1f + _chargeRateIncrease.Value;
         }
     }
 }

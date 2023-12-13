@@ -1,9 +1,18 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* Increase/Decrease Teleporter Zone Radius & Focused Teleporter Charging:
+  * Fixed radius not updating properly for non-host players in multiplayer.
+
 **1.13.4 Changes:**
+
+<details>
 
 * Chat Voting:
   * Fixed console error logspam
+
+</details>
 
 **1.13.3 Changes:**
 
