@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Added 1 effect:
+  * Black Hole: Spawns a black hole somewhere on the map, sucking all characters in, lasts 30 seconds
+
 * Increase/Decrease Teleporter Zone Radius & Focused Teleporter Charging:
   * Fixed radius not updating properly for non-host players in multiplayer.
 

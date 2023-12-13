@@ -139,5 +139,6 @@
 		"EFFECT_FLIP_CAMERA_NAME": "Flipped Camera",
 		"EFFECT_VOID_IMPLOSION_ON_DEATH_NAME": "Everyone Implodes on Death",
 		"EFFECT_INVERT_RECOIL_NAME": "Inverted Recoil",
+		"EFFECT_SPAWN_BLACK_HOLE_NAME": "Black Hole",
 	}
 }
