@@ -1,10 +1,12 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.Audio;
 using RoR2.Navigation;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -12,10 +14,21 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
-    [ChaosTimedEffect("spawn_black_hole", 30f, IsNetworked = true)]
+    [ChaosTimedEffect("spawn_black_hole", 45f, IsNetworked = true)]
     public sealed class SpawnBlackHole : TimedEffect
     {
-        const float MAX_RADIUS = 50f;
+        [EffectConfig]
+        static readonly ConfigHolder<float> _maxRadiusConfig =
+            ConfigFactory<float>.CreateConfig("Size", 50f)
+                                .Description("The size of the black hole")
+                                .OptionConfig(new StepSliderConfig
+                                {
+                                    min = 0f,
+                                    max = 150f,
+                                    increment = 1f
+                                })
+                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
+                                .Build();
 
         static readonly AnimationCurve _growthCurve = new AnimationCurve(new Keyframe[]
         {
@@ -36,6 +49,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         }
 
         Vector3 _blackHolePosition;
+        float _blackHoleRadius;
+
         GameObject _blackHoleOrigin;
 
         CharacterLosTracker _losTracker;
@@ -53,7 +68,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             base.OnPreStartServer();
 
-            Vector3 spawnOffset = new Vector3(0f, MAX_RADIUS + 12.5f, 0f);
+            _blackHoleRadius = _maxRadiusConfig.Value;
+
+            Vector3 spawnOffset = new Vector3(0f, _blackHoleRadius + 12.5f, 0f);
 
             DirectorPlacementRule placementRule = SpawnUtils.GetBestValidRandomPlacementRule();
 
@@ -69,7 +86,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 Vector3 groundPosition = placementRule.EvaluateToPosition(RNG, HullClassification.Golem, MapNodeGroup.GraphType.Ground);
                 Vector3 spawnPosition = groundPosition + spawnOffset;
 
-                int overlapCount = UnityEngine.Physics.OverlapSphereNonAlloc(spawnPosition, MAX_RADIUS, spawnPositionOverlaps, LayerIndex.world.mask.value);
+                int overlapCount = UnityEngine.Physics.OverlapSphereNonAlloc(spawnPosition, _blackHoleRadius, spawnPositionOverlaps, LayerIndex.world.mask.value);
 
                 // No overlap: It fits completely, no need to check any more positions
                 if (overlapCount == 0)
@@ -79,7 +96,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 #endif
 
                     bestEncounteredSpawnPosition = spawnPosition;
-                    bestSpawnPositionSqrFitRadius = MAX_RADIUS * MAX_RADIUS;
+                    bestSpawnPositionSqrFitRadius = _blackHoleRadius * _blackHoleRadius;
                     break;
                 }
 
@@ -106,7 +123,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
 #if DEBUG
                 float fitRadius = Mathf.Sqrt(sqrFitRadius);
-                Log.Debug($"Candidate {i} overlaps {overlapCount} object(s) ({MAX_RADIUS - fitRadius} units, {fitRadius / MAX_RADIUS:P} fit): [{string.Join(", ", spawnPositionOverlaps.Take(overlapCount))}]");
+                Log.Debug($"Candidate {i} overlaps {overlapCount} object(s) ({_blackHoleRadius - fitRadius} units, {fitRadius / _blackHoleRadius:P} fit): [{string.Join(", ", spawnPositionOverlaps.Take(overlapCount))}]");
 #endif
 
                 if (sqrFitRadius > bestSpawnPositionSqrFitRadius)
@@ -118,7 +135,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
 #if DEBUG
             float bestSpawnPositionFitRadius = Mathf.Sqrt(bestSpawnPositionSqrFitRadius);
-            Log.Debug($"Selected spawn position with {MAX_RADIUS - bestSpawnPositionFitRadius} units overlap ({bestSpawnPositionFitRadius / MAX_RADIUS:P} fit)");
+            Log.Debug($"Selected spawn position with {_blackHoleRadius - bestSpawnPositionFitRadius} units overlap ({bestSpawnPositionFitRadius / _blackHoleRadius:P} fit)");
 #endif
 
             _blackHolePosition = bestEncounteredSpawnPosition;
@@ -129,6 +146,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             base.Serialize(writer);
 
             writer.Write(_blackHolePosition);
+            writer.Write(_blackHoleRadius);
         }
 
         public override void Deserialize(NetworkReader reader)
@@ -136,6 +154,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             base.Deserialize(reader);
 
             _blackHolePosition = reader.ReadVector3();
+            _blackHoleRadius = reader.ReadSingle();
         }
 
         public override void OnStart()
@@ -187,7 +206,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             }
 
             float time = Mathf.Clamp01(TimeElapsed / 10f);
-            _killRadius = _growthCurve.Evaluate(time) * MAX_RADIUS;
+            _killRadius = _growthCurve.Evaluate(time) * _blackHoleRadius;
             updateKillSphereVfx();
 
             Vector3 centerPosition = _blackHoleOrigin.transform.position;
@@ -198,36 +217,36 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             float pullMagnitude = _growthCurve.Evaluate(time) * 8.5f;
             foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
             {
-                if (body.hasEffectiveAuthority)
+                if (!body.hasEffectiveAuthority)
+                    continue;
+
+                IDisplacementReceiver displacementReceiver = body.GetComponent<IDisplacementReceiver>();
+                if (displacementReceiver is null)
+                    continue;
+                
+                float pullFactor = body.isPlayerControlled ? 1f : 5f;
+
+                float displacementStrength = pullMagnitude * pullFactor;
+                Vector3 displacement = (centerPosition - body.footPosition).normalized * displacementStrength;
+
+                displacementReceiver.AddDisplacement(displacement * Time.fixedDeltaTime);
+
+                CharacterMotor characterMotor = body.characterMotor;
+                if (characterMotor && characterMotor.Motor)
                 {
-                    IDisplacementReceiver displacementReceiver = body.GetComponent<IDisplacementReceiver>();
-                    if (displacementReceiver != null)
+                    Vector3 finalMovement;
+                    if (characterMotor.useGravity)
                     {
-                        float pullFactor = body.isPlayerControlled ? 1f : 5f;
+                        finalMovement = displacement + characterMotor.GetGravity();
+                    }
+                    else
+                    {
+                        finalMovement = displacement;
+                    }
 
-                        float displacementStrength = pullMagnitude * pullFactor;
-                        Vector3 displacement = (centerPosition - body.footPosition).normalized * displacementStrength;
-
-                        displacementReceiver.AddDisplacement(displacement * Time.fixedDeltaTime);
-
-                        CharacterMotor characterMotor = body.characterMotor;
-                        if (characterMotor && characterMotor.Motor)
-                        {
-                            Vector3 finalMovement;
-                            if (characterMotor.useGravity)
-                            {
-                                finalMovement = displacement + characterMotor.GetGravity();
-                            }
-                            else
-                            {
-                                finalMovement = displacement;
-                            }
-
-                            if (finalMovement.y > 0f)
-                            {
-                                characterMotor.Motor.ForceUnground();
-                            }
-                        }
+                    if (finalMovement.y > 0f)
+                    {
+                        characterMotor.Motor.ForceUnground();
                     }
                 }
             }
