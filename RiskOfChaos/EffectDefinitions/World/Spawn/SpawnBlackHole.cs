@@ -241,10 +241,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 _killSearch.RefreshCandidates();
                 _killSearch.FilterCandidatesByDistinctHurtBoxEntities();
 
-                List<HurtBox> hurtBoxes = new List<HurtBox>();
-                _killSearch.GetHurtBoxes(hurtBoxes);
-
-                foreach (HurtBox hurtBox in hurtBoxes)
+                foreach (HurtBox hurtBox in _killSearch.GetHurtBoxes())
                 {
                     if (hurtBox.healthComponent)
                     {
