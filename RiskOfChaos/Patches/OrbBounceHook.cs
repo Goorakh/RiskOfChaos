@@ -107,26 +107,7 @@ namespace RiskOfChaos.Patches
 
             newTargetSearch.OrderCandidatesByDistance();
 
-            Type orbType = orbInstance.GetType();
-
-            CharacterBody attackerBody = null;
-
-            FieldInfo attackerField = orbType.GetField("attacker");
-            if (attackerField != null)
-            {
-                if (attackerField.FieldType == typeof(CharacterBody))
-                {
-                    attackerBody = (CharacterBody)attackerField.GetValue(orbInstance);
-                }
-                else if (attackerField.FieldType == typeof(GameObject))
-                {
-                    GameObject attacker = (GameObject)attackerField.GetValue(orbInstance);
-                    if (attacker)
-                    {
-                        attackerBody = attacker.GetComponent<CharacterBody>();
-                    }
-                }
-            }
+            CharacterBody attackerBody = orbInstance.GetAttacker();
 
             List<HurtBox> validTargets = newTargetSearch.GetHurtBoxes().Where(h =>
             {
@@ -166,7 +147,7 @@ namespace RiskOfChaos.Patches
                 }
                 else
                 {
-                    newOrb = (Orb)Activator.CreateInstance(orbType);
+                    newOrb = (Orb)Activator.CreateInstance(orbInstance.GetType());
                 }
             }
             catch (Exception ex)

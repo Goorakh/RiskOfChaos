@@ -2,8 +2,9 @@
 
 **?.?.? Changes:**
 
-* Added 1 effect:
+* Added 2 effects:
   * Black Hole: Spawns a black hole somewhere on the map, sucking all characters in, lasts 30 seconds
+  * Extreme Recoil: Firing weapons pushes characters backwards, lasts 90 seconds
 
 * Increase/Decrease Teleporter Zone Radius & Focused Teleporter Charging:
   * Fixed radius not updating properly for non-host players in multiplayer.
