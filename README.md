@@ -135,7 +135,7 @@ Currently features 128 different effects.
 * Flipped Camera: Flips the camera upside down, lasts 30 seconds
 * Void Implosion on Death: Spawns a void implosion on any character death, lasts 1 stage
 * Inverted Recoil: All recoil is inverted, lasts 90 seconds
-* Black Hole: Spawns a black hole somewhere on the map, sucking all characters in, lasts 30 seconds
+* Black Hole: Spawns a black hole somewhere on the map, sucking all characters in, lasts 45 seconds
 * Extreme Recoil: Firing weapons pushes characters backwards, lasts 90 seconds
 </details>
 
