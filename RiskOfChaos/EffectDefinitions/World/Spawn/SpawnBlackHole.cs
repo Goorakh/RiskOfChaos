@@ -60,7 +60,24 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         VFXHelper _environmentVfxHelper;
 
         SphereSearch _killSearch;
-        float _killRadius = 1f;
+
+        float _currentRadius;
+        public float CurrentRadius
+        {
+            get
+            {
+                return _currentRadius;
+            }
+            private set
+            {
+                _currentRadius = value;
+
+                if (_killSphereVfxHelper.vfxInstanceTransform)
+                {
+                    _killSphereVfxHelper.vfxInstanceTransform.localScale = Vector3.one * value;
+                }
+            }
+        }
 
         LoopSoundManager.SoundLoopPtr _loopSound;
 
@@ -172,7 +189,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             _killSphereVfxHelper.followedTransform = _blackHoleOrigin.transform;
             _killSphereVfxHelper.useFollowedTransformScale = false;
             _killSphereVfxHelper.enabled = true;
-            updateKillSphereVfx();
 
             _environmentVfxHelper = VFXHelper.Rent();
             _environmentVfxHelper.vfxPrefabReference = _environmentVFXPrefab;
@@ -206,8 +222,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             }
 
             float time = Mathf.Clamp01(TimeElapsed / 10f);
-            _killRadius = _growthCurve.Evaluate(time) * _blackHoleRadius;
-            updateKillSphereVfx();
+            CurrentRadius = _growthCurve.Evaluate(time) * _blackHoleRadius;
 
             Vector3 centerPosition = _blackHoleOrigin.transform.position;
 
@@ -254,7 +269,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             if (NetworkServer.active)
             {
                 _killSearch.origin = centerPosition;
-                _killSearch.radius = _killRadius;
+                _killSearch.radius = CurrentRadius;
                 _killSearch.mask = LayerIndex.entityPrecise.mask;
 
                 _killSearch.RefreshCandidates();
@@ -267,14 +282,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                         hurtBox.healthComponent.Suicide(null, null, DamageType.VoidDeath);
                     }
                 }
-            }
-        }
-
-        void updateKillSphereVfx()
-        {
-            if (_killSphereVfxHelper.vfxInstanceTransform)
-            {
-                _killSphereVfxHelper.vfxInstanceTransform.localScale = Vector3.one * _killRadius;
             }
         }
 
