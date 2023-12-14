@@ -43,9 +43,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
             if (!ownerBody)
                 return;
 
-            if (!NetworkServer.active && !ownerBody.hasEffectiveAuthority)
-                return;
-
             tryKnockbackBody(ownerBody, -self.aimVector, self.damage);
         }
 
