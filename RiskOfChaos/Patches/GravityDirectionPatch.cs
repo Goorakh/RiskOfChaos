@@ -32,7 +32,7 @@ namespace RiskOfChaos.Patches
                         if (instance.isGrounded)
                             return;
 
-                        Vector3 gravity = instance.GetGravity(Physics.gravity);
+                        Vector3 gravity = instance.GetGravity();
 
                         Vector3 xzGravity = new Vector3(gravity.x, 0f, gravity.z);
                         instance.velocity += xzGravity * deltaTime;
