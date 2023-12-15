@@ -26,6 +26,11 @@ namespace RiskOfChaos
 
         internal static void Init(ConfigFile file)
         {
+            bool saveOnConfigSetEnabled = file.SaveOnConfigSet;
+
+            if (saveOnConfigSetEnabled)
+                file.SaveOnConfigSet = false;
+
             General.Bind(file);
 
             EffectSelection.Bind(file);
@@ -37,6 +42,12 @@ namespace RiskOfChaos
 #if DEBUG
             Debug.Bind(file);
 #endif
+
+            if (saveOnConfigSetEnabled)
+            {
+                file.SaveOnConfigSet = true;
+                file.Save();
+            }
 
             if (GenericIcon)
             {

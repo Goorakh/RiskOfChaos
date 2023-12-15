@@ -102,8 +102,16 @@ namespace RiskOfChaos.EffectHandling
             _effects.CopyTo(effectsByConfigName, 0);
             Array.Sort(effectsByConfigName, (a, b) => StringComparer.OrdinalIgnoreCase.Compare(a.ConfigSectionName, b.ConfigSectionName));
 
+            HashSet<ConfigFile> effectConfigFiles = new HashSet<ConfigFile>();
+
             foreach (ChaosEffectInfo effectInfo in effectsByConfigName)
             {
+                ConfigFile effectConfigFile = effectInfo.ConfigFile;
+                if (effectConfigFile != null && effectConfigFile.SaveOnConfigSet && effectConfigFiles.Add(effectConfigFile))
+                {
+                    effectConfigFile.SaveOnConfigSet = false;
+                }
+
                 effectInfo.Validate();
                 effectInfo.BindConfigs();
             }
@@ -122,6 +130,12 @@ namespace RiskOfChaos.EffectHandling
                         }
                     }
                 }
+            }
+
+            foreach (ConfigFile file in effectConfigFiles)
+            {
+                file.SaveOnConfigSet = true;
+                file.Save();
             }
 
             Availability.MakeAvailable();
