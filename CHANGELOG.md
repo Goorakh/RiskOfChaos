@@ -12,6 +12,9 @@
 * Increase/Decrease Teleporter Zone Radius & Focused Teleporter Charging:
   * Fixed radius not updating properly for non-host players in multiplayer.
 
+* UI:
+  * Fixed Active Effects list not handling long effect names properly
+
 **1.13.4 Changes:**
 
 <details>
