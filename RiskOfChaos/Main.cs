@@ -40,6 +40,7 @@ namespace RiskOfChaos
             ModDirectory = Path.GetDirectoryName(Info.Location);
 
             ContentPackProvider = new ContentPackProvider();
+            ContentPackProvider.Register();
 
             LanguageFileHandler.Init();
 

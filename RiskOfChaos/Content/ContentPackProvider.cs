@@ -9,12 +9,23 @@ namespace RiskOfChaos.Content
 
         public string identifier => Main.PluginGUID;
 
+        bool _isRegistered;
+
         internal ContentPackProvider()
         {
+        }
+
+        internal void Register()
+        {
+            if (_isRegistered)
+                return;
+
             ContentManager.collectContentPackProviders += addContentPackProviderDelegate =>
             {
                 addContentPackProviderDelegate(this);
             };
+
+            _isRegistered = true;
         }
 
         public IEnumerator LoadStaticContentAsync(LoadStaticContentAsyncArgs args)
