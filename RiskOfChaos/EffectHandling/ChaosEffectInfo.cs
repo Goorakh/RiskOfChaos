@@ -49,7 +49,7 @@ namespace RiskOfChaos.EffectHandling
         readonly ConfigHolder<KeyboardShortcut> _activationShortcut;
         public bool IsActivationShortcutPressed => _activationShortcut != null && _activationShortcut.Value.IsDownIgnoringBlockerKeys();
 
-        readonly EffectWeightMultiplierDelegate[] _effectNameWeightMultipliers = Array.Empty<EffectWeightMultiplierDelegate>();
+        readonly EffectWeightMultiplierDelegate[] _effectWeightMultipliers = Array.Empty<EffectWeightMultiplierDelegate>();
         public float TotalSelectionWeight
         {
             get
@@ -70,7 +70,7 @@ namespace RiskOfChaos.EffectHandling
                     }
                 }
 
-                foreach (EffectWeightMultiplierDelegate getEffectWeightMultiplier in _effectNameWeightMultipliers)
+                foreach (EffectWeightMultiplierDelegate getEffectWeightMultiplier in _effectWeightMultipliers)
                 {
                     weight *= getEffectWeightMultiplier();
                 }
@@ -154,7 +154,7 @@ namespace RiskOfChaos.EffectHandling
                                             .Select(m => new ChaosEffectCanActivateMethod(m))
                                             .ToArray();
 
-            _effectNameWeightMultipliers = allMethods.WithAttribute<MethodInfo, EffectWeightMultiplierSelectorAttribute>()
+            _effectWeightMultipliers = allMethods.WithAttribute<MethodInfo, EffectWeightMultiplierSelectorAttribute>()
                                                      .Select(m => m.CreateDelegate<EffectWeightMultiplierDelegate>())
                                                      .ToArray();
 
