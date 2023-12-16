@@ -253,13 +253,13 @@ namespace RiskOfChaos.EffectHandling
 
         internal virtual void Validate()
         {
-            string displayName = GetLocalDisplayName();
+            string displayName = GetLocalDisplayName(EffectNameFormatFlags.None);
             if (string.IsNullOrWhiteSpace(displayName))
             {
                 Log.Error($"{this}: Null or empty display name");
             }
 
-            if (displayName == NameToken)
+            if (Language.IsTokenInvalid(NameToken))
             {
                 Log.Error($"{this}: Invalid name token");
             }
