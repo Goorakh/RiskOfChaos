@@ -1,6 +1,13 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* Inventory Swap:
+  * Now also swaps players' active equipment
+
 **1.13.5 Changes:**
+
+<details>
 
 * Added 2 effects:
   * Black Hole: Spawns a black hole somewhere on the map, sucking all characters in, lasts 45 seconds
@@ -14,6 +21,8 @@
 
 * UI:
   * Fixed Active Effects list not handling long effect names properly
+
+</details>
 
 **1.13.4 Changes:**
 

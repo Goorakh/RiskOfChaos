@@ -37,6 +37,7 @@ namespace RiskOfChaos.Content
             Items.AddItemDefsTo(_contentPack.itemDefs);
             Buffs.AddBuffDefsTo(_contentPack.buffDefs);
             BodyPrefabs.AddBodyPrefabsTo(_contentPack.bodyPrefabs);
+            Effects.AddEffectDefsTo(_contentPack.effectDefs);
 
             args.ReportProgress(1f);
             yield break;

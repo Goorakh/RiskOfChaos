@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.Content.Orbs;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
@@ -26,6 +27,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             ItemStack[] _itemStacksToTransfer = Array.Empty<ItemStack>();
             int _currentItemTransferIndex;
+
+            bool _hasFinishedGivingItems;
 
             float _giveNextItemTimer;
 
@@ -87,11 +90,15 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     }
                 }
 
+                _hasFinishedGivingItems = true;
                 OnFinishGivingInventory?.Invoke();
             }
 
             void FixedUpdate()
             {
+                if (_hasFinishedGivingItems)
+                    return;
+
                 if (_currentItemTransferIndex < _itemStacksToTransfer.Length)
                 {
                     _giveNextItemTimer -= Time.fixedDeltaTime;
@@ -103,7 +110,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 }
                 else if (_inFlightOrbs.Count == 0)
                 {
-                    Destroy(this);
+                    _hasFinishedGivingItems = true;
+                    OnFinishGivingInventory?.Invoke();
                 }
             }
 
@@ -124,11 +132,21 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                 _inFlightOrbs.Add(orb);
             }
+
+            public void TransferEquipment()
+            {
+                EquipmentIndex currentEquipment = OwnerInventory.GetEquipmentIndex();
+                if (currentEquipment == EquipmentIndex.None)
+                    return;
+
+                OwnerInventory.SetEquipmentIndex(EquipmentIndex.None);
+                EquipmentTransferOrb.DispatchEquipmentTransferOrb(OwnerBody.corePosition, _targetInventory, currentEquipment);
+            }
         }
 
         static IEnumerable<CharacterBody> getAllEligiblePlayers()
         {
-            return PlayerUtils.GetAllPlayerBodies(true).Where(b => b.inventory && b.inventory.itemAcquisitionOrder.Any(GiveInventoryTo.ItemTransferFilter));
+            return PlayerUtils.GetAllPlayerBodies(true).Where(b => b.inventory && (b.inventory.itemAcquisitionOrder.Any(GiveInventoryTo.ItemTransferFilter) || b.inventory.GetEquipmentIndex() != EquipmentIndex.None));
         }
 
         [EffectCanActivate]
@@ -153,8 +171,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 inventoryGiverControllers[i] = giveInventoryTo;
             }
 
+            EventWaiter allItemsTransferredWaiter = new EventWaiter();
+
             foreach (GiveInventoryTo giveInventoryTo in inventoryGiverControllers)
             {
+                giveInventoryTo.OnFinishGivingInventory += allItemsTransferredWaiter.GetListener();
+
                 Inventory inventory = giveInventoryTo.OwnerInventory;
                 if (inventory)
                 {
@@ -162,7 +184,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                     giveInventoryTo.OnFinishGivingInventory += eventWaiter.GetListener();
 
-                    foreach (GiveInventoryTo givingInventoryToUs in inventoryGiverControllers.Where(g => g.Target == giveInventoryTo.OwnerBody))
+                    GiveInventoryTo[] inventoriesGivingToUs = inventoryGiverControllers.Where(g => g.Target == giveInventoryTo.OwnerBody).ToArray();
+                    foreach (GiveInventoryTo givingInventoryToUs in inventoriesGivingToUs)
                     {
                         givingInventoryToUs.OnFinishGivingInventory += eventWaiter.GetListener();
                     }
@@ -174,6 +197,22 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     };
                 }
             }
+
+            allItemsTransferredWaiter.OnAllEventsInvoked += () =>
+            {
+                foreach (GiveInventoryTo giveInventoryTo in inventoryGiverControllers)
+                {
+                    if (giveInventoryTo)
+                    {
+                        giveInventoryTo.TransferEquipment();
+                    }
+                }
+
+                foreach (GiveInventoryTo giveInventoryTo in inventoryGiverControllers)
+                {
+                    GameObject.Destroy(giveInventoryTo);
+                }
+            };
         }
     }
 }
