@@ -2,7 +2,7 @@
 using RiskOfChaos.ModifierController.PhysicsModification;
 using System;
 
-namespace RiskOfChaos.EffectDefinitions.World.Physics
+namespace RiskOfChaos.EffectDefinitions.World.PhysicsModification
 {
     public abstract class SimplePhysicsSpeedMultiplierEffect : TimedEffect, IPhysicsModificationProvider
     {

@@ -2,7 +2,7 @@
 using RoR2;
 using UnityEngine;
 
-namespace RiskOfChaos.EffectDefinitions.World.Physics
+namespace RiskOfChaos.EffectDefinitions.World.PhysicsModification
 {
     [ChaosTimedEffect("laggy_physics", 60f, AllowDuplicates = false)]
     public sealed class LaggyPhysics : SimplePhysicsSpeedMultiplierEffect

@@ -103,7 +103,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 Vector3 groundPosition = placementRule.EvaluateToPosition(RNG, HullClassification.Golem, MapNodeGroup.GraphType.Ground);
                 Vector3 spawnPosition = groundPosition + spawnOffset;
 
-                int overlapCount = UnityEngine.Physics.OverlapSphereNonAlloc(spawnPosition, _blackHoleRadius, spawnPositionOverlaps, LayerIndex.world.mask.value);
+                int overlapCount = Physics.OverlapSphereNonAlloc(spawnPosition, _blackHoleRadius, spawnPositionOverlaps, LayerIndex.world.mask.value);
 
                 // No overlap: It fits completely, no need to check any more positions
                 if (overlapCount == 0)
