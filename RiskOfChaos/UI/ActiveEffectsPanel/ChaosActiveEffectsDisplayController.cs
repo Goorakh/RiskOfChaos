@@ -184,6 +184,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
         {
             _activeEffectItems.RemoveAll(display => !display);
 
+            // Update already active effects to refresh the data in case something has changed
             for (int i = 0; i < _activeEffectItems.Count; i++)
             {
                 ulong dispatchID = _activeEffectItems[i].DisplayingEffect.DispatchID;
