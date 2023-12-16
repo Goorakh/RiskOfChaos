@@ -5,3 +5,6 @@ dotnet_diagnostic.CS0649.severity = none
 
 # CS0067: The event 'DisableProcs.OnValueDirty' is never used
 dotnet_diagnostic.CS0067.severity = suggestion
+
+# IDE0300: Simplify collection initialization
+dotnet_style_prefer_collection_expression = false
