@@ -5,6 +5,10 @@
 * Inventory Swap:
   * Now also swaps players' active equipment
 
+* Effect Shortcuts:
+  * Fixed shortcuts being blocked by every other input (eg. if a shortcut was set to the '-' key, you would only be able to activate the shortcut if '-' was the only key currently being pressed)
+  * Fixed effect shortcuts being activatable while paused
+
 **1.13.5 Changes:**
 
 <details>

@@ -47,7 +47,7 @@ namespace RiskOfChaos.EffectHandling
         public EffectActivationCountMode EffectRepetitionCountMode => _effectRepetitionCountMode.Value;
 
         readonly ConfigHolder<KeyboardShortcut> _activationShortcut;
-        public bool IsActivationShortcutPressed => _activationShortcut != null && _activationShortcut.Value.IsDown();
+        public bool IsActivationShortcutPressed => _activationShortcut != null && _activationShortcut.Value.IsDownIgnoringBlockerKeys();
 
         readonly EffectWeightMultiplierDelegate[] _effectNameWeightMultipliers = Array.Empty<EffectWeightMultiplierDelegate>();
         public float TotalSelectionWeight

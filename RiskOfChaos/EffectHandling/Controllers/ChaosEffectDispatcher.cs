@@ -74,7 +74,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void Update()
         {
-            if (!NetworkServer.active)
+            if (!NetworkServer.active || PauseManager.isPaused)
                 return;
 
             foreach (ChaosEffectInfo effectInfo in ChaosEffectCatalog.AllEffects)
