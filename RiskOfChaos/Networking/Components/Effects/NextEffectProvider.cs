@@ -51,7 +51,7 @@ namespace RiskOfChaos.Networking.Components.Effects
             ChaosEffectIndex nextEffectIndex = effectSignaler.GetUpcomingEffect();
             if (nextEffectIndex == ChaosEffectIndex.Invalid)
                 return false;
-            
+
             ChaosEffectInfo nextEffectInfo = ChaosEffectCatalog.GetEffectInfo(nextEffectIndex);
 
             Run.FixedTimeStamp activationTime = Run.FixedTimeStamp.now + effectSignaler.GetTimeUntilNextEffect();

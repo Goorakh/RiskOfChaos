@@ -6,7 +6,6 @@ using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace RiskOfChaos.Utilities.DropTables
 {

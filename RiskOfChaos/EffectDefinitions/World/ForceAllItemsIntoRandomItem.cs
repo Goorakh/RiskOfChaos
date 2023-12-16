@@ -11,10 +11,7 @@ using RiskOfChaos.SaveHandling;
 using RiskOfChaos.SaveHandling.DataContainers;
 using RiskOfChaos.SaveHandling.DataContainers.Effects;
 using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Comparers;
 using RiskOfChaos.Utilities.DropTables;
-using RiskOfChaos.Utilities.Extensions;
-using RiskOfChaos.Utilities.ParsedValueHolders.ParsedList;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
@@ -73,7 +70,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 return other is NameFormatter nameFormatter && Pickup == nameFormatter.Pickup;
             }
         }
-        
+
         [EffectConfig]
         static readonly ConfigHolder<bool> _allowEliteEquipments =
             ConfigFactory<bool>.CreateConfig("Allow Elite Aspects", true)

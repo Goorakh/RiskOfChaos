@@ -238,7 +238,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 IDisplacementReceiver displacementReceiver = body.GetComponent<IDisplacementReceiver>();
                 if (displacementReceiver is null)
                     continue;
-                
+
                 float pullFactor = body.isPlayerControlled ? 1f : 5f;
 
                 float displacementStrength = pullMagnitude * pullFactor;

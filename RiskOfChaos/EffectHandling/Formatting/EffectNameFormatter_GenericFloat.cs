@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Text;
-using UnityEngine.Networking;
+﻿using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling.Formatting
 {

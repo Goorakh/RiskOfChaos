@@ -3,7 +3,6 @@ using RiskOfChaos.Components;
 using RoR2;
 using RoR2.ContentManagement;
 using RoR2.Orbs;
-using System;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
