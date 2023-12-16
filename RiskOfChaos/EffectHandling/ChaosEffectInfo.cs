@@ -155,8 +155,8 @@ namespace RiskOfChaos.EffectHandling
                                             .ToArray();
 
             _effectWeightMultipliers = allMethods.WithAttribute<MethodInfo, EffectWeightMultiplierSelectorAttribute>()
-                                                     .Select(m => m.CreateDelegate<EffectWeightMultiplierDelegate>())
-                                                     .ToArray();
+                                                 .Select(m => m.CreateDelegate<EffectWeightMultiplierDelegate>())
+                                                 .ToArray();
 
             MethodInfo getEffectNameFormatArgsMethod = allMethods.WithAttribute<MethodInfo, GetEffectNameFormatterAttribute>().FirstOrDefault();
             _getEffectNameFormatter = getEffectNameFormatArgsMethod?.CreateDelegate<GetEffectNameFormatterDelegate>();
