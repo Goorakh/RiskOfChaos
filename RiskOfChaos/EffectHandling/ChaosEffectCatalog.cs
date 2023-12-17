@@ -220,12 +220,6 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void AddEffectConfigOption(BaseOption option)
-        {
-            ModSettingsManager.AddOption(option, CONFIG_MOD_GUID, CONFIG_MOD_NAME);
-        }
-
         public static WeightedSelection<ChaosEffectInfo> GetAllEnabledEffects(HashSet<ChaosEffectInfo> excludeEffects = null)
         {
             _pickNextEffectSelection.Clear();
