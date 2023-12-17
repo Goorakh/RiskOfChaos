@@ -53,8 +53,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         GameObject _blackHoleOrigin;
 
-        CharacterLosTracker _losTracker;
-
         VFXHelper _killSphereVfxHelper;
 
         VFXHelper _environmentVfxHelper;
@@ -181,9 +179,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             _blackHoleOrigin.AddComponent<AkGameObj>();
             _blackHoleOrigin.transform.position = _blackHolePosition;
 
-            _losTracker = new CharacterLosTracker();
-            _losTracker.enabled = true;
-
             _killSphereVfxHelper = VFXHelper.Rent();
             _killSphereVfxHelper.vfxPrefabReference = _killSphereVFXPrefab;
             _killSphereVfxHelper.followedTransform = _blackHoleOrigin.transform;
@@ -225,9 +220,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             CurrentRadius = _growthCurve.Evaluate(time) * _blackHoleRadius;
 
             Vector3 centerPosition = _blackHoleOrigin.transform.position;
-
-            _losTracker.origin = centerPosition;
-            _losTracker.Step();
 
             float pullMagnitude = _growthCurve.Evaluate(time) * 8.5f;
             foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
@@ -289,10 +281,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             _killSphereVfxHelper = VFXHelper.Return(_killSphereVfxHelper);
             _environmentVfxHelper = VFXHelper.Return(_environmentVfxHelper);
-
-            _losTracker.enabled = false;
-            _losTracker.Dispose();
-            _losTracker = null;
 
             LoopSoundManager.StopSoundLoopLocal(_loopSound);
 
