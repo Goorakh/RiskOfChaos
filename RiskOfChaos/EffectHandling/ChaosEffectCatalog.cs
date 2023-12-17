@@ -68,8 +68,7 @@ namespace RiskOfChaos.EffectHandling
 
             AllEffects = new ReadOnlyArray<ChaosEffectInfo>(_effects);
 
-            AllTimedEffects = new ReadOnlyArray<TimedEffectInfo>(_effects.Where(e => e is TimedEffectInfo)
-                                                                             .Select(e => e as TimedEffectInfo).ToArray());
+            AllTimedEffects = new ReadOnlyArray<TimedEffectInfo>(_effects.OfType<TimedEffectInfo>().ToArray());
 
             foreach (ChaosEffectInfo effect in _effects)
             {
