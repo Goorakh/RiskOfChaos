@@ -5,6 +5,11 @@
 * Inventory Swap:
   * Now also swaps players' active equipment
 
+* Moon Detonation:
+  * Fixed countdown UI disappearing after a scene transition
+  * Fixed overlapping UI if effect was activated during the actual moon escape sequence
+  * Added config option to disable the countdown UI
+
 * Effect Shortcuts:
   * Fixed shortcuts being blocked by every other input (eg. if a shortcut was set to the '-' key, you would only be able to activate the shortcut if '-' was the only key currently being pressed)
   * Fixed effect shortcuts being activatable while paused
