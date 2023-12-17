@@ -5,6 +5,7 @@ using RiskOfChaos.Networking;
 using RiskOfChaos.SaveHandling;
 using RiskOfChaos.SaveHandling.DataContainers;
 using RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
 using System.Linq;
@@ -277,15 +278,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
             if (!NetworkServer.active || !Run.instance || !_instance || !_instance.enabled)
                 return;
 
-            ChaosEffectIndex index = ChaosEffectCatalog.FindEffectIndex(args[0]);
-            if (index > ChaosEffectIndex.Invalid)
+            ChaosEffectIndex effectIndex = args.GetArgChaosEffectIndex(0);
+            _instance.dispatchEffect(ChaosEffectCatalog.GetEffectInfo(effectIndex), new ChaosEffectDispatchArgs
             {
-                _instance.dispatchEffect(ChaosEffectCatalog.GetEffectInfo(index), new ChaosEffectDispatchArgs
-                {
-                    DispatchFlags = EffectDispatchFlags.DontCount,
-                    OverrideRNGSeed = args.Count > 1 ? args.GetArgULong(1) : null
-                });
-            }
+                DispatchFlags = EffectDispatchFlags.DontCount,
+                OverrideRNGSeed = args.Count > 1 ? args.GetArgULong(1) : null
+            });
         }
 
         void ActivationSignaler_SignalShouldDispatchEffect(ChaosEffectInfo effect, in ChaosEffectDispatchArgs args)
