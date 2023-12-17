@@ -62,8 +62,8 @@ namespace RiskOfChaos.EffectHandling
             _effects = HG.Reflection.SearchableAttribute.GetInstances<ChaosEffectAttribute>()
                                                         .Cast<ChaosEffectAttribute>()
                                                         .Where(attr => attr.Validate())
-                                                        .OrderBy(static e => e.Identifier, StringComparer.OrdinalIgnoreCase)
-                                                        .Select(static (e, i) => e.BuildEffectInfo((ChaosEffectIndex)i, _effectConfigFile))
+                                                        .OrderBy(e => e.Identifier, StringComparer.OrdinalIgnoreCase)
+                                                        .Select((e, i) => e.BuildEffectInfo((ChaosEffectIndex)i, _effectConfigFile))
                                                         .ToArray();
 
             AllEffects = new ReadOnlyArray<ChaosEffectInfo>(_effects);
