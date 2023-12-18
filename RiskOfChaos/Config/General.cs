@@ -40,6 +40,7 @@ namespace RiskOfChaos
                                    {
                                        checkIfDisabled = effectDispatchingDisabled
                                    })
+                                   .Networked()
                                    .Build();
 
             internal static void Bind(ConfigFile file)
