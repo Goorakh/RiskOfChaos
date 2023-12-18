@@ -1,4 +1,5 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities;
+using RoR2;
 using RoR2.UI;
 using System.Collections.Generic;
 using UnityEngine;
@@ -26,6 +27,7 @@ namespace RiskOfChaos.Trackers
             Run.onRunDestroyGlobal += _ =>
             {
                 _trackedRunTimers.Clear();
+                InstanceUtils.DestroyAllTrackedInstances<RunTimerUITracker>();
             };
         }
 
