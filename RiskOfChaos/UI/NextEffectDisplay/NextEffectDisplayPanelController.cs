@@ -64,19 +64,19 @@ namespace RiskOfChaos.UI.NextEffectDisplay
 
             effectText.transform.SetParent(effectDisplayCanvasGroup.transform);
 
-            NextEffectDisplayController chaosEffectVoteItem = effectDisplayPrefab.AddComponent<NextEffectDisplayController>();
-            chaosEffectVoteItem.EffectText = effectTextLabel;
+            NextEffectDisplayController displayController = effectDisplayPrefab.AddComponent<NextEffectDisplayController>();
+            displayController.EffectText = effectTextLabel;
 
             Transform backdropTransform = effectDisplayCanvasGroup.transform.Find("Backdrop");
             if (backdropTransform)
             {
-                chaosEffectVoteItem.BackdropImage = backdropTransform.GetComponent<Image>();
+                displayController.BackdropImage = backdropTransform.GetComponent<Image>();
             }
 
             Transform flashTransform = effectDisplayCanvasGroup.transform.Find("Flash");
             if (flashTransform)
             {
-                chaosEffectVoteItem.FlashController = flashTransform.GetComponent<AnimateUIAlpha>();
+                displayController.FlashController = flashTransform.GetComponent<AnimateUIAlpha>();
             }
 
             _effectDisplayPrefab = effectDisplayPrefab.InstantiateClone("ChaosNextEffectDisplay", false);
