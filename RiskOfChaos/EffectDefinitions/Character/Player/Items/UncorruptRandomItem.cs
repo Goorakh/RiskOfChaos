@@ -37,7 +37,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                                  .Description("A comma-separated list of items that should not be allowed to be uncorrupted or uncorrupted to. Both internal and English display names are accepted, with spaces and commas removed.")
                                  .OptionConfig(new InputFieldConfig
                                  {
-                                     submitOn = InputFieldConfig.SubmitEnum.OnSubmit
+                                     lineType = TMPro.TMP_InputField.LineType.SingleLine,
+                                     submitOn = InputFieldConfig.SubmitEnum.OnExitOrSubmit
                                  })
                                  .Build();
 

@@ -71,6 +71,7 @@ namespace RiskOfChaos.Utilities.DropTables
                                      .Description(description)
                                      .OptionConfig(new InputFieldConfig
                                      {
+                                         lineType = TMPro.TMP_InputField.LineType.SingleLine,
                                          submitOn = InputFieldConfig.SubmitEnum.OnExitOrSubmit
                                      })
                                      .OnValueChanged(MarkDirty)

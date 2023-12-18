@@ -27,7 +27,11 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         static readonly ConfigHolder<string> _maxItemStealCountConfig =
             ConfigFactory<string>.CreateConfig("Max Item Steal Count", MAX_ITEM_STEAL_COUNT_DEFAULT_VALUE.ToString())
                                  .Description("The maximum amount of item stacks each enemy can steal from each player")
-                                 .OptionConfig(new InputFieldConfig())
+                                 .OptionConfig(new InputFieldConfig
+                                 {
+                                     lineType = TMPro.TMP_InputField.LineType.SingleLine,
+                                     submitOn = InputFieldConfig.SubmitEnum.OnExitOrSubmit
+                                 })
                                  .Build();
 
         static readonly ParsedInt32 _maxItemStealCount = new ParsedInt32
@@ -48,7 +52,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                                  .Description("A comma-separated list of items that will not be stolen from players. Both internal and English display names are accepted, with spaces and commas removed.")
                                  .OptionConfig(new InputFieldConfig
                                  {
-                                     submitOn = InputFieldConfig.SubmitEnum.OnSubmit
+                                     lineType = TMPro.TMP_InputField.LineType.SingleLine,
+                                     submitOn = InputFieldConfig.SubmitEnum.OnExitOrSubmit
                                  })
                                  .Build();
 

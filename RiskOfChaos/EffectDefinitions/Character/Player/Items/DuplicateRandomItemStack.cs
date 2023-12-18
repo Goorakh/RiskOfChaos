@@ -26,7 +26,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                                  .Description("The maximum amount of item stacks to allow, the effect will not duplicate an item stack if it is greater than this number. Set to a negative number to disable the limit.")
                                  .OptionConfig(new InputFieldConfig
                                  {
-                                     submitOn = InputFieldConfig.SubmitEnum.OnSubmit
+                                     lineType = TMPro.TMP_InputField.LineType.SingleLine,
+                                     submitOn = InputFieldConfig.SubmitEnum.OnExitOrSubmit
                                  })
                                  .Build();
 
@@ -41,7 +42,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                                  .Description("A comma-separated list of items that should not be allowed to be duplicated. Both internal and English display names are accepted, with spaces and commas removed.")
                                  .OptionConfig(new InputFieldConfig
                                  {
-                                     submitOn = InputFieldConfig.SubmitEnum.OnSubmit
+                                     lineType = TMPro.TMP_InputField.LineType.SingleLine,
+                                     submitOn = InputFieldConfig.SubmitEnum.OnExitOrSubmit
                                  })
                                  .Build();
 
