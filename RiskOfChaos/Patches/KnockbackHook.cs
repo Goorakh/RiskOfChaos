@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.ModifierController.Knockback;
 using RoR2;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.Patches
@@ -22,9 +23,26 @@ namespace RiskOfChaos.Patches
 
                 orig(self, ref forceInfo);
             };
+
+            On.RoR2.CharacterMotor.AddDisplacement += (orig, self, displacement) =>
+            {
+                tryMultiplyForce(self.hasEffectiveAuthority, ref displacement);
+                orig(self, displacement);
+            };
+
+            On.RoR2.RigidbodyMotor.AddDisplacement += (orig, self, displacement) =>
+            {
+                tryMultiplyForce(self.hasEffectiveAuthority, ref displacement);
+                orig(self, displacement);
+            };
         }
 
         static void tryMultiplyForce(bool hasAuthority, ref PhysForceInfo forceInfo)
+        {
+            tryMultiplyForce(hasAuthority, ref forceInfo.force);
+        }
+
+        static void tryMultiplyForce(bool hasAuthority, ref Vector3 force)
         {
             if (!hasAuthority)
             {
@@ -37,7 +55,7 @@ namespace RiskOfChaos.Patches
             if (!KnockbackModificationManager.Instance || !KnockbackModificationManager.Instance.AnyModificationActive)
                 return;
 
-            forceInfo.force *= KnockbackModificationManager.Instance.NetworkedTotalKnockbackMultiplier;
+            force *= KnockbackModificationManager.Instance.NetworkedTotalKnockbackMultiplier;
         }
     }
 }
