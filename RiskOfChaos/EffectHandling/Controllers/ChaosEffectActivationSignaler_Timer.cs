@@ -36,6 +36,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         void OnEnable()
         {
             Configs.General.TimeBetweenEffects.SettingChanged += onTimeBetweenEffectsConfigChanged;
+            Configs.EffectSelection.SeededEffectSelection.SettingChanged += onSeededEffectSelectionConfigChanged;
 
             _effectDispatchTimer = new CompletePeriodicRunTimer(Configs.General.TimeBetweenEffects.Value);
             _effectDispatchTimer.OnActivate += dispatchRandomEffect;
@@ -71,6 +72,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         void OnDisable()
         {
             Configs.General.TimeBetweenEffects.SettingChanged -= onTimeBetweenEffectsConfigChanged;
+            Configs.EffectSelection.SeededEffectSelection.SettingChanged -= onSeededEffectSelectionConfigChanged;
 
             if (_effectDispatchTimer != null)
             {
@@ -167,6 +169,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 NextEffectRng = new SerializableRng(_nextEffectRNG),
                 LastEffectActivationTime = _effectDispatchTimer.GetLastActivationTimeStopwatch()
             };
+        }
+
+        void onSeededEffectSelectionConfigChanged(object sender, ConfigChangedArgs<bool> e)
+        {
+            updateNextEffect();
         }
 
         void onTimeBetweenEffectsConfigChanged(object s, ConfigChangedArgs<float> args)
