@@ -21,6 +21,9 @@ namespace RiskOfChaos.Networking.Components.Effects
         EffectNameFormatter _nextEffectNameFormatter = null;
         const uint NEXT_EFFECT_FORMAT_ARGS_DIRTY_BIT = 1 << 2;
 
+        bool _hasValidEffectState = false;
+        const uint HAS_VALID_EFFECT_STATE_DIRTY_BIT = 1 << 3;
+
         void OnEnable()
         {
             SingletonHelper.Assign(ref _instance, this);
@@ -31,14 +34,11 @@ namespace RiskOfChaos.Networking.Components.Effects
             SingletonHelper.Unassign(ref _instance, this);
         }
 
-        readonly record struct NextEffectState(ChaosEffectIndex EffectIndex, Run.FixedTimeStamp ActivationTime, EffectNameFormatter DisplayNameFormatter)
-        {
-            public static readonly NextEffectState None = new NextEffectState(ChaosEffectIndex.Invalid, Run.FixedTimeStamp.negativeInfinity, null);
-        }
+        readonly record struct NextEffectState(ChaosEffectIndex EffectIndex, Run.FixedTimeStamp ActivationTime, EffectNameFormatter DisplayNameFormatter);
 
         static bool tryGetNextEffectState(out NextEffectState nextEffectState)
         {
-            nextEffectState = NextEffectState.None;
+            nextEffectState = default;
 
             ChaosEffectDispatcher effectDispatcher = ChaosEffectDispatcher.Instance;
             if (!effectDispatcher || !effectDispatcher.HasAttemptedDispatchAnyEffectServer)
@@ -48,15 +48,21 @@ namespace RiskOfChaos.Networking.Components.Effects
             if (!effectSignaler)
                 return false;
 
-            ChaosEffectIndex nextEffectIndex = effectSignaler.GetUpcomingEffect();
-            if (nextEffectIndex == ChaosEffectIndex.Invalid)
-                return false;
-
-            ChaosEffectInfo nextEffectInfo = ChaosEffectCatalog.GetEffectInfo(nextEffectIndex);
-
             Run.FixedTimeStamp activationTime = Run.FixedTimeStamp.now + effectSignaler.GetTimeUntilNextEffect();
 
-            EffectNameFormatter displayNameFormatter = nextEffectInfo.LocalDisplayNameFormatter;
+            ChaosEffectIndex nextEffectIndex = effectSignaler.GetUpcomingEffect();
+
+            EffectNameFormatter displayNameFormatter;
+            if (nextEffectIndex != ChaosEffectIndex.Invalid)
+            {
+                ChaosEffectInfo nextEffectInfo = ChaosEffectCatalog.GetEffectInfo(nextEffectIndex);
+
+                displayNameFormatter = nextEffectInfo.LocalDisplayNameFormatter;
+            }
+            else
+            {
+                displayNameFormatter = EffectNameFormatter_None.Instance;
+            }
 
             nextEffectState = new NextEffectState(nextEffectIndex, activationTime, displayNameFormatter);
             return true;
@@ -64,7 +70,7 @@ namespace RiskOfChaos.Networking.Components.Effects
 
         void refreshNextEffectState()
         {
-            if (tryGetNextEffectState(out NextEffectState nextEffectState))
+            if (NetworkHasValidNextEffectState = tryGetNextEffectState(out NextEffectState nextEffectState))
             {
                 NetworkNextEffectIndex = nextEffectState.EffectIndex;
                 NetworkNextEffectActivationTime = nextEffectState.ActivationTime;
@@ -74,7 +80,7 @@ namespace RiskOfChaos.Networking.Components.Effects
             {
                 NetworkNextEffectIndex = ChaosEffectIndex.Invalid;
                 NetworkNextEffectActivationTime = Run.FixedTimeStamp.negativeInfinity;
-                NetworkNextEffectNameFormatter = null;
+                NetworkNextEffectNameFormatter = EffectNameFormatter_None.Instance;
             }
         }
 
@@ -137,6 +143,18 @@ namespace RiskOfChaos.Networking.Components.Effects
             }
         }
 
+        public bool NetworkHasValidNextEffectState
+        {
+            get
+            {
+                return _hasValidEffectState;
+            }
+            private set
+            {
+                SetSyncVar(value, ref _hasValidEffectState, HAS_VALID_EFFECT_STATE_DIRTY_BIT);
+            }
+        }
+
         public override bool OnSerialize(NetworkWriter writer, bool initialState)
         {
             if (initialState)
@@ -145,6 +163,8 @@ namespace RiskOfChaos.Networking.Components.Effects
                 writer.Write(_nextEffectActivationTime);
 
                 writer.Write(_nextEffectNameFormatter);
+
+                writer.Write(_hasValidEffectState);
 
                 return true;
             }
@@ -171,6 +191,12 @@ namespace RiskOfChaos.Networking.Components.Effects
                 anythingWritten = true;
             }
 
+            if ((dirtyBits & HAS_VALID_EFFECT_STATE_DIRTY_BIT) != 0)
+            {
+                writer.Write(_hasValidEffectState);
+                anythingWritten = true;
+            }
+
             return anythingWritten;
         }
 
@@ -182,6 +208,8 @@ namespace RiskOfChaos.Networking.Components.Effects
                 _nextEffectActivationTime = reader.ReadFixedTimeStamp();
 
                 _nextEffectNameFormatter = reader.ReadEffectNameFormatter();
+
+                _hasValidEffectState = reader.ReadBoolean();
 
                 return;
             }
@@ -200,6 +228,11 @@ namespace RiskOfChaos.Networking.Components.Effects
             if ((dirtyBits & NEXT_EFFECT_FORMAT_ARGS_DIRTY_BIT) != 0)
             {
                 _nextEffectNameFormatter = reader.ReadEffectNameFormatter();
+            }
+
+            if ((dirtyBits & HAS_VALID_EFFECT_STATE_DIRTY_BIT) != 0)
+            {
+                _hasValidEffectState = reader.ReadBoolean();
             }
         }
     }

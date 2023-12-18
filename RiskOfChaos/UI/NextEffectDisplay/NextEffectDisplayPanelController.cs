@@ -1,9 +1,12 @@
 ﻿using R2API;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.Networking.Components.Effects;
 using RiskOfChaos.Trackers;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.UI;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -116,18 +119,23 @@ namespace RiskOfChaos.UI.NextEffectDisplay
 
         Vector3 _velocity;
 
-        static EffectDisplayData getEffectDisplayData()
+        EffectDisplayData? getEffectDisplayData()
         {
-            if (Configs.UI.DisplayNextEffect.Value)
+            NextEffectProvider nextEffectProvider = NextEffectProvider.Instance;
+            if (nextEffectProvider && nextEffectProvider.NetworkHasValidNextEffectState)
             {
-                NextEffectProvider nextEffectProvider = NextEffectProvider.Instance;
-                if (nextEffectProvider)
+                ChaosEffectIndex nextEffect = nextEffectProvider.NetworkNextEffectIndex;
+                if (Configs.UI.DisplayNextEffect.Value && nextEffect != ChaosEffectIndex.Invalid)
                 {
-                    return new EffectDisplayData(nextEffectProvider.NetworkNextEffectIndex, nextEffectProvider.NetworkNextEffectActivationTime.timeUntilClamped, nextEffectProvider.NetworkNextEffectNameFormatter);
+                    return new EffectDisplayData(nextEffect, nextEffectProvider.NetworkNextEffectActivationTime.timeUntilClamped, nextEffectProvider.NetworkNextEffectNameFormatter);
+                }
+                else if (Configs.UI.ShouldShowNextEffectTimer(_ownerHud))
+                {
+                    return new EffectDisplayData(ChaosEffectIndex.Invalid, nextEffectProvider.NetworkNextEffectActivationTime.timeUntilClamped, EffectNameFormatter_None.Instance);
                 }
             }
 
-            return EffectDisplayData.None;
+            return null;
         }
 
         bool isNotificationShowing()
@@ -151,9 +159,9 @@ namespace RiskOfChaos.UI.NextEffectDisplay
             transform.localPosition = Vector3.SmoothDamp(transform.localPosition, targetPosition, ref _velocity, 0.1f, float.PositiveInfinity, Time.fixedUnscaledDeltaTime);
         }
 
-        public void SetEffectDisplay(EffectDisplayData displayData)
+        public void SetEffectDisplay(EffectDisplayData? displayData)
         {
-            if (displayData.EffectIndex > ChaosEffectIndex.Invalid)
+            if (displayData.HasValue)
             {
                 if (!_currentDisplay)
                 {
@@ -164,7 +172,7 @@ namespace RiskOfChaos.UI.NextEffectDisplay
                     _currentDisplay.gameObject.SetActive(true);
                 }
 
-                _currentDisplay.DisplayEffect(displayData);
+                _currentDisplay.DisplayEffect(displayData.Value);
             }
             else
             {

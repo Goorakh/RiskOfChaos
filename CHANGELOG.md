@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* UI:
+  * Added a panel showing when the next effect will happen if the normal run timer isn't visible (can be disabled in General->UI config)
+
 * Inventory Swap:
   * Now also swaps players' active equipment
 
