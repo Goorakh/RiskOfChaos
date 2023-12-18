@@ -13,4 +13,16 @@ namespace RiskOfChaos.ConfigHandling
             NewValue = Holder.Value;
         }
     }
+
+    public class ConfigChangedArgs : EventArgs
+    {
+        public readonly ConfigHolderBase Holder;
+        public readonly object NewValue;
+
+        public ConfigChangedArgs(ConfigHolderBase configHolder)
+        {
+            Holder = configHolder;
+            NewValue = Holder.BoxedValue;
+        }
+    }
 }

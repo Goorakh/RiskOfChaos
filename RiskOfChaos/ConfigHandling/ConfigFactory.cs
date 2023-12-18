@@ -18,6 +18,8 @@ namespace RiskOfChaos.ConfigHandling
 
         BaseOptionConfig _optionConfig;
 
+        ConfigFlags _flags;
+
         readonly List<EventHandler<ConfigChangedArgs<T>>> _configChangedListeners = new List<EventHandler<ConfigChangedArgs<T>>>();
 
         readonly List<string> _previousKeys = new List<string>();
@@ -93,6 +95,12 @@ namespace RiskOfChaos.ConfigHandling
             return this;
         }
 
+        public ConfigFactory<T> Networked()
+        {
+            _flags |= ConfigFlags.Networked;
+            return this;
+        }
+
         public ConfigHolder<T> Build()
         {
             ConfigHolder<T> configHolder = new ConfigHolder<T>(_key,
@@ -103,7 +111,8 @@ namespace RiskOfChaos.ConfigHandling
                                                                _valueValidator ?? CommonValueValidators.None<T>(),
                                                                _optionConfig,
                                                                _previousKeys.ToArray(),
-                                                               _previousSections.ToArray());
+                                                               _previousSections.ToArray(),
+                                                               _flags);
 
             foreach (EventHandler<ConfigChangedArgs<T>> listener in _configChangedListeners)
             {

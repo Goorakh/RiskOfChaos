@@ -68,6 +68,8 @@ namespace RiskOfChaos
 
         public static GameObject DummyDamageInflictorPrefab { get; private set; }
 
+        public static GameObject ConfigNetworkerPrefab { get; private set; }
+
         static GameObject createEmptyPrefabObject(string name, bool networked = true)
         {
             GameObject tmp = new GameObject(name);
@@ -289,6 +291,14 @@ namespace RiskOfChaos
                 DummyDamageInflictorPrefab.AddComponent<SetDontDestroyOnLoad>();
                 DummyDamageInflictorPrefab.AddComponent<DestroyOnRunEnd>();
                 DummyDamageInflictorPrefab.AddComponent<DummyDamageInflictor>();
+            }
+
+            // ConfigNetworkerPrefab
+            {
+                ConfigNetworkerPrefab = createEmptyPrefabObject("ConfigNetworker");
+                ConfigNetworkerPrefab.AddComponent<SetDontDestroyOnLoad>();
+                ConfigNetworkerPrefab.AddComponent<DestroyOnRunEnd>();
+                ConfigNetworkerPrefab.AddComponent<SyncConfigValue>();
             }
 
             Run.onRunStartGlobal += onRunStart;

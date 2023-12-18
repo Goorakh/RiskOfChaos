@@ -11,25 +11,39 @@ namespace RiskOfChaos.ConfigHandling
 {
     public class ConfigHolder<T> : ConfigHolderBase
     {
-        public readonly string Key;
         public readonly T DefaultValue;
-        public readonly ConfigDescription Description;
         public readonly IEqualityComparer<T> EqualityComparer;
         public readonly ValueConstrictor<T> ValueConstrictor;
         public readonly ValueValidator<T> ValueValidator;
 
-        BaseOptionConfig _optionConfig;
+        public new ConfigEntry<T> Entry
+        {
+            get => (ConfigEntry<T>)base.Entry;
+            protected set => base.Entry = value;
+        }
 
-        readonly string[] _previousKeys;
-        string[] _previousConfigSectionNames;
-
-        ConfigFile _configFile;
-        public ConfigEntry<T> Entry { get; private set; }
+        public T LocalValue
+        {
+            get => (T)LocalBoxedValue;
+            set => LocalBoxedValue = value;
+        }
 
         public T Value
         {
             get
             {
+                if (_hasServerOverrideValue)
+                {
+                    if (_serverOverrideValue is T serverOverrideValue)
+                    {
+                        return serverOverrideValue;
+                    }
+                    else
+                    {
+                        Log.Error("Server override value type does not match");
+                    }
+                }
+
                 if (Entry != null)
                 {
                     T value = Entry.Value;
@@ -43,24 +57,27 @@ namespace RiskOfChaos.ConfigHandling
             }
         }
 
-        public event EventHandler<ConfigChangedArgs<T>> SettingChanged;
+        public new event EventHandler<ConfigChangedArgs<T>> SettingChanged;
 
-        public delegate void OnBindDelegate(ConfigEntry<T> entry);
-        public event OnBindDelegate OnBind;
+        public new delegate void OnBindDelegate(ConfigEntry<T> entry);
+        public new event OnBindDelegate OnBind;
 
-        public ConfigHolder(string key, T defaultValue, ConfigDescription description, IEqualityComparer<T> equalityComparer, ValueConstrictor<T> valueConstrictor, ValueValidator<T> valueValidator, BaseOptionConfig optionConfig, string[] previousKeys, string[] previousSections)
+        public ConfigHolder(string key,
+                            T defaultValue,
+                            ConfigDescription description,
+                            IEqualityComparer<T> equalityComparer,
+                            ValueConstrictor<T> valueConstrictor,
+                            ValueValidator<T> valueValidator,
+                            BaseOptionConfig optionConfig,
+                            string[] previousKeys,
+                            string[] previousSections,
+                            ConfigFlags flags) : base(key, description, previousKeys, previousSections, flags)
         {
-            if (string.IsNullOrEmpty(key))
-                throw new ArgumentException($"'{nameof(key)}' cannot be null or empty.", nameof(key));
-
-            Key = key;
             DefaultValue = defaultValue;
-            Description = description ?? throw new ArgumentNullException(nameof(description));
             EqualityComparer = equalityComparer ?? throw new ArgumentNullException(nameof(equalityComparer));
             ValueConstrictor = valueConstrictor ?? throw new ArgumentNullException(nameof(valueConstrictor));
             ValueValidator = valueValidator ?? throw new ArgumentNullException(nameof(valueValidator));
             _optionConfig = optionConfig;
-            _previousKeys = previousKeys ?? throw new ArgumentNullException(nameof(previousKeys));
             _previousConfigSectionNames = previousSections ?? throw new ArgumentNullException(nameof(previousSections));
         }
 
@@ -77,9 +94,18 @@ namespace RiskOfChaos.ConfigHandling
             invokeSettingChanged();
         }
 
-        void invokeSettingChanged()
+        protected override void invokeSettingChanged()
         {
+            base.invokeSettingChanged();
+
             SettingChanged?.Invoke(this, new ConfigChangedArgs<T>(this));
+        }
+
+        protected override void invokeOnBind()
+        {
+            base.invokeOnBind();
+
+            OnBind?.Invoke(Entry);
         }
 
         public void SetOptionConfig(BaseOptionConfig newConfig)
@@ -128,13 +154,15 @@ namespace RiskOfChaos.ConfigHandling
         {
             _configFile = file;
 
+            Definition = new ConfigDefinition(section, Key);
+
             if (_previousKeys != null && _previousKeys.Length > 0)
             {
-                Entry = bindConfigFile(new ConfigDefinition(section, Key), _previousKeys);
+                Entry = bindConfigFile(Definition, _previousKeys);
             }
             else
             {
-                Entry = bindConfigFile(new ConfigDefinition(section, Key));
+                Entry = bindConfigFile(Definition);
             }
 
             if (Entry != null)
@@ -142,7 +170,12 @@ namespace RiskOfChaos.ConfigHandling
                 Entry.SettingChanged += Entry_SettingChanged;
                 invokeSettingChanged();
 
-                OnBind?.Invoke(Entry);
+                invokeOnBind();
+            }
+
+            if ((Flags & ConfigFlags.Networked) != 0)
+            {
+                NetworkedConfigManager.RegisterNetworkedConfig(this);
             }
 
             setupOption(modGuid, modName);
