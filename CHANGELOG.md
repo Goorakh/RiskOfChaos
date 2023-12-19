@@ -13,6 +13,9 @@
   * Fixed overlapping UI if effect was activated during the actual moon escape sequence
   * Added config option to disable the countdown UI
 
+* Recruit Random Enemy:
+  * Now includes any name modifiers a character might have to the chat message (Blazing, Gummy, etc.)
+
 * Effect Shortcuts:
   * Fixed shortcuts being blocked by every other input (eg. if a shortcut was set to the '-' key, you would only be able to activate the shortcut if '-' was the only key currently being pressed)
   * Fixed effect shortcuts being activatable while paused

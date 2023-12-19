@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Content;
+﻿using RiskOfChaos.ChatMessages;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -145,10 +146,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 }
                 else
                 {
-                    Chat.SendBroadcastChat(new SubjectChatMessage
+                    Chat.SendBroadcastChat(new BestNameSubjectChatMessage
                     {
-                        baseToken = isBoss ? "RECRUIT_BOSS_MESSAGE" : "RECRUIT_ENEMY_MESSAGE",
-                        subjectAsCharacterBody = _enemyToConvert
+                        BaseToken = isBoss ? "RECRUIT_BOSS_MESSAGE" : "RECRUIT_ENEMY_MESSAGE",
+                        SubjectAsCharacterBody = _enemyToConvert
                     });
                 }
             }
