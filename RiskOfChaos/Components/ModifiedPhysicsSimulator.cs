@@ -3,42 +3,37 @@ using UnityEngine;
 
 namespace RiskOfChaos.Components
 {
-    [RequireComponent(typeof(PhysicsModificationManager))]
     public class ModifiedPhysicsSimulator : MonoBehaviour
     {
-        PhysicsModificationManager _physicsModificationManager;
-
-        float _physicsStepTimer = 0f;
-
-        void Awake()
+        void FixedUpdate()
         {
-            _physicsModificationManager = GetComponent<PhysicsModificationManager>();
-        }
+            PhysicsModificationManager physicsModificationManager = PhysicsModificationManager.Instance;
 
-        void Update()
-        {
-            if (!_physicsModificationManager)
-                return;
-
-            if (Physics.autoSimulation != _physicsModificationManager.ShouldAutoSimulatePhysics)
+            bool autoSimulate;
+            float speedMultiplier;
+            if (physicsModificationManager)
             {
-                Physics.autoSimulation = _physicsModificationManager.ShouldAutoSimulatePhysics;
+                autoSimulate = physicsModificationManager.ShouldAutoSimulatePhysics;
+                speedMultiplier = physicsModificationManager.NetworkedTotalSimulationSpeedMultiplier;
+            }
+            else
+            {
+                autoSimulate = true;
+                speedMultiplier = 1f;
+            }
+
+            if (Physics.autoSimulation != autoSimulate)
+            {
+                Physics.autoSimulation = autoSimulate;
 
 #if DEBUG
                 Log.Debug($"autoSimulation={Physics.autoSimulation}");
 #endif
             }
 
-            if (Physics.autoSimulation)
-                return;
-
-            _physicsStepTimer += Time.deltaTime;
-
-            float fixedDeltaTime = Time.fixedDeltaTime;
-            while (_physicsStepTimer > fixedDeltaTime)
+            if (!autoSimulate)
             {
-                _physicsStepTimer -= fixedDeltaTime;
-                Physics.Simulate(fixedDeltaTime * _physicsModificationManager.NetworkedTotalSimulationSpeedMultiplier);
+                Physics.Simulate(Time.fixedDeltaTime * speedMultiplier);
             }
         }
     }
