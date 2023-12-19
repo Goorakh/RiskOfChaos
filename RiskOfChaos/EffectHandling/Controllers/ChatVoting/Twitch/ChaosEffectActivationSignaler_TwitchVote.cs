@@ -48,10 +48,10 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             };
         }
 
-        const string ROC_TWUTCH_LOGIN_COMMAND = "roc_twitch_login";
-        const string ROC_TWITCH_LOGIN_COMMAND_USAGE = $"{ROC_TWUTCH_LOGIN_COMMAND} [username] [oauth]";
+        const string ROC_TWITCH_LOGIN_COMMAND = "roc_twitch_login";
+        const string ROC_TWITCH_LOGIN_COMMAND_USAGE = $"{ROC_TWITCH_LOGIN_COMMAND} [username] [oauth]";
 
-        [ConCommand(commandName = ROC_TWUTCH_LOGIN_COMMAND, helpText = $"Saves Twitch connection credentials so the mod can connect to your Twitch channel. Usage: {ROC_TWITCH_LOGIN_COMMAND_USAGE}")]
+        [ConCommand(commandName = ROC_TWITCH_LOGIN_COMMAND, helpText = $"Saves Twitch connection credentials so the mod can connect to your Twitch channel. Usage: {ROC_TWITCH_LOGIN_COMMAND_USAGE}")]
         static void CCLogin(ConCommandArgs args)
         {
             if (args.Count == 0)
