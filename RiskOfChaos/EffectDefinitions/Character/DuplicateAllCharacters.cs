@@ -79,10 +79,12 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                 if (result.spawnedInstance.TryGetComponent(out CharacterMaster spawnedMaster))
                 {
-                    BossGroup bossGroup = BossGroup.FindBossGroup(body);
-                    if (bossGroup && bossGroup.combatSquad)
+                    foreach (CombatSquad combatSquad in InstanceTracker.GetInstancesList<CombatSquad>())
                     {
-                        bossGroup.combatSquad.AddMember(spawnedMaster);
+                        if (!combatSquad.propagateMembershipToSummons && combatSquad.HasContainedMember(master.netId))
+                        {
+                            combatSquad.AddMember(spawnedMaster);
+                        }
                     }
                 }
             };

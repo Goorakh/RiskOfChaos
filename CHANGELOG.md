@@ -15,6 +15,9 @@
 
 * Recruit Random Enemy:
   * Now includes any name modifiers a character might have to the chat message (Blazing, Gummy, etc.)
+  
+* Recruit Random Enemy & Mitosis:
+  * Fixed characters sometimes not being added/removed from combat groups properly, causing potential softlocks
 
 * Effect Shortcuts:
   * Fixed shortcuts being blocked by every other input (eg. if a shortcut was set to the '-' key, you would only be able to activate the shortcut if '-' was the only key currently being pressed)

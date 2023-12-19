@@ -126,12 +126,14 @@ namespace RiskOfChaos.EffectDefinitions.Character
                         ai.ForceAcquireNearestEnemyIfNoCurrentEnemy();
                     }
 
-                    BossGroup bossGroup = BossGroup.FindBossGroup(_enemyToConvert);
-                    if (bossGroup)
+                    foreach (CombatSquad combatSquad in InstanceTracker.GetInstancesList<CombatSquad>())
                     {
+                        if (combatSquad.ContainsMember(master))
+                        {
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                        bossGroup.combatSquad.RemoveMember(master);
+                            combatSquad.RemoveMember(master);
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
+                        }
                     }
 
                     master.gameObject.SetDontDestroyOnLoad(true);
