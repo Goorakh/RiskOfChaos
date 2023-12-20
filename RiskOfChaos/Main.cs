@@ -7,6 +7,7 @@ using RiskOfChaos.Networking;
 using RiskOfChaos.Utilities;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 
 namespace RiskOfChaos
 {
@@ -25,6 +26,8 @@ namespace RiskOfChaos
         public const string PluginAuthor = "Gorakh";
         public const string PluginName = "RiskOfChaos";
         public const string PluginVersion = "1.13.6";
+
+        Harmony _harmonyInstance;
 
         public static string ModDirectory { get; private set; }
 
@@ -55,8 +58,8 @@ namespace RiskOfChaos
                 ProperSaveCompat.Init();
             }
 
-            Harmony harmony = new Harmony(PluginGUID);
-            harmony.PatchAll();
+            _harmonyInstance = new Harmony("com." + PluginGUID);
+            _harmonyInstance.PatchAll(Assembly.GetExecutingAssembly());
 
             initConfigs();
 
@@ -77,6 +80,8 @@ namespace RiskOfChaos
             {
                 ProperSaveCompat.Cleanup();
             }
+
+            _harmonyInstance?.UnpatchSelf();
         }
     }
 }
