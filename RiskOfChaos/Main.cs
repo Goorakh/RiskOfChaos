@@ -26,9 +26,9 @@ namespace RiskOfChaos
         public const string PluginName = "RiskOfChaos";
         public const string PluginVersion = "1.13.6";
 
-        internal static string ModDirectory { get; private set; }
+        public static string ModDirectory { get; private set; }
 
-        public ContentPackProvider ContentPackProvider;
+        public ContentPackProvider ContentPackProvider { get; private set; }
 
         void Awake()
         {
