@@ -1,6 +1,12 @@
 ## Changelog
 
-**1.13.6 Changes:**
+**?.?.? Changes:**
+
+* Aspect Roulette
+  * Added configs for controlling the likelyhood of each aspect
+
+<details>
+  <summary>1.13.6 Changes:</summary>
 
 * UI:
   * Added a panel showing when the next effect will happen if the normal run timer isn't visible (can be disabled in General->UI config)
@@ -22,6 +28,8 @@
 * Effect Shortcuts:
   * Fixed shortcuts being blocked by every other input (eg. if a shortcut was set to the '-' key, you would only be able to activate the shortcut if '-' was the only key currently being pressed)
   * Fixed effect shortcuts being activatable while paused
+
+</details>
 
 <details>
   <summary>1.13.5 Changes:</summary>

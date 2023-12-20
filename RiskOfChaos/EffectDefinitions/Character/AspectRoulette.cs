@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using HG;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -9,6 +10,7 @@ using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -17,12 +19,88 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [ChaosTimedEffect("aspect_roulette", 60f, AllowDuplicates = false)]
     public sealed class AspectRoulette : TimedEffect
     {
+        [InitEffectInfo]
+        static readonly TimedEffectInfo _effectInfo;
+
         [EffectConfig]
         static readonly ConfigHolder<bool> _allowDirectorUnavailableElites =
             ConfigFactory<bool>.CreateConfig("Ignore Elite Selection Rules", false)
                                .Description("If the effect should ignore normal elite selection rules. If enabled, any elite type can be selected, if disabled, only the elite types that can currently be spawned on the stage can be selected")
                                .OptionConfig(new CheckBoxConfig())
                                .Build();
+
+        readonly struct AspectConfig
+        {
+            public readonly EliteDef EliteDef;
+
+            public readonly ConfigHolder<float> WeightConfig;
+
+            public AspectConfig(EliteDef eliteDef)
+            {
+                EliteDef = eliteDef;
+
+                Language language = Language.FindLanguageByName("en");
+                string equipmentName = language.GetLocalizedStringByToken(eliteDef.eliteEquipmentDef.nameToken);
+                string eliteName = language.GetLocalizedFormattedStringByToken(eliteDef.modifierToken, string.Empty).Trim();
+
+                string combinedEliteName = $"{equipmentName} ({eliteName})";
+
+                WeightConfig =
+                    ConfigFactory<float>.CreateConfig($"{combinedEliteName.FilterConfigKey()} Weight", 1f)
+                                        .Description($"Controls how likely the {eliteName.ToLower()} elite aspect is during the effect")
+                                        .OptionConfig(new StepSliderConfig
+                                        {
+                                            min = 0f,
+                                            max = 2.5f,
+                                            increment = 0.05f
+                                        })
+                                        .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
+                                        .Build();
+            }
+
+            public readonly void Bind(ChaosEffectInfo effectInfo)
+            {
+                WeightConfig.Bind(effectInfo);
+            }
+        }
+
+        static AspectConfig[] _aspectConfigs = Array.Empty<AspectConfig>();
+        static float getAspectWeight(EliteIndex eliteIndex)
+        {
+            if (ArrayUtils.IsInBounds(_aspectConfigs, (int)eliteIndex))
+            {
+                AspectConfig aspectConfig = _aspectConfigs[(int)eliteIndex];
+                if (aspectConfig.WeightConfig is not null)
+                {
+                    return aspectConfig.WeightConfig.Value;
+                }
+            }
+
+            return 0f;
+        }
+
+        [SystemInitializer(typeof(ChaosEffectCatalog), typeof(EliteCatalog))]
+        static void Init()
+        {
+            _aspectConfigs = new AspectConfig[EliteCatalog.eliteList.Count];
+            for (int i = 0; i < _aspectConfigs.Length; i++)
+            {
+                EliteDef eliteDef = EliteCatalog.GetEliteDef((EliteIndex)i);
+                if (eliteDef.name.EndsWith("Honor"))
+                    continue;
+
+                if (Language.IsTokenInvalid(eliteDef.modifierToken) || Language.IsTokenInvalid(eliteDef.eliteEquipmentDef.nameToken))
+                    continue;
+
+                _aspectConfigs[i] = new AspectConfig(eliteDef);
+            }
+
+            foreach (AspectConfig config in _aspectConfigs.Where(c => c.EliteDef && c.WeightConfig is not null)
+                                                          .OrderBy(c => Language.GetString(c.EliteDef.modifierToken, "en")))
+            {
+                config.Bind(_effectInfo);
+            }
+        }
 
         bool _isSeeded;
 
@@ -35,8 +113,16 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         static AspectStep generateStep(Xoroshiro128Plus rng)
         {
-            EquipmentIndex aspectEquipmentIndex = EliteUtils.SelectEliteEquipment(rng.Branch(), _allowDirectorUnavailableElites.Value);
-            return new AspectStep(aspectEquipmentIndex, rng.RangeFloat(MIN_ASPECT_DURATION, MAX_ASPECT_DURATION));
+            EliteIndex[] elites = EliteUtils.GetElites(_allowDirectorUnavailableElites.Value);
+
+            WeightedSelection<EquipmentIndex> eliteEquipmentSelector = new WeightedSelection<EquipmentIndex>(elites.Length);
+            foreach (EliteIndex eliteIndex in elites)
+            {
+                EliteDef eliteDef = EliteCatalog.GetEliteDef(eliteIndex);
+                eliteEquipmentSelector.AddChoice(eliteDef.eliteEquipmentDef.equipmentIndex, getAspectWeight(eliteIndex));
+            }
+
+            return new AspectStep(eliteEquipmentSelector.GetRandom(rng), rng.RangeFloat(MIN_ASPECT_DURATION, MAX_ASPECT_DURATION));
         }
 
         AspectStep getCurrentAspectStep(CharacterBody body)

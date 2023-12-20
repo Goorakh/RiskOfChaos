@@ -124,6 +124,24 @@ namespace RiskOfChaos.Utilities
 
         public static EquipmentIndex SelectEliteEquipment(Xoroshiro128Plus rng, bool allowDirectorUnavailableElites)
         {
+            EquipmentIndex[] eliteEquipments = GetEliteEquipments(allowDirectorUnavailableElites);
+            if (eliteEquipments.Length > 0)
+            {
+                return rng.NextElementUniform(eliteEquipments);
+            }
+            else
+            {
+                return EquipmentIndex.None;
+            }
+        }
+
+        public static EquipmentIndex[] GetEliteEquipments(bool allowDirectorUnavailableElites)
+        {
+            return Array.ConvertAll(GetElites(allowDirectorUnavailableElites), e => EliteCatalog.GetEliteDef(e).eliteEquipmentDef.equipmentIndex);
+        }
+
+        public static EliteIndex[] GetElites(bool allowDirectorUnavailableElites)
+        {
             if (!allowDirectorUnavailableElites)
             {
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
@@ -133,18 +151,13 @@ namespace RiskOfChaos.Utilities
                 CombatDirector.EliteTierDef[] availableEliteTiers = eliteTiers.Where(e => e.eliteTypes.All(ed => ed) && e.CanSelect(SpawnCard.EliteRules.Default)).ToArray();
                 if (availableEliteTiers.Length > 0)
                 {
-                    CombatDirector.EliteTierDef eliteTier = rng.NextElementUniform(availableEliteTiers);
-                    EliteDef eliteDef = eliteTier.GetRandomAvailableEliteDef(rng);
-                    if (eliteDef)
-                    {
-                        return eliteDef.eliteEquipmentDef.equipmentIndex;
-                    }
+                    return availableEliteTiers.SelectMany(t => t.eliteTypes).Distinct().Select(e => e.eliteIndex).ToArray();
                 }
 
-                Log.Warning("No available elites, using random");
+                Log.Warning("No available elites, using full list");
             }
 
-            return GetRandomEliteEquipmentIndex(rng);
+            return EliteCatalog.eliteList.ToArray();
         }
     }
 }
