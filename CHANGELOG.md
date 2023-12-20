@@ -23,9 +23,8 @@
   * Fixed shortcuts being blocked by every other input (eg. if a shortcut was set to the '-' key, you would only be able to activate the shortcut if '-' was the only key currently being pressed)
   * Fixed effect shortcuts being activatable while paused
 
-**1.13.5 Changes:**
-
 <details>
+  <summary>1.13.5 Changes:</summary>
 
 * Added 2 effects:
   * Black Hole: Spawns a black hole somewhere on the map, sucking all characters in, lasts 45 seconds
@@ -42,18 +41,16 @@
 
 </details>
 
-**1.13.4 Changes:**
-
 <details>
+  <summary>1.13.4 Changes:</summary>
 
 * Chat Voting:
   * Fixed console error logspam
 
 </details>
 
-**1.13.3 Changes:**
-
 <details>
+  <summary>1.13.3 Changes:</summary>
 
 * Renamed effect: Void Implosion on Death -> Everyone Implodes on Death
 
@@ -65,9 +62,8 @@
 
 </details>
 
-**1.13.2 Changes:**
-
 <details>
+  <summary>1.13.2 Changes:</summary>
 
 * Give Random Item, Add Random Item to Monster Inventory, & All Items are a Random Item:
   * Fixed Eulogy Zero being able to influence the selection chance of items
@@ -81,18 +77,16 @@
 
 </details>
 
-**1.13.1 Changes:**
-
 <details>
+  <summary>1.13.1 Changes:</summary>
 
 * UI:
   * Fixed Next Effect panel sometimes not displaying effect name properly for non-host players in multiplayer
 
 </details>
 
-**1.13.0 Changes:**
-
 <details>
+  <summary>1.13.0 Changes:</summary>
 
 * Added 12 new effects:
   * Bouncy Items: Item drops will bounce on the ground before settling, lasts 60 seconds
@@ -242,9 +236,8 @@
 
 </details>
 
-**1.12.2 Changes:**
-
 <details>
+  <summary>1.12.2 Changes:</summary>
 
 * Reworked 1 effect:
   * Drop All Items -> Loose Pockets: Drops a random item from everyone's inventory every 0.9 seconds
@@ -273,9 +266,8 @@
 
 </details>
 
-**1.12.1 Changes:**
-
 <details>
+  <summary>1.12.1 Changes:</summary>
 
 * Risk of Thunder:
   * Increased lightning strike radius (3->6)
@@ -293,9 +285,8 @@
 
 </details>
 
-**1.12.0 Changes:**
-
 <details>
+  <summary>1.12.0 Changes:</summary>
 
 * Added 5 new effects:
   * Inventory Swap: Swaps the inventories of each player with another player. Multiplayer only.
@@ -319,9 +310,8 @@
 
 </details>
 
-**1.11.0 Changes:**
-
 <details>
+  <summary>1.11.0 Changes:</summary>
 
 * Added 1 new effect:
   * Relocate Teleporter: Moves the stage teleporter to a random position on the map
@@ -401,9 +391,8 @@
 
 </details>
 
-**1.10.1 Changes:**
-
 <details>
+  <summary>1.10.1 Changes:</summary>
 
 * Added 2 new effects:
   * Increase Skill Cooldowns: Increases cooldown for all skills, lasts 1 stage
@@ -423,9 +412,8 @@
 
 </details>
 
-**1.10.0 Changes:**
-
 <details>
+  <summary>1.10.0 Changes:</summary>
 
 * Added 9 new effects:
   * Recruit Random Enemy: Converts a random enemy on the stage to the player team
@@ -461,9 +449,8 @@
 
 </details>
 
-**1.9.1 Changes:**
-
 <details>
+  <summary>1.9.1 Changes:</summary>
 
 * Added 1 new effect:
   * Delayed Attacks: All attacks have a 0.5 second delay before happening, lasts 90 seconds
@@ -509,9 +496,8 @@
 
 </details>
 
-**1.9.0 Changes:**
-
 <details>
+  <summary>1.9.0 Changes:</summary>
 
 * Added 5 new effects:
   * No sprinting: Disables sprinting for all characters, lasts 30 seconds
@@ -547,9 +533,8 @@
 
 </details>
 
-**1.8.0 Changes:**
-
 <details>
+  <summary>1.8.0 Changes:</summary>
 
 * Added 6 new effects:
   * Aspect Roulette: Randomly switches the elite aspect of all characters (only affects players if they already have an aspect equipment)
@@ -587,9 +572,8 @@
 
 </details>
 
-**1.7.4 Changes:**
-
 <details>
+  <summary>1.7.4 Changes:</summary>
 
 * Reworked 1 effect:
   * Pause Physics -> Laggy Physics
@@ -603,9 +587,8 @@
 
 </details>
 
-**1.7.3 Changes:**
-
 <details>
+  <summary>1.7.3 Changes:</summary>
 
 * Bouncy Projectiles:
   * Effect can now be activated several times per stage (max number of bounces increases with each instance of the effect)
@@ -616,9 +599,8 @@
 
 </details>
 
-**1.7.2 Changes:**
-
 <details>
+  <summary>1.7.2 Changes:</summary>
 
 * Added 1 new effect:
   * Roll Credits: Starts the game credits
@@ -631,9 +613,8 @@
 
 </details>
 
-**1.7.1 Changes:**
-
 <details>
+  <summary>1.7.1 Changes:</summary>
 
 * UI:
   * Made active effects display take slightly less vertical space
@@ -656,9 +637,8 @@
 
 </details>
 
-**1.7.0 Changes:**
-
 <details>
+  <summary>1.7.0 Changes:</summary>
 
 * UI:
   * Active effects are now displayed on the HUD.
@@ -677,9 +657,8 @@
 
 </details>
 
-**1.6.0 Changes:**
-
 <details>
+  <summary>1.6.0 Changes:</summary>
 
 * Added 4 new effects:
   * Spawn Jump Pad: Spawns a random jump pad at every player
@@ -704,9 +683,8 @@
 
 </details>
 
-**1.5.0 Changes:**
-
 <details>
+  <summary>1.5.0 Changes:</summary>
 
 * Added 9 new effects:
   * Reinforcements: Spawns allied survivors in drop pods around the map.
@@ -737,9 +715,8 @@
 
 </details>
 
-**1.4.1 Changes:**
-
 <details>
+  <summary>1.4.1 Changes:</summary>
 
 * Added 1 new effect:
   * Steal All Player Items: Steals all items from every player and distributes them among enemies, damage the enemy that took items to gain them back (leaving the stage will also give all the items back)
@@ -766,9 +743,8 @@
 
 </details>
 
-**1.4.0 Changes:**
-
 <details>
+  <summary>1.4.0 Changes:</summary>
 
 * Added 5 new effects:
   * Blood Money: All interactable prices are converted into percent health cost, lasts 1 stage
@@ -791,9 +767,8 @@
 
 </details>
 
-**1.3.0 Changes:**
-
 <details>
+  <summary>1.3.0 Changes:</summary>
 
 * Added 5 new effects:
   * Guaranteed Chance Effects: All percent-chance effects are guaranteed to happen (effectively infinite luck stat on everything), lasts 1 stage
@@ -818,9 +793,8 @@
 
 </details>
 
-**1.2.1 Changes:**
-
 <details>
+  <summary>1.2.1 Changes:</summary>
 
 * Twitch Voting:
   * Fixed certain effects never being able to activate when effect voting was enabled
@@ -834,9 +808,8 @@
 
 </details>
 
-**1.2.0 Changes:**
-
 <details>
+  <summary>1.2.0 Changes:</summary>
 
 * Added 8 new effects:
   * All Items Are Void Potentials: All dropped items become Void Potentials. The original item is always guaranteed to be an option to prevent potential softlocks. Lasts 1 stage.
@@ -865,9 +838,8 @@
 
 </details>
 
-**1.1.0 Changes:**
-
 <details>
+  <summary>1.1.0 Changes:</summary>
 
 * Added 1 new effect:
   * Spawn Void Seed: Spawns a void seed somewhere on the map
@@ -903,9 +875,8 @@
 
 </details>
 
-**1.0.0 Changes:**
-
 <details>
+  <summary>1.0.0 Changes:</summary>
 
 * Twitch Integration:
   * Added Twitch Integration
@@ -915,9 +886,8 @@
 
 </details>
 
-**0.9.0 Changes:**
-
 <details>
+  <summary>0.9.0 Changes:</summary>
 
 * Added 4 new effects:
   * Disable Random Skill: Disables a random skill slot (Lasts 1 stage)
@@ -933,9 +903,8 @@
 
 </details>
 
-**0.8.1 Changes:**
-
 <details>
+  <summary>0.8.1 Changes:</summary>
 
 * Added 5 new effects:
   * Spawn Random Beacon: Spawns a random captain beacon on every player
@@ -958,9 +927,8 @@
 
 </details>
 
-**0.8.0 Changes:**
-
 <details>
+  <summary>0.8.0 Changes:</summary>
 
 * Potrolling: Pots now have invincibility for 1 second after spawning, so they can no longer explode immediately
 
@@ -984,9 +952,8 @@
 
 </details>
 
-**0.7.0 Changes:**
-
 <details>
+  <summary>0.7.0 Changes:</summary>
 
 * Effects will now activate in stages with the run timer paused
 * Fixed effects being able to activate while the game is paused if the time between effects config value is changed
@@ -997,9 +964,8 @@
 
 </details>
 
-**0.6.0 Changes:**
-
 <details>
+  <summary>0.6.0 Changes:</summary>
 
 * Added Effect: Increase Chest Prices
 * Added Effect: Decrease Chest Prices
@@ -1014,9 +980,8 @@
 
 </details>
 
-**0.5.0 Changes:**
-
 <details>
+  <summary>0.5.0 Changes:</summary>
 
 * Added Effect: Potrolling
 * Added Effect: Wet Floor
@@ -1025,9 +990,8 @@
 
 </details>
 
-**0.4.0 Changes:**
-
 <details>
+  <summary>0.4.0 Changes:</summary>
 
 * Added Effect: Warbanner
 * Added Effect: Spawn Doppelganger
@@ -1042,9 +1006,8 @@
 
 </details>
 
-**0.3.0 Changes:**
-
 <details>
+  <summary>0.3.0 Changes:</summary>
 
 * Added effect: Corrupt Random Item
 
@@ -1059,9 +1022,8 @@
 
 </details>
 
-**0.2.0 Changes:**
-
 <details>
+  <summary>0.2.0 Changes:</summary>
 
 * Added effect: Give Random Elite Aspect
 * Fixed Randomize Loadout forcing players out of the intro pod
@@ -1071,18 +1033,16 @@
 
 </details>
 
-**0.1.8 Changes:**
-
 <details>
+  <summary>0.1.8 Changes:</summary>
 
 * Removed (now unnecessary) R2API.Networking dependency
 * Fixed language tokens not loading due to invalid folder structure in last upload (oops)
 
 </details>
 
-**0.1.7 Changes:**
-
 <details>
+  <summary>0.1.7 Changes:</summary>
 
 * Added effect: +50% Gravity
 * Added effect: -50% Gravity
@@ -1090,60 +1050,53 @@
 
 </details>
 
-**0.1.6 Changes:**
-
 <details>
+  <summary>0.1.6 Changes:</summary>
 
 * Fixed language tokens not loading (for real this time)
 
 </details>
 
-**0.1.5 Changes:**
-
 <details>
+  <summary>0.1.5 Changes:</summary>
 
 * Added effect: Scrap Random Item
 * Randomize Loadout will no longer revive dead players
 
 </details>
 
-**0.1.4 Changes:**
-
 <details>
+  <summary>0.1.4 Changes:</summary>
 
 * Added effect: Mitosis
 * Use R2API split assemblies
 
 </details>
 
-**0.1.3 Changes:**
-
 <details>
+  <summary>0.1.3 Changes:</summary>
 
 * Added effect: You and a super intelligent Lemurian...
 
 </details>
 
-**0.1.2 Changes:**
-
 <details>
+  <summary>0.1.2 Changes:</summary>
 
 * Fix Randomize Loadout spawning players as a new survivor if Artifact of Metamorphosis was enabled.
 * (Hopefully) fix language tokens sometimes not loading properly
 
 </details>
 
-**0.1.1 Changes:**
-
 <details>
+  <summary>0.1.1 Changes:</summary>
 
 * README update
 
 </details>
 
-**0.1.0 Changes:**
-
 <details>
+  <summary>0.1.0 Changes:</summary>
 
 * First release
 
