@@ -58,45 +58,40 @@ namespace RiskOfChaos.ConfigHandling
 
         public static void SetOverrideValue(string definition, string serializedValue)
         {
+            if (string.IsNullOrEmpty(serializedValue))
+            {
+                ClearOverrideValue(definition);
+                return;
+            }
+
             if (!TryGetConfigByDefinition(definition, out ConfigHolderBase configHolder))
             {
                 Log.Error($"Networked config '{definition}' is not defined");
                 return;
             }
 
-            if (string.IsNullOrEmpty(serializedValue))
+            if (configHolder.Entry is null)
             {
-                configHolder.ClearServerOverrideValue();
+                Log.Error($"Config '{definition}' has not been binded");
+                return;
+            }
+
+            object value;
+            try
+            {
+                value = TomlTypeConverter.ConvertToValue(serializedValue, configHolder.Entry.SettingType);
+            }
+            catch (Exception e)
+            {
+                Log.Error_NoCallerPrefix($"Failed to deserialize networked config value for '{definition}': {e}");
+                return;
+            }
+
+            configHolder.SetServerOverrideValue(value);
 
 #if DEBUG
-                Log.Debug($"Cleared server override value for '{definition}'");
+            Log.Debug($"Set server override value: '{definition}' = {value}");
 #endif
-            }
-            else
-            {
-                if (configHolder.Entry is null)
-                {
-                    Log.Error($"Config '{definition}' has not been binded");
-                    return;
-                }
-
-                object value;
-                try
-                {
-                    value = TomlTypeConverter.ConvertToValue(serializedValue, configHolder.Entry.SettingType);
-                }
-                catch (Exception e)
-                {
-                    Log.Error_NoCallerPrefix($"Failed to deserialize networked config value for '{definition}': {e}");
-                    return;
-                }
-
-                configHolder.SetServerOverrideValue(value);
-
-#if DEBUG
-                Log.Debug($"Set server override value: '{definition}' = {value}");
-#endif
-            }
         }
 
         public static void ClearOverrideValue(string definition)
