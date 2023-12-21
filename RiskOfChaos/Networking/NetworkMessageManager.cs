@@ -11,6 +11,7 @@ namespace RiskOfChaos.Networking
             NetworkingAPI.RegisterMessageType<NetworkedTimedEffectEndMessage>();
 
             NetworkingAPI.RegisterMessageType<TeleportBodyMessage>();
+            NetworkingAPI.RegisterMessageType<SetObjectDontDestroyOnLoadMessage>();
         }
     }
 }
