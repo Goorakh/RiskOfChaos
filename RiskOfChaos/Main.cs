@@ -5,6 +5,7 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.ModCompatibility;
 using RiskOfChaos.Networking;
 using RiskOfChaos.Utilities;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -69,9 +70,27 @@ namespace RiskOfChaos
 
         void initConfigs()
         {
+            Config.SaveOnConfigSet = false;
+
             Configs.Init(Config);
 
             ChaosEffectCatalog.InitConfig(Config);
+
+            RoR2.RoR2Application.onLoad = (Action)Delegate.Combine(RoR2.RoR2Application.onLoad, () =>
+            {
+                Config.SaveOnConfigSet = true;
+
+#if DEBUG
+                Stopwatch stopwatch = Stopwatch.StartNew();
+#endif
+
+                Config.Save();
+
+#if DEBUG
+                Log.Debug($"Finished initializing config file (Written to file in {stopwatch.Elapsed.TotalMilliseconds:F0}ms)");
+                stopwatch.Stop();
+#endif
+            });
         }
 
         void OnDestroy()
