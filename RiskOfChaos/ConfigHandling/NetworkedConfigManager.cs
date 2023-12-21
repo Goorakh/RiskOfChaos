@@ -16,7 +16,12 @@ namespace RiskOfChaos.ConfigHandling
 
         public static void RegisterNetworkedConfig(ConfigHolderBase configHolder)
         {
-            _networkedConfigHolders.Add(configHolder.Definition.ToString(), configHolder);
+            string key = configHolder.Definition.ToString();
+            _networkedConfigHolders.Add(key, configHolder);
+
+#if DEBUG
+            Log.Debug($"Registered networked config: '{key}'");
+#endif
 
             if (!_hasRegisteredRunStartEvent)
             {
