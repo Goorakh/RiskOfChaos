@@ -169,7 +169,7 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
                 {
                     rolledPickups = Array.ConvertAll(entries, e => e.pickupIndex);
                 }
-                else
+                else if (dropTable)
                 {
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
                     Xoroshiro128Plus lootRNG = new Xoroshiro128Plus(0) { state0 = rouletteChestController.rng.state0, state1 = rouletteChestController.rng.state1 };
@@ -233,6 +233,11 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
 #if DEBUG
                 Log.Debug($"No usable component found on interactable {interactableObject}");
 #endif
+                yield break;
+            }
+
+            if (!dropTable)
+            {
                 yield break;
             }
 
