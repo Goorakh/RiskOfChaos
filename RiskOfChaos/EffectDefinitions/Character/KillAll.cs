@@ -4,7 +4,7 @@ using System;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("kill_all", DefaultSelectionWeight = 0.7f, EffectWeightReductionPercentagePerActivation = 20f)]
+    [ChaosEffect("kill_all", DefaultSelectionWeight = 0.7f)]
     public sealed class KillAll : BaseEffect
     {
         public override void OnStart()

@@ -5,6 +5,9 @@
 * Aspect Roulette
   * Added configs for controlling the likelyhood of each aspect
 
+* Effect Selection:
+  * Removed activation count based weight reduction. Effect weights are now more-or-less constant.
+
 <details>
   <summary>1.13.6 Changes:</summary>
 

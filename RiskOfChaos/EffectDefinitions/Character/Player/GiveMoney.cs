@@ -8,7 +8,7 @@ using RoR2;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
-    [ChaosEffect("give_money", EffectWeightReductionPercentagePerActivation = 0f)]
+    [ChaosEffect("give_money")]
     public sealed class GiveMoney : BaseEffect
     {
         [EffectConfig]

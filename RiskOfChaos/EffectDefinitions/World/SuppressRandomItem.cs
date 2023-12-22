@@ -1,6 +1,5 @@
 ﻿using HG;
 using RiskOfChaos.Components;
-using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.SaveHandling;
@@ -16,7 +15,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect(EFFECT_IDENTIFIER, EffectWeightReductionPercentagePerActivation = 10f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
+    [ChaosEffect(EFFECT_IDENTIFIER)]
     public sealed class SuppressRandomItem : BaseEffect
     {
         public const string EFFECT_IDENTIFIER = "suppress_random_item";

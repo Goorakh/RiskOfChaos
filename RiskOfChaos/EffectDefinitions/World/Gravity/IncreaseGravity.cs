@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Gravity
 {
-    [ChaosTimedEffect("increase_gravity", TimedEffectType.UntilStageEnd, ConfigName = "Increase Gravity", EffectWeightReductionPercentagePerActivation = 25f)]
+    [ChaosTimedEffect("increase_gravity", TimedEffectType.UntilStageEnd, ConfigName = "Increase Gravity")]
     public sealed class IncreaseGravity : GenericMultiplyGravityEffect
     {
         [EffectConfig]

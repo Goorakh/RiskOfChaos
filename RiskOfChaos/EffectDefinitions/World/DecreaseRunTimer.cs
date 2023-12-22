@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("decrease_run_timer", ConfigName = "Rewind Run Timer", DefaultSelectionWeight = 0.8f, EffectWeightReductionPercentagePerActivation = 15f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
+    [ChaosEffect("decrease_run_timer", ConfigName = "Rewind Run Timer", DefaultSelectionWeight = 0.8f)]
     public sealed class DecreaseRunTimer : BaseEffect
     {
         [EffectConfig]

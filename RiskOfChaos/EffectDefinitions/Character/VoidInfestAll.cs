@@ -14,7 +14,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("void_infest_all", DefaultSelectionWeight = 0.6f, EffectWeightReductionPercentagePerActivation = 20f)]
+    [ChaosEffect("void_infest_all", DefaultSelectionWeight = 0.6f)]
     [EffectConfigBackwardsCompatibility("Effect: Touch Void")]
     public sealed class VoidInfestAll : BaseEffect
     {

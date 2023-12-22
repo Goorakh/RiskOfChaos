@@ -14,7 +14,7 @@ using System.Linq;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
-    [ChaosEffect("void_clover_upgrade_random_item", DefaultSelectionWeight = 0.5f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
+    [ChaosEffect("void_clover_upgrade_random_item", DefaultSelectionWeight = 0.5f)]
     public sealed class VoidCloverUpgradeRandomItem : BaseEffect
     {
         [HarmonyPatch]

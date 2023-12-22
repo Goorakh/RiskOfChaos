@@ -10,7 +10,7 @@ using RoR2;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("advance_run_timer", ConfigName = "Advance Run Timer", EffectWeightReductionPercentagePerActivation = 15f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
+    [ChaosEffect("advance_run_timer", ConfigName = "Advance Run Timer")]
     public sealed class AdvanceRunTimer : BaseEffect
     {
         [EffectConfig]

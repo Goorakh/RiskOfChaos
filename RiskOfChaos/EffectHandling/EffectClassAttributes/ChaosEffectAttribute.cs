@@ -13,10 +13,6 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes
 
         public float DefaultSelectionWeight { get; set; } = 1f;
 
-        public float EffectWeightReductionPercentagePerActivation { get; set; } = 0f;
-
-        public EffectActivationCountMode EffectRepetitionWeightCalculationMode { get; set; } = EffectActivationCountMode.PerStage;
-
         public bool IsNetworked { get; set; } = false;
 
         public new Type target => base.target as Type;

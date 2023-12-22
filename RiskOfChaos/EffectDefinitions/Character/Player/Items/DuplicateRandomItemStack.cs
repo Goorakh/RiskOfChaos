@@ -15,7 +15,7 @@ using System.Linq;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
-    [ChaosEffect("duplicate_random_item_stack", EffectWeightReductionPercentagePerActivation = 0f)]
+    [ChaosEffect("duplicate_random_item_stack")]
     public sealed class DuplicateRandomItemStack : BaseEffect
     {
         const int MAX_ITEM_STACKS_DEFAULT_VALUE = 1000;

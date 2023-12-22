@@ -8,7 +8,7 @@ using System;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
-    [ChaosEffect("spawn_invincible_lemurian", EffectWeightReductionPercentagePerActivation = 15f)]
+    [ChaosEffect("spawn_invincible_lemurian")]
     public sealed class SpawnIncincibleLemurian : GenericDirectorSpawnEffect<CharacterSpawnCard>
     {
         static SpawnCardEntry[] _entries = Array.Empty<SpawnCardEntry>();

@@ -1,6 +1,5 @@
 ﻿using HG;
 using RiskOfChaos.ConfigHandling;
-using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -14,7 +13,7 @@ using System;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
-    [ChaosEffect("randomize_loadout", DefaultSelectionWeight = 0.7f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
+    [ChaosEffect("randomize_loadout", DefaultSelectionWeight = 0.7f)]
     public sealed class RandomizeLoadout : BaseEffect
     {
         [EffectConfig]

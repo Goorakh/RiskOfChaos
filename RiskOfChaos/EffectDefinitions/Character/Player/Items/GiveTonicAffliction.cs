@@ -1,5 +1,4 @@
 ﻿using RiskOfChaos.ConfigHandling;
-using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
@@ -9,7 +8,7 @@ using RoR2;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
-    [ChaosEffect("give_tonic_affliction", DefaultSelectionWeight = 0.4f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun, EffectWeightReductionPercentagePerActivation = 40f)]
+    [ChaosEffect("give_tonic_affliction", DefaultSelectionWeight = 0.4f)]
     public sealed class GiveTonicAffliction : BaseEffect
     {
         [EffectConfig]

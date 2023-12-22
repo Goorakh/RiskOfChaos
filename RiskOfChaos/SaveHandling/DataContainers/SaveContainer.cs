@@ -10,9 +10,6 @@ namespace RiskOfChaos.SaveHandling.DataContainers
         [DataMember(Name = "eas")]
         public EffectActivationSignalerData ActivationSignalerData;
 
-        [DataMember(Name = "eac")]
-        public EffectActivationCounterData ActivationCounterData;
-
         [DataMember(Name = "ed")]
         public EffectDispatcherData DispatcherData;
 

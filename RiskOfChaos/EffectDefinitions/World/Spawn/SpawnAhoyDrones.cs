@@ -14,7 +14,7 @@ using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
-    [ChaosEffect("spawn_ahoy_drones", EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun, EffectWeightReductionPercentagePerActivation = 10f)]
+    [ChaosEffect("spawn_ahoy_drones")]
     public sealed class SpawnAhoyDrones : BaseEffect
     {
         static readonly CharacterSpawnCard _equipmentDroneSpawnCard;

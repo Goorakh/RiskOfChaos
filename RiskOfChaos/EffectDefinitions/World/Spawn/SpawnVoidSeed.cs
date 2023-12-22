@@ -10,7 +10,7 @@ using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
-    [ChaosEffect("spawn_void_seed", DefaultSelectionWeight = 0.6f, EffectWeightReductionPercentagePerActivation = 30f)]
+    [ChaosEffect("spawn_void_seed", DefaultSelectionWeight = 0.6f)]
     public sealed class SpawnVoidSeed : BaseEffect
     {
         static InteractableSpawnCard _iscVoidCamp;

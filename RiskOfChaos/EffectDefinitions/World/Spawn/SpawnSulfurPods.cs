@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
-    [ChaosEffect("spawn_sulfur_pods", EffectWeightReductionPercentagePerActivation = 20f)]
+    [ChaosEffect("spawn_sulfur_pods")]
     public sealed class SpawnSulfurPods : BaseEffect
     {
         static readonly SpawnUtils.NodeSelectionRules _placementSelectionRules = new SpawnUtils.NodeSelectionRules(SpawnUtils.NodeGraphFlags.Ground, true, HullMask.Human | HullMask.Golem, NodeFlags.None, NodeFlags.NoCharacterSpawn);

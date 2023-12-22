@@ -14,7 +14,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosTimedEffect("enable_random_artifact", TimedEffectType.UntilStageEnd, EffectWeightReductionPercentagePerActivation = 20f)]
+    [ChaosTimedEffect("enable_random_artifact", TimedEffectType.UntilStageEnd)]
     [EffectConfigBackwardsCompatibility("Effect: Enable Random Artifact (Lasts 1 Stage)")]
     public sealed class EnableRandomArtifact : TimedEffect
     {

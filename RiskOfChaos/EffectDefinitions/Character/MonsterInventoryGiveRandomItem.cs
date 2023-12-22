@@ -15,7 +15,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosTimedEffect("monster_inventory_give_random_item", TimedEffectType.Permanent, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun, EffectWeightReductionPercentagePerActivation = 15f, HideFromEffectsListWhenPermanent = true)]
+    [ChaosTimedEffect("monster_inventory_give_random_item", TimedEffectType.Permanent, HideFromEffectsListWhenPermanent = true)]
     public sealed class MonsterInventoryGiveRandomItem : TimedEffect
     {
         [EffectConfig]

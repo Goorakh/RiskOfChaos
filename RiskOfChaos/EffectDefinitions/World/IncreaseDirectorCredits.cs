@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosTimedEffect("increase_director_credits", TimedEffectType.UntilStageEnd, ConfigName = "Increase Monster Spawns", EffectWeightReductionPercentagePerActivation = 35f)]
+    [ChaosTimedEffect("increase_director_credits", TimedEffectType.UntilStageEnd, ConfigName = "Increase Monster Spawns")]
     [EffectConfigBackwardsCompatibility("Effect: +50% Director Credits", "Effect: Increase Director Credits")]
     public sealed class IncreaseDirectorCredits : TimedEffect
     {

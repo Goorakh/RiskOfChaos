@@ -4,7 +4,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 
 namespace RiskOfChaos.EffectDefinitions
 {
-    [ChaosEffect("nothing", DefaultSelectionWeight = 0.5f, EffectWeightReductionPercentagePerActivation = 0f)]
+    [ChaosEffect("nothing", DefaultSelectionWeight = 0.5f)]
     public sealed class Nothing : BaseEffect
     {
         [InitEffectInfo]

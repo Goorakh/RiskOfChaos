@@ -1,12 +1,11 @@
-﻿using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RoR2;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
-    [ChaosEffect("reset_player_level", EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
+    [ChaosEffect("reset_player_level")]
     public sealed class ResetPlayerLevel : BaseEffect
     {
         [EffectCanActivate]

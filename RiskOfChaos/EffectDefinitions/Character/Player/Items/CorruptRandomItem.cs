@@ -1,5 +1,4 @@
 ﻿using RiskOfChaos.ConfigHandling;
-using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -16,7 +15,7 @@ using System.Linq;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
-    [ChaosEffect("corrupt_random_item", DefaultSelectionWeight = 0.6f, EffectRepetitionWeightCalculationMode = EffectActivationCountMode.PerRun)]
+    [ChaosEffect("corrupt_random_item", DefaultSelectionWeight = 0.6f)]
     public sealed class CorruptRandomItem : BaseEffect
     {
         [EffectConfig]

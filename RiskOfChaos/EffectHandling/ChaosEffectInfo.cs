@@ -41,11 +41,6 @@ namespace RiskOfChaos.EffectHandling
         public readonly ConfigHolder<bool> IsEnabledConfig;
         readonly ConfigHolder<float> _selectionWeightConfig;
 
-        readonly ConfigHolder<float> _weightReductionPerActivation;
-
-        readonly ConfigHolder<EffectActivationCountMode> _effectRepetitionCountMode;
-        public EffectActivationCountMode EffectRepetitionCountMode => _effectRepetitionCountMode.Value;
-
         readonly ConfigHolder<KeyboardShortcut> _activationShortcut;
         public bool IsActivationShortcutPressed => _activationShortcut != null && _activationShortcut.Value.IsDownIgnoringBlockerKeys();
 
@@ -59,16 +54,6 @@ namespace RiskOfChaos.EffectHandling
                 // For seeded selection to be deterministic, effect weights have to stay constant, so no variable weights allowed in this mode
                 if (Configs.EffectSelection.SeededEffectSelection.Value)
                     return weight;
-
-                float weightMultiplierPerActivation = 1f - _weightReductionPerActivation.Value;
-                if (weightMultiplierPerActivation < 1f)
-                {
-                    ChaosEffectActivationCounterHandler effectActivationCountHandler = ChaosEffectActivationCounterHandler.Instance;
-                    if (effectActivationCountHandler)
-                    {
-                        weight *= Mathf.Pow(weightMultiplierPerActivation, effectActivationCountHandler.GetEffectActivationCount(this, EffectRepetitionCountMode));
-                    }
-                }
 
                 foreach (EffectWeightMultiplierDelegate getEffectWeightMultiplier in _effectWeightMultipliers)
                 {
@@ -212,26 +197,6 @@ namespace RiskOfChaos.EffectHandling
                                                          .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                                          .Build();
 
-            _weightReductionPerActivation =
-                ConfigFactory<float>.CreateConfig("Effect Repetition Reduction Percentage", attribute.EffectWeightReductionPercentagePerActivation / 100f)
-                                    .Description("The percentage reduction to apply to the weight value per activation, setting this to any value above 0 will make the effect less likely to happen several times")
-                                    .OptionConfig(new StepSliderConfig
-                                    {
-                                        formatString = "-{0:P0}",
-                                        increment = 0.01f,
-                                        min = 0f,
-                                        max = 1f
-                                    })
-                                    .ValueConstrictor(CommonValueConstrictors.Clamped01Float)
-                                    .Build();
-
-            _effectRepetitionCountMode =
-                ConfigFactory<EffectActivationCountMode>.CreateConfig("Effect Repetition Count Mode", attribute.EffectRepetitionWeightCalculationMode)
-                                                        .Description($"Controls how the Reduction Percentage will be applied.\n\n{nameof(EffectActivationCountMode.PerStage)}: Only the activations on the current stage are considered, and the weight reduction is reset on stage start.\n\n{nameof(EffectActivationCountMode.PerRun)}: All activations during the current run are considered.")
-                                                        .OptionConfig(new ChoiceConfig())
-                                                        .ValueValidator(CommonValueValidators.DefinedEnumValue<EffectActivationCountMode>())
-                                                        .Build();
-
             _activationShortcut =
                 ConfigFactory<KeyboardShortcut>.CreateConfig("Activation Shortcut", KeyboardShortcut.Empty)
                                                .Description("A keyboard shortcut that, if pressed, will activate this effect at any time during a run")
@@ -275,10 +240,6 @@ namespace RiskOfChaos.EffectHandling
             IsEnabledConfig?.Bind(this);
 
             _selectionWeightConfig?.Bind(this);
-
-            _weightReductionPerActivation?.Bind(this);
-
-            _effectRepetitionCountMode?.Bind(this);
 
             _activationShortcut?.Bind(this);
         }

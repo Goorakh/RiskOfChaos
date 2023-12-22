@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace RiskOfChaos.EffectDefinitions.Meta
 {
-    [ChaosEffect("activate_several_effects", DefaultSelectionWeight = 0.5f, EffectWeightReductionPercentagePerActivation = 15f)]
+    [ChaosEffect("activate_several_effects", DefaultSelectionWeight = 0.5f)]
     public sealed class ActivateSeveralEffects : BaseEffect
     {
         [InitEffectInfo]

@@ -10,7 +10,7 @@ using System.Collections.ObjectModel;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("duplicate_all_characters", EffectWeightReductionPercentagePerActivation = 50f)]
+    [ChaosEffect("duplicate_all_characters")]
     public sealed class DuplicateAllCharacters : BaseEffect
     {
         [EffectConfig]

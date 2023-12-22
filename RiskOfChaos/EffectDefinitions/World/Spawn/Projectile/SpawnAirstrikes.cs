@@ -12,7 +12,7 @@ using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
 {
-    [ChaosEffect("spawn_airstrikes", DefaultSelectionWeight = 0.9f, EffectWeightReductionPercentagePerActivation = 10f)]
+    [ChaosEffect("spawn_airstrikes", DefaultSelectionWeight = 0.9f)]
     public sealed class SpawnAirstrikes : BaseEffect, ICoroutineEffect
     {
         static readonly SpawnUtils.NodeSelectionRules _strikePositionSelectorRules = new SpawnUtils.NodeSelectionRules(SpawnUtils.NodeGraphFlags.Ground, false, HullMask.Human, NodeFlags.None, NodeFlags.None);
