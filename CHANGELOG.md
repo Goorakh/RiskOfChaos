@@ -6,6 +6,7 @@
   * Added configs for controlling the likelyhood of each aspect
 
 * Effect Selection:
+  * Added config option to disallow more than one instance of an effect being active at the same time
   * Removed activation count based weight reduction. Effect weights are now more-or-less constant.
 
 <details>

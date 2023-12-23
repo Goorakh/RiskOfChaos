@@ -12,7 +12,9 @@ namespace RiskOfChaos.EffectHandling
 {
     public class TimedEffectInfo : ChaosEffectInfo
     {
-        public readonly bool AllowDuplicates;
+        readonly bool _allowDuplicates;
+        readonly ConfigHolder<bool> _allowDuplicatesOverrideConfig;
+        public bool AllowDuplicates => _allowDuplicatesOverrideConfig?.Value ?? _allowDuplicates;
 
         readonly ConfigHolder<TimedEffectType> _timedType;
         public TimedEffectType TimedType => _timedType.Value;
@@ -48,7 +50,16 @@ namespace RiskOfChaos.EffectHandling
                                             .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                             .Build();
 
-            AllowDuplicates = attribute.AllowDuplicates;
+            _allowDuplicates = attribute.AllowDuplicates;
+            if (_allowDuplicates)
+            {
+                _allowDuplicatesOverrideConfig =
+                    ConfigFactory<bool>.CreateConfig("Allow Duplicates", _allowDuplicates)
+                                       .Description("If more than one instance of this effect is allowed to be active at the same time")
+                                       .OptionConfig(new CheckBoxConfig())
+                                       .Build();
+            }
+
             HideFromEffectsListWhenPermanent = attribute.HideFromEffectsListWhenPermanent;
         }
 
@@ -59,6 +70,8 @@ namespace RiskOfChaos.EffectHandling
             _timedType?.Bind(this);
 
             _duration?.Bind(this);
+
+            _allowDuplicatesOverrideConfig?.Bind(this);
         }
 
         public override bool CanActivate(in EffectCanActivateContext context)
