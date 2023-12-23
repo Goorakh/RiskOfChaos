@@ -16,7 +16,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
         [EffectConfig]
         static readonly ConfigHolder<float> _attackDelay =
             ConfigFactory<float>.CreateConfig("Attack Delay", 0.5f)
-                                .Description("")
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     formatString = "{0:F2}s",
