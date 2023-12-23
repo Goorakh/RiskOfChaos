@@ -65,6 +65,14 @@ namespace RiskOfChaos.ConfigHandling
 
         public abstract void Bind(ConfigFile file, string section, string modGuid = null, string modName = null);
 
+        public void SetOptionConfig(BaseOptionConfig newConfig)
+        {
+            if (Entry != null)
+                Log.Warning("Config already binded, setting config options will not work");
+
+            _optionConfig = newConfig;
+        }
+
         protected virtual void invokeSettingChanged()
         {
             SettingChanged?.Invoke(this, new ConfigChangedArgs(this));

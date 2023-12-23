@@ -108,14 +108,6 @@ namespace RiskOfChaos.ConfigHandling
             OnBind?.Invoke(Entry);
         }
 
-        public void SetOptionConfig(BaseOptionConfig newConfig)
-        {
-            if (Entry != null)
-                Log.Warning("Config already binded, setting config options will not work");
-
-            _optionConfig = newConfig;
-        }
-
         public override void Bind(ChaosEffectInfo ownerEffect)
         {
             if (_optionConfig != null)
