@@ -148,6 +148,7 @@ namespace RiskOfChaos.EffectHandling
 
             Type[] incompatibleEffectTypes = EffectType.GetCustomAttributes<IncompatibleEffectsAttribute>(true)
                                                        .SelectMany(a => a.IncompatibleEffectTypes)
+                                                       .Distinct()
                                                        .ToArray();
 
             if (incompatibleEffectTypes.Length > 0)
