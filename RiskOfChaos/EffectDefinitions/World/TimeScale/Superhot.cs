@@ -3,8 +3,10 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.ModifierController.TimeScale;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.Utilities.Interpolation;
 using RoR2;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -28,16 +30,16 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
             {
                 _master = GetComponent<CharacterMaster>();
                 _master.onBodyStart += onBodyStart;
-            }
-
-            void OnEnable()
-            {
-                InstanceTracker.Add(this);
 
                 if (NetworkServer.active && TimeScaleModificationManager.Instance)
                 {
                     TimeScaleModificationManager.Instance.RegisterModificationProvider(this);
                 }
+            }
+
+            void OnEnable()
+            {
+                InstanceTracker.Add(this);
 
                 _lastTimeScaleMultiplier = 1f;
                 _currentTimeScaleMultiplier = 1f;
@@ -46,11 +48,6 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
             void OnDisable()
             {
                 InstanceTracker.Remove(this);
-
-                if (NetworkServer.active && TimeScaleModificationManager.Instance)
-                {
-                    TimeScaleModificationManager.Instance.UnregisterModificationProvider(this);
-                }
             }
 
             void onBodyStart(CharacterBody body)
@@ -126,9 +123,42 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
             public void ModifyValue(ref float value)
             {
                 // Splits influence semi-fairly between players, while keeping the exact min and max values regardless of player count
-                value *= Mathf.Pow(_currentTimeScaleMultiplier, 1f / InstanceTracker.GetInstancesList<PlayerTimeMovementTracker>().Count);
+                value *= Mathf.Pow(_currentTimeScaleMultiplier, 1f / Mathf.Max(1, InstanceTracker.GetInstancesList<PlayerTimeMovementTracker>().Count));
+            }
+
+            public void Unregister()
+            {
+                if (!NetworkServer.active)
+                {
+                    Log.Warning("Called on client");
+                    return;
+                }
+
+                InterpolationState interpolationState;
+                if (TimeScaleModificationManager.Instance)
+                {
+                    interpolationState = TimeScaleModificationManager.Instance.UnregisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 0.5f);
+                }
+                else
+                {
+                    interpolationState = null;
+                }
+
+                if (interpolationState is not null)
+                {
+                    interpolationState.OnFinish += () =>
+                    {
+                        Destroy(this);
+                    };
+                }
+                else
+                {
+                    Destroy(this);
+                }
             }
         }
+
+        readonly HashSet<PlayerTimeMovementTracker> _playerMovementTrackers = new HashSet<PlayerTimeMovementTracker>();
 
         public override void OnStart()
         {
@@ -141,7 +171,7 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
             PlayerCharacterMasterController.onPlayerRemoved += PlayerCharacterMasterController_onPlayerRemoved;
         }
 
-        static void setComponentOn(CharacterMaster playerMaster, bool active)
+        void setComponentOn(CharacterMaster playerMaster, bool active)
         {
             if (playerMaster.TryGetComponent(out PlayerTimeMovementTracker movementTracker))
             {
@@ -151,24 +181,28 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
             {
                 if (active)
                 {
-                    playerMaster.gameObject.AddComponent<PlayerTimeMovementTracker>();
+                    _playerMovementTrackers.Add(playerMaster.gameObject.AddComponent<PlayerTimeMovementTracker>());
                 }
             }
         }
 
-        static void PlayerCharacterMasterController_onPlayerAdded(PlayerCharacterMasterController playerController)
+        void PlayerCharacterMasterController_onPlayerAdded(PlayerCharacterMasterController playerController)
         {
             setComponentOn(playerController.master, true);
         }
 
-        static void PlayerCharacterMasterController_onPlayerRemoved(PlayerCharacterMasterController playerController)
+        void PlayerCharacterMasterController_onPlayerRemoved(PlayerCharacterMasterController playerController)
         {
             setComponentOn(playerController.master, false);
         }
 
         public override void OnEnd()
         {
-            InstanceUtils.DestroyAllTrackedInstances<PlayerTimeMovementTracker>();
+            foreach (PlayerTimeMovementTracker movementTracker in _playerMovementTrackers)
+            {
+                movementTracker.Unregister();
+            }
+            _playerMovementTrackers.Clear();
 
             PlayerCharacterMasterController.onPlayerAdded -= PlayerCharacterMasterController_onPlayerAdded;
             PlayerCharacterMasterController.onPlayerRemoved -= PlayerCharacterMasterController_onPlayerRemoved;
