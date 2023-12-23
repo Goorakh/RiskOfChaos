@@ -79,12 +79,16 @@ namespace RiskOfChaos.ConfigHandling
         {
             _serverOverrideValue = value;
             _hasServerOverrideValue = true;
+
+            invokeSettingChanged();
         }
 
         public void ClearServerOverrideValue()
         {
             _serverOverrideValue = null;
             _hasServerOverrideValue = false;
+
+            invokeSettingChanged();
         }
 
         void onRunEnd(Run run)
