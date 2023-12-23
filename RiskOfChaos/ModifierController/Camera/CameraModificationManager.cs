@@ -1,4 +1,5 @@
 ﻿using MonoMod.Cil;
+using RiskOfChaos.Patches;
 using RoR2.CameraModes;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -42,6 +43,10 @@ namespace RiskOfChaos.ModifierController.Camera
 
             On.RoR2.CameraModes.CameraModeBase.Update += CameraModeBase_Update;
 
+            On.RoR2.CameraModes.CameraModeBase.CollectLookInput += CameraModeBase_CollectLookInput;
+
+            PlayerInputHook.ModifyPlayerMoveInput += PlayerInputHook_ModifyPlayerMoveInput;
+
             _appliedPatches = true;
         }
 
@@ -57,6 +62,35 @@ namespace RiskOfChaos.ModifierController.Camera
                 result.cameraState.fov = Mathf.Clamp(result.cameraState.fov * _instance.NetworkFOVMultiplier, MIN_FOV, MAX_FOV);
 
                 result.cameraState.rotation *= _instance.NetworkCameraRotationOffset;
+            }
+        }
+
+        static void CameraModeBase_CollectLookInput(On.RoR2.CameraModes.CameraModeBase.orig_CollectLookInput orig, CameraModeBase self, ref CameraModeBase.CameraModeContext context, out CameraModeBase.CollectLookInputResult result)
+        {
+            orig(self, ref context, out result);
+
+            if (_instance && _instance.AnyModificationActive)
+            {
+                Vector2 rotatedLookInput = _instance.NetworkCameraRotationOffset * result.lookInput;
+                if (rotatedLookInput != Vector2.zero)
+                {
+                    float lookInputMagnitude = result.lookInput.magnitude;
+                    result.lookInput = rotatedLookInput.normalized * lookInputMagnitude;
+                }
+            }
+        }
+
+        static void PlayerInputHook_ModifyPlayerMoveInput(RoR2.PlayerCharacterMasterController playerMasterController, ref Vector2 moveInput)
+        {
+            if (_instance && _instance.AnyModificationActive)
+            {
+                const float ROTATION_TO_CONSIDER_FLIPPED = 120f;
+
+                float zOffset = _instance.NetworkCameraRotationOffset.eulerAngles.z;
+                if (zOffset >= ROTATION_TO_CONSIDER_FLIPPED && zOffset <= 360f - ROTATION_TO_CONSIDER_FLIPPED)
+                {
+                    moveInput.x *= -1;
+                }
             }
         }
 

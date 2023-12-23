@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
-    [ChaosTimedEffect("flip_camera", 30f, AllowDuplicates = false, IsNetworked = true)]
+    [ChaosTimedEffect("flip_camera", 30f, AllowDuplicates = false)]
     public sealed class FlipCamera : TimedEffect, ICameraModificationProvider
     {
         [EffectCanActivate]
@@ -29,38 +29,15 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 
         public override void OnStart()
         {
-            if (NetworkServer.active)
-            {
-                CameraModificationManager.Instance.RegisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
-            }
-
-            On.RoR2.CameraModes.CameraModeBase.CollectLookInput += CameraModeBase_CollectLookInput;
-
-            PlayerInputHook.ModifyPlayerMoveInput += PlayerInputHook_ModifyPlayerMoveInput;
+            CameraModificationManager.Instance.RegisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
         }
 
         public override void OnEnd()
         {
-            if (NetworkServer.active && CameraModificationManager.Instance)
+            if (CameraModificationManager.Instance)
             {
                 CameraModificationManager.Instance.UnregisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
             }
-
-            On.RoR2.CameraModes.CameraModeBase.CollectLookInput -= CameraModeBase_CollectLookInput;
-
-            PlayerInputHook.ModifyPlayerMoveInput -= PlayerInputHook_ModifyPlayerMoveInput;
-        }
-
-        static void CameraModeBase_CollectLookInput(On.RoR2.CameraModes.CameraModeBase.orig_CollectLookInput orig, CameraModeBase self, ref CameraModeBase.CameraModeContext context, out CameraModeBase.CollectLookInputResult result)
-        {
-            orig(self, ref context, out result);
-
-            result.lookInput *= -1;
-        }
-
-        static void PlayerInputHook_ModifyPlayerMoveInput(PlayerCharacterMasterController playerMasterController, ref Vector2 moveInput)
-        {
-            moveInput.x *= -1;
         }
     }
 }
