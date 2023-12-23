@@ -1,4 +1,5 @@
-﻿using UnityEngine.Networking;
+﻿using RiskOfChaos.Utilities.Interpolation;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.AttackDelay
 {

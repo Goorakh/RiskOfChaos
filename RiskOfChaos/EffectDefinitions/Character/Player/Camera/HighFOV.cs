@@ -1,7 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController;
 using RiskOfChaos.ModifierController.Camera;
+using RiskOfChaos.Utilities.Interpolation;
 using System;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera

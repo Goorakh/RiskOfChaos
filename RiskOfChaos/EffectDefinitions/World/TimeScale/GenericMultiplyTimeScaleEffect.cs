@@ -1,6 +1,6 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController;
 using RiskOfChaos.ModifierController.TimeScale;
+using RiskOfChaos.Utilities.Interpolation;
 using RoR2;
 using System;
 

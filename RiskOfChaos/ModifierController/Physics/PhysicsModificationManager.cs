@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using RiskOfChaos.Utilities.Interpolation;
 using UnityEngine;
 using UnityEngine.Networking;
 

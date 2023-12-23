@@ -1,4 +1,6 @@
-﻿namespace RiskOfChaos.ModifierController.Projectile
+﻿using RiskOfChaos.Utilities.Interpolation;
+
+namespace RiskOfChaos.ModifierController.Projectile
 {
     public struct ProjectileModificationData
     {

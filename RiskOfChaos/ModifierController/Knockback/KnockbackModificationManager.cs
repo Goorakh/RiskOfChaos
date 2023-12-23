@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using RiskOfChaos.Utilities.Interpolation;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.Knockback

@@ -1,4 +1,6 @@
-﻿namespace RiskOfChaos.ModifierController.AttackDelay
+﻿using RiskOfChaos.Utilities.Interpolation;
+
+namespace RiskOfChaos.ModifierController.AttackDelay
 {
     public record struct AttackDelayModificationInfo(float TotalDelay)
     {

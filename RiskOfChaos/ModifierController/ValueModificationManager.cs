@@ -1,4 +1,5 @@
 ﻿using System;
+using RiskOfChaos.Utilities.Interpolation;
 using UnityEngine;
 
 namespace RiskOfChaos.ModifierController
@@ -43,9 +44,9 @@ namespace RiskOfChaos.ModifierController
             RegisterModificationProvider(provider, ValueInterpolationFunctionType.Snap, 0f);
         }
 
-        public void RegisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime)
+        public InterpolationState RegisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime)
         {
-            _logic.RegisterModificationProvider(provider, blendType, valueInterpolationTime);
+            return _logic.RegisterModificationProvider(provider, blendType, valueInterpolationTime);
         }
 
         public void UnregisterModificationProvider(IValueModificationProvider<TValue> provider)
@@ -53,9 +54,9 @@ namespace RiskOfChaos.ModifierController
             _logic.UnregisterModificationProvider(provider, ValueInterpolationFunctionType.Snap, 0f);
         }
 
-        public void UnregisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime)
+        public InterpolationState UnregisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime)
         {
-            _logic.UnregisterModificationProvider(provider, blendType, valueInterpolationTime);
+            return _logic.UnregisterModificationProvider(provider, blendType, valueInterpolationTime);
         }
 
         protected virtual void FixedUpdate()

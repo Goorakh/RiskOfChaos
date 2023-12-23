@@ -2,21 +2,20 @@
 using System;
 using UnityEngine;
 
-namespace RiskOfChaos.ModifierController
+namespace RiskOfChaos.Utilities.Interpolation
 {
-    public struct InterpolationState
+    public class InterpolationState
     {
-        ValueInterpolationFunctionType _interpolationType;
-        public readonly ValueInterpolationFunctionType InterpolationType => _interpolationType;
+        public ValueInterpolationFunctionType InterpolationType { get; private set; }
 
         Run.TimeStamp _interpolationStartTime = Run.TimeStamp.negativeInfinity;
         float _interpolationDuration;
 
         bool _invert;
 
-        public readonly bool IsInterpolating => _interpolationStartTime.timeSince <= _interpolationDuration;
+        public bool IsInterpolating => _interpolationStartTime.timeSince <= _interpolationDuration;
 
-        public readonly float CurrentFraction
+        public float CurrentFraction
         {
             get
             {
@@ -35,21 +34,32 @@ namespace RiskOfChaos.ModifierController
                     end = 0f;
                 }
 
-                return _interpolationType.Interpolate(start, end, Mathf.Clamp01(_interpolationStartTime.timeSince / _interpolationDuration));
+                return InterpolationType.Interpolate(start, end, Mathf.Clamp01(_interpolationStartTime.timeSince / _interpolationDuration));
             }
         }
 
-        public InterpolationState()
-        {
-        }
+        public delegate void OnTickDelegate(float fraction);
+
+        public event OnTickDelegate OnTick;
+        public event Action OnFinish;
 
         public void StartInterpolating(ValueInterpolationFunctionType type, float duration, bool invert)
         {
             _interpolationStartTime = Run.TimeStamp.now;
 
-            _interpolationType = type;
+            InterpolationType = type;
             _interpolationDuration = duration;
             _invert = invert;
+        }
+
+        public void Update()
+        {
+            OnTick?.Invoke(CurrentFraction);
+        }
+
+        public void OnInterpolationFinished()
+        {
+            OnFinish?.Invoke();
         }
     }
 }

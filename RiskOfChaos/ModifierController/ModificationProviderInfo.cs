@@ -1,4 +1,5 @@
 ﻿using System;
+using RiskOfChaos.Utilities.Interpolation;
 
 namespace RiskOfChaos.ModifierController
 {
@@ -6,8 +7,7 @@ namespace RiskOfChaos.ModifierController
     {
         public readonly IValueModificationProvider<T> ModificationProvider;
 
-        InterpolationState _interpolationState;
-        public InterpolationState InterpolationState => _interpolationState;
+        public readonly InterpolationState InterpolationState = new InterpolationState();
 
         public ModificationProviderInterpolationDirection InterpolationDirection { get; private set; }
 
@@ -18,19 +18,25 @@ namespace RiskOfChaos.ModifierController
 
         public void StartInterpolatingIn(ValueInterpolationFunctionType interpolationType, float duration)
         {
-            _interpolationState.StartInterpolating(interpolationType, duration, false);
+            InterpolationState.StartInterpolating(interpolationType, duration, false);
             InterpolationDirection = ModificationProviderInterpolationDirection.In;
         }
 
         public void StartInterpolatingOut(ValueInterpolationFunctionType interpolationType, float duration)
         {
-            _interpolationState.StartInterpolating(interpolationType, duration, true);
+            InterpolationState.StartInterpolating(interpolationType, duration, true);
             InterpolationDirection = ModificationProviderInterpolationDirection.Out;
+        }
+
+        public void OnInterpolationUpdate()
+        {
+            InterpolationState.Update();
         }
 
         public void OnInterpolationFinished()
         {
             InterpolationDirection = ModificationProviderInterpolationDirection.None;
+            InterpolationState.OnInterpolationFinished();
         }
 
         public bool Equals(ModificationProviderInfo<T> other)

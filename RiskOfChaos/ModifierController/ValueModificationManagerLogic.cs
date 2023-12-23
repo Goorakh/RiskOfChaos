@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.Utilities.Interpolation;
 using RoR2;
 using System;
 using System.Collections.Generic;
@@ -76,7 +77,7 @@ namespace RiskOfChaos.ModifierController
             }
         }
 
-        public void RegisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime)
+        public InterpolationState RegisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime)
         {
             ModificationProviderInfo<TValue> providerInfo = new ModificationProviderInfo<TValue>(provider);
             _modificationProviders.Add(providerInfo);
@@ -88,20 +89,26 @@ namespace RiskOfChaos.ModifierController
             {
                 providerInfo.StartInterpolatingIn(blendType, valueInterpolationTime);
             }
+
+            return providerInfo.InterpolationState;
         }
 
-        public void UnregisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime)
+        public InterpolationState UnregisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime)
         {
+            InterpolationState result = null;
+
             for (int i = _modificationProviders.Count - 1; i >= 0; i--)
             {
-                if (_modificationProviders[i].Equals(provider))
+                ModificationProviderInfo<TValue> modificationProvider = _modificationProviders[i];
+                if (modificationProvider.Equals(provider))
                 {
-                    _modificationProviders[i].ModificationProvider.OnValueDirty -= MarkValueModificationsDirty;
+                    modificationProvider.ModificationProvider.OnValueDirty -= MarkValueModificationsDirty;
                     MarkValueModificationsDirty();
 
                     if (valueInterpolationTime > 0f)
                     {
-                        _modificationProviders[i].StartInterpolatingOut(blendType, valueInterpolationTime);
+                        modificationProvider.StartInterpolatingOut(blendType, valueInterpolationTime);
+                        result = modificationProvider.InterpolationState;
                     }
                     else
                     {
@@ -109,6 +116,8 @@ namespace RiskOfChaos.ModifierController
                     }
                 }
             }
+
+            return result;
         }
 
         public void Update()
@@ -121,6 +130,7 @@ namespace RiskOfChaos.ModifierController
                 if (provider.InterpolationState.IsInterpolating)
                 {
                     modificationsDirty = true;
+                    provider.OnInterpolationUpdate();
                 }
                 else if (provider.InterpolationDirection > ModificationProviderInterpolationDirection.None) // Interpolation has finished
                 {

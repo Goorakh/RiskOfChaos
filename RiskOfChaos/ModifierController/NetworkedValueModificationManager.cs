@@ -1,4 +1,5 @@
 ﻿using System;
+using RiskOfChaos.Utilities.Interpolation;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController
@@ -78,15 +79,15 @@ namespace RiskOfChaos.ModifierController
             RegisterModificationProvider(provider, ValueInterpolationFunctionType.Snap, 0f);
         }
 
-        public void RegisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime)
+        public InterpolationState RegisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime)
         {
             if (!NetworkServer.active)
             {
                 Log.Warning("Called on client");
-                return;
+                return null;
             }
 
-            _logic.RegisterModificationProvider(provider, blendType, valueInterpolationTime);
+            return _logic.RegisterModificationProvider(provider, blendType, valueInterpolationTime);
         }
 
         public void UnregisterModificationProvider(IValueModificationProvider<TValue> provider)
@@ -94,15 +95,15 @@ namespace RiskOfChaos.ModifierController
             _logic.UnregisterModificationProvider(provider, ValueInterpolationFunctionType.Snap, 0f);
         }
 
-        public void UnregisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime)
+        public InterpolationState UnregisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime)
         {
             if (!NetworkServer.active)
             {
                 Log.Warning("Called on client");
-                return;
+                return null;
             }
 
-            _logic.UnregisterModificationProvider(provider, blendType, valueInterpolationTime);
+            return _logic.UnregisterModificationProvider(provider, blendType, valueInterpolationTime);
         }
 
         protected virtual void FixedUpdate()

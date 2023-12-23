@@ -1,5 +1,6 @@
 ﻿using MonoMod.Cil;
 using RiskOfChaos.Patches;
+using RiskOfChaos.Utilities.Interpolation;
 using RoR2.CameraModes;
 using UnityEngine;
 using UnityEngine.Networking;

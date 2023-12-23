@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace RiskOfChaos.ModifierController
+namespace RiskOfChaos.Utilities.Interpolation
 {
     public enum ValueInterpolationFunctionType : byte
     {
@@ -25,12 +25,12 @@ namespace RiskOfChaos.ModifierController
 
         public static uint Interpolate(this ValueInterpolationFunctionType type, uint a, uint b, float t)
         {
-            return (uint)Mathf.Round(type.Interpolate((float)a, (float)b, t));
+            return (uint)Mathf.Round(type.Interpolate(a, (float)b, t));
         }
 
         public static int Interpolate(this ValueInterpolationFunctionType type, int a, int b, float t)
         {
-            return (int)Mathf.Round(type.Interpolate((float)a, (float)b, t));
+            return (int)Mathf.Round(type.Interpolate(a, (float)b, t));
         }
 
         public static Vector3 Interpolate(this ValueInterpolationFunctionType type, in Vector3 a, in Vector3 b, float t)

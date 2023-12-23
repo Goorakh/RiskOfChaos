@@ -1,13 +1,9 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController;
 using RiskOfChaos.ModifierController.Camera;
-using RiskOfChaos.Patches;
-using RoR2;
-using RoR2.CameraModes;
+using RiskOfChaos.Utilities.Interpolation;
 using System;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {

@@ -1,4 +1,6 @@
-﻿namespace RiskOfChaos.ModifierController.PhysicsModification
+﻿using RiskOfChaos.Utilities.Interpolation;
+
+namespace RiskOfChaos.ModifierController.PhysicsModification
 {
     public struct PhysicsModificationInfo
     {

@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.Components;
+using RiskOfChaos.Utilities.Interpolation;
 using RoR2;
 
 namespace RiskOfChaos.ModifierController.HoldoutZone

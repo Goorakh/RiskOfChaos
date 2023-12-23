@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.Patches;
+using RiskOfChaos.Utilities.Interpolation;
 using UnityEngine;
 using UnityEngine.Networking;
 

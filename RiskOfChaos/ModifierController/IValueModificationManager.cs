@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RiskOfChaos.Utilities.Interpolation;
+using System;
 
 namespace RiskOfChaos.ModifierController
 {
@@ -10,9 +11,9 @@ namespace RiskOfChaos.ModifierController
 
         void ClearAllModificationProviders();
 
-        void RegisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime);
+        InterpolationState RegisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime);
 
-        void UnregisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime);
+        InterpolationState UnregisterModificationProvider(IValueModificationProvider<TValue> provider, ValueInterpolationFunctionType blendType, float valueInterpolationTime);
 
         void MarkValueModificationsDirty();
 

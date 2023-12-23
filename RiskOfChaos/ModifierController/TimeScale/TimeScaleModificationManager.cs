@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Interpolation;
 
 namespace RiskOfChaos.ModifierController.TimeScale
 {

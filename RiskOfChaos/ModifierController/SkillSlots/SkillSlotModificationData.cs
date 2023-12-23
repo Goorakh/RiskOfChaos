@@ -1,4 +1,5 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities.Interpolation;
+using RoR2;
 
 namespace RiskOfChaos.ModifierController.SkillSlots
 {

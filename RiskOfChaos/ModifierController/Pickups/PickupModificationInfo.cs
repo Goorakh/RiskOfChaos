@@ -1,4 +1,6 @@
-﻿namespace RiskOfChaos.ModifierController.Pickups
+﻿using RiskOfChaos.Utilities.Interpolation;
+
+namespace RiskOfChaos.ModifierController.Pickups
 {
     public struct PickupModificationInfo
     {

@@ -1,6 +1,7 @@
 ﻿using HG;
 using RiskOfChaos.Trackers;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Interpolation;
 using RoR2;
 using System;
 using System.Collections.Generic;

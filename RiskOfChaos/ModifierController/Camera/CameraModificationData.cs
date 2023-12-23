@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using RiskOfChaos.Utilities.Interpolation;
+using UnityEngine;
 
 namespace RiskOfChaos.ModifierController.Camera
 {
