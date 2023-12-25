@@ -39,9 +39,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             foreach (CharacterMaster player in PlayerUtils.GetAllPlayerMasters(false))
             {
-                if (player.teamIndex == TeamIndex.Player)
-                    continue;
-
                 MinionOwnership minionOwnership = player.minionOwnership;
                 if (!minionOwnership)
                     continue;
@@ -57,7 +54,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                         continue;
 
                     CharacterMaster minionMaster = minion.GetComponent<CharacterMaster>();
-                    if (!minionMaster || minionMaster.playerCharacterMasterController)
+                    if (!minionMaster || minionMaster.teamIndex == TeamIndex.Player || minionMaster.playerCharacterMasterController)
                         continue;
 
                     CharacterBody minionBody = minionMaster.GetBody();
