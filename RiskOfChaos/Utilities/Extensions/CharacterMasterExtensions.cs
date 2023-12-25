@@ -19,7 +19,7 @@ namespace RiskOfChaos.Utilities.Extensions
 
         KeepState = KeepVehicle | KeepStatusEffects | KeepHealth,
 
-        All = byte.MaxValue
+        Seamless = SkipIntroState | KeepStatusEffects | KeepState
     }
 
     public static class CharacterMasterExtensions
