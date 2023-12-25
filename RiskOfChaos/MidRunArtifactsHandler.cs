@@ -43,10 +43,16 @@ namespace RiskOfChaos
                     onKinEnabledOrDisabled();
                 }
 
-                CharacterMaster localPlayerMaster = PlayerUtils.GetLocalUserMaster();
-                if (localPlayerMaster)
+                foreach (LocalUser user in LocalUserManager.readOnlyLocalUsersList)
                 {
-                    CharacterMasterNotificationQueue.PushArtifactNotification(localPlayerMaster, artifactDef);
+                    if (user is null)
+                        continue;
+
+                    CharacterMaster localPlayerMaster = user.cachedMaster;
+                    if (localPlayerMaster)
+                    {
+                        CharacterMasterNotificationQueue.PushArtifactNotification(localPlayerMaster, artifactDef);
+                    }
                 }
             }
         }

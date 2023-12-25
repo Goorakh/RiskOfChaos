@@ -15,20 +15,42 @@ namespace RiskOfChaos.Patches
 
         static void CharacterBody_onBodyStartGlobal(CharacterBody body)
         {
-            if (!body.isPlayerControlled)
+            CharacterMaster master = body.master;
+            if (!master)
                 return;
 
-            if (!body.master || body.master != PlayerUtils.GetLocalUserMaster())
+            if (!master.playerCharacterMasterController)
                 return;
 
+            bool anyChatBoxFound = false;
             foreach (ChatBoxTracker chatBoxTracker in InstanceTracker.GetInstancesList<ChatBoxTracker>())
             {
-                // Fix chat scroll
-                chatBoxTracker.ChatBox.Invoke(nameof(ChatBox.ScrollToBottom), 0.5f);
+                HUD hud = chatBoxTracker.OwnerHUD;
+                if (!hud)
+                    continue;
+
+                LocalUser viewer = hud.localUserViewer;
+                if (viewer is null)
+                    continue;
+
+                CharacterMaster viewerMaster = viewer.cachedMaster;
+                if (!viewerMaster)
+                    continue;
+
+                if (viewerMaster == master)
+                {
+                    // Fix chat scroll
+                    chatBoxTracker.ChatBox.Invoke(nameof(ChatBox.ScrollToBottom), 0.5f);
+
+                    anyChatBoxFound = true;
+                }
             }
 
 #if DEBUG
-            Log.Debug($"Fixed chat scroll on respawn for {body.GetUserName()}");
+            if (anyChatBoxFound)
+            {
+                Log.Debug($"Fixed chat scroll on respawn for {body.GetUserName()}");
+            }
 #endif
         }
     }

@@ -6,8 +6,6 @@ namespace RiskOfChaos.Trackers
 {
     public class ChatBoxTracker : MonoBehaviour
     {
-        public ChatBox ChatBox { get; private set; }
-
         [SystemInitializer]
         static void Init()
         {
@@ -23,9 +21,24 @@ namespace RiskOfChaos.Trackers
             };
         }
 
+        public ChatBox ChatBox { get; private set; }
+
+        public HUD OwnerHUD { get; private set; }
+
+        void refreshOwnerHUD()
+        {
+            OwnerHUD = GetComponentInParent<HUD>();
+        }
+
+        void OnTransformParentChanged()
+        {
+            refreshOwnerHUD();
+        }
+
         void OnEnable()
         {
             InstanceTracker.Add(this);
+            refreshOwnerHUD();
         }
 
         void OnDisable()
