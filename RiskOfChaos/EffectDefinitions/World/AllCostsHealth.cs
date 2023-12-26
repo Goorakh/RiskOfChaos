@@ -9,6 +9,7 @@ using RiskOfChaos.Patches;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
+using System.Collections;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World
@@ -165,13 +166,41 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             try
             {
-                purchaseInteraction.costType = CostTypeIndex.PercentHealth;
-                purchaseInteraction.Networkcost = healthCost;
-
-                if (purchaseInteraction.TryGetComponent(out ShopTerminalBehavior shopTerminalBehavior) && shopTerminalBehavior.serverMultiShopController)
+                void setPurchaseCost()
                 {
-                    shopTerminalBehavior.serverMultiShopController.costType = CostTypeIndex.PercentHealth;
-                    shopTerminalBehavior.serverMultiShopController.Networkcost = healthCost;
+                    purchaseInteraction.costType = CostTypeIndex.PercentHealth;
+                    purchaseInteraction.Networkcost = healthCost;
+                }
+
+                if (purchaseInteraction.TryGetComponent(out ShopTerminalBehavior shopTerminalBehavior))
+                {
+                    void setMultishopCost()
+                    {
+                        setPurchaseCost();
+
+                        shopTerminalBehavior.serverMultiShopController.costType = CostTypeIndex.PercentHealth;
+                        shopTerminalBehavior.serverMultiShopController.Networkcost = healthCost;
+                    }
+
+                    if (shopTerminalBehavior.serverMultiShopController)
+                    {
+                        setMultishopCost();
+                    }
+                    else
+                    {
+                        IEnumerator waitForMultiShopInitThenSetMultishopCost()
+                        {
+                            yield return new WaitUntil(() => shopTerminalBehavior.serverMultiShopController);
+
+                            setMultishopCost();
+                        }
+
+                        shopTerminalBehavior.StartCoroutine(waitForMultiShopInitThenSetMultishopCost());
+                    }
+                }
+                else
+                {
+                    setPurchaseCost();
                 }
             }
             catch (Exception ex)

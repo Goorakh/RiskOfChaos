@@ -15,6 +15,9 @@
     * Jailer: 29% -> 15%
     * Devastator: 14% -> 35%
 
+* Blood Money:
+  * Fixed cost change not applying to multishops spawned after the effect first activates
+
 * Effect Selection:
   * Added config option to disallow more than one instance of an effect being active at the same time
   * Removed activation count based weight reduction. Effect weights are now more-or-less constant.
