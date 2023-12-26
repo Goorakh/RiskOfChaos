@@ -3,6 +3,7 @@ using RiskOfChaos.Components;
 using RiskOfChaos.ModifierController.AttackDelay;
 using RiskOfChaos.ModifierController.Camera;
 using RiskOfChaos.ModifierController.Damage;
+using RiskOfChaos.ModifierController.Effect;
 using RiskOfChaos.ModifierController.Gravity;
 using RiskOfChaos.ModifierController.HoldoutZone;
 using RiskOfChaos.ModifierController.Knockback;
@@ -49,6 +50,8 @@ namespace RiskOfChaos
         public static GameObject CameraModificationControllerPrefab { get; private set; }
 
         public static GameObject HoldoutZoneModificationControllerPrefab { get; private set; }
+
+        public static GameObject EffectModificationControllerPrefab { get; private set; }
 
         static readonly string[] _geyserPrefabPaths = new string[]
         {
@@ -217,6 +220,15 @@ namespace RiskOfChaos
                 HoldoutZoneModificationControllerPrefab.AddComponent<HoldoutZoneModificationManager>();
             }
 
+            // EffectModificationControllerPrefab
+            {
+                EffectModificationControllerPrefab = createEmptyPrefabObject("EffectModificationController");
+
+                EffectModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
+                EffectModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
+                EffectModificationControllerPrefab.AddComponent<EffectModificationManager>();
+            }
+
             // GeyserPrefabs
             {
                 int geyserCount = _geyserPrefabPaths.Length;
@@ -317,6 +329,7 @@ namespace RiskOfChaos
             NetworkServer.Spawn(GameObject.Instantiate(PhysicsModificationControllerPrefab));
             NetworkServer.Spawn(GameObject.Instantiate(AttackDelayModificationControllerPrefab));
             NetworkServer.Spawn(GameObject.Instantiate(CameraModificationControllerPrefab));
+            NetworkServer.Spawn(GameObject.Instantiate(EffectModificationControllerPrefab));
 
             GameObject.Instantiate(DamageInfoModificationControllerPrefab);
             GameObject.Instantiate(PickupModificationControllerPrefab);

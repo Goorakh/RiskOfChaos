@@ -203,11 +203,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 }
             }
 
-            if (effectInfo is TimedEffectInfo timedEffect && !timedEffect.AllowDuplicates && timedEffect.TimedType == TimedEffectType.FixedDuration)
+            if (effectInfo is TimedEffectInfo timedEffect && !timedEffect.AllowDuplicates && timedEffect.CanStack)
             {
                 foreach (ActiveTimedEffectInfo activeEffects in getActiveTimedEffectsFor(timedEffect))
                 {
-                    activeEffects.EffectInstance.TimeRemaining += timedEffect.DurationSeconds;
+                    activeEffects.EffectInstance.MaxStocks += timedEffect.MaxStocks;
                     willStart = false;
                 }
             }
@@ -253,7 +253,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             if (!NetworkServer.active)
                 return;
 
-            endTimedEffects(TimedEffectFlags.UntilStageEnd);
+            deductEffectStocks(TimedEffectFlags.UntilStageEnd);
         }
 
         void endTimedEffects(TimedEffectFlags flags, bool sendClientMessage = true)
@@ -269,6 +269,39 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
                     endTimedEffectAtIndex(i, sendClientMessage);
                 }
+            }
+        }
+
+        void deductEffectStocks(TimedEffectFlags flags, bool sendClientMessage = true)
+        {
+            for (int i = _activeTimedEffects.Count - 1; i >= 0; i--)
+            {
+                ActiveTimedEffectInfo timedEffect = _activeTimedEffects[i];
+                if (timedEffect.EffectInstance.MatchesFlag(flags))
+                {
+                    deductEffectStockAtIndex(i, sendClientMessage);
+                }
+            }
+        }
+
+        void deductEffectStockAtIndex(int index, bool sendClientMessage)
+        {
+            ActiveTimedEffectInfo timedEffect = _activeTimedEffects[index];
+
+            timedEffect.EffectInstance.SpentStocks++;
+            if (timedEffect.EffectInstance.StocksRemaining <= 0f)
+            {
+#if DEBUG
+                Log.Debug($"Ending timed effect from stocks depleted: {timedEffect.EffectInstance.EffectInfo} (ID={timedEffect.EffectInstance.DispatchID})");
+#endif
+
+                endTimedEffectAtIndex(index, sendClientMessage);
+            }
+            else
+            {
+#if DEBUG
+                Log.Debug($"Deducted effect stocks: {timedEffect.EffectInstance.EffectInfo} (ID={timedEffect.EffectInstance.DispatchID}), {timedEffect.EffectInstance.StocksRemaining} remaining");
+#endif
             }
         }
 

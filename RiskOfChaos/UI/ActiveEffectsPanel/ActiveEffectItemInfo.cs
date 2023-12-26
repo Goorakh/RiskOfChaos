@@ -18,9 +18,13 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
         public readonly float DurationSeconds;
         public readonly float TimeStarted;
 
+        public readonly float RemainingStocks;
+
         public readonly bool ShouldDisplay;
 
         public readonly string DisplayName => EffectInfo.GetDisplayName(NameFormatter, EffectNameFormatFlags.RuntimeFormatArgs);
+
+        public readonly float EndTime => TimeStarted + (DurationSeconds * RemainingStocks);
 
         public ActiveEffectItemInfo(TimedEffect effectInstance)
         {
@@ -33,6 +37,8 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             DurationSeconds = effectInstance.DurationSeconds;
 
             TimeStarted = effectInstance.TimeStarted;
+
+            RemainingStocks = effectInstance.StocksRemaining;
 
             ShouldDisplay = EffectInfo.ShouldDisplayOnHUD;
         }
@@ -64,6 +70,8 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
             TimeStarted = reader.ReadSingle();
 
+            RemainingStocks = reader.ReadSingle();
+
             ShouldDisplay = reader.ReadBoolean();
         }
 
@@ -90,6 +98,8 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
             writer.Write(TimeStarted);
 
+            writer.Write(RemainingStocks);
+
             writer.Write(ShouldDisplay);
         }
 
@@ -111,6 +121,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
                    TimedType == other.TimedType &&
                    DurationSeconds == other.DurationSeconds &&
                    TimeStarted == other.TimeStarted &&
+                   RemainingStocks == other.RemainingStocks &&
                    ShouldDisplay == other.ShouldDisplay;
         }
 

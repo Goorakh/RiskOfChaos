@@ -4,8 +4,10 @@ using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.Formatting;
+using RiskOfChaos.ModifierController.Effect;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling
@@ -24,6 +26,30 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly bool HideFromEffectsListWhenPermanent;
         public bool ShouldDisplayOnHUD => !HideFromEffectsListWhenPermanent || TimedType != TimedEffectType.Permanent;
+
+        public bool CanStack => TimedType switch
+        {
+            TimedEffectType.UntilStageEnd or TimedEffectType.FixedDuration => true,
+            _ => false
+        };
+
+        public readonly bool IgnoreDurationModifiers;
+
+        public readonly float DefaultMaxStocks;
+        public float MaxStocks
+        {
+            get
+            {
+                float maxStocks = DefaultMaxStocks;
+
+                if (!IgnoreDurationModifiers && EffectModificationManager.Instance)
+                {
+                    maxStocks *= EffectModificationManager.Instance.DurationMultiplier;
+                }
+
+                return maxStocks;
+            }
+        }
 
         public TimedEffectInfo(ChaosEffectIndex effectIndex, ChaosTimedEffectAttribute attribute, ConfigFile configFile) : base(effectIndex, attribute, configFile)
         {
@@ -61,6 +87,10 @@ namespace RiskOfChaos.EffectHandling
             }
 
             HideFromEffectsListWhenPermanent = attribute.HideFromEffectsListWhenPermanent;
+
+            DefaultMaxStocks = attribute.DefaultMaxStocks;
+
+            IgnoreDurationModifiers = attribute.IgnoreDurationModifiers;
         }
 
         public override void BindConfigs()
@@ -79,7 +109,7 @@ namespace RiskOfChaos.EffectHandling
             if (!base.CanActivate(context))
                 return false;
 
-            if (TimedType != TimedEffectType.FixedDuration && !AllowDuplicates)
+            if (!CanStack && !AllowDuplicates)
             {
                 if (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.AnyInstanceOfEffectActive(this, context))
                 {
@@ -100,12 +130,16 @@ namespace RiskOfChaos.EffectHandling
 
             if ((formatFlags & EffectNameFormatFlags.TimedType) != 0)
             {
+                float durationMultiplier = MaxStocks;
+
                 switch (TimedType)
                 {
                     case TimedEffectType.UntilStageEnd:
-                        return Language.GetStringFormatted("TIMED_TYPE_UNTIL_STAGE_END_FORMAT", displayName);
+                        int stageCount = Mathf.CeilToInt(durationMultiplier);
+                        string token = stageCount == 1 ? "TIMED_TYPE_UNTIL_STAGE_END_SINGLE_FORMAT" : "TIMED_TYPE_UNTIL_STAGE_END_MULTI_FORMAT";
+                        return Language.GetStringFormatted(token, displayName, stageCount);
                     case TimedEffectType.FixedDuration:
-                        return Language.GetStringFormatted("TIMED_TYPE_FIXED_DURATION_FORMAT", displayName, DurationSeconds);
+                        return Language.GetStringFormatted("TIMED_TYPE_FIXED_DURATION_FORMAT", displayName, DurationSeconds * durationMultiplier);
                     case TimedEffectType.Permanent:
                         return Language.GetStringFormatted("TIMED_TYPE_PERMANENT_FORMAT", displayName);
                     default:

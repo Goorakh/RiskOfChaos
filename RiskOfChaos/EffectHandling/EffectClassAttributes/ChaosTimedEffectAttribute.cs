@@ -13,6 +13,10 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes
 
         public bool HideFromEffectsListWhenPermanent { get; set; } = false;
 
+        public float DefaultMaxStocks { get; set; } = 1;
+
+        public bool IgnoreDurationModifiers { get; set; } = false;
+
         ChaosTimedEffectAttribute(string identifier, TimedEffectType timedType, float durationSeconds) : base(identifier)
         {
             TimedType = timedType;

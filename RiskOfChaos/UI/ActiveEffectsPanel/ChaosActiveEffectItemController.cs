@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.UI;
+using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,6 +14,8 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
     public class ChaosActiveEffectItemController : MonoBehaviour
     {
         static GameObject _itemPrefab;
+
+        static readonly StringBuilder _displayNameStringBuilder = new StringBuilder();
 
         internal static void InitializePrefab(GameObject objectiveTrackerPrefab)
         {
@@ -109,17 +112,37 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         void updateEffectLabel()
         {
-            string displayText = _displayingEffect.DisplayName;
-            if (_displayingEffect.TimedType == TimedEffectType.FixedDuration && Run.instance)
-            {
-                float currentTime = Run.instance.GetRunTime(RunTimerType.Realtime);
-                float endTime = _displayingEffect.TimeStarted + _displayingEffect.DurationSeconds;
+            _displayNameStringBuilder.Clear();
+            _displayNameStringBuilder.Append(_displayingEffect.DisplayName);
 
-                float timeRemaining = endTime - currentTime;
-                displayText += $" ({timeRemaining.ToString(timeRemaining >= 10f ? "F0" : "F1")}s)";
+            switch (_displayingEffect.TimedType)
+            {
+                case TimedEffectType.UntilStageEnd:
+                    int stagesRemaining = Mathf.CeilToInt(_displayingEffect.RemainingStocks);
+
+                    string formatToken;
+                    if (stagesRemaining == 1)
+                    {
+                        formatToken = "CHAOS_ACTIVE_EFFECT_UNTIL_STAGE_END_SINGLE_FORMAT";
+                    }
+                    else
+                    {
+                        formatToken = "CHAOS_ACTIVE_EFFECT_UNTIL_STAGE_END_MULTI_FORMAT";
+                    }
+
+                    _displayNameStringBuilder.Append(' ');
+                    _displayNameStringBuilder.Append(Language.GetStringFormatted(formatToken, stagesRemaining));
+                    break;
+                case TimedEffectType.FixedDuration when Run.instance:
+                    float currentTime = Run.instance.GetRunTime(RunTimerType.Realtime);
+                    float endTime = _displayingEffect.EndTime;
+
+                    float timeRemaining = endTime - currentTime;
+                    _displayNameStringBuilder.Append($" ({timeRemaining.ToString((timeRemaining >= 10f ? "F0" : "F1"))}s)");
+                    break;
             }
 
-            _effectNameLabel.text = displayText;
+            _effectNameLabel.text = _displayNameStringBuilder.Take();
         }
 
         void FixedUpdate()

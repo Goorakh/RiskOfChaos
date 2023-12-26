@@ -12,6 +12,7 @@ namespace RiskOfChaos.EffectDefinitions
         public TimedEffect() : base()
         {
             EffectInfo = base.EffectInfo as TimedEffectInfo;
+            _maxStocks = EffectInfo.MaxStocks;
         }
 
         public bool IsNetDirty;
@@ -22,6 +23,36 @@ namespace RiskOfChaos.EffectDefinitions
         {
             return (flags & (TimedEffectFlags)(1 << (byte)TimedType)) != 0;
         }
+
+        float _maxStocks = 1;
+        public float MaxStocks
+        {
+            get
+            {
+                return _maxStocks;
+            }
+            set
+            {
+                _maxStocks = value;
+                IsNetDirty = true;
+            }
+        }
+
+        uint _spentStocks = 0;
+        public uint SpentStocks
+        {
+            get
+            {
+                return _spentStocks;
+            }
+            set
+            {
+                _spentStocks = value;
+                IsNetDirty = true;
+            }
+        }
+
+        public float StocksRemaining => MaxStocks - SpentStocks;
 
         public float DurationSeconds { get; internal set; } = -1f;
         public float TimeStarted { get; private set; }
@@ -51,24 +82,7 @@ namespace RiskOfChaos.EffectDefinitions
                     return 0f;
                 }
 
-                return DurationSeconds - TimeElapsed;
-            }
-            set
-            {
-                if (!NetworkServer.active)
-                {
-                    Log.Warning("Called on client");
-                    return;
-                }
-
-                if (DurationSeconds < 0f)
-                {
-                    Log.Warning($"Cannot set time remaining for effect {this}, no duration specified");
-                    return;
-                }
-
-                DurationSeconds = TimeElapsed + value;
-                IsNetDirty = true;
+                return (DurationSeconds * StocksRemaining) - TimeElapsed;
             }
         }
 
@@ -85,6 +99,9 @@ namespace RiskOfChaos.EffectDefinitions
 
             writer.Write(TimeStarted);
 
+            writer.Write(MaxStocks);
+            writer.WritePackedUInt32(SpentStocks);
+
             writer.Write((byte)TimedType);
             if (TimedType == TimedEffectType.FixedDuration)
             {
@@ -98,8 +115,10 @@ namespace RiskOfChaos.EffectDefinitions
 
             TimeStarted = reader.ReadSingle();
 
-            TimedType = (TimedEffectType)reader.ReadByte();
+            _maxStocks = reader.ReadSingle();
+            _spentStocks = reader.ReadPackedUInt32();
 
+            TimedType = (TimedEffectType)reader.ReadByte();
             if (TimedType == TimedEffectType.FixedDuration)
             {
                 DurationSeconds = reader.ReadSingle();

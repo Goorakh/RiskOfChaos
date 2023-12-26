@@ -2,12 +2,19 @@
 
 **?.?.? Changes:**
 
+* Added 2 new effects:
+  * Increase Effect Duration: Increases the duration of all other effects (2x by default), lasts 1 stage
+  * Decrease Effect Duration: Decreases the duration of all other effects (0.5x by default), lasts 1 stage
+
 * Aspect Roulette
   * Added configs for controlling the likelyhood of each aspect
 
 * Effect Selection:
   * Added config option to disallow more than one instance of an effect being active at the same time
   * Removed activation count based weight reduction. Effect weights are now more-or-less constant.
+
+* UI:
+  * Active Effects display now shows if effects last until end of stage
 
 <details>
   <summary>1.13.6 Changes:</summary>

@@ -84,10 +84,13 @@ namespace RiskOfChaos.EffectDefinitions.UI
                 switch (token)
                 {
                     case "CHAOS_ACTIVE_EFFECTS_BAR_TITLE":
+                    case "CHAOS_ACTIVE_EFFECT_UNTIL_STAGE_END_SINGLE_FORMAT":
+                    case "CHAOS_ACTIVE_EFFECT_UNTIL_STAGE_END_MULTI_FORMAT":
                     case "CHAOS_NEXT_EFFECT_DISPLAY_FORMAT":
                     case "CHAOS_EFFECT_ACTIVATE":
                     case "CHAOS_EFFECT_VOTING_RANDOM_OPTION_NAME":
-                    case "TIMED_TYPE_UNTIL_STAGE_END_FORMAT":
+                    case "TIMED_TYPE_UNTIL_STAGE_END_SINGLE_FORMAT":
+                    case "TIMED_TYPE_UNTIL_STAGE_END_MULTI_FORMAT":
                     case "TIMED_TYPE_FIXED_DURATION_FORMAT":
                     case "TIMED_TYPE_PERMANENT_FORMAT":
                         return;
