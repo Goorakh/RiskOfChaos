@@ -33,8 +33,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             _prefabSelection = new WeightedSelection<SerializableProjectilePrefab>();
             _prefabSelection.AddChoice(new SerializableProjectilePrefab("RoR2/Base/Nullifier/NullifierDeathBombProjectile.prefab"), 1f);
-            _prefabSelection.AddChoice(new SerializableProjectilePrefab("RoR2/DLC1/VoidJailer/VoidJailerDeathBombProjectile.prefab"), 0.5f);
-            _prefabSelection.AddChoice(new SerializableProjectilePrefab("RoR2/DLC1/VoidMegaCrab/VoidMegaCrabDeathBombProjectile.prefab"), 0.25f);
+            _prefabSelection.AddChoice(new SerializableProjectilePrefab("RoR2/DLC1/VoidJailer/VoidJailerDeathBombProjectile.prefab"), 0.3f);
+            _prefabSelection.AddChoice(new SerializableProjectilePrefab("RoR2/DLC1/VoidMegaCrab/VoidMegaCrabDeathBombProjectile.prefab"), 0.7f);
         }
 
         readonly SerializableProjectilePrefab[] _projectilePrefabByBodyIndex = new SerializableProjectilePrefab[BodyCatalog.bodyCount];

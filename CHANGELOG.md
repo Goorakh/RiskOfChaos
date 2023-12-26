@@ -9,6 +9,12 @@
 * Aspect Roulette
   * Added configs for controlling the likelyhood of each aspect
 
+* Everyone Implodes on Death:
+  * Adjusted implosion selection chances:
+    * Reaver: 57% -> 50%
+    * Jailer: 29% -> 15%
+    * Devastator: 14% -> 35%
+
 * Effect Selection:
   * Added config option to disallow more than one instance of an effect being active at the same time
   * Removed activation count based weight reduction. Effect weights are now more-or-less constant.
