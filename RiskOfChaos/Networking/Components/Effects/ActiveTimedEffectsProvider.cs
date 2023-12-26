@@ -77,6 +77,9 @@ namespace RiskOfChaos.Networking.Components.Effects
 
         void ChaosEffectInfo_OnEffectNameFormatterDirty(ChaosEffectInfo effectInfo)
         {
+            if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                return;
+
             if (effectInfo is TimedEffectInfo timedEffectInfo)
             {
                 TimedChaosEffectHandler.Instance.GetActiveEffects(timedEffectInfo).Do(refreshEffectDisplay);
