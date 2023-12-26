@@ -138,7 +138,21 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
                     float endTime = _displayingEffect.EndTime;
 
                     float timeRemaining = endTime - currentTime;
-                    _displayNameStringBuilder.Append($" ({timeRemaining.ToString((timeRemaining >= 10f ? "F0" : "F1"))}s)");
+                    _displayNameStringBuilder.Append(' ');
+
+                    if (timeRemaining < (2f * 60f) + 0.5f)
+                    {
+                        string timeRemainingFormat = timeRemaining >= 10f ? "F0" : "F1";
+                        _displayNameStringBuilder.Append(Language.GetStringFormatted("CHAOS_ACTIVE_EFFECT_FIXED_DURATION_FORMAT", timeRemaining.ToString(timeRemainingFormat)));
+                    }
+                    else
+                    {
+                        int minutesRemaining = Mathf.FloorToInt(timeRemaining / 60f);
+                        int secondsRemaining = Mathf.RoundToInt(timeRemaining % 60f);
+
+                        _displayNameStringBuilder.Append(Language.GetStringFormatted("CHAOS_ACTIVE_EFFECT_FIXED_DURATION_LONG_FORMAT", minutesRemaining, secondsRemaining.ToString("D2")));
+                    }
+
                     break;
             }
 
