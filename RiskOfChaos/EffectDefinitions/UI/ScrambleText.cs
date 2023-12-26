@@ -57,11 +57,18 @@ namespace RiskOfChaos.EffectDefinitions.UI
         public override void OnStart()
         {
             LocalizedStringOverridePatch.OverrideLanguageString += overrideLanguageString;
+            Language.onCurrentLanguageChanged += onCurrentLanguageChanged;
         }
 
         public override void OnEnd()
         {
+            Language.onCurrentLanguageChanged -= onCurrentLanguageChanged;
             LocalizedStringOverridePatch.OverrideLanguageString -= overrideLanguageString;
+        }
+
+        void onCurrentLanguageChanged()
+        {
+            _tokenOverrideCache.Clear();
         }
 
         void overrideLanguageString(ref string str, string token, Language language)
@@ -156,7 +163,7 @@ namespace RiskOfChaos.EffectDefinitions.UI
                 {
                     continue;
                 }
-                else if (char.IsLetterOrDigit(str[i]))
+                else if (char.IsLetterOrDigit(str[i]) || str[i] == '\'')
                 {
                     _sharedWordBuilder.Append(str[i]);
                 }
