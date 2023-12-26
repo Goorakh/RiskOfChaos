@@ -1,4 +1,5 @@
 ﻿using RoR2;
+using System;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -23,6 +24,8 @@ namespace RiskOfChaos.Components
                 }
             };
         }
+
+        public static event Action<HoldoutZoneModifier> OnHoldoutZoneEnabled;
 
         HoldoutZoneController _holdoutZoneController;
         public HoldoutZoneController HoldoutZoneController
@@ -117,6 +120,8 @@ namespace RiskOfChaos.Components
             {
                 subscribe(HoldoutZoneController);
             }
+
+            OnHoldoutZoneEnabled?.Invoke(this);
         }
 
         void OnDisable()

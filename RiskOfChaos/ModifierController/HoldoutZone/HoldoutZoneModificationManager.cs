@@ -13,12 +13,16 @@ namespace RiskOfChaos.ModifierController.HoldoutZone
         {
             base.OnEnable();
             SingletonHelper.Assign(ref _instance, this);
+
+            HoldoutZoneModifier.OnHoldoutZoneEnabled += modifyHoldoutZone;
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
             SingletonHelper.Unassign(ref _instance, this);
+
+            HoldoutZoneModifier.OnHoldoutZoneEnabled -= modifyHoldoutZone;
         }
 
         public override HoldoutZoneModificationInfo InterpolateValue(in HoldoutZoneModificationInfo a, in HoldoutZoneModificationInfo b, float t)
@@ -30,12 +34,21 @@ namespace RiskOfChaos.ModifierController.HoldoutZone
         {
             foreach (HoldoutZoneModifier zoneModifier in InstanceTracker.GetInstancesList<HoldoutZoneModifier>())
             {
-                HoldoutZoneModificationInfo modificationInfo = GetModifiedValue(new HoldoutZoneModificationInfo(zoneModifier.HoldoutZoneController));
-
-                zoneModifier.RadiusMultiplier = modificationInfo.RadiusMultiplier;
-                zoneModifier.ChargeRateMultiplier = modificationInfo.ChargeRateMultiplier;
-                zoneModifier.OverrideColor = modificationInfo.ColorOverride;
+                modifyHoldoutZone(zoneModifier);
             }
+        }
+
+        void modifyHoldoutZone(HoldoutZoneModifier zoneModifier)
+        {
+#if DEBUG
+            Log.Debug($"Applying modification to {zoneModifier}");
+#endif
+
+            HoldoutZoneModificationInfo modificationInfo = GetModifiedValue(new HoldoutZoneModificationInfo(zoneModifier.HoldoutZoneController));
+
+            zoneModifier.RadiusMultiplier = modificationInfo.RadiusMultiplier;
+            zoneModifier.ChargeRateMultiplier = modificationInfo.ChargeRateMultiplier;
+            zoneModifier.OverrideColor = modificationInfo.ColorOverride;
         }
     }
 }
