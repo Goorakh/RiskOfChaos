@@ -142,7 +142,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
                     if (timeRemaining < (2f * 60f) + 0.5f)
                     {
-                        string timeRemainingFormat = timeRemaining >= 10f ? "F0" : "F1";
+                        string timeRemainingFormat = timeRemaining >= 10f - 0.05f ? "F0" : "F1";
                         _displayNameStringBuilder.Append(Language.GetStringFormatted("CHAOS_ACTIVE_EFFECT_FIXED_DURATION_FORMAT", timeRemaining.ToString(timeRemainingFormat)));
                     }
                     else
