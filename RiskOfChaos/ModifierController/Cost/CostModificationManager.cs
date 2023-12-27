@@ -43,8 +43,7 @@ namespace RiskOfChaos.ModifierController.Cost
 
         void modifyCost(OriginalCostProvider originalCostProvider)
         {
-            CostModificationInfo baseValue = new CostModificationInfo(originalCostProvider);
-            CostModificationInfo modificationInfo = GetModifiedValue(baseValue);
+            CostModificationInfo modificationInfo = GetModifiedValue(new CostModificationInfo(originalCostProvider));
 
             ICostProvider activeCostProvider = originalCostProvider.ActiveCostProvider;
 
