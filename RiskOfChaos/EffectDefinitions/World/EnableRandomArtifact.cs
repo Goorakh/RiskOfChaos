@@ -23,22 +23,24 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         readonly struct ArtifactConfig
         {
+            public readonly string ArtifactName;
             public readonly ConfigHolder<float> SelectionWeight;
 
             public ArtifactConfig(ArtifactIndex artifactIndex)
             {
-                ArtifactDef artifactDef = ArtifactCatalog.GetArtifactDef(artifactIndex);
-                if (!artifactDef)
+                ArtifactDef artifact = ArtifactCatalog.GetArtifactDef(artifactIndex);
+                if (!artifact)
                 {
+                    ArtifactName = artifactIndex.ToString();
                     Log.Error($"Invalid artifact index {artifactIndex}");
                     return;
                 }
 
-                string artifactName = Language.GetString(artifactDef.nameToken, "en");
+                ArtifactName = Language.GetString(artifact.nameToken, "en");
 
                 SelectionWeight =
-                    ConfigFactory<float>.CreateConfig($"{artifactName.FilterConfigKey()} Weight", 1f)
-                                        .Description($"How likely the {artifactName} is to be picked, higher value means more likely, lower value means less likely.\n\nA value of 0 will exclude it completely")
+                    ConfigFactory<float>.CreateConfig($"{ArtifactName.FilterConfigKey()} Weight", 1f)
+                                        .Description($"How likely the {ArtifactName} is to be picked, higher value means more likely, lower value means less likely.\n\nA value of 0 will exclude it completely")
                                         .OptionConfig(new StepSliderConfig
                                         {
                                             formatString = "{0:F1}",
@@ -46,10 +48,13 @@ namespace RiskOfChaos.EffectDefinitions.World
                                             min = 0f,
                                             max = 2.5f
                                         })
-                                        .ValueConstrictor(CommonValueConstrictors.Clamped01Float)
+                                        .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                         .Build();
+            }
 
-                SelectionWeight.Bind(_effectInfo);
+            public readonly void Bind(ChaosEffectInfo effectInfo)
+            {
+                SelectionWeight?.Bind(effectInfo);
             }
         }
         static ArtifactConfig[] _artifactConfigs;
@@ -61,6 +66,11 @@ namespace RiskOfChaos.EffectDefinitions.World
             for (int i = 0; i < ArtifactCatalog.artifactCount; i++)
             {
                 _artifactConfigs[i] = new ArtifactConfig((ArtifactIndex)i);
+            }
+
+            foreach (ArtifactConfig config in _artifactConfigs.OrderBy(a => a.ArtifactName))
+            {
+                config.Bind(_effectInfo);
             }
         }
 
@@ -75,10 +85,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         static float getArtifactSelectionWeight(ArtifactIndex index)
         {
             ArtifactConfig? config = getArtifactConfig(index);
-            if (!config.HasValue)
-                return 0f;
-
-            return config.Value.SelectionWeight.Value;
+            return config?.SelectionWeight?.Value ?? 0f;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
