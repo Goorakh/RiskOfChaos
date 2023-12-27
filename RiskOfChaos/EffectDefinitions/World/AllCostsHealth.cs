@@ -1,22 +1,24 @@
-﻿using HarmonyLib;
-using HG;
+﻿using HG;
 using MonoMod.Utils;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.ModifierController.Cost;
 using RiskOfChaos.Patches;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
-using System.Collections;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosTimedEffect("all_costs_health", TimedEffectType.UntilStageEnd, AllowDuplicates = false, DefaultSelectionWeight = 0.8f)]
     [EffectConfigBackwardsCompatibility("Effect: Blood Money (Lasts 1 stage)")]
-    public sealed class AllCostsHealth : TimedEffect
+    public sealed class AllCostsHealth : TimedEffect, ICostModificationProvider
     {
         [InitEffectInfo]
         static readonly TimedEffectInfo _effectInfo;
@@ -56,6 +58,13 @@ namespace RiskOfChaos.EffectDefinitions.World
                     ConfigFactory<bool>.CreateConfig($"Convert {key} Costs", defaultEnabled)
                                        .Description($"If the effect should be able to turn {key} costs into health costs")
                                        .OptionConfig(new CheckBoxConfig())
+                                       .OnValueChanged(() =>
+                                       {
+                                           if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                                               return;
+
+                                           TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<AllCostsHealth>(e => e.OnValueDirty);
+                                       })
                                        .Build();
 
                 costTypeEnabledConfig.Bind(_effectInfo);
@@ -70,18 +79,27 @@ namespace RiskOfChaos.EffectDefinitions.World
             return enabledConfig is not null && enabledConfig.Value;
         }
 
+        [EffectCanActivate]
+        static bool CanActivate()
+        {
+            return CostModificationManager.Instance;
+        }
+
+        public event Action OnValueDirty;
+
         public override void OnStart()
         {
-            InstanceTracker.GetInstancesList<PurchaseInteraction>().Do(handlePurchaseInteraction);
-
-            On.RoR2.PurchaseInteraction.Awake += PurchaseInteraction_Awake;
+            CostModificationManager.Instance.RegisterModificationProvider(this);
 
             CharacterMoneyChangedHook.OnCharacterMoneyChanged += onCharacterMoneyChanged;
         }
 
         public override void OnEnd()
         {
-            On.RoR2.PurchaseInteraction.Awake -= PurchaseInteraction_Awake;
+            if (CostModificationManager.Instance)
+            {
+                CostModificationManager.Instance.UnregisterModificationProvider(this);
+            }
 
             CharacterMoneyChangedHook.OnCharacterMoneyChanged -= onCharacterMoneyChanged;
         }
@@ -116,9 +134,9 @@ namespace RiskOfChaos.EffectDefinitions.World
             }
         }
 
-        static int convertCostToHealthCost(int cost, float halfwayValue)
+        static float convertCostToHealthCost(float cost, float halfwayValue)
         {
-            return Mathf.Max(1, Mathf.FloorToInt((1f - (halfwayValue / (cost + halfwayValue))) * 100f));
+            return Mathf.Max(1f, (1f - (halfwayValue / (cost + halfwayValue))) * 100f);
         }
 
         void onCharacterMoneyChanged(CharacterMaster master, int moneyDiff)
@@ -139,79 +157,21 @@ namespace RiskOfChaos.EffectDefinitions.World
             }
         }
 
-        static void PurchaseInteraction_Awake(On.RoR2.PurchaseInteraction.orig_Awake orig, PurchaseInteraction self)
+        public void ModifyValue(ref CostModificationInfo value)
         {
-            orig(self);
-            handlePurchaseInteraction(self);
-        }
-
-        static void handlePurchaseInteraction(PurchaseInteraction purchaseInteraction)
-        {
-            if (!purchaseInteraction || !canConvertCostType(purchaseInteraction.costType))
+            if (!canConvertCostType(value.CostType))
                 return;
 
-            int healthCost;
-            if (purchaseInteraction.cost < 0)
+            float halfwayCostValue = getCostTypeToPercentHealthConversionHalfwayValue(value.CostType);
+            if (halfwayCostValue < 0f)
+                return;
+
+            value.CostType = CostTypeIndex.PercentHealth;
+
+            if (value.CurrentCost > 0f)
             {
-                healthCost = 0;
-            }
-            else
-            {
-                float halfwayCostValue = getCostTypeToPercentHealthConversionHalfwayValue(purchaseInteraction.costType);
-                if (halfwayCostValue < 0f)
-                    return;
-
-                healthCost = convertCostToHealthCost(purchaseInteraction.cost, halfwayCostValue);
-            }
-
-            try
-            {
-                void setPurchaseCost()
-                {
-                    purchaseInteraction.costType = CostTypeIndex.PercentHealth;
-                    purchaseInteraction.Networkcost = healthCost;
-                }
-
-                if (purchaseInteraction.TryGetComponent(out ShopTerminalBehavior shopTerminalBehavior))
-                {
-                    void setMultishopCost()
-                    {
-                        setPurchaseCost();
-
-                        shopTerminalBehavior.serverMultiShopController.costType = CostTypeIndex.PercentHealth;
-                        shopTerminalBehavior.serverMultiShopController.Networkcost = healthCost;
-                    }
-
-                    if (shopTerminalBehavior.serverMultiShopController)
-                    {
-                        setMultishopCost();
-                    }
-                    else
-                    {
-                        IEnumerator waitForMultiShopInitThenSetMultishopCost()
-                        {
-                            while (!shopTerminalBehavior.serverMultiShopController)
-                            {
-                                yield return 0;
-
-                                if (!shopTerminalBehavior)
-                                    yield break;
-                            }
-
-                            setMultishopCost();
-                        }
-
-                        shopTerminalBehavior.StartCoroutine(waitForMultiShopInitThenSetMultishopCost());
-                    }
-                }
-                else
-                {
-                    setPurchaseCost();
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error_NoCallerPrefix($"Failed to convert {purchaseInteraction} ({purchaseInteraction.costType}) into health cost: {ex}");
+                float healthCost = convertCostToHealthCost(value.CurrentCost, halfwayCostValue);
+                value.CostMultiplier = healthCost / value.CurrentCost;
             }
         }
     }

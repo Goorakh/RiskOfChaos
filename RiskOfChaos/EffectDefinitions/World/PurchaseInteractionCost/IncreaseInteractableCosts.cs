@@ -1,15 +1,19 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
+using RiskOfChaos.ModifierController.Cost;
 using RiskOfOptions.OptionConfigs;
+using System;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
 {
     [ChaosTimedEffect("increase_interactable_costs", TimedEffectType.UntilStageEnd, DefaultSelectionWeight = 0.8f, ConfigName = "Increase Chest Prices")]
-    public sealed class IncreaseInteractableCosts : GenericMultiplyPurchaseInteractionCostsEffect
+    public sealed class IncreaseInteractableCosts : TimedEffect, ICostModificationProvider
     {
         const float INCREASE_AMOUNT_MIN_VALUE = 0.05f;
 
@@ -25,7 +29,22 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
                                     increment = 0.05f
                                 })
                                 .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(INCREASE_AMOUNT_MIN_VALUE))
+                                .OnValueChanged(() =>
+                                {
+                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                                        return;
+
+                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseInteractableCosts>(e => e.OnValueDirty);
+                                })
                                 .Build();
+
+        [EffectCanActivate]
+        static bool CanActivate()
+        {
+            return CostModificationManager.Instance;
+        }
+
+        public event Action OnValueDirty;
 
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
@@ -33,6 +52,22 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
             return new EffectNameFormatter_GenericFloat(_increaseAmount.Value) { ValueFormat = "P0" };
         }
 
-        protected override float multiplier => 1f + _increaseAmount.Value;
+        public override void OnStart()
+        {
+            CostModificationManager.Instance.RegisterModificationProvider(this);
+        }
+
+        public override void OnEnd()
+        {
+            if (CostModificationManager.Instance)
+            {
+                CostModificationManager.Instance.UnregisterModificationProvider(this);
+            }
+        }
+
+        public void ModifyValue(ref CostModificationInfo value)
+        {
+            value.CostMultiplier *= 1f + _increaseAmount.Value;
+        }
     }
 }

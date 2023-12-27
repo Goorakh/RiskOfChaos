@@ -1,4 +1,4 @@
-﻿using RiskOfChaos.Components.CostTypeProvider;
+﻿using RiskOfChaos.Components.CostProviders;
 using RoR2;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -11,17 +11,17 @@ namespace RiskOfChaos.Networking.Components
         const uint COST_TYPE_DIRTY_BIT = 1 << 0;
 
         CostTypeIndex _lastCostType;
-        ICostTypeProvider _costTypeProvider;
+        ICostProvider _costProvider;
 
         void Awake()
         {
             if (TryGetComponent(out PurchaseInteraction purchaseInteraction))
             {
-                _costTypeProvider = new PurchaseInteractionCostTypeProvider(purchaseInteraction);
+                _costProvider = new PurchaseInteractionCostProvider(purchaseInteraction);
             }
             else if (TryGetComponent(out MultiShopController multiShopController))
             {
-                _costTypeProvider = new MultiShopControllerCostTypeProvider(multiShopController);
+                _costProvider = new MultiShopControllerCostProvider(multiShopController);
             }
             else
             {
@@ -30,19 +30,19 @@ namespace RiskOfChaos.Networking.Components
                 return;
             }
 
-            _lastCostType = _costTypeProvider.CostType;
+            _lastCostType = _costProvider.CostType;
         }
 
         void FixedUpdate()
         {
-            if (hasAuthority && _lastCostType != _costTypeProvider.CostType)
+            if (hasAuthority && _lastCostType != _costProvider.CostType)
             {
 #if DEBUG
-                Log.Debug($"{name} ({netId}): Cost type changed ({_lastCostType}->{_costTypeProvider.CostType}), setting dirty bit");
+                Log.Debug($"{name} ({netId}): Cost type changed ({_lastCostType}->{_costProvider.CostType}), setting dirty bit");
 #endif
 
                 SetDirtyBit(COST_TYPE_DIRTY_BIT);
-                _lastCostType = _costTypeProvider.CostType;
+                _lastCostType = _costProvider.CostType;
             }
         }
 
@@ -50,7 +50,7 @@ namespace RiskOfChaos.Networking.Components
         {
             if (initialState)
             {
-                writer.WritePackedUInt32((uint)_costTypeProvider.CostType);
+                writer.WritePackedUInt32((uint)_costProvider.CostType);
                 return true;
             }
 
@@ -60,7 +60,7 @@ namespace RiskOfChaos.Networking.Components
             bool anythingWritten = false;
             if ((dirtyBits & COST_TYPE_DIRTY_BIT) != 0)
             {
-                writer.WritePackedUInt32((uint)_costTypeProvider.CostType);
+                writer.WritePackedUInt32((uint)_costProvider.CostType);
                 anythingWritten |= true;
             }
 
@@ -71,10 +71,10 @@ namespace RiskOfChaos.Networking.Components
         {
             if (initialState)
             {
-                _costTypeProvider.CostType = (CostTypeIndex)reader.ReadPackedUInt32();
+                _costProvider.CostType = (CostTypeIndex)reader.ReadPackedUInt32();
 
 #if DEBUG
-                Log.Debug($"Set costType to {_costTypeProvider.CostType} (initialState)");
+                Log.Debug($"Set costType to {_costProvider.CostType} (initialState)");
 #endif
 
                 return;
@@ -83,10 +83,10 @@ namespace RiskOfChaos.Networking.Components
             uint dirtyBits = reader.ReadPackedUInt32();
             if ((dirtyBits & COST_TYPE_DIRTY_BIT) != 0)
             {
-                _costTypeProvider.CostType = (CostTypeIndex)reader.ReadPackedUInt32();
+                _costProvider.CostType = (CostTypeIndex)reader.ReadPackedUInt32();
 
 #if DEBUG
-                Log.Debug($"Set costType to {_costTypeProvider.CostType} (dirtyBits)");
+                Log.Debug($"Set costType to {_costProvider.CostType} (dirtyBits)");
 #endif
             }
         }
@@ -101,9 +101,6 @@ namespace RiskOfChaos.Networking.Components
                 if (!self.GetComponent<SyncCostType>())
                 {
                     SyncCostType syncCostType = self.gameObject.AddComponent<SyncCostType>();
-#if DEBUG
-                    Log.Debug($"Added component to {self}");
-#endif
                 }
             };
 
@@ -120,9 +117,6 @@ namespace RiskOfChaos.Networking.Components
                 if (!prefab.GetComponent<SyncCostType>())
                 {
                     prefab.AddComponent<SyncCostType>();
-#if DEBUG
-                    Log.Debug($"Added component to prefab {prefab}");
-#endif
                 }
             }
 

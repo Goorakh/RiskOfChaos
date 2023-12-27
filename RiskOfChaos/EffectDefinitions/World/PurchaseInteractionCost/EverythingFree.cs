@@ -1,25 +1,37 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
-using RiskOfChaos.Patches;
-using RoR2;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.ModifierController.Cost;
+using System;
 
 namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
 {
-    [ChaosTimedEffect("everything_free", 30f, AllowDuplicates = false, IsNetworked = true)]
-    public sealed class EverythingFree : TimedEffect
+    [ChaosTimedEffect("everything_free", 30f, AllowDuplicates = false)]
+    public sealed class EverythingFree : TimedEffect, ICostModificationProvider
     {
+        [EffectCanActivate]
+        static bool CanActivate()
+        {
+            return CostModificationManager.Instance;
+        }
+
+        public event Action OnValueDirty;
+
         public override void OnStart()
         {
-            OverrideCostTypeCostHook.OverrideCost += OverrideCost;
+            CostModificationManager.Instance.RegisterModificationProvider(this);
         }
 
         public override void OnEnd()
         {
-            OverrideCostTypeCostHook.OverrideCost -= OverrideCost;
+            if (CostModificationManager.Instance)
+            {
+                CostModificationManager.Instance.UnregisterModificationProvider(this);
+            }
         }
 
-        static void OverrideCost(CostTypeDef costType, ref int cost)
+        public void ModifyValue(ref CostModificationInfo value)
         {
-            cost = 0;
+            value.CostMultiplier = 0f;
         }
     }
 }
