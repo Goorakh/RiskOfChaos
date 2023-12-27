@@ -173,25 +173,24 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             EventWaiter allItemsTransferredWaiter = new EventWaiter();
 
-            foreach (GiveInventoryTo giveInventoryTo in inventoryGiverControllers)
+            foreach (GiveInventoryTo inventoryGiver in inventoryGiverControllers)
             {
-                giveInventoryTo.OnFinishGivingInventory += allItemsTransferredWaiter.GetListener();
+                inventoryGiver.OnFinishGivingInventory += allItemsTransferredWaiter.GetListener();
 
-                Inventory inventory = giveInventoryTo.OwnerInventory;
+                Inventory inventory = inventoryGiver.OwnerInventory;
                 if (inventory)
                 {
-                    EventWaiter eventWaiter = new EventWaiter();
+                    EventWaiter allItemsGivenAndReceivedWaiter = new EventWaiter();
 
-                    giveInventoryTo.OnFinishGivingInventory += eventWaiter.GetListener();
+                    inventoryGiver.OnFinishGivingInventory += allItemsGivenAndReceivedWaiter.GetListener();
 
-                    GiveInventoryTo[] inventoriesGivingToUs = inventoryGiverControllers.Where(g => g.Target == giveInventoryTo.OwnerBody).ToArray();
-                    foreach (GiveInventoryTo givingInventoryToUs in inventoriesGivingToUs)
+                    foreach (GiveInventoryTo givingInventoryToUs in inventoryGiverControllers.Where(g => g.Target == inventoryGiver.OwnerBody))
                     {
-                        givingInventoryToUs.OnFinishGivingInventory += eventWaiter.GetListener();
+                        givingInventoryToUs.OnFinishGivingInventory += allItemsGivenAndReceivedWaiter.GetListener();
                     }
 
                     IgnoreItemTransformations.IgnoreTransformationsFor(inventory);
-                    eventWaiter.OnAllEventsInvoked += () =>
+                    allItemsGivenAndReceivedWaiter.OnAllEventsInvoked += () =>
                     {
                         IgnoreItemTransformations.ResumeTransformationsFor(inventory);
                     };
