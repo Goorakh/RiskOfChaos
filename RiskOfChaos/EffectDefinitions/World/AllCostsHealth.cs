@@ -190,7 +190,13 @@ namespace RiskOfChaos.EffectDefinitions.World
                     {
                         IEnumerator waitForMultiShopInitThenSetMultishopCost()
                         {
-                            yield return new WaitUntil(() => shopTerminalBehavior.serverMultiShopController);
+                            while (!shopTerminalBehavior.serverMultiShopController)
+                            {
+                                yield return 0;
+
+                                if (!shopTerminalBehavior)
+                                    yield break;
+                            }
 
                             setMultishopCost();
                         }
