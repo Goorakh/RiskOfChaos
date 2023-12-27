@@ -4,8 +4,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>preview</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyVersion>1.13.6</AssemblyVersion>
-    <FileVersion>1.13.6</FileVersion>
+    <AssemblyVersion>1.13.7</AssemblyVersion>
+    <FileVersion>1.13.7</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

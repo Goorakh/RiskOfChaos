@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**1.13.7 Changes:**
 
 * Added 2 new effects:
   * Increase Effect Duration: Increases the duration of all other effects (2x by default), lasts 1 stage
