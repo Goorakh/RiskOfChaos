@@ -46,7 +46,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 string combinedEliteName = $"{equipmentName} ({eliteName})";
 
                 WeightConfig =
-                    ConfigFactory<float>.CreateConfig($"{combinedEliteName.FilterConfigKey()} Weight", 1f)
+                    ConfigFactory<float>.CreateConfig($"{combinedEliteName} Weight", 1f)
                                         .Description($"Controls how likely the {eliteName.ToLower()} elite aspect is during the effect")
                                         .OptionConfig(new StepSliderConfig
                                         {

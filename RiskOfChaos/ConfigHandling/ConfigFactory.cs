@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using System;
 using System.Collections.Generic;
@@ -34,7 +35,7 @@ namespace RiskOfChaos.ConfigHandling
 
         public static ConfigFactory<T> CreateConfig(string key, T defaultValue)
         {
-            return new ConfigFactory<T>(key, defaultValue);
+            return new ConfigFactory<T>(key.FilterConfigKey(), defaultValue);
         }
 
         public ConfigFactory<T> Description(string description)
