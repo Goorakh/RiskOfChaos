@@ -3,6 +3,7 @@ using HarmonyLib;
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.ModCompatibility;
+using RiskOfChaos.ModifierController;
 using RiskOfChaos.Networking;
 using RiskOfChaos.Utilities;
 using System;
@@ -51,6 +52,7 @@ namespace RiskOfChaos
             NetworkMessageManager.RegisterMessages();
 
             NetPrefabs.InitializeAll();
+            ValueModificationManagerInstantiator.Initialize();
 
             AdditionalResourceAvailability.InitHooks();
 

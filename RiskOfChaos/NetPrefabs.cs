@@ -1,21 +1,7 @@
 ﻿using R2API;
 using RiskOfChaos.Components;
-using RiskOfChaos.ModifierController.AttackDelay;
-using RiskOfChaos.ModifierController.Camera;
-using RiskOfChaos.ModifierController.Cost;
-using RiskOfChaos.ModifierController.Damage;
-using RiskOfChaos.ModifierController.Effect;
-using RiskOfChaos.ModifierController.Gravity;
-using RiskOfChaos.ModifierController.HoldoutZone;
-using RiskOfChaos.ModifierController.Knockback;
-using RiskOfChaos.ModifierController.PhysicsModification;
-using RiskOfChaos.ModifierController.Pickups;
-using RiskOfChaos.ModifierController.Projectile;
-using RiskOfChaos.ModifierController.SkillSlots;
-using RiskOfChaos.ModifierController.TimeScale;
 using RiskOfChaos.Networking.Components;
 using RiskOfChaos.Networking.Components.Effects;
-using RiskOfChaos.Networking.Components.Gravity;
 using RoR2;
 using System;
 using UnityEngine;
@@ -29,32 +15,6 @@ namespace RiskOfChaos
         public static GameObject GenericTeamInventoryPrefab { get; private set; }
 
         public static GameObject MonsterItemStealControllerPrefab { get; private set; }
-
-        public static GameObject GravityControllerPrefab { get; private set; }
-
-        public static GameObject SkillSlotModificationControllerPrefab { get; private set; }
-
-        public static GameObject KnockbackModificationControllerPrefab { get; private set; }
-
-        public static GameObject ProjectileModificationControllerPrefab { get; private set; }
-
-        public static GameObject TimeScaleModificationControllerPrefab { get; private set; }
-
-        public static GameObject DamageInfoModificationControllerPrefab { get; private set; }
-
-        public static GameObject PhysicsModificationControllerPrefab { get; private set; }
-
-        public static GameObject AttackDelayModificationControllerPrefab { get; private set; }
-
-        public static GameObject PickupModificationControllerPrefab { get; private set; }
-
-        public static GameObject CameraModificationControllerPrefab { get; private set; }
-
-        public static GameObject HoldoutZoneModificationControllerPrefab { get; private set; }
-
-        public static GameObject EffectModificationControllerPrefab { get; private set; }
-
-        public static GameObject CostModificationControllerPrefab { get; private set; }
 
         static readonly string[] _geyserPrefabPaths = new string[]
         {
@@ -76,7 +36,7 @@ namespace RiskOfChaos
 
         public static GameObject ConfigNetworkerPrefab { get; private set; }
 
-        static GameObject createEmptyPrefabObject(string name, bool networked = true)
+        public static GameObject CreateEmptyPrefabObject(string name, bool networked = true)
         {
             GameObject tmp = new GameObject(name);
 
@@ -95,7 +55,7 @@ namespace RiskOfChaos
         {
             // GenericTeamInventoryPrefab
             {
-                GenericTeamInventoryPrefab = createEmptyPrefabObject("GenericTeamInventory");
+                GenericTeamInventoryPrefab = CreateEmptyPrefabObject("GenericTeamInventory");
 
                 GenericTeamInventoryPrefab.AddComponent<SetDontDestroyOnLoad>();
                 GenericTeamInventoryPrefab.AddComponent<TeamFilter>();
@@ -118,127 +78,6 @@ namespace RiskOfChaos
 
                 MonsterItemStealControllerPrefab.AddComponent<SyncStolenItemCount>();
                 MonsterItemStealControllerPrefab.AddComponent<ShowStolenItemsPositionIndicator>();
-            }
-
-            // NetworkGravityControllerPrefab
-            {
-                GravityControllerPrefab = createEmptyPrefabObject("GravityController");
-
-                GravityControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
-                GravityControllerPrefab.AddComponent<DestroyOnRunEnd>();
-                GravityControllerPrefab.AddComponent<SyncWorldGravity>();
-                GravityControllerPrefab.AddComponent<SyncBaseGravity>();
-                GravityControllerPrefab.AddComponent<GravityModificationManager>();
-            }
-
-            // SkillSlotModificationControllerPrefab
-            {
-                SkillSlotModificationControllerPrefab = createEmptyPrefabObject("SkillSlotModificationController");
-
-                SkillSlotModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
-                SkillSlotModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
-                SkillSlotModificationControllerPrefab.AddComponent<SkillSlotModificationManager>();
-            }
-
-            // KnockbackModificationControllerPrefab
-            {
-                KnockbackModificationControllerPrefab = createEmptyPrefabObject("KnockbackModificationController");
-
-                KnockbackModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
-                KnockbackModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
-                KnockbackModificationControllerPrefab.AddComponent<KnockbackModificationManager>();
-            }
-
-            // ProjectileModificationControllerPrefab
-            {
-                ProjectileModificationControllerPrefab = createEmptyPrefabObject("ProjectileModificationController");
-
-                ProjectileModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
-                ProjectileModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
-                ProjectileModificationControllerPrefab.AddComponent<ProjectileModificationManager>();
-            }
-
-            // TimeScaleModificationControllerPrefab
-            {
-                TimeScaleModificationControllerPrefab = createEmptyPrefabObject("TimeScaleModificationController");
-
-                TimeScaleModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
-                TimeScaleModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
-                TimeScaleModificationControllerPrefab.AddComponent<SyncTimeScale>();
-                TimeScaleModificationControllerPrefab.AddComponent<TimeScaleModificationManager>();
-            }
-
-            // DamageInfoModificationControllerPrefab
-            {
-                DamageInfoModificationControllerPrefab = createEmptyPrefabObject("DamageInfoModificationController", false);
-
-                DamageInfoModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
-                DamageInfoModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
-                DamageInfoModificationControllerPrefab.AddComponent<DamageInfoModificationManager>();
-            }
-
-            // PhysicsModificationControllerPrefab
-            {
-                PhysicsModificationControllerPrefab = createEmptyPrefabObject("PhysicsModificationController");
-
-                PhysicsModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
-                PhysicsModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
-                PhysicsModificationControllerPrefab.AddComponent<PhysicsModificationManager>();
-                PhysicsModificationControllerPrefab.AddComponent<ModifiedPhysicsSimulator>();
-            }
-
-            // AttackDelayModificationControllerPrefab
-            {
-                AttackDelayModificationControllerPrefab = createEmptyPrefabObject("AttackDelayModificationController");
-
-                AttackDelayModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
-                AttackDelayModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
-                AttackDelayModificationControllerPrefab.AddComponent<AttackDelayModificationManager>();
-            }
-
-            // PickupModificationControllerPrefab
-            {
-                PickupModificationControllerPrefab = createEmptyPrefabObject("PickupModificationController", false);
-
-                PickupModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
-                PickupModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
-                PickupModificationControllerPrefab.AddComponent<PickupModificationManager>();
-            }
-
-            // CameraModificationControllerPrefab
-            {
-                CameraModificationControllerPrefab = createEmptyPrefabObject("CameraModificationController");
-
-                CameraModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
-                CameraModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
-                CameraModificationControllerPrefab.AddComponent<CameraModificationManager>();
-            }
-
-            // HoldoutZoneModificationControllerPrefab
-            {
-                HoldoutZoneModificationControllerPrefab = createEmptyPrefabObject("HoldoutZoneModificationController", false);
-
-                HoldoutZoneModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
-                HoldoutZoneModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
-                HoldoutZoneModificationControllerPrefab.AddComponent<HoldoutZoneModificationManager>();
-            }
-
-            // EffectModificationControllerPrefab
-            {
-                EffectModificationControllerPrefab = createEmptyPrefabObject("EffectModificationController");
-
-                EffectModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
-                EffectModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
-                EffectModificationControllerPrefab.AddComponent<EffectModificationManager>();
-            }
-
-            // CostModificationControllerPrefab
-            {
-                CostModificationControllerPrefab = createEmptyPrefabObject("CostModificationController", false);
-
-                CostModificationControllerPrefab.AddComponent<SetDontDestroyOnLoad>();
-                CostModificationControllerPrefab.AddComponent<DestroyOnRunEnd>();
-                CostModificationControllerPrefab.AddComponent<CostModificationManager>();
             }
 
             // GeyserPrefabs
@@ -265,7 +104,7 @@ namespace RiskOfChaos
 
             // EffectsNetworkerPrefab
             {
-                EffectsNetworkerPrefab = createEmptyPrefabObject("EffectsNetworker");
+                EffectsNetworkerPrefab = CreateEmptyPrefabObject("EffectsNetworker");
 
                 EffectsNetworkerPrefab.AddComponent<SetDontDestroyOnLoad>();
                 EffectsNetworkerPrefab.AddComponent<DestroyOnRunEnd>();
@@ -311,7 +150,7 @@ namespace RiskOfChaos
 
             // DummyDamageInflictorPrefab
             {
-                DummyDamageInflictorPrefab = createEmptyPrefabObject("DummyDamageInflictor");
+                DummyDamageInflictorPrefab = CreateEmptyPrefabObject("DummyDamageInflictor");
                 DummyDamageInflictorPrefab.AddComponent<SetDontDestroyOnLoad>();
                 DummyDamageInflictorPrefab.AddComponent<DestroyOnRunEnd>();
                 DummyDamageInflictorPrefab.AddComponent<DummyDamageInflictor>();
@@ -319,7 +158,7 @@ namespace RiskOfChaos
 
             // ConfigNetworkerPrefab
             {
-                ConfigNetworkerPrefab = createEmptyPrefabObject("ConfigNetworker");
+                ConfigNetworkerPrefab = CreateEmptyPrefabObject("ConfigNetworker");
                 ConfigNetworkerPrefab.AddComponent<SetDontDestroyOnLoad>();
                 ConfigNetworkerPrefab.AddComponent<DestroyOnRunEnd>();
                 ConfigNetworkerPrefab.AddComponent<SyncConfigValue>();
@@ -332,21 +171,6 @@ namespace RiskOfChaos
         {
             if (!NetworkServer.active)
                 return;
-
-            NetworkServer.Spawn(GameObject.Instantiate(GravityControllerPrefab));
-            NetworkServer.Spawn(GameObject.Instantiate(SkillSlotModificationControllerPrefab));
-            NetworkServer.Spawn(GameObject.Instantiate(KnockbackModificationControllerPrefab));
-            NetworkServer.Spawn(GameObject.Instantiate(ProjectileModificationControllerPrefab));
-            NetworkServer.Spawn(GameObject.Instantiate(TimeScaleModificationControllerPrefab));
-            NetworkServer.Spawn(GameObject.Instantiate(PhysicsModificationControllerPrefab));
-            NetworkServer.Spawn(GameObject.Instantiate(AttackDelayModificationControllerPrefab));
-            NetworkServer.Spawn(GameObject.Instantiate(CameraModificationControllerPrefab));
-            NetworkServer.Spawn(GameObject.Instantiate(EffectModificationControllerPrefab));
-
-            GameObject.Instantiate(DamageInfoModificationControllerPrefab);
-            GameObject.Instantiate(PickupModificationControllerPrefab);
-            GameObject.Instantiate(HoldoutZoneModificationControllerPrefab);
-            GameObject.Instantiate(CostModificationControllerPrefab);
 
             NetworkServer.Spawn(GameObject.Instantiate(EffectsNetworkerPrefab));
 

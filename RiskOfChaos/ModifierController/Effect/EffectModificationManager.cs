@@ -3,6 +3,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.Effect
 {
+    [ValueModificationManager]
     public sealed class EffectModificationManager : NetworkedValueModificationManager<EffectModificationInfo>
     {
         static EffectModificationManager _instance;

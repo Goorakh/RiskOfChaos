@@ -3,6 +3,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.AttackDelay
 {
+    [ValueModificationManager]
     public class AttackDelayModificationManager : NetworkedValueModificationManager<AttackDelayModificationInfo>
     {
         static AttackDelayModificationManager _instance;

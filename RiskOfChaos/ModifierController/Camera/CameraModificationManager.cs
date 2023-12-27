@@ -7,6 +7,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.Camera
 {
+    [ValueModificationManager]
     public sealed class CameraModificationManager : NetworkedValueModificationManager<CameraModificationData>
     {
         static CameraModificationManager _instance;

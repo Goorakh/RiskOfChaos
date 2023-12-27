@@ -2,6 +2,7 @@
 
 namespace RiskOfChaos.ModifierController.Pickups
 {
+    [ValueModificationManager]
     public class PickupModificationManager : ValueModificationManager<PickupModificationInfo>
     {
         static PickupModificationManager _instance;

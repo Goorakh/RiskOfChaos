@@ -1,10 +1,12 @@
 ﻿using System.Runtime.InteropServices;
+using RiskOfChaos.Components;
 using RiskOfChaos.Utilities.Interpolation;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.PhysicsModification
 {
+    [ValueModificationManager(typeof(ModifiedPhysicsSimulator))]
     public sealed class PhysicsModificationManager : NetworkedValueModificationManager<PhysicsModificationInfo>
     {
         static PhysicsModificationManager _instance;

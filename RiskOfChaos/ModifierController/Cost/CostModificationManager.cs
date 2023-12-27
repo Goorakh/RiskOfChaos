@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.ModifierController.Cost
 {
+    [ValueModificationManager]
     public class CostModificationManager : ValueModificationManager<CostModificationInfo>
     {
         static CostModificationManager _instance;

@@ -4,6 +4,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.Projectile
 {
+    [ValueModificationManager]
     public class ProjectileModificationManager : NetworkedValueModificationManager<ProjectileModificationData>
     {
         static ProjectileModificationManager _instance;

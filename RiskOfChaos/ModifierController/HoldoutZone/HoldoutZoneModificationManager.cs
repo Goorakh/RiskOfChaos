@@ -4,6 +4,7 @@ using RoR2;
 
 namespace RiskOfChaos.ModifierController.HoldoutZone
 {
+    [ValueModificationManager]
     public sealed class HoldoutZoneModificationManager : ValueModificationManager<HoldoutZoneModificationInfo>
     {
         static HoldoutZoneModificationManager _instance;

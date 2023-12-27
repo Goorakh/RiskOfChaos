@@ -1,10 +1,12 @@
-﻿using RiskOfChaos.Patches;
+﻿using RiskOfChaos.Networking.Components.Gravity;
+using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities.Interpolation;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.Gravity
 {
+    [ValueModificationManager(typeof(SyncWorldGravity), typeof(SyncBaseGravity))]
     public class GravityModificationManager : NetworkedValueModificationManager<Vector3>
     {
         static GravityModificationManager _instance;

@@ -1,8 +1,10 @@
-﻿using RiskOfChaos.Utilities;
+﻿using RiskOfChaos.Networking.Components;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Interpolation;
 
 namespace RiskOfChaos.ModifierController.TimeScale
 {
+    [ValueModificationManager(typeof(SyncTimeScale))]
     public class TimeScaleModificationManager : NetworkedValueModificationManager<float>
     {
         static TimeScaleModificationManager _instance;
