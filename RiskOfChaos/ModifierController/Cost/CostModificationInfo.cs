@@ -15,8 +15,6 @@ namespace RiskOfChaos.ModifierController.Cost
         public CostTypeIndex CostType;
         public float CostMultiplier;
 
-        public readonly int CurrentCostRounded => Mathf.RoundToInt(OriginalCostProvider.Cost * CostMultiplier);
-
         public readonly float CurrentCost => OriginalCostProvider.Cost * CostMultiplier;
 
         public CostModificationInfo(ICostProvider costProvider)
