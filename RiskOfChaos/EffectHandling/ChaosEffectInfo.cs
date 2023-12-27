@@ -276,7 +276,7 @@ namespace RiskOfChaos.EffectHandling
                 return false;
             }
 
-            if (!IsEnabled())
+            if (!context.IsShortcut && !IsEnabled())
             {
 #if DEBUG
                 Log.Debug($"effect {Identifier} cannot activate due to: Effect not enabled");

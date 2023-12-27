@@ -82,7 +82,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 if (effectInfo.IsActivationShortcutPressed)
                 {
-                    if (effectInfo.CanActivate(EffectCanActivateContext.Now))
+                    if (effectInfo.CanActivate(EffectCanActivateContext.Now_Shortcut))
                     {
                         dispatchEffect(effectInfo);
                     }
