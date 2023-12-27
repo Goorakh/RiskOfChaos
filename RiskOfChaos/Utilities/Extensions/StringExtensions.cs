@@ -9,6 +9,9 @@ namespace RiskOfChaos.Utilities.Extensions
     {
         public static string FilterChars(this string str, char[] invalidChars)
         {
+            if (str.IndexOfAny(invalidChars) == -1)
+                return str;
+
             StringBuilder sb = HG.StringBuilderPool.RentStringBuilder();
 
             foreach (char c in str)
