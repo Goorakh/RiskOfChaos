@@ -137,8 +137,8 @@ Currently features 130 different effects.
 * Inverted Recoil: All recoil is inverted, lasts 90 seconds
 * Black Hole: Spawns a black hole somewhere on the map, sucking all characters in, lasts 45 seconds
 * Extreme Recoil: Firing weapons pushes characters backwards, lasts 90 seconds
-* Increase Effect Duration: Increases the duration of all other effects (2x by default), lasts 1 stage
-* Decrease Effect Duration: Decreases the duration of all other effects (0.5x by default), lasts 1 stage
+* Increase Effect Duration: Increases the duration of all other effects (2x by default), lasts 2 stages
+* Decrease Effect Duration: Decreases the duration of all other effects (0.5x by default), lasts 2 stages
 </details>
 
 ### Twitch Integration:
