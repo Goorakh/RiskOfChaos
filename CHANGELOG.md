@@ -16,6 +16,9 @@
 * All Chests are Free:
   * Fixed effect not applying to certain cost types.
 
+* Decrease Effect Duration:
+  * Fixed effect config not decreasing duration by default
+
 <details>
   <summary>1.13.7 Changes:</summary>
 

@@ -17,7 +17,7 @@ namespace RiskOfChaos.EffectDefinitions.Meta
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _durationMultiplier =
-            ConfigFactory<float>.CreateConfig("Effect Duration Multiplier", 2f)
+            ConfigFactory<float>.CreateConfig("Duration Multiplier", 0.5f)
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     formatString = "{0}x",
