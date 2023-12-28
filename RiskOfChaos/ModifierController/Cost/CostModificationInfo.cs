@@ -12,6 +12,13 @@ namespace RiskOfChaos.ModifierController.Cost
 
         public CostTypeIndex CostType;
         public float CostMultiplier;
+        public bool? AllowZeroCostResultOverride;
+
+        public readonly bool AllowZeroCostResult => AllowZeroCostResultOverride ?? CostType switch
+        {
+            CostTypeIndex.Money or CostTypeIndex.PercentHealth or CostTypeIndex.LunarCoin or CostTypeIndex.VoidCoin => true,
+            _ => false
+        };
 
         public readonly float CurrentCost => OriginalCostProvider.Cost * CostMultiplier;
 
@@ -33,7 +40,9 @@ namespace RiskOfChaos.ModifierController.Cost
 
             return new CostModificationInfo(b.OriginalCostProvider)
             {
-                CostMultiplier = interpolationType.Interpolate(a.CostMultiplier, b.CostMultiplier, t)
+                CostMultiplier = interpolationType.Interpolate(a.CostMultiplier, b.CostMultiplier, t),
+                CostType = b.CostType,
+                AllowZeroCostResultOverride = b.AllowZeroCostResultOverride
             };
         }
 
@@ -46,7 +55,8 @@ namespace RiskOfChaos.ModifierController.Cost
         {
             return EqualityComparer<ICostProvider>.Default.Equals(OriginalCostProvider, other.OriginalCostProvider) &&
                    CostType == other.CostType &&
-                   CostMultiplier == other.CostMultiplier;
+                   CostMultiplier == other.CostMultiplier &&
+                   AllowZeroCostResultOverride == other.AllowZeroCostResultOverride;
         }
 
         public override readonly int GetHashCode()
@@ -55,6 +65,7 @@ namespace RiskOfChaos.ModifierController.Cost
             hashCode = (hashCode * -1521134295) + EqualityComparer<ICostProvider>.Default.GetHashCode(OriginalCostProvider);
             hashCode = (hashCode * -1521134295) + CostType.GetHashCode();
             hashCode = (hashCode * -1521134295) + CostMultiplier.GetHashCode();
+            hashCode = (hashCode * -1521134295) + AllowZeroCostResultOverride.GetHashCode();
             return hashCode;
         }
 

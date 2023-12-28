@@ -49,7 +49,19 @@ namespace RiskOfChaos.ModifierController.Cost
             ICostProvider activeCostProvider = originalCostProvider.ActiveCostProvider;
 
             activeCostProvider.CostType = modificationInfo.CostType;
-            activeCostProvider.Cost = Mathf.RoundToInt(originalCostProvider.Cost * modificationInfo.CostMultiplier);
+
+            int cost = Mathf.RoundToInt(modificationInfo.CurrentCost);
+            if (!modificationInfo.AllowZeroCostResult)
+            {
+                cost = Mathf.Max(1, cost);
+            }
+
+            if (modificationInfo.CostType == CostTypeIndex.PercentHealth)
+            {
+                cost = Mathf.Min(cost, 99);
+            }
+
+            activeCostProvider.Cost = cost;
         }
     }
 }

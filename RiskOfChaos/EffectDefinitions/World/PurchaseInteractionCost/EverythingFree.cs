@@ -32,6 +32,7 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
         public void ModifyValue(ref CostModificationInfo value)
         {
             value.CostMultiplier = 0f;
+            value.AllowZeroCostResultOverride = true;
         }
     }
 }
