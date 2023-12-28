@@ -5,6 +5,10 @@ namespace RiskOfChaos.Components
 {
     public class ModifiedPhysicsSimulator : MonoBehaviour
     {
+#if DEBUG
+        bool _debugSimulateOverrideActive;
+#endif
+
         void FixedUpdate()
         {
             PhysicsModificationManager physicsModificationManager = PhysicsModificationManager.Instance;
@@ -21,6 +25,10 @@ namespace RiskOfChaos.Components
                 autoSimulate = true;
                 speedMultiplier = 1f;
             }
+
+#if DEBUG
+            autoSimulate &= !_debugSimulateOverrideActive;
+#endif
 
             if (Physics.autoSimulation != autoSimulate)
             {
