@@ -109,7 +109,11 @@ namespace RiskOfChaos.Components.CostProviders
             CostType = ActiveCostProvider.CostType;
             Cost = ActiveCostProvider.Cost;
 
-            if (CostType == CostTypeIndex.Money && Run.instance)
+            if (ActiveCostProvider is MultiShopControllerCostProvider multishopCostProvider)
+            {
+                EstimatedBaseCost = multishopCostProvider.MultiShopController.baseCost;
+            }
+            else if (CostType == CostTypeIndex.Money && Run.instance)
             {
                 EstimatedBaseCost = Mathf.RoundToInt(Cost / Mathf.Pow(Run.instance.difficultyCoefficient, 1.25f));
             }

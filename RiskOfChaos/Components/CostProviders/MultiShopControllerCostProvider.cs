@@ -4,23 +4,23 @@ namespace RiskOfChaos.Components.CostProviders
 {
     public readonly struct MultiShopControllerCostProvider : ICostProvider
     {
-        readonly MultiShopController _multiShopController;
+        public readonly MultiShopController MultiShopController;
 
         public MultiShopControllerCostProvider(MultiShopController multiShopController)
         {
-            _multiShopController = multiShopController;
+            MultiShopController = multiShopController;
         }
 
         public CostTypeIndex CostType
         {
-            get => _multiShopController.costType;
-            set => _multiShopController.costType = value;
+            get => MultiShopController.costType;
+            set => MultiShopController.costType = value;
         }
 
         public int Cost
         {
-            get => _multiShopController.Networkcost;
-            set => _multiShopController.Networkcost = value;
+            get => MultiShopController.Networkcost;
+            set => MultiShopController.Networkcost = value;
         }
     }
 }
