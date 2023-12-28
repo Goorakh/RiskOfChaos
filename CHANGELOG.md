@@ -13,6 +13,9 @@
 * Lock All Chests:
   * Fixed lock visual appearing for already opened chests
 
+* All Chests are Free:
+  * Fixed effect not applying to certain cost types.
+
 <details>
   <summary>1.13.7 Changes:</summary>
 
