@@ -347,7 +347,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
             CreateEffectInstanceArgs createEffectArgs;
             if (isServer && !args.HasFlag(EffectDispatchFlags.SkipServerInit))
             {
-                createEffectArgs = new CreateEffectInstanceArgs(_effectDispatchCount++, args.OverrideRNGSeed.GetValueOrDefault(_effectRNG.nextUlong));
+                ulong rngSeed = args.OverrideRNGSeed.GetValueOrDefault(_effectRNG.nextUlong);
+#if DEBUG
+                Log.Debug($"Initializing effect {effect} with rng seed {rngSeed}");
+#endif
+                createEffectArgs = new CreateEffectInstanceArgs(_effectDispatchCount++, rngSeed);
             }
             else
             {
