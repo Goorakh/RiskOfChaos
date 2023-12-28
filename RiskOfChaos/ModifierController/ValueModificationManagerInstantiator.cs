@@ -8,19 +8,8 @@ namespace RiskOfChaos.ModifierController
 {
     public static class ValueModificationManagerInstantiator
     {
-        readonly struct ModificationManagerInfo
+        readonly struct ModificationManagerInfo(GameObject Prefab, bool IsNetworked, string Name)
         {
-            public readonly GameObject Prefab;
-            public readonly bool IsNetworked;
-            public readonly string Name;
-
-            public ModificationManagerInfo(GameObject prefab, bool isNetworked, string name)
-            {
-                Prefab = prefab;
-                IsNetworked = isNetworked;
-                Name = name;
-            }
-
             public readonly GameObject Instantiate()
             {
                 GameObject modificationManager = GameObject.Instantiate(Prefab);
