@@ -21,8 +21,8 @@ namespace RiskOfChaos.EffectHandling
         readonly ConfigHolder<TimedEffectType> _timedType;
         public TimedEffectType TimedType => _timedType.Value;
 
-        readonly ConfigHolder<float> _duration;
-        public float DurationSeconds => _duration.Value;
+        readonly ConfigHolder<float> _fixedTimeDuration;
+        public float DurationSeconds => _fixedTimeDuration.Value;
 
         public readonly bool HideFromEffectsListWhenPermanent;
         public bool ShouldDisplayOnHUD => !HideFromEffectsListWhenPermanent || TimedType != TimedEffectType.Permanent;
@@ -35,12 +35,20 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly bool IgnoreDurationModifiers;
 
-        public readonly float DefaultMaxStocks;
+        readonly ConfigHolder<int> _stageCountDuration;
         public float MaxStocks
         {
             get
             {
-                float maxStocks = DefaultMaxStocks;
+                float maxStocks;
+                if (TimedType == TimedEffectType.UntilStageEnd)
+                {
+                    maxStocks = _stageCountDuration.Value;
+                }
+                else
+                {
+                    maxStocks = 1f;
+                }
 
                 if (!IgnoreDurationModifiers && EffectModificationManager.Instance)
                 {
@@ -63,18 +71,31 @@ namespace RiskOfChaos.EffectHandling
             if (defaultDuration < 0f)
                 defaultDuration = 60f;
 
-            _duration = ConfigFactory<float>.CreateConfig("Effect Duration", defaultDuration)
-                                            .Description($"How long the effect should last, in seconds.\nOnly takes effect if the Duration Type is set to {nameof(TimedEffectType.FixedDuration)}")
-                                            .OptionConfig(new StepSliderConfig
-                                            {
-                                                formatString = "{0:F0}s",
-                                                min = 0f,
-                                                max = 120f,
-                                                increment = 5f,
-                                                checkIfDisabled = () => TimedType != TimedEffectType.FixedDuration
-                                            })
-                                            .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
-                                            .Build();
+            _fixedTimeDuration = ConfigFactory<float>.CreateConfig("Effect Time Duration", defaultDuration)
+                                                     .Description($"How long the effect should last, in seconds.\nOnly takes effect if the Duration Type is set to {nameof(TimedEffectType.FixedDuration)}")
+                                                     .OptionConfig(new StepSliderConfig
+                                                     {
+                                                         formatString = "{0:F0}s",
+                                                         min = 0f,
+                                                         max = 120f,
+                                                         increment = 5f,
+                                                         checkIfDisabled = () => TimedType != TimedEffectType.FixedDuration
+                                                     })
+                                                     .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
+                                                     .RenamedFrom("Effect Duration")
+                                                     .Build();
+
+            _stageCountDuration =
+                ConfigFactory<int>.CreateConfig("Effect Stage Duration", attribute.DefaultStageCountDuration)
+                                  .Description($"How many stages this effect should last.\nOnly applies if Duration Type is set to {nameof(TimedEffectType.UntilStageEnd)}")
+                                  .OptionConfig(new IntSliderConfig
+                                  {
+                                      min = 1,
+                                      max = 10,
+                                      checkIfDisabled = () => TimedType != TimedEffectType.UntilStageEnd
+                                  })
+                                  .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
+                                  .Build();
 
             _allowDuplicates = attribute.AllowDuplicates;
             if (_allowDuplicates)
@@ -88,8 +109,6 @@ namespace RiskOfChaos.EffectHandling
 
             HideFromEffectsListWhenPermanent = attribute.HideFromEffectsListWhenPermanent;
 
-            DefaultMaxStocks = attribute.DefaultMaxStocks;
-
             IgnoreDurationModifiers = attribute.IgnoreDurationModifiers;
         }
 
@@ -99,7 +118,9 @@ namespace RiskOfChaos.EffectHandling
 
             _timedType?.Bind(this);
 
-            _duration?.Bind(this);
+            _fixedTimeDuration?.Bind(this);
+
+            _stageCountDuration?.Bind(this);
 
             _allowDuplicatesOverrideConfig?.Bind(this);
         }

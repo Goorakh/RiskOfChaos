@@ -19,6 +19,9 @@
 * Decrease Effect Duration:
   * Fixed effect config not decreasing duration by default
 
+* Config:
+  * Added option to increase default stage duration count of UntilStageEnd effects
+
 <details>
   <summary>1.13.7 Changes:</summary>
 
