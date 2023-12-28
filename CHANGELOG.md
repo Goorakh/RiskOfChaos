@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**1.13.8 Changes:**
 
 * Blood Money:
   * Significantly reduced health gained when earning small amounts of money.
