@@ -7,6 +7,9 @@
   * Reduced overall health gained when earning money by 50%
   * Now uses unscaled cost when converting into health percentage (chests will now always cost the same amount of health, regardless of stage count)
 
+* Spawn Random Interactable:
+  * Fixed spawned chests not getting the current stage price scaling applied
+
 <details>
   <summary>1.13.7 Changes:</summary>
 

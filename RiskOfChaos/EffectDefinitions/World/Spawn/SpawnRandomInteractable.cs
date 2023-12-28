@@ -220,9 +220,24 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(spawnCard, placementRule, rng.Branch());
 
             GameObject spawnedObject = spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());
-            if (spawnedObject && Configs.EffectSelection.SeededEffectSelection.Value)
+            if (spawnedObject)
             {
-                RNGOverridePatch.OverrideRNG(spawnedObject, rng.Branch());
+                Run run = Run.instance;
+                Stage stage = Stage.instance;
+                if (run && stage)
+                {
+                    if (spawnedObject.TryGetComponent(out PurchaseInteraction purchaseInteraction) &&
+                        purchaseInteraction.costType == CostTypeIndex.Money &&
+                        !purchaseInteraction.automaticallyScaleCostWithDifficulty)
+                    {
+                        purchaseInteraction.Networkcost = run.GetDifficultyScaledCost(purchaseInteraction.cost, stage.entryDifficultyCoefficient);
+                    }
+                }
+
+                if (Configs.EffectSelection.SeededEffectSelection.Value)
+                {
+                    RNGOverridePatch.OverrideRNG(spawnedObject, rng.Branch());
+                }
             }
         }
     }
