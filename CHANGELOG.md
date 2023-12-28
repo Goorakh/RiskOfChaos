@@ -10,6 +10,9 @@
 * Spawn Random Interactable:
   * Fixed spawned chests not getting the current stage price scaling applied
 
+* Lock All Chests:
+  * Fixed lock visual appearing for already opened chests
+
 <details>
   <summary>1.13.7 Changes:</summary>
 
