@@ -109,7 +109,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             switch (costType)
             {
                 case CostTypeIndex.Money:
-                    return 150f;
+                    return 50f;
                 case CostTypeIndex.VoidCoin:
                 case CostTypeIndex.LunarCoin:
                     return 2.5f;
@@ -141,19 +141,36 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         void onCharacterMoneyChanged(CharacterMaster master, int moneyDiff)
         {
-            if (moneyDiff > 0 && master.playerCharacterMasterController)
-            {
-                CharacterBody body = master.GetBody();
-                if (body)
-                {
-                    float healFraction = convertCostToHealthCost(moneyDiff, getCostTypeToPercentHealthConversionHalfwayValue(CostTypeIndex.Money)) / 100f;
+            if (moneyDiff <= 0 || !master.playerCharacterMasterController)
+                return;
 
+            CharacterBody body = master.GetBody();
+            if (!body)
+                return;
+            
+            float healFraction = convertCostToHealthCost(moneyDiff, getCostTypeToPercentHealthConversionHalfwayValue(CostTypeIndex.Money)) / 100f;
+
+            float difficultyCoefficient = Run.instance ? Run.instance.difficultyCoefficient : 1f;
+
+            float healScale = moneyDiff / (5f * Mathf.Pow(difficultyCoefficient, 1.25f));
+            healScale = -Mathf.Exp(-healScale) + 1f;
+            healScale *= 0.5f;
+
+            healFraction *= healScale;
+
+            if (healFraction > 0.01f)
+            {
 #if DEBUG
-                    Log.Debug($"Healing {Util.GetBestMasterName(master)} for {healFraction:P} health (+${moneyDiff})");
+                Log.Debug($"Healing {Util.GetBestMasterName(master)} for {healFraction:P} health (+${moneyDiff})");
 #endif
 
-                    body.healthComponent.HealFraction(healFraction, new ProcChainMask());
-                }
+                body.healthComponent.HealFraction(healFraction, new ProcChainMask());
+            }
+            else
+            {
+#if DEBUG
+                Log.Debug($"Not healing {Util.GetBestMasterName(master)}, below threshold heal: {healFraction:P} (+${moneyDiff})");
+#endif
             }
         }
 
@@ -168,9 +185,12 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             value.CostType = CostTypeIndex.PercentHealth;
 
-            if (value.CurrentCost > 0f)
+            float baseCost = value.OriginalCostProvider.EstimatedBaseCost * value.CostMultiplier;
+            float currentMultipliedCost = value.CurrentCost;
+
+            if (baseCost > 0f && currentMultipliedCost > 0f)
             {
-                float healthCost = convertCostToHealthCost(value.CurrentCost, halfwayCostValue);
+                float healthCost = convertCostToHealthCost(baseCost, halfwayCostValue);
                 value.CostMultiplier = healthCost / value.CurrentCost;
             }
         }

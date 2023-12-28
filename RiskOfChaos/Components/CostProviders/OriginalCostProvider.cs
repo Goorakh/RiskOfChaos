@@ -60,6 +60,8 @@ namespace RiskOfChaos.Components.CostProviders
             private set => ((ICostProvider)this).Cost = value;
         }
 
+        public int EstimatedBaseCost { get; private set; } = 0;
+
         public bool IsInitialized { get; private set; }
 
         public ICostProvider ActiveCostProvider { get; private set; }
@@ -106,6 +108,15 @@ namespace RiskOfChaos.Components.CostProviders
         {
             CostType = ActiveCostProvider.CostType;
             Cost = ActiveCostProvider.Cost;
+
+            if (CostType == CostTypeIndex.Money && Run.instance)
+            {
+                EstimatedBaseCost = Mathf.RoundToInt(Cost / Mathf.Pow(Run.instance.difficultyCoefficient, 1.25f));
+            }
+            else
+            {
+                EstimatedBaseCost = Cost;
+            }
 
             IsInitialized = true;
             InstanceTracker.Add(this);

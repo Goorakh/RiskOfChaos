@@ -1,6 +1,14 @@
 ## Changelog
 
-**1.13.7 Changes:**
+**?.?.? Changes:**
+
+* Blood Money:
+  * Significantly reduced health gained when earning small amounts of money.
+  * Reduced overall health gained when earning money by 50%
+  * Now uses unscaled cost when converting into health percentage (chests will now always cost the same amount of health, regardless of stage count)
+
+<details>
+  <summary>1.13.7 Changes:</summary>
 
 * Added 2 new effects:
   * Increase Effect Duration: Increases the duration of all other effects (2x by default), lasts 1 stage
@@ -24,6 +32,8 @@
 
 * UI:
   * Active Effects display now shows if effects last until end of stage
+
+</details>
 
 <details>
   <summary>1.13.6 Changes:</summary>

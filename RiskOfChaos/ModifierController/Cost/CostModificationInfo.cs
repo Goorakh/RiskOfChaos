@@ -3,21 +3,19 @@ using RiskOfChaos.Utilities.Interpolation;
 using RoR2;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using UnityEngine;
 
 namespace RiskOfChaos.ModifierController.Cost
 {
     public struct CostModificationInfo : IEquatable<CostModificationInfo>
     {
-        public readonly ICostProvider OriginalCostProvider;
+        public readonly OriginalCostProvider OriginalCostProvider;
 
         public CostTypeIndex CostType;
         public float CostMultiplier;
 
         public readonly float CurrentCost => OriginalCostProvider.Cost * CostMultiplier;
 
-        public CostModificationInfo(ICostProvider costProvider)
+        public CostModificationInfo(OriginalCostProvider costProvider)
         {
             OriginalCostProvider = costProvider;
 
