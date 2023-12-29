@@ -6,6 +6,7 @@ using TwitchLib.Client.Events;
 using TwitchLib.Communication.Clients;
 using TwitchLib.Communication.Events;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 {
@@ -127,6 +128,9 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 
         static void onNoPermissionError(object sender, System.EventArgs e)
         {
+            if (!NetworkServer.active)
+                return;
+
             Chat.SendBroadcastChat(new Chat.SimpleChatMessage
             {
                 baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
@@ -136,6 +140,9 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 
         static void onIncorrectLogin(object sender, OnIncorrectLoginArgs e)
         {
+            if (!NetworkServer.active)
+                return;
+
             Chat.SendBroadcastChat(new Chat.SimpleChatMessage
             {
                 baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
@@ -145,6 +152,9 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 
         static void onFailureToReceiveJoinConfirmation(object sender, OnFailureToReceiveJoinConfirmationArgs e)
         {
+            if (!NetworkServer.active)
+                return;
+
             string details;
             if (!string.IsNullOrWhiteSpace(e.Exception.Details))
             {
@@ -164,6 +174,9 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 
         static void onClientError(object sender, OnErrorEventArgs e)
         {
+            if (!NetworkServer.active)
+                return;
+
             Chat.SendBroadcastChat(new Chat.SimpleChatMessage
             {
                 baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
@@ -173,6 +186,9 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 
         static void onConnectionError(object s, OnConnectionErrorArgs e)
         {
+            if (!NetworkServer.active)
+                return;
+
             Chat.SendBroadcastChat(new Chat.SimpleChatMessage
             {
                 baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
@@ -183,7 +199,14 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
         static void onClientCredentialsChanged()
         {
             if (_client == null)
+            {
+                if (Run.instance)
+                {
+                    createClient();
+                }
+
                 return;
+            }
 
             bool wasConnected = false;
             if (_client.IsConnected)
@@ -210,6 +233,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
         }
 
         string _joinedChannel;
+        bool _addedClientListeners;
 
         protected override void OnEnable()
         {
@@ -222,13 +246,23 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 
             if (_client != null)
             {
-                _client.OnJoinedChannel += onJoinedChannel;
-                _client.OnMessageReceived += onMessageReceived;
+                addClientListeners();
             }
 
             scheduleAttemptJoinChannel(1.5f);
 
             Configs.ChatVoting.OnReconnectButtonPressed += onReconnectButtonPressed;
+        }
+
+        void addClientListeners()
+        {
+            if (_addedClientListeners)
+                return;
+
+            _client.OnJoinedChannel += onJoinedChannel;
+            _client.OnMessageReceived += onMessageReceived;
+
+            _addedClientListeners = true;
         }
 
         protected override void Update()
@@ -253,6 +287,8 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
                 {
                     if (_client.IsConnected)
                     {
+                        addClientListeners();
+
                         _client.JoinChannel(_loginCredentials.Username);
                     }
                     else
@@ -301,13 +337,9 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             {
                 _client.OnJoinedChannel -= onJoinedChannel;
                 _client.OnMessageReceived -= onMessageReceived;
-
-                _client.OnConnectionError -= onConnectionError;
-                _client.OnError -= onClientError;
-                _client.OnFailureToReceiveJoinConfirmation -= onFailureToReceiveJoinConfirmation;
-                _client.OnIncorrectLogin -= onIncorrectLogin;
-                _client.OnNoPermissionError -= onNoPermissionError;
             }
+
+            _addedClientListeners = false;
 
             if (_joinedChannel != null)
             {
