@@ -40,6 +40,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             ConnectionCredentials = ConnectionCredentialsBuilder.Create()
                                                                 .WithTwitchUsername(Username)
                                                                 .WithTwitchOAuth(OAuth)
+                                                                .WithDisableUsernameCheck(true)
                                                                 .Build();
         }
 
