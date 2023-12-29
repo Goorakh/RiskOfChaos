@@ -56,7 +56,7 @@ namespace RiskOfChaos.ModifierController.Camera
         {
             orig(self, ref context, out result);
 
-            if (_instance && _instance.AnyModificationActive)
+            if (_instance && _instance.AnyModificationActive && context.targetInfo.target)
             {
                 const float MIN_FOV = 10f;
                 const float MAX_FOV = 170f;
@@ -71,7 +71,7 @@ namespace RiskOfChaos.ModifierController.Camera
         {
             orig(self, ref context, out result);
 
-            if (_instance && _instance.AnyModificationActive)
+            if (_instance && _instance.AnyModificationActive && context.targetInfo.target)
             {
                 Vector2 rotatedLookInput = _instance.NetworkCameraRotationOffset * result.lookInput;
                 if (rotatedLookInput != Vector2.zero)

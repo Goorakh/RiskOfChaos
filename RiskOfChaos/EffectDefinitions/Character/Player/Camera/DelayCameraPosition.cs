@@ -31,7 +31,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
                 return;
 
             CameraRigController cameraRig = context.cameraInfo.cameraRigController;
-            if (!cameraRig)
+            if (!cameraRig || !context.targetInfo.target)
                 return;
 
             if (!_cameraMoveVelocities.TryGetValue(cameraRig, out Vector3 velocity))

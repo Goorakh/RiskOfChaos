@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Flipped Camera:
+  * Fixed rapid flickering if effect is active while leaving a stage.
+
 * Twitch Voting:
   * Fixed voting not being initialized properly if the login command is used during a run
   * Username and OAuth token are no longer reset on mod update, you should now only have to log in once, ever.
