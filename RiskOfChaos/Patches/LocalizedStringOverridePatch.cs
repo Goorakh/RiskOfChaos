@@ -62,19 +62,36 @@ namespace RiskOfChaos.Patches
             _hasAppliedPatches = true;
         }
 
+        static bool canModifyToken(string token)
+        {
+            switch (token)
+            {
+                case "DEFAULT_FONT":
+                case "CHAOS_EFFECT_UNHANDLED_EXCEPTION_MESSAGE":
+                    return false;
+            }
+
+            return true;
+        }
+
         static string Language_GetLocalizedStringByToken(On.RoR2.Language.orig_GetLocalizedStringByToken orig, Language self, string token)
         {
             string result = orig(self, token);
 
-            string tmpResult = result;
-            try
+            if (_overrideLanguageString != null && canModifyToken(token))
             {
-                _overrideLanguageString?.Invoke(ref tmpResult, token, self);
+                string tmpResult = result;
+
+                try
+                {
+                    _overrideLanguageString(ref tmpResult, token, self);
+                }
+                catch (Exception e)
+                {
+                    Log.Error_NoCallerPrefix($"Failed to override language token {token}: {e}");
+                }
+
                 result = tmpResult;
-            }
-            catch (Exception e)
-            {
-                Log.Error_NoCallerPrefix($"Failed to override language token {token}: {e}");
             }
 
             return result;

@@ -73,39 +73,11 @@ namespace RiskOfChaos.EffectDefinitions.UI
 
         void overrideLanguageString(ref string str, string token, Language language)
         {
-            switch (token)
-            {
-                case "DEFAULT_FONT":
-                case "CHAOS_EFFECT_UNHANDLED_EXCEPTION_MESSAGE":
-                    return;
-            }
-
             if (ChaosEffectActivationSignaler_TwitchVote.IsConnectionMessageToken(token))
                 return;
 
-            if (_excludeEffectNames.Value)
-            {
-                if (ChaosEffectCatalog.FindEffectIndexByNameToken(token) != ChaosEffectIndex.Invalid)
-                    return;
-
-                switch (token)
-                {
-                    case "CHAOS_ACTIVE_EFFECTS_BAR_TITLE":
-                    case "CHAOS_ACTIVE_EFFECT_UNTIL_STAGE_END_SINGLE_FORMAT":
-                    case "CHAOS_ACTIVE_EFFECT_UNTIL_STAGE_END_MULTI_FORMAT":
-                    case "CHAOS_ACTIVE_EFFECT_FIXED_DURATION_FORMAT":
-                    case "CHAOS_ACTIVE_EFFECT_FIXED_DURATION_LONG_FORMAT":
-                    case "CHAOS_NEXT_EFFECT_DISPLAY_FORMAT":
-                    case "CHAOS_NEXT_EFFECT_TIME_REMAINING_DISPLAY_FORMAT":
-                    case "CHAOS_EFFECT_ACTIVATE":
-                    case "CHAOS_EFFECT_VOTING_RANDOM_OPTION_NAME":
-                    case "TIMED_TYPE_UNTIL_STAGE_END_SINGLE_FORMAT":
-                    case "TIMED_TYPE_UNTIL_STAGE_END_MULTI_FORMAT":
-                    case "TIMED_TYPE_FIXED_DURATION_FORMAT":
-                    case "TIMED_TYPE_PERMANENT_FORMAT":
-                        return;
-                }
-            }
+            if (_excludeEffectNames.Value && ChaosEffectCatalog.IsEffectRelatedToken(token))
+                return;
 
             if (_tokenOverrideCache.TryGetValue(token, out string cachedOverride))
             {
