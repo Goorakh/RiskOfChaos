@@ -13,6 +13,9 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
     [ChaosEffectActivationSignaler(Configs.ChatVoting.ChatVotingMode.Twitch)]
     public class ChaosEffectActivationSignaler_TwitchVote : ChaosEffectActivationSignaler_ChatVote
     {
+        static ChaosEffectActivationSignaler_TwitchVote _instance;
+        public static ChaosEffectActivationSignaler_TwitchVote Instance => _instance;
+
         public static bool IsConnectionMessageToken(string token)
         {
             switch (token)
@@ -220,7 +223,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
         {
             if (_client == null)
             {
-                if (Run.instance)
+                if (_instance)
                 {
                     createClient();
                 }
@@ -239,7 +242,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 
                 _client.SetConnectionCredentials(_loginCredentials.ConnectionCredentials);
 
-                if (wasConnected || Run.instance)
+                if (wasConnected || _instance)
                 {
                     _client.Connect();
                 }
@@ -265,6 +268,8 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
         protected override void OnEnable()
         {
             base.OnEnable();
+
+            SingletonHelper.Assign(ref _instance, this);
 
             if (_client == null)
             {
@@ -368,6 +373,8 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
         protected override void OnDisable()
         {
             base.OnDisable();
+
+            SingletonHelper.Unassign(ref _instance, this);
 
             if (_client != null)
             {
