@@ -77,6 +77,16 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 
         public readonly void WriteToFile()
         {
+            if (!IsValid())
+            {
+                if (File.Exists(_saveFilePath))
+                {
+                    File.Delete(_saveFilePath);
+                }
+
+                return;
+            }
+
             try
             {
                 using MemoryStream stream = new MemoryStream(Username.Length + OAuth.Length);
