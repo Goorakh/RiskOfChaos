@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using TwitchLib.Client.Models;
 using TwitchLib.Client.Models.Builders;
 
@@ -10,11 +11,8 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
     {
         public static readonly TwitchLoginCredentials Empty = new TwitchLoginCredentials(string.Empty, string.Empty);
 
-        const string LOGIN_FILE_NAME = "twitch_login.txt";
-        static readonly string _saveFilePath = Path.Combine(Main.ModDirectory, LOGIN_FILE_NAME);
-
-        const string FILE_USERNAME_PREFIX = "username:";
-        const string FILE_OAUTH_PREFIX = "oauth:";
+        const string LOGIN_FILE_NAME = "f100264c-5e84-4a19-a3e2-02a2e3d80469";
+        static readonly string _saveFilePath = Path.Combine(Main.PersistentSaveDataDirectory, LOGIN_FILE_NAME);
 
         public readonly string Username;
         public readonly string OAuth;
@@ -38,26 +36,6 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             OAuth = formatOAuthToken(oauth);
         }
 
-        TwitchLoginCredentials(string[] fileContents)
-        {
-            if (fileContents.Length != 2)
-            {
-                throw new ArgumentException("File contents must be 2 lines");
-            }
-
-            foreach (string line in fileContents)
-            {
-                if (line.StartsWith(FILE_USERNAME_PREFIX))
-                {
-                    Username = line.Substring(FILE_USERNAME_PREFIX.Length);
-                }
-                else if (line.StartsWith(FILE_OAUTH_PREFIX))
-                {
-                    OAuth = formatOAuthToken(line.Substring(FILE_OAUTH_PREFIX.Length));
-                }
-            }
-        }
-
         public static TwitchLoginCredentials TryReadFromFile()
         {
             if (File.Exists(_saveFilePath))
@@ -68,7 +46,16 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 
                 try
                 {
-                    return new TwitchLoginCredentials(File.ReadAllLines(_saveFilePath));
+                    string fileContents = File.ReadAllText(_saveFilePath);
+                    byte[] rawBytes = Convert.FromBase64String(fileContents);
+
+                    using MemoryStream fileBytesStream = new MemoryStream(rawBytes);
+                    using BinaryReader reader = new BinaryReader(fileBytesStream);
+
+                    string username = reader.ReadString();
+                    string oauth = reader.ReadString();
+
+                    return new TwitchLoginCredentials(username, oauth);
                 }
                 catch (Exception e)
                 {
@@ -92,15 +79,29 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
         {
             try
             {
-                File.WriteAllLines(_saveFilePath, new string[]
-                {
-                    FILE_USERNAME_PREFIX + Username,
-                    FILE_OAUTH_PREFIX + OAuth
-                });
+                using MemoryStream stream = new MemoryStream(Username.Length + OAuth.Length);
+                using BinaryWriter writer = new BinaryWriter(stream);
+
+                writer.Write(Username);
+                writer.Write(OAuth);
+
+                string fileContents = Convert.ToBase64String(stream.ToArray());
+
+                File.WriteAllText(_saveFilePath, fileContents, Encoding.ASCII);
+
+#if DEBUG
+                Log.Debug($"Saved login info to {_saveFilePath}");
+#endif
             }
             catch (Exception e)
             {
                 Log.Error_NoCallerPrefix($"Unable to save twitch login info: {e}");
+
+                // Prevent bad/old data from being stored in file
+                if (File.Exists(_saveFilePath))
+                {
+                    File.Delete(_saveFilePath);
+                }
             }
         }
 

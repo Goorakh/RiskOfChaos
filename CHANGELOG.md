@@ -1,6 +1,12 @@
 ## Changelog
 
-**1.13.8 Changes:**
+**?.?.? Changes:**
+
+* Twitch Voting:
+  * Username and OAuth token are no longer reset on mod update, you should now only have to log in once, ever.
+
+<details>
+  <summary>1.13.8 Changes:</summary>
 
 * Blood Money:
   * Significantly reduced health gained when earning small amounts of money.
@@ -24,6 +30,8 @@
 
 * Config:
   * Added option to increase default stage duration count of UntilStageEnd effects
+
+</details>
 
 <details>
   <summary>1.13.7 Changes:</summary>
