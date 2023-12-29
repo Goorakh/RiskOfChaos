@@ -92,6 +92,9 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             bool isGrounded()
             {
+                if (_body.currentVehicle)
+                    return false;
+
                 if (_master && _overrideAlwaysGroundedMasters.Contains(_master.masterIndex))
                     return true;
 
