@@ -145,7 +145,7 @@ Currently features 130 different effects.
 
 Twitch integration allows viewers to vote for the next effect.
 
-To set up Twitch voting, set the General->Streamer Integration->Voting Mode config to "Twitch", then open [the console](https://riskofrain2.fandom.com/wiki/Developer_Console), and use the command "roc_twitch_login" then provide your channel name and oauth token (ex. "roc_twitch_login goorakh oauth:yourtokengoeshere").
+To set up Twitch voting, set the General->Streamer Integration->Voting Mode config to "Twitch", then open [the console](https://riskofrain2.fandom.com/wiki/Developer_Console), and use the command "roc_twitch_login" then provide your channel name and oauth token (ex. "roc_twitch_login goorakh oauth:yourtokengoeshere"). You can remove the stored login information with the "roc_twitch_logout" command
 
 If the game loses connection to your channel, it will automatically attempt to reconnect, if this doesn't work however, you can manually make it reconnect in the Streamer Integration options menu by pressing the Reconnect button
 

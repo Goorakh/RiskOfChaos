@@ -6,6 +6,10 @@
   * Fixed voting not being initialized properly if the login command is used during a run
   * Username and OAuth token are no longer reset on mod update, you should now only have to log in once, ever.
 
+* Console:
+  * Added command: roc_twitch_logout
+    * Removes stored login information and disconnects the mod from Twitch
+
 <details>
   <summary>1.13.8 Changes:</summary>
 

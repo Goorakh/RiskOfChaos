@@ -92,6 +92,26 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             Debug.Log("Login info is successfully saved, please also run the `clear` command if you are streaming to avoid accidentally showing the auth token");
         }
 
+        [ConCommand(commandName = "roc_twitch_logout", helpText = "Removes the active twitch login credentials")]
+        static void CCLogout(ConCommandArgs args)
+        {
+            if (_loginCredentials != TwitchLoginCredentials.Empty)
+            {
+                string oldLoginUsername = _loginCredentials.Username;
+
+                _loginCredentials = TwitchLoginCredentials.Empty;
+                _loginCredentials.WriteToFile();
+
+                onClientCredentialsChanged();
+
+                Debug.Log($"Logged out {oldLoginUsername}");
+            }
+            else
+            {
+                Debug.Log("Cannot log out: Not currently logged in");
+            }
+        }
+
         static TwitchClient _client;
         static void createClient()
         {
@@ -208,18 +228,25 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
                 return;
             }
 
-            bool wasConnected = false;
-            if (_client.IsConnected)
+            if (_loginCredentials.IsValid())
+            {
+                bool wasConnected = false;
+                if (_client.IsConnected)
+                {
+                    _client.Disconnect();
+                    wasConnected = true;
+                }
+
+                _client.SetConnectionCredentials(_loginCredentials.BuildConnectionCredentials());
+
+                if (wasConnected || Run.instance)
+                {
+                    _client.Connect();
+                }
+            }
+            else
             {
                 _client.Disconnect();
-                wasConnected = true;
-            }
-
-            _client.SetConnectionCredentials(_loginCredentials.BuildConnectionCredentials());
-
-            if (wasConnected)
-            {
-                _client.Reconnect();
             }
         }
 
@@ -259,6 +286,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             if (_addedClientListeners)
                 return;
 
+            _client.OnConnected += onConnected;
             _client.OnJoinedChannel += onJoinedChannel;
             _client.OnMessageReceived += onMessageReceived;
 
@@ -313,6 +341,14 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             }
         }
 
+        void onConnected(object sender, OnConnectedArgs e)
+        {
+            if (!_channelJoinAttemptScheduled)
+            {
+                scheduleAttemptJoinChannel(1f);
+            }
+        }
+
         void onJoinedChannel(object sender, OnJoinedChannelArgs e)
         {
             Chat.SendBroadcastChat(new Chat.SimpleChatMessage
@@ -335,6 +371,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 
             if (_client != null)
             {
+                _client.OnConnected -= onConnected;
                 _client.OnJoinedChannel -= onJoinedChannel;
                 _client.OnMessageReceived -= onMessageReceived;
             }
