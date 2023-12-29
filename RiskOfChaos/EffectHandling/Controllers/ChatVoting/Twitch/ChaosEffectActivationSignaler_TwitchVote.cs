@@ -126,7 +126,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
                 };
 
                 _client = new TwitchClient(socketClient, ClientProtocol.WebSocket, clientLogger);
-                _client.Initialize(_loginCredentials.BuildConnectionCredentials());
+                _client.Initialize(_loginCredentials.ConnectionCredentials);
                 _client.RemoveChatCommandIdentifier('!');
 
                 _client.OnConnectionError += onConnectionError;
@@ -237,7 +237,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
                     wasConnected = true;
                 }
 
-                _client.SetConnectionCredentials(_loginCredentials.BuildConnectionCredentials());
+                _client.SetConnectionCredentials(_loginCredentials.ConnectionCredentials);
 
                 if (wasConnected || Run.instance)
                 {

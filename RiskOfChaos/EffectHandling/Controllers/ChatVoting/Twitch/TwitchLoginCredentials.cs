@@ -17,6 +17,8 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
         public readonly string Username;
         public readonly string OAuth;
 
+        public readonly ConnectionCredentials ConnectionCredentials;
+
         static string formatOAuthToken(string oauth)
         {
             const string OAUTH_PREFIX = "oauth:";
@@ -34,6 +36,11 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
         {
             Username = username;
             OAuth = formatOAuthToken(oauth);
+
+            ConnectionCredentials = ConnectionCredentialsBuilder.Create()
+                                                                .WithTwitchUsername(Username)
+                                                                .WithTwitchOAuth(OAuth)
+                                                                .Build();
         }
 
         public static TwitchLoginCredentials TryReadFromFile()
@@ -113,14 +120,6 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
                     File.Delete(_saveFilePath);
                 }
             }
-        }
-
-        public readonly ConnectionCredentials BuildConnectionCredentials()
-        {
-            return ConnectionCredentialsBuilder.Create()
-                                               .WithTwitchUsername(Username)
-                                               .WithTwitchOAuth(OAuth)
-                                               .Build();
         }
 
         public override bool Equals(object obj)
