@@ -13,9 +13,6 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 {
     public class ChaosEffectActivationSignaler_ChatVote : ChaosEffectActivationSignaler
     {
-        static ChaosEffectActivationSignaler_ChatVote _instance;
-        public static ChaosEffectActivationSignaler_ChatVote Instance => _instance;
-
         public delegate void OnEffectVotingFinishedDelegate(in EffectVoteResult result);
         public static event OnEffectVotingFinishedDelegate OnEffectVotingFinishedServer;
 
@@ -74,8 +71,6 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
         protected virtual void OnEnable()
         {
-            SingletonHelper.Assign(ref _instance, this);
-
             if (Run.instance)
             {
                 _rng = new Xoroshiro128Plus(Run.instance.seed);
@@ -177,8 +172,6 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
         protected virtual void OnDisable()
         {
-            SingletonHelper.Unassign(ref _instance, this);
-
             Configs.General.TimeBetweenEffects.SettingChanged -= onTimeBetweenEffectsChanged;
             Configs.General.DisableEffectDispatching.SettingChanged -= onDisableEffectDispatchingChanged;
             Configs.ChatVoting.WinnerSelectionMode.SettingChanged -= onVoteWinnerSelectionModeChanged;
