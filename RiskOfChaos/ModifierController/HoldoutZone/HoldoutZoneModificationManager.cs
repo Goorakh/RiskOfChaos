@@ -41,10 +41,6 @@ namespace RiskOfChaos.ModifierController.HoldoutZone
 
         void modifyHoldoutZone(HoldoutZoneModifier zoneModifier)
         {
-#if DEBUG
-            Log.Debug($"Applying modification to {zoneModifier}");
-#endif
-
             HoldoutZoneModificationInfo modificationInfo = GetModifiedValue(new HoldoutZoneModificationInfo(zoneModifier.HoldoutZoneController));
 
             zoneModifier.RadiusMultiplier = modificationInfo.RadiusMultiplier;
