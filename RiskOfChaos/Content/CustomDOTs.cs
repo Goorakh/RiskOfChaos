@@ -16,11 +16,12 @@ namespace RiskOfChaos.Content
         [SystemInitializer(typeof(DotController))]
         static void Init()
         {
+            const float PERCENT_HEALTH_DOT_TICKS_PER_SECOND = 7f;
             PercentHealthDotIndex = DotAPI.RegisterDotDef(new DotController.DotDef
             {
-                damageCoefficient = 1f / 3f,
-                interval = 1f / 3f,
-                damageColorIndex = DamageColorIndex.Item,
+                damageCoefficient = 1f / PERCENT_HEALTH_DOT_TICKS_PER_SECOND,
+                interval = 1f / PERCENT_HEALTH_DOT_TICKS_PER_SECOND,
+                damageColorIndex = DamageColorIndex.Fragile,
                 associatedBuff = RoR2Content.Buffs.OnFire
             });
 

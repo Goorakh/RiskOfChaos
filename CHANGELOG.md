@@ -6,6 +6,7 @@
   * Fixed rapid flickering if effect is active while leaving a stage.
 
 * The Floor is Lava:
+  * Increased damage tick-rate: 3/s -> 7/s (total damage unchanged)
   * Fixed effect considering players to be touching the ground while inside the drop pod.
 
 * Twitch Voting:
