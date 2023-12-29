@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**1.13.9 Changes:**
 
 * Flipped Camera:
   * Fixed rapid flickering if effect is active while leaving a stage.
