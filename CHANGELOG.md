@@ -1,6 +1,12 @@
 ## Changelog
 
-**1.13.9 Changes:**
+**?.?.? Changes:**
+
+* Translation:
+  * Added Brazilian Portuguese translation (by Kauzok)
+
+<details>
+  <summary>1.13.9 Changes:</summary>
 
 * Flipped Camera:
   * Fixed rapid flickering if effect is active while leaving a stage.
@@ -16,6 +22,8 @@
 * Console:
   * Added command: roc_twitch_logout
     * Removes stored login information and disconnects the mod from Twitch
+
+</details>
 
 <details>
   <summary>1.13.8 Changes:</summary>
