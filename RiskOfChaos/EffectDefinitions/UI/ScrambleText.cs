@@ -73,6 +73,9 @@ namespace RiskOfChaos.EffectDefinitions.UI
 
         void overrideLanguageString(ref string str, string token, Language language)
         {
+            if (string.IsNullOrEmpty(str) || !language.TokenIsRegistered(token))
+                return;
+
             if (ChaosEffectActivationSignaler_TwitchVote.IsConnectionMessageToken(token))
                 return;
 
