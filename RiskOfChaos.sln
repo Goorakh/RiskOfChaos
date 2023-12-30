@@ -22,6 +22,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "en", "en", "{5B1C6AEB-3034-
 		lang\en\UI.txt = lang\en\UI.txt
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pt-BR", "pt-BR", "{4C02665E-BED6-4E79-9C6B-A3BC9F5005F1}"
+	ProjectSection(SolutionItems) = preProject
+		lang\pt-BR\CharacterBodies.txt = lang\pt-BR\CharacterBodies.txt
+		lang\pt-BR\ChatMessages.txt = lang\pt-BR\ChatMessages.txt
+		lang\pt-BR\Effects.txt = lang\pt-BR\Effects.txt
+		lang\pt-BR\UI.txt = lang\pt-BR\UI.txt
+	EndProjectSection
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{94AF67EA-E214-4D35-A617-8A83FDC49F12}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
@@ -44,6 +52,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{82611093-7B12-4659-9602-8B7BE0BC0AED} = {3A26DDA8-2697-4D64-962B-DB9E2DC00EF6}
 		{5B1C6AEB-3034-4036-A3DC-F44B739946BC} = {82611093-7B12-4659-9602-8B7BE0BC0AED}
+		{4C02665E-BED6-4E79-9C6B-A3BC9F5005F1} = {82611093-7B12-4659-9602-8B7BE0BC0AED}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {25394121-1456-4FD9-A853-060A4DBBB74C}
