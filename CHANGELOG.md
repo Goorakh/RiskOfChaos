@@ -1,9 +1,12 @@
 ## Changelog
 
-**?.?.? Changes:**
+**1.13.10 Changes:**
 
 * Translation:
   * Added Brazilian Portuguese translation (by Kauzok)
+
+* Misc:
+  * Minor stability fixes
 
 <details>
   <summary>1.13.9 Changes:</summary>
