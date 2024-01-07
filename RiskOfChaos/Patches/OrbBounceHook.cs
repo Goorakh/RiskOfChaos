@@ -1,5 +1,6 @@
 ﻿using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using RiskOfChaos.Content.Orbs;
 using RiskOfChaos.ModifierController.Projectile;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -65,8 +66,15 @@ namespace RiskOfChaos.Patches
 
         static void tryBounceOrb(Orb orbInstance)
         {
-            if (!isEnabled || !OrbManager.instance || orbInstance == null || orbInstance is ItemTransferOrb)
+            if (!isEnabled || !OrbManager.instance || orbInstance == null)
                 return;
+
+            switch (orbInstance)
+            {
+                case ItemTransferOrb:
+                case EquipmentTransferOrb:
+                    return;
+            }
 
             if (_orbBouncesRemaining.TryGetValue(orbInstance, out int bouncesRemaining))
             {
