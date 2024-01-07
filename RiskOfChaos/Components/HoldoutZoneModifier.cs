@@ -119,9 +119,17 @@ namespace RiskOfChaos.Components
             if (HoldoutZoneController)
             {
                 subscribe(HoldoutZoneController);
-            }
 
-            OnHoldoutZoneEnabled?.Invoke(this);
+                OnHoldoutZoneEnabled?.Invoke(this);
+            }
+        }
+
+        void Start()
+        {
+            if (HoldoutZoneController)
+            {
+                OnHoldoutZoneEnabled?.Invoke(this);
+            }
         }
 
         void OnDisable()
