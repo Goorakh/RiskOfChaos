@@ -4,7 +4,7 @@ namespace RiskOfChaos.ConfigHandling
 {
     static class ConfigMonitor
     {
-        static readonly HashSet<string> _registeredConfigs = new HashSet<string>();
+        static readonly HashSet<string> _registeredConfigs = [];
 
         static string getKey(string section, string key)
         {

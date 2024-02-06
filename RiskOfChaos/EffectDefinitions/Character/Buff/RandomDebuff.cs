@@ -28,8 +28,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 
         static uint configStackCount => ClampedConversion.UInt32(_stackableDebuffCount.Value);
 
-        static readonly BuffIndexCollection _debuffBlacklist = new BuffIndexCollection(new string[]
-        {
+        static readonly BuffIndexCollection _debuffBlacklist = new BuffIndexCollection([
             "bdEntangle", // Immobile
             "bdLunarSecondaryRoot", // Immobile
             "bdNullified", // Immobile
@@ -50,7 +49,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             "bdPurplePoison", // Does nothing
             "BuffNeedleBuildup", // Doesn't work without item
             #endregion
-        });
+        ]);
 
         static BuffIndex[] _availableBuffIndices;
 

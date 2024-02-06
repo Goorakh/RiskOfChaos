@@ -14,7 +14,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
     public abstract class ApplyBuffEffect : TimedEffect
     {
-        static uint[] _activeBuffStacks = Array.Empty<uint>();
+        static uint[] _activeBuffStacks = [];
 
         [SystemInitializer(typeof(BuffCatalog))]
         static void Init()
@@ -50,8 +50,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             return buffIndices.Where(canSelectBuff);
         }
 
-        static readonly BuffIndexCollection _isDebuffOverrideList = new BuffIndexCollection(new string[]
-        {
+        static readonly BuffIndexCollection _isDebuffOverrideList = new BuffIndexCollection([
             // MysticsItems compat
             "MysticsItems_Crystallized",
             "MysticsItems_TimePieceSlow",
@@ -60,7 +59,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             "bdMULENet",
 
             "bdBlinded",
-        });
+        ]);
 
         protected static bool isDebuff(BuffDef buff)
         {
@@ -73,14 +72,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             return false;
         }
 
-        static readonly BuffIndexCollection _isCooldownOverrideList = new BuffIndexCollection(new string[]
-        {
+        static readonly BuffIndexCollection _isCooldownOverrideList = new BuffIndexCollection([
             // LostInTransit compat
             "RepulsionArmorCD",
 
             // Starstorm2 compat
             "BuffTerminationCooldown",
-        });
+        ]);
 
         protected static bool isCooldown(BuffDef buff)
         {

@@ -97,10 +97,9 @@ namespace RiskOfChaos.Content
 
         internal static void AddBodyPrefabsTo(NamedAssetCollection<GameObject> bodyPrefabs)
         {
-            bodyPrefabs.Add(new GameObject[]
-            {
+            bodyPrefabs.Add([
                 ChaosFakeInteractorBodyPrefab
-            });
+            ]);
         }
     }
 }

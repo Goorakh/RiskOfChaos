@@ -104,26 +104,23 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
             _spawnData.Dispose();
         }
 
-        static readonly MasterIndexCollection _nonAllySkinMasters = new MasterIndexCollection(new string[]
-        {
+        static readonly MasterIndexCollection _nonAllySkinMasters = new MasterIndexCollection([
             "BeetleGuardMaster",
             "NullifierMaster",
             "TitanGoldMaster",
             "VoidJailerMaster",
             "VoidMegaCrabMaster",
-        });
+        ]);
 
-        static readonly MasterIndexCollection _allySkinMasters = new MasterIndexCollection(new string[]
-        {
+        static readonly MasterIndexCollection _allySkinMasters = new MasterIndexCollection([
             "BeetleGuardAllyMaster",
             "NullifierAllyMaster",
             "TitanGoldAllyMaster",
             "VoidJailerAllyMaster",
             "VoidMegaCrabAllyMaster",
-        });
+        ]);
 
-        static readonly MasterIndexCollection _masterBlacklist = new MasterIndexCollection(new string[]
-        {
+        static readonly MasterIndexCollection _masterBlacklist = new MasterIndexCollection([
             "AffixEarthHealerMaster", // Dies instantly
             "AncientWispMaster", // Does nothing
             "ArtifactShellMaster", // No model, does not attack, cannot be damaged
@@ -144,7 +141,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
             "VoidRaidCrabJointMaster", // Just some balls, does nothing
             "VoidRaidCrabMaster", // Beta voidling, half invisible
             "WispSoulMaster", // Just dies on a timer
-        });
+        ]);
 
         protected static IEnumerable<CharacterMaster> getAllValidMasterPrefabs(bool useAllySkins)
         {
@@ -216,15 +213,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
             });
         }
 
-        static readonly MasterIndexCollection _overrideGroundNodeSpawnMasters = new MasterIndexCollection(new string[]
-        {
+        static readonly MasterIndexCollection _overrideGroundNodeSpawnMasters = new MasterIndexCollection([
             "EngiTurretMaster",
             "GrandparentMaster",
             "SquidTurretMaster",
             "MinorConstructMaster",
             "Turret1Master",
             "VoidBarnacleNoCastMaster"
-        });
+        ]);
 
         static readonly MasterIndexCollection _overrideAirNodeSpawnMasters = new MasterIndexCollection("FlyingVerminMaster");
 

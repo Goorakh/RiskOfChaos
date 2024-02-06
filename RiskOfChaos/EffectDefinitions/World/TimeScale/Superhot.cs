@@ -158,7 +158,7 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
             }
         }
 
-        readonly HashSet<PlayerTimeMovementTracker> _playerMovementTrackers = new HashSet<PlayerTimeMovementTracker>();
+        readonly HashSet<PlayerTimeMovementTracker> _playerMovementTrackers = [];
 
         public override void OnStart()
         {

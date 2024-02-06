@@ -16,7 +16,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
     [ChaosTimedEffect("repeatedly_recycle_items", 90f, AllowDuplicates = false)]
     public sealed class RepeatedlyRecycleItems : TimedEffect
     {
-        static PickupIndex[] _allAvailablePickupIndices = Array.Empty<PickupIndex>();
+        static PickupIndex[] _allAvailablePickupIndices = [];
 
         [SystemInitializer(typeof(PickupCatalog))]
         static void Init()

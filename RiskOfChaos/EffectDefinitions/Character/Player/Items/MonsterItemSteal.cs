@@ -99,7 +99,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             return stealer && stealer.hasBody && victim && victim.hasBody && stealer != victim && stealer.teamIndex != victim.teamIndex && !stealer.IsDeadAndOutOfLivesServer();
         }
 
-        readonly List<SteppedStealController> _activeStealControllers = new List<SteppedStealController>();
+        readonly List<SteppedStealController> _activeStealControllers = [];
 
         public override void OnStart()
         {

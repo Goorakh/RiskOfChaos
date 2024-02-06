@@ -17,14 +17,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [SystemInitializer]
         static void Init()
         {
-            _beaconSpawnEntries = new SpawnEntry[]
-            {
+            _beaconSpawnEntries = [
                 loadBasicSpawnEntry("RoR2/Base/Captain/CaptainSupplyDrop, EquipmentRestock.prefab"),
                 loadBasicSpawnEntry("RoR2/Base/Captain/CaptainSupplyDrop, Hacking.prefab"),
                 loadBasicSpawnEntry("RoR2/Base/Captain/CaptainSupplyDrop, Healing.prefab"),
                 loadBasicSpawnEntry("RoR2/Base/Captain/CaptainSupplyDrop, Plating.prefab"),
                 loadBasicSpawnEntry("RoR2/Base/Captain/CaptainSupplyDrop, Shocking.prefab")
-            };
+            ];
         }
 
         [EffectCanActivate]

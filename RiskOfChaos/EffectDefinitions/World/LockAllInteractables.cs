@@ -33,7 +33,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             return InstanceTracker.GetInstancesList<PurchaseInteraction>().Where(p => !p.lockGameObject);
         }
 
-        readonly List<GameObject> _spawnedLockObjects = new List<GameObject>();
+        readonly List<GameObject> _spawnedLockObjects = [];
 
         float _lastInteractableCheckTime = float.NegativeInfinity;
 

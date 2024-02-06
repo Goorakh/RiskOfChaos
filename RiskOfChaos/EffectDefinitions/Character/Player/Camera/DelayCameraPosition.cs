@@ -10,7 +10,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
     [ChaosTimedEffect("delay_camera_position", 45f, AllowDuplicates = false, IsNetworked = true)]
     public sealed class DelayCameraPosition : TimedEffect
     {
-        readonly Dictionary<UnityObjectWrapperKey<CameraRigController>, Vector3> _cameraMoveVelocities = new Dictionary<UnityObjectWrapperKey<CameraRigController>, Vector3>();
+        readonly Dictionary<UnityObjectWrapperKey<CameraRigController>, Vector3> _cameraMoveVelocities = [];
 
         public override void OnStart()
         {

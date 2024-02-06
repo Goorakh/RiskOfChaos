@@ -11,16 +11,15 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
     [ChaosEffect("spawn_invincible_lemurian")]
     public sealed class SpawnIncincibleLemurian : GenericDirectorSpawnEffect<CharacterSpawnCard>
     {
-        static SpawnCardEntry[] _entries = Array.Empty<SpawnCardEntry>();
+        static SpawnCardEntry[] _entries = [];
 
         [SystemInitializer]
         static void Init()
         {
-            _entries = new SpawnCardEntry[]
-            {
+            _entries = [
                 loadBasicSpawnEntry("RoR2/Base/Lemurian/cscLemurian.asset", 95f),
                 loadBasicSpawnEntry("RoR2/Base/LemurianBruiser/cscLemurianBruiser.asset", 5f)
-            };
+            ];
         }
 
         [EffectCanActivate]

@@ -45,7 +45,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         CharacterMaster _spawnedMaster;
 
         bool _canShowCountdownTimer;
-        readonly List<TimerText> _countdownTimers = new List<TimerText>();
+        readonly List<TimerText> _countdownTimers = [];
 
         public override void OnStart()
         {

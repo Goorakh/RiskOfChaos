@@ -67,8 +67,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [SystemInitializer]
         static void Init()
         {
-            _bossSpawnEntries = new BossSpawnEntry[]
-            {
+            _bossSpawnEntries = [
                 loadBasicSpawnEntry("RoR2/Base/Beetle/cscBeetleQueen.asset", 1f),
                 loadBasicSpawnEntry("RoR2/Base/Brother/cscBrother.asset", 0.5f),
                 loadBasicSpawnEntry("RoR2/Base/Brother/cscBrotherHurt.asset", 0.4f),
@@ -91,7 +90,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 loadBasicSpawnEntry("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase2.asset", 0.1f),
                 loadBasicSpawnEntry("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase3.asset", 0.075f),
                 loadBasicSpawnEntry("RoR2/DLC1/VoidMegaCrab/cscVoidMegaCrab.asset", 0.5f),
-            };
+            ];
         }
 
         [EffectConfig]

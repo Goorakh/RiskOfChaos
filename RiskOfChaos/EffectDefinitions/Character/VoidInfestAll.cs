@@ -82,7 +82,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         public override void OnStart()
         {
-            List<BaseAI> aiToReset = new List<BaseAI>();
+            List<BaseAI> aiToReset = [];
 
             getAllInfestableBodies().TryDo(body =>
             {

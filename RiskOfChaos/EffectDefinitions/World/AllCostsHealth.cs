@@ -23,7 +23,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         [InitEffectInfo]
         static readonly TimedEffectInfo _effectInfo;
 
-        static ConfigHolder<bool>[] _enabledConfigByCostType = Array.Empty<ConfigHolder<bool>>();
+        static ConfigHolder<bool>[] _enabledConfigByCostType = [];
 
         [SystemInitializer(typeof(CostTypeCatalog), typeof(ChaosEffectCatalog))]
         static void Init()

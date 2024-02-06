@@ -16,7 +16,7 @@ namespace RiskOfChaos.EffectDefinitions.Meta
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;
 
-        static readonly HashSet<ChaosEffectInfo> _excludeEffects = new HashSet<ChaosEffectInfo>();
+        static readonly HashSet<ChaosEffectInfo> _excludeEffects = [];
 
         [EffectConfig]
         static readonly ConfigHolder<int> _numEffectsToActivate =

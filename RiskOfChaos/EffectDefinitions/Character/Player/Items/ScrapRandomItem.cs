@@ -144,7 +144,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             if (!inventory)
                 return;
 
-            HashSet<ItemIndex> notifiedScrapItems = new HashSet<ItemIndex>();
+            HashSet<ItemIndex> notifiedScrapItems = [];
 
             for (int i = _scrapCount.Value - 1; i >= 0; i--)
             {

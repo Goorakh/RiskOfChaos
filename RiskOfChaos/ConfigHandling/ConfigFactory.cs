@@ -21,11 +21,11 @@ namespace RiskOfChaos.ConfigHandling
 
         ConfigFlags _flags;
 
-        readonly List<EventHandler<ConfigChangedArgs<T>>> _configChangedListeners = new List<EventHandler<ConfigChangedArgs<T>>>();
+        readonly List<EventHandler<ConfigChangedArgs<T>>> _configChangedListeners = [];
 
-        readonly List<string> _previousKeys = new List<string>();
+        readonly List<string> _previousKeys = [];
 
-        readonly List<string> _previousSections = new List<string>();
+        readonly List<string> _previousSections = [];
 
         ConfigFactory(string key, T defaultValue)
         {

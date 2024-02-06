@@ -49,14 +49,13 @@ namespace RiskOfChaos.EffectDefinitions.World
         [RequireComponent(typeof(CharacterBody))]
         sealed class GroundedDamageController : MonoBehaviour
         {
-            static readonly MasterIndexCollection _overrideAlwaysGroundedMasters = new MasterIndexCollection(new string[]
-            {
+            static readonly MasterIndexCollection _overrideAlwaysGroundedMasters = new MasterIndexCollection([
                 "EngiTurretMaster",
                 "SquidTurretMaster",
                 "MinorConstructMaster",
                 "Turret1Master",
                 "VoidBarnacleNoCastMaster"
-            });
+            ]);
 
             static DotController.DotIndex _dotIndex = DotController.DotIndex.None;
             static DotController.DotDef _dotDef;

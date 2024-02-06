@@ -12,7 +12,7 @@ namespace RiskOfChaos.ConfigHandling
     {
         static bool _hasRegisteredRunStartEvent = false;
 
-        static readonly Dictionary<string, ConfigHolderBase> _networkedConfigHolders = new Dictionary<string, ConfigHolderBase>();
+        static readonly Dictionary<string, ConfigHolderBase> _networkedConfigHolders = [];
 
         public static void RegisterNetworkedConfig(ConfigHolderBase configHolder)
         {

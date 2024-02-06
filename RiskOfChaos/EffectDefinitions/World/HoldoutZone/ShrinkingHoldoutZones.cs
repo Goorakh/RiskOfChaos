@@ -11,12 +11,11 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
     [ChaosTimedEffect("shrinking_holdout_zones", TimedEffectType.UntilStageEnd, AllowDuplicates = false)]
     public sealed class ShrinkingHoldoutZones : TimedEffect, IHoldoutZoneModificationProvider
     {
-        static readonly AnimationCurve _radiusInterpolateCurve = new AnimationCurve(new Keyframe[]
-        {
+        static readonly AnimationCurve _radiusInterpolateCurve = new AnimationCurve([
             new Keyframe(0f, 0f, 1f, 1f),
             new Keyframe(0.5f, 0.75f, 1f, 1f),
             new Keyframe(1f, 1f)
-        });
+        ]);
 
         [EffectCanActivate]
         static bool CanActivate()

@@ -16,11 +16,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [SystemInitializer]
         static void Init()
         {
-            _spawnEntries = new SpawnCardEntry[]
-            {
+            _spawnEntries = [
                 loadBasicSpawnEntry("RoR2/Base/Scav/iscScavBackpack.asset"),
                 loadBasicSpawnEntry("RoR2/Base/Scav/iscScavLunarBackpack.asset", 0.25f)
-            };
+            ];
         }
 
         [EffectCanActivate]

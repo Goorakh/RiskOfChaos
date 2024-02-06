@@ -205,7 +205,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         public override void OnStart()
         {
-            Dictionary<PickupDef, uint> pickupCounts = new Dictionary<PickupDef, uint>();
+            Dictionary<PickupDef, uint> pickupCounts = [];
 
             foreach (PickupDef pickupDef in _grantedPickupDefs)
             {

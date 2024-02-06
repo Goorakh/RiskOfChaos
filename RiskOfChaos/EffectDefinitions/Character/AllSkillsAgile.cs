@@ -42,7 +42,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             }
         }
 
-        readonly List<SkillDefIsAgileOverride> _skillIsAgileOverrides = new List<SkillDefIsAgileOverride>();
+        readonly List<SkillDefIsAgileOverride> _skillIsAgileOverrides = [];
 
         public override void OnStart()
         {

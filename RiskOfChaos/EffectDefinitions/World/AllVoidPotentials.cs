@@ -55,7 +55,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 }
                 else
                 {
-                    _availableOptions = Array.Empty<PickupIndex>();
+                    _availableOptions = [];
                 }
             }
 
@@ -72,7 +72,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             public PickupIndex[] GenerateOptions()
             {
                 if (!HasAnyOptions)
-                    return Array.Empty<PickupIndex>();
+                    return [];
 
                 PickupIndex[] shuffledPickupIndices = (PickupIndex[])_availableOptions.Clone();
                 Util.ShuffleArray(shuffledPickupIndices, _rng.Branch());
@@ -80,7 +80,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             }
         }
 
-        readonly Dictionary<PickupIndex, PickupOptionGenerator> _pickupOptionGenerators = new Dictionary<PickupIndex, PickupOptionGenerator>();
+        readonly Dictionary<PickupIndex, PickupOptionGenerator> _pickupOptionGenerators = [];
 
         public override void OnPreStartServer()
         {
@@ -182,14 +182,13 @@ namespace RiskOfChaos.EffectDefinitions.World
             }
             else
             {
-                return new PickupPickerController.Option[]
-                {
+                return [
                     new PickupPickerController.Option
                     {
                         available = true,
                         pickupIndex = sourcePickup
                     }
-                };
+                ];
             }
         }
 

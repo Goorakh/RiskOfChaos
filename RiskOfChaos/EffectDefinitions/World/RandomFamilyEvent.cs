@@ -19,7 +19,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         static void Init()
         {
             ExpansionDef dlc1 = ExpansionUtils.DLC1;
-            ExpansionDef[] dlc1Expansions = new ExpansionDef[] { dlc1 };
+            ExpansionDef[] dlc1Expansions = [ dlc1 ];
 
             static void loadAndSetPoolEntryDccs(DccsPool.PoolEntry poolEntry, string assetKey)
             {
@@ -59,8 +59,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             {
                 name = "AllFamilies",
                 categoryWeight = 1f,
-                alwaysIncluded = new DccsPool.PoolEntry[]
-                {
+                alwaysIncluded = [
                     getPoolEntry("RoR2/Base/Common/dccsBeetleFamily.asset"),
                     getPoolEntry("RoR2/Base/Common/dccsGolemFamily.asset"),
                     getPoolEntry("RoR2/Base/Common/dccsImpFamily.asset"),
@@ -70,19 +69,18 @@ namespace RiskOfChaos.EffectDefinitions.World
                     getPoolEntry("RoR2/Base/Common/dccsMushroomFamily.asset"),
                     getPoolEntry("RoR2/Base/Common/dccsParentFamily.asset"),
                     getPoolEntry("RoR2/Base/Common/dccsWispFamily.asset")
-                },
-                includedIfConditionsMet = new DccsPool.ConditionalPoolEntry[]
-                {
+                ],
+                includedIfConditionsMet = [
                     getConditionalPoolEntry("RoR2/Base/Common/dccsGupFamily.asset", dlc1Expansions),
                     getConditionalPoolEntry("RoR2/DLC1/Common/dccsAcidLarvaFamily.asset", dlc1Expansions),
                     getConditionalPoolEntry("RoR2/DLC1/Common/dccsConstructFamily.asset", dlc1Expansions),
                     getConditionalPoolEntry("RoR2/DLC1/Common/dccsVoidFamily.asset", dlc1Expansions)
-                },
-                includedIfNoConditionsMet = Array.Empty<DccsPool.PoolEntry>()
+                ],
+                includedIfNoConditionsMet = []
             };
 
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
-            _allFamilyEventsPool.poolCategories = new DccsPool.Category[] { category };
+            _allFamilyEventsPool.poolCategories = [ category ];
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
         }
 

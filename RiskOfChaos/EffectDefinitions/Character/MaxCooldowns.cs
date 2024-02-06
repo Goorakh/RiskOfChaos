@@ -10,16 +10,15 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [ChaosEffect("max_cooldowns", IsNetworked = true)]
     public sealed class MaxCooldowns : BaseEffect
     {
-        static BodySkillPair[] _ignoreSkillSlots = Array.Empty<BodySkillPair>();
+        static BodySkillPair[] _ignoreSkillSlots = [];
 
         [SystemInitializer(typeof(BodyCatalog))]
         static void Init()
         {
-            _ignoreSkillSlots = new BodySkillPair[]
-            {
+            _ignoreSkillSlots = [
                 // Railgunner can only get secondary stocks back after shooting while scoped, which you can't do if stocks are 0
                 new BodySkillPair("RailgunnerBody", SkillSlot.Secondary)
-            };
+            ];
         }
 
         static bool canDrainSkill(BodyIndex bodyIndex, SkillSlot slot)

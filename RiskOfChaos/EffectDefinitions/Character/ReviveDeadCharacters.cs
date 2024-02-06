@@ -37,7 +37,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                               .Build();
 
         static readonly MaxCapacityQueue<DeadCharacterInfo> _trackedDeadCharacters = new MaxCapacityQueue<DeadCharacterInfo>(_maxTrackedCharactersCount.Value);
-        static readonly List<DeadCharacterInfo> _trackedDeadPlayers = new List<DeadCharacterInfo>();
+        static readonly List<DeadCharacterInfo> _trackedDeadPlayers = [];
 
         [SystemInitializer]
         static void InitListeners()

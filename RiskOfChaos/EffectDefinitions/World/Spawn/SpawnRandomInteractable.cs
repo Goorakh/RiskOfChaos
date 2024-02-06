@@ -80,10 +80,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 iscNewtStatue.sendOverNetwork = true;
             }
 
-            _spawnCards = new SpawnCardEntry[]
-            {
-                getEntryMany(new string[]
-                {
+            _spawnCards = [
+                getEntryMany([
                     "RoR2/Base/Drones/iscBrokenDrone1.asset",
                     "RoR2/Base/Drones/iscBrokenDrone2.asset",
                     "RoR2/Base/Drones/iscBrokenEmergencyDrone.asset",
@@ -92,15 +90,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     "RoR2/Base/Drones/iscBrokenMegaDrone.asset",
                     "RoR2/Base/Drones/iscBrokenMissileDrone.asset",
                     "RoR2/Base/Drones/iscBrokenTurret1.asset"
-                }),
-                getEntryMany(new string[]
-                {
+                ]),
+                getEntryMany([
                     "RoR2/Base/Barrel1/iscBarrel1.asset",
                     "RoR2/DLC1/VoidCoinBarrel/iscVoidCoinBarrel.asset"
-                }),
+                ]),
                 getEntrySingle("RoR2/Base/CasinoChest/iscCasinoChest.asset"),
-                getEntryMany(new string[]
-                {
+                getEntryMany([
                     "RoR2/Base/CategoryChest/iscCategoryChestDamage.asset",
                     "RoR2/DLC1/CategoryChest2/iscCategoryChest2Damage.asset",
 
@@ -109,78 +105,68 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
                     "RoR2/Base/CategoryChest/iscCategoryChestUtility.asset",
                     "RoR2/DLC1/CategoryChest2/iscCategoryChest2Utility.asset"
-                }),
-                getEntryMany(new string[]
-                {
+                ]),
+                getEntryMany([
                     "RoR2/Base/Chest1/iscChest1.asset",
                     "RoR2/Base/Chest2/iscChest2.asset",
                     "RoR2/Base/GoldChest/iscGoldChest.asset"
-                }),
-                getEntryMany(new string[]
-                {
+                ]),
+                getEntryMany([
                     "RoR2/Base/Duplicator/iscDuplicator.asset",
                     "RoR2/Base/DuplicatorLarge/iscDuplicatorLarge.asset",
                     "RoR2/Base/DuplicatorMilitary/iscDuplicatorMilitary.asset",
                     "RoR2/Base/DuplicatorWild/iscDuplicatorWild.asset"
-                }),
+                ]),
                 getEntrySingle("RoR2/Base/EquipmentBarrel/iscEquipmentBarrel.asset"),
                 getEntrySingle("RoR2/Base/LunarChest/iscLunarChest.asset"),
                 getEntrySingle("RoR2/Base/RadarTower/iscRadarTower.asset"),
                 getEntrySingle("RoR2/Base/Scrapper/iscScrapper.asset"),
-                getEntryMany(new string[]
-                {
+                getEntryMany([
                     "RoR2/Base/ShrineBlood/iscShrineBlood.asset",
                     "RoR2/Base/ShrineBlood/iscShrineBloodSandy.asset",
                     "RoR2/Base/ShrineBlood/iscShrineBloodSnowy.asset"
-                }),
-                getEntryMany(new string[]
-                {
+                ]),
+                getEntryMany([
                     "RoR2/Base/ShrineBoss/iscShrineBoss.asset",
                     "RoR2/Base/ShrineBoss/iscShrineBossSandy.asset",
                     "RoR2/Base/ShrineBoss/iscShrineBossSnowy.asset"
-                }),
-                getEntryMany(new string[]
-                {
+                ]),
+                getEntryMany([
                     "RoR2/Base/ShrineChance/iscShrineChance.asset",
                     "RoR2/Base/ShrineChance/iscShrineChanceSandy.asset",
                     "RoR2/Base/ShrineChance/iscShrineChanceSnowy.asset"
-                }),
-                getEntryMany(new string[]
-                {
+                ]),
+                getEntryMany([
                     "RoR2/Base/ShrineCleanse/iscShrineCleanse.asset",
                     "RoR2/Base/ShrineCleanse/iscShrineCleanseSandy.asset",
                     "RoR2/Base/ShrineCleanse/iscShrineCleanseSnowy.asset"
-                }),
-                getEntryMany(new string[]
-                {
+                ]),
+                getEntryMany([
                     "RoR2/Base/ShrineCombat/iscShrineCombat.asset",
                     "RoR2/Base/ShrineCombat/iscShrineCombatSandy.asset",
                     "RoR2/Base/ShrineCombat/iscShrineCombatSnowy.asset"
-                }),
+                ]),
                 getEntrySingle("RoR2/Base/ShrineGoldshoresAccess/iscShrineGoldshoresAccess.asset"),
                 getEntrySingle("RoR2/Base/ShrineHealing/iscShrineHealing.asset"),
-                getEntryMany(new string[]
-                {
+                getEntryMany([
                     "RoR2/Base/ShrineRestack/iscShrineRestack.asset",
                     "RoR2/Base/ShrineRestack/iscShrineRestackSandy.asset",
                     "RoR2/Base/ShrineRestack/iscShrineRestackSnowy.asset"
-                }),
-                getEntryMany(new string[]
-                {
+                ]),
+                getEntryMany([
                     "RoR2/Base/TripleShop/iscTripleShop.asset",
                     "RoR2/Base/TripleShopEquipment/iscTripleShopEquipment.asset",
                     "RoR2/Base/TripleShopLarge/iscTripleShopLarge.asset"
-                }),
+                ]),
                 getEntrySingle("RoR2/Base/goldshores/iscGoldshoresBeacon.asset"),
                 getEntrySingle("RoR2/DLC1/VoidChest/iscVoidChest.asset"),
                 getEntrySingle("RoR2/DLC1/VoidSuppressor/iscVoidSuppressor.asset"),
                 getEntrySingle("RoR2/DLC1/VoidTriple/iscVoidTriple.asset"),
                 getEntrySingle("RoR2/DLC1/FreeChest/iscFreeChest.asset"),
-                getEntryMany(new string[]
-                {
+                getEntryMany([
                     "RoR2/DLC1/TreasureCacheVoid/iscLockboxVoid.asset",
                     "RoR2/Junk/TreasureCache/iscLockbox.asset"
-                }),
+                ]),
                 new SpawnCardEntry(new InteractableSpawnCard[]
                 {
                     createCauldronSpawnCard("RoR2/Base/LunarCauldrons/LunarCauldron, GreenToRed Variant.prefab"),
@@ -188,7 +174,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     createCauldronSpawnCard("RoR2/Base/LunarCauldrons/LunarCauldron, WhiteToGreen.prefab")
                 }, 1f),
                 new SpawnCardEntry(iscNewtStatue, 1f)
-            };
+            ];
         }
 
         [EffectCanActivate]

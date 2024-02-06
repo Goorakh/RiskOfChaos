@@ -54,7 +54,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
         static Dictionary<ItemIndex, List<ItemIndex>> getReverseItemCorruptionMap()
         {
-            Dictionary<ItemIndex, List<ItemIndex>> reverseItemCorruptionMap = new Dictionary<ItemIndex, List<ItemIndex>>();
+            Dictionary<ItemIndex, List<ItemIndex>> reverseItemCorruptionMap = [];
 
             foreach (ContagiousItemManager.TransformationInfo transformationInfo in ContagiousItemManager.transformationInfos)
             {
@@ -81,7 +81,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                 if (!reverseItemCorruptionMap.TryGetValue(transformedItem, out List<ItemIndex> originalItems))
                 {
-                    originalItems = new List<ItemIndex>();
+                    originalItems = [];
                     reverseItemCorruptionMap.Add(transformedItem, originalItems);
                 }
 

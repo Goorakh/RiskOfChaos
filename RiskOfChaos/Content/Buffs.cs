@@ -49,10 +49,9 @@ namespace RiskOfChaos.Content
 
         internal static void AddBuffDefsTo(NamedAssetCollection<BuffDef> buffDefs)
         {
-            buffDefs.Add(new BuffDef[]
-            {
+            buffDefs.Add([
                 SetTo1Hp
-            });
+            ]);
         }
     }
 }

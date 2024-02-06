@@ -35,10 +35,9 @@ namespace RiskOfChaos.Content
 
         internal static void AddEffectDefsTo(NamedAssetCollection<EffectDef> effectDefs)
         {
-            effectDefs.Add(new EffectDef[]
-            {
+            effectDefs.Add([
                 EquipmentTransferOrbEffect
-            });
+            ]);
         }
     }
 }

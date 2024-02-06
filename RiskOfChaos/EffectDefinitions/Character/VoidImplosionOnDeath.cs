@@ -13,10 +13,9 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("void_implosion_on_death", TimedEffectType.UntilStageEnd, AllowDuplicates = false)]
-    [EffectConfigBackwardsCompatibility(new string[]
-    {
+    [EffectConfigBackwardsCompatibility([
         "Effect: Void Implosion on Death"
-    })]
+    ])]
     public sealed class VoidImplosionOnDeath : TimedEffect
     {
         readonly record struct SerializableProjectilePrefab(string AssetPath)
@@ -53,7 +52,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             base.Serialize(writer);
 
-            Dictionary<string, uint> prefabPathToIndex = new Dictionary<string, uint>();
+            Dictionary<string, uint> prefabPathToIndex = [];
 
             string[] prefabPaths = _projectilePrefabByBodyIndex.Select(p => p.AssetPath).Distinct().ToArray();
 
@@ -75,7 +74,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             base.Deserialize(reader);
 
-            Dictionary<uint, string> indexToPrefabPath = new Dictionary<uint, string>();
+            Dictionary<uint, string> indexToPrefabPath = [];
 
             uint prefabPathsLength = reader.ReadPackedUInt32();
             for (uint i = 0; i < prefabPathsLength; i++)

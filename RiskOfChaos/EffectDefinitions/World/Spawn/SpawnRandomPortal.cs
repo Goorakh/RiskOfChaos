@@ -14,8 +14,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [SystemInitializer]
         static void Init()
         {
-            _spawnCards = new SpawnCardEntry[]
-            {
+            _spawnCards = [
                 loadBasicSpawnEntry("RoR2/Base/PortalGoldshores/iscGoldshoresPortal.asset", 1.2f),
                 loadBasicSpawnEntry("RoR2/Base/PortalMS/iscMSPortal.asset", 1.2f),
                 loadBasicSpawnEntry("RoR2/Base/PortalShop/iscShopPortal.asset", 1.2f),
@@ -23,7 +22,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 loadBasicSpawnEntry("RoR2/DLC1/DeepVoidPortal/iscDeepVoidPortal.asset", 0.8f),
                 loadBasicSpawnEntry("RoR2/DLC1/PortalVoid/iscVoidPortal.asset", 0.8f),
                 loadBasicSpawnEntry("RoR2/DLC1/VoidOutroPortal/iscVoidOutroPortal.asset", 0.8f)
-            };
+            ];
         }
 
         [EffectCanActivate]

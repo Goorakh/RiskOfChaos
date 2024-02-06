@@ -86,7 +86,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             };
         }
 
-        static List<ItemDef> _suppressedItems = new List<ItemDef>();
+        static List<ItemDef> _suppressedItems = [];
 
         static void SaveManager_CollectSaveData(ref SaveContainer container)
         {
@@ -178,14 +178,8 @@ namespace RiskOfChaos.EffectDefinitions.World
             {
                 subjectAsCharacterBody = ChaosInteractor.GetBody(),
                 baseToken = "VOID_SUPPRESSOR_USE_MESSAGE",
-                paramTokens = new string[]
-                {
-                    suppressedItem.nameToken
-                },
-                paramColors = new Color32[]
-                {
-                    ColorCatalog.GetColor(itemTierDef.colorIndex)
-                }
+                paramTokens = [ suppressedItem.nameToken ],
+                paramColors = [ ColorCatalog.GetColor(itemTierDef.colorIndex) ]
             });
         }
     }

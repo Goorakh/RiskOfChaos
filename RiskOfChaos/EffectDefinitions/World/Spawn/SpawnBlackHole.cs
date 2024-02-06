@@ -30,11 +30,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                                 .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                 .Build();
 
-        static readonly AnimationCurve _growthCurve = new AnimationCurve(new Keyframe[]
-        {
+        static readonly AnimationCurve _growthCurve = new AnimationCurve([
             new Keyframe(0f, 0f, 2f, 2f),
             new Keyframe(1f, 1f, 0f, 0f)
-        });
+        ]);
 
         static GameObject _killSphereVFXPrefab;
         static GameObject _environmentVFXPrefab;

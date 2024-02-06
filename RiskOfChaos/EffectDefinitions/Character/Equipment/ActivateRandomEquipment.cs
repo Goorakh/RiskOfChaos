@@ -28,15 +28,14 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
                                .OptionConfig(new CheckBoxConfig())
                                .Build();
 
-        static readonly EquipmentIndexCollection _equipmentsBlacklist = new EquipmentIndexCollection(new string[]
-        {
+        static readonly EquipmentIndexCollection _equipmentsBlacklist = new EquipmentIndexCollection([
             "EliteSecretSpeedEquipment", // Does nothing
             "GhostGun", // Requires target
             "GoldGat", // Doesn't really work in this context
             "IrradiatingLaser", // Does nothing
             "MultiShopCard", // Does nothing on activate
             "QuestVolatileBattery", // Does nothing on activate
-        });
+        ]);
 
         readonly struct ActivatableEquipment
         {
@@ -77,7 +76,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
             }
         }
 
-        static ActivatableEquipment[] _availableEquipments = Array.Empty<ActivatableEquipment>();
+        static ActivatableEquipment[] _availableEquipments = [];
 
         static bool isValidEquipment(EquipmentDef equipment)
         {
@@ -161,7 +160,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
             return getAllAvailableEquipments().Any() && (!context.IsNow || getAllEquipmentActivators().Any());
         }
 
-        EquipmentDef[] _equipmentActivationOrder = Array.Empty<EquipmentDef>();
+        EquipmentDef[] _equipmentActivationOrder = [];
 
         public override void OnPreStartServer()
         {

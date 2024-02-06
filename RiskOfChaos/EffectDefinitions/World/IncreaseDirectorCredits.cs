@@ -52,7 +52,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 public bool HasBeenModified;
             }
 
-            readonly Dictionary<UnityObjectWrapperKey<CombatDirector>, ModificationData> _directorModifications = new Dictionary<UnityObjectWrapperKey<CombatDirector>, ModificationData>();
+            readonly Dictionary<UnityObjectWrapperKey<CombatDirector>, ModificationData> _directorModifications = [];
 
             BaseEffect _effectOwner;
 

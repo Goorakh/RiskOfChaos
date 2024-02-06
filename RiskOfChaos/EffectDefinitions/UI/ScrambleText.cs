@@ -32,7 +32,7 @@ namespace RiskOfChaos.EffectDefinitions.UI
         static readonly StringBuilder _sharedResultBuilder = new StringBuilder();
         static readonly StringBuilder _sharedWordBuilder = new StringBuilder();
 
-        readonly Dictionary<string, string> _tokenOverrideCache = new Dictionary<string, string>();
+        readonly Dictionary<string, string> _tokenOverrideCache = [];
 
         ulong _baseScrambleSeed;
 

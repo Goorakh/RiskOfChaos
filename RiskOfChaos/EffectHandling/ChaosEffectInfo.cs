@@ -34,7 +34,7 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly string ConfigSectionName;
 
-        readonly ChaosEffectCanActivateMethod[] _canActivateMethods = Array.Empty<ChaosEffectCanActivateMethod>();
+        readonly ChaosEffectCanActivateMethod[] _canActivateMethods = [];
 
         public readonly ReadOnlyCollection<TimedEffectInfo> IncompatibleEffects = Empty<TimedEffectInfo>.ReadOnlyCollection;
 
@@ -44,7 +44,7 @@ namespace RiskOfChaos.EffectHandling
         readonly ConfigHolder<KeyboardShortcut> _activationShortcut;
         public bool IsActivationShortcutPressed => _activationShortcut != null && _activationShortcut.Value.IsDownIgnoringBlockerKeys();
 
-        readonly EffectWeightMultiplierDelegate[] _effectWeightMultipliers = Array.Empty<EffectWeightMultiplierDelegate>();
+        readonly EffectWeightMultiplierDelegate[] _effectWeightMultipliers = [];
         public float TotalSelectionWeight
         {
             get
@@ -114,7 +114,7 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly bool IsNetworked;
 
-        public readonly string[] PreviousConfigSectionNames = Array.Empty<string>();
+        public readonly string[] PreviousConfigSectionNames = [];
 
         public readonly ConfigFile ConfigFile;
 

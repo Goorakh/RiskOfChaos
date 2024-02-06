@@ -25,14 +25,14 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             public CharacterBody Target;
             Inventory _targetInventory;
 
-            ItemStack[] _itemStacksToTransfer = Array.Empty<ItemStack>();
+            ItemStack[] _itemStacksToTransfer = [];
             int _currentItemTransferIndex;
 
             bool _hasFinishedGivingItems;
 
             float _giveNextItemTimer;
 
-            readonly List<ItemTransferOrb> _inFlightOrbs = new List<ItemTransferOrb>();
+            readonly List<ItemTransferOrb> _inFlightOrbs = [];
 
             public static bool ItemTransferFilter(ItemIndex item)
             {
@@ -56,7 +56,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                 if (OwnerInventory)
                 {
-                    List<ItemStack> itemsToTransfer = new List<ItemStack>();
+                    List<ItemStack> itemsToTransfer = [];
                     foreach (ItemIndex item in OwnerInventory.itemAcquisitionOrder)
                     {
                         if (ItemTransferFilter(item))

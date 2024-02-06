@@ -57,11 +57,11 @@ namespace RiskOfChaos.EffectDefinitions.World
                 PickupDef pickupDef = PickupCatalog.GetPickupDef(Pickup);
                 if (pickupDef != null)
                 {
-                    return new object[] { Util.GenerateColoredString(Language.GetString(pickupDef.nameToken), pickupDef.baseColor) };
+                    return [ Util.GenerateColoredString(Language.GetString(pickupDef.nameToken), pickupDef.baseColor) ];
                 }
                 else
                 {
-                    return new object[] { "<color=red>[ERROR: PICKUP NOT ROLLED]</color>" };
+                    return [ "<color=red>[ERROR: PICKUP NOT ROLLED]</color>" ];
                 }
             }
 

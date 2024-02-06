@@ -17,7 +17,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 _items = items;
             }
 
-            public SpawnEntry(TSpawnType item, float weight) : this(new TSpawnType[] { item }, weight)
+            public SpawnEntry(TSpawnType item, float weight) : this([ item ], weight)
             {
             }
 

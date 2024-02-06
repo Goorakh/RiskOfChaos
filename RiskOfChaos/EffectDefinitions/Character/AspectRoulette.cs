@@ -64,7 +64,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             }
         }
 
-        static AspectConfig[] _aspectConfigs = Array.Empty<AspectConfig>();
+        static AspectConfig[] _aspectConfigs = [];
         static float getAspectWeight(EliteIndex eliteIndex)
         {
             if (ArrayUtils.IsInBounds(_aspectConfigs, (int)eliteIndex))

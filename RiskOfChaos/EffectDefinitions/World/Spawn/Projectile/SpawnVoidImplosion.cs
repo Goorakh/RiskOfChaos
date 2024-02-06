@@ -15,12 +15,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
         [SystemInitializer]
         static void Init()
         {
-            _projectileEntries = new SpawnEntry[]
-            {
+            _projectileEntries = [
                 loadBasicSpawnEntry("RoR2/Base/Nullifier/NullifierDeathBombProjectile.prefab", 1f),
                 loadBasicSpawnEntry("RoR2/DLC1/VoidJailer/VoidJailerDeathBombProjectile.prefab", 0.4f),
                 loadBasicSpawnEntry("RoR2/DLC1/VoidMegaCrab/VoidMegaCrabDeathBombProjectile.prefab", 0.4f)
-            };
+            ];
         }
 
         [EffectCanActivate]

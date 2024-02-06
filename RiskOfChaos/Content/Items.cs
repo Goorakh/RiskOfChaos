@@ -206,10 +206,9 @@ namespace RiskOfChaos.Content
 
         internal static void AddItemDefsTo(NamedAssetCollection<ItemDef> itemCollection)
         {
-            itemCollection.Add(new ItemDef[]
-            {
+            itemCollection.Add([
                 InvincibleLemurianMarker
-            });
+            ]);
         }
     }
 }

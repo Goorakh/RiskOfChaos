@@ -87,8 +87,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             _hasAppliedPatches = true;
         }
 
-        static readonly BuffIndexCollection _buffBlacklist = new BuffIndexCollection(new string[]
-        {
+        static readonly BuffIndexCollection _buffBlacklist = new BuffIndexCollection([
             "bdBearVoidReady", // Invincibility
             "bdBodyArmor", // Invincibility
             "bdCloak", // Invisibility not fun
@@ -187,7 +186,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             "visual_FakeShurikenStock",
             "visual_ImpendingVagrantExplosion"
 	        #endregion
-        });
+        ]);
 
         static BuffIndex[] _availableBuffIndices;
 

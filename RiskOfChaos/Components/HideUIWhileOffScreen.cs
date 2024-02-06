@@ -6,7 +6,7 @@ namespace RiskOfChaos.Components
 {
     public class HideUIWhileOffScreen : MonoBehaviour
     {
-        public RectTransform[] TransformsToConsider = Array.Empty<RectTransform>();
+        public RectTransform[] TransformsToConsider = [];
 
         void FixedUpdate()
         {

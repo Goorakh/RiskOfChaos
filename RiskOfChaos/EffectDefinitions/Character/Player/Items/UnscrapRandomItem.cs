@@ -46,8 +46,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             ConfigHolder = _itemBlacklistConfig
         };
 
-        static Dictionary<ItemTier, ItemIndex[]> _printableItemsByTier = new Dictionary<ItemTier, ItemIndex[]>();
-        static Dictionary<ItemTier, ItemIndex[]> _scrapItemsByTier = new Dictionary<ItemTier, ItemIndex[]>();
+        static Dictionary<ItemTier, ItemIndex[]> _printableItemsByTier = [];
+        static Dictionary<ItemTier, ItemIndex[]> _scrapItemsByTier = [];
 
         [SystemInitializer(typeof(ItemCatalog), typeof(ItemTierCatalog))]
         static void Init()
