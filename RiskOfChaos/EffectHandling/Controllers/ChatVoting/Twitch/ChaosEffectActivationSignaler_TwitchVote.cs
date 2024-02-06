@@ -143,7 +143,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
                     Chat.SendBroadcastChat(new Chat.SimpleChatMessage
                     {
                         baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
-                        paramTokens = new string[] { Language.GetString("TWITCH_EFFECT_VOTING_GENERIC_CLIENT_CONNECT_FAIL") }
+                        paramTokens = [ Language.GetString("TWITCH_EFFECT_VOTING_GENERIC_CLIENT_CONNECT_FAIL") ]
                     });
                 }
             }
@@ -157,7 +157,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             Chat.SendBroadcastChat(new Chat.SimpleChatMessage
             {
                 baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
-                paramTokens = new string[] { Language.GetString("TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_NO_PERMISSION") }
+                paramTokens = [ Language.GetString("TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_NO_PERMISSION") ]
             });
         }
 
@@ -169,7 +169,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             Chat.SendBroadcastChat(new Chat.SimpleChatMessage
             {
                 baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
-                paramTokens = new string[] { Language.GetString("TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_INCORRECT_LOGIN") }
+                paramTokens = [ Language.GetString("TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_INCORRECT_LOGIN") ]
             });
         }
 
@@ -191,7 +191,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             Chat.SendBroadcastChat(new Chat.SimpleChatMessage
             {
                 baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
-                paramTokens = new string[] { details }
+                paramTokens = [ details ]
             });
         }
 
@@ -203,7 +203,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             Chat.SendBroadcastChat(new Chat.SimpleChatMessage
             {
                 baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
-                paramTokens = new string[] { e.Exception.GetType().Name }
+                paramTokens = [ e.Exception.GetType().Name ]
             });
         }
 
@@ -215,7 +215,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             Chat.SendBroadcastChat(new Chat.SimpleChatMessage
             {
                 baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
-                paramTokens = new string[] { e.Error.Message }
+                paramTokens = [ e.Error.Message ]
             });
         }
 
@@ -311,7 +311,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
                     Chat.SendBroadcastChat(new Chat.SimpleChatMessage
                     {
                         baseToken = "TWITCH_EFFECT_VOTING_LOGIN_FAIL_FORMAT",
-                        paramTokens = new string[] { Language.GetString("TWITCH_LOGIN_FAIL_NOT_LOGGED_IN") }
+                        paramTokens = [ Language.GetString("TWITCH_LOGIN_FAIL_NOT_LOGGED_IN") ]
                     });
 
                     scheduleAttemptJoinChannel(5f);
@@ -359,7 +359,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             Chat.SendBroadcastChat(new Chat.SimpleChatMessage
             {
                 baseToken = "TWITCH_EFFECT_VOTING_LOGIN_SUCCESS",
-                paramTokens = new string[] { e.Channel }
+                paramTokens = [ e.Channel ]
             });
 
             _joinedChannel = e.Channel;

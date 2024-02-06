@@ -7,12 +7,12 @@ namespace RiskOfChaos.Utilities.DropTables
     public class SequentialPickupDropTable : PickupDropTable, IPooledObject
     {
         int _currentPickupIndex;
-        public PickupIndex[] Pickups = Array.Empty<PickupIndex>();
+        public PickupIndex[] Pickups = [];
 
         void IPooledObject.ResetValues()
         {
             _currentPickupIndex = 0;
-            Pickups = Array.Empty<PickupIndex>();
+            Pickups = [];
         }
 
         PickupIndex getNextPickup()

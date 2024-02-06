@@ -13,7 +13,7 @@ namespace RiskOfChaos.Utilities
         public bool ResetAfterAllEventsInvoked;
 
         record struct EventInfo(bool HasInvoked);
-        readonly List<EventInfo> _events = new List<EventInfo>();
+        readonly List<EventInfo> _events = [];
 
         public Action GetListener()
         {

@@ -35,11 +35,10 @@ namespace RiskOfChaos.EffectHandling.Formatting
 
         public override object[] GetFormatArgs()
         {
-            return new object[]
-            {
+            return [
                 Count.ToString(CountFormat),
                 Count > 1 ? PluralString : string.Empty
-            };
+            ];
         }
 
         public override bool Equals(EffectNameFormatter other)

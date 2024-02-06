@@ -42,7 +42,7 @@ namespace RiskOfChaos.EffectHandling
                         {
                             _canActivate = (in EffectCanActivateContext context) =>
                             {
-                                return (bool)method.Invoke(null, new object[] { context });
+                                return (bool)method.Invoke(null, [ context ]);
                             };
                         }
                         else

@@ -11,7 +11,7 @@ namespace RiskOfChaos.Utilities.DropTables
 {
     public class ConfigurableDropTable : BasicPickupDropTable, IConfigProvider
     {
-        readonly Dictionary<DropType, ConfigHolder<float>> _dropTypeToWeightConfig = new Dictionary<DropType, ConfigHolder<float>>();
+        readonly Dictionary<DropType, ConfigHolder<float>> _dropTypeToWeightConfig = [];
 
         bool _dropTableDirty = false;
 
@@ -149,7 +149,7 @@ namespace RiskOfChaos.Utilities.DropTables
 
             base.Regenerate(run);
 
-            List<ExplicitDrop> additionalDrops = new List<ExplicitDrop>();
+            List<ExplicitDrop> additionalDrops = [];
             AddDrops?.Invoke(additionalDrops);
             foreach (ExplicitDrop drop in additionalDrops)
             {
@@ -159,7 +159,7 @@ namespace RiskOfChaos.Utilities.DropTables
                 }
             }
 
-            List<PickupIndex> removePickups = new List<PickupIndex>();
+            List<PickupIndex> removePickups = [];
             RemoveDrops?.Invoke(removePickups);
 
             if (_itemBlacklist != null || removePickups.Count > 0)

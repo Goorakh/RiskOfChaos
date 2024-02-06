@@ -45,7 +45,7 @@ namespace RiskOfChaos.Utilities
                 TierDef.pickupRules = overrideRules;
             }
         }
-        static ItemTierPickupRulesOverrideInfo[] _activeOverrides = Array.Empty<ItemTierPickupRulesOverrideInfo>();
+        static ItemTierPickupRulesOverrideInfo[] _activeOverrides = [];
 
         [SystemInitializer(typeof(ItemTierCatalog))]
         static void Init()

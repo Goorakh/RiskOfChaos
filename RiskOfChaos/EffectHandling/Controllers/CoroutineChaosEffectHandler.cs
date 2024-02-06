@@ -88,7 +88,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        readonly List<ActiveCoroutineEffect> _activeCoroutineEffects = new List<ActiveCoroutineEffect>();
+        readonly List<ActiveCoroutineEffect> _activeCoroutineEffects = [];
 
         void Awake()
         {

@@ -66,7 +66,7 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             }
         }
 
-        SkillSlot[] _nonLockedSkillSlots = Array.Empty<SkillSlot>();
+        SkillSlot[] _nonLockedSkillSlots = [];
         public SkillSlot[] NonLockedSkillSlots
         {
             get
@@ -147,7 +147,7 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             }
         }
 
-        SkillSlot[] _nonForceActivatedSkillSlots = Array.Empty<SkillSlot>();
+        SkillSlot[] _nonForceActivatedSkillSlots = [];
         public SkillSlot[] NonForceActivatedSkillSlots
         {
             get
@@ -183,7 +183,7 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             return isSkillSlotBitSet(_forceActivateSkillSlotsMask, skillSlot);
         }
 
-        public SkillSlot[] NonLockedNonForceActivatedSkillSlots { get; private set; } = Array.Empty<SkillSlot>();
+        public SkillSlot[] NonLockedNonForceActivatedSkillSlots { get; private set; } = [];
 
         void refreshNonLockedNonForceActivatedSkillSlots()
         {

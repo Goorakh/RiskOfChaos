@@ -12,12 +12,12 @@ namespace RiskOfChaos.Utilities.DropTables
         int _currentDropCount;
 
         public readonly record struct DropTableEntry(PickupDropTable DropTable, int Count);
-        public DropTableEntry[] Entries = Array.Empty<DropTableEntry>();
+        public DropTableEntry[] Entries = [];
 
         void IPooledObject.ResetValues()
         {
             _currentDropCount = 0;
-            Entries = Array.Empty<DropTableEntry>();
+            Entries = [];
         }
 
         DropTableEntry? getDropTableEntryForCount(int count)
@@ -68,7 +68,7 @@ namespace RiskOfChaos.Utilities.DropTables
 
         public override PickupIndex[] GenerateUniqueDropsPreReplacement(int maxDrops, Xoroshiro128Plus rng)
         {
-            List<PickupIndex> result = new List<PickupIndex>();
+            List<PickupIndex> result = [];
 
             while (result.Count < maxDrops)
             {

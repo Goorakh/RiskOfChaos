@@ -12,7 +12,7 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders.ParsedList
 
         readonly IComparer<T> _comparer;
 
-        readonly List<ParseFailReason> _itemParseFailReasons = new List<ParseFailReason>();
+        readonly List<ParseFailReason> _itemParseFailReasons = [];
 
         public GenericParsedList(IComparer<T> comparer) : base()
         {

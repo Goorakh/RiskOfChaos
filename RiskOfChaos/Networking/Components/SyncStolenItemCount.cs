@@ -55,7 +55,7 @@ namespace RiskOfChaos.Networking.Components
         }
 
         int _inventoryInfosLength = 0;
-        InventoryInfo[] _inventoryInfos = Array.Empty<InventoryInfo>();
+        InventoryInfo[] _inventoryInfos = [];
 
         const uint INVENTORY_INFOS_DIRTY_BIT = 1 << 0;
 

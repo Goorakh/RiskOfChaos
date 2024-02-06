@@ -62,14 +62,14 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 catch (Exception e)
                 {
                     Log.Error_NoCallerPrefix($"Caught exception in {EffectInstance.EffectInfo} {nameof(BaseEffect.Serialize)}: {e}");
-                    return Array.Empty<byte>();
+                    return [];
                 }
 
                 return writer.ToArray();
             }
         }
 
-        readonly List<ActiveTimedEffectInfo> _activeTimedEffects = new List<ActiveTimedEffectInfo>();
+        readonly List<ActiveTimedEffectInfo> _activeTimedEffects = [];
 
         ChaosEffectDispatcher _effectDispatcher;
 

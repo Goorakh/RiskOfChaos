@@ -124,7 +124,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             if (enabledEffects.Length <= 0)
             {
                 Log.Warning("No effects enabled, per-stage effect list cannot be generated");
-                _overrideAvailableEffects = new OverrideEffect[] { new OverrideEffect(Nothing.EffectInfo, null) };
+                _overrideAvailableEffects = [ new OverrideEffect(Nothing.EffectInfo, null) ];
                 return;
             }
 

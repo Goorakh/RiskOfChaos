@@ -15,7 +15,7 @@ namespace RiskOfChaos.ModifierController
         float _lastModificationDirtyLogAttemptTime = float.NegativeInfinity;
 #endif
 
-        protected readonly List<ModificationProviderInfo<TValue>> _modificationProviders = new List<ModificationProviderInfo<TValue>>();
+        protected readonly List<ModificationProviderInfo<TValue>> _modificationProviders = [];
 
         bool _anyModificationActive;
         public bool AnyModificationActive

@@ -62,11 +62,10 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
 
             CombinedSequentialPickupDropTable combinedDropTable = _combinationDropTablesPool.GetOrCreateNew();
             combinedDropTable.canDropBeReplaced = false;
-            combinedDropTable.Entries = new CombinedSequentialPickupDropTable.DropTableEntry[]
-            {
+            combinedDropTable.Entries = [
                 new CombinedSequentialPickupDropTable.DropTableEntry(rolledPickupsSequence, RolledPickups.Length),
                 new CombinedSequentialPickupDropTable.DropTableEntry(DropTable, int.MaxValue)
-            };
+            ];
 
             combinedDropTable.FinalizeManualSetup();
 
@@ -146,7 +145,7 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
             PurchaseInteraction purchaseInteraction = interactableObject.GetComponent<PurchaseInteraction>();
 
             PickupDropTable dropTable;
-            PickupIndex[] rolledPickups = Array.Empty<PickupIndex>();
+            PickupIndex[] rolledPickups = [];
             bool useForcedPickupDropTable = false;
 
             if (interactableObject.TryGetComponent(out ChestBehavior chestBehavior))
@@ -155,7 +154,7 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
 
                 if (chestBehavior.dropPickup.isValid)
                 {
-                    rolledPickups = new PickupIndex[] { chestBehavior.dropPickup };
+                    rolledPickups = [ chestBehavior.dropPickup ];
                 }
             }
             else if (interactableObject.TryGetComponent(out RouletteChestController rouletteChestController))
@@ -204,7 +203,7 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
                 PickupIndex pickup = shopTerminalBehavior.CurrentPickupIndex();
                 if (pickup.isValid)
                 {
-                    rolledPickups = new PickupIndex[] { pickup };
+                    rolledPickups = [ pickup ];
                 }
 
                 if (shopTerminalBehavior.serverMultiShopController)

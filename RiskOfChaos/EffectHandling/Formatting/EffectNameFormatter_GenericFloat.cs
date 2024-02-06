@@ -31,7 +31,7 @@ namespace RiskOfChaos.EffectHandling.Formatting
 
         public override object[] GetFormatArgs()
         {
-            return new object[] { Value.ToString(ValueFormat) };
+            return [ Value.ToString(ValueFormat) ];
         }
 
         public override bool Equals(EffectNameFormatter other)

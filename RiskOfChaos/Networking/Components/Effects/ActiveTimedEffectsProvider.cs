@@ -35,7 +35,7 @@ namespace RiskOfChaos.Networking.Components.Effects
         public static event Action<ActiveEffectItemInfo[]> OnActiveEffectsChanged;
 
         const int kListActiveEffects = 43986584;
-        readonly SyncListActiveEffectItemInfo _activeEffects = new SyncListActiveEffectItemInfo();
+        readonly SyncListActiveEffectItemInfo _activeEffects = [];
 
         public int NumActiveDisplayedEffects { get; private set; }
 

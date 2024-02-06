@@ -100,7 +100,7 @@ namespace RiskOfChaos.Patches
                 return new BlastAttack.Result()
                 {
                     hitCount = 0,
-                    hitPoints = Array.Empty<BlastAttack.HitPoint>()
+                    hitPoints = []
                 };
             }
         }

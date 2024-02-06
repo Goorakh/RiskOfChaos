@@ -27,7 +27,7 @@ namespace RiskOfChaos.ModifierController
             }
         }
 
-        static ModificationManagerInfo[] _modificationManagers = Array.Empty<ModificationManagerInfo>();
+        static ModificationManagerInfo[] _modificationManagers = [];
 
         static ModificationManagerInfo createFromAttribute(ValueModificationManagerAttribute attribute)
         {

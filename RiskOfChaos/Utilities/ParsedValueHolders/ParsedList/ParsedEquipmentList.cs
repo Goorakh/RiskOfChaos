@@ -7,7 +7,7 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders.ParsedList
 {
     public class ParsedEquipmentList : GenericParsedList<EquipmentIndex>
     {
-        static readonly char[] _equipmentNameFilterChars = new char[] { ',', ' ' };
+        static readonly char[] _equipmentNameFilterChars = [ ',', ' ' ];
 
         public ParsedEquipmentList(IComparer<EquipmentIndex> comparer) : base(comparer)
         {

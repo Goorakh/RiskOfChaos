@@ -4,7 +4,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 {
     public class UniqueVoteSelection<TVoteKey, TVoteResult> : VoteSelection<TVoteResult>
     {
-        readonly Dictionary<TVoteKey, int> _voteByKey = new Dictionary<TVoteKey, int>();
+        readonly Dictionary<TVoteKey, int> _voteByKey = [];
 
         public UniqueVoteSelection(int numOptions) : base(numOptions)
         {

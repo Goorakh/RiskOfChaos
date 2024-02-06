@@ -9,8 +9,8 @@ namespace RiskOfChaos.Utilities
     {
         static EliteUtils()
         {
-            baseEliteEquipments = Array.Empty<EquipmentIndex>();
-            runAvailableEliteEquipments = Array.Empty<EquipmentIndex>();
+            baseEliteEquipments = [];
+            runAvailableEliteEquipments = [];
         }
 
         static EquipmentIndex[] _baseEliteEquipments;
@@ -22,7 +22,7 @@ namespace RiskOfChaos.Utilities
             }
             set
             {
-                value ??= Array.Empty<EquipmentIndex>();
+                value ??= [];
 
                 if (_baseEliteEquipments == null || !_baseEliteEquipments.SequenceEqual(value))
                 {
@@ -71,7 +71,7 @@ namespace RiskOfChaos.Utilities
             }
             set
             {
-                value ??= Array.Empty<EquipmentIndex>();
+                value ??= [];
 
                 if (_runAvailableEliteEquipments == null || !_runAvailableEliteEquipments.SequenceEqual(value))
                 {
@@ -93,7 +93,7 @@ namespace RiskOfChaos.Utilities
 
             Run.onRunDestroyGlobal += _ =>
             {
-                runAvailableEliteEquipments = Array.Empty<EquipmentIndex>();
+                runAvailableEliteEquipments = [];
             };
         }
 

@@ -10,7 +10,7 @@ namespace RiskOfChaos.Patches
 {
     static class IgnoreItemTransformations
     {
-        static readonly HashSet<Inventory> _ignoreTransformationsFor = new HashSet<Inventory>();
+        static readonly HashSet<Inventory> _ignoreTransformationsFor = [];
 
         static IgnoreItemTransformations()
         {

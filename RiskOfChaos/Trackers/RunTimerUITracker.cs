@@ -8,7 +8,7 @@ namespace RiskOfChaos.Trackers
 {
     public class RunTimerUITracker : MonoBehaviour
     {
-        static readonly HashSet<RunTimerUIController> _trackedRunTimers = new HashSet<RunTimerUIController>();
+        static readonly HashSet<RunTimerUIController> _trackedRunTimers = [];
 
         [SystemInitializer]
         static void Init()

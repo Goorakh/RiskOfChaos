@@ -21,7 +21,7 @@ namespace RiskOfChaos.EffectHandling.Formatting
 
         public override object[] GetFormatArgs()
         {
-            return Array.Empty<object>();
+            return [];
         }
 
         public override bool Equals(EffectNameFormatter other)

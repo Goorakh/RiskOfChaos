@@ -137,7 +137,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
         [SerializeField]
         HGTextMeshProUGUI _activeEffectsTitleLabel;
 
-        readonly List<ChaosActiveEffectItemController> _activeEffectItems = new List<ChaosActiveEffectItemController>();
+        readonly List<ChaosActiveEffectItemController> _activeEffectItems = [];
 
         void OnEnable()
         {

@@ -10,9 +10,9 @@ namespace RiskOfChaos.EffectHandling.Formatting
 {
     public static class EffectNameFormatterCatalog
     {
-        static Type[] _effectNameFormatterTypes = Array.Empty<Type>();
+        static Type[] _effectNameFormatterTypes = [];
 
-        static readonly Dictionary<Type, int> _formatterTypeToIndexMap = new Dictionary<Type, int>();
+        static readonly Dictionary<Type, int> _formatterTypeToIndexMap = [];
 
         [SystemInitializer]
         static void Init()
@@ -23,7 +23,7 @@ namespace RiskOfChaos.EffectHandling.Formatting
 #if DEBUG
                                                 .Where(t =>
                                                 {
-                                                    if (t.GetConstructor(Array.Empty<Type>()) is null)
+                                                    if (t.GetConstructor([]) is null)
                                                     {
                                                         Log.Error($"Formatter type {t.FullName} is missing parameterless constructor");
                                                         return false;

@@ -32,7 +32,7 @@ namespace RiskOfChaos.Patches
             }
         }
 
-        static readonly Dictionary<Orb, int> _orbBouncesRemaining = new Dictionary<Orb, int>();
+        static readonly Dictionary<Orb, int> _orbBouncesRemaining = [];
 
         [SystemInitializer]
         static void Init()

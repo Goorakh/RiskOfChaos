@@ -120,7 +120,7 @@ namespace RiskOfChaos.UI.ChatVoting
 
         public static event Action<ChaosEffectVoteDisplayController> OnDisplayControllerCreated;
 
-        ChaosEffectVoteItemController[] _effectVoteItemControllers = Array.Empty<ChaosEffectVoteItemController>();
+        ChaosEffectVoteItemController[] _effectVoteItemControllers = [];
 
         Vector3 _defaultScale;
 
@@ -162,7 +162,7 @@ namespace RiskOfChaos.UI.ChatVoting
                 }
             }
 
-            _effectVoteItemControllers = Array.Empty<ChaosEffectVoteItemController>();
+            _effectVoteItemControllers = [];
         }
 
         public void SetVoteDisplayAlpha(float alpha)

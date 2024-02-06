@@ -71,12 +71,11 @@ namespace RiskOfChaos.Utilities.Extensions
                 }
             }
 
-            ConditionalBodySnapshot[] snapshots = new ConditionalBodySnapshot[]
-            {
+            ConditionalBodySnapshot[] snapshots = [
                 new ConditionalBodySnapshot(BuffSnapshot.FromBody(body, RoR2Content.Buffs.PermanentCurse.buffIndex), CharacterRespawnFlags.KeepCurseStacks),
                 new ConditionalBodySnapshot(BuffSnapshot.FromBody(body, RoR2Content.Buffs.BanditSkull.buffIndex), CharacterRespawnFlags.KeepDesperado),
                 new ConditionalBodySnapshot(HealthSnapshot.FromBody(body), CharacterRespawnFlags.KeepHealth),
-            };
+            ];
 
             body = master.Respawn(body.footPosition, body.GetRotation());
 

@@ -13,16 +13,15 @@ namespace RiskOfChaos.Patches
 {
     static class ForceActivateSkillSlot
     {
-        static BodySkillPair[] _ignoreSkillSlots = Array.Empty<BodySkillPair>();
+        static BodySkillPair[] _ignoreSkillSlots = [];
 
         [SystemInitializer(typeof(BodyCatalog))]
         static void InitIgnoreSkillSlots()
         {
-            _ignoreSkillSlots = new BodySkillPair[]
-            {
+            _ignoreSkillSlots = [
                 // Beetle secondary is some unfinished ability that locks them in place forever, ignore it
                 new BodySkillPair("BeetleBody", SkillSlot.Secondary)
-            };
+            ];
         }
 
         static bool shouldIgnoreSkillSlot(BodyIndex bodyIndex, SkillSlot slot)

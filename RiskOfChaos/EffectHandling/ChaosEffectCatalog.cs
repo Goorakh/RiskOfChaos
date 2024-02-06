@@ -34,8 +34,8 @@ namespace RiskOfChaos.EffectHandling
 
         public static ReadOnlyArray<TimedEffectInfo> AllTimedEffects { get; private set; }
 
-        static readonly Dictionary<string, ChaosEffectIndex> _effectIndexByNameToken = new Dictionary<string, ChaosEffectIndex>();
-        static readonly Dictionary<Type, ChaosEffectIndex> _effectIndexByType = new Dictionary<Type, ChaosEffectIndex>();
+        static readonly Dictionary<string, ChaosEffectIndex> _effectIndexByNameToken = [];
+        static readonly Dictionary<Type, ChaosEffectIndex> _effectIndexByType = [];
 
         static int _effectCount;
         public static int EffectCount => _effectCount;
