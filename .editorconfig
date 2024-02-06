@@ -8,3 +8,6 @@ dotnet_diagnostic.CS0067.severity = suggestion
 
 # IDE0046: Convert to conditional expression
 dotnet_style_prefer_conditional_expression_over_return = false
+
+# IDE0051: Remove unused private members
+dotnet_diagnostic.IDE0051.severity = silent
