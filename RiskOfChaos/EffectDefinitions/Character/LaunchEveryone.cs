@@ -46,17 +46,17 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 Inventory inventory = b.inventory;
                 if (characterMotor && inventory)
                 {
-                    inventory.GiveItem(RoR2Content.Items.Feather);
-
                     // Ensure feather doesn't get turned into a void item if a mod adds that
                     IgnoreItemTransformations.IgnoreTransformationsFor(inventory);
+
+                    inventory.GiveItem(RoR2Content.Items.Feather);
 
                     void onHitGroundServer(ref CharacterMotor.HitGroundInfo hitGroundInfo)
                     {
                         if (inventory)
                         {
-                            IgnoreItemTransformations.ResumeTransformationsFor(inventory);
                             inventory.RemoveItem(RoR2Content.Items.Feather);
+                            IgnoreItemTransformations.ResumeTransformationsFor(inventory);
                         }
 
                         if (characterMotor)
