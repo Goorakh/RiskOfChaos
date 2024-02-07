@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Added 1 new effect:
+  * Activate All Interactables: Interacts with most interactable object on the stage (chests, shrines)
+
 * Revive Dead Characters:
   * Fixed effect teleporting characters to the last position they died if they were respawned by any other means (dios, etc.)
 

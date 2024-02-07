@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 130 different effects.
+Currently features 131 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -139,6 +139,7 @@ Currently features 130 different effects.
 * Extreme Recoil: Firing weapons pushes characters backwards, lasts 90 seconds
 * Increase Effect Duration: Increases the duration of all other effects (2x by default), lasts 2 stages
 * Decrease Effect Duration: Decreases the duration of all other effects (0.5x by default), lasts 2 stages
+* Activate All Interactables: Interacts with most interactable object on the stage (chests, shrines)
 </details>
 
 ### Twitch Integration:
