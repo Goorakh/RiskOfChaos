@@ -4,6 +4,7 @@ using RiskOfChaos.EffectDefinitions.World;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
@@ -37,6 +38,35 @@ namespace RiskOfChaos.EffectDefinitions.Character
             PlayerUtils.GetAllPlayerBodies(true).TryDo(b =>
             {
                 launchInRandomDirection(b, RNG.Branch());
+
+                // Give players a chance to avoid fall damage
+                // Most relevant on characters without movement abilities (engi, captain)
+
+                CharacterMotor characterMotor = b.characterMotor;
+                Inventory inventory = b.inventory;
+                if (characterMotor && inventory)
+                {
+                    inventory.GiveItem(RoR2Content.Items.Feather);
+
+                    // Ensure feather doesn't get turned into a void item if a mod adds that
+                    IgnoreItemTransformations.IgnoreTransformationsFor(inventory);
+
+                    void onHitGroundServer(ref CharacterMotor.HitGroundInfo hitGroundInfo)
+                    {
+                        if (inventory)
+                        {
+                            IgnoreItemTransformations.ResumeTransformationsFor(inventory);
+                            inventory.RemoveItem(RoR2Content.Items.Feather);
+                        }
+
+                        if (characterMotor)
+                        {
+                            characterMotor.onHitGroundServer -= onHitGroundServer;
+                        }
+                    }
+
+                    characterMotor.onHitGroundServer += onHitGroundServer;
+                }
             }, FormatUtils.GetBestBodyName);
 
             CharacterBody.readOnlyInstancesList.Where(b => !b.isPlayerControlled).TryDo(b =>
@@ -60,8 +90,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
             if (body.characterMotor && body.characterMotor.isGrounded)
                 return false;
 
-                return true;
-            }
+            return true;
+        }
 
         static Vector3 getLaunchDirection(CharacterBody body, Xoroshiro128Plus rng)
         {

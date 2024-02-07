@@ -5,6 +5,9 @@
 * Revive Dead Characters:
   * Fixed effect teleporting characters to the last position they died if they were respawned by any other means (dios, etc.)
 
+* Launch Everyone in Random Directions:
+  * Now gives all players a temporary feather to give you a chance at avoiding fall damage
+
 <details>
   <summary>1.13.10 Changes:</summary>
 
