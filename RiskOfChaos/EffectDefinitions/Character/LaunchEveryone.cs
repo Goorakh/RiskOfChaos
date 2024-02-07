@@ -47,7 +47,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         static bool canLaunchDown(CharacterBody body)
         {
-            if (body.teamComponent && body.teamComponent.teamIndex == TeamIndex.Player)
+            if (body.teamComponent.teamIndex == TeamIndex.Player)
             {
                 if ((Run.instance && Run.instance.selectedDifficulty >= DifficultyIndex.Eclipse3) ||
                     (RunArtifactManager.instance && RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.weakAssKneesArtifactDef)) ||
@@ -57,15 +57,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 }
             }
 
-            if (!body.characterMotor || !body.characterMotor.isGrounded || body.characterMotor.isFlying)
-            {
+            if (body.characterMotor && body.characterMotor.isGrounded)
+                return false;
+
                 return true;
             }
-            else
-            {
-                return false;
-            }
-        }
 
         static Vector3 getLaunchDirection(CharacterBody body, Xoroshiro128Plus rng)
         {
