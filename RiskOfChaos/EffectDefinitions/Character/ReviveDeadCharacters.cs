@@ -8,6 +8,7 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -48,30 +49,65 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     return;
 
                 CharacterMaster victimMaster = damageReport.victimMaster;
-                if (!victimMaster || victimMaster.IsExtraLifePendingServer())
+                if (!victimMaster)
                     return;
 
-                if (victimMaster.playerCharacterMasterController)
+                CharacterBody victimBody = damageReport.victimBody;
+                bool hadBody = victimBody;
+
+                IEnumerator waitForDeathThenTryTrack()
                 {
-                    _trackedDeadPlayers.Add(new DeadCharacterInfo(damageReport));
+                    yield return new WaitForFixedUpdate();
+
+                    if (!victimMaster || victimMaster.IsExtraLifePendingServer())
+                    {
+#if DEBUG
+                        Log.Debug($"Not tracking death: {Util.GetBestMasterName(victimMaster)} is invalid or has extra life pending");
+#endif
+                        yield break;
+                    }
+
+                    if (hadBody)
+                    {
+                        // victim body has been replaced, instant respawn
+                        CharacterBody currentBody = victimMaster.GetBody();
+                        if (currentBody && victimBody != currentBody)
+                        {
+#if DEBUG
+                            Log.Debug($"Not tracking death: {Util.GetBestMasterName(victimMaster)} has new body, likely respawned");
+#endif
+                            yield break;
+                        }
+                    }
+
+                    if (victimMaster.playerCharacterMasterController)
+                    {
+                        _trackedDeadPlayers.Add(new DeadCharacterInfo(damageReport));
+                    }
+                    else
+                    {
+                        _trackedDeadCharacters.Enqueue(new DeadCharacterInfo(damageReport));
+                    }
                 }
-                else
-                {
-                    _trackedDeadCharacters.Enqueue(new DeadCharacterInfo(damageReport));
-                }
+
+                RoR2Application.instance.StartCoroutine(waitForDeathThenTryTrack());
             };
 
             Run.onRunDestroyGlobal += _ =>
             {
-                _trackedDeadCharacters.Clear();
-                _trackedDeadPlayers.Clear();
+                clearTrackedDeaths();
             };
 
             Stage.onServerStageComplete += _ =>
             {
-                _trackedDeadCharacters.Clear();
-                _trackedDeadPlayers.Clear();
+                clearTrackedDeaths();
             };
+        }
+
+        static void clearTrackedDeaths()
+        {
+            _trackedDeadCharacters.Clear();
+            _trackedDeadPlayers.Clear();
         }
 
         [EffectCanActivate]
@@ -186,12 +222,25 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             public readonly void Respawn()
             {
+                bool respawned;
+
                 CharacterMaster master = _master;
                 if (master)
                 {
-                    PreventMetamorphosisRespawn.PreventionEnabled = RunArtifactManager.instance && RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.randomSurvivorOnRespawnArtifactDef);
-                    master.Respawn(_bodyPosition, _bodyRotation);
-                    PreventMetamorphosisRespawn.PreventionEnabled = false;
+                    // Body already exists, we've likely missed a respawn, ignore
+                    CharacterBody body = master.GetBody();
+                    if ((body && body.healthComponent && body.healthComponent.alive) || master.IsExtraLifePendingServer())
+                    {
+                        respawned = false;
+                    }
+                    else
+                    {
+                        PreventMetamorphosisRespawn.PreventionEnabled = RunArtifactManager.instance && RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.randomSurvivorOnRespawnArtifactDef);
+                        master.Respawn(_bodyPosition, _bodyRotation);
+                        PreventMetamorphosisRespawn.PreventionEnabled = false;
+
+                        respawned = true;
+                    }
                 }
                 else
                 {
@@ -213,12 +262,17 @@ namespace RiskOfChaos.EffectDefinitions.Character
                         inventorySetupCallback = this,
                         preSpawnSetupCallback = preSpawnSetupCallback
                     }.Perform();
+
+                    respawned = true;
                 }
 
                 if (_loadout != null)
                 {
                     Loadout.ReturnInstance(_loadout);
                 }
+
+                if (!respawned)
+                    return;
 
                 GameObject reviveEffect = LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/HippoRezEffect");
                 if (reviveEffect)

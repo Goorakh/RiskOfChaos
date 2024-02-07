@@ -1,12 +1,20 @@
 ## Changelog
 
-**1.13.10 Changes:**
+**?.?.? Changes:**
+
+* Revive Dead Characters:
+  * Fixed effect teleporting characters to the last position they died if they were respawned by any other means (dios, etc.)
+
+<details>
+  <summary>1.13.10 Changes:</summary>
 
 * Translation:
   * Added Brazilian Portuguese translation (by Kauzok)
 
 * Misc:
   * Minor stability fixes
+
+</details>
 
 <details>
   <summary>1.13.9 Changes:</summary>
