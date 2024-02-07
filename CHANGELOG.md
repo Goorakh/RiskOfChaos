@@ -5,6 +5,11 @@
 * Added 1 new effect:
   * Activate All Interactables: Interacts with most interactable object on the stage (chests, shrines)
 
+* Steal Player Items:
+  * Reworked steal logic:
+    * Enemies are no longer limited by a set number of items per enemy, this just made the effect way more punishing lategame since there would usually be enough enemies to take every item
+    * Each player now gets a certain percentage of their items stolen (default 70%) and distributed among enemies on the map
+
 * Revive Dead Characters:
   * Fixed effect teleporting characters to the last position they died if they were respawned by any other means (dios, etc.)
 

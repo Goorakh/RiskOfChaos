@@ -21,23 +21,19 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
     [EffectConfigBackwardsCompatibility("Effect: Steal All Player Items")]
     public sealed class MonsterItemSteal : BaseEffect, ICoroutineEffect
     {
-        const int MAX_ITEM_STEAL_COUNT_DEFAULT_VALUE = 2;
-
         [EffectConfig]
-        static readonly ConfigHolder<string> _maxItemStealCountConfig =
-            ConfigFactory<string>.CreateConfig("Max Item Steal Count", MAX_ITEM_STEAL_COUNT_DEFAULT_VALUE.ToString())
-                                 .Description("The maximum amount of item stacks each enemy can steal from each player")
-                                 .OptionConfig(new InputFieldConfig
-                                 {
-                                     lineType = TMPro.TMP_InputField.LineType.SingleLine,
-                                     submitOn = InputFieldConfig.SubmitEnum.OnExitOrSubmit
-                                 })
-                                 .Build();
-
-        static readonly ParsedInt32 _maxItemStealCount = new ParsedInt32
-        {
-            ConfigHolder = _maxItemStealCountConfig
-        };
+        static readonly ConfigHolder<float> _maxInventoryStealFraction =
+            ConfigFactory<float>.CreateConfig("Max Inventory Steal Fraction", 0.7f)
+                                .Description("The maximum percentage of items that can be stolen from each player")
+                                .OptionConfig(new StepSliderConfig
+                                {
+                                    formatString = "{0:P0}",
+                                    min = 0f,
+                                    max = 1f,
+                                    increment = 0.05f
+                                })
+                                .ValueConstrictor(CommonValueConstrictors.Clamped01Float)
+                                .Build();
 
         [EffectConfig]
         static readonly ConfigHolder<bool> _ignoreAILendFilter =
@@ -65,12 +61,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         [EffectCanActivate]
         static bool CanActivate(in EffectCanActivateContext context)
         {
-            if (!NetPrefabs.MonsterItemStealControllerPrefab)
+            if (!NetPrefabs.MonsterItemStealControllerPrefab || _maxInventoryStealFraction.Value <= 0f)
                 return false;
 
             return !context.IsNow || PlayerUtils.GetAllPlayerMasters(true).Any(playerMaster =>
             {
-                return getStealableItemStacks(playerMaster.inventory).Any() &&
+                return getStealableItemStacks(playerMaster.inventory).Count() * _maxInventoryStealFraction.Value >= 1 &&
                        CharacterMaster.readOnlyInstancesList.Any(m => canSteal(m, playerMaster));
             });
         }
@@ -110,27 +106,22 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
         void initializeMasterForStealing(CharacterMaster master)
         {
-            if (!master)
+            if (!master || master.playerCharacterMasterController)
                 return;
 
             CharacterBody body = master.GetBody();
             if (!body || !body.healthComponent || !body.healthComponent.alive)
                 return;
 
-            CharacterItemStealInitializer stealInitializer = new CharacterItemStealInitializer(master);
-
             PlayerUtils.GetAllPlayerMasters(true).TryDo(playerMaster =>
             {
-                if (!getStealableItemStacks(playerMaster.inventory).Any() || !canSteal(stealInitializer.Master, playerMaster))
+                if (!getStealableItemStacks(playerMaster.inventory).Any() || !canSteal(master, playerMaster))
                     return;
 
+                CharacterItemStealInitializer stealInitializer = new CharacterItemStealInitializer(master);
                 stealInitializer.StartStealingFrom(playerMaster.inventory);
-            }, Util.GetBestMasterName);
-
-            if (stealInitializer.ItemStealController)
-            {
                 _activeStealControllers.Add(new SteppedStealController(stealInitializer));
-            }
+            }, Util.GetBestMasterName);
         }
 
         public IEnumerator OnStartCoroutine()
@@ -139,6 +130,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             int stealIterations = 0;
             float currentStealInterval = 0.3f;
+
+            Dictionary<Inventory, int> stolenItemStacksByInventory = [];
 
             while (_activeStealControllers.Count > 0)
             {
@@ -153,17 +146,28 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                         continue;
                     }
 
-                    stealController.ItemStealController.StepSteal();
-                    stealController.NumSteps++;
+                    if (!stolenItemStacksByInventory.TryGetValue(stealController.VictimInventory, out int stolenStacks))
+                    {
+                        stolenStacks = 0;
+                    }
 
-                    if (stealController.NumSteps >= _maxItemStealCount.GetValue(MAX_ITEM_STEAL_COUNT_DEFAULT_VALUE) || !stealController.ItemStealController.inItemSteal)
+                    float stealStackFraction = (stolenStacks + 1) / (float)stealController.StartingVictimItemStacks;
+
+                    if (stealStackFraction > _maxInventoryStealFraction.Value || !stealController.ItemStealController.inItemSteal)
                     {
                         _activeStealControllers.RemoveAt(i);
 
                         stealController.OnLastItemStolen();
                     }
+                    else
+                    {
+                        stealController.ItemStealController.StepSteal();
+                        stealController.NumSteps++;
 
-                    yield return new WaitForSeconds(currentStealInterval);
+                        stolenItemStacksByInventory[stealController.VictimInventory] = stolenStacks + 1;
+
+                        yield return new WaitForSeconds(currentStealInterval);
+                    }
 
                     stealIterations++;
                     if (stealIterations % 3 == 0)
@@ -186,17 +190,41 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             CharacterMaster.onStartGlobal -= initializeMasterForStealing;
         }
 
-        record SteppedStealController(ItemStealController ItemStealController, CharacterMaster Master, int NumSteps)
+        class SteppedStealController
         {
-            public int NumSteps = NumSteps;
+            public readonly ItemStealController ItemStealController;
+            public readonly CharacterMaster Master;
 
-            public SteppedStealController(CharacterItemStealInitializer initializer) : this(initializer.ItemStealController, initializer.Master, 0)
+            public int NumSteps;
+
+            public Inventory VictimInventory;
+            public int StartingVictimItemStacks;
+
+            public SteppedStealController(CharacterItemStealInitializer initializer)
             {
+                ItemStealController = initializer.ItemStealController;
+                Master = initializer.Master;
+                NumSteps = 0;
+
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                VictimInventory = ItemStealController.stolenInventoryInfos.FirstOrDefault()?.victimInventory;
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+
+                if (VictimInventory)
+                {
+                    foreach (ItemIndex item in VictimInventory.itemAcquisitionOrder)
+                    {
+                        if (ItemStealController.itemStealFilter(item))
+                        {
+                            StartingVictimItemStacks++;
+                        }
+                    }
+                }
             }
 
             public bool IsValid()
             {
-                if (!ItemStealController || !Master)
+                if (!ItemStealController || !Master || !VictimInventory)
                     return false;
 
                 CharacterBody body = Master.GetBody();
