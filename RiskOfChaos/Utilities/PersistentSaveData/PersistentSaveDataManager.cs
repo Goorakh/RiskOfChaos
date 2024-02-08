@@ -85,7 +85,7 @@ namespace RiskOfChaos.Utilities.PersistentSaveData
 
         public static string GetOrGenerateSaveFilePath(PersistentSaveType saveType)
         {
-            if (saveType is < 0 or > (PersistentSaveType)SAVE_TYPE_COUNT)
+            if (saveType is < 0 or >= (PersistentSaveType)SAVE_TYPE_COUNT)
             {
                 Log.Error($"Invalid save type {saveType}, using temporary file");
                 return Path.GetTempFileName();
