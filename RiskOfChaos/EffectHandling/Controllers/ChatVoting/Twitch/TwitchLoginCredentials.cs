@@ -14,6 +14,8 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
         const string LOGIN_FILE_NAME = "f100264c-5e84-4a19-a3e2-02a2e3d80469";
         static readonly string _saveFilePath = Path.Combine(Main.PersistentSaveDataDirectory, LOGIN_FILE_NAME);
 
+        static readonly Encoding _saveFileEncoding = Encoding.ASCII;
+
         public readonly string Username;
         public readonly string OAuth;
 
@@ -54,11 +56,11 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 
                 try
                 {
-                    string fileContents = File.ReadAllText(_saveFilePath);
+                    string fileContents = File.ReadAllText(_saveFilePath, _saveFileEncoding);
                     byte[] rawBytes = Convert.FromBase64String(fileContents);
 
                     using MemoryStream fileBytesStream = new MemoryStream(rawBytes);
-                    using BinaryReader reader = new BinaryReader(fileBytesStream);
+                    using BinaryReader reader = new BinaryReader(fileBytesStream, _saveFileEncoding);
 
                     string username = reader.ReadString();
                     string oauth = reader.ReadString();
@@ -89,7 +91,14 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             {
                 if (File.Exists(_saveFilePath))
                 {
-                    File.Delete(_saveFilePath);
+                    try
+                    {
+                        File.Delete(_saveFilePath);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error_NoCallerPrefix($"Unable to remove invalid login file data: {ex}");
+                    }
                 }
 
                 return;
@@ -97,15 +106,15 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 
             try
             {
-                using MemoryStream stream = new MemoryStream(Username.Length + OAuth.Length);
-                using BinaryWriter writer = new BinaryWriter(stream);
+                using MemoryStream stream = new MemoryStream(_saveFileEncoding.GetMaxByteCount(Username.Length + OAuth.Length));
+                using BinaryWriter writer = new BinaryWriter(stream, _saveFileEncoding);
 
                 writer.Write(Username);
                 writer.Write(OAuth);
 
                 string fileContents = Convert.ToBase64String(stream.ToArray());
 
-                File.WriteAllText(_saveFilePath, fileContents, Encoding.ASCII);
+                File.WriteAllText(_saveFilePath, fileContents, _saveFileEncoding);
 
 #if DEBUG
                 Log.Debug($"Saved login info to {_saveFilePath}");
@@ -118,7 +127,14 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
                 // Prevent bad/old data from being stored in file
                 if (File.Exists(_saveFilePath))
                 {
-                    File.Delete(_saveFilePath);
+                    try
+                    {
+                        File.Delete(_saveFilePath);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error_NoCallerPrefix($"Unable to remove bad login file data: {ex}");
+                    }
                 }
             }
         }
