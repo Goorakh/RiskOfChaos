@@ -3,6 +3,7 @@ using RiskOfChaos.ModifierController.TimeScale;
 using RiskOfChaos.Utilities.Interpolation;
 using RoR2;
 using System;
+using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 {
@@ -28,6 +29,8 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
             TimeScaleModificationManager.Instance.RegisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
 
             On.RoR2.CharacterBody.RecalculateStats += CharacterBody_RecalculateStats;
+            On.RoR2.Util.PlayAttackSpeedSound += Util_PlayAttackSpeedSound;
+
             markAllPlayerStatsDirty();
             OnValueDirty += markAllPlayerStatsDirty;
         }
@@ -40,6 +43,8 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
             }
 
             On.RoR2.CharacterBody.RecalculateStats -= CharacterBody_RecalculateStats;
+            On.RoR2.Util.PlayAttackSpeedSound -= Util_PlayAttackSpeedSound;
+
             markAllPlayerStatsDirty();
             OnValueDirty -= markAllPlayerStatsDirty;
         }
@@ -65,6 +70,16 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
                 self.attackSpeed /= multiplier;
                 self.acceleration /= multiplier;
             }
+        }
+
+        uint Util_PlayAttackSpeedSound(On.RoR2.Util.orig_PlayAttackSpeedSound orig, string soundString, GameObject gameObject, float attackSpeedStat)
+        {
+            if (gameObject && gameObject.TryGetComponent(out CharacterBody characterBody) && characterBody.isPlayerControlled)
+            {
+                attackSpeedStat *= multiplier;
+            }
+
+            return orig(soundString, gameObject, attackSpeedStat);
         }
     }
 }
