@@ -145,5 +145,6 @@
 		"EFFECT_INCREASE_EFFECT_DURATION_NAME": "{0}x Effect Duration",
 		"EFFECT_DECREASE_EFFECT_DURATION_NAME": "{0}x Effect Duration",
 		"EFFECT_INTERACT_ALL_INTERACTABLES_NAME": "Activate All Interactables",
+		"EFFECT_EXPLODE_AT_LOW_HEALTH_NAME": "Explosive Deaths",
 	}
 }
