@@ -3,7 +3,7 @@
 **?.?.? Changes:**
 
 * Added 2 new effects:
-  * Activate All Interactables: Interacts with most interactable object on the stage (chests, shrines)
+  * Activate All Interactables: Interacts with most interactable objects on the stage (chests, shrines)
   * Explosive Deaths: All non-players explode at low health or death, lasts 90 seconds
 
 * Steal Player Items:
