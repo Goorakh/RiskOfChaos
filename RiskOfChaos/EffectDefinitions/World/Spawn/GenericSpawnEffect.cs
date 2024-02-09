@@ -77,23 +77,28 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             return interactableSelection;
         }
 
-        protected static TSpawnType getItemToSpawn<TSpawnEntry>(TSpawnEntry[] spawnEntries, Xoroshiro128Plus rng) where TSpawnEntry : SpawnEntry
+        protected static TSpawnType getItemToSpawn<TSpawnEntry>(TSpawnEntry[] spawnEntries, Xoroshiro128Plus rng, out TSpawnEntry selectedEntry) where TSpawnEntry : SpawnEntry
         {
             WeightedSelection<TSpawnEntry> weightedSelection = getWeightedEntrySelection(spawnEntries);
 
-            TSpawnEntry entry = weightedSelection.Evaluate(rng.nextNormalizedFloat);
+            selectedEntry = weightedSelection.Evaluate(rng.nextNormalizedFloat);
 
 #if DEBUG
-            Log.Debug($"Selected entry {entry}");
+            Log.Debug($"Selected entry {selectedEntry}");
 #endif
 
-            TSpawnType item = entry.GetItem(rng);
+            TSpawnType item = selectedEntry.GetItem(rng);
 
 #if DEBUG
             Log.Debug($"Selected item {item}");
 #endif
 
             return item;
+        }
+
+        protected static TSpawnType getItemToSpawn<TSpawnEntry>(TSpawnEntry[] spawnEntries, Xoroshiro128Plus rng) where TSpawnEntry : SpawnEntry
+        {
+            return getItemToSpawn(spawnEntries, rng, out _);
         }
     }
 }

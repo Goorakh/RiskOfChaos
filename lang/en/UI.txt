@@ -13,5 +13,9 @@
 		"ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_HEADER": "Reconnect Failed",
 		
 		"ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_DESCRIPTION_TWITCH": "No valid Twitch login found. Please use the roc_twitch_login console command to connect to Twitch. See the README or Thunderstore page for instructions.",
+
+		"LOGBOOK_INVINCIBLE_LEMURIAN_ENCOUNTERS_FORMAT": "Encountered: <style=cEvent>{0}</style>",
+		"LOGBOOK_INVINCIBLE_LEMURIAN_DEATHS_FORMAT": "Killed By: <style=cEvent>{0}</style>",
+		"LOGBOOK_INVINCIBLE_LEMURIAN_KILLS_FORMAT": "Vanquished: <style=cEvent>{0}</style>",
 	}
 }
