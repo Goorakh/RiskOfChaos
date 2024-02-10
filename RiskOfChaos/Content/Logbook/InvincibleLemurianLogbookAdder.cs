@@ -65,6 +65,15 @@ namespace RiskOfChaos.Content.Logbook
             statSheet.SetStatValueFromString(ElderLemurianStats.KilledByStat, ZERO_STRING);
             statSheet.SetStatValueFromString(ElderLemurianStats.KilledStat, ZERO_STRING);
 
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+            List<string> viewedViewables = userProfile.viewedViewables;
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+
+            viewedViewables.Remove("/Logbook/LOGBOOK_CATEGORY_MONSTER/INVINCIBLE_LEMURIAN_BODY_NAME");
+            viewedViewables.Remove("/Logbook/LOGBOOK_CATEGORY_MONSTER/INVINCIBLE_LEMURIAN_ELDER_BODY_NAME");
+
+            userProfile.RequestEventualSave();
+
             Debug.Log($"Reset Leonard stats for profile: {userProfile.name}");
         }
 
