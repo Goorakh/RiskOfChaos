@@ -233,7 +233,7 @@ namespace RiskOfChaos.Content.Logbook
 
                     static EntryStatus getEntryStatus(in Entry entry, UserProfile viewerProfile)
                     {
-                        return getLeonardEntryStatus(viewerProfile, GetStatCollection(false));
+                        return getLeonardEntryStatus(viewerProfile, LemurianStats);
                     }
 
                     static void pageBuilder(PageBuilder builder)
@@ -241,7 +241,7 @@ namespace RiskOfChaos.Content.Logbook
                         CharacterBody body = (CharacterBody)builder.entry.extraData;
 
                         addLeonardBodyStats(builder, body);
-                        addLeonardUserStats(builder, body, GetStatCollection(false));
+                        addLeonardUserStats(builder, body, LemurianStats);
                         addLeonardLore(builder, "INVINCIBLE_LEMURIAN_BODY_LORE");
                     }
 
@@ -269,7 +269,7 @@ namespace RiskOfChaos.Content.Logbook
 
                     static EntryStatus getEntryStatus(in Entry entry, UserProfile viewerProfile)
                     {
-                        return getLeonardEntryStatus(viewerProfile, GetStatCollection(true));
+                        return getLeonardEntryStatus(viewerProfile, ElderLemurianStats);
                     }
 
                     static void pageBuilder(PageBuilder builder)
@@ -277,7 +277,7 @@ namespace RiskOfChaos.Content.Logbook
                         CharacterBody body = (CharacterBody)builder.entry.extraData;
 
                         addLeonardBodyStats(builder, body);
-                        addLeonardUserStats(builder, body, GetStatCollection(true));
+                        addLeonardUserStats(builder, body, ElderLemurianStats);
                         addLeonardLore(builder, "INVINCIBLE_LEMURIAN_ELDER_BODY_LORE");
                     }
 
