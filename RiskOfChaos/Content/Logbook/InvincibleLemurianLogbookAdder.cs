@@ -182,11 +182,11 @@ namespace RiskOfChaos.Content.Logbook
             {
                 StatSheet statSheet = viewerProfile.statSheet;
 
-                ulong timesEncountered = statSheet.GetStatValueULong(statCollection.EncounteredStat);
-                // ulong timesKilledBy = statSheet.GetStatValueULong(statCollection.KilledByStat);
-                // ulong timesKilled = statSheet.GetStatValueULong(statCollection.KilledStat);
+                // ulong timesEncountered = statSheet.GetStatValueULong(statCollection.EncounteredStat);
+                ulong timesKilledBy = statSheet.GetStatValueULong(statCollection.KilledByStat);
+                ulong timesKilled = statSheet.GetStatValueULong(statCollection.KilledStat);
 
-                if (timesEncountered > 0)
+                if (timesKilledBy > 0 || timesKilled > 0)
                 {
                     return EntryStatus.Available;
                 }
