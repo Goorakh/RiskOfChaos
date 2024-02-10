@@ -80,8 +80,12 @@ namespace RiskOfChaos.EffectDefinitions.Character
             if (body.isPlayerControlled)
                 return;
 
-            NetworkedBodyAttachment exploderAttachment = GameObject.Instantiate(_explodeAtLowHealthBodyAttachmentPrefab).GetComponent<NetworkedBodyAttachment>();
+            GameObject attachment = GameObject.Instantiate(_explodeAtLowHealthBodyAttachmentPrefab);
+
+            NetworkedBodyAttachment exploderAttachment = attachment.GetComponent<NetworkedBodyAttachment>();
             exploderAttachment.AttachToGameObjectAndSpawn(body.gameObject);
+
+            _exploderBodyAttachments.Add(attachment);
         }
 
         public override void OnEnd()
