@@ -220,9 +220,27 @@ namespace RiskOfChaos.Content.Logbook
                 builder.AddNotesPanel(Language.GetString(loreToken));
             }
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-            Entry.GetTooltipContentDelegate getMonsterTooltipContent = LogBookController.GetMonsterTooltipContent;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+            TooltipContent getLeonardTooltipContent(in Entry entry, UserProfile userProfile, EntryStatus status)
+            {
+                if (status >= EntryStatus.Available)
+                {
+                    return new TooltipContent
+                    {
+                        overrideTitleText = entry.GetDisplayName(userProfile),
+                        titleColor = entry.color,
+                        bodyToken = string.Empty
+                    };
+                }
+                else
+                {
+                    return new TooltipContent
+                    {
+                        titleToken = "UNIDENTIFIED",
+                        titleColor = Color.gray,
+                        bodyToken = "LOGBOOK_UNLOCK_ITEM_INVINCIBLE_LEMURIAN"
+                    };
+                }
+            }
 
             if (_lemurianBodyPrefab)
             {
@@ -254,7 +272,7 @@ namespace RiskOfChaos.Content.Logbook
                         modelPrefab = _lemurianGlowModelPrefab ? _lemurianGlowModelPrefab : lemurianEntry.modelPrefab,
                         getStatusImplementation = getEntryStatus,
                         pageBuilderMethod = pageBuilder,
-                        getTooltipContentImplementation = getMonsterTooltipContent,
+                        getTooltipContentImplementation = getLeonardTooltipContent,
                         bgTexture = Addressables.LoadAssetAsync<Texture2D>("RoR2/Base/Common/texBossBGIcon.png").WaitForCompletion()
                     });
                 }
@@ -290,7 +308,7 @@ namespace RiskOfChaos.Content.Logbook
                         modelPrefab = _lemurianBruiserGlowModelPrefab ? _lemurianBruiserGlowModelPrefab : elderLemurianEntry.modelPrefab,
                         getStatusImplementation = getEntryStatus,
                         pageBuilderMethod = pageBuilder,
-                        getTooltipContentImplementation = getMonsterTooltipContent,
+                        getTooltipContentImplementation = getLeonardTooltipContent,
                         bgTexture = Addressables.LoadAssetAsync<Texture2D>("RoR2/Base/Common/texBossBGIcon.png").WaitForCompletion()
                     });
                 }

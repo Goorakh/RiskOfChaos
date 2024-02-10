@@ -17,5 +17,7 @@
 		"LOGBOOK_INVINCIBLE_LEMURIAN_ENCOUNTERS_FORMAT": "Encountered: <style=cEvent>{0}</style>",
 		"LOGBOOK_INVINCIBLE_LEMURIAN_DEATHS_FORMAT": "Killed By: <style=cEvent>{0}</style>",
 		"LOGBOOK_INVINCIBLE_LEMURIAN_KILLS_FORMAT": "Vanquished: <style=cEvent>{0}</style>",
+
+		"LOGBOOK_UNLOCK_ITEM_INVINCIBLE_LEMURIAN": "Vanquish or surrender yourself to <color=#E9848D><size=120%>him</size></color> to unlock this log entry.",
 	}
 }
