@@ -12,7 +12,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
     {
         public static readonly TwitchLoginCredentials Empty = new TwitchLoginCredentials(string.Empty, string.Empty);
 
-        static readonly string _saveFilePath = PersistentSaveDataManager.GetOrGenerateSaveFilePath(PersistentSaveType.TwitchLogin);
+        static readonly string _saveFilePath = PersistentSaveDataManager.GetSaveFilePath("f100264c-5e84-4a19-a3e2-02a2e3d80469");
 
         static readonly Encoding _saveFileEncoding = Encoding.ASCII;
 
@@ -48,38 +48,15 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 
         public static TwitchLoginCredentials TryReadFromFile()
         {
-            static bool tryGetSavePath(out string path, out bool isLegacy)
-            {
-                if (File.Exists(_saveFilePath))
-                {
-                    path = _saveFilePath;
-                    isLegacy = false;
-                    return true;
-                }
-
-                const string LEGACY_LOGIN_FILE_NAME = "f100264c-5e84-4a19-a3e2-02a2e3d80469";
-                string legacyPath = Path.Combine(PersistentSaveDataManager.DirectoryPath, LEGACY_LOGIN_FILE_NAME);
-                if (File.Exists(legacyPath))
-                {
-                    path = legacyPath;
-                    isLegacy = true;
-                    return true;
-                }
-
-                path = null;
-                isLegacy = false;
-                return false;
-            }
-
-            if (tryGetSavePath(out string savePath, out bool isLegacy))
+            if (File.Exists(_saveFilePath))
             {
 #if DEBUG
-                Log.Debug($"Reading login file {savePath}");
+                Log.Debug($"Reading login file {_saveFilePath}");
 #endif
 
                 try
                 {
-                    string fileContents = File.ReadAllText(savePath, _saveFileEncoding);
+                    string fileContents = File.ReadAllText(_saveFilePath, _saveFileEncoding);
                     byte[] rawBytes = Convert.FromBase64String(fileContents);
 
                     using MemoryStream fileBytesStream = new MemoryStream(rawBytes);
@@ -90,30 +67,11 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 
                     TwitchLoginCredentials result = new TwitchLoginCredentials(username, oauth);
 
-                    if (isLegacy)
-                    {
-                        result.WriteToFile();
-                    }
-
                     return result;
                 }
                 catch (Exception e)
                 {
-                    Log.Error_NoCallerPrefix($"Unable to read file {savePath}: {e}");
-                }
-                finally
-                {
-                    if (isLegacy)
-                    {
-                        try
-                        {
-                            File.Delete(savePath);
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error_NoCallerPrefix($"Unable to delete legacy file {savePath}: {ex}");
-                        }
-                    }
+                    Log.Error_NoCallerPrefix($"Unable to read file {_saveFilePath}: {e}");
                 }
             }
 
