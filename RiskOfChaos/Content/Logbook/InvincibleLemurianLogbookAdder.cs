@@ -8,7 +8,6 @@ using RoR2.UI;
 using RoR2.UI.LogBook;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
