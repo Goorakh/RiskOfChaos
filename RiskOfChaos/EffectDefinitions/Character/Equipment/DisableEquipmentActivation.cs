@@ -1,8 +1,13 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using HarmonyLib;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
+using RiskOfChaos.EffectHandling.Controllers;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Patches;
 using RoR2;
 using RoR2.Skills;
 using RoR2.UI;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -26,6 +31,29 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
                     _lockedIconTexture = exhaustedIcon.texture;
                 }
             }
+
+            IL.RoR2.Items.MultiShopCardUtils.OnPurchase += il =>
+            {
+                ILCursor c = new ILCursor(il);
+
+                ILLabel afterCardLogicLabel = null;
+                if (c.TryGotoNext(MoveType.After,
+                                  x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertyGetter(typeof(EquipmentSlot), nameof(EquipmentSlot.stock))),
+                                  x => x.MatchLdcI4(0),
+                                  x => x.MatchBle(out afterCardLogicLabel)))
+                {
+                    c.EmitDelegate(() =>
+                    {
+                        return TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<DisableEquipmentActivation>().Any();
+                    });
+
+                    c.Emit(OpCodes.Brtrue, afterCardLogicLabel);
+                }
+                else
+                {
+                    Log.Error("Failed to find card logic patch location");
+                }
+            };
         }
 
         bool _addedServerHooks;
