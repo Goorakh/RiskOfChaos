@@ -1,5 +1,4 @@
 ﻿using HG;
-using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RoR2;
 using RoR2.Projectile;
@@ -12,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosTimedEffect("void_implosion_on_death", TimedEffectType.UntilStageEnd, AllowDuplicates = false)]
+    [ChaosTimedEffect("void_implosion_on_death", 60f, AllowDuplicates = false)]
     [EffectConfigBackwardsCompatibility([
         "Effect: Void Implosion on Death"
     ])]

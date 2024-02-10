@@ -133,7 +133,7 @@ Currently features 132 different effects.
 * High FOV: Increases camera Field of View, lasts 90 seconds
 * Low FOV: Decreases camera Field of View, lasts 45 seconds
 * Flipped Camera: Flips the camera upside down, lasts 30 seconds
-* Void Implosion on Death: Spawns a void implosion on any character death, lasts 1 stage
+* Everyone Implodes on Death: Spawns a void implosion on any character death, lasts 60 seconds
 * Inverted Recoil: All recoil is inverted, lasts 90 seconds
 * Black Hole: Spawns a black hole somewhere on the map, sucking all characters in, lasts 45 seconds
 * Extreme Recoil: Firing weapons pushes characters backwards, lasts 90 seconds

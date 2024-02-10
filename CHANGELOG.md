@@ -20,6 +20,9 @@
 * Disable Equipment:
   * Fixed Executive Card still being usable while effect is active
 
+* Everyone Implodes on Death:
+  * Default duration: 1 stage -> 60 seconds
+
 * Increase & Decrease World Speed:
   * Fixed some player attack sounds playing with the wrong audio pitch
 
