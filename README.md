@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 132 different effects.
+Currently features 133 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -141,6 +141,7 @@ Currently features 132 different effects.
 * Decrease Effect Duration: Decreases the duration of all other effects (0.5x by default), lasts 2 stages
 * Activate All Interactables: Interacts with most interactable objects on the stage (chests, shrines)
 * Explosive Deaths: All non-players explode at low health or death, lasts 90 seconds
+* PLACEHOLDER_EFFECT_NAME: [TODO: WRITE EFFECT DESCRIPTION HERE]
 </details>
 
 ### Twitch Integration:
