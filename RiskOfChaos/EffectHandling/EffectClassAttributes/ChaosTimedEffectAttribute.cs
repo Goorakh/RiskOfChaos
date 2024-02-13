@@ -13,7 +13,7 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes
 
         public bool HideFromEffectsListWhenPermanent { get; set; } = false;
 
-        public int DefaultStageCountDuration { get; set; } = 1;
+        public ushort DefaultStageCountDuration { get; set; } = 1;
 
         public bool IgnoreDurationModifiers { get; set; } = false;
 
