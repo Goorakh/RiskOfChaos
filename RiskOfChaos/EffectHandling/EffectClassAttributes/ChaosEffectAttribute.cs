@@ -36,6 +36,12 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes
                 return false;
             }
 
+            if (DefaultSelectionWeight < 0f)
+            {
+                Log.Error($"Effect '{Identifier}' has invalid default weight: {DefaultSelectionWeight} (Must be >= 0)");
+                return false;
+            }
+
             return true;
         }
 
