@@ -19,7 +19,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 
         public void ModifyValue(ref CameraModificationData value)
         {
-            value.FOVMultiplier *= 2f;
+            value.FOVMultiplier *= 1.75f;
         }
 
         public override void OnStart()

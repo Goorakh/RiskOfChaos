@@ -11,6 +11,12 @@
 * Renamed 1 effect:
   * Extreme Recoil -> Knockback Recoil
 
+* High FOV:
+  * Slightly reduced FOV increase
+
+* Low FOV:
+  * Significantly reduced FOV decrease
+
 * Steal Player Items:
   * Reworked steal logic:
     * Enemies are no longer limited by a set number of items per enemy, this just made the effect way more punishing lategame since there would usually be enough enemies to take every item
