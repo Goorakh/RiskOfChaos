@@ -97,6 +97,10 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             getAllValidInteractables().ToList().TryDo(interactable =>
             {
+                // Duplicate check, but may be non-available since the list was generated
+                if (!canBeOpened(interactable))
+                    return;
+
                 Component interactableComponent = (Component)interactable;
 
                 PurchaseInteraction purchaseInteraction = interactableComponent.GetComponent<PurchaseInteraction>();
