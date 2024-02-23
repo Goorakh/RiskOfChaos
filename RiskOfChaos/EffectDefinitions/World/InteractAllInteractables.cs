@@ -1,7 +1,10 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +15,13 @@ namespace RiskOfChaos.EffectDefinitions.World
     [ChaosEffect("interact_all_interactables", DefaultSelectionWeight = 0.4f)]
     public sealed class InteractAllInteractables : BaseEffect
     {
+        [EffectConfig]
+        static readonly ConfigHolder<bool> _allowOrderShrineActivation =
+            ConfigFactory<bool>.CreateConfig("Allow Shrine of Order Activation", false)
+                               .Description("If Shrines of Order can be activated by the effect")
+                               .OptionConfig(new CheckBoxConfig())
+                               .Build();
+
         static bool canBeOpened(IInteractable interactable)
         {
             if (interactable is not Component interactableComponent)
@@ -40,7 +50,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         {
             static bool isPurchaseInteractionValid(PurchaseInteraction purchaseInteraction)
             {
-                return !purchaseInteraction.GetComponent<ShrineRestackBehavior>();
+                return _allowOrderShrineActivation.Value || !purchaseInteraction.GetComponent<ShrineRestackBehavior>();
             }
 
             return InstanceTracker.GetInstancesList<PurchaseInteraction>().Where(isPurchaseInteractionValid)
