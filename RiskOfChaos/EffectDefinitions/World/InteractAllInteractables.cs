@@ -72,6 +72,10 @@ namespace RiskOfChaos.EffectDefinitions.World
             {
                 _fallbackEquipment = PickupCatalog.GetPickupDef(RNG.NextElementUniform(availableEquipmentDropList)).equipmentIndex;
             }
+            else
+            {
+                _fallbackEquipment = EquipmentCatalog.FindEquipmentIndex("BossHunterConsumed");
+            }
         }
 
         public override void OnStart()
