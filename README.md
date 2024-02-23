@@ -141,7 +141,7 @@ Currently features 133 different effects.
 * Decrease Effect Duration: Decreases the duration of all other effects (0.5x by default), lasts 2 stages
 * Activate All Interactables: Interacts with most interactable objects on the stage (chests, shrines)
 * Explosive Deaths: All non-players explode at low health or death, lasts 90 seconds
-* PLACEHOLDER_EFFECT_NAME: [TODO: WRITE EFFECT DESCRIPTION HERE]
+* Prototype Models: Replaces all character models with their hitboxes
 </details>
 
 ### Twitch Integration:
