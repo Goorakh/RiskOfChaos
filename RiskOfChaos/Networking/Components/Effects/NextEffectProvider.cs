@@ -40,6 +40,9 @@ namespace RiskOfChaos.Networking.Components.Effects
         {
             nextEffectState = default;
 
+            if (ChaosEffectActivationSignaler.EffectDispatchingCompletelyDisabled)
+                return false;
+
             ChaosEffectDispatcher effectDispatcher = ChaosEffectDispatcher.Instance;
             if (!effectDispatcher || !effectDispatcher.HasAttemptedDispatchAnyEffectServer)
                 return false;

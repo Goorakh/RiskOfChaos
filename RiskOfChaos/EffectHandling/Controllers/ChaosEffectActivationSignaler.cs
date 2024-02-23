@@ -12,6 +12,92 @@ namespace RiskOfChaos.EffectHandling.Controllers
         public delegate void SignalShouldDispatchEffectDelegate(ChaosEffectInfo effect, in ChaosEffectDispatchArgs args = default);
         public abstract event SignalShouldDispatchEffectDelegate SignalShouldDispatchEffect;
 
+        public delegate bool CanDispatchEffectsOverrideDelegate();
+        public static event CanDispatchEffectsOverrideDelegate CanDispatchEffectsOverride;
+
+        public static bool EffectDispatchingTemporarilyDisabled
+        {
+            get
+            {
+                if (PauseManager.isPaused && NetworkServer.dontListen)
+                    return true;
+
+                if (SceneExitController.isRunning)
+                    return true;
+
+                if (!Stage.instance || Stage.instance.entryTime.timeSince < MIN_STAGE_TIME_REQUIRED_TO_DISPATCH)
+                    return true;
+
+                return false;
+            }
+        }
+
+        public static bool EffectDispatchingCompletelyDisabled
+        {
+            get
+            {
+                if (!NetworkServer.active)
+                    return true;
+
+                Run run = Run.instance;
+                if (!run || run.isGameOverServer || (run.isRunStopwatchPaused && !Configs.General.RunEffectsTimerWhileRunTimerPaused.Value))
+                    return true;
+
+                Stage stage = Stage.instance;
+                if (!stage)
+                    return true;
+
+                SceneDef currentScene = stage.sceneDef;
+                if (!currentScene)
+                    return true;
+
+                switch (currentScene.sceneType)
+                {
+                    case SceneType.Menu:
+                    case SceneType.Cutscene:
+                        return true;
+                    case SceneType.Invalid:
+                        switch (currentScene.cachedName)
+                        {
+                            case "ai_test":
+                            case "moon":
+                                break;
+                            default:
+                                return true;
+                        }
+
+                        break;
+                }
+
+                if (CanDispatchEffectsOverride != null)
+                {
+                    foreach (CanDispatchEffectsOverrideDelegate canDispatchEffectsDelegate in CanDispatchEffectsOverride.GetInvocationList())
+                    {
+                        if (!canDispatchEffectsDelegate())
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        public static bool EffectDispatchingDisabled
+        {
+            get
+            {
+                if (EffectDispatchingCompletelyDisabled)
+                    return true;
+
+                if (EffectDispatchingTemporarilyDisabled)
+                    return true;
+
+                return false;
+            }
+        }
+
         public abstract void SkipAllScheduledEffects();
         public abstract void RewindEffectScheduling(float numSeconds);
 
@@ -108,50 +194,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         }
 
         protected const float MIN_STAGE_TIME_REQUIRED_TO_DISPATCH = 2f;
-        protected virtual bool canDispatchEffects
-        {
-            get
-            {
-                if (!NetworkServer.active)
-                    return false;
-
-                if (PauseManager.isPaused && NetworkServer.dontListen)
-                    return false;
-
-                if (SceneExitController.isRunning)
-                    return false;
-
-                if (!Run.instance || Run.instance.isGameOverServer || (Run.instance.isRunStopwatchPaused && !Configs.General.RunEffectsTimerWhileRunTimerPaused.Value))
-                    return false;
-
-                if (!Stage.instance || Stage.instance.entryTime.timeSince < MIN_STAGE_TIME_REQUIRED_TO_DISPATCH)
-                    return false;
-
-                SceneDef currentScene = Stage.instance.sceneDef;
-                if (!currentScene)
-                    return false;
-
-                switch (currentScene.sceneType)
-                {
-                    case SceneType.Menu:
-                    case SceneType.Cutscene:
-                        return false;
-                    case SceneType.Invalid:
-                        switch (currentScene.cachedName)
-                        {
-                            case "ai_test":
-                            case "moon":
-                                break;
-                            default:
-                                return false;
-                        }
-
-                        break;
-                }
-
-                return true;
-            }
-        }
+        protected virtual bool canDispatchEffects => !EffectDispatchingDisabled;
 
         public abstract float GetTimeUntilNextEffect();
 

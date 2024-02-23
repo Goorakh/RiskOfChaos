@@ -2,10 +2,11 @@
 
 **?.?.? Changes:**
 
-* Added 3 new effects:
+* Added 4 new effects:
   * Activate All Interactables: Interacts with most interactable objects on the stage (chests, shrines)
   * Explosive Deaths: All non-players explode at low health or death, lasts 90 seconds
   * Prototype Models: Replaces all character models with their hitboxes
+  * Pause: Pauses the run timer and effect activation, lasts 60 seconds
 
 * Steal Player Items:
   * Reworked steal logic:

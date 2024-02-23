@@ -147,5 +147,6 @@
 		"EFFECT_INTERACT_ALL_INTERACTABLES_NAME": "Activate All Interactables",
 		"EFFECT_EXPLODE_AT_LOW_HEALTH_NAME": "Explosive Deaths",
 		"EFFECT_RENDER_COLLIDERS_ONLY_NAME": "Prototype Models",
+		"EFFECT_PAUSE_RUN_TIMER_NAME": "Pause",
 	}
 }
