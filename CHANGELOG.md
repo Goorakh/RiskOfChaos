@@ -8,6 +8,9 @@
   * Prototype Models: Replaces all character models with their hitboxes
   * Pause: Pauses the run timer and effect activation, lasts 60 seconds
 
+* Renamed 1 effect:
+  * Extreme Recoil -> Knockback Recoil
+
 * Steal Player Items:
   * Reworked steal logic:
     * Enemies are no longer limited by a set number of items per enemy, this just made the effect way more punishing lategame since there would usually be enough enemies to take every item

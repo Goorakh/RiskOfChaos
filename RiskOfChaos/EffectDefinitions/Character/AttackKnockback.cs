@@ -12,6 +12,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("attack_knockback", 90f, IsNetworked = true)]
     [IncompatibleEffects(typeof(DisableKnockback))]
+    [EffectConfigBackwardsCompatibility("Effect: Extreme Recoil")]
     public sealed class AttackKnockback : TimedEffect
     {
         public override void OnStart()

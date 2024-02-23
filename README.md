@@ -136,7 +136,7 @@ Currently features 134 different effects.
 * Everyone Implodes on Death: Spawns a void implosion on any character death, lasts 60 seconds
 * Inverted Recoil: All recoil is inverted, lasts 90 seconds
 * Black Hole: Spawns a black hole somewhere on the map, sucking all characters in, lasts 45 seconds
-* Extreme Recoil: Firing weapons pushes characters backwards, lasts 90 seconds
+* Knockback Recoil: Firing weapons pushes characters backwards, lasts 90 seconds
 * Increase Effect Duration: Increases the duration of all other effects (2x by default), lasts 2 stages
 * Decrease Effect Duration: Decreases the duration of all other effects (0.5x by default), lasts 2 stages
 * Activate All Interactables: Interacts with most interactable objects on the stage (chests, shrines)

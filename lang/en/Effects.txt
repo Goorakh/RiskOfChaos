@@ -141,7 +141,7 @@
 		"EFFECT_VOID_IMPLOSION_ON_DEATH_NAME": "Everyone Implodes on Death",
 		"EFFECT_INVERT_RECOIL_NAME": "Inverted Recoil",
 		"EFFECT_SPAWN_BLACK_HOLE_NAME": "Black Hole",
-		"EFFECT_ATTACK_KNOCKBACK_NAME": "Extreme Recoil",
+		"EFFECT_ATTACK_KNOCKBACK_NAME": "Knockback Recoil",
 		"EFFECT_INCREASE_EFFECT_DURATION_NAME": "{0}x Effect Duration",
 		"EFFECT_DECREASE_EFFECT_DURATION_NAME": "{0}x Effect Duration",
 		"EFFECT_INTERACT_ALL_INTERACTABLES_NAME": "Activate All Interactables",
