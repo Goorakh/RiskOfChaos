@@ -87,8 +87,10 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             getAllValidInteractables().ToList().TryDo(interactable =>
             {
-                if (interactable is not Component interactableComponent)
+                if (!canBeOpened(interactable))
                     return;
+
+                Component interactableComponent = (Component)interactable;
 
                 PurchaseInteraction purchaseInteraction = interactableComponent.GetComponent<PurchaseInteraction>();
 
@@ -99,9 +101,6 @@ namespace RiskOfChaos.EffectDefinitions.World
                         shopTerminalBehavior.serverMultiShopController.SetCloseOnTerminalPurchase(purchaseInteraction, false);
                     }
                 }
-
-                if (!canBeOpened(interactable))
-                    return;
 
                 Interactor interactor = RNG.NextElementUniform(interactors);
 
