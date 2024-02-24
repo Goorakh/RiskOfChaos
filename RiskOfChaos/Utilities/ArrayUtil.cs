@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace RiskOfChaos.Utilities
 {
@@ -19,6 +20,27 @@ namespace RiskOfChaos.Utilities
             int oldLength = array.Length;
             Array.Resize(ref array, oldLength + appended.Length);
             Array.Copy(appended, 0, array, oldLength, appended.Length);
+        }
+
+        public static void AppendRange<T>(ref T[] array, ICollection<T> appended)
+        {
+            if (appended is null)
+                return;
+
+            int appendedCount = appended.Count;
+            if (appendedCount <= 0)
+                return;
+
+            if (array is null || array.Length == 0)
+            {
+                array = new T[appendedCount];
+                appended.CopyTo(array, 0);
+                return;
+            }
+
+            int oldLength = array.Length;
+            Array.Resize(ref array, oldLength + appendedCount);
+            appended.CopyTo(array, oldLength);
         }
 
         public static bool ElementsEqual<T>(T[] a, T[] b, IEqualityComparer<T> comparer = null)
