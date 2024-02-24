@@ -53,5 +53,17 @@ namespace RiskOfChaos.Utilities
 
             return (sbyte)value;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte UInt8(int value)
+        {
+            if (value > byte.MaxValue)
+                return byte.MaxValue;
+
+            if (value < byte.MinValue)
+                return byte.MinValue;
+
+            return (byte)value;
+        }
     }
 }

@@ -1,4 +1,7 @@
-﻿using RiskOfChaos.Utilities.Interpolation;
+﻿using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Interpolation;
+using System;
+using UnityEngine;
 
 namespace RiskOfChaos.ModifierController.Pickups
 {
@@ -24,6 +27,8 @@ namespace RiskOfChaos.ModifierController.Pickups
 
         public uint BounceCount { get; private set; }
 
+        public byte SpawnCountMultiplier { get; private set; }
+
         public override PickupModificationInfo InterpolateValue(in PickupModificationInfo a, in PickupModificationInfo b, float t)
         {
             return PickupModificationInfo.Interpolate(a, b, t, ValueInterpolationFunctionType.Linear);
@@ -33,6 +38,7 @@ namespace RiskOfChaos.ModifierController.Pickups
         {
             PickupModificationInfo modificationInfo = GetModifiedValue(new PickupModificationInfo());
             BounceCount = modificationInfo.BounceCount;
+            SpawnCountMultiplier = Math.Max((byte)1, ClampedConversion.UInt8(Mathf.RoundToInt(modificationInfo.SpawnCountMultiplier)));
         }
     }
 }

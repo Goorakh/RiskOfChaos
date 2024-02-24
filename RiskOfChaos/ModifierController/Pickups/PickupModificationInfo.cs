@@ -5,6 +5,7 @@ namespace RiskOfChaos.ModifierController.Pickups
     public struct PickupModificationInfo
     {
         public uint BounceCount = 0;
+        public float SpawnCountMultiplier = 1f;
 
         public PickupModificationInfo()
         {
@@ -14,7 +15,8 @@ namespace RiskOfChaos.ModifierController.Pickups
         {
             return new PickupModificationInfo
             {
-                BounceCount = interpolationType.Interpolate(a.BounceCount, b.BounceCount, t)
+                BounceCount = interpolationType.Interpolate(a.BounceCount, b.BounceCount, t),
+                SpawnCountMultiplier = interpolationType.Interpolate(a.BounceCount, b.BounceCount, t)
             };
         }
     }
