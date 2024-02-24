@@ -30,7 +30,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 
                 if (_characterModel)
                 {
-                    _characterModel.baseRendererInfos = _characterModel.baseRendererInfos.Where(ri => !_visualObjectRenderers.Contains(ri.renderer)).ToArray();
+                    if (_visualObjectRenderers.Count > 0)
+                    {
+                        _characterModel.baseRendererInfos = _characterModel.baseRendererInfos.Where(ri => !_visualObjectRenderers.Contains(ri.renderer)).ToArray();
+                    }
 
                     foreach (CharacterModel.RendererInfo rendererInfo in _characterModel.baseRendererInfos)
                     {
