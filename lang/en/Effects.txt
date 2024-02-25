@@ -149,5 +149,6 @@
 		"EFFECT_RENDER_COLLIDERS_ONLY_NAME": "Prototype Models",
 		"EFFECT_PAUSE_RUN_TIMER_NAME": "Pause",
 		"EFFECT_DOUBLE_PICKUPS_NAME": "2x Pickups",
+		"EFFECT_ALL_ATTACKS_SNIPER_NAME": "Enable Weak Points for All Damage",
 	}
 }

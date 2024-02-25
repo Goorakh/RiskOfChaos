@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 135 different effects.
+Currently features 136 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -144,6 +144,7 @@ Currently features 135 different effects.
 * Prototype Models: Replaces all character models with their hitboxes
 * Pause: Pauses the run timer and effect activation, lasts 60 seconds
 * 2x Pickups: Doubles all dropped pickups, lasts 90 seconds
+* Enable Weak Points for All Damage: Enables the weak point check from Railgunner snipe to all damage, lasts 90 seconds
 </details>
 
 ### Twitch Integration:
