@@ -141,7 +141,7 @@ Currently features 136 different effects.
 * Decrease Effect Duration: Decreases the duration of all other effects (0.5x by default), lasts 2 stages
 * Activate All Interactables: Interacts with most interactable objects on the stage (chests, shrines)
 * Explosive Deaths: All non-players explode at low health or death, lasts 90 seconds
-* Prototype Models: Replaces all character models with their hitboxes
+* Prototype Models: Replaces all character models with their hitboxes, lasts 90 seconds
 * Pause: Pauses the run timer and effect activation, lasts 60 seconds
 * 2x Pickups: Doubles all dropped pickups, lasts 90 seconds
 * Enable Weak Points for All Damage: Enables the weak point check from Railgunner snipe to all damage, lasts 90 seconds
