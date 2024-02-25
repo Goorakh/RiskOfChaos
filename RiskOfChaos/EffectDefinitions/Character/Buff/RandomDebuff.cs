@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -18,12 +19,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         static readonly ConfigHolder<int> _stackableDebuffCount =
             ConfigFactory<int>.CreateConfig("Debuff Stack Count", 10)
                               .Description("How many stacks of the debuff should be given, if the random debuff is stackable")
+                              .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntSliderConfig
                               {
                                   min = 1,
                                   max = 15
                               })
-                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
                               .Build();
 
         static uint configStackCount => ClampedConversion.UInt32(_stackableDebuffCount.Value);

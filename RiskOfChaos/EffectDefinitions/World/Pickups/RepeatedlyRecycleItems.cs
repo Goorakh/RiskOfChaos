@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
@@ -55,6 +56,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
         static readonly ConfigHolder<float> _recycleTimerScale =
             ConfigFactory<float>.CreateConfig("Recycle Timer Scale", 1f)
                                 .Description("The multiplier to apply to the recycle timer (duration between items)")
+                                .AcceptableValues(new AcceptableValueMin<float>(0.1f))
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     formatString = "{0:F1}",
@@ -62,7 +64,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                                     max = 5f,
                                     increment = 0.1f
                                 })
-                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0.1f))
                                 .Build();
 
         static bool isPickupAvailable(PickupIndex pickup)

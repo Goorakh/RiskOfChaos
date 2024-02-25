@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
@@ -18,6 +19,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         static readonly ConfigHolder<float> _itemDropFrequency =
             ConfigFactory<float>.CreateConfig("Item Drop Frequency", 0.9f)
                                 .Description("How often items will be dropped")
+                                .AcceptableValues(new AcceptableValueMin<float>(0f))
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     formatString = "{0:F2}s",
@@ -25,7 +27,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                     max = 5f,
                                     increment = 0.05f
                                 })
-                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                 .Build();
 
         [RequireComponent(typeof(CharacterBody))]

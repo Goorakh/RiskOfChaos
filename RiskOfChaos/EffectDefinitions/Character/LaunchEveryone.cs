@@ -1,5 +1,6 @@
 ﻿using HG;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectDefinitions.World;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -22,6 +23,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         static readonly ConfigHolder<float> _knockbackScale =
             ConfigFactory<float>.CreateConfig("Force Multiplier", 1f)
                                 .Description("Scale of the force applied to all characters")
+                                .AcceptableValues(new AcceptableValueMin<float>(0f))
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     formatString = "{0:F2}x",
@@ -29,7 +31,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                     max = 5f,
                                     increment = 0.05f
                                 })
-                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                 .Build();
 
         public override void OnStart()

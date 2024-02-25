@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -19,12 +20,12 @@ namespace RiskOfChaos.EffectDefinitions.World
         static readonly ConfigHolder<int> _numMinutesToRemove =
             ConfigFactory<int>.CreateConfig("Minutes To Rewind", 5)
                               .Description("The amount of minutes to rewind the run timer by")
+                              .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntSliderConfig
                               {
                                   min = 1,
                                   max = 30
                               })
-                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
                               .Build();
 
         static int numSecondsToRemove

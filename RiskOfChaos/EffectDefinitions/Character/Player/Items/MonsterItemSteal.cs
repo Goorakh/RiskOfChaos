@@ -1,4 +1,5 @@
-﻿using HG;
+﻿using BepInEx.Configuration;
+using HG;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -25,6 +26,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         static readonly ConfigHolder<float> _maxInventoryStealFraction =
             ConfigFactory<float>.CreateConfig("Max Inventory Steal Fraction", 0.7f)
                                 .Description("The maximum percentage of items that can be stolen from each player")
+                                .AcceptableValues(new AcceptableValueRange<float>(0f, 1f))
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     formatString = "{0:P0}",
@@ -32,7 +34,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                                     max = 1f,
                                     increment = 0.05f
                                 })
-                                .ValueConstrictor(CommonValueConstrictors.Clamped01Float)
                                 .Build();
 
         [EffectConfig]

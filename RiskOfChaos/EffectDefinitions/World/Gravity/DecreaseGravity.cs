@@ -1,4 +1,6 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using BepInEx.Configuration;
+using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -18,6 +20,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
         static readonly ConfigHolder<float> _gravityDecrease =
             ConfigFactory<float>.CreateConfig("Decrease per Activation", 0.5f)
                                 .Description("How much gravity should decrease per effect activation, 50% means the gravity is multiplied by 0.5, 100% means the gravity is reduced to 0, 0% means gravity doesn't change at all. etc.")
+                                .AcceptableValues(new AcceptableValueRange<float>(0f, 1f))
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     min = 0f,
@@ -25,7 +28,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
                                     increment = 0.01f,
                                     formatString = "-{0:P0}"
                                 })
-                                .ValueConstrictor(CommonValueConstrictors.Clamped01Float)
                                 .OnValueChanged(() =>
                                 {
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)

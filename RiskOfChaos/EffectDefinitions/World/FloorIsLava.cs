@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Components;
+﻿using BepInEx.Configuration;
+using RiskOfChaos.Components;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -19,13 +20,13 @@ namespace RiskOfChaos.EffectDefinitions.World
         static readonly ConfigHolder<int> _percentDamagePerSecond =
             ConfigFactory<int>.CreateConfig("Percent Damage Per Second", 25)
                               .Description("How much damage should be inflicted for characters touching the ground. Value of 3 means 3% of max health in damage per second.")
+                              .AcceptableValues(new AcceptableValueRange<int>(1, 100))
                               .OptionConfig(new IntSliderConfig
                               {
                                   formatString = "{0}%/s",
                                   min = 1,
                                   max = 100
                               })
-                              .ValueConstrictor(CommonValueConstrictors.Clamped(1, 100))
                               .Build();
 
         static int getGroundedDamagePerSecond(float groundedTime)

@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
@@ -21,13 +22,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         static readonly ConfigHolder<float> _maxRadiusConfig =
             ConfigFactory<float>.CreateConfig("Size", 50f)
                                 .Description("The size of the black hole")
+                                .AcceptableValues(new AcceptableValueMin<float>(0f))
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     min = 0f,
                                     max = 150f,
                                     increment = 1f
                                 })
-                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                 .Build();
 
         static readonly AnimationCurve _growthCurve = new AnimationCurve([

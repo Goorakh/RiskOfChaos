@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfOptions.OptionConfigs;
 
 namespace RiskOfChaos
@@ -22,6 +23,7 @@ namespace RiskOfChaos
             public static readonly ConfigHolder<float> TimeBetweenEffects =
                 ConfigFactory<float>.CreateConfig("Effect Timer", 60f)
                                     .Description("How often new effects should happen")
+                                    .AcceptableValues(new AcceptableValueMin<float>(TIME_BETWEEN_EFFECTS_MIN_VALUE))
                                     .OptionConfig(new StepSliderConfig
                                     {
                                         checkIfDisabled = effectDispatchingDisabled,
@@ -30,7 +32,6 @@ namespace RiskOfChaos
                                         min = TIME_BETWEEN_EFFECTS_MIN_VALUE,
                                         max = 60f * 5f
                                     })
-                                    .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(TIME_BETWEEN_EFFECTS_MIN_VALUE))
                                     .Build();
 
             public static readonly ConfigHolder<bool> RunEffectsTimerWhileRunTimerPaused =

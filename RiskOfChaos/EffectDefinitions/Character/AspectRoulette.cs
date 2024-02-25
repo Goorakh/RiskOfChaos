@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using HG;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -48,13 +49,13 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 WeightConfig =
                     ConfigFactory<float>.CreateConfig($"{combinedEliteName} Weight", 1f)
                                         .Description($"Controls how likely the {eliteName.ToLower()} elite aspect is during the effect")
+                                        .AcceptableValues(new AcceptableValueMin<float>(0f))
                                         .OptionConfig(new StepSliderConfig
                                         {
                                             min = 0f,
                                             max = 2.5f,
                                             increment = 0.05f
                                         })
-                                        .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                         .Build();
             }
 

@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.Controllers.ChatVoting;
 using RiskOfOptions;
 using RiskOfOptions.OptionConfigs;
@@ -39,13 +40,13 @@ namespace RiskOfChaos
             public static readonly ConfigHolder<int> NumEffectOptions =
                 ConfigFactory<int>.CreateConfig("Num Effect Options", 3)
                                   .Description("The number of effects viewers can pick from during voting")
+                                  .AcceptableValues(new AcceptableValueMin<int>(NUM_EFFECT_OPTIONS_MIN_VALUE))
                                   .OptionConfig(new IntSliderConfig
                                   {
                                       min = NUM_EFFECT_OPTIONS_MIN_VALUE,
                                       max = 10,
                                       checkIfDisabled = isVotingDisabled
                                   })
-                                  .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(NUM_EFFECT_OPTIONS_MIN_VALUE))
                                   .Build();
 
             public static readonly ConfigHolder<bool> IncludeRandomEffectInVote =
@@ -70,6 +71,7 @@ namespace RiskOfChaos
             public static readonly ConfigHolder<float> VoteDisplayScaleMultiplier =
                 ConfigFactory<float>.CreateConfig("Vote Display UI Scale", 1f)
                                     .Description("The scale multiplier of the vote options display")
+                                    .AcceptableValues(new AcceptableValueMin<float>(0f))
                                     .OptionConfig(new StepSliderConfig
                                     {
                                         formatString = "{0:F2}X",
@@ -78,7 +80,6 @@ namespace RiskOfChaos
                                         increment = 0.05f,
                                         checkIfDisabled = isVotingDisabled
                                     })
-                                    .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                     .Build();
 
             public static readonly ConfigHolder<Color> VoteDisplayTextColor =

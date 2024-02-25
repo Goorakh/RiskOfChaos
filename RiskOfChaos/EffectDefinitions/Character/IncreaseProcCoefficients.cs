@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -19,6 +20,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         [EffectConfig]
         static readonly ConfigHolder<float> _multiplierPerActivation =
             ConfigFactory<float>.CreateConfig("Proc Multiplier", 2f)
+                                .AcceptableValues(new AcceptableValueMin<float>(1.5f))
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     formatString = "{0:F1}",
@@ -26,7 +28,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                     max = 10f,
                                     increment = 0.5f
                                 })
-                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1.5f))
                                 .OnValueChanged(() =>
                                 {
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)

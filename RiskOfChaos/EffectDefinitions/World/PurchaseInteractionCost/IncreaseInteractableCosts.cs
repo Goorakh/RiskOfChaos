@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -21,6 +22,7 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
         static readonly ConfigHolder<float> _increaseAmount =
             ConfigFactory<float>.CreateConfig("Increase Amount", 0.25f)
                                 .Description("The amount to increase costs by")
+                                .AcceptableValues(new AcceptableValueMin<float>(INCREASE_AMOUNT_MIN_VALUE))
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     formatString = "+{0:P0}",
@@ -28,7 +30,6 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
                                     max = 2f,
                                     increment = 0.05f
                                 })
-                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(INCREASE_AMOUNT_MIN_VALUE))
                                 .OnValueChanged(() =>
                                 {
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)

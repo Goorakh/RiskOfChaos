@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using BepInEx.Configuration;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -21,6 +22,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
         static readonly ConfigHolder<float> _maxDeviation =
             ConfigFactory<float>.CreateConfig("Max Rotation Angle", 30f)
                                 .Description("The maximum amount of deviation (in degrees) that can be applied to the gravity direction")
+                                .AcceptableValues(new AcceptableValueRange<float>(MAX_DEVITATION_MIN_VALUE, MAX_DEVITATION_MAX_VALUE))
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     formatString = "{0:F1}",
@@ -28,7 +30,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
                                     max = MAX_DEVITATION_MAX_VALUE,
                                     increment = 0.5f
                                 })
-                                .ValueConstrictor(CommonValueConstrictors.Clamped(MAX_DEVITATION_MIN_VALUE, MAX_DEVITATION_MAX_VALUE))
                                 .Build();
 
         public override event Action OnValueDirty;

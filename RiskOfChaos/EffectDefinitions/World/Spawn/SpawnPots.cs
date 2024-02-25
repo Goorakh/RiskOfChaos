@@ -1,5 +1,6 @@
 ﻿using HG;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -21,12 +22,12 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         static readonly ConfigHolder<int> _potCount =
             ConfigFactory<int>.CreateConfig("Pot Spawn Count", 50)
                               .Description("How many pots should be spawned per player")
+                              .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntSliderConfig
                               {
                                   min = 1,
                                   max = 100
                               })
-                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
                               .Build();
 
         static GameObject _potPrefab;

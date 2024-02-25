@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -22,12 +23,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         static readonly ConfigHolder<int> _uncorruptItemCount =
             ConfigFactory<int>.CreateConfig("Uncorrupt Count", 1)
                               .Description("How many items should be uncorrupted per player")
+                              .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntSliderConfig
                               {
                                   min = 1,
                                   max = 10
                               })
-                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
                               .Build();
 
         [EffectConfig]

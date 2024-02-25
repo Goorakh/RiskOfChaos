@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
@@ -19,12 +20,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         static readonly ConfigHolder<int> _itemCount =
             ConfigFactory<int>.CreateConfig("Item Count", 1)
                               .Description("The amount of items to give to each player per effect activation")
+                              .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntSliderConfig
                               {
                                   min = 1,
                                   max = 10
                               })
-                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
                               .Build();
 
         [EffectConfig]

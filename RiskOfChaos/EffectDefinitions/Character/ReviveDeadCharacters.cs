@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -25,12 +26,12 @@ namespace RiskOfChaos.EffectDefinitions.Character
         static readonly ConfigHolder<int> _maxTrackedCharactersCount =
             ConfigFactory<int>.CreateConfig("Max Characters to Revive", 50)
                               .Description("The maximum amount of characters the effect can revive at once")
+                              .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntSliderConfig
                               {
                                   min = 1,
                                   max = 100
                               })
-                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
                               .OnValueChanged((s, e) =>
                               {
                                   _trackedDeadCharacters.MaxCapacity = e.NewValue;

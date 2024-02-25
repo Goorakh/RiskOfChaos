@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -19,6 +20,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
         static readonly ConfigHolder<float> _cooldownIncrease =
             ConfigFactory<float>.CreateConfig("Cooldown Increase", 0.5f)
                                 .Description("How much to increase skill cooldowns by")
+                                .AcceptableValues(new AcceptableValueMin<float>(0f))
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     formatString = "+{0:P0}",
@@ -33,7 +35,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
 
                                     TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseSkillCooldowns>(e => e.OnValueDirty);
                                 })
-                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                 .Build();
 
         [EffectCanActivate]

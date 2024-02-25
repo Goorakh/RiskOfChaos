@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -22,12 +23,12 @@ namespace RiskOfChaos.EffectDefinitions.Meta
         static readonly ConfigHolder<int> _numEffectsToActivate =
             ConfigFactory<int>.CreateConfig("Effect Count", 2)
                               .Description("How many effects should be activated by this effect")
+                              .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntSliderConfig
                               {
                                   min = 1,
                                   max = 10
                               })
-                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
                               .Build();
 
         [EffectConfig]

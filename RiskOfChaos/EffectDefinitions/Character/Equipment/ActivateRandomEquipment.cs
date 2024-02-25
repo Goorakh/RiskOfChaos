@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -52,7 +53,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
 
                 _equipmentWeightConfig = ConfigFactory<float>.CreateConfig($"{EquipmentName} Weight", 1f)
                                                              .Description($"How likely {EquipmentName} is to be selected")
-                                                             .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
+                                                             .AcceptableValues(new AcceptableValueMin<float>(0f))
                                                              .OptionConfig(new StepSliderConfig
                                                              {
                                                                  formatString = "{0:F1}",

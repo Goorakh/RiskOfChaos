@@ -13,7 +13,6 @@ namespace RiskOfChaos.ConfigHandling
     {
         public readonly T DefaultValue;
         public readonly IEqualityComparer<T> EqualityComparer;
-        public readonly ValueConstrictor<T> ValueConstrictor;
         public readonly ValueValidator<T> ValueValidator;
 
         public new ConfigEntry<T> Entry
@@ -49,7 +48,7 @@ namespace RiskOfChaos.ConfigHandling
                     T value = Entry.Value;
                     if (ValueValidator(value))
                     {
-                        return ValueConstrictor(value);
+                        return value;
                     }
                 }
 
@@ -66,7 +65,6 @@ namespace RiskOfChaos.ConfigHandling
                             T defaultValue,
                             ConfigDescription description,
                             IEqualityComparer<T> equalityComparer,
-                            ValueConstrictor<T> valueConstrictor,
                             ValueValidator<T> valueValidator,
                             BaseOptionConfig optionConfig,
                             string[] previousKeys,
@@ -75,7 +73,6 @@ namespace RiskOfChaos.ConfigHandling
         {
             DefaultValue = defaultValue;
             EqualityComparer = equalityComparer ?? throw new ArgumentNullException(nameof(equalityComparer));
-            ValueConstrictor = valueConstrictor ?? throw new ArgumentNullException(nameof(valueConstrictor));
             ValueValidator = valueValidator ?? throw new ArgumentNullException(nameof(valueValidator));
             _optionConfig = optionConfig;
             _previousConfigSectionNames = previousSections ?? throw new ArgumentNullException(nameof(previousSections));

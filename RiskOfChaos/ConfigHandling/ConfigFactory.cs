@@ -11,10 +11,13 @@ namespace RiskOfChaos.ConfigHandling
         readonly string _key;
         readonly T _defaultValue;
 
-        ConfigDescription _description;
+        ConfigDescription _customDescriptionInstance;
+
+        string _descriptionText;
+        AcceptableValueBase _acceptableValues;
+
         IEqualityComparer<T> _equalityComparer;
 
-        ValueConstrictor<T> _valueConstrictor;
         ValueValidator<T> _valueValidator;
 
         BaseOptionConfig _optionConfig;
@@ -40,24 +43,25 @@ namespace RiskOfChaos.ConfigHandling
 
         public ConfigFactory<T> Description(string description)
         {
-            return Description(new ConfigDescription(description));
+            _descriptionText = description;
+            return this;
+        }
+
+        public ConfigFactory<T> AcceptableValues(AcceptableValueBase acceptableValues)
+        {
+            _acceptableValues = acceptableValues;
+            return this;
         }
 
         public ConfigFactory<T> Description(ConfigDescription description)
         {
-            _description = description;
+            _customDescriptionInstance = description;
             return this;
         }
 
         public ConfigFactory<T> EqualityComparer(IEqualityComparer<T> equalityComparer)
         {
             _equalityComparer = equalityComparer;
-            return this;
-        }
-
-        public ConfigFactory<T> ValueConstrictor(ValueConstrictor<T> valueConstrictor)
-        {
-            _valueConstrictor = valueConstrictor;
             return this;
         }
 
@@ -104,11 +108,24 @@ namespace RiskOfChaos.ConfigHandling
 
         public ConfigHolder<T> Build()
         {
+            ConfigDescription description;
+            if (_customDescriptionInstance != null)
+            {
+                description = _customDescriptionInstance;
+            }
+            else if (!string.IsNullOrEmpty(_descriptionText) || _acceptableValues != null)
+            {
+                description = new ConfigDescription(_descriptionText ?? string.Empty, _acceptableValues);
+            }
+            else
+            {
+                description = ConfigDescription.Empty;
+            }
+
             ConfigHolder<T> configHolder = new ConfigHolder<T>(_key,
                                                                _defaultValue,
-                                                               _description ?? ConfigDescription.Empty,
+                                                               description,
                                                                _equalityComparer ?? EqualityComparer<T>.Default,
-                                                               _valueConstrictor ?? CommonValueConstrictors.None<T>(),
                                                                _valueValidator ?? CommonValueValidators.None<T>(),
                                                                _optionConfig,
                                                                _previousKeys.ToArray(),

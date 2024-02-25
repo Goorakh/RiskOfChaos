@@ -2,6 +2,7 @@
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -22,12 +23,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         static readonly ConfigHolder<int> _stackableBuffCount =
             ConfigFactory<int>.CreateConfig("Buff Stack Count", 5)
                               .Description("How many stacks of the buff should be given, if the random buff is stackable")
+                              .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntSliderConfig
                               {
                                   min = 1,
                                   max = 15
                               })
-                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
                               .Build();
 
         static uint configStackCount => ClampedConversion.UInt32(_stackableBuffCount.Value);

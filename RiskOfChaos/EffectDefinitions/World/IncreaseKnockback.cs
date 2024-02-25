@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -23,6 +24,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         static readonly ConfigHolder<float> _knockbackMultiplier =
             ConfigFactory<float>.CreateConfig("Knockback Multiplier", 3f)
                                 .Description("The multiplier used to increase knockback while the effect is active")
+                                .AcceptableValues(new AcceptableValueMin<float>(KNOCKBACK_MULTIPLIER_MIN_VALUE))
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     formatString = "{0:F1}x",
@@ -30,7 +32,6 @@ namespace RiskOfChaos.EffectDefinitions.World
                                     max = 15f,
                                     increment = KNOCKBACK_MULTIPLIER_INCREMENT
                                 })
-                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(KNOCKBACK_MULTIPLIER_MIN_VALUE))
                                 .OnValueChanged(() =>
                                 {
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)

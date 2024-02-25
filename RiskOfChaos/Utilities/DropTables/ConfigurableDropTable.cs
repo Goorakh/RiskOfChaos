@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.Utilities.Comparers;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.ParsedValueHolders.ParsedList;
@@ -50,6 +51,7 @@ namespace RiskOfChaos.Utilities.DropTables
             ConfigHolder<float> config =
                 ConfigFactory<float>.CreateConfig($"Weight: {name}", defaultWeight)
                                     .Description($"Controls how likely {name} are to be given\n\nA value of 0 means items from this tier will never be given")
+                                    .AcceptableValues(new AcceptableValueMin<float>(0f))
                                     .OptionConfig(new StepSliderConfig
                                     {
                                         formatString = "{0:F2}",
@@ -57,7 +59,6 @@ namespace RiskOfChaos.Utilities.DropTables
                                         max = 1f,
                                         increment = 0.05f
                                     })
-                                    .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                     .OnValueChanged(MarkDirty)
                                     .Build();
 

@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using BepInEx.Configuration;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -19,6 +20,7 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
         static readonly ConfigHolder<float> _decreaseAmount =
             ConfigFactory<float>.CreateConfig("Decrease Amount", 0.25f)
                                 .Description("The amount to decrease costs by")
+                                .AcceptableValues(new AcceptableValueRange<float>(0f, 1f))
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     formatString = "-{0:P0}",
@@ -26,7 +28,6 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
                                     max = 1f,
                                     increment = 0.05f
                                 })
-                                .ValueConstrictor(CommonValueConstrictors.Clamped01Float)
                                 .OnValueChanged(() =>
                                 {
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)

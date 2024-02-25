@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
@@ -15,12 +16,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
         static readonly ConfigHolder<int> _amountToGive =
             ConfigFactory<int>.CreateConfig("Base Amount to Give", 200)
                               .Description("The base amount of money to give to all players")
+                              .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntSliderConfig
                               {
-                                  min = 0,
+                                  min = 1,
                                   max = 1000
                               })
-                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0))
                               .Build();
 
         [EffectConfig]

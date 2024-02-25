@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -18,26 +19,26 @@ namespace RiskOfChaos.EffectDefinitions.World
         static readonly ConfigHolder<int> _maxBulletBounceCount =
             ConfigFactory<int>.CreateConfig("Max Bullet Bounce Count", 20)
                               .Description("The maximum amount of times bullets can be bounced")
+                              .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntSliderConfig
                               {
                                   min = 1,
                                   max = 40
                               })
                               .OnValueChanged(bounceCountConfigChanged)
-                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
                               .Build();
 
         [EffectConfig]
         static readonly ConfigHolder<int> _maxProjectileBounceCount =
             ConfigFactory<int>.CreateConfig("Max Projectile Bounce Count", 2)
                               .Description("The maximum amount of times projectiles can be bounced")
+                              .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntSliderConfig
                               {
                                   min = 1,
                                   max = 10
                               })
                               .OnValueChanged(bounceCountConfigChanged)
-                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
                               .Build();
 
         static void bounceCountConfigChanged()

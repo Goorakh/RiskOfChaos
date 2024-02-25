@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -18,6 +19,7 @@ namespace RiskOfChaos.EffectDefinitions.Meta
         [EffectConfig]
         static readonly ConfigHolder<float> _durationMultiplier =
             ConfigFactory<float>.CreateConfig("Effect Duration Multiplier", 2f)
+                                .AcceptableValues(new AcceptableValueMin<float>(1f))
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     formatString = "{0}x",
@@ -25,7 +27,6 @@ namespace RiskOfChaos.EffectDefinitions.Meta
                                     max = 5f,
                                     increment = 0.1f
                                 })
-                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1f))
                                 .OnValueChanged(() =>
                                 {
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)

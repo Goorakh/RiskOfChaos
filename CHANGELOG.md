@@ -39,6 +39,9 @@
 * Increase & Decrease World Speed:
   * Fixed some player attack sounds playing with the wrong audio pitch
 
+* Config
+  * The mod now properly integrates config value restriction (value restrictions are now displayed in the r2modman config editor)
+
 <details>
   <summary>1.13.10 Changes:</summary>
 

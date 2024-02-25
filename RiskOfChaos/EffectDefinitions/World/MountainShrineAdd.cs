@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.Components;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -19,12 +20,12 @@ namespace RiskOfChaos.EffectDefinitions.World
         static readonly ConfigHolder<int> _numShrinesPerActivation =
             ConfigFactory<int>.CreateConfig("Shrines per Activation", 2)
                               .Description("The amount of mountain shrines to activate each time this effect is activated")
+                              .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntSliderConfig
                               {
                                   min = 1,
                                   max = 10
                               })
-                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
                               .Build();
 
         [EffectCanActivate]

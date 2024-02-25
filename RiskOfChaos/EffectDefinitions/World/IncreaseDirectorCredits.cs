@@ -1,5 +1,6 @@
 ﻿using HG;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -21,6 +22,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             ConfigFactory<float>.CreateConfig("Monster Spawn Increase", 0.5f)
                                 .RenamedFrom("Credit Increase Amount")
                                 .Description("How much to increase monster spawns by")
+                                .AcceptableValues(new AcceptableValueMin<float>(0f))
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     formatString = "+{0:P0}",
@@ -28,7 +30,6 @@ namespace RiskOfChaos.EffectDefinitions.World
                                     max = 2f,
                                     increment = 0.05f
                                 })
-                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                 .Build();
 
         static float creditMultiplier => 1f + _creditIncrease.Value;

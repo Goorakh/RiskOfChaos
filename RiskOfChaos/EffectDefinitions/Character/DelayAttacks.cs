@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -16,6 +17,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
         [EffectConfig]
         static readonly ConfigHolder<float> _attackDelay =
             ConfigFactory<float>.CreateConfig("Attack Delay", 0.5f)
+                                .Description("The delay to apply to all attacks")
+                                .AcceptableValues(new AcceptableValueMin<float>(0f))
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     formatString = "{0:F2}s",
@@ -23,7 +26,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                     min = 0f,
                                     max = 2f
                                 })
-                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                 .OnValueChanged(() =>
                                 {
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)

@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -73,6 +74,7 @@ namespace RiskOfChaos.EffectHandling
 
             _fixedTimeDuration = ConfigFactory<float>.CreateConfig("Effect Time Duration", defaultDuration)
                                                      .Description($"How long the effect should last, in seconds.\nOnly takes effect if the Duration Type is set to {nameof(TimedEffectType.FixedDuration)}")
+                                                     .AcceptableValues(new AcceptableValueMin<float>(0f))
                                                      .OptionConfig(new StepSliderConfig
                                                      {
                                                          formatString = "{0:F0}s",
@@ -81,20 +83,19 @@ namespace RiskOfChaos.EffectHandling
                                                          increment = 5f,
                                                          checkIfDisabled = () => TimedType != TimedEffectType.FixedDuration
                                                      })
-                                                     .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                                      .RenamedFrom("Effect Duration")
                                                      .Build();
 
             _stageCountDuration =
                 ConfigFactory<int>.CreateConfig("Effect Stage Duration", attribute.DefaultStageCountDuration)
                                   .Description($"How many stages this effect should last.\nOnly applies if Duration Type is set to {nameof(TimedEffectType.UntilStageEnd)}")
+                                  .AcceptableValues(new AcceptableValueMin<int>(1))
                                   .OptionConfig(new IntSliderConfig
                                   {
                                       min = 1,
                                       max = 10,
                                       checkIfDisabled = () => TimedType != TimedEffectType.UntilStageEnd
                                   })
-                                  .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
                                   .Build();
 
             _allowDuplicates = attribute.AllowDuplicates;

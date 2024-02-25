@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using BepInEx.Configuration;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -97,6 +98,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         static readonly ConfigHolder<float> _eliteChance =
             ConfigFactory<float>.CreateConfig("Elite Chance", 0.15f)
                                 .Description("The likelyhood for the spawned boss to be an elite")
+                                .AcceptableValues(new AcceptableValueRange<float>(0f, 1f))
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     formatString = "{0:P0}",
@@ -104,7 +106,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                                     max = 1f,
                                     increment = 0.01f
                                 })
-                                .ValueConstrictor(CommonValueConstrictors.Clamped01Float)
                                 .Build();
 
         [EffectConfig]

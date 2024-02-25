@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -19,6 +20,7 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
         static readonly ConfigHolder<float> _radiusIncrease =
             ConfigFactory<float>.CreateConfig("Radius Increase", 0.5f)
                                 .Description("Percentage increase of teleporter radius")
+                                .AcceptableValues(new AcceptableValueMin<float>(0f))
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     formatString = "+{0:P0}",
@@ -26,7 +28,6 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
                                     min = 0f,
                                     max = 2f
                                 })
-                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                 .OnValueChanged(() =>
                                 {
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)

@@ -1,5 +1,6 @@
 ﻿using HG;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -41,6 +42,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 SelectionWeight =
                     ConfigFactory<float>.CreateConfig($"{ArtifactName} Weight", 1f)
                                         .Description($"How likely the {ArtifactName} is to be picked, higher value means more likely, lower value means less likely.\n\nA value of 0 will exclude it completely")
+                                        .AcceptableValues(new AcceptableValueMin<float>(0f))
                                         .OptionConfig(new StepSliderConfig
                                         {
                                             formatString = "{0:F1}",
@@ -48,7 +50,6 @@ namespace RiskOfChaos.EffectDefinitions.World
                                             min = 0f,
                                             max = 2.5f
                                         })
-                                        .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                         .Build();
             }
 

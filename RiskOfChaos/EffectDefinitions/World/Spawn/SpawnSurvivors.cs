@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -42,14 +43,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [EffectConfig]
         static readonly ConfigHolder<int> _numPodSpawns =
             ConfigFactory<int>.CreateConfig("Pod Spawn Count", 10)
-            .Description("The amount of pods to spawn")
-            .OptionConfig(new IntSliderConfig
-            {
-                min = 1,
-                max = 20
-            })
-            .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
-            .Build();
+                              .Description("The amount of pods to spawn")
+                              .AcceptableValues(new AcceptableValueMin<int>(1))
+                              .OptionConfig(new IntSliderConfig
+                              {
+                                  min = 1,
+                                  max = 20
+                              })
+                              .Build();
 
         [SystemInitializer(typeof(SurvivorCatalog), typeof(MasterCatalog), typeof(ChaosEffectCatalog))]
         static void Init()

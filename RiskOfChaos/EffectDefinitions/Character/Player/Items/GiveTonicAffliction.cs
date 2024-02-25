@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
@@ -15,12 +16,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         static readonly ConfigHolder<int> _itemCount =
             ConfigFactory<int>.CreateConfig("Tonic Affliction Count", 1)
                               .Description("The amount of Tonic Affliction to give each player")
+                              .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntSliderConfig
                               {
                                   min = 1,
                                   max = 15
                               })
-                              .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(1))
                               .Build();
 
         public override void OnStart()

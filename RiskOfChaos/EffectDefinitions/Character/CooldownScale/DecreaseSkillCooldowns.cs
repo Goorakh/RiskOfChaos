@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using BepInEx.Configuration;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -19,6 +20,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
         static readonly ConfigHolder<float> _cooldownDecrease =
             ConfigFactory<float>.CreateConfig("Cooldown Decrease", 0.5f)
                                 .Description("How much to decrease skill cooldowns by")
+                                .AcceptableValues(new AcceptableValueRange<float>(0f, 1f))
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     formatString = "-{0:P0}",
@@ -33,7 +35,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
 
                                     TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<DecreaseSkillCooldowns>(e => e.OnValueDirty);
                                 })
-                                .ValueConstrictor(CommonValueConstrictors.Clamped01Float)
                                 .Build();
 
         [EffectCanActivate]

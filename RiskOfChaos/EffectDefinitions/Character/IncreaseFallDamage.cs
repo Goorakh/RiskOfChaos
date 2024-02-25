@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -21,6 +22,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         static readonly ConfigHolder<float> _damageIncreaseAmount =
             ConfigFactory<float>.CreateConfig("Increase Amount", 1f)
                                 .Description("The amount to increase fall damage by")
+                                .AcceptableValues(new AcceptableValueMin<float>(0f))
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     formatString = "+{0:P0}",
@@ -28,7 +30,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                     max = 2f,
                                     increment = 0.05f
                                 })
-                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                 .OnValueChanged(() =>
                                 {
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)

@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using BepInEx.Configuration;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -19,6 +20,7 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
         static readonly ConfigHolder<float> _chargeRateDecrease =
             ConfigFactory<float>.CreateConfig("Rate Decrease", 0.25f)
                                 .Description("Percentage decrease of teleporter charge rate")
+                                .AcceptableValues(new AcceptableValueRange<float>(0f, 1f))
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     formatString = "-{0:P0}",
@@ -26,7 +28,6 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
                                     min = 0f,
                                     max = 1f
                                 })
-                                .ValueConstrictor(CommonValueConstrictors.Clamped01Float)
                                 .OnValueChanged(() =>
                                 {
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)

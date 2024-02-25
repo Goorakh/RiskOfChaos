@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.Components;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -17,6 +18,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
         static readonly ConfigHolder<float> _speedMultiplier =
             ConfigFactory<float>.CreateConfig("Attract Strength Multiplier", 1f)
                                 .Description("Multiplies the strength of the effect")
+                                .AcceptableValues(new AcceptableValueMin<float>(0f))
                                 .OptionConfig(new StepSliderConfig
                                 {
                                     formatString = "{0:F1}x",
@@ -24,7 +26,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                                     max = 5f,
                                     increment = 0.1f
                                 })
-                                .ValueConstrictor(CommonValueConstrictors.GreaterThanOrEqualTo(0f))
                                 .OnValueChanged(() =>
                                 {
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
