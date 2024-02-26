@@ -7,7 +7,7 @@
   * Explosive Deaths: All non-players explode at low health or death, lasts 90 seconds
   * Prototype Models: Replaces all character models with their hitboxes, lasts 90 seconds
   * Pause: Pauses the run timer and effect activation, lasts 60 seconds
-  * 2x Pickups: Doubles all dropped pickups, lasts 90 seconds
+  * 2x Item Drops: Doubles all dropped pickups, lasts 90 seconds
   * Enable Weak Points for All Damage: Enables the weak point check from Railgunner snipe to all damage, lasts 90 seconds
 
 * Renamed 1 effect:
