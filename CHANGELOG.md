@@ -33,6 +33,9 @@
 * Disable Equipment:
   * Fixed Executive Card still being usable while effect is active
 
+* Kill All (Non-Boss) Enemies & Launch Everyone in Random Directions:
+  * Can no longer kill Leonard
+
 * Everyone Implodes on Death:
   * Default duration: 1 stage -> 60 seconds
 

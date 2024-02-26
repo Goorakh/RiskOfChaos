@@ -1,6 +1,7 @@
 ﻿using HG;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectDefinitions.World;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -73,6 +74,31 @@ namespace RiskOfChaos.EffectDefinitions.Character
             CharacterBody.readOnlyInstancesList.Where(b => !b.isPlayerControlled).TryDo(b =>
             {
                 launchInRandomDirection(b, RNG);
+
+                CharacterMotor characterMotor = b.characterMotor;
+                Inventory inventory = b.inventory;
+                if (characterMotor && inventory)
+                {
+                    if (inventory.GetItemCount(Items.InvincibleLemurianMarker) > 0)
+                    {
+                        inventory.GiveItem(RoR2Content.Items.TeleportWhenOob);
+
+                        void onHitGroundServer(ref CharacterMotor.HitGroundInfo hitGroundInfo)
+                        {
+                            if (inventory)
+                            {
+                                inventory.RemoveItem(RoR2Content.Items.TeleportWhenOob);
+                            }
+
+                            if (characterMotor)
+                            {
+                                characterMotor.onHitGroundServer -= onHitGroundServer;
+                            }
+                        }
+
+                        characterMotor.onHitGroundServer += onHitGroundServer;
+                    }
+                }
             }, FormatUtils.GetBestBodyName);
         }
 

@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RoR2;
 using System;
 
@@ -9,11 +10,28 @@ namespace RiskOfChaos.EffectDefinitions.Character
     {
         public override void OnStart()
         {
+            bool sentInvincibleLemurianMessage = false;
+
             for (int i = CharacterMaster.readOnlyInstancesList.Count - 1; i >= 0; i--)
             {
                 CharacterMaster master = CharacterMaster.readOnlyInstancesList[i];
                 if (!master || master.isBoss || master.playerCharacterMasterController)
                     continue;
+
+                if (master.inventory && master.inventory.GetItemCount(Items.InvincibleLemurianMarker) > 0)
+                {
+                    if (!sentInvincibleLemurianMessage)
+                    {
+                        Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                        {
+                            baseToken = "INVINCIBLE_LEMURIAN_KILL_FAIL_MESSAGE"
+                        });
+
+                        sentInvincibleLemurianMessage = true;
+                    }
+
+                    continue;
+                }
 
                 CharacterBody body = master.GetBody();
                 if (!body)
