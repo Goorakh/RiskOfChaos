@@ -2,6 +2,7 @@
 using RoR2;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.Patches
 {
@@ -13,6 +14,8 @@ namespace RiskOfChaos.Patches
             On.RoR2.PickupDropletController.CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet;
         }
 
+        static bool _patchDisabled;
+
         static void PickupDropletController_CreatePickupDroplet(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 orig,
                                                                 GenericPickupController.CreatePickupInfo pickupInfo,
                                                                 Vector3 position,
@@ -20,25 +23,33 @@ namespace RiskOfChaos.Patches
         {
             orig(pickupInfo, position, velocity);
 
+            if (!NetworkServer.active || _patchDisabled)
+                return;
+
             if (PickupModificationManager.Instance && PickupModificationManager.Instance.SpawnCountMultiplier > 1)
             {
                 IEnumerator spawnAdditionalDroplets()
                 {
                     Stage stage = Stage.instance;
 
-                    float waitTime = 0.2f;
-
                     // NOTE: Do not cache upper bound, we want an up-to-date value every iteration
                     for (int i = 0; i < PickupModificationManager.Instance.SpawnCountMultiplier - 1; i++)
                     {
-                        yield return new WaitForSeconds(waitTime);
-                        waitTime = Mathf.Max(1f / 30f, waitTime * 0.925f);
+                        yield return new WaitForSeconds(Mathf.Max(1f / 30f, 0.2f * Mathf.Pow(0.925f, i)));
 
                         // Stage switched (or destroyed) since first drop, quit spawning new pickups
                         if (!PickupModificationManager.Instance || stage != Stage.instance)
                             break;
 
-                        orig(pickupInfo, position, velocity);
+                        _patchDisabled = true;
+                        try
+                        {
+                            PickupDropletController.CreatePickupDroplet(pickupInfo, position, velocity);
+                        }
+                        finally
+                        {
+                            _patchDisabled = false;
+                        }
                     }
                 }
 
