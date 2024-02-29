@@ -73,7 +73,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
         protected void processVoteMessage(string userId, string message)
         {
             if (_effectVoteSelection.IsVoteActive &&
-                int.TryParse(message, out int voteNumber))
+                byte.TryParse(message, out byte voteNumber))
             {
                 int voteOptionIndex = getVoteIndex(voteNumber);
 
