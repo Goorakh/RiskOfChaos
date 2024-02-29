@@ -33,6 +33,8 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             }
         }
 
+        protected override Configs.ChatVoting.ChatVotingMode votingMode { get; } = Configs.ChatVoting.ChatVotingMode.Twitch;
+
         static TwitchLoginCredentials _loginCredentials = TwitchLoginCredentials.TryReadFromFile();
 
         [SystemInitializer]

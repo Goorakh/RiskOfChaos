@@ -11,5 +11,8 @@ namespace RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers
 
         [DataMember(Name = "leat")]
         public float LastEffectActivationTime;
+
+        [DataMember(Name = "cvd")]
+        public EffectActivationSignalerChatVoteData ChatVoteData;
     }
 }

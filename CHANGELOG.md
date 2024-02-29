@@ -42,6 +42,9 @@
 * Increase & Decrease World Speed:
   * Fixed some player attack sounds playing with the wrong audio pitch
 
+* ProperSave compatibility:
+  * Fixed effect chat voting data not being saved
+
 * Config
   * The mod now properly integrates config value restriction (value restrictions are now displayed in the r2modman config editor)
 

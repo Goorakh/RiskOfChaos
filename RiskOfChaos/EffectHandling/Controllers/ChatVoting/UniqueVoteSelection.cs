@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 {
@@ -8,6 +9,11 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
         public UniqueVoteSelection(int numOptions) : base(numOptions)
         {
+        }
+
+        public IEnumerable<TVoteKey> GetVoteKeys(int voteIndex)
+        {
+            return _voteByKey.Where(kvp => kvp.Value == voteIndex).Select(kvp => kvp.Key).Distinct();
         }
 
         public void SetVote(TVoteKey key, int optionIndex)

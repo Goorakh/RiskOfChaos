@@ -1,5 +1,8 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectDefinitions;
+using RiskOfChaos.SaveHandling;
+using RiskOfChaos.SaveHandling.DataContainers;
+using RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers;
 using RiskOfChaos.UI;
 using RiskOfChaos.UI.ChatVoting;
 using RiskOfChaos.Utilities.Extensions;
@@ -11,7 +14,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 {
-    public class ChaosEffectActivationSignaler_ChatVote : ChaosEffectActivationSignaler
+    public abstract class ChaosEffectActivationSignaler_ChatVote : ChaosEffectActivationSignaler
     {
         public delegate void OnEffectVotingFinishedDelegate(in EffectVoteResult result);
         public static event OnEffectVotingFinishedDelegate OnEffectVotingFinishedServer;
@@ -21,6 +24,8 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
         public override event SignalShouldDispatchEffectDelegate SignalShouldDispatchEffect;
 
         public event Action OnVotingStarted;
+
+        protected abstract Configs.ChatVoting.ChatVotingMode votingMode { get; }
 
         protected UniqueVoteSelection<string, EffectVoteInfo> _effectVoteSelection;
 
@@ -32,6 +37,28 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
         int _voteStartCount;
         bool _offsetVoteNumbers;
+
+        int getVoteNumber(int voteIndex)
+        {
+            if (_offsetVoteNumbers)
+            {
+                voteIndex += numVoteOptions;
+            }
+
+            // 0-indexed to 1-indexed
+            return voteIndex + 1;
+        }
+
+        int getVoteIndex(int voteNumber)
+        {
+            if (_offsetVoteNumbers)
+            {
+                voteNumber -= _effectVoteSelection.NumOptions;
+            }
+
+            // 1-indexed to 0-indexed
+            return voteNumber - 1;
+        }
 
         public override void SkipAllScheduledEffects()
         {
@@ -46,15 +73,9 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
         protected void processVoteMessage(string userId, string message)
         {
             if (_effectVoteSelection.IsVoteActive &&
-                int.TryParse(message, out int voteOptionIndex))
+                int.TryParse(message, out int voteNumber))
             {
-                if (_offsetVoteNumbers)
-                {
-                    voteOptionIndex -= _effectVoteSelection.NumOptions;
-                }
-
-                // 1-indexed to 0-indexed
-                voteOptionIndex--;
+                int voteOptionIndex = getVoteIndex(voteNumber);
 
                 if (_effectVoteSelection.IsValidOptionIndex(voteOptionIndex))
                 {
@@ -89,6 +110,99 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             Configs.ChatVoting.WinnerSelectionMode.SettingChanged += onVoteWinnerSelectionModeChanged;
 
             ChaosEffectVoteDisplayController.OnDisplayControllerCreated += onEffectDisplayControllerCreated;
+
+            if (SaveManager.UseSaveData)
+            {
+                SaveManager.CollectSaveData += SaveManager_CollectSaveData;
+                SaveManager.LoadSaveData += SaveManager_LoadSaveData;
+            }
+        }
+
+        protected void SaveManager_CollectSaveData(ref SaveContainer container)
+        {
+            ref EffectActivationSignalerData data = ref container.ActivationSignalerData;
+            if (data is not null || data.ChatVoteData is not null)
+                return;
+
+            data = new EffectActivationSignalerData
+            {
+                NextEffectRng = new SerializableRng(_rng),
+                LastEffectActivationTime = _voteTimer.GetLastActivationTimeStopwatch(),
+                ChatVoteData = new EffectActivationSignalerChatVoteData
+                {
+                    VotingMode = votingMode,
+                    VotesStartedCount = _voteStartCount,
+                    OffsetVoteNumbers = _offsetVoteNumbers
+                }
+            };
+
+            EffectVoteInfo[] voteOptions = _effectVoteSelection.GetVoteOptions();
+            SerializedEffectVoteInfo[] serializedVotes = new SerializedEffectVoteInfo[voteOptions.Length];
+
+            for (int i = 0; i < voteOptions.Length; i++)
+            {
+                serializedVotes[i] = new SerializedEffectVoteInfo
+                {
+                    UserVotes = _effectVoteSelection.GetVoteKeys(i).ToArray(),
+                    Effect = new SerializableEffect(voteOptions[i].EffectInfo),
+                    IsRandom = voteOptions[i].IsRandom
+                };
+            }
+
+            data.ChatVoteData.VoteSelection = serializedVotes;
+        }
+
+        protected void SaveManager_LoadSaveData(in SaveContainer container)
+        {
+            EffectActivationSignalerData data = container.ActivationSignalerData;
+            if (data is null || data.ChatVoteData is null || data.ChatVoteData.VotingMode != votingMode)
+                return;
+
+            _rng = data.NextEffectRng;
+            _voteTimer.SetLastActivationTimeStopwatch(data.LastEffectActivationTime);
+
+            _voteStartCount = data.ChatVoteData.VotesStartedCount;
+            _offsetVoteNumbers = data.ChatVoteData.OffsetVoteNumbers;
+
+            SerializedEffectVoteInfo[] serializedVotes = data.ChatVoteData.VoteSelection;
+            EffectVoteInfo[] effectVotes = new EffectVoteInfo[serializedVotes.Length];
+            for (int i = 0; i < serializedVotes.Length; i++)
+            {
+                int voteNumber = getVoteNumber(i);
+
+                if (serializedVotes[i].IsRandom)
+                {
+                    effectVotes[i] = EffectVoteInfo.Random(voteNumber);
+                }
+                else
+                {
+                    effectVotes[i] = new EffectVoteInfo(serializedVotes[i].Effect.EffectInfo, voteNumber);
+                }
+            }
+
+            _effectVoteSelection.NumOptions = effectVotes.Length;
+            _effectVoteSelection.StartVote(effectVotes);
+
+            for (int i = 0; i < serializedVotes.Length; i++)
+            {
+                foreach (string userId in serializedVotes[i].UserVotes)
+                {
+                    _effectVoteSelection.SetVote(userId, i);
+                }
+            }
+
+            _voteOptionsDirty = true;
+
+            if (ChaosUIController.Instance)
+            {
+                ChaosEffectVoteDisplayController effectVoteDisplayController = ChaosUIController.Instance.EffectVoteDisplayController;
+                if (effectVoteDisplayController)
+                {
+                    effectVoteDisplayController.DisplayVote(effectVotes);
+                }
+            }
+
+            OnVotingStarted?.Invoke();
         }
 
         void onDisableEffectDispatchingChanged(object s, ConfigChangedArgs<bool> args)
@@ -200,6 +314,12 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             }
 
             ChaosEffectVoteDisplayController.OnDisplayControllerCreated -= onEffectDisplayControllerCreated;
+
+            if (SaveManager.UseSaveData)
+            {
+                SaveManager.CollectSaveData -= SaveManager_CollectSaveData;
+                SaveManager.LoadSaveData -= SaveManager_LoadSaveData;
+            }
         }
 
         void onTimeBetweenEffectsChanged(object s, ConfigChangedArgs<float> args)
@@ -233,7 +353,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             EffectVoteInfo[] voteOptions = new EffectVoteInfo[numOptions];
             for (int i = 0; i < numOptions; i++)
             {
-                int voteNumber = (_offsetVoteNumbers ? numOptions : 0) + i + 1;
+                int voteNumber = getVoteNumber(i);
 
                 if (Configs.ChatVoting.IncludeRandomEffectInVote.Value && i == numOptions - 1)
                 {

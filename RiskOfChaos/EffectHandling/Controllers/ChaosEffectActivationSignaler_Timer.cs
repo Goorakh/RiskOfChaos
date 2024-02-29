@@ -151,7 +151,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         void SaveManager_LoadSaveData(in SaveContainer container)
         {
             EffectActivationSignalerData data = container.ActivationSignalerData;
-            if (data is null)
+            if (data is null || data.ChatVoteData is not null)
                 return;
 
             _nextEffectRNG = data.NextEffectRng;
@@ -164,6 +164,9 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void SaveManager_CollectSaveData(ref SaveContainer container)
         {
+            if (container.ActivationSignalerData is not null)
+                return;
+
             container.ActivationSignalerData = new EffectActivationSignalerData
             {
                 NextEffectRng = new SerializableRng(_nextEffectRNG),
