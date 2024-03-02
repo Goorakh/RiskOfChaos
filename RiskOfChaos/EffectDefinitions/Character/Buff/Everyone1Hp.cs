@@ -25,6 +25,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
             {
                 playerBody.AddTimedBuff(RoR2Content.Buffs.HiddenInvincibility, 1f);
+
+                Util.CleanseBody(playerBody, false, false, false, true, false, false);
             }
 
             base.OnStart();

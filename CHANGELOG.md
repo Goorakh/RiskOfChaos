@@ -34,6 +34,9 @@
 * Disable Equipment:
   * Fixed Executive Card still being usable while effect is active
 
+* One Hit KO:
+  * Now removes all DOT's on players when activated, so you don't immediately die if the effect activates while you are on fire
+
 * Kill All (Non-Boss) Enemies & Launch Everyone in Random Directions:
   * Can no longer kill Leonard
 
