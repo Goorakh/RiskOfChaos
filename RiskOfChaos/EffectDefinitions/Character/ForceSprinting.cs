@@ -1,14 +1,15 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectUtils.Character.AllSkillsAgile;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosTimedEffect("disable_sprinting", 30f, AllowDuplicates = false, DefaultSelectionWeight = 0.8f, IsNetworked = true)]
-    [IncompatibleEffects(typeof(ForceSprinting))]
-    public sealed class DisableSprinting : TimedEffect
+    [ChaosTimedEffect("force_sprinting", 60f, AllowDuplicates = false, IsNetworked = true)]
+    [IncompatibleEffects(typeof(DisableSprinting))]
+    public sealed class ForceSprinting : TimedEffect
     {
         [EffectCanActivate]
         static bool CanActivate()
@@ -18,11 +19,13 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         public override void OnStart()
         {
+            OverrideSkillsAgile.AllSkillsAgileCount++;
+
             CharacterBody.readOnlyInstancesList.TryDo(body =>
             {
                 if (body.hasEffectiveAuthority)
                 {
-                    body.isSprinting = false;
+                    body.isSprinting = true;
                 }
             });
 
@@ -31,6 +34,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         public override void OnEnd()
         {
+            OverrideSkillsAgile.AllSkillsAgileCount--;
+
             SetIsSprintingOverride.OverrideCharacterSprinting -= SetIsSprintingOverride_OverrideCharacterSprinting;
         }
 
@@ -38,7 +43,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             if (body.hasEffectiveAuthority)
             {
-                isSprinting = false;
+                if (body.inputBank && body.inputBank.moveVector.sqrMagnitude < 0.01f)
+                    return;
+
+                isSprinting = true;
             }
         }
     }

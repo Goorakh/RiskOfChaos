@@ -150,5 +150,6 @@
 		"EFFECT_PAUSE_RUN_TIMER_NAME": "Pause",
 		"EFFECT_DOUBLE_PICKUPS_NAME": "2x Item Drops",
 		"EFFECT_ALL_ATTACKS_SNIPER_NAME": "Enable Weak Points for All Damage",
+		"EFFECT_FORCE_SPRINTING_NAME": "Always Sprinting",
 	}
 }

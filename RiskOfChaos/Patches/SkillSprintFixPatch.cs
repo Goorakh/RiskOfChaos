@@ -1,8 +1,7 @@
 ﻿using HarmonyLib;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
-using RiskOfChaos.EffectDefinitions.Character;
-using RiskOfChaos.EffectHandling.Controllers;
+using RiskOfChaos.EffectUtils.Character.AllSkillsAgile;
 using RoR2;
 using System.Reflection;
 
@@ -49,7 +48,7 @@ namespace RiskOfChaos.Patches
 
         static bool forceAllSkillsAgileActive()
         {
-            return TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(AllSkillsAgile.EffectInfo);
+            return OverrideSkillsAgile.IsAllSkillsAgile;
         }
 
         static void fixStateSprintCancel(ILContext il)
