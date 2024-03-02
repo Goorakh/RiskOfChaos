@@ -1,12 +1,12 @@
 ﻿using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RoR2;
-using RoR2.HudOverlay;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character
@@ -14,6 +14,9 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [ChaosTimedEffect("all_attacks_sniper", 90f, AllowDuplicates = false)]
     public sealed class AllAttacksSniper : TimedEffect
     {
+        [InitEffectInfo]
+        public static new readonly TimedEffectInfo EffectInfo;
+
         static bool _appliedPatches = false;
 
         static void tryApplyPatches()
@@ -23,7 +26,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             On.RoR2.BulletAttack.Fire += (orig, self) =>
             {
-                if (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<AllAttacksSniper>().Any())
+                if (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
                 {
                     self.sniper = true;
                 }
@@ -58,7 +61,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                         c.Emit(OpCodes.Ldloc, hitPointLocalIndex);
                         c.EmitDelegate((BlastAttack.BlastAttackDamageInfo blastDamageInfo, BlastAttack.HitPoint hitPoint) =>
                         {
-                            if (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<AllAttacksSniper>().Any())
+                            if (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
                             {
                                 if (hitPoint.hurtBox.isSniperTarget)
                                 {
@@ -101,7 +104,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 orig(self, boxedHitList);
 
-                if (!TimedChaosEffectHandler.Instance || !TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<AllAttacksSniper>().Any())
+                if (!TimedChaosEffectHandler.Instance || !TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
                     return;
 
                 if (boxedHitList is List<OverlapAttack.OverlapInfo> hitList)
@@ -167,7 +170,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                         if (!overlapInfo.hurtBox || !overlapInfo.hurtBox.isSniperTarget)
                             return;
 
-                        if (!TimedChaosEffectHandler.Instance || !TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<AllAttacksSniper>().Any())
+                        if (!TimedChaosEffectHandler.Instance || !TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
                             return;
 
                         damageInfo.crit = true;

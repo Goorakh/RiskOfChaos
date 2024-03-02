@@ -1,13 +1,14 @@
 ﻿using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Patches;
 using RoR2;
 using RoR2.Skills;
 using RoR2.UI;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -17,6 +18,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
     [ChaosTimedEffect("disable_equipment_activation", 60f, AllowDuplicates = false, IsNetworked = true)]
     public sealed class DisableEquipmentActivation : TimedEffect
     {
+        [InitEffectInfo]
+        public static new readonly TimedEffectInfo EffectInfo;
+
         static Texture _lockedIconTexture;
 
         [SystemInitializer]
@@ -44,7 +48,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
                 {
                     c.EmitDelegate(() =>
                     {
-                        return TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<DisableEquipmentActivation>().Any();
+                        return TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo);
                     });
 
                     c.Emit(OpCodes.Brtrue, afterCardLogicLabel);

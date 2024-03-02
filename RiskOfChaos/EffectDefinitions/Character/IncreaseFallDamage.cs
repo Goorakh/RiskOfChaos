@@ -18,6 +18,9 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [IncompatibleEffects(typeof(DisableFallDamage))]
     public sealed class IncreaseFallDamage : TimedEffect, IDamageInfoModificationProvider
     {
+        [InitEffectInfo]
+        public static new readonly TimedEffectInfo EffectInfo;
+
         [EffectConfig]
         static readonly ConfigHolder<float> _damageIncreaseAmount =
             ConfigFactory<float>.CreateConfig("Increase Amount", 1f)

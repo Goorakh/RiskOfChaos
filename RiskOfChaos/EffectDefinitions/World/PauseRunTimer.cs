@@ -1,15 +1,18 @@
 ﻿using MonoMod.Cil;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
-using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RoR2;
-using System.Linq;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosTimedEffect("pause_run_timer", 60f, AllowDuplicates = false)]
     public sealed class PauseRunTimer : TimedEffect
     {
+        [InitEffectInfo]
+        public static new readonly TimedEffectInfo EffectInfo;
+
         static bool _appliedPatches = false;
         static void tryApplyPatches()
         {
@@ -24,7 +27,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 {
                     c.EmitDelegate((bool isPaused) =>
                     {
-                        return isPaused || (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<PauseRunTimer>().Any());
+                        return isPaused || (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo));
                     });
                 }
             };
