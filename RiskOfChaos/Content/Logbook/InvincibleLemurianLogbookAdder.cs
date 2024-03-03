@@ -34,9 +34,9 @@ namespace RiskOfChaos.Content.Logbook
             StatDef.Register("invincibleElderLemuriansKilledBy", StatRecordType.Sum, StatDataType.ULong, 0),
             StatDef.Register("invincibleElderLemuriansKilled", StatRecordType.Sum, StatDataType.ULong, 0));
 
-        public static LemurianStatCollection GetStatCollection(bool isElder)
+        public static ref readonly LemurianStatCollection GetStatCollection(bool isElder)
         {
-            return isElder ? ElderLemurianStats : LemurianStats;
+            return ref isElder ? ref ElderLemurianStats : ref LemurianStats;
         }
 
         [ConCommand(commandName = "roc_debug_reset_leonard_stats")]
@@ -138,7 +138,7 @@ namespace RiskOfChaos.Content.Logbook
                         {
                             bool isElder = report.attackerBodyIndex == BodyCatalog.FindBodyIndex("LemurianBruiserBody");
 
-                            LemurianStatCollection lemurianStatCollection = GetStatCollection(isElder);
+                            ref readonly LemurianStatCollection lemurianStatCollection = ref GetStatCollection(isElder);
 
                             victimStatSheet.PushStatValue(lemurianStatCollection.KilledByStat, 1);
 
@@ -156,7 +156,7 @@ namespace RiskOfChaos.Content.Logbook
                     {
                         bool isElder = report.victimBodyIndex == BodyCatalog.FindBodyIndex("LemurianBruiserBody");
 
-                        LemurianStatCollection lemurianStatCollection = GetStatCollection(isElder);
+                        ref readonly LemurianStatCollection lemurianStatCollection = ref GetStatCollection(isElder);
 
                         foreach (PlayerStatsComponent statsComponent in PlayerStatsComponent.instancesList)
                         {
@@ -177,7 +177,7 @@ namespace RiskOfChaos.Content.Logbook
         {
             Entry[] entries = orig(expansionAvailability);
 
-            static EntryStatus getLeonardEntryStatus(UserProfile viewerProfile, LemurianStatCollection statCollection)
+            static EntryStatus getLeonardEntryStatus(UserProfile viewerProfile, in LemurianStatCollection statCollection)
             {
                 StatSheet statSheet = viewerProfile.statSheet;
 
@@ -206,7 +206,7 @@ namespace RiskOfChaos.Content.Logbook
                 ]);
             }
 
-            static void addLeonardUserStats(PageBuilder builder, CharacterBody body, LemurianStatCollection statCollection)
+            static void addLeonardUserStats(PageBuilder builder, CharacterBody body, in LemurianStatCollection statCollection)
             {
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 StatSheet statSheet = builder.statSheet;
