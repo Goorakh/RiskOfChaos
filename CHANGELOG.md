@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**1.14.0 Changes:**
 
 * Added 7 new effects:
   * Activate All Interactables: Interacts with most interactable objects on the stage (chests, shrines)
