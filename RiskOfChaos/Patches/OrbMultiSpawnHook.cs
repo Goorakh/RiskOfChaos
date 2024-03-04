@@ -26,7 +26,7 @@ namespace RiskOfChaos.Patches
                                          && ProjectileModificationManager.Instance
                                          && ProjectileModificationManager.Instance.NetworkedExtraSpawnCount > 0;
 
-            // Clone original orb to use as a template, otherwise changes to the instance will chance all the repeat orbs
+            // Clone original orb to use as a template, otherwise changes to the original instance will affect all the repeat orbs
             Orb orbTemplate = shouldSpawnAdditional ? OrbUtils.Clone(orb) : null;
 
             orig(self, orb);
