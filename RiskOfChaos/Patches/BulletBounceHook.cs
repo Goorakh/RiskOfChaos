@@ -35,11 +35,12 @@ namespace RiskOfChaos.Patches
         static void Init()
         {
             IL.RoR2.BulletAttack.FireSingle += BulletAttack_FireSingle_CreateBounceBullet;
-            IL.RoR2.BulletAttack.FireSingle += BulletAttack_FireSingle_FixTracerEffectOrigin;
 
             On.RoR2.BulletAttack.FireSingle += BulletAttack_FireSingle;
 
             On.RoR2.BulletAttack.DefaultFilterCallbackImplementation += BulletAttack_DefaultFilterCallbackImplementation_IgnoreBounceSource;
+
+            OverrideBulletTracerOriginExplicitPatch.UseExplicitOriginPosition += _ => _currentBulletBounceDepth > 0;
         }
 
         static void BulletAttack_FireSingle(On.RoR2.BulletAttack.orig_FireSingle orig, BulletAttack self, Vector3 normal, int muzzleIndex)
@@ -179,31 +180,6 @@ namespace RiskOfChaos.Patches
             else
             {
                 Log.Error("Failed to find hitList local index");
-            }
-        }
-
-        static void BulletAttack_FireSingle_FixTracerEffectOrigin(ILContext il)
-        {
-            ILCursor c = new ILCursor(il);
-
-            if (c.TryGotoNext(x => x.MatchCallOrCallvirt<EffectData>(nameof(EffectData.SetChildLocatorTransformReference))))
-            {
-                if (c.TryGotoPrev(MoveType.After, x => x.MatchLdfld<BulletAttack>(nameof(BulletAttack.weapon))))
-                {
-                    c.EmitDelegate((GameObject weapon) =>
-                    {
-                        // If an object reference is passed here, the tracer effect origin will always be at the barrel of the gun that fired it, so just pretend it doesn't exist if the current bullet is bounced :)
-                        return _currentBulletBounceDepth > 0 ? null : weapon;
-                    });
-                }
-                else
-                {
-                    Log.Error("Failed to find weapon ldfld");
-                }
-            }
-            else
-            {
-                Log.Error("Failed to find EffectData.SetChildLocatorTransformReference call");
             }
         }
 

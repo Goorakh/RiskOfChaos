@@ -1,11 +1,10 @@
 ﻿using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using RiskOfChaos.Content.Orbs;
 using RiskOfChaos.ModifierController.Projectile;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Orbs;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -69,12 +68,8 @@ namespace RiskOfChaos.Patches
             if (!isEnabled || !OrbManager.instance || orbInstance == null)
                 return;
 
-            switch (orbInstance)
-            {
-                case ItemTransferOrb:
-                case EquipmentTransferOrb:
-                    return;
-            }
+            if (OrbUtils.IsTransferOrb(orbInstance))
+                return;
 
             if (_orbBouncesRemaining.TryGetValue(orbInstance, out int bouncesRemaining))
             {
@@ -143,27 +138,7 @@ namespace RiskOfChaos.Patches
             float targetIndexFraction = RoR2Application.rng.nextNormalizedFloat;
             HurtBox newTarget = validTargets[Mathf.RoundToInt(Mathf.Pow(targetIndexFraction, 4f) * (validTargets.Count - 1))];
 
-            Orb newOrb;
-            try
-            {
-                if (orbInstance is ChainGunOrb chainGunOrb)
-                {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                    newOrb = new ChainGunOrb(chainGunOrb.orbEffectPrefab);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-                }
-                else
-                {
-                    newOrb = (Orb)Activator.CreateInstance(orbInstance.GetType());
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error_NoCallerPrefix($"Failed to create new orb from {orbInstance}: {ex}");
-                return;
-            }
-
-            orbInstance.ShallowCopy(ref newOrb);
+            Orb newOrb = OrbUtils.Clone(orbInstance);
 
             newOrb.origin = newOrbOrigin;
             newOrb.target = newTarget;

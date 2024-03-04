@@ -10,6 +10,8 @@ namespace RiskOfChaos.ModifierController.Projectile
         public uint BulletBounceCount;
         public uint OrbBounceCount;
 
+        public byte ExtraSpawnCount = 0;
+
         public ProjectileModificationData()
         {
         }
@@ -21,7 +23,8 @@ namespace RiskOfChaos.ModifierController.Projectile
                 SpeedMultiplier = interpolationType.Interpolate(a.SpeedMultiplier, b.SpeedMultiplier, t),
                 ProjectileBounceCount = interpolationType.Interpolate(a.ProjectileBounceCount, b.ProjectileBounceCount, t),
                 BulletBounceCount = interpolationType.Interpolate(a.BulletBounceCount, b.BulletBounceCount, t),
-                OrbBounceCount = interpolationType.Interpolate(a.OrbBounceCount, b.OrbBounceCount, t)
+                OrbBounceCount = interpolationType.Interpolate(a.OrbBounceCount, b.OrbBounceCount, t),
+                ExtraSpawnCount = interpolationType.Interpolate(a.ExtraSpawnCount, b.ExtraSpawnCount, t),
             };
         }
     }

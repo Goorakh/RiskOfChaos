@@ -1,5 +1,5 @@
-﻿using System.Runtime.InteropServices;
-using RiskOfChaos.Utilities.Interpolation;
+﻿using RiskOfChaos.Utilities.Interpolation;
+using System.Runtime.InteropServices;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.Projectile
@@ -78,6 +78,21 @@ namespace RiskOfChaos.ModifierController.Projectile
             }
         }
 
+        const uint EXTRA_SPAWN_COUNT_DIRTY_BIT = 1 << 5;
+
+        byte _extraSpawnCount;
+        public byte NetworkedExtraSpawnCount
+        {
+            get
+            {
+                return _extraSpawnCount;
+            }
+            set
+            {
+                SetSyncVar(value, ref _extraSpawnCount, EXTRA_SPAWN_COUNT_DIRTY_BIT);
+            }
+        }
+
         public override ProjectileModificationData InterpolateValue(in ProjectileModificationData a, in ProjectileModificationData b, float t)
         {
             return ProjectileModificationData.Interpolate(a, b, t, ValueInterpolationFunctionType.Linear);
@@ -91,6 +106,8 @@ namespace RiskOfChaos.ModifierController.Projectile
             NetworkedProjectileBounceCount = modificationData.ProjectileBounceCount;
             NetworkedBulletBounceCount = modificationData.BulletBounceCount;
             NetworkedOrbBounceCount = modificationData.OrbBounceCount;
+
+            NetworkedExtraSpawnCount = modificationData.ExtraSpawnCount;
         }
 
         protected override void OnEnable()
@@ -116,6 +133,7 @@ namespace RiskOfChaos.ModifierController.Projectile
                 writer.WritePackedUInt32(_projectileBounceCount);
                 writer.WritePackedUInt32(_bulletBounceCount);
                 writer.WritePackedUInt32(_orbBounceCount);
+                writer.Write(_extraSpawnCount);
                 return true;
             }
 
@@ -145,6 +163,12 @@ namespace RiskOfChaos.ModifierController.Projectile
                 anythingWritten = true;
             }
 
+            if ((dirtyBits & EXTRA_SPAWN_COUNT_DIRTY_BIT) != 0)
+            {
+                writer.Write(_extraSpawnCount);
+                anythingWritten = true;
+            }
+
             return baseResult || anythingWritten;
         }
 
@@ -158,6 +182,7 @@ namespace RiskOfChaos.ModifierController.Projectile
                 _projectileBounceCount = reader.ReadPackedUInt32();
                 _bulletBounceCount = reader.ReadPackedUInt32();
                 _orbBounceCount = reader.ReadPackedUInt32();
+                _extraSpawnCount = reader.ReadByte();
                 return;
             }
 
@@ -179,6 +204,11 @@ namespace RiskOfChaos.ModifierController.Projectile
             if ((dirtyBits & ORB_BOUNCE_COUNT_DIRTY_BIT) != 0)
             {
                 _orbBounceCount = reader.ReadPackedUInt32();
+            }
+
+            if ((dirtyBits & EXTRA_SPAWN_COUNT_DIRTY_BIT) != 0)
+            {
+                _extraSpawnCount = reader.ReadByte();
             }
         }
     }

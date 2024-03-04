@@ -23,6 +23,11 @@ namespace RiskOfChaos.Utilities.Interpolation
             };
         }
 
+        public static byte Interpolate(this ValueInterpolationFunctionType type, byte a, byte b, float t)
+        {
+            return (byte)Mathf.Round(type.Interpolate(a, (float)b, t));
+        }
+
         public static uint Interpolate(this ValueInterpolationFunctionType type, uint a, uint b, float t)
         {
             return (uint)Mathf.Round(type.Interpolate(a, (float)b, t));

@@ -151,5 +151,6 @@
 		"EFFECT_DOUBLE_PICKUPS_NAME": "2x Item Drops",
 		"EFFECT_ALL_ATTACKS_SNIPER_NAME": "Enable Weak Points for All Damage",
 		"EFFECT_FORCE_SPRINTING_NAME": "Always Sprinting",
+		"EFFECT_REPEAT_PROJECTILES_NAME": "Repeating Projectiles",
 	}
 }

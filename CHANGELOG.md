@@ -1,6 +1,12 @@
 ## Changelog
 
-**1.14.0 Changes:**
+**?.?.? Changes:**
+
+* Added 1 new effect:
+  * Repeating Projectiles: All projectiles spawn an additional 5 copies after a delay, lasts 90 seconds
+
+<details>
+  <summary>1.14.0 Changes:</summary>
 
 * Added 7 new effects:
   * Activate All Interactables: Interacts with most interactable objects on the stage (chests, shrines)
@@ -51,6 +57,8 @@
 
 * Config
   * The mod now properly integrates config value restriction (value restrictions are now displayed in the r2modman config editor)
+
+</details>
 
 <details>
   <summary>1.13.10 Changes:</summary>
