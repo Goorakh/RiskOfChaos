@@ -1,7 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 
-#pragma warning disable CS0652 // Comparison to integral constant is useless; the constant is outside the range of the type
-
 namespace RiskOfChaos.Utilities
 {
     public static class ClampedConversion
@@ -12,8 +10,9 @@ namespace RiskOfChaos.Utilities
             if (value > int.MaxValue)
                 return int.MaxValue;
 
-            if (value < int.MinValue)
-                return int.MinValue;
+            // Comparison to integral constant is useless; the constant is outside the range of the type
+            // if (value < int.MinValue)
+            //     return int.MinValue;
 
             return (int)value;
         }
@@ -33,8 +32,9 @@ namespace RiskOfChaos.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint UInt32(int value)
         {
-            if (value > uint.MaxValue)
-                return uint.MaxValue;
+            // Comparison to integral constant is useless; the constant is outside the range of the type
+            // if (value > uint.MaxValue)
+            //     return uint.MaxValue;
 
             if (value < uint.MinValue)
                 return uint.MinValue;
