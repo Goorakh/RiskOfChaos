@@ -60,6 +60,27 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
+        readonly ConfigHolder<bool> _alwaysActiveEnabled;
+        readonly ConfigHolder<int> _alwaysActiveStackCount;
+
+        public int AlwaysActiveCount
+        {
+            get
+            {
+                if (!_alwaysActiveEnabled.Value)
+                    return 0;
+
+                if (AllowDuplicates && _alwaysActiveStackCount != null)
+                {
+                    return _alwaysActiveStackCount.Value;
+                }
+                else
+                {
+                    return 1;
+                }
+            }
+        }
+
         public TimedEffectInfo(ChaosEffectIndex effectIndex, ChaosTimedEffectAttribute attribute, ConfigFile configFile) : base(effectIndex, attribute, configFile)
         {
             _timedType = ConfigFactory<TimedEffectType>.CreateConfig("Duration Type", attribute.TimedType)
@@ -108,6 +129,27 @@ namespace RiskOfChaos.EffectHandling
                                        .Build();
             }
 
+            _alwaysActiveEnabled =
+                ConfigFactory<bool>.CreateConfig("Permanently Active", false)
+                                   .Description(_allowDuplicates ? "If one or more instances of this effect should always be active during a run" : "If this effect should always be active during a run")
+                                   .OptionConfig(new CheckBoxConfig())
+                                   .Build();
+
+            if (_allowDuplicates)
+            {
+                _alwaysActiveStackCount =
+                    ConfigFactory<int>.CreateConfig("Permanently Active Duplicate Count", 1)
+                                      .Description("How many instances of this effect should always be active, only takes effect if 'Permanently Active' is set to true and 'Allow Duplicates' is set to true")
+                                      .AcceptableValues(new AcceptableValueMin<int>(1))
+                                      .OptionConfig(new IntSliderConfig
+                                      {
+                                          min = 1,
+                                          max = 20,
+                                          checkIfDisabled = () => !_alwaysActiveEnabled.Value || !AllowDuplicates
+                                      })
+                                      .Build();
+            }
+
             HideFromEffectsListWhenPermanent = attribute.HideFromEffectsListWhenPermanent;
 
             IgnoreDurationModifiers = attribute.IgnoreDurationModifiers;
@@ -124,6 +166,10 @@ namespace RiskOfChaos.EffectHandling
             _stageCountDuration?.Bind(this);
 
             _allowDuplicatesOverrideConfig?.Bind(this);
+
+            _alwaysActiveEnabled?.Bind(this);
+
+            _alwaysActiveStackCount?.Bind(this);
         }
 
         public override bool CanActivate(in EffectCanActivateContext context)
@@ -182,9 +228,9 @@ namespace RiskOfChaos.EffectHandling
             {
                 if (NetworkServer.active)
                 {
-                    timedEffect.TimedType = TimedType;
+                    timedEffect.TimedType = args.OverrideDurationType ?? TimedType;
 
-                    if (TimedType == TimedEffectType.FixedDuration)
+                    if (timedEffect.TimedType == TimedEffectType.FixedDuration)
                     {
                         timedEffect.DurationSeconds = DurationSeconds;
                     }

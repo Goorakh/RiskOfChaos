@@ -351,7 +351,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 #if DEBUG
                 Log.Debug($"Initializing effect {effect} with rng seed {rngSeed}");
 #endif
-                createEffectArgs = new CreateEffectInstanceArgs(_effectDispatchCount++, rngSeed);
+                createEffectArgs = new CreateEffectInstanceArgs(_effectDispatchCount++, rngSeed, args.OverrideDurationType);
             }
             else
             {

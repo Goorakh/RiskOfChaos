@@ -7,6 +7,7 @@ using RiskOfChaos.SaveHandling.DataContainers;
 using RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers;
 using RoR2;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -90,10 +91,41 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             Stage.onServerStageComplete += onServerStageComplete;
 
-            if (NetworkServer.active && SaveManager.UseSaveData)
+            if (NetworkServer.active)
             {
-                SaveManager.CollectSaveData += SaveManager_CollectSaveData;
-                SaveManager.LoadSaveData += SaveManager_LoadSaveData;
+                static IEnumerator waitThenStartAlwaysActiveEffects()
+                {
+                    // HACK: Arbitrary delay for clients to be ready for the effects
+                    yield return new WaitForSeconds(0.5f);
+
+                    if (!Run.instance || !ChaosEffectDispatcher.Instance)
+                        yield break;
+
+                    Xoroshiro128Plus alwaysActiveEffectRNG = new Xoroshiro128Plus(Run.instance.seed);
+
+                    foreach (TimedEffectInfo timedEffectInfo in ChaosEffectCatalog.AllTimedEffects)
+                    {
+                        for (int i = timedEffectInfo.AlwaysActiveCount - 1; i >= 0; i--)
+                        {
+                            ChaosEffectDispatchArgs dispatchArgs = new ChaosEffectDispatchArgs
+                            {
+                                DispatchFlags = EffectDispatchFlags.DontPlaySound | EffectDispatchFlags.DontSendChatMessage,
+                                OverrideRNGSeed = alwaysActiveEffectRNG.nextUlong,
+                                OverrideDurationType = TimedEffectType.AlwaysActive
+                            };
+
+                            ChaosEffectDispatcher.Instance.DispatchEffect(timedEffectInfo, dispatchArgs);
+                        }
+                    }
+                }
+
+                StartCoroutine(waitThenStartAlwaysActiveEffects());
+
+                if (SaveManager.UseSaveData)
+                {
+                    SaveManager.CollectSaveData += SaveManager_CollectSaveData;
+                    SaveManager.LoadSaveData += SaveManager_LoadSaveData;
+                }
             }
         }
 

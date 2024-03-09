@@ -7,6 +7,7 @@ namespace RiskOfChaos.EffectHandling
         UntilStageEnd,
         FixedDuration,
         Permanent,
+        AlwaysActive
     }
 
     [Flags]
@@ -16,6 +17,7 @@ namespace RiskOfChaos.EffectHandling
         UntilStageEnd = 1 << TimedEffectType.UntilStageEnd,
         FixedDuration = 1 << TimedEffectType.FixedDuration,
         Permanent = 1 << TimedEffectType.Permanent,
+        AlwaysActive = 1 << TimedEffectType.AlwaysActive,
         All = ~0b0
     }
 }

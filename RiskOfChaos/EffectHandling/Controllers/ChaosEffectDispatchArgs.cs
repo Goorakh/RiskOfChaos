@@ -13,6 +13,9 @@ namespace RiskOfChaos.EffectHandling.Controllers
         [IgnoreDataMember]
         public ulong? OverrideRNGSeed;
 
+        [IgnoreDataMember]
+        public TimedEffectType? OverrideDurationType;
+
         public ChaosEffectDispatchArgs()
         {
         }

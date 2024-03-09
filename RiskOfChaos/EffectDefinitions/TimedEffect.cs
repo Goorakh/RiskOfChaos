@@ -24,6 +24,14 @@ namespace RiskOfChaos.EffectDefinitions
             return (flags & (TimedEffectFlags)(1 << (byte)TimedType)) != 0;
         }
 
+        public virtual bool ShouldDisplayOnHUD
+        {
+            get
+            {
+                return EffectInfo.ShouldDisplayOnHUD && (TimedType != TimedEffectType.AlwaysActive || Configs.UI.DisplayAlwaysActiveEffects.Value);
+            }
+        }
+
         float _maxStocks = 1;
         public float MaxStocks
         {

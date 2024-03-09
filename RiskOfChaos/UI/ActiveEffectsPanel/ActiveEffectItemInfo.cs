@@ -40,7 +40,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
             RemainingStocks = effectInstance.StocksRemaining;
 
-            ShouldDisplay = EffectInfo.ShouldDisplayOnHUD;
+            ShouldDisplay = effectInstance.ShouldDisplayOnHUD;
         }
 
         private ActiveEffectItemInfo(NetworkReader reader)

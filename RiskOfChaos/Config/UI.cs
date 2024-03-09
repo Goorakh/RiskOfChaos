@@ -23,6 +23,15 @@ namespace RiskOfChaos
 
             static bool activeEffectsPanelHidden() => HideActiveEffectsPanel.Value;
 
+            public static readonly ConfigHolder<bool> DisplayAlwaysActiveEffects =
+                ConfigFactory<bool>.CreateConfig("Display Permanently Active Effects", false)
+                                   .Description("If effects configured to always be active should be displayed in the active effects panel")
+                                   .OptionConfig(new CheckBoxConfig
+                                   {
+                                       checkIfDisabled = activeEffectsPanelHidden
+                                   })
+                                   .Build();
+
             public static readonly ConfigHolder<Color> ActiveEffectsTextColor =
                 ConfigFactory<Color>.CreateConfig("Active Effect Text Color", Color.white)
                                     .Description("The color of the effect names in the \"Active Effects\" list")
@@ -77,6 +86,8 @@ namespace RiskOfChaos
                 }
 
                 bindConfig(HideActiveEffectsPanel);
+
+                bindConfig(DisplayAlwaysActiveEffects);
 
                 bindConfig(ActiveEffectsTextColor);
 
