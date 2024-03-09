@@ -426,7 +426,31 @@ namespace RiskOfChaos.EffectHandling.Controllers
             if (!NetworkServer.active || !Run.instance || !_instance || !_instance.enabled)
                 return;
 
-            _instance.endTimedEffects(TimedEffectFlags.All);
+            _instance.endTimedEffects(TimedEffectFlags.UntilStageEnd | TimedEffectFlags.FixedDuration | TimedEffectFlags.Permanent);
+        }
+
+        [ConCommand(commandName = "roc_list_active_effects", helpText = "Prints all active effects to the console")]
+        static void CCListActiveEffects(ConCommandArgs args)
+        {
+            if (!_instance || !_instance.enabled)
+                return;
+
+            foreach (ActiveTimedEffectInfo activeEffect in _instance._activeTimedEffects)
+            {
+                Debug.Log($"{activeEffect.EffectInstance.EffectInfo.GetLocalDisplayName(EffectNameFormatFlags.RuntimeFormatArgs)} ID={activeEffect.EffectInstance.DispatchID}");
+            }
+        }
+
+        [ConCommand(commandName = "roc_end_effect", flags = ConVarFlags.SenderMustBeServer, helpText = "Ends an effect with the specified ID, use roc_list_active_effects to get the IDs of all active effects")]
+        static void CCEndTimedEffect(ConCommandArgs args)
+        {
+            if (!NetworkServer.active || !Run.instance || !_instance || !_instance.enabled)
+                return;
+
+            args.CheckArgumentCount(1);
+
+            ulong dispatchID = args.GetArgULong(0);
+            _instance.endTimedEffectWithDispatchID(dispatchID, true);
         }
     }
 }

@@ -5,6 +5,12 @@
 * Added 1 new effect:
   * Repeating Projectiles: All projectiles spawn an additional 5 copies after a delay, lasts 90 seconds
 
+* Console:
+  * Added command: roc_list_active_effects
+    * Prints all active effects and their IDs
+  * Added command: roc_end_effect
+    * Ends a specific active effect by its ID
+
 <details>
   <summary>1.14.0 Changes:</summary>
 
