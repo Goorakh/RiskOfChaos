@@ -39,6 +39,7 @@ namespace RiskOfChaos.Content
             BodyPrefabs.AddBodyPrefabsTo(_contentPack.bodyPrefabs);
             Effects.AddEffectDefsTo(_contentPack.effectDefs);
             EntityStateTypeAttribute.AddStateTypesTo(_contentPack.entityStateTypes);
+            Unlockables.AddUnlockablesTo(_contentPack.unlockableDefs);
 
             args.ReportProgress(1f);
             yield break;

@@ -19,5 +19,8 @@
 		"LOGBOOK_INVINCIBLE_LEMURIAN_KILLS_FORMAT": "Vanquished: <style=cEvent>{0}</style>",
 
 		"LOGBOOK_UNLOCK_ITEM_INVINCIBLE_LEMURIAN": "Vanquish or surrender yourself to <color=#E9848D><size=120%>Him</size></color> to unlock this log entry.",
+
+		"UNLOCKABLE_LOG_INVINCIBLE_LEMURIAN": "Log: Leonard",
+		"UNLOCKABLE_LOG_INVINCIBLE_LEMURIAN_ELDER": "Log: Elder Leonard",
 	}
 }

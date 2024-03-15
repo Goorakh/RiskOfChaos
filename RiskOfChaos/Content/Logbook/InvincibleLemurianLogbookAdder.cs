@@ -23,14 +23,16 @@ namespace RiskOfChaos.Content.Logbook
         static CharacterBody _lemurianBruiserBodyPrefab;
         static GameObject _lemurianBruiserGlowModelPrefab;
 
-        public readonly record struct LemurianStatCollection(StatDef EncounteredStat, StatDef KilledByStat, StatDef KilledStat);
+        public readonly record struct LemurianStatCollection(UnlockableDef LogUnlockableDef, StatDef EncounteredStat, StatDef KilledByStat, StatDef KilledStat);
 
         public static readonly LemurianStatCollection LemurianStats = new LemurianStatCollection(
+            Unlockables.InvincibleLemurianLogbook,
             StatDef.Register("invincibleLemuriansEncountered", StatRecordType.Sum, StatDataType.ULong, 0),
             StatDef.Register("invincibleLemuriansKilledBy", StatRecordType.Sum, StatDataType.ULong, 0),
             StatDef.Register("invincibleLemuriansKilled", StatRecordType.Sum, StatDataType.ULong, 0));
 
         public static readonly LemurianStatCollection ElderLemurianStats = new LemurianStatCollection(
+            Unlockables.InvincibleLemurianElderLogbook,
             StatDef.Register("invincibleElderLemuriansEncountered", StatRecordType.Sum, StatDataType.ULong, 0),
             StatDef.Register("invincibleElderLemuriansKilledBy", StatRecordType.Sum, StatDataType.ULong, 0),
             StatDef.Register("invincibleElderLemuriansKilled", StatRecordType.Sum, StatDataType.ULong, 0));
@@ -71,6 +73,9 @@ namespace RiskOfChaos.Content.Logbook
 
             viewedViewables.Remove("/Logbook/LOGBOOK_CATEGORY_MONSTER/INVINCIBLE_LEMURIAN_BODY_NAME");
             viewedViewables.Remove("/Logbook/LOGBOOK_CATEGORY_MONSTER/INVINCIBLE_LEMURIAN_ELDER_BODY_NAME");
+
+            userProfile.RevokeUnlockable(Unlockables.InvincibleLemurianLogbook);
+            userProfile.RevokeUnlockable(Unlockables.InvincibleLemurianElderLogbook);
 
             userProfile.RequestEventualSave();
 
@@ -143,6 +148,8 @@ namespace RiskOfChaos.Content.Logbook
 
                             victimStatSheet.PushStatValue(lemurianStatCollection.KilledByStat, 1);
 
+                            victimStatSheet.AddUnlockable(lemurianStatCollection.LogUnlockableDef);
+
 #if DEBUG
                             Log.Debug($"Recorded Leonard player kill. victim={Util.GetBestMasterName(report.victimMaster)}, isElder={isElder}");
 #endif
@@ -162,6 +169,8 @@ namespace RiskOfChaos.Content.Logbook
                         foreach (PlayerStatsComponent statsComponent in PlayerStatsComponent.instancesList)
                         {
                             statsComponent.currentStats.PushStatValue(lemurianStatCollection.KilledStat, 1);
+
+                            statsComponent.currentStats.AddUnlockable(lemurianStatCollection.LogUnlockableDef);
                         }
 
 #if DEBUG
@@ -182,11 +191,7 @@ namespace RiskOfChaos.Content.Logbook
             {
                 StatSheet statSheet = viewerProfile.statSheet;
 
-                // ulong timesEncountered = statSheet.GetStatValueULong(statCollection.EncounteredStat);
-                ulong timesKilledBy = statSheet.GetStatValueULong(statCollection.KilledByStat);
-                ulong timesKilled = statSheet.GetStatValueULong(statCollection.KilledStat);
-
-                if (timesKilledBy > 0 || timesKilled > 0)
+                if (statSheet.HasUnlockable(statCollection.LogUnlockableDef))
                 {
                     return EntryStatus.Available;
                 }
