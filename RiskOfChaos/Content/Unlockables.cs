@@ -18,22 +18,12 @@ namespace RiskOfChaos.Content
                 InvincibleLemurianLogbook = ScriptableObject.CreateInstance<UnlockableDef>();
                 InvincibleLemurianLogbook.cachedName = "Logs.InvincibleLemurian";
                 InvincibleLemurianLogbook.nameToken = "UNLOCKABLE_LOG_INVINCIBLE_LEMURIAN";
-
-                Texture2D iconTexture = Addressables.LoadAssetAsync<Texture2D>("RoR2/Base/Lemurian/LemurianBody.png").WaitForCompletion();
-                Sprite iconSprite = Sprite.Create(iconTexture, new Rect(0, 0, iconTexture.width, iconTexture.height), Vector2.zero);
-
-                InvincibleLemurianLogbook.achievementIcon = iconSprite;
             }
 
             {
                 InvincibleLemurianElderLogbook = ScriptableObject.CreateInstance<UnlockableDef>();
                 InvincibleLemurianElderLogbook.cachedName = "Logs.InvincibleLemurianElder";
                 InvincibleLemurianElderLogbook.nameToken = "UNLOCKABLE_LOG_INVINCIBLE_LEMURIAN_ELDER";
-
-                Texture2D iconTexture = Addressables.LoadAssetAsync<Texture2D>("RoR2/Base/LemurianBruiser/LemurianBruiserBody.png").WaitForCompletion();
-                Sprite iconSprite = Sprite.Create(iconTexture, new Rect(0, 0, iconTexture.width, iconTexture.height), Vector2.zero);
-
-                InvincibleLemurianElderLogbook.achievementIcon = iconSprite;
             }
         }
 
