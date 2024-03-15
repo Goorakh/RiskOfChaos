@@ -469,7 +469,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             foreach (ActiveTimedEffectInfo activeEffect in _instance._activeTimedEffects)
             {
-                Debug.Log($"{activeEffect.EffectInstance.EffectInfo.GetLocalDisplayName(EffectNameFormatFlags.RuntimeFormatArgs)} ID={activeEffect.EffectInstance.DispatchID}");
+                Debug.Log($"{activeEffect.EffectInstance.EffectInfo.GetLocalDisplayName(EffectNameFormatFlags.RuntimeFormatArgs)} (Identifier={activeEffect.EffectInstance.EffectInfo.Identifier}, ID={activeEffect.EffectInstance.DispatchID})");
             }
         }
 
