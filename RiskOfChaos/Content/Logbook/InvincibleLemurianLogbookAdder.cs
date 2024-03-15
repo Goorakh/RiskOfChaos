@@ -14,7 +14,6 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.Content.Logbook
 {
-#if DEBUG
     public static class InvincibleLemurianLogbookAdder
     {
         static CharacterBody _lemurianBodyPrefab;
@@ -331,5 +330,4 @@ namespace RiskOfChaos.Content.Logbook
             return entries;
         }
     }
-#endif
 }

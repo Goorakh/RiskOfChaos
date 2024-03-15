@@ -54,9 +54,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 ignoreTeamMemberLimit = true
             };
 
-#if DEBUG
             InvincibleLemurianLogbookAdder.LemurianStatCollection lemurianStatCollection = InvincibleLemurianLogbookAdder.GetStatCollection(spawnEntry.IsElder);
-#endif
 
             spawnRequest.onSpawnedServer = result =>
             {
@@ -78,12 +76,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     }
                 }
 
-#if DEBUG
                 foreach (PlayerStatsComponent statsComponent in PlayerStatsComponent.instancesList)
                 {
                     statsComponent.currentStats.PushStatValue(lemurianStatCollection.EncounteredStat, 1);
                 }
-#endif
             };
 
             DirectorCore.instance.TrySpawnObject(spawnRequest);
