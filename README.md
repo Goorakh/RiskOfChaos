@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 138 different effects.
+Currently features 137 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -91,7 +91,6 @@ Currently features 138 different effects.
 * Risk of Thunder: Spawns lightning strikes at random points on the map. Lasts 30 seconds.
 * Spawn Jump Pad: Spawns a random jump pad at every player
 * Superhot: Time moves when players move
-* Laggy Physics: Randomly pauses physics calculations
 * Gupscare: Spawns a Gup above every player
 * Roll Credits: Starts the game credits
 * Aspect Roulette: Randomly switches the elite aspect of all characters (only affects players if they already have an aspect equipment)

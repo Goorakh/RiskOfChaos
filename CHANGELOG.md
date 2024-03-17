@@ -5,6 +5,10 @@
 * Added 1 new effect:
   * Repeating Projectiles: All projectiles spawn an additional 5 copies after a delay, lasts 90 seconds
 
+* Removed 1 effect:
+  * Laggy Physics:
+    * Caused issues with attack collisions that would not revert until the next scene load
+
 * Effects:
   * Added an option to have an effect always active during a run
 
