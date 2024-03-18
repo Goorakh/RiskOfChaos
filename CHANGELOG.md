@@ -9,6 +9,9 @@
   * Laggy Physics:
     * Caused issues with attack collisions that would not revert until the next scene load
 
+* You and a super intelligent Lemurian...:
+  * Added lore entries
+
 * Effects:
   * Added an option to have an effect always active during a run
 
