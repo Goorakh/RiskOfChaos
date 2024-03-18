@@ -53,18 +53,18 @@ namespace RiskOfChaos.Content.Logbook
                 return;
 
             StatSheet statSheet = userProfile.statSheet;
-            if (statSheet == null)
-                return;
+            if (statSheet != null)
+            {
+                const string ZERO_STRING = "0";
 
-            const string ZERO_STRING = "0";
+                statSheet.SetStatValueFromString(LemurianStats.EncounteredStat, ZERO_STRING);
+                statSheet.SetStatValueFromString(LemurianStats.KilledByStat, ZERO_STRING);
+                statSheet.SetStatValueFromString(LemurianStats.KilledStat, ZERO_STRING);
 
-            statSheet.SetStatValueFromString(LemurianStats.EncounteredStat, ZERO_STRING);
-            statSheet.SetStatValueFromString(LemurianStats.KilledByStat, ZERO_STRING);
-            statSheet.SetStatValueFromString(LemurianStats.KilledStat, ZERO_STRING);
-
-            statSheet.SetStatValueFromString(ElderLemurianStats.EncounteredStat, ZERO_STRING);
-            statSheet.SetStatValueFromString(ElderLemurianStats.KilledByStat, ZERO_STRING);
-            statSheet.SetStatValueFromString(ElderLemurianStats.KilledStat, ZERO_STRING);
+                statSheet.SetStatValueFromString(ElderLemurianStats.EncounteredStat, ZERO_STRING);
+                statSheet.SetStatValueFromString(ElderLemurianStats.KilledByStat, ZERO_STRING);
+                statSheet.SetStatValueFromString(ElderLemurianStats.KilledStat, ZERO_STRING);
+            }
 
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
             List<string> viewedViewables = userProfile.viewedViewables;
@@ -73,8 +73,8 @@ namespace RiskOfChaos.Content.Logbook
             viewedViewables.Remove("/Logbook/LOGBOOK_CATEGORY_MONSTER/INVINCIBLE_LEMURIAN_BODY_NAME");
             viewedViewables.Remove("/Logbook/LOGBOOK_CATEGORY_MONSTER/INVINCIBLE_LEMURIAN_ELDER_BODY_NAME");
 
-            userProfile.RevokeUnlockable(Unlockables.InvincibleLemurianLogbook);
-            userProfile.RevokeUnlockable(Unlockables.InvincibleLemurianElderLogbook);
+            userProfile.RevokeUnlockable(LemurianStats.LogUnlockableDef);
+            userProfile.RevokeUnlockable(ElderLemurianStats.LogUnlockableDef);
 
             userProfile.RequestEventualSave();
 
