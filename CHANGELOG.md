@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**1.15.0 Changes:**
 
 * Added 1 new effect:
   * Repeating Projectiles: All projectiles spawn an additional 5 copies after a delay, lasts 90 seconds
@@ -13,7 +13,7 @@
   * Added lore entries
 
 * Effects:
-  * Added an option to have an effect always active during a run
+  * Added a config option to have a specific effect always active during a run
 
 * Console:
   * Added command: roc_list_active_effects
