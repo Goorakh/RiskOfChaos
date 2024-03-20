@@ -1,6 +1,12 @@
 ## Changelog
 
-**1.15.0 Changes:**
+**?.?.? Changes:**
+
+* Config
+  * Added system to warn users if their config is outdated
+
+<details>
+  <summary>1.15.0 Changes:</summary>
 
 * Added 1 new effect:
   * Repeating Projectiles: All projectiles spawn an additional 5 copies after a delay, lasts 90 seconds
@@ -20,6 +26,8 @@
     * Prints all active effects and their IDs
   * Added command: roc_end_effect
     * Ends a specific active effect by its ID
+
+</details>
 
 <details>
   <summary>1.14.0 Changes:</summary>
