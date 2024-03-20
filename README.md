@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 137 different effects.
+Currently features 138 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -146,6 +146,7 @@ Currently features 137 different effects.
 * Enable Weak Points for All Damage: Enables the weak point check from Railgunner snipe to all damage, lasts 90 seconds
 * Always Sprinting: Forces all characters to constantly sprint, lasts 60 seconds
 * Repeating Projectiles: All projectiles spawn an additional 5 copies after a delay, lasts 90 seconds
+* Swap Health & Shield: Swaps health and shield vaulues for all characters, lasts 60 seconds
 </details>
 
 ### Twitch Integration:

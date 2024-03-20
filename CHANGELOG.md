@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Added 1 new effect:
+  * Swap Health & Shield: Swaps health and shield vaulues for all characters, lasts 60 seconds
+
 * Scramble Text:
   * Fixed names in credits scroll not being scrambled
 
