@@ -60,7 +60,7 @@ namespace RiskOfChaos
 
             public static readonly ConfigHolder<VoteWinnerSelectionMode> WinnerSelectionMode =
                 ConfigFactory<VoteWinnerSelectionMode>.CreateConfig("Vote Winner Selection Mode", VoteWinnerSelectionMode.MostVotes)
-                                                      .Description($"How the winner of any vote should be selected.\n\n{VoteWinnerSelectionMode.MostVotes} (Default): The vote with the most votes will be selected, if there is a tie, a random tied option is selected\n{VoteWinnerSelectionMode.RandomProportional}: Every option has a chance to be selected, weighted by the number of votes. Ex. an option with 70% of the votes will have a 70% chance to be selected.")
+                                                      .Description($"How the winner of any vote should be selected.\n\n{nameof(VoteWinnerSelectionMode.MostVotes)} (Default): The vote with the most votes will be selected, if there is a tie, a random tied option is selected\n{nameof(VoteWinnerSelectionMode.RandomProportional)}: Every option has a chance to be selected, weighted by the number of votes. Ex. an option with 70% of the votes will have a 70% chance to be selected.")
                                                       .OptionConfig(new ChoiceConfig
                                                       {
                                                           checkIfDisabled = isVotingDisabled
