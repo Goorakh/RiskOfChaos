@@ -22,5 +22,10 @@
 
 		"UNLOCKABLE_LOG_INVINCIBLE_LEMURIAN": "Log: Leonard",
 		"UNLOCKABLE_LOG_INVINCIBLE_LEMURIAN_ELDER": "Log: Elder Leonard",
+
+		"POPUP_CONFIG_UPDATE_HEADER": "Risk of Chaos: Config file outdated!",
+		"POPUP_CONFIG_UPDATE_DESCRIPTION": "The mod has updated since you last played, it is recommended that you reset your config before playing, otherwise you may miss important balance changes. All of your mod settings will be lost",
+		"POPUP_CONFIG_UPDATE_RESET": "Reset Config",
+		"POPUP_CONFIG_UPDATE_IGNORE": "Keep Config",
 	}
 }

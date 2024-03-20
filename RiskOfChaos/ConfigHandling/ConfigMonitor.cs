@@ -4,7 +4,9 @@ namespace RiskOfChaos.ConfigHandling
 {
     static class ConfigMonitor
     {
-        static readonly HashSet<string> _registeredConfigs = [];
+        static readonly Dictionary<string, ConfigHolderBase> _registeredConfigs = [];
+
+        public static ICollection<ConfigHolderBase> AllConfigs => _registeredConfigs.Values;
 
         static string getKey(string section, string key)
         {
@@ -12,14 +14,20 @@ namespace RiskOfChaos.ConfigHandling
             return section + '\\' + key;
         }
 
-        public static bool TryRegisterConfig(string section, string key)
+        public static bool TryRegisterConfig(string section, string key, ConfigHolderBase instance)
         {
-            return _registeredConfigs.Add(getKey(section, key));
+            string configKey = getKey(section, key);
+
+            if (_registeredConfigs.ContainsKey(configKey))
+                return false;
+
+            _registeredConfigs.Add(getKey(section, key), instance);
+            return true;
         }
 
         public static bool IsConfigRegistered(string section, string key)
         {
-            return _registeredConfigs.Contains(getKey(section, key));
+            return _registeredConfigs.ContainsKey(getKey(section, key));
         }
     }
 }

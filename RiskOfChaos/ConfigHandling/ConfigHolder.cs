@@ -61,6 +61,8 @@ namespace RiskOfChaos.ConfigHandling
         public new delegate void OnBindDelegate(ConfigEntry<T> entry);
         public new event OnBindDelegate OnBind;
 
+        public override bool IsDefaultValue => EqualityComparer.Equals(DefaultValue, LocalValue);
+
         public ConfigHolder(string key,
                             T defaultValue,
                             ConfigDescription description,
@@ -141,7 +143,7 @@ namespace RiskOfChaos.ConfigHandling
 
         public override void Bind(ConfigFile file, string section, string modGuid = null, string modName = null)
         {
-            if (!ConfigMonitor.TryRegisterConfig(section, Key))
+            if (!ConfigMonitor.TryRegisterConfig(section, Key, this))
             {
                 Log.Warning($"Duplicate config key ({section}.{Key}), skipping. This config instance will only use default value ({DefaultValue})");
                 return;

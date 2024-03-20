@@ -38,6 +38,8 @@ namespace RiskOfChaos.ConfigHandling
             set => LocalBoxedValue = value;
         }
 
+        public abstract bool IsDefaultValue { get; }
+
         public event EventHandler<ConfigChangedArgs> SettingChanged;
 
         public delegate void OnBindDelegate(ConfigEntryBase entry);

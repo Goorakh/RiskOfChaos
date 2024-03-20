@@ -92,6 +92,8 @@ namespace RiskOfChaos
                 Log.Debug($"Finished initializing config file (Written to file in {stopwatch.Elapsed.TotalMilliseconds:F0}ms)");
                 stopwatch.Stop();
 #endif
+
+                Configs.Metadata.CheckVersion();
             });
         }
 

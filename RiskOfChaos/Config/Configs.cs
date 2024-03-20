@@ -38,6 +38,8 @@ namespace RiskOfChaos
             Debug.Bind(file);
 #endif
 
+            Metadata.Bind(file);
+
             if (GenericIcon)
             {
                 ModSettingsManager.SetModIcon(GenericIcon, CONFIG_GUID, CONFIG_NAME);
