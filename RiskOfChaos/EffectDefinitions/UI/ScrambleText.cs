@@ -4,11 +4,15 @@ using RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Patches;
+using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using RoR2.UI;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using TMPro;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.UI
@@ -34,6 +38,8 @@ namespace RiskOfChaos.EffectDefinitions.UI
 
         readonly Dictionary<string, string> _tokenOverrideCache = [];
 
+        readonly HashSet<TMP_Text> _processedTextLabels = [];
+
         ulong _baseScrambleSeed;
 
         public override void OnPreStartServer()
@@ -58,17 +64,51 @@ namespace RiskOfChaos.EffectDefinitions.UI
         {
             LocalizedStringOverridePatch.OverrideLanguageString += overrideLanguageString;
             Language.onCurrentLanguageChanged += onCurrentLanguageChanged;
+
+            On.RoR2.UI.CreditsPanelController.OnEnable += CreditsPanelController_OnEnable;
+            InstanceTracker.GetInstancesList<CreditsPanelController>().TryDo(scrambleCredits);
         }
 
         public override void OnEnd()
         {
             Language.onCurrentLanguageChanged -= onCurrentLanguageChanged;
             LocalizedStringOverridePatch.OverrideLanguageString -= overrideLanguageString;
+
+            On.RoR2.UI.CreditsPanelController.OnEnable -= CreditsPanelController_OnEnable;
+
+            foreach (TMP_Text label in _processedTextLabels)
+            {
+                label.textPreprocessor = null;
+                label.ForceMeshUpdate();
+            }
+
+            _processedTextLabels.Clear();
         }
 
         void onCurrentLanguageChanged()
         {
             _tokenOverrideCache.Clear();
+        }
+
+        void CreditsPanelController_OnEnable(On.RoR2.UI.CreditsPanelController.orig_OnEnable orig, CreditsPanelController self)
+        {
+            orig(self);
+
+            scrambleCredits(self);
+        }
+
+        void scrambleCredits(CreditsPanelController creditsController)
+        {
+            HGTextMeshProUGUI[] labels = creditsController.GetComponentsInChildren<HGTextMeshProUGUI>(true);
+            for (int i = 0; i < labels.Length; i++)
+            {
+                if (!labels[i] || labels[i].GetComponent<LanguageTextMeshController>())
+                    continue;
+
+                labels[i].textPreprocessor = new ScramblePreprocessor(_baseScrambleSeed ^ (ulong)i);
+                labels[i].ForceMeshUpdate();
+                _processedTextLabels.Add(labels[i]);
+            }
         }
 
         void overrideLanguageString(ref string str, string token, Language language)
@@ -88,7 +128,14 @@ namespace RiskOfChaos.EffectDefinitions.UI
                 return;
             }
 
-            Xoroshiro128Plus rng = new Xoroshiro128Plus(_baseScrambleSeed ^ (ulong)token.GetHashCode());
+            str = scrambleString(str, _baseScrambleSeed ^ (ulong)token.GetHashCode());
+
+            _tokenOverrideCache.Add(token, str);
+        }
+
+        static string scrambleString(string str, ulong scrambleSeed)
+        {
+            Xoroshiro128Plus rng = new Xoroshiro128Plus(scrambleSeed);
 
             MatchCollection formatMatches = _stringFormatsRegex.Matches(str);
             int formatMatchIndex = 0;
@@ -152,10 +199,34 @@ namespace RiskOfChaos.EffectDefinitions.UI
 
             endCurrentWord();
 
-            str = _sharedResultBuilder.ToString();
+            string result = _sharedResultBuilder.ToString();
             _sharedResultBuilder.Clear();
 
-            _tokenOverrideCache.Add(token, str);
+            return result;
+        }
+
+        class ScramblePreprocessor : ITextPreprocessor
+        {
+            readonly ulong _scrambleSeed;
+
+            string _lastText;
+            string _cachedScramble;
+
+            public ScramblePreprocessor(ulong scrambleSeed)
+            {
+                _scrambleSeed = scrambleSeed;
+            }
+
+            public string PreprocessText(string text)
+            {
+                if (_lastText != text)
+                {
+                    _cachedScramble = scrambleString(text, _scrambleSeed);
+                    _lastText = text;
+                }
+
+                return _cachedScramble;
+            }
         }
     }
 }

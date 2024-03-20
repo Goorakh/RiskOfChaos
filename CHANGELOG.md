@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Scramble Text:
+  * Fixed names in credits scroll not being scrambled
+
 * Config
   * Added system to warn users if their config is outdated
 
