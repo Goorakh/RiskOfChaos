@@ -68,7 +68,7 @@ namespace RiskOfChaos.Patches
             if (!isEnabled || !OrbManager.instance || orbInstance == null)
                 return;
 
-            if (OrbUtils.IsTransferOrb(orbInstance))
+            if (OrbUtils.IsTransferOrb(orbInstance) || orbInstance is VoidLightningOrb)
                 return;
 
             if (_orbBouncesRemaining.TryGetValue(orbInstance, out int bouncesRemaining))
