@@ -12,7 +12,7 @@
   <summary>1.15.1 Changes</summary>
 
 * Added 1 new effect:
-  * Swap Health & Shield: Swaps health and shield vaulues for all characters, lasts 60 seconds
+  * Swap Health & Shield: Swaps health and shield values for all characters, lasts 60 seconds
 
 * Scramble Text:
   * Fixed names in credits scroll not being scrambled

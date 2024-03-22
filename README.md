@@ -146,7 +146,7 @@ Currently features 138 different effects.
 * Enable Weak Points for All Damage: Enables the weak point check from Railgunner snipe to all damage, lasts 90 seconds
 * Always Sprinting: Forces all characters to constantly sprint, lasts 60 seconds
 * Repeating Projectiles: All projectiles spawn an additional 5 copies after a delay, lasts 90 seconds
-* Swap Health & Shield: Swaps health and shield vaulues for all characters, lasts 60 seconds
+* Swap Health & Shield: Swaps health and shield values for all characters, lasts 60 seconds
 </details>
 
 ### Twitch Integration:
