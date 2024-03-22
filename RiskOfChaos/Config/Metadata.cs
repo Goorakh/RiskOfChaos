@@ -1,10 +1,7 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.ConfigHandling;
-using RoR2;
 using RoR2.UI;
 using RoR2.UI.MainMenu;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace RiskOfChaos
@@ -16,7 +13,7 @@ namespace RiskOfChaos
             const string SECTION_NAME = "META";
 
             public const uint CONFIG_FILE_VERSION_LEGACY = 0;
-            public const uint CURRENT_CONFIG_FILE_VERSION = 1;
+            public const uint CURRENT_CONFIG_FILE_VERSION = 2;
 
             public static ConfigHolder<uint> ConfigFileVersion =
                 ConfigFactory<uint>.CreateConfig("VERSION", CONFIG_FILE_VERSION_LEGACY)

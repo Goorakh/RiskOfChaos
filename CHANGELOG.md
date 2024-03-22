@@ -1,6 +1,12 @@
 ## Changelog
 
-**1.15.1 Changes:**
+**?.?.? Changes:**
+
+* Increase/Decrease Effect Duration:
+  * Default duration: 2 stages -> 1 stage
+
+<details>
+  <summary>1.15.1 Changes</summary>
 
 * Added 1 new effect:
   * Swap Health & Shield: Swaps health and shield vaulues for all characters, lasts 60 seconds
@@ -10,6 +16,8 @@
 
 * Config
   * Added system to warn users if their config is outdated
+
+</details>
 
 <details>
   <summary>1.15.0 Changes:</summary>
