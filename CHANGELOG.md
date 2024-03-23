@@ -5,7 +5,7 @@
 * Increase/Decrease Effect Duration:
   * Default duration: 2 stages -> 1 stage
 
-* Boncy Projectiles:
+* Bouncy Projectiles:
   * Fixed polylute projectile bouncing to other targets
 
 <details>
