@@ -17,13 +17,18 @@ namespace RiskOfChaos.EffectDefinitions.Character
             return SetIsSprintingOverride.PatchSuccessful;
         }
 
+        static bool shouldForceSprint(CharacterBody body)
+        {
+            return body.hasEffectiveAuthority && (!body.inputBank || body.inputBank.moveVector.sqrMagnitude > 0f);
+        }
+
         public override void OnStart()
         {
             OverrideSkillsAgile.AllSkillsAgileCount++;
 
             CharacterBody.readOnlyInstancesList.TryDo(body =>
             {
-                if (body.hasEffectiveAuthority)
+                if (shouldForceSprint(body))
                 {
                     body.isSprinting = true;
                 }
@@ -41,13 +46,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         static void SetIsSprintingOverride_OverrideCharacterSprinting(CharacterBody body, ref bool isSprinting)
         {
-            if (body.hasEffectiveAuthority)
-            {
-                if (body.inputBank && body.inputBank.moveVector.sqrMagnitude < 0.01f)
-                    return;
-
-                isSprinting = true;
-            }
+            isSprinting = isSprinting || shouldForceSprint(body);
         }
     }
 }

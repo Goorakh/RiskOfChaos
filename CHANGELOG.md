@@ -15,6 +15,9 @@
 * Bouncy Projectiles:
   * Fixed polylute projectile bouncing to other targets
 
+* Always Sprinting:
+  * Fixed effect putting non-moving characters into spritning state if they aren't moving when the effect activates
+
 * UI:
   * Fixed "Next Effect" panel not formatting the time remaining properly if time between effects is set to a high value
 
