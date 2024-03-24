@@ -12,6 +12,9 @@
 * Bouncy Projectiles:
   * Fixed polylute projectile bouncing to other targets
 
+* UI:
+  * Fixed "Next Effect" panel not formatting the time remaining properly if time between effects is set to a high value
+
 <details>
   <summary>1.15.1 Changes</summary>
 

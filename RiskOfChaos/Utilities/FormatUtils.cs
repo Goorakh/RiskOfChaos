@@ -1,4 +1,5 @@
 ﻿using RoR2;
+using UnityEngine;
 
 namespace RiskOfChaos.Utilities
 {
@@ -43,6 +44,21 @@ namespace RiskOfChaos.Utilities
             }
 
             return item.name;
+        }
+
+        public static string FormatTimeSeconds(float seconds)
+        {
+            if (seconds < (2f * 60f) + 0.5f)
+            {
+                return seconds.ToString(seconds >= 10f - 0.05f ? "F0" : "F1") + "s";
+            }
+            else
+            {
+                int minutesRemaining = Mathf.FloorToInt(seconds / 60f);
+                int secondsRemaining = Mathf.RoundToInt(seconds % 60f);
+
+                return $"{minutesRemaining}:{secondsRemaining:D2}";
+            }
         }
     }
 }

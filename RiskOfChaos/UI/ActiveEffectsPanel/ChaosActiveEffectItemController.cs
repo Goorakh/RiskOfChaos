@@ -1,6 +1,7 @@
 ﻿using R2API;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.UI;
@@ -140,18 +141,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
                     float timeRemaining = endTime - currentTime;
                     _displayNameStringBuilder.Append(' ');
 
-                    if (timeRemaining < (2f * 60f) + 0.5f)
-                    {
-                        string timeRemainingFormat = timeRemaining >= 10f - 0.05f ? "F0" : "F1";
-                        _displayNameStringBuilder.Append(Language.GetStringFormatted("CHAOS_ACTIVE_EFFECT_FIXED_DURATION_FORMAT", timeRemaining.ToString(timeRemainingFormat)));
-                    }
-                    else
-                    {
-                        int minutesRemaining = Mathf.FloorToInt(timeRemaining / 60f);
-                        int secondsRemaining = Mathf.RoundToInt(timeRemaining % 60f);
-
-                        _displayNameStringBuilder.Append(Language.GetStringFormatted("CHAOS_ACTIVE_EFFECT_FIXED_DURATION_LONG_FORMAT", minutesRemaining, secondsRemaining.ToString("D2")));
-                    }
+                    _displayNameStringBuilder.Append(Language.GetStringFormatted("CHAOS_ACTIVE_EFFECT_FIXED_DURATION_FORMAT", FormatUtils.FormatTimeSeconds(timeRemaining)));
 
                     break;
             }

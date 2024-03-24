@@ -1,6 +1,5 @@
-﻿using RiskOfChaos.EffectDefinitions;
-using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
+﻿using RiskOfChaos.EffectHandling;
+using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.UI;
 using UnityEngine;
@@ -39,7 +38,7 @@ namespace RiskOfChaos.UI.NextEffectDisplay
 
         public void DisplayEffect(EffectDisplayData displayData)
         {
-            string timeRemainingString = displayData.TimeRemaining.ToString(displayData.TimeRemaining >= 10f ? "F0" : "F1");
+            string timeRemainingString = FormatUtils.FormatTimeSeconds(displayData.TimeRemaining);
 
             if (displayData.EffectIndex != ChaosEffectIndex.Invalid)
             {
