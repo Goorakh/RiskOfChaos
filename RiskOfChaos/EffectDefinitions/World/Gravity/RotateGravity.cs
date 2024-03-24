@@ -40,7 +40,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
         {
             base.OnPreStartServer();
 
-            _gravityRotation = QuaternionUtils.RandomDeviation(_maxDeviation.Value, RNG);
+            float maxDeviation = _maxDeviation.Value;
+            _gravityRotation = QuaternionUtils.RandomDeviation(Mathf.Clamp(maxDeviation - 10f, 0f, 10f), maxDeviation, RNG);
         }
 
         public override void Serialize(NetworkWriter writer)

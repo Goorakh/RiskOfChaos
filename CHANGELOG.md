@@ -5,6 +5,10 @@
 * Increase/Decrease Effect Duration:
   * Default duration: 2 stages -> 1 stage
 
+* Random Gravity Direction:
+  * Added minimum angle requirement to new gravity direction.
+    * It is now guaranteed to differ from the normal direction by at least 10 degrees
+
 * Bouncy Projectiles:
   * Fixed polylute projectile bouncing to other targets
 
