@@ -10,11 +10,26 @@ namespace RiskOfChaos.Utilities
             return Util.QuaternionSafeLookRotation(targetDirection) * Quaternion.FromToRotation(localDirection, Vector3.forward);
         }
 
-        public static Quaternion RandomDeviation(float deviation, Xoroshiro128Plus rng)
+        public static Quaternion RandomDeviation(float minDeviation, float maxDeviation, Xoroshiro128Plus rng)
         {
-            return Quaternion.Euler(rng.RangeFloat(-deviation, deviation),
-                                    rng.RangeFloat(-deviation, deviation),
-                                    rng.RangeFloat(-deviation, deviation));
+            float deviation;
+            if (minDeviation >= maxDeviation)
+            {
+                deviation = Mathf.Min(minDeviation, maxDeviation);
+            }
+            else
+            {
+                deviation = rng.RangeFloat(minDeviation, maxDeviation);
+            }
+
+            return Quaternion.AngleAxis(rng.RangeFloat(0f, 360f), Vector3.forward)
+                   * Quaternion.AngleAxis(deviation, Vector3.right)
+                   * Quaternion.AngleAxis(rng.RangeFloat(0f, 360f), Vector3.forward);
+        }
+
+        public static Quaternion RandomDeviation(float maxDeviation, Xoroshiro128Plus rng)
+        {
+            return RandomDeviation(0, maxDeviation, rng);
         }
     }
 }
