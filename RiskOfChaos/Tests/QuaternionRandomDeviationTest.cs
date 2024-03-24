@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Tests
 {
-#if DEBUG || true
+#if DEBUG
     static class QuaternionRandomDeviationTest
     {
         [ConCommand(commandName = "roc_test_quaternion_random_deviation")]
