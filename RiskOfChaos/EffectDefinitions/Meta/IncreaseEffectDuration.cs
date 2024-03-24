@@ -13,7 +13,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Meta
 {
-    [ChaosTimedEffect("increase_effect_duration", TimedEffectType.UntilStageEnd, ConfigName = "Increase Effect Duration", IgnoreDurationModifiers = true)]
+    [ChaosTimedEffect("increase_effect_duration", TimedEffectType.UntilStageEnd, ConfigName = "Increase Effect Duration", DefaultSelectionWeight = 0.7f, IgnoreDurationModifiers = true)]
     public sealed class IncreaseEffectDuration : TimedEffect, IEffectModificationProvider
     {
         [EffectConfig]

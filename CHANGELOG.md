@@ -2,11 +2,13 @@
 
 **?.?.? Changes:**
 
-* Increase/Decrease Effect Duration:
-  * Default duration: 2 stages -> 1 stage
-
 * Decrease Effect Duration:
+  * Default duration: 2 stages -> 1 stage
   * Fixed edge case where the effect would not end other effects if their duration is decreased to below 0
+
+* Increase Effect Duration:
+  * Default selection weight: 1 -> 0.7
+  * Default duration: 2 stages -> 1 stage
 
 * Random Gravity Direction:
   * Added minimum angle requirement to new gravity direction.
