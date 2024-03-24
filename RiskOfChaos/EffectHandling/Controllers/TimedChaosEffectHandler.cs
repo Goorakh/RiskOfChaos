@@ -72,11 +72,15 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         readonly List<ActiveTimedEffectInfo> _activeTimedEffects = [];
 
+        byte[] _effectStackCounts;
+
         ChaosEffectDispatcher _effectDispatcher;
 
         void Awake()
         {
             _effectDispatcher = GetComponent<ChaosEffectDispatcher>();
+
+            _effectStackCounts = ChaosEffectCatalog.PerEffectArray<byte>();
         }
 
         void OnEnable()
@@ -90,6 +94,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
             _effectDispatcher.OnEffectAboutToStart += onEffectAboutToStart;
 
             Stage.onServerStageComplete += onServerStageComplete;
+
+            if (_effectStackCounts != null)
+            {
+                Array.Clear(_effectStackCounts, 0, _effectStackCounts.Length);
+            }
 
             if (NetworkServer.active)
             {
@@ -182,6 +191,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             endTimedEffects(TimedEffectFlags.All, false);
             _activeTimedEffects.Clear();
+
+            if (_effectStackCounts != null)
+            {
+                Array.Clear(_effectStackCounts, 0, _effectStackCounts.Length);
+            }
 
             SaveManager.CollectSaveData -= SaveManager_CollectSaveData;
             SaveManager.LoadSaveData -= SaveManager_LoadSaveData;
@@ -366,6 +380,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 OnTimedEffectEndServer?.Invoke(timedEffect.EffectInstance);
             }
 
+            if (_effectStackCounts != null)
+            {
+                _effectStackCounts[(int)timedEffect.EffectInstance.EffectInfo.EffectIndex]--;
+            }
+
             _activeTimedEffects.RemoveAt(index);
             timedEffect.End(sendClientMessage);
         }
@@ -396,6 +415,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void registerTimedEffect(in ActiveTimedEffectInfo activeEffectInfo)
         {
+            if (_effectStackCounts != null)
+            {
+                _effectStackCounts[(int)activeEffectInfo.EffectInstance.EffectInfo.EffectIndex]++;
+            }
+
             _activeTimedEffects.Add(activeEffectInfo);
 
             if (NetworkServer.active)
@@ -406,27 +430,45 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         IEnumerable<ActiveTimedEffectInfo> getActiveTimedEffectsFor(TimedEffectInfo effectInfo)
         {
-            return _activeTimedEffects.Where(e => e.EffectInstance.EffectInfo == effectInfo);
+            foreach (ActiveTimedEffectInfo timedEffect in _activeTimedEffects)
+            {
+                if (timedEffect.EffectInstance.EffectInfo == effectInfo)
+                {
+                    yield return timedEffect;
+                }
+            }
         }
 
         public bool IsTimedEffectActive(TimedEffectInfo effectInfo)
         {
-            return getActiveTimedEffectsFor(effectInfo).Any();
-        }
-
-        public int GetEffectActiveCount(TimedEffectInfo effectInfo)
-        {
-            return getActiveTimedEffectsFor(effectInfo).Count();
+            return _effectStackCounts != null && _effectStackCounts[(int)effectInfo.EffectIndex] > 0;
         }
 
         public IEnumerable<TimedEffect> GetActiveEffects(TimedEffectInfo effectInfo)
         {
-            return getActiveTimedEffectsFor(effectInfo).Select(e => e.EffectInstance);
+            foreach (ActiveTimedEffectInfo activeEffect in _activeTimedEffects)
+            {
+                if (activeEffect.EffectInstance.EffectInfo == effectInfo)
+                {
+                    yield return activeEffect.EffectInstance;
+                }
+            }
         }
 
-        public IEnumerable<TimedEffect> GetAllActiveEffects()
+        public TimedEffect[] GetAllActiveEffects()
         {
-            return _activeTimedEffects.Select(t => t.EffectInstance);
+            if (_activeTimedEffects.Count == 0)
+            {
+                return [];
+            }
+
+            TimedEffect[] result = new TimedEffect[_activeTimedEffects.Count];
+            for (int i = _activeTimedEffects.Count - 1; i >= 0; i--)
+            {
+                result[i] = _activeTimedEffects[i].EffectInstance;
+            }
+
+            return result;
         }
 
         public IEnumerable<TEffect> GetActiveEffectInstancesOfType<TEffect>() where TEffect : TimedEffect
