@@ -422,7 +422,7 @@ namespace RiskOfChaos.Utilities
 
             Util.ShuffleArray(nodes, rng.Branch());
 
-            int targetNodesCount = Mathf.Max(1, Mathf.FloorToInt(nodes.Length * selectionFraction));
+            int targetNodesCount = Mathf.Max(1, Mathf.RoundToInt(nodes.Length * selectionFraction));
 
             int nodeIndex;
             for (nodeIndex = 0; nodeIndex < nodes.Length; nodeIndex++)
