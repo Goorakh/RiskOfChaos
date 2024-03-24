@@ -22,9 +22,10 @@ namespace RiskOfChaos.Utilities
                 deviation = rng.RangeFloat(minDeviation, maxDeviation);
             }
 
-            return Quaternion.AngleAxis(rng.RangeFloat(0f, 360f), Vector3.forward)
-                   * Quaternion.AngleAxis(deviation, Vector3.right)
-                   * Quaternion.AngleAxis(rng.RangeFloat(0f, 360f), Vector3.forward);
+            Vector3 direction = Quaternion.AngleAxis(rng.RangeFloat(0f, 360f), Vector3.forward)
+                                * (Quaternion.AngleAxis(deviation, Vector3.right) * Vector3.forward);
+
+            return Util.QuaternionSafeLookRotation(direction);
         }
 
         public static Quaternion RandomDeviation(float maxDeviation, Xoroshiro128Plus rng)
