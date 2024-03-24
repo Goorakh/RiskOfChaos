@@ -62,6 +62,11 @@ namespace RiskOfChaos.EffectDefinitions.Meta
                         continue;
 
                     effect.MaxStocks *= _durationMultiplier.Value;
+
+                    if (effect.TimedType != TimedEffectType.FixedDuration && effect.StocksRemaining <= 0)
+                    {
+                        TimedChaosEffectHandler.Instance.EndEffectServer(effect);
+                    }
                 }
             }
         }

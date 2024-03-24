@@ -439,6 +439,17 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
+        public void EndEffectServer(TimedEffect effect)
+        {
+            if (!NetworkServer.active)
+            {
+                Log.Warning("Called on client");
+                return;
+            }
+
+            endTimedEffectWithDispatchID(effect.DispatchID, true);
+        }
+
         public bool IsTimedEffectActive(TimedEffectInfo effectInfo)
         {
             return _effectStackCounts != null && _effectStackCounts[(int)effectInfo.EffectIndex] > 0;
