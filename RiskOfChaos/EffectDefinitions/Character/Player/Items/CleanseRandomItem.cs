@@ -90,21 +90,20 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
         static bool isPrimaryCleansable(PickupDef pickup)
         {
-            ItemIndex itemIndex = pickup.itemIndex;
-            if (itemIndex != ItemIndex.None)
+            if (pickup.itemIndex != ItemIndex.None)
             {
-                ItemDef item = ItemCatalog.GetItemDef(itemIndex);
+                ItemDef item = ItemCatalog.GetItemDef(pickup.itemIndex);
                 return item.tier == ItemTier.Lunar;
             }
-
-            EquipmentIndex equipmentIndex = pickup.equipmentIndex;
-            if (equipmentIndex != EquipmentIndex.None)
+            else if (pickup.equipmentIndex != EquipmentIndex.None)
             {
-                EquipmentDef equipment = EquipmentCatalog.GetEquipmentDef(equipmentIndex);
+                EquipmentDef equipment = EquipmentCatalog.GetEquipmentDef(pickup.equipmentIndex);
                 return equipment.isLunar;
             }
-
+            else
+            {
             return false;
+        }
         }
 
         [EffectCanActivate]
