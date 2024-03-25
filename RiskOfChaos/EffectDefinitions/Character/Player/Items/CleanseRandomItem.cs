@@ -53,6 +53,11 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         static void Init()
         {
             _pearlDropTable = Addressables.LoadAssetAsync<ExplicitPickupDropTable>("RoR2/Base/ShrineCleanse/dtPearls.asset").WaitForCompletion();
+
+            if (!_pearlDropTable)
+            {
+                Log.Error("Failed to load pearl drop table");
+            }
         }
 
         static IEnumerable<PickupDef> getAllCleansableItems()
@@ -102,8 +107,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             }
             else
             {
-            return false;
-        }
+                return false;
+            }
         }
 
         [EffectCanActivate]
