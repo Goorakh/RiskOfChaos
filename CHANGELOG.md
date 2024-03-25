@@ -3,8 +3,10 @@
 **?.?.? Changes:**
 
 * Removed 2 effects:
-  * Increase Recoil
-  * Inverted Recoil
+  * Increase Recoil:
+    * Not interesting, just annoying
+  * Inverted Recoil:
+    * Interesting on paper, but was very rarely even noticeable
 
 * Decrease Effect Duration:
   * Default duration: 2 stages -> 1 stage
