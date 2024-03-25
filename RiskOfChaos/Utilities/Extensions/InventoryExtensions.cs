@@ -75,14 +75,15 @@ namespace RiskOfChaos.Utilities.Extensions
             }
         }
 
-        public static void TryRemove(this Inventory inventory, PickupDef pickupDef)
+        public static bool TryRemove(this Inventory inventory, PickupDef pickupDef)
         {
             if (!inventory || pickupDef == null)
-                return;
+                return false;
 
             if (pickupDef.itemIndex != ItemIndex.None)
             {
                 inventory.RemoveItem(pickupDef.itemIndex);
+                return true;
             }
             else if (pickupDef.equipmentIndex != EquipmentIndex.None)
             {
@@ -92,13 +93,47 @@ namespace RiskOfChaos.Utilities.Extensions
                     if (inventory.GetEquipment(i).equipmentIndex == pickupDef.equipmentIndex)
                     {
                         inventory.SetEquipmentIndexForSlot(EquipmentIndex.None, i);
-                        break;
+                        return true;
                     }
                 }
+
+                return false;
             }
             else
             {
                 Log.Warning($"Unhandled pickup index {pickupDef.pickupIndex}");
+                return false;
+            }
+        }
+
+        public static int GetPickupCount(this Inventory inventory, PickupDef pickupDef)
+        {
+            if (!inventory || pickupDef == null)
+                return 0;
+
+            if (pickupDef.itemIndex != ItemIndex.None)
+            {
+                return inventory.GetItemCount(pickupDef.itemIndex);
+            }
+            else if (pickupDef.equipmentIndex != EquipmentIndex.None)
+            {
+                int equipmentCount = 0;
+
+                int equipmentSlotCount = inventory.GetEquipmentSlotCount();
+                for (uint i = 0; i < equipmentSlotCount; i++)
+                {
+                    if (inventory.GetEquipment(i).equipmentIndex == pickupDef.equipmentIndex)
+                    {
+                        equipmentCount++;
+                    }
+                }
+
+                return equipmentCount;
+            }
+            else
+            {
+                Log.Warning($"Unhandled pickup index {pickupDef.pickupIndex}");
+                return 0;
             }
         }
     }

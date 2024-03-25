@@ -153,5 +153,6 @@
 		"EFFECT_FORCE_SPRINTING_NAME": "Always Sprinting",
 		"EFFECT_REPEAT_PROJECTILES_NAME": "Repeating Projectiles",
 		"EFFECT_SWAP_HEALTH_SHIELD_NAME": "Swap Health & Shield",
+		"EFFECT_CLEANSE_RANDOM_ITEM_NAME": "Cleanse Random Item",
 	}
 }

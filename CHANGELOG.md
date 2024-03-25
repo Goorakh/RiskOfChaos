@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Added 1 effect:
+  * Cleanse Random Item: Turns a random item (lunars prioritized) or lunar equipment from every player into a random pearl
+
 * Removed 2 effects:
   * Increase Recoil:
     * Not interesting, just annoying

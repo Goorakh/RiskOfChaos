@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 136 different effects.
+Currently features 137 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -145,6 +145,7 @@ Currently features 136 different effects.
 * Always Sprinting: Forces all characters to constantly sprint, lasts 60 seconds
 * Repeating Projectiles: All projectiles spawn an additional 5 copies after a delay, lasts 90 seconds
 * Swap Health & Shield: Swaps health and shield values for all characters, lasts 60 seconds
+* Cleanse Random Item: Turns a random item (lunars prioritized) or lunar equipment from every player into a random pearl
 </details>
 
 ### Twitch Integration:
