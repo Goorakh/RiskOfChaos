@@ -18,6 +18,8 @@ namespace RiskOfChaos.Content
     {
         public static readonly ItemDef InvincibleLemurianMarker;
 
+        public static readonly ItemDef LevelBasedRegen;
+
         static Items()
         {
             // InvincibleLemurianMarker
@@ -176,6 +178,24 @@ namespace RiskOfChaos.Content
                 };
             }
 
+            // LevelBasedRegen
+            {
+                LevelBasedRegen = ScriptableObject.CreateInstance<ItemDef>();
+                LevelBasedRegen.name = nameof(LevelBasedRegen);
+
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+#pragma warning disable CS0618 // Type or member is obsolete
+                // Setting the tier property here will not work because the ItemTierCatalog is not yet initialized
+                LevelBasedRegen.deprecatedTier = ItemTier.NoTier;
+#pragma warning restore CS0618 // Type or member is obsolete
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+
+                LevelBasedRegen.hidden = true;
+                LevelBasedRegen.canRemove = false;
+
+                LevelBasedRegen.AutoPopulateTokens();
+            }
+
             RecalculateStatsAPI.GetStatCoefficients += static (body, args) =>
             {
                 if (!body)
@@ -190,13 +210,19 @@ namespace RiskOfChaos.Content
                     args.attackSpeedReductionMultAdd += 0.5f;
                     args.moveSpeedReductionMultAdd += 1f;
                 }
+
+                if (inventory.GetItemCount(LevelBasedRegen) > 0)
+                {
+                    args.baseRegenAdd += 2.5f + (Mathf.Max(0, body.level - 1) * 0.5f);
+                }
             };
         }
 
         internal static void AddItemDefsTo(NamedAssetCollection<ItemDef> itemCollection)
         {
             itemCollection.Add([
-                InvincibleLemurianMarker
+                InvincibleLemurianMarker,
+                LevelBasedRegen,
             ]);
         }
     }

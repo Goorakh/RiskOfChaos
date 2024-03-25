@@ -14,6 +14,9 @@
   * Added minimum angle requirement to new gravity direction.
     * It is now guaranteed to differ from the normal direction by at least 10 degrees
 
+* Spawn Random Ally:
+  * Spawned allies are now given a small amount of health regen.
+
 * Bouncy Projectiles:
   * Fixed polylute projectile bouncing to other targets
 

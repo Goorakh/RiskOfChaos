@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -13,7 +14,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 {
     [ChaosEffect("spawn_random_ally", DefaultSelectionWeight = 0.9f)]
-    public sealed class SpawnRandomAlly : GenericSpawnCombatCharacterEffect
+    public sealed class SpawnRandomAlly : GenericSpawnCombatCharacterEffect, MasterSummon.IInventorySetupCallback
     {
         static CharacterSpawnEntry[] _spawnEntries;
 
@@ -84,7 +85,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                     rotation = Quaternion.identity,
                     ignoreTeamMemberLimit = true,
                     useAmbientLevel = true,
-                    preSpawnSetupCallback = onSpawned
+                    preSpawnSetupCallback = onSpawned,
+                    inventorySetupCallback = this
                 }.Perform();
             }
         }
@@ -94,6 +96,24 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
             base.onSpawned(master);
 
             master.gameObject.SetDontDestroyOnLoad(true);
+        }
+
+        public void SetupSummonedInventory(MasterSummon masterSummon, Inventory summonedInventory)
+        {
+            if (!masterSummon.masterPrefab || !masterSummon.masterPrefab.TryGetComponent(out CharacterMaster masterPrefab))
+                return;
+
+            if (!masterPrefab.bodyPrefab || !masterPrefab.bodyPrefab.TryGetComponent(out CharacterBody bodyPrefab))
+                return;
+
+            if (bodyPrefab.baseRegen <= 0f && bodyPrefab.levelRegen <= 0f)
+            {
+                summonedInventory.GiveItem(Items.LevelBasedRegen, 1);
+
+#if DEBUG
+                Log.Debug($"Added health regen to {Util.GetBestMasterName(summonedInventory.GetComponent<CharacterMaster>())}");
+#endif
+            }
         }
     }
 }
