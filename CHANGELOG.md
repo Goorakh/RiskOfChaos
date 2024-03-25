@@ -2,7 +2,8 @@
 
 **?.?.? Changes:**
 
-* Removed 1 effect:
+* Removed 2 effects:
+  * Increase Recoil
   * Inverted Recoil
 
 * Decrease Effect Duration:
