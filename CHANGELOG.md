@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Removed 1 effect:
+  * Inverted Recoil
+
 * Decrease Effect Duration:
   * Default duration: 2 stages -> 1 stage
   * Fixed edge case where the effect would not end other effects if their duration is decreased to below 0
