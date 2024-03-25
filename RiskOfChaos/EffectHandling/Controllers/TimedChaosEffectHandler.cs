@@ -1,4 +1,5 @@
-﻿using R2API.Networking;
+﻿using HG;
+using R2API.Networking;
 using R2API.Networking.Interfaces;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.Networking;
@@ -452,7 +453,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         public bool IsTimedEffectActive(TimedEffectInfo effectInfo)
         {
-            return _effectStackCounts != null && _effectStackCounts[(int)effectInfo.EffectIndex] > 0;
+            return GetEffectStackCount(effectInfo) > 0;
+        }
+
+        public int GetEffectStackCount(TimedEffectInfo effectInfo)
+        {
+            return ArrayUtils.GetSafe(_effectStackCounts, (int)effectInfo.EffectIndex);
         }
 
         public IEnumerable<TimedEffect> GetActiveEffects(TimedEffectInfo effectInfo)

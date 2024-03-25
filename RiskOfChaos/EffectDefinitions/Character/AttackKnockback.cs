@@ -1,9 +1,11 @@
 ﻿using RiskOfChaos.EffectDefinitions.World;
+using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Orbs;
-using RoR2.Projectile;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -15,81 +17,85 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [EffectConfigBackwardsCompatibility("Effect: Extreme Recoil")]
     public sealed class AttackKnockback : TimedEffect
     {
-        public override void OnStart()
+        [InitEffectInfo]
+        public static new readonly TimedEffectInfo EffectInfo;
+
+        static bool _appliedPatches;
+
+        static void tryApplyPatches()
         {
-            On.RoR2.BulletAttack.Fire += BulletAttack_Fire;
-
-            On.RoR2.Orbs.OrbManager.AddOrb += OrbManager_AddOrb;
-
-            On.RoR2.Projectile.ProjectileManager.FireProjectile_FireProjectileInfo += ProjectileManager_FireProjectile_FireProjectileInfo;
-        }
-
-        public override void OnEnd()
-        {
-            On.RoR2.BulletAttack.Fire -= BulletAttack_Fire;
-
-            On.RoR2.Orbs.OrbManager.AddOrb -= OrbManager_AddOrb;
-
-            On.RoR2.Projectile.ProjectileManager.FireProjectile_FireProjectileInfo -= ProjectileManager_FireProjectile_FireProjectileInfo;
-        }
-
-        static void BulletAttack_Fire(On.RoR2.BulletAttack.orig_Fire orig, BulletAttack self)
-        {
-            orig(self);
-
-            if (!self.owner)
+            if (_appliedPatches)
                 return;
 
-            CharacterBody ownerBody = self.owner.GetComponent<CharacterBody>();
-            if (!ownerBody)
-                return;
-
-            tryKnockbackBody(ownerBody, -self.aimVector, self.damage);
-        }
-
-        static void OrbManager_AddOrb(On.RoR2.Orbs.OrbManager.orig_AddOrb orig, OrbManager self, Orb orb)
-        {
-            orig(self, orb);
-
-            if (orb is null || !orb.target)
-                return;
-
-            CharacterBody attacker = orb.GetAttacker();
-            if (!attacker)
-                return;
-
-            float damage;
-            switch (orb)
+            On.RoR2.BulletAttack.Fire += (orig, self) =>
             {
-                case LunarDetonatorOrb lunarDetonatorOrb:
-                    damage = lunarDetonatorOrb.baseDamage;
-                    break;
-                default:
-                    FieldInfo damageValueField = orb.GetType().GetField("damageValue", BindingFlags.Public | BindingFlags.Instance);
-                    if (damageValueField is null || damageValueField.FieldType != typeof(float))
-                        return;
+                orig(self);
 
-                    damage = (float)damageValueField.GetValue(orb);
-                    break;
-            }
+                if (!TimedChaosEffectHandler.Instance || !TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
+                    return;
 
-            tryKnockbackBody(attacker, -(orb.target.transform.position - orb.origin).normalized, damage);
-        }
+                if (!self.owner)
+                    return;
 
-        static void ProjectileManager_FireProjectile_FireProjectileInfo(On.RoR2.Projectile.ProjectileManager.orig_FireProjectile_FireProjectileInfo orig, ProjectileManager self, FireProjectileInfo fireProjectileInfo)
-        {
-            orig(self, fireProjectileInfo);
+                CharacterBody ownerBody = self.owner.GetComponent<CharacterBody>();
+                if (!ownerBody)
+                    return;
 
-            if (!fireProjectileInfo.owner)
-                return;
+                tryKnockbackBody(ownerBody, -self.aimVector, self.damage);
+            };
 
-            CharacterBody ownerBody = fireProjectileInfo.owner.GetComponent<CharacterBody>();
-            if (!ownerBody)
-                return;
+            On.RoR2.Orbs.OrbManager.AddOrb += (orig, self, orb) =>
+            {
+                orig(self, orb);
 
-            Vector3 fireDirection = (fireProjectileInfo.rotation * Vector3.forward).normalized;
+                if (!TimedChaosEffectHandler.Instance || !TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
+                    return;
 
-            tryKnockbackBody(ownerBody, -fireDirection, fireProjectileInfo.damage);
+                if (orb is null || !orb.target)
+                    return;
+
+                CharacterBody attacker = orb.GetAttacker();
+                if (!attacker)
+                    return;
+
+                float damage;
+                switch (orb)
+                {
+                    case LunarDetonatorOrb lunarDetonatorOrb:
+                        damage = lunarDetonatorOrb.baseDamage;
+                        break;
+                    default:
+                        FieldInfo damageValueField = orb.GetType().GetField("damageValue", BindingFlags.Public | BindingFlags.Instance);
+                        if (damageValueField is null || damageValueField.FieldType != typeof(float))
+                            return;
+
+                        damage = (float)damageValueField.GetValue(orb);
+                        break;
+                }
+
+                tryKnockbackBody(attacker, -(orb.target.transform.position - orb.origin).normalized, damage);
+            };
+
+            On.RoR2.Projectile.ProjectileManager.FireProjectile_FireProjectileInfo += (orig, self, fireProjectileInfo) =>
+            {
+                orig(self, fireProjectileInfo);
+
+                if (!TimedChaosEffectHandler.Instance || !TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
+                    return;
+
+                if (!fireProjectileInfo.owner)
+                    return;
+
+                CharacterBody ownerBody = fireProjectileInfo.owner.GetComponent<CharacterBody>();
+                if (!ownerBody)
+                    return;
+
+                Vector3 fireDirection = (fireProjectileInfo.rotation * Vector3.forward).normalized;
+
+                tryKnockbackBody(ownerBody, -fireDirection, fireProjectileInfo.damage);
+            };
+
+            _appliedPatches = true;
         }
 
         static void tryKnockbackBody(CharacterBody body, Vector3 knockbackDirection, float damage)
@@ -101,8 +107,9 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             float damageCoefficient = damage / body.damage;
             float damageForceMultiplier = Mathf.Pow(damageCoefficient, damageCoefficient > 1f ? 1f / 1.5f : 2f);
+            float effectStackMultiplier = TimedChaosEffectHandler.Instance.GetEffectStackCount(EffectInfo);
 
-            Vector3 force = knockbackDirection * (baseForce * damageForceMultiplier);
+            Vector3 force = knockbackDirection * (baseForce * damageForceMultiplier * effectStackMultiplier);
 
             if (body.TryGetComponent(out IPhysMotor motor))
             {
@@ -118,6 +125,15 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 rigidbody.AddForce(force, ForceMode.VelocityChange);
             }
+        }
+
+        public override void OnStart()
+        {
+            tryApplyPatches();
+        }
+
+        public override void OnEnd()
+        {
         }
     }
 }
