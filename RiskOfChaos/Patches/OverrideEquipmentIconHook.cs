@@ -2,29 +2,20 @@
 using MonoMod.RuntimeDetour;
 using RoR2.UI;
 using System.Reflection;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace RiskOfChaos.Patches
 {
     static class OverrideEquipmentIconHook
     {
-        public readonly struct IconOverrideInfo
+        public struct IconOverrideInfo
         {
-            public readonly RawImage IconImage;
-            public readonly TextMeshProUGUI CooldownText;
-            public readonly TextMeshProUGUI StockText;
-
-            public IconOverrideInfo(EquipmentIcon icon)
-            {
-                IconImage = icon.iconImage;
-                CooldownText = icon.cooldownText;
-                StockText = icon.stockText;
-            }
+            public Texture IconOverride;
+            public Rect IconRectOverride;
+            public Color IconColorOverride;
         }
 
-        public delegate void OverrideEquipmentIconDelegate(in EquipmentIcon.DisplayData displayData, in IconOverrideInfo info);
+        public delegate void OverrideEquipmentIconDelegate(in EquipmentIcon.DisplayData displayData, ref IconOverrideInfo info);
 
         static event OverrideEquipmentIconDelegate _overrideEquipmentIcon;
         public static event OverrideEquipmentIconDelegate OverrideEquipmentIcon
@@ -69,21 +60,25 @@ namespace RiskOfChaos.Patches
         {
             orig(self, displayData);
 
-            // Bad way of doing it, don't really care, odds of this causing a conflict is super low anyway
+            IconOverrideInfo iconOverride = new IconOverrideInfo();
+
             if (self.iconImage)
             {
                 if (!_defaultEquipmentIconRect.HasValue)
                 {
                     _defaultEquipmentIconRect = self.iconImage.uvRect;
                 }
-                else
-                {
-                    self.iconImage.uvRect = _defaultEquipmentIconRect.Value;
-                }
-            }
 
-            IconOverrideInfo iconOverride = new IconOverrideInfo(self);
-            _overrideEquipmentIcon?.Invoke(displayData, iconOverride);
+                iconOverride.IconOverride = self.iconImage.texture;
+                iconOverride.IconRectOverride = _defaultEquipmentIconRect.Value;
+                iconOverride.IconColorOverride = self.iconImage.color;
+
+                _overrideEquipmentIcon?.Invoke(displayData, ref iconOverride);
+
+                self.iconImage.texture = iconOverride.IconOverride;
+                self.iconImage.uvRect = iconOverride.IconRectOverride;
+                self.iconImage.color = iconOverride.IconColorOverride;
+            }
         }
     }
 }

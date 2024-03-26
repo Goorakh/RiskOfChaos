@@ -60,14 +60,28 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
             };
         }
 
-        bool _addedServerHooks;
+        static bool _appliedServerPatches;
+        static void tryApplyServerPatches()
+        {
+            if (_appliedServerPatches)
+                return;
+
+            On.RoR2.EquipmentSlot.PerformEquipmentAction += (orig, self, equipmentDef) =>
+            {
+                if (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
+                    return false;
+
+                return orig(self, equipmentDef);
+            };
+
+            _appliedServerPatches = true;
+        }
 
         public override void OnStart()
         {
             if (NetworkServer.active)
             {
-                On.RoR2.EquipmentSlot.PerformEquipmentAction += EquipmentSlot_PerformEquipmentAction;
-                _addedServerHooks = true;
+                tryApplyServerPatches();
             }
 
             OverrideEquipmentIconHook.OverrideEquipmentIcon += overrideEquipmentIcon;
@@ -75,36 +89,22 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
 
         public override void OnEnd()
         {
-            if (_addedServerHooks)
-            {
-                On.RoR2.EquipmentSlot.PerformEquipmentAction -= EquipmentSlot_PerformEquipmentAction;
-            }
-
             OverrideEquipmentIconHook.OverrideEquipmentIcon -= overrideEquipmentIcon;
         }
 
-        static bool EquipmentSlot_PerformEquipmentAction(On.RoR2.EquipmentSlot.orig_PerformEquipmentAction orig, EquipmentSlot self, EquipmentDef equipmentDef)
-        {
-            return false;
-        }
-
-        static void overrideEquipmentIcon(in EquipmentIcon.DisplayData displayData, in OverrideEquipmentIconHook.IconOverrideInfo info)
+        static void overrideEquipmentIcon(in EquipmentIcon.DisplayData displayData, ref OverrideEquipmentIconHook.IconOverrideInfo info)
         {
             if (!displayData.hasEquipment)
                 return;
 
-            if (info.IconImage)
+            if (_lockedIconTexture)
             {
-                if (_lockedIconTexture)
-                {
-                    info.IconImage.texture = _lockedIconTexture;
-                    info.IconImage.color = Color.white;
-                    info.IconImage.uvRect = new Rect(0f, 0f, 0.25f, 1f);
-                }
-                else
-                {
-                    info.IconImage.color = Color.red;
-                }
+                info.IconOverride = _lockedIconTexture;
+                info.IconRectOverride = new Rect(0f, 0f, 0.25f, 1f);
+            }
+            else
+            {
+                info.IconColorOverride = Color.red;
             }
         }
     }
