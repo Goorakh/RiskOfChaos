@@ -44,6 +44,25 @@ namespace RiskOfChaos.Patches
                 {
                     tryMultiplyProjectileValues(ref projectileCharacterController.velocity, ref projectileCharacterController.lifetime, projectileCharacterController);
                 }
+
+                if (projectileController.TryGetComponent(out ProjectileSteerTowardTarget projectileSteerTowardTarget))
+                {
+                    tryMultiplyProjectileSpeed(ref projectileSteerTowardTarget.rotationSpeed, projectileSteerTowardTarget);
+                }
+            };
+
+            On.RoR2.VelocityRandomOnStart.Start += (orig, self) =>
+            {
+                if (self.GetComponent<ProjectileController>())
+                {
+                    tryMultiplyProjectileSpeed(ref self.minSpeed, self);
+                    tryMultiplyProjectileSpeed(ref self.maxSpeed, self);
+
+                    tryMultiplyProjectileSpeed(ref self.minAngularSpeed, self);
+                    tryMultiplyProjectileSpeed(ref self.maxAngularSpeed, self);
+                }
+
+                orig(self);
             };
 
             On.RoR2.Projectile.ProjectileSimple.SetLifetime += (orig, self, newLifetime) =>
