@@ -464,7 +464,7 @@ namespace RiskOfChaos.Utilities
             else
             {
 #if DEBUG
-                Log.Debug($"Generated {targetNodesCount} positions");
+                Log.Debug($"Generated {targetNodesCount} positions ({selectionFraction:P})");
 #endif
             }
         }
