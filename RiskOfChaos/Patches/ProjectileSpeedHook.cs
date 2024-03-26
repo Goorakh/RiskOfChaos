@@ -15,16 +15,42 @@ namespace RiskOfChaos.Patches
         [SystemInitializer]
         static void Init()
         {
-            On.RoR2.Projectile.ProjectileSimple.Awake += (orig, self) =>
+            On.RoR2.Projectile.ProjectileManager.InitializeProjectile += (orig, projectileController, fireProjectileInfo) =>
             {
-                tryMultiplyProjectileValues(ref self.desiredForwardSpeed, ref self.lifetime, self);
+                orig(projectileController, fireProjectileInfo);
 
-                if (self.oscillate)
+                if (projectileController.TryGetComponent(out ProjectileSimple projectileSimple))
                 {
-                    tryMultiplyProjectileSpeed(ref self.oscillateSpeed, self);
+                    tryMultiplyProjectileValues(ref projectileSimple.desiredForwardSpeed, ref projectileSimple.lifetime, projectileSimple);
                 }
 
-                orig(self);
+                if (projectileController.TryGetComponent(out BoomerangProjectile boomerangProjectile))
+                {
+                    tryMultiplyProjectileSpeed(ref boomerangProjectile.travelSpeed, boomerangProjectile);
+                }
+
+                if (projectileController.TryGetComponent(out DaggerController daggerController))
+                {
+                    tryMultiplyProjectileSpeed(ref daggerController.acceleration, daggerController);
+                }
+
+                if (projectileController.TryGetComponent(out MissileController missileController))
+                {
+                    tryMultiplyProjectileValues(ref missileController.maxVelocity, ref missileController.deathTimer, missileController);
+                    tryMultiplyProjectileTravelTime(ref missileController.giveupTimer, missileController);
+                }
+
+                if (projectileController.TryGetComponent(out ProjectileCharacterController projectileCharacterController))
+                {
+                    tryMultiplyProjectileValues(ref projectileCharacterController.velocity, ref projectileCharacterController.lifetime, projectileCharacterController);
+                }
+            };
+
+            On.RoR2.Projectile.ProjectileSimple.SetLifetime += (orig, self, newLifetime) =>
+            {
+                tryMultiplyProjectileTravelTime(ref newLifetime, self);
+
+                orig(self, newLifetime);
             };
 
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -39,31 +65,6 @@ namespace RiskOfChaos.Patches
                     orig(self, value);
                 });
             }
-
-            On.RoR2.Projectile.BoomerangProjectile.Awake += (orig, self) =>
-            {
-                tryMultiplyProjectileSpeed(ref self.travelSpeed, self);
-                orig(self);
-            };
-
-            On.RoR2.Projectile.DaggerController.Awake += (orig, self) =>
-            {
-                tryMultiplyProjectileSpeed(ref self.acceleration, self);
-                orig(self);
-            };
-
-            On.RoR2.Projectile.MissileController.Awake += (orig, self) =>
-            {
-                tryMultiplyProjectileValues(ref self.maxVelocity, ref self.deathTimer, self);
-                tryMultiplyProjectileTravelTime(ref self.giveupTimer, self);
-                orig(self);
-            };
-
-            On.RoR2.Projectile.ProjectileCharacterController.Awake += (orig, self) =>
-            {
-                tryMultiplyProjectileValues(ref self.velocity, ref self.lifetime, self);
-                orig(self);
-            };
 
             MethodInfo orbDurationSetter = AccessTools.DeclaredPropertySetter(typeof(Orb), nameof(Orb.duration));
             if (orbDurationSetter != null)
