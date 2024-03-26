@@ -8,7 +8,7 @@ namespace RiskOfChaos.Patches
 {
     static class CharacterMoneyChangedHook
     {
-        public delegate void OnCharacterMoneyChangedDelegate(CharacterMaster master, int moneyDiff);
+        public delegate void OnCharacterMoneyChangedDelegate(CharacterMaster master, long moneyDiff);
         public static event OnCharacterMoneyChangedDelegate OnCharacterMoneyChanged;
 
         [SystemInitializer]
@@ -22,37 +22,44 @@ namespace RiskOfChaos.Patches
         {
             ILCursor c = new ILCursor(il);
 
+            VariableDefinition newMoneyVar = new VariableDefinition(il.Module.ImportReference(typeof(uint)));
+            il.Method.Body.Variables.Add(newMoneyVar);
+
+            VariableDefinition masterInstanceVar = new VariableDefinition(il.Module.ImportReference(typeof(CharacterMaster)));
+            il.Method.Body.Variables.Add(masterInstanceVar);
+
+            VariableDefinition oldMoneyVar = new VariableDefinition(il.Module.ImportReference(typeof(uint)));
+            il.Method.Body.Variables.Add(oldMoneyVar);
+
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
             const string MONEY_FIELD_NAME = nameof(CharacterMaster._money);
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
             while (c.TryGotoNext(MoveType.Before, x => x.MatchStfld<CharacterMaster>(MONEY_FIELD_NAME)))
             {
-                CharacterMaster masterInstance = null;
-                uint oldMoney = 0;
-                uint newMoney = 0;
+                c.Emit(OpCodes.Stloc, newMoneyVar);
+                c.Emit(OpCodes.Stloc, masterInstanceVar);
 
-                c.EmitDelegate((uint _newMoney) =>
+                c.Emit(OpCodes.Ldloc, masterInstanceVar);
+                c.EmitDelegate((CharacterMaster masterInstance) =>
                 {
-                    newMoney = _newMoney;
+                    return masterInstance.money;
                 });
+                c.Emit(OpCodes.Stloc, oldMoneyVar);
 
-                c.Emit(OpCodes.Dup);
-                c.EmitDelegate((CharacterMaster instance) =>
-                {
-                    oldMoney = instance.money;
-                    masterInstance = instance;
-                });
-
-                c.EmitDelegate(() => newMoney);
+                c.Emit(OpCodes.Ldloc, masterInstanceVar);
+                c.Emit(OpCodes.Ldloc, newMoneyVar);
 
                 c.Index++;
 
-                c.EmitDelegate(() =>
+                c.Emit(OpCodes.Ldloc, masterInstanceVar);
+                c.Emit(OpCodes.Ldloc, oldMoneyVar);
+                c.Emit(OpCodes.Ldloc, newMoneyVar);
+                c.EmitDelegate((CharacterMaster masterInstance, uint oldMoney, uint newMoney) =>
                 {
-                    if (masterInstance)
+                    if (masterInstance && oldMoney != newMoney)
                     {
-                        OnCharacterMoneyChanged?.Invoke(masterInstance, (int)newMoney - (int)oldMoney);
+                        OnCharacterMoneyChanged?.Invoke(masterInstance, newMoney - (long)oldMoney);
                     }
                 });
             }

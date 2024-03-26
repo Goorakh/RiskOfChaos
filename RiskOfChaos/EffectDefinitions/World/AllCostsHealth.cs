@@ -139,7 +139,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             return Mathf.Max(1f, (1f - (halfwayValue / (cost + halfwayValue))) * 100f);
         }
 
-        void onCharacterMoneyChanged(CharacterMaster master, int moneyDiff)
+        void onCharacterMoneyChanged(CharacterMaster master, long moneyDiff)
         {
             if (moneyDiff <= 0 || !master.playerCharacterMasterController)
                 return;
