@@ -95,9 +95,8 @@ namespace RiskOfChaos.Patches
                                 body = ai.body;
                                 break;
                             default:
-                                body = null;
                                 Log.Error($"Unhandled instance type: {instance}");
-                                break;
+                                return origButtonState;
                         }
 
                         if (body && !shouldIgnoreSkillSlot(body.bodyIndex, skillSlot) &&
