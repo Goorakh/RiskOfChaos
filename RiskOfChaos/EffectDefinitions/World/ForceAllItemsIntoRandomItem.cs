@@ -93,13 +93,13 @@ namespace RiskOfChaos.EffectDefinitions.World
             _dropTable.name = $"dt{nameof(ForceAllItemsIntoRandomItem)}";
             _dropTable.canDropBeReplaced = false;
 
-            _dropTable.RegisterDrop(DropType.Tier1, 0.9f);
-            _dropTable.RegisterDrop(DropType.Tier2, 1f);
+            _dropTable.RegisterDrop(DropType.Tier1, 1f);
+            _dropTable.RegisterDrop(DropType.Tier2, 0.9f);
             _dropTable.RegisterDrop(DropType.Tier3, 0.7f);
             _dropTable.RegisterDrop(DropType.Boss, 0.7f);
-            _dropTable.RegisterDrop(DropType.LunarEquipment, 0.2f);
+            _dropTable.RegisterDrop(DropType.LunarEquipment, 0.1f);
             _dropTable.RegisterDrop(DropType.LunarItem, 0.6f);
-            _dropTable.RegisterDrop(DropType.Equipment, 0.3f);
+            _dropTable.RegisterDrop(DropType.Equipment, 0.15f);
             _dropTable.RegisterDrop(DropType.VoidTier1, 0.6f);
             _dropTable.RegisterDrop(DropType.VoidTier2, 0.6f);
             _dropTable.RegisterDrop(DropType.VoidTier3, 0.5f);
