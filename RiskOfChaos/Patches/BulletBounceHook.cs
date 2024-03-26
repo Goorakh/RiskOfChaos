@@ -125,7 +125,7 @@ namespace RiskOfChaos.Patches
 
                                             if (ownerBody.isPlayerControlled)
                                             {
-                                                BullseyeSearch bullseyeSearch = new BullseyeSearch
+                                                BullseyeSearch autoAimSearch = new BullseyeSearch
                                                 {
                                                     searchOrigin = instance.origin,
                                                     filterByLoS = true,
@@ -137,14 +137,15 @@ namespace RiskOfChaos.Patches
                                                     queryTriggerInteraction = QueryTriggerInteraction.Ignore,
                                                     sortMode = BullseyeSearch.SortMode.Angle,
                                                     viewer = ownerBody,
-                                                    teamMaskFilter = TeamMask.allButNeutral
                                                 };
 
-                                                bullseyeSearch.teamMaskFilter.RemoveTeam(TeamComponent.GetObjectTeam(instance.owner));
+                                                TeamMask searchTeamMask = TeamMask.allButNeutral;
+                                                searchTeamMask.RemoveTeam(TeamComponent.GetObjectTeam(instance.owner));
+                                                autoAimSearch.teamMaskFilter = searchTeamMask;
 
-                                                bullseyeSearch.RefreshCandidates();
+                                                autoAimSearch.RefreshCandidates();
 
-                                                HurtBox overrideTargetHurtBox = bullseyeSearch.GetResults().FirstOrDefault(h => h.healthComponent.gameObject != hit.entityObject);
+                                                HurtBox overrideTargetHurtBox = autoAimSearch.GetResults().FirstOrDefault(h => h.healthComponent.gameObject != hit.entityObject);
                                                 if (overrideTargetHurtBox)
                                                 {
                                                     bounceDirection = (overrideTargetHurtBox.randomVolumePoint - instance.origin).normalized;
