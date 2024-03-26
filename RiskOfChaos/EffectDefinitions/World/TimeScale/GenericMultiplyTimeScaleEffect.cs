@@ -1,14 +1,64 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+﻿using RiskOfChaos.EffectHandling.Controllers;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.ModifierController.TimeScale;
 using RiskOfChaos.Utilities.Interpolation;
 using RoR2;
 using System;
-using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 {
     public abstract class GenericMultiplyTimeScaleEffect : TimedEffect, ITimeScaleModificationProvider
     {
+        static bool _appliedPatches;
+
+        static void applyPatches()
+        {
+            if (_appliedPatches)
+                return;
+
+            static float getTotalTimeScaleMultiplier()
+            {
+                float multiplier = 1f;
+
+                if (NetworkServer.active && TimedChaosEffectHandler.Instance)
+                {
+                    foreach (GenericMultiplyTimeScaleEffect effect in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<GenericMultiplyTimeScaleEffect>())
+                    {
+                        multiplier *= effect.multiplier;
+                    }
+                }
+
+                return multiplier;
+            }
+
+            On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
+            {
+                orig(self);
+
+                if (self.isPlayerControlled)
+                {
+                    float timeScaleMultiplier = getTotalTimeScaleMultiplier();
+
+                    self.moveSpeed /= timeScaleMultiplier;
+                    self.attackSpeed /= timeScaleMultiplier;
+                    self.acceleration /= timeScaleMultiplier;
+                }
+            };
+
+            On.RoR2.Util.PlayAttackSpeedSound += (orig, soundString, gameObject, attackSpeedStat) =>
+            {
+                if (gameObject && gameObject.TryGetComponent(out CharacterBody characterBody) && characterBody.isPlayerControlled)
+                {
+                    attackSpeedStat *= getTotalTimeScaleMultiplier();
+                }
+
+                return orig(soundString, gameObject, attackSpeedStat);
+            };
+
+            _appliedPatches = true;
+        }
+
         [EffectCanActivate]
         static bool CanActivate()
         {
@@ -26,10 +76,9 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 
         public override void OnStart()
         {
-            TimeScaleModificationManager.Instance.RegisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
+            applyPatches();
 
-            On.RoR2.CharacterBody.RecalculateStats += CharacterBody_RecalculateStats;
-            On.RoR2.Util.PlayAttackSpeedSound += Util_PlayAttackSpeedSound;
+            TimeScaleModificationManager.Instance.RegisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
 
             markAllPlayerStatsDirty();
             OnValueDirty += markAllPlayerStatsDirty;
@@ -41,9 +90,6 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
             {
                 TimeScaleModificationManager.Instance.UnregisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
             }
-
-            On.RoR2.CharacterBody.RecalculateStats -= CharacterBody_RecalculateStats;
-            On.RoR2.Util.PlayAttackSpeedSound -= Util_PlayAttackSpeedSound;
 
             markAllPlayerStatsDirty();
             OnValueDirty -= markAllPlayerStatsDirty;
@@ -58,28 +104,6 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
                     body.MarkAllStatsDirty();
                 }
             }
-        }
-
-        void CharacterBody_RecalculateStats(On.RoR2.CharacterBody.orig_RecalculateStats orig, CharacterBody self)
-        {
-            orig(self);
-
-            if (self.isPlayerControlled)
-            {
-                self.moveSpeed /= multiplier;
-                self.attackSpeed /= multiplier;
-                self.acceleration /= multiplier;
-            }
-        }
-
-        uint Util_PlayAttackSpeedSound(On.RoR2.Util.orig_PlayAttackSpeedSound orig, string soundString, GameObject gameObject, float attackSpeedStat)
-        {
-            if (gameObject && gameObject.TryGetComponent(out CharacterBody characterBody) && characterBody.isPlayerControlled)
-            {
-                attackSpeedStat *= multiplier;
-            }
-
-            return orig(soundString, gameObject, attackSpeedStat);
         }
     }
 }
