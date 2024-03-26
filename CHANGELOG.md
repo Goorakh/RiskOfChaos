@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**1.16.0 Changes:**
 
 * Added 1 effect:
   * Cleanse Random Item: Turns a random item (lunars prioritized) or lunar equipment from every player into a random pearl

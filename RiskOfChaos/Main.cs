@@ -27,7 +27,7 @@ namespace RiskOfChaos
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Gorakh";
         public const string PluginName = "RiskOfChaos";
-        public const string PluginVersion = "1.15.1";
+        public const string PluginVersion = "1.16.0";
 
         Harmony _harmonyInstance;
 
