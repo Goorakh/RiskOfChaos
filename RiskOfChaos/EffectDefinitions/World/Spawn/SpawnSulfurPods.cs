@@ -33,7 +33,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         public override void OnStart()
         {
             foreach (Vector3 position in SpawnUtils.GenerateDistributedSpawnPositions(_placementSelectionRules,
-                                                                                      RNG.RangeFloat(0.15f, 0.3f),
+                                                                                      0.1f,
                                                                                       RNG.Branch()))
             {
                 Vector3 normal = SpawnUtils.GetEnvironmentNormalAtPoint(position);

@@ -23,6 +23,9 @@
   * Added minimum angle requirement to new gravity direction.
     * It is now guaranteed to differ from the normal direction by at least 10 degrees
 
+* Sulfur Pools Experience:
+  * Significantly decreased spawn count due to crashing issues
+
 * Spawn Random Ally:
   * Spawned allies are now given a small amount of health regen.
 
