@@ -5,7 +5,6 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions;
-using RiskOfOptions.Options;
 using RoR2;
 using System;
 using System.Collections.Generic;
@@ -215,8 +214,10 @@ namespace RiskOfChaos.EffectHandling
                 case "CHAOS_ACTIVE_EFFECT_UNTIL_STAGE_END_MULTI_FORMAT":
                 case "CHAOS_ACTIVE_EFFECT_FIXED_DURATION_FORMAT":
                 case "CHAOS_ACTIVE_EFFECT_FIXED_DURATION_LONG_FORMAT":
+                case "CHAOS_ACTIVE_EFFECT_FALLBACK_FORMAT":
                 case "CHAOS_NEXT_EFFECT_DISPLAY_FORMAT":
                 case "CHAOS_NEXT_EFFECT_TIME_REMAINING_DISPLAY_FORMAT":
+                case "CHAOS_EFFECT_VOTING_OPTION_FORMAT":
                 case "CHAOS_EFFECT_ACTIVATE":
                 case "CHAOS_EFFECT_VOTING_RANDOM_OPTION_NAME":
                 case "TIMED_TYPE_UNTIL_STAGE_END_SINGLE_FORMAT":

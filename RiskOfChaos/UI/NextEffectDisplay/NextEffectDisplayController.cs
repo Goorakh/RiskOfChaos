@@ -9,23 +9,32 @@ namespace RiskOfChaos.UI.NextEffectDisplay
 {
     public class NextEffectDisplayController : MonoBehaviour
     {
-        public HGTextMeshProUGUI EffectText;
+        public LanguageTextMeshController EffectText;
         public Image BackdropImage;
         public AnimateUIAlpha FlashController;
 
         float _lastDisplayedTimeRemaining;
-        ChaosEffectIndex _currentDisplayingEffectIndex;
+        EffectDisplayData _currentDisplayData;
 
         void Awake()
         {
+            RectTransform rectTransform = (RectTransform)EffectText.transform;
+
             // These don't want to serialize for some reason
-            EffectText.rectTransform.sizeDelta = Vector2.zero;
-            EffectText.rectTransform.anchoredPosition = Vector2.zero;
+            rectTransform.sizeDelta = Vector2.zero;
+            rectTransform.anchoredPosition = Vector2.zero;
         }
 
         void OnEnable()
         {
             beginFlash();
+
+            Language.onCurrentLanguageChanged += onCurrentLanguageChanged;
+        }
+
+        void OnDisable()
+        {
+            Language.onCurrentLanguageChanged -= onCurrentLanguageChanged;
         }
 
         void beginFlash()
@@ -44,20 +53,27 @@ namespace RiskOfChaos.UI.NextEffectDisplay
             {
                 ChaosEffectInfo effectInfo = ChaosEffectCatalog.GetEffectInfo(displayData.EffectIndex);
                 string effectName = effectInfo?.GetDisplayName(displayData.NameFormatter, EffectNameFormatFlags.RuntimeFormatArgs) ?? "NULL";
-                EffectText.text = Language.GetStringFormatted("CHAOS_NEXT_EFFECT_DISPLAY_FORMAT", effectName, timeRemainingString);
+                EffectText.token = "CHAOS_NEXT_EFFECT_DISPLAY_FORMAT";
+                EffectText.formatArgs = [effectName, timeRemainingString];
             }
             else
             {
-                EffectText.text = Language.GetStringFormatted("CHAOS_NEXT_EFFECT_TIME_REMAINING_DISPLAY_FORMAT", timeRemainingString);
+                EffectText.token = "CHAOS_NEXT_EFFECT_TIME_REMAINING_DISPLAY_FORMAT";
+                EffectText.formatArgs = [timeRemainingString];
             }
 
-            if (_currentDisplayingEffectIndex != displayData.EffectIndex || displayData.TimeRemaining - _lastDisplayedTimeRemaining > 1f)
+            if (_currentDisplayData.EffectIndex != displayData.EffectIndex || displayData.TimeRemaining - _lastDisplayedTimeRemaining > 1f)
             {
                 beginFlash();
             }
 
-            _currentDisplayingEffectIndex = displayData.EffectIndex;
+            _currentDisplayData = displayData;
             _lastDisplayedTimeRemaining = displayData.TimeRemaining;
+        }
+
+        void onCurrentLanguageChanged()
+        {
+            DisplayEffect(_currentDisplayData);
         }
     }
 }

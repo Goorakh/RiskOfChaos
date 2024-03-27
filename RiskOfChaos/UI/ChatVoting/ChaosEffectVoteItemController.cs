@@ -1,6 +1,8 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling.Controllers.ChatVoting;
+using RoR2;
 using RoR2.UI;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,15 +12,32 @@ namespace RiskOfChaos.UI.ChatVoting
     {
         public CanvasGroup CanvasGroup;
         public Image BackdropImage;
-        public HGTextMeshProUGUI EffectText;
+
+        public LanguageTextMeshController EffectTextController;
+        public TMP_Text EffectTextLabel;
 
         EffectVoteInfo _voteOption;
+        uint _displayedVersion;
 
         void Awake()
         {
+            RectTransform rectTransform = (RectTransform)EffectTextController.transform;
+
             // These don't want to serialize for some reason
-            EffectText.rectTransform.sizeDelta = Vector2.zero;
-            EffectText.rectTransform.anchoredPosition = Vector2.zero;
+            rectTransform.sizeDelta = Vector2.zero;
+            rectTransform.anchoredPosition = Vector2.zero;
+        }
+
+        void OnEnable()
+        {
+            refreshTextDisplay();
+
+            Language.onCurrentLanguageChanged += onCurrentLanguageChanged;
+        }
+
+        void OnDisable()
+        {
+            Language.onCurrentLanguageChanged -= onCurrentLanguageChanged;
         }
 
         void Start()
@@ -58,9 +77,9 @@ namespace RiskOfChaos.UI.ChatVoting
 
         void setTextColor(Color color)
         {
-            if (EffectText)
+            if (EffectTextLabel)
             {
-                EffectText.color = color;
+                EffectTextLabel.color = color;
             }
         }
 
@@ -72,17 +91,37 @@ namespace RiskOfChaos.UI.ChatVoting
         public void SetVote(EffectVoteInfo voteOption)
         {
             _voteOption = voteOption;
+            refreshTextDisplay();
+        }
+
+        void onCurrentLanguageChanged()
+        {
+            refreshTextDisplay();
+        }
+
+        void refreshTextDisplay()
+        {
+            if (_voteOption == null)
+            {
+                EffectTextController.token = string.Empty;
+                EffectTextController.formatArgs = [];
+
+                _displayedVersion = 0;
+            }
+            else
+            {
+                EffectTextController.token = "CHAOS_EFFECT_VOTING_OPTION_FORMAT";
+                EffectTextController.formatArgs = _voteOption.GetArgs();
+
+                _displayedVersion = _voteOption.Version;
+            }
         }
 
         void Update()
         {
-            if (_voteOption == null)
+            if (_voteOption != null && _voteOption.Version > _displayedVersion)
             {
-                EffectText.text = string.Empty;
-            }
-            else
-            {
-                EffectText.text = _voteOption.ToString();
+                refreshTextDisplay();
             }
         }
     }

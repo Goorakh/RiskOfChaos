@@ -3,10 +3,8 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.Networking.Components.Effects;
 using RiskOfChaos.Trackers;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.UI;
-using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -63,12 +61,12 @@ namespace RiskOfChaos.UI.NextEffectDisplay
             effectTextLabel.alignment = TextAlignmentOptions.Center;
             effectTextLabel.enableWordWrapping = false;
             effectTextLabel.fontSize = 30;
-            effectTextLabel.text = "Next Up: Very Long Effect Name balblablalblablalblablalbl";
+            effectTextLabel.text = string.Empty;
 
             effectText.transform.SetParent(effectDisplayCanvasGroup.transform);
 
             NextEffectDisplayController displayController = effectDisplayPrefab.AddComponent<NextEffectDisplayController>();
-            displayController.EffectText = effectTextLabel;
+            displayController.EffectText = effectText.AddComponent<LanguageTextMeshController>();
 
             Transform backdropTransform = effectDisplayCanvasGroup.transform.Find("Backdrop");
             if (backdropTransform)

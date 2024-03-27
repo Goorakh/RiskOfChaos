@@ -14,8 +14,41 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
         public readonly int VoteNumber;
 
-        public int VoteCount;
-        public float VotePercentage;
+        public uint Version { get; private set; }
+
+        int _voteCount;
+        public int VoteCount
+        {
+            get
+            {
+                return _voteCount;
+            }
+            set
+            {
+                if (_voteCount == value)
+                    return;
+
+                _voteCount = value;
+                Version++;
+            }
+        }
+
+        float _votePercentage;
+        public float VotePercentage
+        {
+            get
+            {
+                return _votePercentage;
+            }
+            set
+            {
+                if (_votePercentage == value)
+                    return;
+
+                _votePercentage = value;
+                Version++;
+            }
+        }
 
         EffectVoteInfo(ChaosEffectInfo effectInfo, bool isRandom, int voteNumber)
         {
@@ -28,19 +61,13 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
         {
         }
 
-        public override string ToString()
+        public object[] GetArgs()
         {
-            string effectName;
-            if (IsRandom)
-            {
-                effectName = Language.GetString("CHAOS_EFFECT_VOTING_RANDOM_OPTION_NAME");
-            }
-            else
-            {
-                effectName = EffectInfo.GetLocalDisplayName();
-            }
-
-            return $"{VoteNumber}: {effectName} ({VotePercentage * 100f:F0}%)";
+            return [
+                VoteNumber,
+                IsRandom ? Language.GetString("CHAOS_EFFECT_VOTING_RANDOM_OPTION_NAME") : EffectInfo.GetLocalDisplayName(),
+                VotePercentage * 100f
+            ];
         }
     }
 }

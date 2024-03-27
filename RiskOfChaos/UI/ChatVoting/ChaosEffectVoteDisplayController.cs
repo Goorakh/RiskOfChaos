@@ -60,7 +60,7 @@ namespace RiskOfChaos.UI.ChatVoting
             effectTextLabel.alignment = TextAlignmentOptions.Left;
             effectTextLabel.enableWordWrapping = false;
             effectTextLabel.fontSize = 30;
-            effectTextLabel.text = "1: Effect Name blabalblablablablalbalblalblab (25%)";
+            effectTextLabel.text = string.Empty;
 
             effectText.transform.SetParent(voteItemCanvasGroup.transform);
 
@@ -69,7 +69,8 @@ namespace RiskOfChaos.UI.ChatVoting
             layoutElement.preferredWidth = 500f;
 
             ChaosEffectVoteItemController chaosEffectVoteItem = voteItemPrefab.AddComponent<ChaosEffectVoteItemController>();
-            chaosEffectVoteItem.EffectText = effectTextLabel;
+            chaosEffectVoteItem.EffectTextLabel = effectTextLabel;
+            chaosEffectVoteItem.EffectTextController = effectText.AddComponent<LanguageTextMeshController>();
             chaosEffectVoteItem.CanvasGroup = voteItemCanvasGroup.GetComponent<CanvasGroup>();
 
             Transform backdropTransform = voteItemCanvasGroup.transform.Find("Backdrop");

@@ -5,7 +5,6 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.UI;
-using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,8 +14,6 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
     public class ChaosActiveEffectItemController : MonoBehaviour
     {
         static GameObject _itemPrefab;
-
-        static readonly StringBuilder _displayNameStringBuilder = new StringBuilder();
 
         internal static void InitializePrefab(GameObject objectiveTrackerPrefab)
         {
@@ -58,6 +55,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             effectNameLabel.rectTransform.localPosition = new Vector3(0f, 0f, 0f);
 
             activeEffectItemController._effectNameLabel = effectNameLabel;
+            activeEffectItemController._effectNameText = labelTransform.gameObject.AddComponent<LanguageTextMeshController>();
 
             _itemPrefab.SetActive(true);
         }
@@ -90,10 +88,24 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
         [SerializeField]
         HGTextMeshProUGUI _effectNameLabel;
 
+        [SerializeField]
+        LanguageTextMeshController _effectNameText;
+
         void Start()
         {
             Configs.UI.ActiveEffectsTextColor.SettingChanged += ActiveEffectsTextColor_SettingChanged;
             setTextColor(Configs.UI.ActiveEffectsTextColor.Value);
+        }
+
+        void OnEnable()
+        {
+            updateEffectLabel();
+            Language.onCurrentLanguageChanged += onCurrentLanguageChanged;
+        }
+
+        void OnDisable()
+        {
+            Language.onCurrentLanguageChanged -= onCurrentLanguageChanged;
         }
 
         void OnDestroy()
@@ -111,42 +123,63 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             _effectNameLabel.color = color;
         }
 
+        void onCurrentLanguageChanged()
+        {
+            updateEffectLabel();
+        }
+
         void updateEffectLabel()
         {
-            _displayNameStringBuilder.Clear();
-            _displayNameStringBuilder.Append(_displayingEffect.DisplayName);
+            if (_displayingEffect.EffectInfo == null)
+            {
+                _effectNameText.token = string.Empty;
+                _effectNameText.formatArgs = [];
+                return;
+            }
 
+            string token;
+            object[] formatArgs;
             switch (_displayingEffect.TimedType)
             {
                 case TimedEffectType.UntilStageEnd:
                     int stagesRemaining = Mathf.CeilToInt(_displayingEffect.RemainingStocks);
 
-                    string formatToken;
                     if (stagesRemaining == 1)
                     {
-                        formatToken = "CHAOS_ACTIVE_EFFECT_UNTIL_STAGE_END_SINGLE_FORMAT";
+                        token = "CHAOS_ACTIVE_EFFECT_UNTIL_STAGE_END_SINGLE_FORMAT";
                     }
                     else
                     {
-                        formatToken = "CHAOS_ACTIVE_EFFECT_UNTIL_STAGE_END_MULTI_FORMAT";
+                        token = "CHAOS_ACTIVE_EFFECT_UNTIL_STAGE_END_MULTI_FORMAT";
                     }
 
-                    _displayNameStringBuilder.Append(' ');
-                    _displayNameStringBuilder.Append(Language.GetStringFormatted(formatToken, stagesRemaining));
+                    formatArgs = [
+                        stagesRemaining
+                    ];
                     break;
                 case TimedEffectType.FixedDuration when Run.instance:
+                    token = "CHAOS_ACTIVE_EFFECT_FIXED_DURATION_FORMAT";
+
                     float currentTime = Run.instance.GetRunTime(RunTimerType.Realtime);
                     float endTime = _displayingEffect.EndTime;
 
                     float timeRemaining = endTime - currentTime;
-                    _displayNameStringBuilder.Append(' ');
 
-                    _displayNameStringBuilder.Append(Language.GetStringFormatted("CHAOS_ACTIVE_EFFECT_FIXED_DURATION_FORMAT", FormatUtils.FormatTimeSeconds(timeRemaining)));
-
+                    formatArgs = [
+                        FormatUtils.FormatTimeSeconds(timeRemaining)
+                    ];
+                    break;
+                default:
+                    token = "CHAOS_ACTIVE_EFFECT_FALLBACK_FORMAT";
+                    formatArgs = [];
                     break;
             }
 
-            _effectNameLabel.text = _displayNameStringBuilder.Take();
+            _effectNameText.token = token;
+            _effectNameText.formatArgs = [
+                _displayingEffect.DisplayName,
+                ..formatArgs
+            ];
         }
 
         void FixedUpdate()
