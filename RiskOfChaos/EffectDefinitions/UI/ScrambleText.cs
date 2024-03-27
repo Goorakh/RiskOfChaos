@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -12,7 +13,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using TMPro;
-using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.UI
@@ -20,11 +20,21 @@ namespace RiskOfChaos.EffectDefinitions.UI
     [ChaosTimedEffect("scramble_text", 120f, AllowDuplicates = false, IsNetworked = true)]
     public sealed class ScrambleText : TimedEffect
     {
+        [InitEffectInfo]
+        public static new readonly TimedEffectInfo EffectInfo;
+
         [EffectConfig]
         static readonly ConfigHolder<bool> _excludeEffectNames =
-            ConfigFactory<bool>.CreateConfig("Exclude Effect Names", true)
+            ConfigFactory<bool>.CreateConfig("Exclude Effect Names", false)
                                .Description("Excludes chaos effect names from being scrambled")
                                .OptionConfig(new CheckBoxConfig())
+                               .OnValueChanged(() =>
+                               {
+                                   if (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
+                                   {
+                                       LocalizedStringOverridePatch.RefreshLanguageTokens();
+                                   }
+                               })
                                .Build();
 
         // Match string formats ({0}, {0:F0}, etc.)

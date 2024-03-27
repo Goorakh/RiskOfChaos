@@ -1,6 +1,13 @@
 ## Changelog
 
-**1.16.0 Changes:**
+**?.?.? Changes:**
+
+* Scrambled Text:
+  * Fixed effect not changing the text of Risk of Chaos UI properly
+  * Effect names and mod UI are now affected by the scrambling by default
+
+<details>
+  <summary>1.16.0 Changes:</summary>
 
 * Added 1 effect:
   * Cleanse Random Item: Turns a random item (lunars prioritized) or lunar equipment from every player into a random pearl
@@ -40,6 +47,8 @@
 
 * Misc:
   * Minor performance improvements
+  
+</details>
 
 <details>
   <summary>1.15.1 Changes</summary>

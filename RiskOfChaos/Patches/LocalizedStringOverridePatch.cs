@@ -18,7 +18,7 @@ namespace RiskOfChaos.Patches
             }
         }
 
-        static void refreshLanguageTokens()
+        public static void RefreshLanguageTokens()
         {
             if (Language_onCurrentLanguageChanged != null && Language_onCurrentLanguageChanged.GetValue(null) is Action onCurrentLanguageChanged)
             {
@@ -42,12 +42,12 @@ namespace RiskOfChaos.Patches
             {
                 _overrideLanguageString += value;
                 tryApplyPatches();
-                refreshLanguageTokens();
+                RefreshLanguageTokens();
             }
             remove
             {
                 _overrideLanguageString -= value;
-                refreshLanguageTokens();
+                RefreshLanguageTokens();
             }
         }
 
