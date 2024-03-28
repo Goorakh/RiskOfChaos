@@ -1,8 +1,6 @@
-﻿using RiskOfChaos.ModCompatibility;
-using RiskOfChaos.Utilities.Extensions;
+﻿using MonoMod.Utils;
 using RoR2;
 using System;
-using System.Reflection;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.Damage
@@ -40,6 +38,8 @@ namespace RiskOfChaos.ModifierController.Damage
         static DamageInfoModificationManager _instance;
         public static DamageInfoModificationManager Instance => _instance;
 
+        static readonly WeakReference _lastModifiedDamageInfoReference = new WeakReference(null);
+
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -60,23 +60,17 @@ namespace RiskOfChaos.ModifierController.Damage
             if (!NetworkServer.active || !Instance || !Instance.AnyModificationActive || damageInfo == null)
                 return;
 
-            DamageInfo damageInfoCopy;
-            try
-            {
-                damageInfoCopy = damageInfo.ShallowCopy(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            }
-            catch (Exception ex)
-            {
-                Log.Error_NoCallerPrefix($"Failed to create shallow copy of {damageInfo}: {ex}");
+            if (_lastModifiedDamageInfoReference.SafeGetIsAlive() && ReferenceEquals(_lastModifiedDamageInfoReference.SafeGetTarget(), damageInfo))
                 return;
-            }
 
-            if (DamageAPICompat.Active)
+            DamageInfo modifiedDamageInfo = Instance.GetModifiedValue(damageInfo);
+
+            if (!ReferenceEquals(modifiedDamageInfo, damageInfo))
             {
-                DamageAPICompat.CopyModdedDamageTypes(damageInfo, damageInfoCopy);
+                Log.Error("Modification changed DamageInfo instance");
             }
 
-            damageInfo = Instance.GetModifiedValue(damageInfoCopy);
+            _lastModifiedDamageInfoReference.Target = damageInfo;
         }
 
         public override DamageInfo InterpolateValue(in DamageInfo a, in DamageInfo b, float t)
