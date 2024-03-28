@@ -1,6 +1,7 @@
-﻿using RiskOfChaos.Utilities;
+﻿using R2API.Networking;
+using R2API.Networking.Interfaces;
+using RiskOfChaos.Networking;
 using RoR2;
-using RoR2.Audio;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectHandling.Controllers
@@ -8,12 +9,21 @@ namespace RiskOfChaos.EffectHandling.Controllers
     [ChaosController(true)]
     public class ChaosEffectActivationSoundHandler : MonoBehaviour
     {
-        static NetworkSoundEventIndex _effectActivationSoundEventIndex;
+        const string EFFECT_ACTIVATION_SOUND_EVENT_NAME = "Play_env_hiddenLab_laptop_sequence_fail";
 
-        [SystemInitializer(typeof(NetworkSoundEventCatalog))]
+        static uint _effectActivationSoundEventID;
+
+        [SystemInitializer]
         static void Init()
         {
-            _effectActivationSoundEventIndex = NetworkSoundEventCatalog.FindNetworkSoundEventIndex("Play_env_hiddenLab_laptop_sequence_fail");
+            if (!Application.isBatchMode)
+            {
+                _effectActivationSoundEventID = AkSoundEngine.GetIDFromString(EFFECT_ACTIVATION_SOUND_EVENT_NAME);
+                if (_effectActivationSoundEventID == 0)
+                {
+                    Log.Error("Failed to find effect activation sound ID");
+                }
+            }
         }
 
         ChaosEffectDispatcher _effectDispatcher;
@@ -43,16 +53,21 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         public static void PlayEffectActivatedSound()
         {
-            if (_effectActivationSoundEventIndex == NetworkSoundEventIndex.Invalid)
+            // Make sure dedicated server builds can still tell clients about the sound since it can't look up the ID
+            PostAkEventLocalMessage playSoundMessage;
+            if (Application.isBatchMode)
             {
-                Log.Warning("Unable to play effect activation sound, event ID not initialized");
-                return;
+                playSoundMessage = new PostAkEventLocalMessage(EFFECT_ACTIVATION_SOUND_EVENT_NAME);
+            }
+            else
+            {
+                if (_effectActivationSoundEventID == 0)
+                    return;
+
+                playSoundMessage = new PostAkEventLocalMessage(_effectActivationSoundEventID);
             }
 
-            foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
-            {
-                EntitySoundManager.EmitSoundServer(_effectActivationSoundEventIndex, playerBody.gameObject);
-            }
+            playSoundMessage.Send(NetworkDestination.Clients | NetworkDestination.Server);
         }
     }
 }

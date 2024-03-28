@@ -14,6 +14,8 @@ namespace RiskOfChaos.Networking
             NetworkingAPI.RegisterMessageType<SetObjectDontDestroyOnLoadMessage>();
 
             NetworkingAPI.RegisterMessageType<PickupTransformationNotificationMessage>();
+
+            NetworkingAPI.RegisterMessageType<PostAkEventLocalMessage>();
         }
     }
 }

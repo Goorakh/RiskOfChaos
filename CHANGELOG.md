@@ -6,6 +6,9 @@
   * Fixed effect not changing the text of Risk of Chaos UI properly
   * Effect names and mod UI are now affected by the scrambling by default
 
+* Audio:
+  * Fixed effect activation sound sometimes not playing for effects that move or change the player character
+
 <details>
   <summary>1.16.0 Changes:</summary>
 
