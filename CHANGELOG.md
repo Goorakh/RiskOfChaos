@@ -6,6 +6,10 @@
   * Fixed effect not changing the text of Risk of Chaos UI properly
   * Effect names and mod UI are now affected by the scrambling by default
 
+* Disable Procs:
+  * Fixed a few on-hit effects still being triggered while effect is active:
+    * Some Slow effects, Goo effect (ex. from Dunestrider), Void Reaver Nullify, Perfected Elites Cripple, Merc Expose
+
 * Audio:
   * Fixed effect activation sound sometimes not playing for effects that move or change the player character
 
