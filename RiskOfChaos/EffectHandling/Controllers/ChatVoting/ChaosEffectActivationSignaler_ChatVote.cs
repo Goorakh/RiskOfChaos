@@ -121,7 +121,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
         protected void SaveManager_CollectSaveData(ref SaveContainer container)
         {
             ref EffectActivationSignalerData data = ref container.ActivationSignalerData;
-            if (data is not null || data.ChatVoteData is not null)
+            if (data != null || data?.ChatVoteData != null)
                 return;
 
             data = new EffectActivationSignalerData
