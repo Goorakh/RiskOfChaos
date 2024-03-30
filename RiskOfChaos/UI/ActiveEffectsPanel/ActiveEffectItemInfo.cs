@@ -22,7 +22,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         public readonly bool ShouldDisplay;
 
-        public readonly string DisplayName => EffectInfo.GetDisplayName(NameFormatter, EffectNameFormatFlags.RuntimeFormatArgs);
+        public readonly string DisplayName => EffectInfo?.GetDisplayName(NameFormatter, EffectNameFormatFlags.RuntimeFormatArgs) ?? "NULL";
 
         public readonly float EndTime => TimeStarted + (DurationSeconds * RemainingStocks);
 
