@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers.ChatVoting;
 using RoR2;
 using RoR2.UI;
@@ -33,11 +34,15 @@ namespace RiskOfChaos.UI.ChatVoting
             refreshTextDisplay();
 
             Language.onCurrentLanguageChanged += onCurrentLanguageChanged;
+
+            ChaosEffectInfo.OnEffectNameFormatterDirty += ChaosEffectInfo_OnEffectNameFormatterDirty;
         }
 
         void OnDisable()
         {
             Language.onCurrentLanguageChanged -= onCurrentLanguageChanged;
+
+            ChaosEffectInfo.OnEffectNameFormatterDirty -= ChaosEffectInfo_OnEffectNameFormatterDirty;
         }
 
         void Start()
@@ -97,6 +102,14 @@ namespace RiskOfChaos.UI.ChatVoting
         void onCurrentLanguageChanged()
         {
             refreshTextDisplay();
+        }
+
+        void ChaosEffectInfo_OnEffectNameFormatterDirty(ChaosEffectInfo effectInfo)
+        {
+            if (_voteOption != null && !_voteOption.IsRandom && _voteOption.EffectInfo == effectInfo)
+            {
+                refreshTextDisplay();
+            }
         }
 
         void refreshTextDisplay()
