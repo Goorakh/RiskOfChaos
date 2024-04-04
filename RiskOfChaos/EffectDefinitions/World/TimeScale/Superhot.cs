@@ -87,7 +87,7 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
                     return false;
 
                 EntityStateMachine bodyStateMachine = EntityStateMachine.FindByCustomName(body.gameObject, "Body");
-                if (!bodyStateMachine || (!bodyStateMachine.IsInMainState() && !bodyStateMachine.CurrentStateInheritsFrom(typeof(BaseCharacterMain))))
+                if (bodyStateMachine && !bodyStateMachine.IsInMainState() && !bodyStateMachine.CurrentStateInheritsFrom(typeof(BaseCharacterMain)))
                     return false;
 
                 return true;
