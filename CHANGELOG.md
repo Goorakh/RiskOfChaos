@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Added 1 new effect:
+  * Splitscreen: Splits the screen into 9 copies of the game view, lasts 90 seconds
+
 * Scrambled Text:
   * Fixed effect not changing the text of Risk of Chaos UI properly
   * Effect names and mod UI are now affected by the scrambling by default
