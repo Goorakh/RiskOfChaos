@@ -9,7 +9,7 @@ namespace RiskOfChaos.Utilities
         delegate object InterpolationDelegate(float fraction);
         delegate void SetMaterialValueDelegate(Material material, object value);
 
-        readonly record struct PropertyInterpolationInfo(int PropertyID, object Start, object End, InterpolationDelegate InterpolationFunc, SetMaterialValueDelegate SetMaterialValueFunc);
+        readonly record struct PropertyInterpolationInfo(int PropertyID, InterpolationDelegate InterpolationFunc, SetMaterialValueDelegate SetMaterialValueFunc);
 
         readonly Dictionary<int, PropertyInterpolationInfo> _propertyInterpolations = [];
 
@@ -28,7 +28,7 @@ namespace RiskOfChaos.Utilities
 
         public void SetColor(int propertyID, Color startValue, Color endValue)
         {
-            registerInterpolation(new PropertyInterpolationInfo(propertyID, startValue, endValue, (fraction) =>
+            registerInterpolation(new PropertyInterpolationInfo(propertyID, (fraction) =>
             {
                 return Color.Lerp(startValue, endValue, fraction);
             }, (material, value) =>
@@ -48,7 +48,7 @@ namespace RiskOfChaos.Utilities
             if (startValue.Length != endValue.Length)
                 throw new ArgumentException("start and end lengths do not match");
 
-            registerInterpolation(new PropertyInterpolationInfo(propertyID, startValue, endValue, (fraction) =>
+            registerInterpolation(new PropertyInterpolationInfo(propertyID, (fraction) =>
             {
                 return interpolateArray(startValue, endValue, fraction, Color.Lerp);
             }, (material, value) =>
@@ -59,7 +59,7 @@ namespace RiskOfChaos.Utilities
 
         public void SetFloat(int propertyID, float startValue, float endValue)
         {
-            registerInterpolation(new PropertyInterpolationInfo(propertyID, startValue, endValue, (fraction) =>
+            registerInterpolation(new PropertyInterpolationInfo(propertyID, (fraction) =>
             {
                 return Mathf.Lerp(startValue, endValue, fraction);
             }, (material, value) =>
@@ -79,7 +79,7 @@ namespace RiskOfChaos.Utilities
             if (startValue.Length != endValue.Length)
                 throw new ArgumentException("start and end lengths do not match");
 
-            registerInterpolation(new PropertyInterpolationInfo(propertyID, startValue, endValue, (fraction) =>
+            registerInterpolation(new PropertyInterpolationInfo(propertyID, (fraction) =>
             {
                 return interpolateArray(startValue, endValue, fraction, Mathf.Lerp);
             }, (material, value) =>
@@ -90,7 +90,7 @@ namespace RiskOfChaos.Utilities
 
         public void SetInt(int propertyID, int startValue, int endValue)
         {
-            registerInterpolation(new PropertyInterpolationInfo(propertyID, startValue, endValue, (fraction) =>
+            registerInterpolation(new PropertyInterpolationInfo(propertyID, (fraction) =>
             {
                 return Mathf.RoundToInt(Mathf.Lerp(startValue, endValue, fraction));
             }, (material, value) =>
@@ -101,7 +101,7 @@ namespace RiskOfChaos.Utilities
 
         public void SetTextureOffset(int propertyID, Vector2 startValue, Vector2 endValue)
         {
-            registerInterpolation(new PropertyInterpolationInfo(propertyID, startValue, endValue, (fraction) =>
+            registerInterpolation(new PropertyInterpolationInfo(propertyID, (fraction) =>
             {
                 return Vector2.Lerp(startValue, endValue, fraction);
             }, (material, value) =>
@@ -112,7 +112,7 @@ namespace RiskOfChaos.Utilities
 
         public void SetTextureScale(int propertyID, Vector2 startValue, Vector2 endValue)
         {
-            registerInterpolation(new PropertyInterpolationInfo(propertyID, startValue, endValue, (fraction) =>
+            registerInterpolation(new PropertyInterpolationInfo(propertyID, (fraction) =>
             {
                 return Vector2.Lerp(startValue, endValue, fraction);
             }, (material, value) =>
@@ -123,7 +123,7 @@ namespace RiskOfChaos.Utilities
 
         public void SetVector(int propertyID, Vector4 startValue, Vector4 endValue)
         {
-            registerInterpolation(new PropertyInterpolationInfo(propertyID, startValue, endValue, (fraction) =>
+            registerInterpolation(new PropertyInterpolationInfo(propertyID, (fraction) =>
             {
                 return Vector4.Lerp(startValue, endValue, fraction);
             }, (material, value) =>
@@ -143,7 +143,7 @@ namespace RiskOfChaos.Utilities
             if (startValue.Length != endValue.Length)
                 throw new ArgumentException("start and end lengths do not match");
 
-            registerInterpolation(new PropertyInterpolationInfo(propertyID, startValue, endValue, (fraction) =>
+            registerInterpolation(new PropertyInterpolationInfo(propertyID, (fraction) =>
             {
                 return interpolateArray(startValue, endValue, fraction, Vector4.Lerp);
             }, (material, value) =>
