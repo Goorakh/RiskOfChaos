@@ -87,6 +87,8 @@ namespace RiskOfChaos.Utilities.CameraEffects
 
         public static InterpolationState RemoveEffect(Material effectMaterial, ValueInterpolationFunctionType blendType, float interpolationTime, bool destroyMaterial = true)
         {
+            InterpolationState result = null;
+
             for (int i = _activeEffects.Count - 1; i >= 0; i--)
             {
                 CameraEffect cameraEffect = _activeEffects[i];
@@ -104,7 +106,7 @@ namespace RiskOfChaos.Utilities.CameraEffects
                             };
                         }
 
-                        return cameraEffect.InterpolationState;
+                        result ??= cameraEffect.InterpolationState;
                     }
                     else
                     {
@@ -115,12 +117,12 @@ namespace RiskOfChaos.Utilities.CameraEffects
                             GameObject.Destroy(cameraEffect.Material);
                         }
 
-                        return cameraEffect.InterpolationState;
+                        result ??= cameraEffect.InterpolationState;
                     }
                 }
             }
 
-            return null;
+            return result;
         }
 
         static void update()
