@@ -58,6 +58,15 @@ namespace RiskOfChaos.Utilities.CameraEffects
 
         public static InterpolationState AddEffect(Material effectMaterial, MaterialPropertyInterpolator propertyInterpolator, ValueInterpolationFunctionType blendType, float interpolationTime)
         {
+            foreach (CameraEffect existingCameraEffect in _activeEffects)
+            {
+                if (existingCameraEffect.Material == effectMaterial)
+                {
+                    Log.Warning($"Duplicate material effect instance registered: {effectMaterial}");
+                    break;
+                }
+            }
+
             CameraEffect cameraEffect = new CameraEffect(effectMaterial, propertyInterpolator);
             _activeEffects.Add(cameraEffect);
 
