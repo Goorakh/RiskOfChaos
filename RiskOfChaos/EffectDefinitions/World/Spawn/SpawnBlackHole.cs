@@ -15,7 +15,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
-    [ChaosTimedEffect("spawn_black_hole", 45f, IsNetworked = true)]
+    [ChaosTimedEffect("spawn_black_hole", 30f, IsNetworked = true)]
     public sealed class SpawnBlackHole : TimedEffect
     {
         [EffectConfig]

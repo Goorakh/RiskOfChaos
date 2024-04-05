@@ -9,6 +9,9 @@
   * Fixed effect not changing the text of Risk of Chaos UI properly
   * Effect names and mod UI are now affected by the scrambling by default
 
+* Black Hole:
+  * Default duration: 45s -> 30s
+
 * Disable Procs:
   * Fixed a few on-hit effects still being triggered while effect is active:
     * Some Slow effects, Tar slow effect (ex. from Dunestrider), Void Reaver Nullify, Perfected Elites Cripple, Merc Expose
