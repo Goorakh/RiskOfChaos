@@ -13,11 +13,42 @@ namespace RiskOfChaos.Utilities.CameraEffects
 
         public static readonly ReadOnlyCollection<CameraEffect> ActiveEffects;
 
+        static bool _updateEventEnabled;
+        static bool updateEventEnabled
+        {
+            get
+            {
+                return _updateEventEnabled;
+            }
+            set
+            {
+                if (_updateEventEnabled == value)
+                    return;
+
+                _updateEventEnabled = value;
+
+                if (_updateEventEnabled)
+                {
+                    RoR2Application.onUpdate += update;
+
+#if DEBUG
+                    Log.Debug("Update event enabled");
+#endif
+                }
+                else
+                {
+                    RoR2Application.onUpdate -= update;
+
+#if DEBUG
+                    Log.Debug("Update event disabled");
+#endif
+                }
+            }
+        }
+
         static CameraEffectManager()
         {
             ActiveEffects = new ReadOnlyCollection<CameraEffect>(_activeEffects);
-
-            RoR2Application.onUpdate += update;
         }
 
         public static void AddEffect(Material effectMaterial)
@@ -34,6 +65,8 @@ namespace RiskOfChaos.Utilities.CameraEffects
             {
                 cameraEffect.StartInterpolatingIn(blendType, interpolationTime);
             }
+
+            updateEventEnabled = true;
 
             return cameraEffect.InterpolationState;
         }
@@ -84,7 +117,10 @@ namespace RiskOfChaos.Utilities.CameraEffects
         static void update()
         {
             if (_activeEffects.Count == 0)
+            {
+                updateEventEnabled = false;
                 return;
+            }
 
             if (!Run.instance)
             {
