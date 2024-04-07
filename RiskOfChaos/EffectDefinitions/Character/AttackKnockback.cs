@@ -42,7 +42,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (!ownerBody)
                     return;
 
-                tryKnockbackBody(ownerBody, -self.aimVector, self.damage);
+                tryKnockbackBody(ownerBody, -self.aimVector.normalized, self.damage);
             };
 
             On.RoR2.Orbs.OrbManager.AddOrb += (orig, self, orb) =>
