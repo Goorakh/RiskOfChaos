@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: HSVModifier
-  m_Shader: {fileID: 4800000, guid: 14531ee1e99c7424894d9e27acd85ff0, type: 3}
+  m_Shader: {fileID: 4800000, guid: 3d8b6a1e29d1536408ebbaba7bce74fd, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
