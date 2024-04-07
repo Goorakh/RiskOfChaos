@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectDefinitions.World;
+﻿using MonoMod.Cil;
+using RiskOfChaos.EffectDefinitions.World;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -93,6 +94,25 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 Vector3 fireDirection = (fireProjectileInfo.rotation * Vector3.forward).normalized;
 
                 tryKnockbackBody(ownerBody, -fireDirection, fireProjectileInfo.damage);
+            };
+
+            On.EntityStates.GolemMonster.FireLaser.OnEnter += (orig, self) =>
+            {
+                orig(self);
+
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                if (!self.isAuthority)
+                    return;
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+
+                if (!TimedChaosEffectHandler.Instance || !TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
+                    return;
+
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                CharacterBody body = self.characterBody;
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+
+                tryKnockbackBody(body, -self.laserDirection.normalized, EntityStates.GolemMonster.FireLaser.damageCoefficient * body.damage);
             };
 
             _appliedPatches = true;

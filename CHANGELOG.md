@@ -16,6 +16,9 @@
     * Alpha Constructs spawned from Defense Nucleus
     * Void Barnacle
 
+* Knockback Recoil:
+  * Fixed Golems not being pushed back by laser attack
+
 * Black Hole:
   * Default duration: 45s -> 30s
 
