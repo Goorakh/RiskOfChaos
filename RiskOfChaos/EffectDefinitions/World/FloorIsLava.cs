@@ -29,7 +29,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                               })
                               .Build();
 
-        static int getGroundedDamagePerSecond(float groundedTime)
+        static int getGroundedDamagePerSecond(CharacterBody body, float groundedTime)
         {
             const float DAMAGE_START_TIME = 0.25f;
             const float DAMAGE_RAMP_END_TIME = 1.5f;
@@ -37,13 +37,16 @@ namespace RiskOfChaos.EffectDefinitions.World
             if (groundedTime < DAMAGE_START_TIME)
                 return 0;
 
+            float damageMultiplier = body.isPlayerControlled ? 1f : 0.25f;
+            int maxDamagePerSecond = Mathf.Max(1, Mathf.RoundToInt(_percentDamagePerSecond.Value * damageMultiplier));
+
             if (groundedTime <= DAMAGE_RAMP_END_TIME)
             {
-                return Mathf.RoundToInt(Util.Remap(groundedTime, DAMAGE_START_TIME, DAMAGE_RAMP_END_TIME, 0f, _percentDamagePerSecond.Value));
+                return Mathf.RoundToInt(Util.Remap(groundedTime, DAMAGE_START_TIME, DAMAGE_RAMP_END_TIME, 0f, maxDamagePerSecond));
             }
             else
             {
-                return _percentDamagePerSecond.Value;
+                return maxDamagePerSecond;
             }
         }
 
@@ -52,9 +55,13 @@ namespace RiskOfChaos.EffectDefinitions.World
         {
             static readonly MasterIndexCollection _overrideAlwaysGroundedMasters = new MasterIndexCollection([
                 "EngiTurretMaster",
-                "SquidTurretMaster",
+                "GrandparentMaster",
                 "MinorConstructMaster",
+                "MinorConstructOnKillMaster",
+                "SquidTurretMaster",
                 "Turret1Master",
+                "VoidBarnacleAllyMaster",
+                "VoidBarnacleMaster",
                 "VoidBarnacleNoCastMaster"
             ]);
 
@@ -118,7 +125,17 @@ namespace RiskOfChaos.EffectDefinitions.World
                     _groundedTimer = 0f;
                 }
 
-                int missingDOTStacks = getGroundedDamagePerSecond(_groundedTimer) - _body.GetBuffCount(_dotDef.associatedBuff);
+                int targetDamagePerSecond;
+                if ((_body.bodyFlags & CharacterBody.BodyFlags.OverheatImmune) != 0)
+                {
+                    targetDamagePerSecond = 0;
+                }
+                else
+                {
+                    targetDamagePerSecond = getGroundedDamagePerSecond(_body, _groundedTimer);
+                }
+
+                int missingDOTStacks = targetDamagePerSecond - _body.GetBuffCount(_dotDef.associatedBuff);
                 if (missingDOTStacks > 0)
                 {
                     for (int i = 0; i < missingDOTStacks; i++)

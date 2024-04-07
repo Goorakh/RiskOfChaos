@@ -9,6 +9,13 @@
   * Fixed effect not changing the text of Risk of Chaos UI properly
   * Effect names and mod UI are now affected by the scrambling by default
 
+* The Floor is Lava:
+  * Decreased damage by 75% for non-player characters
+  * Characters immune to Grandparent sun (Parents and Grandparents) are no longer damaged
+  * Fixed effect not detecting characters as grounded:
+    * Alpha Constructs spawned from Defense Nucleus
+    * Void Barnacle
+
 * Black Hole:
   * Default duration: 45s -> 30s
 
