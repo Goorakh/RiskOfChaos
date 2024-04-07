@@ -1,8 +1,8 @@
 ﻿using HarmonyLib;
 using HG;
+using RiskOfChaos.Collections.CatalogIndex;
 using RiskOfChaos.Components;
 using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.CatalogIndexCollection;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;

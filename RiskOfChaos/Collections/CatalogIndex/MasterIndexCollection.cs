@@ -1,7 +1,8 @@
-﻿using RiskOfChaos.Utilities.Comparers;
+﻿using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Comparers;
 using RoR2;
 
-namespace RiskOfChaos.Utilities.CatalogIndexCollection
+namespace RiskOfChaos.Collections.CatalogIndex
 {
     public sealed class MasterIndexCollection : CatalogIndexCollection<MasterCatalog.MasterIndex>
     {

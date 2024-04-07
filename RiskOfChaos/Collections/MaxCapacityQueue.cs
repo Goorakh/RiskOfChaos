@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace RiskOfChaos.Utilities
+namespace RiskOfChaos.Collections
 {
     public class MaxCapacityQueue<T> : IEnumerable<T>, IReadOnlyCollection<T>, ICollection
     {

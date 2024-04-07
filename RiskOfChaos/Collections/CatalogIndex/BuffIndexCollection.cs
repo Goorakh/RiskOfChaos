@@ -1,6 +1,7 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities;
+using RoR2;
 
-namespace RiskOfChaos.Utilities.CatalogIndexCollection
+namespace RiskOfChaos.Collections.CatalogIndex
 {
     public sealed class BuffIndexCollection : CatalogIndexCollection<BuffIndex>
     {

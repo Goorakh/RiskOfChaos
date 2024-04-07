@@ -1,13 +1,14 @@
 ﻿using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.Utilities.ParsedValueHolders;
 using RoR2;
 using System;
 using System.Collections.Generic;
 
-namespace RiskOfChaos.Utilities.ParsedValueHolders.ParsedList
+namespace RiskOfChaos.Collections.ParsedValue
 {
     public class ParsedEquipmentList : GenericParsedList<EquipmentIndex>
     {
-        static readonly char[] _equipmentNameFilterChars = [ ',', ' ' ];
+        static readonly char[] _equipmentNameFilterChars = [',', ' '];
 
         public ParsedEquipmentList(IComparer<EquipmentIndex> comparer) : base(comparer)
         {

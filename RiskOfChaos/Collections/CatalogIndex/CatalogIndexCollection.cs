@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RiskOfChaos.Utilities.CatalogIndexCollection
+namespace RiskOfChaos.Collections.CatalogIndex
 {
     public abstract class CatalogIndexCollection<T> : IReadOnlyList<T>
     {

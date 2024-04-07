@@ -1,11 +1,11 @@
 ﻿using BepInEx.Configuration;
+using RiskOfChaos.Collections.CatalogIndex;
 using RiskOfChaos.Components;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.CatalogIndexCollection;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;

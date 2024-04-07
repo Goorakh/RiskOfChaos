@@ -1,5 +1,5 @@
-﻿using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.CatalogIndexCollection;
+﻿using RiskOfChaos.Collections.CatalogIndex;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Navigation;

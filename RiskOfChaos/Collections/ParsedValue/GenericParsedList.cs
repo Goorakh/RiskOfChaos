@@ -1,10 +1,11 @@
 ﻿using HG;
+using RiskOfChaos.Utilities.ParsedValueHolders;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RiskOfChaos.Utilities.ParsedValueHolders.ParsedList
+namespace RiskOfChaos.Collections.ParsedValue
 {
     public abstract class GenericParsedList<T> : GenericParsedValue<ReadOnlyArray<T>>, IEnumerable<T>
     {

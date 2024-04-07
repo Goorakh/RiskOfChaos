@@ -1,7 +1,9 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.ParsedValueHolders;
+using RoR2;
 using System.Collections.Generic;
 
-namespace RiskOfChaos.Utilities.ParsedValueHolders.ParsedList
+namespace RiskOfChaos.Collections.ParsedValue
 {
     public class ParsedPickupList : GenericParsedList<PickupIndex>
     {

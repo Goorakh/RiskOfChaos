@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace RiskOfChaos.Utilities
+namespace RiskOfChaos.Collections
 {
     static class Empty<T>
     {

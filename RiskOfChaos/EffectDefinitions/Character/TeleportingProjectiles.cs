@@ -1,9 +1,9 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using RiskOfChaos.Collections.CatalogIndex;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.CatalogIndexCollection;
 using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;
