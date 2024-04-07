@@ -9,6 +9,9 @@ public static class AssetBundleExporter
     {
         const string EXPORT_PATH = "Assets/Export/";
 
+        if (!Directory.Exists(EXPORT_PATH))
+            Directory.CreateDirectory(EXPORT_PATH);
+
         AssetBundleManifest manifest = BuildPipeline.BuildAssetBundles(EXPORT_PATH, BuildAssetBundleOptions.ForceRebuildAssetBundle, BuildTarget.StandaloneWindows64);
         if (!manifest)
         {
