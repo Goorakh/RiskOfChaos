@@ -1,5 +1,4 @@
-﻿using MonoMod.Cil;
-using RiskOfChaos.EffectDefinitions.World;
+﻿using RiskOfChaos.EffectDefinitions.World;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
