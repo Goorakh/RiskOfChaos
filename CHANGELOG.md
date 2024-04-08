@@ -16,6 +16,9 @@
     * Alpha Constructs spawned from Defense Nucleus
     * Void Barnacle
 
+* Spawn Random Boss:
+  * Adjusted spawn weights to make special (non-teleporter) bosses slightly more common
+
 * Knockback Recoil:
   * Fixed Golems not being pushed back by laser attack
 

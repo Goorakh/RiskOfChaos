@@ -70,8 +70,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             _bossSpawnEntries = [
                 loadBasicSpawnEntry("RoR2/Base/Beetle/cscBeetleQueen.asset", 1f),
-                loadBasicSpawnEntry("RoR2/Base/Brother/cscBrother.asset", 0.5f),
-                loadBasicSpawnEntry("RoR2/Base/Brother/cscBrotherHurt.asset", 0.4f),
+                loadBasicSpawnEntry("RoR2/Base/Brother/cscBrother.asset", 0.7f),
+                loadBasicSpawnEntry("RoR2/Base/Brother/cscBrotherHurt.asset", 0.5f),
                 loadBasicSpawnEntry("RoR2/Base/ClayBoss/cscClayBoss.asset", 1f),
                 loadBasicSpawnEntry("RoR2/Base/ElectricWorm/cscElectricWorm.asset", 0.75f),
                 loadBasicSpawnEntry("RoR2/Base/Grandparent/cscGrandparent.asset", 1f),
@@ -81,16 +81,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 loadBasicSpawnEntry("RoR2/Base/RoboBallBoss/cscRoboBallBoss.asset", 1f),
                 loadBasicSpawnEntry("RoR2/Base/RoboBallBoss/cscSuperRoboBallBoss.asset", 1f),
                 loadBasicSpawnEntry("RoR2/Base/Scav/cscScavBoss.asset", 0.9f),
-                loadBasicSpawnEntry("RoR2/Base/ScavLunar/cscScavLunar.asset", 0.8f),
+                loadBasicSpawnEntry("RoR2/Base/ScavLunar/cscScavLunar.asset", 0.7f),
                 loadBasicSpawnEntry("RoR2/Base/Titan/cscTitanBlackBeach.asset", 1f),
                 loadBasicSpawnEntry("RoR2/Base/Titan/cscTitanGold.asset", 0.9f),
                 loadBasicSpawnEntry("RoR2/Base/Vagrant/cscVagrant.asset", 1f),
-                loadBasicSpawnEntry("RoR2/Junk/BrotherGlass/cscBrotherGlass.asset", 0.7f),
+                loadBasicSpawnEntry("RoR2/Junk/BrotherGlass/cscBrotherGlass.asset", 0.8f),
                 loadBasicSpawnEntry("RoR2/DLC1/MajorAndMinorConstruct/cscMegaConstruct.asset", 1f),
-                loadBasicSpawnEntry("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase1.asset", 0.1f),
-                loadBasicSpawnEntry("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase2.asset", 0.1f),
-                loadBasicSpawnEntry("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase3.asset", 0.075f),
-                loadBasicSpawnEntry("RoR2/DLC1/VoidMegaCrab/cscVoidMegaCrab.asset", 0.5f),
+                loadBasicSpawnEntry("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase1.asset", 0.4f),
+                loadBasicSpawnEntry("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase2.asset", 0.4f),
+                loadBasicSpawnEntry("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase3.asset", 0.2f),
+                loadBasicSpawnEntry("RoR2/DLC1/VoidMegaCrab/cscVoidMegaCrab.asset", 0.6f),
             ];
         }
 
