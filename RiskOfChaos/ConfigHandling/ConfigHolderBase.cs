@@ -65,7 +65,7 @@ namespace RiskOfChaos.ConfigHandling
 
         public abstract void Bind(ChaosEffectInfo effectInfo);
 
-        public abstract void Bind(ConfigFile file, string section, string modGuid = null, string modName = null);
+        public abstract void Bind(ConfigFile file, string section, string modGuid, string modName);
 
         public void SetOptionConfig(BaseOptionConfig newConfig)
         {

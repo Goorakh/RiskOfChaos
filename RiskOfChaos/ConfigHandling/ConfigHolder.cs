@@ -141,7 +141,7 @@ namespace RiskOfChaos.ConfigHandling
             Bind(ownerEffect.ConfigFile, ownerEffect.ConfigSectionName, ChaosEffectCatalog.CONFIG_MOD_GUID, ChaosEffectCatalog.CONFIG_MOD_NAME);
         }
 
-        public override void Bind(ConfigFile file, string section, string modGuid = null, string modName = null)
+        public override void Bind(ConfigFile file, string section, string modGuid, string modName)
         {
             if (!ConfigMonitor.TryRegisterConfig(section, Key, this))
             {
