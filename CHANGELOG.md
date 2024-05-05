@@ -9,6 +9,9 @@
   * Fixed effect not changing the text of Risk of Chaos UI properly
   * Effect names and mod UI are now affected by the scrambling by default
 
+* Randomize Loadout:
+  * No longer respawns your character when activating
+
 * The Floor is Lava:
   * Decreased damage by 75% for non-player characters
   * Characters immune to Grandparent sun (Parents and Grandparents) are no longer damaged

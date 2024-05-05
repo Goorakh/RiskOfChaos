@@ -3,13 +3,13 @@ using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.Skills;
 using System;
+using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
@@ -38,8 +38,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
         public override void OnStart()
         {
-            bool isMetamorphosisActive = RunArtifactManager.instance && RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.randomSurvivorOnRespawnArtifactDef);
-
             PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
             {
                 CharacterBody playerBody = playerMaster.GetBody();
@@ -49,16 +47,21 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
                 bool anyChanges = false;
                 bool changedCurrentBody = false;
+                bool changedCurrentBodySkills = false;
+                bool changedCurrentBodySkin = false;
 
                 for (BodyIndex bodyIndex = 0; bodyIndex < (BodyIndex)BodyCatalog.bodyCount; bodyIndex++)
                 {
-                    if (randomizeLoadoutForBodyIndex(playerMaster, bodyLoadoutManager, bodyIndex))
+                    if (randomizeLoadoutForBodyIndex(playerMaster, bodyLoadoutManager, bodyIndex, out bool changedSkill, out bool changedSkin))
                     {
                         anyChanges = true;
 
                         if (playerBody && bodyIndex == playerBody.bodyIndex)
                         {
                             changedCurrentBody = true;
+
+                            changedCurrentBodySkills = changedSkill;
+                            changedCurrentBodySkin = changedSkin;
                         }
                     }
                 }
@@ -68,19 +71,32 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                     // Set dirty bit
                     playerMaster.SetLoadoutServer(loadout);
 
-                    if (changedCurrentBody && !playerMaster.IsDeadAndOutOfLivesServer())
+                    if (changedCurrentBody && playerBody)
                     {
-                        PreventMetamorphosisRespawn.PreventionEnabled = isMetamorphosisActive;
-                        playerMaster.Respawn(CharacterRespawnFlags.Seamless);
-                        PreventMetamorphosisRespawn.PreventionEnabled = false;
+                        playerBody.SetLoadoutServer(loadout);
+
+                        if (changedCurrentBodySkin)
+                        {
+                            ModelLocator modelLocator = playerBody.modelLocator;
+                            if (modelLocator)
+                            {
+                                Transform modelTransform = modelLocator.modelTransform;
+                                if (modelTransform && modelTransform.TryGetComponent(out ModelSkinController modelSkinController))
+                                {
+                                    modelSkinController.ApplySkin((int)loadout.bodyLoadoutManager.GetSkinIndex(playerBody.bodyIndex));
+                                }
+                            }
+                        }
                     }
                 }
             }, Util.GetBestMasterName);
         }
 
-        bool randomizeLoadoutForBodyIndex(CharacterMaster master, Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex)
+        bool randomizeLoadoutForBodyIndex(CharacterMaster master, Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex, out bool changedSkill, out bool changedSkin)
         {
-            return tryRandomizeLoadoutSkills(master, bodyLoadoutManager, bodyIndex) | tryRandomizeLoadoutSkin(master, bodyLoadoutManager, bodyIndex);
+            changedSkill = tryRandomizeLoadoutSkills(master, bodyLoadoutManager, bodyIndex);
+            changedSkin = tryRandomizeLoadoutSkin(master, bodyLoadoutManager, bodyIndex);
+            return changedSkill || changedSkin;
         }
 
         static WeightedSelection<uint> getWeightedIndexSelection(int count, uint currentIndex, Predicate<uint> canSelectIndex)
