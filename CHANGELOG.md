@@ -11,6 +11,7 @@
 
 * Randomize Loadout:
   * No longer respawns your character when activating
+  * Fixed effect being able to roll the exact same loadout as the one already being used
 
 * The Floor is Lava:
   * Decreased damage by 75% for non-player characters

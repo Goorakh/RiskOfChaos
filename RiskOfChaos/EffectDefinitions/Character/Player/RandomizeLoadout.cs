@@ -1,5 +1,4 @@
-﻿using HG;
-using RiskOfChaos.ConfigHandling;
+﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -9,6 +8,7 @@ using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.Skills;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
@@ -40,6 +40,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
         {
             PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
             {
+                Xoroshiro128Plus rng = new Xoroshiro128Plus(RNG.nextUlong);
+
                 CharacterBody playerBody = playerMaster.GetBody();
 
                 Loadout loadout = playerMaster.loadout;
@@ -52,7 +54,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
                 for (BodyIndex bodyIndex = 0; bodyIndex < (BodyIndex)BodyCatalog.bodyCount; bodyIndex++)
                 {
-                    if (randomizeLoadoutForBodyIndex(playerMaster, bodyLoadoutManager, bodyIndex, out bool changedSkill, out bool changedSkin))
+                    if (randomizeLoadoutForBodyIndex(playerMaster, loadout, bodyIndex, rng, out bool changedAnySkill, out bool changedSkin))
                     {
                         anyChanges = true;
 
@@ -60,7 +62,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                         {
                             changedCurrentBody = true;
 
-                            changedCurrentBodySkills = changedSkill;
+                            changedCurrentBodySkills = changedAnySkill;
                             changedCurrentBodySkin = changedSkin;
                         }
                     }
@@ -92,127 +94,220 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             }, Util.GetBestMasterName);
         }
 
-        bool randomizeLoadoutForBodyIndex(CharacterMaster master, Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex, out bool changedSkill, out bool changedSkin)
-        {
-            changedSkill = tryRandomizeLoadoutSkills(master, bodyLoadoutManager, bodyIndex);
-            changedSkin = tryRandomizeLoadoutSkin(master, bodyLoadoutManager, bodyIndex);
-            return changedSkill || changedSkin;
-        }
-
-        static WeightedSelection<uint> getWeightedIndexSelection(int count, uint currentIndex, Predicate<uint> canSelectIndex)
-        {
-            WeightedSelection<uint> indexSelection = new WeightedSelection<uint>(count);
-            for (uint index = 0; index < count; index++)
-            {
-                if (canSelectIndex == null || canSelectIndex(index))
-                {
-                    indexSelection.AddChoice(index, index == currentIndex ? 0.7f : 1f);
-                }
-            }
-
-            return indexSelection;
-        }
-
-        uint evaluateWeightedIndexSelection(int count, uint currentIndex, Predicate<uint> canSelectIndex)
-        {
-            return getWeightedIndexSelection(count, currentIndex, canSelectIndex).Evaluate(RNG.nextNormalizedFloat);
-        }
-
-        bool tryRandomizeLoadoutSkills(CharacterMaster master, Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex)
-        {
-            if (!_randomizeSkills.Value)
-                return false;
-
-            try
-            {
-                return randomizeLoadoutSkills(master, bodyLoadoutManager, bodyIndex);
-            }
-            catch (Exception ex)
-            {
-                Log.Error_NoCallerPrefix($"Failed to randomize {Util.GetBestMasterName(master)} ({BodyCatalog.GetBodyName(bodyIndex)}) skills: {ex}");
-                return false;
-            }
-        }
-
-        bool randomizeLoadoutSkills(CharacterMaster master, Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex)
+        static bool randomizeLoadoutForBodyIndex(CharacterMaster master, Loadout loadout, BodyIndex bodyIndex, Xoroshiro128Plus rng, out bool changedAnySkill, out bool changedSkin)
         {
             NetworkUser networkUser = master && master.playerCharacterMasterController ? master.playerCharacterMasterController.networkUser : null;
-
-            bool anyChanges = false;
 
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
             Loadout.BodyLoadoutManager.BodyInfo bodyInfo = Loadout.BodyLoadoutManager.allBodyInfos[(int)bodyIndex];
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
-            for (int skillSlotIndex = 0; skillSlotIndex < bodyInfo.skillSlotCount; skillSlotIndex++)
+            uint[] currentSkillVariants = new uint[bodyInfo.skillSlotCount];
+            for (int i = 0; i < currentSkillVariants.Length; i++)
             {
-                SkillFamily.Variant[] skillVariants = bodyInfo.prefabSkillSlots[skillSlotIndex].skillFamily.variants;
+                currentSkillVariants[i] = loadout.bodyLoadoutManager.GetSkillVariant(bodyIndex, i);
+            }
 
-                int variantsCount = skillVariants.Length;
-                if (variantsCount > 1) // Only 1: No other options, don't bother trying to randomize it
+            List<LoadoutSkillPreset> allSkillPresets = generateSkillPresets(networkUser, bodyInfo, currentSkillVariants);
+
+            uint currentSkinIndex = loadout.bodyLoadoutManager.GetSkinIndex(bodyIndex);
+            List<LoadoutSkinPreset> allSkinPresets = generateSkinPresets(bodyIndex, networkUser, currentSkinIndex);
+
+            WeightedSelection<LoadoutPreset> loadoutSelection = new WeightedSelection<LoadoutPreset>(Math.Max(8, allSkillPresets.Count * allSkinPresets.Count));
+
+            foreach (LoadoutSkillPreset skillPreset in allSkillPresets)
+            {
+                bool isCurrentSkills = ArrayUtil.ElementsEqual(currentSkillVariants, skillPreset.SkillVariants);
+
+                foreach (LoadoutSkinPreset skinPreset in allSkinPresets)
                 {
-                    uint currentSkillVariantIndex = bodyLoadoutManager.GetSkillVariant(bodyIndex, skillSlotIndex);
+                    bool isCurrentSkin = currentSkinIndex == skinPreset.SkinIndex;
 
-                    uint newSkillVariantIndex = evaluateWeightedIndexSelection(variantsCount, currentSkillVariantIndex, skillIndex =>
+                    if (!isCurrentSkills || !isCurrentSkin)
                     {
-                        if (!ArrayUtils.IsInBounds(skillVariants, skillIndex))
-                            return false;
-
-                        SkillFamily.Variant variant = skillVariants[skillIndex];
-                        return !variant.unlockableDef || !networkUser || networkUser.unlockables.Contains(variant.unlockableDef);
-                    });
-
-                    if (currentSkillVariantIndex != newSkillVariantIndex)
-                    {
-                        anyChanges = true;
-
-                        bodyLoadoutManager.SetSkillVariant(bodyIndex, skillSlotIndex, newSkillVariantIndex);
+                        LoadoutPreset preset = new LoadoutPreset(bodyIndex, skillPreset, skinPreset, 1f);
+                        loadoutSelection.AddChoice(preset, preset.Weight);
                     }
                 }
             }
 
-            return anyChanges;
-        }
-
-        bool tryRandomizeLoadoutSkin(CharacterMaster master, Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex)
-        {
-            if (!_randomizeSkin.Value)
-                return false;
-
-            try
+            if (loadoutSelection.Count == 0)
             {
-                return randomizeLoadoutSkin(master, bodyLoadoutManager, bodyIndex);
-            }
-            catch (Exception ex)
-            {
-                Log.Error_NoCallerPrefix($"Failed to randomize {Util.GetBestMasterName(master)} ({BodyCatalog.GetBodyName(bodyIndex)}) skin: {ex}");
+                changedAnySkill = false;
+                changedSkin = false;
                 return false;
             }
+
+            LoadoutPreset loadoutPreset = loadoutSelection.GetRandom(rng);
+            loadoutPreset.ApplyTo(loadout, out changedAnySkill, out changedSkin);
+            return changedAnySkill || changedSkin;
         }
 
-        bool randomizeLoadoutSkin(CharacterMaster master, Loadout.BodyLoadoutManager bodyLoadoutManager, BodyIndex bodyIndex)
+        static List<LoadoutSkillPreset> generateSkillPresets(NetworkUser networkUser, Loadout.BodyLoadoutManager.BodyInfo bodyInfo, uint[] currentSkillVariants)
         {
-            NetworkUser networkUser = master && master.playerCharacterMasterController ? master.playerCharacterMasterController.networkUser : null;
-
-            int bodySkinCount = BodyCatalog.GetBodySkins(bodyIndex).Length;
-            if (bodySkinCount > 1) // Only 1: No other options, don't bother trying to randomize it
+            List<LoadoutSkillPreset> allSkillPresets;
+            if (_randomizeSkills.Value)
             {
-                uint currentSkinIndex = bodyLoadoutManager.GetSkinIndex(bodyIndex);
+                int skillSlotCount = bodyInfo.skillSlotCount;
 
-                uint newSkinIndex = evaluateWeightedIndexSelection(bodySkinCount, currentSkinIndex, skinIndex =>
+                int[] skillVariantCount = new int[skillSlotCount];
+                int presetCount = 1;
+                for (int i = 0; i < skillSlotCount; i++)
                 {
-                    SkinDef skinDef = SkinCatalog.GetBodySkinDef(bodyIndex, (int)skinIndex);
-                    return skinDef && (!skinDef.unlockableDef || !networkUser || networkUser.unlockables.Contains(skinDef.unlockableDef));
-                });
+                    SkillFamily.Variant[] skillVariants = bodyInfo.prefabSkillSlots[i].skillFamily.variants;
+                    skillVariantCount[i] = skillVariants.Length;
 
-                if (currentSkinIndex != newSkinIndex)
+                    presetCount *= skillVariants.Length;
+                }
+
+                allSkillPresets = new List<LoadoutSkillPreset>(presetCount);
+
+                for (int i = 0; i < presetCount; i++)
                 {
-                    bodyLoadoutManager.SetSkinIndex(bodyIndex, newSkinIndex);
-                    return true;
+                    uint[] skillVariants = new uint[skillSlotCount];
+
+                    int completedCombinationCounts = 1;
+                    for (int j = 0; j < skillSlotCount; j++)
+                    {
+                        int slotVariantCount = skillVariantCount[j];
+
+                        skillVariants[j] = (uint)(i / completedCombinationCounts % slotVariantCount);
+                        completedCombinationCounts *= slotVariantCount;
+                    }
+
+                    float weight = 1f;
+                    for (int j = 0; j < skillVariants.Length; j++)
+                    {
+                        SkillFamily.Variant skillVariant = bodyInfo.prefabSkillSlots[j].skillFamily.variants[skillVariants[j]];
+                        if (skillVariant.unlockableDef && networkUser && !networkUser.unlockables.Contains(skillVariant.unlockableDef))
+                        {
+                            weight = float.NegativeInfinity;
+                            break;
+                        }
+
+                        if (skillVariants[j] == currentSkillVariants[j])
+                        {
+                            weight *= 0.9f;
+                        }
+                    }
+
+                    if (weight > 0f)
+                    {
+                        LoadoutSkillPreset skillPreset = new LoadoutSkillPreset(skillVariants, weight);
+                        allSkillPresets.Add(skillPreset);
+                    }
+                }
+            }
+            else
+            {
+                allSkillPresets = [new LoadoutSkillPreset(currentSkillVariants, 1f)];
+            }
+
+            return allSkillPresets;
+        }
+
+        static List<LoadoutSkinPreset> generateSkinPresets(BodyIndex bodyIndex, NetworkUser networkUser, uint currentSkinIndex)
+        {
+            List<LoadoutSkinPreset> allSkinPresets;
+            if (_randomizeSkin.Value)
+            {
+                int bodySkinCount = SkinCatalog.GetBodySkinCount(bodyIndex);
+                allSkinPresets = new List<LoadoutSkinPreset>(bodySkinCount);
+
+                for (uint i = 0; i < bodySkinCount; i++)
+                {
+                    SkinDef skinDef = SkinCatalog.GetBodySkinDef(bodyIndex, (int)i);
+
+                    if (skinDef && (!skinDef.unlockableDef || !networkUser || networkUser.unlockables.Contains(skinDef.unlockableDef)))
+                    {
+                        LoadoutSkinPreset skinPreset = new LoadoutSkinPreset(i, 1f);
+                        allSkinPresets.Add(skinPreset);
+                    }
+                }
+            }
+            else
+            {
+                allSkinPresets = [new LoadoutSkinPreset(currentSkinIndex, 1f)];
+            }
+
+            return allSkinPresets;
+        }
+
+        record class LoadoutSkillPreset(uint[] SkillVariants, float Weight);
+
+        record class LoadoutSkinPreset(uint SkinIndex, float Weight);
+
+        class LoadoutPreset
+        {
+            public readonly BodyIndex BodyIndex;
+
+            public readonly uint[] SkillVariants;
+
+            public readonly uint? SkinIndex;
+
+            public readonly float Weight;
+
+            public LoadoutPreset(BodyIndex bodyIndex, LoadoutSkillPreset skillPreset, LoadoutSkinPreset skinPreset, float weight)
+            {
+                BodyIndex = bodyIndex;
+                SkillVariants = skillPreset.SkillVariants;
+                SkinIndex = skinPreset.SkinIndex;
+                Weight = skillPreset.Weight * skinPreset.Weight * weight;
+            }
+
+            public void ApplyTo(Loadout loadout, out bool anySkillChanged, out bool skinChanged)
+            {
+                Loadout tmpLoadout = Loadout.RequestInstance();
+                loadout.Copy(tmpLoadout);
+
+                try
+                {
+                    anySkillChanged = false;
+                    skinChanged = false;
+
+                    if (SkillVariants != null)
+                    {
+                        for (int i = 0; i < SkillVariants.Length; i++)
+                        {
+                            uint currentSkillVariant = tmpLoadout.bodyLoadoutManager.GetSkillVariant(BodyIndex, i);
+                            if (currentSkillVariant != SkillVariants[i])
+                            {
+                                anySkillChanged = true;
+                                tmpLoadout.bodyLoadoutManager.SetSkillVariant(BodyIndex, i, SkillVariants[i]);
+                            }
+                        }
+                    }
+
+                    if (SkinIndex.HasValue)
+                    {
+                        uint currentSkinIndex = tmpLoadout.bodyLoadoutManager.GetSkinIndex(BodyIndex);
+                        if (skinChanged = currentSkinIndex != SkinIndex)
+                        {
+                            tmpLoadout.bodyLoadoutManager.SetSkinIndex(BodyIndex, SkinIndex.Value);
+                        }
+                    }
+
+                    if (anySkillChanged || skinChanged)
+                    {
+                        tmpLoadout.Copy(loadout);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error_NoCallerPrefix(ex);
+                    anySkillChanged = false;
+                    skinChanged = false;
+                }
+                finally
+                {
+                    Loadout.ReturnInstance(tmpLoadout);
                 }
             }
 
-            return false;
+            public override string ToString()
+            {
+                return $"[{string.Join(", ", SkillVariants)}] {SkinIndex} ({BodyCatalog.GetBodyName(BodyIndex)})";
+            }
         }
     }
 }
