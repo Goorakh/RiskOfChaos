@@ -25,7 +25,11 @@ namespace RiskOfChaos.Patches
 
             if (!ProjectileModificationManager.Instance || ProjectileModificationManager.Instance.NetworkedExtraSpawnCount <= 0)
                 return;
-            
+
+            // Don't allow procs to repeat
+            if (fireProjectileInfo.procChainMask.mask != 0b0)
+                return;
+
             IEnumerator spawnExtraProjectiles()
             {
                 Stage startingStage = Stage.instance;

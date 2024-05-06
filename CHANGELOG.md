@@ -13,6 +13,9 @@
   * No longer respawns your character when activating
   * Fixed effect being able to roll the exact same loadout as the one already being used
 
+* Repeating Projectiles:
+  * Disabled repeating of proc projectiles (AtG, Plasma Shrimp, etc)
+
 * The Floor is Lava:
   * Decreased damage by 75% for non-player characters
   * Characters immune to Grandparent sun (Parents and Grandparents) are no longer damaged

@@ -24,7 +24,9 @@ namespace RiskOfChaos.Patches
                                          && orb != null
                                          && !OrbUtils.IsTransferOrb(orb)
                                          && ProjectileModificationManager.Instance
-                                         && ProjectileModificationManager.Instance.NetworkedExtraSpawnCount > 0;
+                                         && ProjectileModificationManager.Instance.NetworkedExtraSpawnCount > 0
+                                         // Don't allow procs to repeat
+                                         && (!orb.TryGetProcChainMask(out ProcChainMask orbProcChain) || orbProcChain.mask == 0b0);
 
             // Clone original orb to use as a template, otherwise changes to the original instance will affect all the repeat orbs
             Orb orbTemplate = shouldSpawnAdditional ? OrbUtils.Clone(orb) : null;
