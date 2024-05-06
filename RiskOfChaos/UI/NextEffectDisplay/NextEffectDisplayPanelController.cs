@@ -119,6 +119,9 @@ namespace RiskOfChaos.UI.NextEffectDisplay
 
         EffectDisplayData? getEffectDisplayData()
         {
+            if (Configs.General.DisableEffectDispatching.Value)
+                return null;
+
             NextEffectProvider nextEffectProvider = NextEffectProvider.Instance;
             if (nextEffectProvider && nextEffectProvider.NetworkHasValidNextEffectState)
             {

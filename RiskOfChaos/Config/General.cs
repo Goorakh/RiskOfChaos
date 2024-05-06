@@ -15,9 +15,10 @@ namespace RiskOfChaos
                 ConfigFactory<bool>.CreateConfig("Disable Effect Activation", false)
                                    .Description("If effect activation should be disabled completely")
                                    .OptionConfig(new CheckBoxConfig())
+                                   .Networked()
                                    .Build();
 
-            static bool effectDispatchingDisabled() => DisableEffectDispatching.Value;
+            static bool effectDispatchingDisabled() => DisableEffectDispatching.LocalValue;
 
             const float TIME_BETWEEN_EFFECTS_MIN_VALUE = 5f;
             public static readonly ConfigHolder<float> TimeBetweenEffects =
