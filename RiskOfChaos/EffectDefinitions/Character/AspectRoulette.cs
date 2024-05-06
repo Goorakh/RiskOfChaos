@@ -123,7 +123,9 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 eliteEquipmentSelector.AddChoice(eliteDef.eliteEquipmentDef.equipmentIndex, getAspectWeight(eliteIndex));
             }
 
-            return new AspectStep(eliteEquipmentSelector.GetRandom(rng), rng.RangeFloat(MIN_ASPECT_DURATION, MAX_ASPECT_DURATION));
+            EquipmentIndex aspectEquipmentIndex = eliteEquipmentSelector.Evaluate(rng.nextNormalizedFloat);
+            float aspectDuration = rng.RangeFloat(MIN_ASPECT_DURATION, MAX_ASPECT_DURATION);
+            return new AspectStep(aspectEquipmentIndex, aspectDuration);
         }
 
         AspectStep getCurrentAspectStep(CharacterBody body)
