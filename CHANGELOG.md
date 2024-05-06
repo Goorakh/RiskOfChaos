@@ -35,6 +35,9 @@
 * Audio:
   * Fixed effect activation sound sometimes not playing for effects that move or change the player character
 
+* Misc:
+  * Fixed effect activation shortcuts activating while the user is typing in a text box
+
 <details>
   <summary>1.16.0 Changes:</summary>
 

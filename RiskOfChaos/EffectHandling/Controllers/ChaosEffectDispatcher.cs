@@ -5,6 +5,7 @@ using RiskOfChaos.Networking;
 using RiskOfChaos.SaveHandling;
 using RiskOfChaos.SaveHandling.DataContainers;
 using RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
@@ -75,7 +76,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void Update()
         {
-            if (!NetworkServer.active || PauseManager.isPaused)
+            if (!NetworkServer.active || PauseManager.isPaused || InputUtils.IsUsingInputField())
                 return;
 
             foreach (ChaosEffectInfo effectInfo in ChaosEffectCatalog.AllEffects)
