@@ -44,11 +44,16 @@ namespace RiskOfChaos.Networking.Components.Effects
                 return false;
 
             ChaosEffectDispatcher effectDispatcher = ChaosEffectDispatcher.Instance;
-            if (!effectDispatcher || !effectDispatcher.HasAttemptedDispatchAnyEffectServer)
+            if (!effectDispatcher)
                 return false;
 
             ChaosEffectActivationSignaler effectSignaler = effectDispatcher.GetCurrentEffectSignaler();
             if (!effectSignaler)
+                return false;
+
+            Run run = Run.instance;
+            Stage stage = Stage.instance;
+            if (!run || !stage || (run.stageClearCount == 0 && stage.entryTime.timeSince < ChaosEffectActivationSignaler.MIN_STAGE_TIME_REQUIRED_TO_DISPATCH))
                 return false;
 
             Run.FixedTimeStamp activationTime = Run.FixedTimeStamp.now + effectSignaler.GetTimeUntilNextEffect();

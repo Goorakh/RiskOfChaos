@@ -9,6 +9,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
 {
     public abstract class ChaosEffectActivationSignaler : MonoBehaviour
     {
+        public const float MIN_STAGE_TIME_REQUIRED_TO_DISPATCH = 2f;
+
         public delegate void SignalShouldDispatchEffectDelegate(ChaosEffectInfo effect, in ChaosEffectDispatchArgs args = default);
         public abstract event SignalShouldDispatchEffectDelegate SignalShouldDispatchEffect;
 
@@ -193,7 +195,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        protected const float MIN_STAGE_TIME_REQUIRED_TO_DISPATCH = 2f;
         protected virtual bool canDispatchEffects => !EffectDispatchingDisabled;
 
         public abstract float GetTimeUntilNextEffect();
