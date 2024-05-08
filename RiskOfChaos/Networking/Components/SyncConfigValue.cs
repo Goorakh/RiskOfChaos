@@ -64,7 +64,7 @@ namespace RiskOfChaos.Networking.Components
                     else
                     {
                         configDefinition = _configHolder.Definition.ToString();
-                        setValue(_configHolder.BoxedValue, _configHolder.Entry.SettingType);
+                        setValue(_configHolder.LocalBoxedValue, _configHolder.Entry.SettingType);
                     }
                 }
             }
