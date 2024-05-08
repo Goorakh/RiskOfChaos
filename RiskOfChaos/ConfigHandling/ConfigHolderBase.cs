@@ -32,11 +32,7 @@ namespace RiskOfChaos.ConfigHandling
             set => Entry.BoxedValue = value;
         }
 
-        public object BoxedValue
-        {
-            get => _hasServerOverrideValue ? _serverOverrideValue : LocalBoxedValue;
-            set => LocalBoxedValue = value;
-        }
+        public object BoxedValue => _hasServerOverrideValue ? _serverOverrideValue : LocalBoxedValue;
 
         public abstract bool IsDefaultValue { get; }
 
