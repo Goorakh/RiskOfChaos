@@ -24,6 +24,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                                   min = 1,
                                   max = 30
                               })
+                              .FormatsEffectName()
                               .Build();
 
         [GetEffectNameFormatter]

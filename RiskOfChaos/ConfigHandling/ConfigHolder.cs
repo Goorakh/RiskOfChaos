@@ -133,10 +133,17 @@ namespace RiskOfChaos.ConfigHandling
 
             ArrayUtil.AppendRange(ref _previousConfigSectionNames, ownerEffect.PreviousConfigSectionNames);
 
-            SettingChanged += (s, e) =>
+            if ((Flags & ConfigFlags.FormatsEffectName) == ConfigFlags.FormatsEffectName)
             {
-                ownerEffect.MarkNameFormatterDirty();
-            };
+                SettingChanged += (s, e) =>
+                {
+#if DEBUG
+                    Log.Debug($"Effect name formatting config '{e.Holder.Entry.Definition}' changed, marking {ownerEffect} name formatter dirty");
+#endif
+
+                    ownerEffect.MarkNameFormatterDirty();
+                };
+            }
 
             Bind(ownerEffect.ConfigFile, ownerEffect.ConfigSectionName, ChaosEffectCatalog.CONFIG_MOD_GUID, ChaosEffectCatalog.CONFIG_MOD_NAME);
         }

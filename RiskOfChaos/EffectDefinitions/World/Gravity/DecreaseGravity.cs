@@ -35,6 +35,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
 
                                     TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<DecreaseGravity>(e => e.OnValueDirty);
                                 })
+                                .FormatsEffectName()
                                 .Build();
 
         public override event Action OnValueDirty;

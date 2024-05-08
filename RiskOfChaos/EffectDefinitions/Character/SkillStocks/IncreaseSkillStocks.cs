@@ -32,6 +32,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.SkillStocks
 
                                   TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseSkillStocks>(e => e.OnValueDirty);
                               })
+                              .FormatsEffectName()
                               .Build();
 
         [EffectCanActivate]

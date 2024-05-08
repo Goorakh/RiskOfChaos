@@ -26,6 +26,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                                   min = 1,
                                   max = 10
                               })
+                              .FormatsEffectName()
                               .Build();
 
         [EffectCanActivate]

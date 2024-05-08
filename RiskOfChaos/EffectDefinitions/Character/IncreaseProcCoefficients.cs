@@ -35,6 +35,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                                     TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseProcCoefficients>(e => e.OnValueDirty);
                                 })
+                                .FormatsEffectName()
                                 .Build();
 
         [GetEffectNameFormatter]

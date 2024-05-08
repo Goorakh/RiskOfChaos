@@ -30,6 +30,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                                     max = 2f,
                                     increment = 0.05f
                                 })
+                                .FormatsEffectName()
                                 .Build();
 
         static float creditMultiplier => 1f + _creditIncrease.Value;

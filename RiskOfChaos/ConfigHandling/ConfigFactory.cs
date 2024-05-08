@@ -106,6 +106,12 @@ namespace RiskOfChaos.ConfigHandling
             return this;
         }
 
+        public ConfigFactory<T> FormatsEffectName()
+        {
+            _flags |= ConfigFlags.FormatsEffectName;
+            return this;
+        }
+
         public ConfigHolder<T> Build()
         {
             ConfigDescription description;

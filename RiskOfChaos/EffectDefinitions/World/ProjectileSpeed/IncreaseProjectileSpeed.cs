@@ -33,6 +33,7 @@ namespace RiskOfChaos.EffectDefinitions.World.ProjectileSpeed
 
                                     TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseProjectileSpeed>(e => e.OnValueDirty);
                                 })
+                                .FormatsEffectName()
                                 .Build();
 
         [GetEffectNameFormatter]

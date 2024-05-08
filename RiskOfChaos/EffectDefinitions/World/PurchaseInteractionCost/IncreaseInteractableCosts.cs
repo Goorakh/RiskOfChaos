@@ -37,6 +37,7 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
 
                                     TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseInteractableCosts>(e => e.OnValueDirty);
                                 })
+                                .FormatsEffectName()
                                 .Build();
 
         [EffectCanActivate]

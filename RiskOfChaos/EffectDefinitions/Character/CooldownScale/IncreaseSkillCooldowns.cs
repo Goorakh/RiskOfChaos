@@ -35,6 +35,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
 
                                     TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseSkillCooldowns>(e => e.OnValueDirty);
                                 })
+                                .FormatsEffectName()
                                 .Build();
 
         [EffectCanActivate]

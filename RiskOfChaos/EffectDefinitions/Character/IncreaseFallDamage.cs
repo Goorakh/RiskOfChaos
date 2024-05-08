@@ -40,6 +40,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                                     TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseFallDamage>(e => e.OnValueDirty);
                                 })
+                                .FormatsEffectName()
                                 .Build();
 
         [GetEffectNameFormatter]

@@ -39,6 +39,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
                                     TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseKnockback>(e => e.OnValueDirty);
                                 })
+                                .FormatsEffectName()
                                 .Build();
 
         [EffectCanActivate]

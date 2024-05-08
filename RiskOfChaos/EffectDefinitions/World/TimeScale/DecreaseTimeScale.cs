@@ -33,6 +33,7 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 
                                     TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<DecreaseTimeScale>(e => e.OnValueDirty);
                                 })
+                                .FormatsEffectName()
                                 .Build();
 
         public override event Action OnValueDirty;

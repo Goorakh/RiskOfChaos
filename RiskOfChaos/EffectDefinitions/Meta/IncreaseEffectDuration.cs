@@ -34,6 +34,7 @@ namespace RiskOfChaos.EffectDefinitions.Meta
 
                                     TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseEffectDuration>(e => e.OnValueDirty);
                                 })
+                                .FormatsEffectName()
                                 .Build();
 
         [EffectCanActivate]

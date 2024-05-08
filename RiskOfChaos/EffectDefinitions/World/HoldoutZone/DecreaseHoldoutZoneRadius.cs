@@ -35,6 +35,7 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
 
                                     TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<DecreaseHoldoutZoneRadius>(e => e.OnValueDirty);
                                 })
+                                .FormatsEffectName()
                                 .Build();
 
         public event Action OnValueDirty;

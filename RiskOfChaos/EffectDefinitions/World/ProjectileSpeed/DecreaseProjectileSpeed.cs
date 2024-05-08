@@ -33,6 +33,7 @@ namespace RiskOfChaos.EffectDefinitions.World.ProjectileSpeed
 
                                     TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<DecreaseProjectileSpeed>(e => e.OnValueDirty);
                                 })
+                                .FormatsEffectName()
                                 .Build();
 
         public override event Action OnValueDirty;
