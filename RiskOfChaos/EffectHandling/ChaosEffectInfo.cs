@@ -72,13 +72,13 @@ namespace RiskOfChaos.EffectHandling
         public static event Action<ChaosEffectInfo> OnEffectNameFormatterDirty;
 
         bool _nameFormatterDirty;
-        public bool NameFormatterDirty
+        bool nameFormatterDirty
         {
             get
             {
                 return _nameFormatterDirty;
             }
-            private set
+            set
             {
                 if (_nameFormatterDirty == value)
                     return;
@@ -98,10 +98,10 @@ namespace RiskOfChaos.EffectHandling
             {
                 if (_getEffectNameFormatter != null)
                 {
-                    if (_cachedNameFormatter is null || NameFormatterDirty)
+                    if (_cachedNameFormatter is null || nameFormatterDirty)
                     {
                         _cachedNameFormatter = _getEffectNameFormatter();
-                        NameFormatterDirty = false;
+                        nameFormatterDirty = false;
                     }
 
                     return _cachedNameFormatter;
@@ -314,7 +314,7 @@ namespace RiskOfChaos.EffectHandling
 
         public void MarkNameFormatterDirty()
         {
-            NameFormatterDirty = true;
+            nameFormatterDirty = true;
         }
 
         public string GetLocalDisplayName(EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)
