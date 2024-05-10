@@ -30,7 +30,7 @@ namespace RiskOfChaos.Patches
                 return;
 
             // Don't allow procs to repeat
-            if (self.procChainMask.mask != 0b0)
+            if (!self.procChainMask.Equals(default))
                 return;
 
             IEnumerator spawnExtraBullets()

@@ -27,7 +27,7 @@ namespace RiskOfChaos.Patches
                 return;
 
             // Don't allow procs to repeat
-            if (fireProjectileInfo.procChainMask.mask != 0b0)
+            if (!fireProjectileInfo.procChainMask.Equals(default))
                 return;
 
             IEnumerator spawnExtraProjectiles()
