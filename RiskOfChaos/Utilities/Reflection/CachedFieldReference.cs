@@ -69,7 +69,7 @@ namespace RiskOfChaos.Utilities.Reflection
                 };
             }
 
-            Log.Error($"Failed to find field: declaring type={_declaringType.FullName}, type={_fieldType?.FullName}, name={_fieldName}");
+            Log.Info($"Could not find field: declaring type={_declaringType.FullName}, type={_fieldType?.FullName}, name={_fieldName}");
             return null;
         }
     }
