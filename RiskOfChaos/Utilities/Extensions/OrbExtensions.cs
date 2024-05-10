@@ -70,6 +70,8 @@ namespace RiskOfChaos.Utilities.Extensions
                 return null;
 
             CachedOrbFields orbFields = getOrCreateOrbFields(orb.GetType());
+            if (!orbFields.Attacker.IsValid)
+                return null;
 
             try
             {
@@ -91,6 +93,11 @@ namespace RiskOfChaos.Utilities.Extensions
             }
 
             CachedOrbFields orbFields = getOrCreateOrbFields(orb.GetType());
+            if (!orbFields.ProcChainMask.IsValid)
+            {
+                procChainMask = default;
+                return false;
+            }
 
             try
             {

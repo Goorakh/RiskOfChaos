@@ -13,6 +13,8 @@ namespace RiskOfChaos.Utilities.Reflection
         public ConvertGetValueDelegate ConvertGetValue = (_, _) => throw new NotImplementedException();
         public ConvertSetValueDelegate ConvertSetValue = (_, _) => throw new NotImplementedException();
 
+        public bool IsValid => _field.FieldInfo.Value != null;
+
         public FieldWrapper(CachedFieldReference fieldReference)
         {
             _field = fieldReference;
