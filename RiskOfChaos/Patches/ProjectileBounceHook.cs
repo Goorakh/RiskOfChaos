@@ -87,8 +87,6 @@ namespace RiskOfChaos.Patches
             Vector3 _lastAngularVelocity;
             Rigidbody _rigidbody;
 
-            const float SPEED_MULTIPLIER_PER_BOUNCE = 0.7f;
-
             void Awake()
             {
                 _projectileController = GetComponent<ProjectileController>();
@@ -137,11 +135,6 @@ namespace RiskOfChaos.Patches
             {
                 if (!isBouncingEnabled || _timesBounced >= maxBounces || _lastBounceTime >= Time.fixedTime - 0.1f || hitEnemy(impactInfo))
                     return false;
-
-                if (_projectileSimple)
-                {
-                    _projectileSimple.desiredForwardSpeed *= SPEED_MULTIPLIER_PER_BOUNCE;
-                }
 
                 reflectAroundNormal(impactInfo.estimatedImpactNormal);
 

@@ -16,6 +16,7 @@ namespace RiskOfChaos.Utilities.Extensions
 
             public readonly FieldWrapper<CharacterBody, Orb> Attacker;
             public readonly FieldWrapper<ProcChainMask, Orb> ProcChainMask;
+            public readonly FieldWrapper<TeamIndex, Orb> TeamIndex;
 
             public CachedOrbFields(Type orbType)
             {
@@ -49,6 +50,8 @@ namespace RiskOfChaos.Utilities.Extensions
                 };
 
                 ProcChainMask = new FieldWrapper<ProcChainMask, Orb>(new CachedFieldReference(OrbType, "procChainMask", typeof(ProcChainMask), BindingFlags.Instance | BindingFlags.Public));
+
+                TeamIndex = new FieldWrapper<TeamIndex, Orb>(new CachedFieldReference(OrbType, typeof(TeamIndex), BindingFlags.Instance | BindingFlags.Public));
             }
         }
 
@@ -112,6 +115,37 @@ namespace RiskOfChaos.Utilities.Extensions
             }
 
             return true;
+        }
+
+        public static bool TryGetTeamIndex(this Orb orb, out TeamIndex teamIndex)
+        {
+            if (orb is null)
+            {
+                teamIndex = TeamIndex.None;
+                return false;
+            }
+
+            CachedOrbFields orbFields = getOrCreateOrbFields(orb.GetType());
+            FieldWrapper<TeamIndex, Orb> teamIndexField = orbFields.TeamIndex;
+
+            if (!teamIndexField.IsValid)
+            {
+                teamIndex = TeamIndex.None;
+                return false;
+            }
+
+            try
+            {
+                teamIndex = teamIndexField.Get(orb);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Log.Error_NoCallerPrefix(e);
+
+                teamIndex = TeamIndex.None;
+                return false;
+            }
         }
     }
 }

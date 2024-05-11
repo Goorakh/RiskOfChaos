@@ -6,7 +6,7 @@ using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Orbs;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -14,6 +14,51 @@ namespace RiskOfChaos.Patches
 {
     static class OrbBounceHook
     {
+        class OrbBounceChain
+        {
+            public readonly Xoroshiro128Plus RNG;
+
+            public readonly int MaxBounces;
+
+            public int CompletedBounces { get; private set; }
+
+            public int BouncesRemaining => MaxBounces - CompletedBounces;
+
+            readonly List<HealthComponent> _hitOrder;
+
+            public readonly ReadOnlyCollection<HealthComponent> HitEntities;
+
+            public readonly HashSet<HealthComponent> UniqueHitEntities;
+
+            public readonly HashSet<HealthComponent> UsedDeadBacktrackEntities;
+
+            public int CurrentDeadBacktrackCount;
+
+            public OrbBounceChain(int maxBounces, Xoroshiro128Plus rng)
+            {
+                RNG = rng;
+
+                MaxBounces = maxBounces;
+                CompletedBounces = 0;
+
+                _hitOrder = new List<HealthComponent>(MaxBounces);
+                HitEntities = _hitOrder.AsReadOnly();
+
+                UniqueHitEntities = [];
+
+                UsedDeadBacktrackEntities = [];
+            }
+
+            public void RecordHit(HealthComponent hitEntity)
+            {
+                _hitOrder.Add(hitEntity);
+                UniqueHitEntities.Add(hitEntity);
+                CompletedBounces++;
+            }
+        }
+
+        readonly record struct OrbTargetCandidate(HurtBox Target, float SqrDistance, float Weight);
+
         static bool isEnabled => NetworkServer.active && bounceCount > 0;
 
         static int bounceCount
@@ -22,7 +67,7 @@ namespace RiskOfChaos.Patches
             {
                 if (ProjectileModificationManager.Instance)
                 {
-                    return (int)ProjectileModificationManager.Instance.NetworkedOrbBounceCount;
+                    return ClampedConversion.Int32(ProjectileModificationManager.Instance.NetworkedOrbBounceCount);
                 }
                 else
                 {
@@ -31,19 +76,24 @@ namespace RiskOfChaos.Patches
             }
         }
 
-        static readonly Dictionary<Orb, int> _orbBouncesRemaining = [];
+        static readonly Dictionary<Orb, OrbBounceChain> _orbBounceChains = [];
+
+        static void clearBouncesRemaining()
+        {
+            _orbBounceChains.Clear();
+        }
 
         [SystemInitializer]
         static void Init()
         {
-            Run.onRunStartGlobal += _ =>
+            Run.onRunDestroyGlobal += _ =>
             {
-                _orbBouncesRemaining.Clear();
+                clearBouncesRemaining();
             };
 
-            Stage.onServerStageComplete += _ =>
+            Stage.onServerStageBegin += _ =>
             {
-                _orbBouncesRemaining.Clear();
+                clearBouncesRemaining();
             };
 
             IL.RoR2.Orbs.OrbManager.FixedUpdate += hookOrbArrival;
@@ -65,36 +115,81 @@ namespace RiskOfChaos.Patches
 
         static void tryBounceOrb(Orb orbInstance)
         {
-            if (!isEnabled || !OrbManager.instance || orbInstance == null)
+            if (orbInstance == null || OrbUtils.IsTransferOrb(orbInstance) || orbInstance is VoidLightningOrb)
                 return;
 
-            if (OrbUtils.IsTransferOrb(orbInstance) || orbInstance is VoidLightningOrb)
-                return;
-
-            if (_orbBouncesRemaining.TryGetValue(orbInstance, out int bouncesRemaining))
+            if (_orbBounceChains.TryGetValue(orbInstance, out OrbBounceChain bounceChain))
             {
-                _orbBouncesRemaining.Remove(orbInstance);
-                bouncesRemaining--;
-
-                if (bouncesRemaining <= 0)
-                {
+                _orbBounceChains.Remove(orbInstance);
+                if (bounceChain.BouncesRemaining <= 0)
                     return;
-                }
             }
             else
             {
-                bouncesRemaining = bounceCount;
+                bounceChain = null;
             }
 
-            if (!orbInstance.target)
+            if (!isEnabled || !OrbManager.instance || !orbInstance.target)
                 return;
 
-            Vector3 newOrbOrigin = orbInstance.target.transform.position;
+            if (orbInstance.TryGetProcChainMask(out ProcChainMask orbProcChain) && !orbProcChain.Equals(default))
+                return;
+
+            if (bounceChain == null)
+            {
+                bounceChain = new OrbBounceChain(bounceCount, new Xoroshiro128Plus(RoR2Application.rng.nextUlong));
+            }
+
+            bounceChain.RecordHit(orbInstance.target.healthComponent);
+
+            Vector3 oldOrbTargetPosition = orbInstance.target.transform.position;
+
+            Vector3 newOrbTargetSearchPosition;
+            if (orbInstance.target.healthComponent && orbInstance.target.healthComponent.body)
+            {
+                newOrbTargetSearchPosition = orbInstance.target.healthComponent.body.corePosition;
+            }
+            else
+            {
+                newOrbTargetSearchPosition = oldOrbTargetPosition;
+            }
+
+            CharacterBody attackerBody = orbInstance.GetAttacker();
+
+            if (!orbInstance.TryGetTeamIndex(out TeamIndex orbTeam))
+            {
+                if (attackerBody)
+                {
+                    orbTeam = attackerBody.teamComponent.teamIndex;
+                }
+                else
+                {
+                    orbTeam = TeamIndex.None;
+                }
+            }
+
+            float targetSearchDistance;
+            switch (orbInstance)
+            {
+                case LightningOrb lightningOrb when lightningOrb.range > 0f:
+                    targetSearchDistance = lightningOrb.range;
+                    break;
+                case ChainGunOrb chainGunOrb when chainGunOrb.bounceRange > 0f:
+                    targetSearchDistance = chainGunOrb.bounceRange;
+                    break;
+                case HuntressArrowOrb when attackerBody && attackerBody.TryGetComponent(out HuntressTracker huntressTracker) && huntressTracker.maxTrackingDistance > 0f:
+                    targetSearchDistance = huntressTracker.maxTrackingDistance;
+                    break;
+                default:
+                    float estimatedOrbTravelDistance = Vector3.Distance(newOrbTargetSearchPosition, orbInstance.origin);
+                    targetSearchDistance = Mathf.Max(20f, estimatedOrbTravelDistance * 1.5f);
+                    break;
+            }
 
             SphereSearch newTargetSearch = new SphereSearch
             {
-                origin = newOrbOrigin,
-                radius = 75f,
+                origin = newOrbTargetSearchPosition,
+                radius = targetSearchDistance,
                 queryTriggerInteraction = QueryTriggerInteraction.Ignore,
                 mask = LayerIndex.entityPrecise.mask
             };
@@ -103,47 +198,192 @@ namespace RiskOfChaos.Patches
 
             newTargetSearch.FilterCandidatesByDistinctHurtBoxEntities();
 
-            TeamMask teamMask = new TeamMask();
-            teamMask.AddTeam(orbInstance.target.teamIndex);
-            newTargetSearch.FilterCandidatesByHurtBoxTeam(teamMask);
-
-            newTargetSearch.OrderCandidatesByDistance();
-
-            CharacterBody attackerBody = orbInstance.GetAttacker();
-
-            List<HurtBox> validTargets = newTargetSearch.GetHurtBoxes().Where(h =>
+            TeamMask targetSearchTeamMask;
+            if (orbTeam != TeamIndex.None)
             {
-                if (h.healthComponent == orbInstance.target.healthComponent)
-                    return false;
+                targetSearchTeamMask = TeamMask.GetEnemyTeams(orbTeam);
+            }
+            else
+            {
+                targetSearchTeamMask = new TeamMask();
+                targetSearchTeamMask.AddTeam(orbInstance.target.teamIndex);
+            }
 
-                Vector3 losCheckDirection = h.transform.position - newTargetSearch.origin;
-                if (Physics.Raycast(newTargetSearch.origin, losCheckDirection, out _, losCheckDirection.magnitude, LayerIndex.world.mask, newTargetSearch.queryTriggerInteraction))
+            newTargetSearch.FilterCandidatesByHurtBoxTeam(targetSearchTeamMask);
+
+            HurtBox[] potentialTargets = newTargetSearch.GetHurtBoxes();
+
+            List<OrbTargetCandidate> targetCandidates = new List<OrbTargetCandidate>(potentialTargets.Length);
+
+            RaycastHit[] raycastHits = new RaycastHit[128];
+
+            foreach (HurtBox potentialTarget in potentialTargets)
+            {
+                if (potentialTarget.healthComponent == orbInstance.target.healthComponent)
+                    continue;
+
+                CharacterBody targetBody = potentialTarget.healthComponent.body;
+
+                Vector3 targetCorePosition;
+                if (targetBody)
                 {
-                    return false;
+                    if (attackerBody)
+                    {
+                        if (attackerBody == targetBody)
+                            continue;
+
+                        if (targetBody.GetVisibilityLevel(attackerBody) < VisibilityLevel.Revealed)
+                            continue;
+                    }
+
+                    targetCorePosition = targetBody.corePosition;
+                }
+                else
+                {
+                    targetCorePosition = potentialTarget.transform.position;
                 }
 
-                if (attackerBody)
+                Vector3 losSearchDirection = targetCorePosition - newTargetSearch.origin;
+                float targetDistance = losSearchDirection.magnitude;
+
+                int hitCount = Physics.RaycastNonAlloc(new Ray(newTargetSearch.origin, losSearchDirection), raycastHits, targetDistance, LayerIndex.world.mask, QueryTriggerInteraction.Ignore);
+
+                bool losBlocked = false;
+                for (int i = 0; i < hitCount; i++)
                 {
-                    CharacterBody targetBody = h.healthComponent.body;
-                    if (targetBody && targetBody.GetVisibilityLevel(attackerBody) < VisibilityLevel.Revealed)
-                        return false;
+                    if (!raycastHits[i].transform)
+                        continue;
+
+                    if (!raycastHits[i].transform.GetComponent<HurtBox>())
+                    {
+                        losBlocked = true;
+                        break;
+                    }
                 }
 
-                return true;
-            }).ToList();
+                if (losBlocked)
+                    continue;
 
-            if (validTargets.Count == 0)
-                return;
+                targetCandidates.Add(new OrbTargetCandidate(potentialTarget, targetDistance * targetDistance, 1f));
+            }
 
-            float targetIndexFraction = RoR2Application.rng.nextNormalizedFloat;
-            HurtBox newTarget = validTargets[Mathf.RoundToInt(Mathf.Pow(targetIndexFraction, 4f) * (validTargets.Count - 1))];
+            float sqrTargetSearchDistance = newTargetSearch.radius * newTargetSearch.radius;
+
+            bool isDeadBacktrack = false;
+            if (targetCandidates.Count == 0)
+            {
+                int uniqueHitCount = bounceChain.UniqueHitEntities.Count;
+                List<OrbTargetCandidate> livingCandidates = new List<OrbTargetCandidate>(uniqueHitCount);
+                List<OrbTargetCandidate> deadCandidates = new List<OrbTargetCandidate>(uniqueHitCount);
+
+                foreach (HealthComponent hitHealthComponent in bounceChain.UniqueHitEntities)
+                {
+                    if (!hitHealthComponent || hitHealthComponent == orbInstance.target.healthComponent)
+                        continue;
+
+                    if (!hitHealthComponent.alive && bounceChain.UsedDeadBacktrackEntities.Contains(hitHealthComponent))
+                        continue;
+
+                    CharacterBody hitBody = hitHealthComponent.body;
+                    if (!hitBody)
+                        continue;
+
+                    HurtBoxGroup hitHurtBoxGroup = hitBody.hurtBoxGroup;
+                    if (!hitHurtBoxGroup)
+                        continue;
+
+                    HurtBox[] hitCharacterHurtBoxes = hitHurtBoxGroup.hurtBoxes;
+                    if (hitCharacterHurtBoxes.Length == 0)
+                        continue;
+
+                    Vector3 hitPosition = hitBody.corePosition;
+
+                    float hitSqrDistance = (hitPosition - newTargetSearch.origin).sqrMagnitude;
+                    if (hitSqrDistance <= sqrTargetSearchDistance * (1.5f * 1.5f))
+                    {
+                        List<OrbTargetCandidate> candidatesList = hitHealthComponent.alive ? livingCandidates : deadCandidates;
+
+                        HurtBox target = bounceChain.RNG.NextElementUniform(hitCharacterHurtBoxes);
+                        candidatesList.Add(new OrbTargetCandidate(target, hitSqrDistance, 1f));
+                    }
+                }
+
+                if (livingCandidates.Count > 0)
+                {
+                    targetCandidates = livingCandidates;
+                }
+                else if (deadCandidates.Count > 0 && bounceChain.CurrentDeadBacktrackCount < 1)
+                {
+                    targetCandidates = deadCandidates;
+                    isDeadBacktrack = true;
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            if (isDeadBacktrack)
+            {
+                bounceChain.CurrentDeadBacktrackCount++;
+            }
+            else
+            {
+                bounceChain.CurrentDeadBacktrackCount = 0;
+            }
+
+            WeightedSelection<HurtBox> targetSelection = new WeightedSelection<HurtBox>(Mathf.Max(8, targetCandidates.Count));
+            foreach (OrbTargetCandidate candidate in targetCandidates)
+            {
+                float normalizedSqrDistance = Mathf.Clamp01(candidate.SqrDistance / sqrTargetSearchDistance);
+
+                float effectiveTimesBouncedOnCandidate = 0;
+                for (int i = 0; i < bounceChain.HitEntities.Count; i++)
+                {
+                    if (bounceChain.HitEntities[i] == candidate.Target.healthComponent)
+                    {
+                        float normalizedHitIndex = (bounceChain.HitEntities.Count - i) / (float)bounceChain.HitEntities.Count;
+                        effectiveTimesBouncedOnCandidate += 1f - normalizedHitIndex;
+                    }
+                }
+
+                const float MIN_DISTANCE_MULTIPLIER = 0.25f;
+                float distanceWeightMultiplier = (Mathf.Pow(1f - normalizedSqrDistance, 2f) * (1f - MIN_DISTANCE_MULTIPLIER)) + MIN_DISTANCE_MULTIPLIER;
+
+                float duplicateBounceWeightMultiplier = Mathf.Pow(2f, -effectiveTimesBouncedOnCandidate / 2f);
+
+                targetSelection.AddChoice(candidate.Target, candidate.Weight * distanceWeightMultiplier * duplicateBounceWeightMultiplier);
+            }
+
+            HurtBox newTarget = targetSelection.GetRandom(bounceChain.RNG);
+
+            if (newTarget && newTarget.healthComponent)
+            {
+                CharacterBody targetBody = newTarget.healthComponent.body;
+                if (targetBody)
+                {
+                    HurtBoxGroup targetHurtBoxGroup = targetBody.hurtBoxGroup;
+                    if (targetHurtBoxGroup && targetHurtBoxGroup.hurtBoxes.Length > 1)
+                    {
+                        newTarget = bounceChain.RNG.NextElementUniform(targetHurtBoxGroup.hurtBoxes);
+                    }
+                }
+
+                if (isDeadBacktrack)
+                {
+                    if (!bounceChain.UsedDeadBacktrackEntities.Add(newTarget.healthComponent))
+                    {
+                        Log.Warning($"Duplicate backtrack target: {newTarget.healthComponent}");
+                    }
+                }
+            }
 
             Orb newOrb = OrbUtils.Clone(orbInstance);
 
-            newOrb.origin = newOrbOrigin;
+            newOrb.origin = oldOrbTargetPosition;
             newOrb.target = newTarget;
 
-            _orbBouncesRemaining[newOrb] = bouncesRemaining;
+            _orbBounceChains.Add(newOrb, bounceChain);
 
             OrbManager.instance.AddOrb(newOrb);
         }

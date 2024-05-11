@@ -30,13 +30,13 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         [EffectConfig]
         static readonly ConfigHolder<int> _maxProjectileBounceCount =
-            ConfigFactory<int>.CreateConfig("Max Projectile Bounce Count", 2)
+            ConfigFactory<int>.CreateConfig("Max Projectile Bounce Count", 7)
                               .Description("The maximum amount of times projectiles can be bounced")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntSliderConfig
                               {
                                   min = 1,
-                                  max = 10
+                                  max = 20
                               })
                               .OnValueChanged(bounceCountConfigChanged)
                               .Build();

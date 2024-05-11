@@ -16,6 +16,12 @@
 * Repeating Projectiles:
   * Disabled repeating of proc projectiles (AtG, Plasma Shrimp, etc)
 
+* Bouncy Projectiles:
+  * Disabled bouncing of some proc projectiles to prevent lag
+  * Increased default projectile bounce count: 2 -> 7
+  * Removed projectile speed decrease on bounce
+  * Reworked projectile target bounce logic
+
 * The Floor is Lava:
   * Decreased damage by 75% for non-player characters
   * Characters immune to Grandparent sun (Parents and Grandparents) are no longer damaged
