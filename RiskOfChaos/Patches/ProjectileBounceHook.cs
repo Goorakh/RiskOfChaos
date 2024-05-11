@@ -13,7 +13,7 @@ namespace RiskOfChaos.Patches
         [SystemInitializer]
         static void Init()
         {
-            On.RoR2.Projectile.ProjectileController.Awake += ProjectileController_Awake;
+            On.RoR2.Projectile.ProjectileManager.InitializeProjectile += ProjectileManager_InitializeProjectile;
 
             IL.RoR2.Projectile.ProjectileController.OnCollisionEnter += ProjectileController_tryBouncePatch;
             IL.RoR2.Projectile.ProjectileController.OnTriggerEnter += ProjectileController_tryBouncePatch;
@@ -21,28 +21,15 @@ namespace RiskOfChaos.Patches
 
         static bool isBouncingEnabled => maxBounces > 0;
 
-        static uint maxBounces
-        {
-            get
-            {
-                if (ProjectileModificationManager.Instance)
-                {
-                    return ProjectileModificationManager.Instance.NetworkedProjectileBounceCount;
-                }
-                else
-                {
-                    return 0;
-                }
-            }
-        }
+        static uint maxBounces => ProjectileModificationManager.Instance ? ProjectileModificationManager.Instance.NetworkedProjectileBounceCount : 0;
 
-        static void ProjectileController_Awake(On.RoR2.Projectile.ProjectileController.orig_Awake orig, ProjectileController self)
+        static void ProjectileManager_InitializeProjectile(On.RoR2.Projectile.ProjectileManager.orig_InitializeProjectile orig, ProjectileController projectileController, FireProjectileInfo fireProjectileInfo)
         {
-            orig(self);
+            orig(projectileController, fireProjectileInfo);
 
-            if (isBouncingEnabled && !self.GetComponent<ProjectileEnvironmentBounceBehavior>())
+            if (isBouncingEnabled)
             {
-                self.gameObject.AddComponent<ProjectileEnvironmentBounceBehavior>();
+                projectileController.gameObject.AddComponent<ProjectileEnvironmentBounceBehavior>();
             }
         }
 
@@ -88,7 +75,7 @@ namespace RiskOfChaos.Patches
 
             readonly record struct OriginalColliderMaterialPair(Collider Collider, PhysicMaterial Material);
 
-            int _timesBounced;
+            uint _bouncesRemaining;
 
             ProjectileController _projectileController;
             ProjectileSimple _projectileSimple;
@@ -105,6 +92,8 @@ namespace RiskOfChaos.Patches
 
             void Awake()
             {
+                _bouncesRemaining = maxBounces;
+
                 _projectileController = GetComponent<ProjectileController>();
                 _projectileSimple = GetComponent<ProjectileSimple>();
                 _rigidbody = GetComponent<Rigidbody>();
@@ -154,8 +143,10 @@ namespace RiskOfChaos.Patches
 
             public bool TryBounce(ProjectileImpactInfo impactInfo)
             {
-                if (!isBouncingEnabled || _timesBounced >= maxBounces || hitEnemy(impactInfo))
+                if (!isBouncingEnabled || _bouncesRemaining <= 0 || hitEnemy(impactInfo))
                 {
+                    _bouncesRemaining = 0;
+
                     if (_bouncedLastCollision)
                     {
                         foreach (OriginalColliderMaterialPair originalMaterialPair in _originalMaterials)
@@ -189,7 +180,7 @@ namespace RiskOfChaos.Patches
                     }
                 }
 
-                _timesBounced++;
+                _bouncesRemaining--;
                 _bouncedLastCollision = true;
 
                 return true;
