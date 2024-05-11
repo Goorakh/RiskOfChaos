@@ -21,6 +21,7 @@
   * Increased default projectile bounce count: 2 -> 7
   * Removed projectile speed decrease on bounce
   * Reworked projectile target bounce logic
+  * Fixed projectiles skipping all remaining bounces if fired into a corner
 
 * The Floor is Lava:
   * Decreased damage by 75% for non-player characters

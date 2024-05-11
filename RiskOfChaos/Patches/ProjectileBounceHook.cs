@@ -3,6 +3,7 @@ using MonoMod.Cil;
 using RiskOfChaos.ModifierController.Projectile;
 using RoR2;
 using RoR2.Projectile;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace RiskOfChaos.Patches
@@ -39,7 +40,7 @@ namespace RiskOfChaos.Patches
         {
             orig(self);
 
-            if (!self.GetComponent<ProjectileEnvironmentBounceBehavior>())
+            if (isBouncingEnabled && !self.GetComponent<ProjectileEnvironmentBounceBehavior>())
             {
                 self.gameObject.AddComponent<ProjectileEnvironmentBounceBehavior>();
             }
@@ -76,22 +77,46 @@ namespace RiskOfChaos.Patches
         [RequireComponent(typeof(ProjectileController))]
         class ProjectileEnvironmentBounceBehavior : MonoBehaviour
         {
-            int _timesBounced;
+            static readonly PhysicMaterial _bouncyMaterial = new PhysicMaterial("ProjectileBounce")
+            {
+                bounciness = 0.85f,
+                bounceCombine = PhysicMaterialCombine.Maximum,
+                staticFriction = 0f,
+                dynamicFriction = 0f,
+                frictionCombine = PhysicMaterialCombine.Minimum
+            };
 
-            float _lastBounceTime = float.NegativeInfinity;
+            readonly record struct OriginalColliderMaterialPair(Collider Collider, PhysicMaterial Material);
+
+            int _timesBounced;
 
             ProjectileController _projectileController;
             ProjectileSimple _projectileSimple;
+            ProjectileGrappleController _projectileGrappleController;
 
             Vector3 _lastVelocityDirection;
             Vector3 _lastAngularVelocity;
             Rigidbody _rigidbody;
+
+            bool _bouncedLastCollision;
+
+            readonly List<OriginalColliderMaterialPair> _originalMaterials = [];
 
             void Awake()
             {
                 _projectileController = GetComponent<ProjectileController>();
                 _projectileSimple = GetComponent<ProjectileSimple>();
                 _rigidbody = GetComponent<Rigidbody>();
+                _projectileGrappleController = GetComponent<ProjectileGrappleController>();
+
+                foreach (Collider collider in GetComponentsInChildren<Collider>(true))
+                {
+                    if (collider.isTrigger)
+                        continue;
+
+                    _originalMaterials.Add(new OriginalColliderMaterialPair(collider, collider.sharedMaterial));
+                    collider.sharedMaterial = _bouncyMaterial;
+                }
             }
 
             void FixedUpdate()
@@ -116,13 +141,7 @@ namespace RiskOfChaos.Patches
 
                     if (_lastVelocityDirection.sqrMagnitude > float.Epsilon)
                     {
-                        Quaternion newRotation = Util.QuaternionSafeLookRotation(Vector3.Reflect(_lastVelocityDirection, normal));
-                        _rigidbody.rotation = newRotation;
-
-                        if (_projectileSimple)
-                        {
-                            _rigidbody.velocity = newRotation * Vector3.forward * _projectileSimple.desiredForwardSpeed;
-                        }
+                        _rigidbody.rotation = Util.QuaternionSafeLookRotation(Vector3.Reflect(_lastVelocityDirection, normal));
 
                         return;
                     }
@@ -133,13 +152,46 @@ namespace RiskOfChaos.Patches
 
             public bool TryBounce(ProjectileImpactInfo impactInfo)
             {
-                if (!isBouncingEnabled || _timesBounced >= maxBounces || _lastBounceTime >= Time.fixedTime - 0.1f || hitEnemy(impactInfo))
+                if (!isBouncingEnabled || _timesBounced >= maxBounces || hitEnemy(impactInfo))
+                {
+                    if (_bouncedLastCollision)
+                    {
+                        foreach (OriginalColliderMaterialPair originalMaterialPair in _originalMaterials)
+                        {
+                            if (originalMaterialPair.Collider)
+                            {
+                                originalMaterialPair.Collider.sharedMaterial = originalMaterialPair.Material;
+                            }
+                        }
+                    }
+
+                    _bouncedLastCollision = false;
                     return false;
+                }
 
                 reflectAroundNormal(impactInfo.estimatedImpactNormal);
 
+                if (_projectileSimple)
+                {
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                    _projectileSimple.stopwatch = 0f;
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+                }
+
+                if (_projectileGrappleController)
+                {
+                    EntityStateMachine grappleStateMachine = _projectileGrappleController.GetComponent<EntityStateMachine>();
+
+                    if (grappleStateMachine && grappleStateMachine.state is ProjectileGrappleController.FlyState)
+                    {
+                        // Re-start fly state to reset the lifetime of the grapple, as if it was just fired again
+                        grappleStateMachine.SetNextState(new ProjectileGrappleController.FlyState());
+                    }
+                }
+
                 _timesBounced++;
-                _lastBounceTime = Time.fixedTime;
+                _bouncedLastCollision = true;
+
                 return true;
             }
 
