@@ -93,6 +93,7 @@ namespace RiskOfChaos.Patches
             ProjectileController _projectileController;
             ProjectileSimple _projectileSimple;
             ProjectileGrappleController _projectileGrappleController;
+            EntityStateMachine _projectileStateMachine;
 
             Vector3 _lastVelocityDirection;
             Vector3 _lastAngularVelocity;
@@ -108,6 +109,7 @@ namespace RiskOfChaos.Patches
                 _projectileSimple = GetComponent<ProjectileSimple>();
                 _rigidbody = GetComponent<Rigidbody>();
                 _projectileGrappleController = GetComponent<ProjectileGrappleController>();
+                _projectileStateMachine = GetComponent<EntityStateMachine>();
 
                 foreach (Collider collider in GetComponentsInChildren<Collider>(true))
                 {
@@ -180,12 +182,10 @@ namespace RiskOfChaos.Patches
 
                 if (_projectileGrappleController)
                 {
-                    EntityStateMachine grappleStateMachine = _projectileGrappleController.GetComponent<EntityStateMachine>();
-
-                    if (grappleStateMachine && grappleStateMachine.state is ProjectileGrappleController.FlyState)
+                    if (_projectileStateMachine && _projectileStateMachine.state is ProjectileGrappleController.FlyState)
                     {
                         // Re-start fly state to reset the lifetime of the grapple, as if it was just fired again
-                        grappleStateMachine.SetNextState(new ProjectileGrappleController.FlyState());
+                        _projectileStateMachine.SetNextState(new ProjectileGrappleController.FlyState());
                     }
                 }
 
