@@ -26,6 +26,9 @@
 * Spawn Random Boss:
   * Adjusted spawn weights to make special (non-teleporter) bosses slightly more common
 
+* Orbital Bombardment, Risk of Thunder, & Meteor Shower:
+  * Added damage scaling based on the run timer
+
 * Knockback Recoil:
   * Fixed Golems not being pushed back by laser attack
 

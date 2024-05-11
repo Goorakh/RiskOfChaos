@@ -64,7 +64,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
                 new BlastAttack
                 {
-                    baseDamage = 50f + (TeamManager.instance ? ((TeamManager.instance.GetTeamLevel(TeamIndex.Monster) - 1) * 25f) : 0f),
+                    baseDamage = 50f * Run.instance.teamlessDamageCoefficient,
                     baseForce = 0f,
                     bonusForce = new Vector3(0f, 10f, 0f),
                     damageColorIndex = DamageColorIndex.Item,

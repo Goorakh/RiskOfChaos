@@ -11,7 +11,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         public override void OnStart()
         {
             MeteorStormController meteorController = UnityEngine.Object.Instantiate(LegacyResourcesAPI.Load<GameObject>("Prefabs/NetworkedObjects/MeteorStorm")).GetComponent<MeteorStormController>();
-            meteorController.ownerDamage = 100f;
+            meteorController.ownerDamage = 40f * Run.instance.teamlessDamageCoefficient;
             meteorController.isCrit = false;
             NetworkServer.Spawn(meteorController.gameObject);
         }

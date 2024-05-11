@@ -51,7 +51,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
                     projectilePrefab = _diabloStrikePrefab,
                     position = position,
                     rotation = rotation,
-                    damage = 400f * 75f
+                    damage = 400f * 20f * Run.instance.teamlessDamageCoefficient
                 });
 
                 yield return new WaitForSeconds(RNG.RangeFloat(0.05f, 0.25f));
@@ -68,7 +68,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
                     projectilePrefab = _orbitalProbePrefab,
                     position = position,
                     rotation = Quaternion.Euler(0f, RoR2Application.rng.RangeFloat(0f, 360f), 0f),
-                    damage = 10f * 20f
+                    damage = 10f * 20f * Run.instance.teamlessDamageCoefficient
                 });
 
                 yield return new WaitForSeconds(RNG.RangeFloat(0f, 0.1f));
