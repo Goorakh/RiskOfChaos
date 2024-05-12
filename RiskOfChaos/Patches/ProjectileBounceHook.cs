@@ -1,4 +1,5 @@
-﻿using Mono.Cecil.Cil;
+﻿using HarmonyLib;
+using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RiskOfChaos.ModifierController.Projectile;
 using RoR2;
@@ -17,6 +18,8 @@ namespace RiskOfChaos.Patches
 
             IL.RoR2.Projectile.ProjectileController.OnCollisionEnter += ProjectileController_tryBouncePatch;
             IL.RoR2.Projectile.ProjectileController.OnTriggerEnter += ProjectileController_tryBouncePatch;
+
+            IL.EntityStates.AimThrowableBase.FireProjectile += AimThrowableBase_FireProjectile;
         }
 
         static bool isBouncingEnabled => maxBounces > 0;
@@ -61,6 +64,20 @@ namespace RiskOfChaos.Patches
             }
         }
 
+        static void AimThrowableBase_FireProjectile(ILContext il)
+        {
+            ILCursor c = new ILCursor(il);
+
+            if (c.TryGotoNext(MoveType.Before,
+                              x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertySetter(typeof(FireProjectileInfo), nameof(FireProjectileInfo.fuseOverride)))))
+            {
+                c.EmitDelegate((float fuseOverride) =>
+                {
+                    return isBouncingEnabled ? Mathf.Max(10f, fuseOverride) : fuseOverride;
+                });
+            }
+        }
+
         [RequireComponent(typeof(ProjectileController))]
         class ProjectileEnvironmentBounceBehavior : MonoBehaviour
         {
@@ -79,6 +96,7 @@ namespace RiskOfChaos.Patches
 
             ProjectileController _projectileController;
             ProjectileSimple _projectileSimple;
+            ProjectileImpactExplosion _projectileImpactExplosion;
             ProjectileGrappleController _projectileGrappleController;
             EntityStateMachine _projectileStateMachine;
 
@@ -97,6 +115,7 @@ namespace RiskOfChaos.Patches
                 _projectileController = GetComponent<ProjectileController>();
                 _projectileSimple = GetComponent<ProjectileSimple>();
                 _rigidbody = GetComponent<Rigidbody>();
+                _projectileImpactExplosion = GetComponent<ProjectileImpactExplosion>();
                 _projectileGrappleController = GetComponent<ProjectileGrappleController>();
                 _projectileStateMachine = GetComponent<EntityStateMachine>();
 
@@ -168,6 +187,13 @@ namespace RiskOfChaos.Patches
                 {
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
                     _projectileSimple.stopwatch = 0f;
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+                }
+
+                if (_projectileImpactExplosion)
+                {
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                    _projectileImpactExplosion.stopwatch = 0f;
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
                 }
 
