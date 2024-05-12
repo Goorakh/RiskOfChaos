@@ -19,7 +19,6 @@
 * Bouncy Projectiles:
   * Disabled bouncing of some proc projectiles to prevent lag
   * Increased default projectile bounce count: 2 -> 7
-  * Removed projectile speed decrease on bounce
   * Reworked projectile target bounce logic
   * Fixed projectiles skipping all remaining bounces if fired into a corner
 
