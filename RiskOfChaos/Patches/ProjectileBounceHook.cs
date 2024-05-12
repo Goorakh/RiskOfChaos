@@ -221,7 +221,7 @@ namespace RiskOfChaos.Patches
                     return false;
 
                 HealthComponent healthComponent = hurtBox.healthComponent;
-                if (!healthComponent)
+                if (!healthComponent || !healthComponent.alive)
                     return false;
 
                 return FriendlyFireManager.ShouldDirectHitProceed(healthComponent, _projectileController.teamFilter.teamIndex);
