@@ -57,6 +57,7 @@
 * Misc:
   * Fixed effect activation shortcuts activating while the user is typing in a text box
   * Updated R2API.RecalculateStats dependency: 1.2.0 -> 1.3.0
+  * Updated R2API.Core dependency: 5.0.11 -> 5.0.12
 
 <details>
   <summary>1.16.0 Changes:</summary>

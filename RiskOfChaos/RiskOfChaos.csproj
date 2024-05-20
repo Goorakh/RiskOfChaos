@@ -31,7 +31,7 @@
     </PackageReference>
     <PackageReference Include="BepInEx.Core" Version="5.4.21" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" GeneratePathProperty="true" />
-    <PackageReference Include="R2API.Core" Version="5.0.11" />
+    <PackageReference Include="R2API.Core" Version="5.0.12" />
     <PackageReference Include="R2API.DamageType" Version="1.0.4" />
     <PackageReference Include="R2API.Dot" Version="1.0.1" />
     <PackageReference Include="R2API.Networking" Version="1.0.2" />
