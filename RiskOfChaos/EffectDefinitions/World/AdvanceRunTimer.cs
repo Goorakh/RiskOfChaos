@@ -19,11 +19,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             ConfigFactory<int>.CreateConfig("Minutes To Add", 5)
                               .Description("The amount of minutes to advance the run timer by")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
-                              .OptionConfig(new IntSliderConfig
-                              {
-                                  min = 1,
-                                  max = 30
-                              })
+                              .OptionConfig(new IntFieldConfig { Min = 1 })
                               .FormatsEffectName()
                               .Build();
 

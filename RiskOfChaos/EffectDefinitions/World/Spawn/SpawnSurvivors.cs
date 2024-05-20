@@ -45,11 +45,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             ConfigFactory<int>.CreateConfig("Pod Spawn Count", 10)
                               .Description("The amount of pods to spawn")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
-                              .OptionConfig(new IntSliderConfig
-                              {
-                                  min = 1,
-                                  max = 20
-                              })
+                              .OptionConfig(new IntFieldConfig { Min = 1 })
                               .Build();
 
         [SystemInitializer(typeof(SurvivorCatalog), typeof(MasterCatalog), typeof(ChaosEffectCatalog))]

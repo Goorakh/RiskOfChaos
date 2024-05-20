@@ -16,98 +16,41 @@ namespace RiskOfChaos.ConfigHandling
             if (optionConfig is null)
                 throw new ArgumentNullException(nameof(optionConfig));
 
-            if (optionConfig is CheckBoxConfig checkBoxConfig)
+            switch (optionConfig)
             {
-                if (entry is ConfigEntry<bool> boolEntry)
-                {
+                case CheckBoxConfig checkBoxConfig when entry is ConfigEntry<bool> boolEntry:
                     return new CheckBoxOption(boolEntry, checkBoxConfig);
-                }
-                else
-                {
-                    Log.Error($"Invalid config entry type {entry.SettingType} for option config of type {optionConfig.GetType()}");
-                    return null;
-                }
-            }
-            else if (optionConfig is ChoiceConfig choiceConfig)
-            {
-                return new ChoiceOption(entry, choiceConfig);
-            }
-            else if (optionConfig is ColorOptionConfig colorOptionConfig)
-            {
-                if (entry is ConfigEntry<Color> colorEntry)
-                {
+
+                case ChoiceConfig choiceConfig:
+                    return new ChoiceOption(entry, choiceConfig);
+
+                case ColorOptionConfig colorOptionConfig when entry is ConfigEntry<Color> colorEntry:
                     return new ColorOption(colorEntry, colorOptionConfig);
-                }
-                else
-                {
-                    Log.Error($"Invalid config entry type {entry.SettingType} for option config of type {optionConfig.GetType()}");
-                    return null;
-                }
-            }
-            else if (optionConfig is InputFieldConfig inputFieldConfig)
-            {
-                if (entry is ConfigEntry<string> stringEntry)
-                {
+
+                case FloatFieldConfig floatFieldConfig when entry is ConfigEntry<float> floatEntry:
+                    return new FloatFieldOption(floatEntry, floatFieldConfig);
+
+                case InputFieldConfig inputFieldConfig when entry is ConfigEntry<string> stringEntry:
                     return new StringInputFieldOption(stringEntry, inputFieldConfig);
-                }
-                else
-                {
-                    Log.Error($"Invalid config entry type {entry.SettingType} for option config of type {optionConfig.GetType()}");
-                    return null;
-                }
-            }
-            else if (optionConfig is IntSliderConfig intSliderConfig)
-            {
-                if (entry is ConfigEntry<int> intEntry)
-                {
+
+                case IntFieldConfig intFieldConfig when entry is ConfigEntry<int> intEntry:
+                    return new IntFieldOption(intEntry, intFieldConfig);
+
+                case IntSliderConfig intSliderConfig when entry is ConfigEntry<int> intEntry:
                     return new IntSliderOption(intEntry, intSliderConfig);
-                }
-                else
-                {
-                    Log.Error($"Invalid config entry type {entry.SettingType} for option config of type {optionConfig.GetType()}");
-                    return null;
-                }
-            }
-            else if (optionConfig is KeyBindConfig keyBindConfig)
-            {
-                if (entry is ConfigEntry<KeyboardShortcut> keyboardShortcutEntry)
-                {
+
+                case KeyBindConfig keyBindConfig when entry is ConfigEntry<KeyboardShortcut> keyboardShortcutEntry:
                     return new KeyBindOption(keyboardShortcutEntry, keyBindConfig);
-                }
-                else
-                {
-                    Log.Error($"Invalid config entry type {entry.SettingType} for option config of type {optionConfig.GetType()}");
-                    return null;
-                }
-            }
-            else if (optionConfig is SliderConfig sliderConfig)
-            {
-                if (entry is ConfigEntry<float> floatEntry)
-                {
+
+                case SliderConfig sliderConfig when entry is ConfigEntry<float> floatEntry:
                     return new SliderOption(floatEntry, sliderConfig);
-                }
-                else
-                {
-                    Log.Error($"Invalid config entry type {entry.SettingType} for option config of type {optionConfig.GetType()}");
-                    return null;
-                }
-            }
-            else if (optionConfig is StepSliderConfig stepSliderConfig)
-            {
-                if (entry is ConfigEntry<float> floatEntry)
-                {
+
+                case StepSliderConfig stepSliderConfig when entry is ConfigEntry<float> floatEntry:
                     return new StepSliderOption(floatEntry, stepSliderConfig);
-                }
-                else
-                {
-                    Log.Error($"Invalid config entry type {entry.SettingType} for option config of type {optionConfig.GetType()}");
+
+                default:
+                    Log.Error($"Invalid config entry type {entry.SettingType.FullName} for option config of type {optionConfig.GetType().FullName}");
                     return null;
-                }
-            }
-            else
-            {
-                Log.Error($"Unsupported option config type {optionConfig.GetType()}");
-                return null;
             }
         }
     }

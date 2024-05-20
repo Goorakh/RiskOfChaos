@@ -20,13 +20,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             ConfigFactory<float>.CreateConfig("Item Drop Frequency", 0.9f)
                                 .Description("How often items will be dropped")
                                 .AcceptableValues(new AcceptableValueMin<float>(0f))
-                                .OptionConfig(new StepSliderConfig
-                                {
-                                    formatString = "{0:F2}s",
-                                    min = 0f,
-                                    max = 5f,
-                                    increment = 0.05f
-                                })
+                                .OptionConfig(new FloatFieldConfig { Min = 0f, FormatString = "{0:F}s" })
                                 .Build();
 
         [RequireComponent(typeof(CharacterBody))]

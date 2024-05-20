@@ -25,13 +25,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             ConfigFactory<float>.CreateConfig("Force Multiplier", 1f)
                                 .Description("Scale of the force applied to all characters")
                                 .AcceptableValues(new AcceptableValueMin<float>(0f))
-                                .OptionConfig(new StepSliderConfig
-                                {
-                                    formatString = "{0:F2}x",
-                                    min = 0f,
-                                    max = 5f,
-                                    increment = 0.05f
-                                })
+                                .OptionConfig(new FloatFieldConfig { Min = 0f, FormatString = "{0}x" })
                                 .Build();
 
         public override void OnStart()

@@ -52,15 +52,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
                 EquipmentName = Language.GetString(equipmentDef.nameToken, "en");
 
                 _equipmentWeightConfig = ConfigFactory<float>.CreateConfig($"{EquipmentName} Weight", 1f)
-                                                             .Description($"How likely {EquipmentName} is to be selected")
+                                                             .Description($"How likely {EquipmentName} is to be selected, set to 0 to exclude from the effect")
                                                              .AcceptableValues(new AcceptableValueMin<float>(0f))
-                                                             .OptionConfig(new StepSliderConfig
-                                                             {
-                                                                 formatString = "{0:F1}",
-                                                                 min = 0f,
-                                                                 max = 2f,
-                                                                 increment = 0.1f
-                                                             })
+                                                             .OptionConfig(new FloatFieldConfig { Min = 0f })
                                                              .Build();
             }
 

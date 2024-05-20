@@ -96,12 +96,10 @@ namespace RiskOfChaos.EffectHandling
             _fixedTimeDuration = ConfigFactory<float>.CreateConfig("Effect Time Duration", defaultDuration)
                                                      .Description($"How long the effect should last, in seconds.\nOnly takes effect if the Duration Type is set to {nameof(TimedEffectType.FixedDuration)}")
                                                      .AcceptableValues(new AcceptableValueMin<float>(0f))
-                                                     .OptionConfig(new StepSliderConfig
+                                                     .OptionConfig(new FloatFieldConfig
                                                      {
-                                                         formatString = "{0:F0}s",
-                                                         min = 0f,
-                                                         max = 120f,
-                                                         increment = 5f,
+                                                         FormatString = "{0}s",
+                                                         Min = 0f,
                                                          checkIfDisabled = () => TimedType != TimedEffectType.FixedDuration
                                                      })
                                                      .RenamedFrom("Effect Duration")
@@ -111,10 +109,9 @@ namespace RiskOfChaos.EffectHandling
                 ConfigFactory<int>.CreateConfig("Effect Stage Duration", attribute.DefaultStageCountDuration)
                                   .Description($"How many stages this effect should last.\nOnly applies if Duration Type is set to {nameof(TimedEffectType.UntilStageEnd)}")
                                   .AcceptableValues(new AcceptableValueMin<int>(1))
-                                  .OptionConfig(new IntSliderConfig
+                                  .OptionConfig(new IntFieldConfig
                                   {
-                                      min = 1,
-                                      max = 10,
+                                      Min = 1,
                                       checkIfDisabled = () => TimedType != TimedEffectType.UntilStageEnd
                                   })
                                   .Build();
@@ -141,10 +138,9 @@ namespace RiskOfChaos.EffectHandling
                     ConfigFactory<int>.CreateConfig("Permanently Active Duplicate Count", 1)
                                       .Description("How many instances of this effect should always be active, only takes effect if 'Permanently Active' is set to true and 'Allow Duplicates' is set to true")
                                       .AcceptableValues(new AcceptableValueMin<int>(1))
-                                      .OptionConfig(new IntSliderConfig
+                                      .OptionConfig(new IntFieldConfig
                                       {
-                                          min = 1,
-                                          max = 20,
+                                          Min = 1,
                                           checkIfDisabled = () => !_alwaysActiveEnabled.Value || !AllowDuplicates
                                       })
                                       .Build();

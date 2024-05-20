@@ -23,12 +23,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             ConfigFactory<float>.CreateConfig("Size", 50f)
                                 .Description("The size of the black hole")
                                 .AcceptableValues(new AcceptableValueMin<float>(0f))
-                                .OptionConfig(new StepSliderConfig
-                                {
-                                    min = 0f,
-                                    max = 150f,
-                                    increment = 1f
-                                })
+                                .OptionConfig(new FloatFieldConfig { Min = 0f })
                                 .Build();
 
         static readonly AnimationCurve _growthCurve = new AnimationCurve([

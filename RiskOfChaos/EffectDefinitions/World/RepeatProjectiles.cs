@@ -19,11 +19,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             ConfigFactory<int>.CreateConfig("Additional Projectile Spawn Count", 5)
                               .Description("How many additional projectiles should be spawned per projectile")
                               .AcceptableValues(new AcceptableValueRange<int>(1, byte.MaxValue))
-                              .OptionConfig(new IntSliderConfig
-                              {
-                                  min = 1,
-                                  max = 15
-                              })
+                              .OptionConfig(new IntFieldConfig { Min = 1, Max = byte.MaxValue })
                               .OnValueChanged(() =>
                               {
                                   if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)

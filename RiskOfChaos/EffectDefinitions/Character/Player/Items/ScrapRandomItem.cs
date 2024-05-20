@@ -53,11 +53,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             ConfigFactory<int>.CreateConfig("Scrap Count", 1)
                               .Description("How many items/stacks should be scrapped per player")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
-                              .OptionConfig(new IntSliderConfig
-                              {
-                                  min = 1,
-                                  max = 10
-                              })
+                              .OptionConfig(new IntFieldConfig { Min = 1})
                               .Build();
 
         [EffectConfig]

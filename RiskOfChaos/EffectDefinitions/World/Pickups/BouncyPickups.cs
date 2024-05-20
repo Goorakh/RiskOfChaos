@@ -18,11 +18,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
         static readonly ConfigHolder<int> _bounceCount =
             ConfigFactory<int>.CreateConfig("Bounce Count", 2)
                               .Description("How many times items should bounce before settling")
-                              .OptionConfig(new IntSliderConfig
-                              {
-                                  min = 1,
-                                  max = 10
-                              })
+                              .OptionConfig(new IntFieldConfig { Min = 1 })
                               .OnValueChanged(() =>
                               {
                                   if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)

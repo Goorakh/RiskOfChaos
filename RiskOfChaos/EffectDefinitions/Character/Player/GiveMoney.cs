@@ -17,11 +17,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             ConfigFactory<int>.CreateConfig("Base Amount to Give", 200)
                               .Description("The base amount of money to give to all players")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
-                              .OptionConfig(new IntSliderConfig
-                              {
-                                  min = 1,
-                                  max = 1000
-                              })
+                              .OptionConfig(new IntFieldConfig { Min = 1})
                               .Build();
 
         [EffectConfig]

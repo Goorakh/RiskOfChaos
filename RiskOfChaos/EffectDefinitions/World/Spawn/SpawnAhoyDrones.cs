@@ -56,11 +56,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             ConfigFactory<int>.CreateConfig("Spawn Count", 3)
                               .Description("How many drones should be spawned")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
-                              .OptionConfig(new IntSliderConfig
-                              {
-                                  min = 1,
-                                  max = 15
-                              })
+                              .OptionConfig(new IntFieldConfig { Min = 1 })
                               .Build();
 
         [EffectCanActivate]

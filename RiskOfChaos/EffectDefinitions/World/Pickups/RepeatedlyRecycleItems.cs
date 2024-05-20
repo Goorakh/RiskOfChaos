@@ -56,14 +56,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
         static readonly ConfigHolder<float> _recycleTimerScale =
             ConfigFactory<float>.CreateConfig("Recycle Timer Scale", 1f)
                                 .Description("The multiplier to apply to the recycle timer (duration between items)")
-                                .AcceptableValues(new AcceptableValueMin<float>(0.1f))
-                                .OptionConfig(new StepSliderConfig
-                                {
-                                    formatString = "{0:F1}",
-                                    min = 0.1f,
-                                    max = 5f,
-                                    increment = 0.1f
-                                })
+                                .AcceptableValues(new AcceptableValueMin<float>(0f))
+                                .OptionConfig(new FloatFieldConfig { Min = 0f })
                                 .Build();
 
         static bool isPickupAvailable(PickupIndex pickup)

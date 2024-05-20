@@ -24,11 +24,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             ConfigFactory<int>.CreateConfig("Item Count", 1)
                               .Description("The amount of items to give per effect activation")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
-                              .OptionConfig(new IntSliderConfig
-                              {
-                                  min = 1,
-                                  max = 10
-                              })
+                              .OptionConfig(new IntFieldConfig { Min = 1})
                               .Build();
 
         [EffectConfig]

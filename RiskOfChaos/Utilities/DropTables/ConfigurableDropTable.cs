@@ -52,13 +52,7 @@ namespace RiskOfChaos.Utilities.DropTables
                 ConfigFactory<float>.CreateConfig($"Weight: {name}", defaultWeight)
                                     .Description($"Controls how likely {name} are to be given\n\nA value of 0 means items from this tier will never be given")
                                     .AcceptableValues(new AcceptableValueMin<float>(0f))
-                                    .OptionConfig(new StepSliderConfig
-                                    {
-                                        formatString = "{0:F2}",
-                                        min = 0f,
-                                        max = 1f,
-                                        increment = 0.05f
-                                    })
+                                    .OptionConfig(new FloatFieldConfig { Min = 0f })
                                     .OnValueChanged(MarkDirty)
                                     .Build();
 

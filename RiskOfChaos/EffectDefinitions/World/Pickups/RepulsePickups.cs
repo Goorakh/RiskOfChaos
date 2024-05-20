@@ -19,13 +19,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
             ConfigFactory<float>.CreateConfig("Repulse Strength Multiplier", 1f)
                                 .Description("Multiplies the strength of the effect")
                                 .AcceptableValues(new AcceptableValueMin<float>(0f))
-                                .OptionConfig(new StepSliderConfig
-                                {
-                                    formatString = "{0:F1}x",
-                                    min = 0f,
-                                    max = 5f,
-                                    increment = 0.1f
-                                })
+                                .OptionConfig(new FloatFieldConfig { Min = 0f, FormatString = "{0}x" })
                                 .OnValueChanged(() =>
                                 {
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)

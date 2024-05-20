@@ -20,11 +20,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             ConfigFactory<int>.CreateConfig("Max Bullet Bounce Count", 20)
                               .Description("The maximum amount of times bullets can be bounced")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
-                              .OptionConfig(new IntSliderConfig
-                              {
-                                  min = 1,
-                                  max = 40
-                              })
+                              .OptionConfig(new IntFieldConfig { Min = 1 })
                               .OnValueChanged(bounceCountConfigChanged)
                               .Build();
 
@@ -33,11 +29,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             ConfigFactory<int>.CreateConfig("Max Projectile Bounce Count", 7)
                               .Description("The maximum amount of times projectiles can be bounced")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
-                              .OptionConfig(new IntSliderConfig
-                              {
-                                  min = 1,
-                                  max = 20
-                              })
+                              .OptionConfig(new IntFieldConfig { Min = 1 })
                               .OnValueChanged(bounceCountConfigChanged)
                               .Build();
 

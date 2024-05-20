@@ -21,11 +21,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             ConfigFactory<int>.CreateConfig("Shrines per Activation", 2)
                               .Description("The amount of mountain shrines to activate each time this effect is activated")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
-                              .OptionConfig(new IntSliderConfig
-                              {
-                                  min = 1,
-                                  max = 10
-                              })
+                              .OptionConfig(new IntFieldConfig { Min = 1 })
                               .FormatsEffectName()
                               .Build();
 

@@ -17,11 +17,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             ConfigFactory<int>.CreateConfig("Tonic Affliction Count", 1)
                               .Description("The amount of Tonic Affliction to give each player")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
-                              .OptionConfig(new IntSliderConfig
-                              {
-                                  min = 1,
-                                  max = 15
-                              })
+                              .OptionConfig(new IntFieldConfig { Min = 1 })
                               .Build();
 
         public override void OnStart()

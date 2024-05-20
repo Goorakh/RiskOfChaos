@@ -23,11 +23,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             ConfigFactory<int>.CreateConfig("Pot Spawn Count", 50)
                               .Description("How many pots should be spawned per player")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
-                              .OptionConfig(new IntSliderConfig
-                              {
-                                  min = 1,
-                                  max = 100
-                              })
+                              .OptionConfig(new IntFieldConfig { Min = 1 })
                               .Build();
 
         static GameObject _potPrefab;

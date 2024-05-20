@@ -20,13 +20,7 @@ namespace RiskOfChaos.EffectDefinitions.Meta
         static readonly ConfigHolder<float> _durationMultiplier =
             ConfigFactory<float>.CreateConfig("Effect Duration Multiplier", 2f)
                                 .AcceptableValues(new AcceptableValueMin<float>(1f))
-                                .OptionConfig(new StepSliderConfig
-                                {
-                                    formatString = "{0}x",
-                                    min = 1f,
-                                    max = 5f,
-                                    increment = 0.1f
-                                })
+                                .OptionConfig(new FloatFieldConfig { Min = 1f, FormatString = "{0}x" })
                                 .OnValueChanged(() =>
                                 {
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)

@@ -190,13 +190,7 @@ namespace RiskOfChaos.EffectHandling
             _selectionWeightConfig = ConfigFactory<float>.CreateConfig("Effect Weight", attribute.DefaultSelectionWeight)
                                                          .Description("How likely the effect is to be picked, higher value means more likely, lower value means less likely")
                                                          .AcceptableValues(new AcceptableValueMin<float>(0f))
-                                                         .OptionConfig(new StepSliderConfig
-                                                         {
-                                                             formatString = "{0:F1}",
-                                                             increment = 0.1f,
-                                                             min = 0f,
-                                                             max = 2.5f
-                                                         })
+                                                         .OptionConfig(new FloatFieldConfig { Min = 0f })
                                                          .Build();
 
             _activationShortcut =

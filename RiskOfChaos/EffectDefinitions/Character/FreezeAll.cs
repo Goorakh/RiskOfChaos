@@ -16,13 +16,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
         static readonly ConfigHolder<float> _freezeDuration =
             ConfigFactory<float>.CreateConfig("Freeze Duration", 2.5f)
                                 .Description("How long all characters will be frozen for, in seconds")
-                                .AcceptableValues(new AcceptableValueMin<float>(0.5f))
-                                .OptionConfig(new StepSliderConfig
-                                {
-                                    min = 0.5f,
-                                    max = 10f,
-                                    increment = 0.5f
-                                })
+                                .AcceptableValues(new AcceptableValueMin<float>(0f))
+                                .OptionConfig(new FloatFieldConfig { Min = 0f, FormatString = "{0}s" })
                                 .Build();
 
         public override void OnStart()

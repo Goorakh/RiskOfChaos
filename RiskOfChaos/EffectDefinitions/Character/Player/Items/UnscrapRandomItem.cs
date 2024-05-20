@@ -24,11 +24,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             ConfigFactory<int>.CreateConfig("Unscrap Count", 1)
                               .Description("How many items should be unscrapped per player")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
-                              .OptionConfig(new IntSliderConfig
-                              {
-                                  min = 1,
-                                  max = 10
-                              })
+                              .OptionConfig(new IntFieldConfig { Min = 1})
                               .Build();
 
         [EffectConfig]

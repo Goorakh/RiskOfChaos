@@ -24,11 +24,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             ConfigFactory<int>.CreateConfig("Buff Stack Count", 5)
                               .Description("How many stacks of the buff should be given, if the random buff is stackable")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
-                              .OptionConfig(new IntSliderConfig
-                              {
-                                  min = 1,
-                                  max = 15
-                              })
+                              .OptionConfig(new IntFieldConfig { Min = 1 })
                               .Build();
 
         static uint configStackCount => ClampedConversion.UInt32(_stackableBuffCount.Value);

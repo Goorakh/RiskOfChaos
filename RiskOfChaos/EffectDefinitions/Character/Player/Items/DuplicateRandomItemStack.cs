@@ -18,23 +18,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
     [ChaosEffect("duplicate_random_item_stack")]
     public sealed class DuplicateRandomItemStack : BaseEffect
     {
-        const int MAX_ITEM_STACKS_DEFAULT_VALUE = 1000;
-
         [EffectConfig]
-        static readonly ConfigHolder<string> _maxItemStacksConfig =
-            ConfigFactory<string>.CreateConfig("Max Item Stacks", MAX_ITEM_STACKS_DEFAULT_VALUE.ToString())
-                                 .Description("The maximum amount of item stacks to allow, the effect will not duplicate an item stack if it is greater than this number. Set to a negative number to disable the limit.")
-                                 .OptionConfig(new InputFieldConfig
-                                 {
-                                     lineType = TMPro.TMP_InputField.LineType.SingleLine,
-                                     submitOn = InputFieldConfig.SubmitEnum.OnExitOrSubmit
-                                 })
-                                 .Build();
-
-        static readonly ParsedInt32 _maxItemStacks = new ParsedInt32()
-        {
-            ConfigHolder = _maxItemStacksConfig
-        };
+        static readonly ConfigHolder<int> _maxItemStacksConfig =
+            ConfigFactory<int>.CreateConfig("Max Item Stacks", 1000)
+                              .Description("The maximum amount of item stacks to allow, the effect will not duplicate an item stack if it is greater than this number. Set to 0 to disable the limit.")
+                              .OptionConfig(new IntFieldConfig { Min = 0 })
+                              .Build();
 
         [EffectConfig]
         static readonly ConfigHolder<string> _itemBlacklistConfig =
@@ -78,8 +67,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 }
 
                 int itemCount = inventory.GetItemCount(item);
-                int maxItemStacks = _maxItemStacks.GetValue(MAX_ITEM_STACKS_DEFAULT_VALUE);
-                if (maxItemStacks >= 0 && itemCount >= maxItemStacks)
+                int maxItemStacks = _maxItemStacksConfig.Value;
+                if (maxItemStacks > 0 && itemCount >= maxItemStacks)
                 {
 #if DEBUG
                     Log.Debug($"{itemDef} cannot be duplicated: max item stacks config is {maxItemStacks}, current: {itemCount}");

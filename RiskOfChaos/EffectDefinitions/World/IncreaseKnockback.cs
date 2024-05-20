@@ -17,21 +17,12 @@ namespace RiskOfChaos.EffectDefinitions.World
     [IncompatibleEffects(typeof(DisableKnockback))]
     public sealed class IncreaseKnockback : TimedEffect, IKnockbackModificationProvider
     {
-        const float KNOCKBACK_MULTIPLIER_INCREMENT = 0.1f;
-        const float KNOCKBACK_MULTIPLIER_MIN_VALUE = 1f + KNOCKBACK_MULTIPLIER_INCREMENT;
-
         [EffectConfig]
         static readonly ConfigHolder<float> _knockbackMultiplier =
             ConfigFactory<float>.CreateConfig("Knockback Multiplier", 3f)
                                 .Description("The multiplier used to increase knockback while the effect is active")
-                                .AcceptableValues(new AcceptableValueMin<float>(KNOCKBACK_MULTIPLIER_MIN_VALUE))
-                                .OptionConfig(new StepSliderConfig
-                                {
-                                    formatString = "{0:F1}x",
-                                    min = KNOCKBACK_MULTIPLIER_MIN_VALUE,
-                                    max = 15f,
-                                    increment = KNOCKBACK_MULTIPLIER_INCREMENT
-                                })
+                                .AcceptableValues(new AcceptableValueMin<float>(1f))
+                                .OptionConfig(new FloatFieldConfig { Min = 1f, FormatString = "{0}x" })
                                 .OnValueChanged(() =>
                                 {
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)

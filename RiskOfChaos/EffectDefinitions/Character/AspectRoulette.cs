@@ -48,14 +48,9 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                 WeightConfig =
                     ConfigFactory<float>.CreateConfig($"{combinedEliteName} Weight", 1f)
-                                        .Description($"Controls how likely the {eliteName.ToLower()} elite aspect is during the effect")
+                                        .Description($"Controls how likely the {eliteName.ToLower()} elite aspect is during the effect, set to 0 to exclude it from the effect")
                                         .AcceptableValues(new AcceptableValueMin<float>(0f))
-                                        .OptionConfig(new StepSliderConfig
-                                        {
-                                            min = 0f,
-                                            max = 2.5f,
-                                            increment = 0.05f
-                                        })
+                                        .OptionConfig(new FloatFieldConfig { Min = 0f })
                                         .Build();
             }
 

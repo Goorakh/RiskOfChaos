@@ -19,12 +19,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.SkillStocks
         static readonly ConfigHolder<int> _stocksToRemove =
             ConfigFactory<int>.CreateConfig("Charges", 1)
                               .Description("The amount of charges to remove from each skill")
-                              .OptionConfig(new IntSliderConfig
-                              {
-                                  formatString = "-{0}",
-                                  min = 1,
-                                  max = 10
-                              })
+                              .OptionConfig(new IntFieldConfig { Min = 1 })
                               .OnValueChanged(() =>
                               {
                                   if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)

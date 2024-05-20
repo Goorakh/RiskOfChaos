@@ -19,13 +19,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             ConfigFactory<float>.CreateConfig("Attack Delay", 0.5f)
                                 .Description("The delay to apply to all attacks")
                                 .AcceptableValues(new AcceptableValueMin<float>(0f))
-                                .OptionConfig(new StepSliderConfig
-                                {
-                                    formatString = "{0:F2}s",
-                                    increment = 0.1f,
-                                    min = 0f,
-                                    max = 2f
-                                })
+                                .OptionConfig(new FloatFieldConfig { Min = 0f, FormatString = "{0}s" })
                                 .OnValueChanged(() =>
                                 {
                                     if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
