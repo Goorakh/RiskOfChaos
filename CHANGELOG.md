@@ -41,6 +41,9 @@
 * Black Hole:
   * Default duration: 45s -> 30s
 
+* Flipped Camera:
+  * Fixed camera not rotating smoothly for clients in multiplayer
+
 * Disable Procs:
   * Fixed a few on-hit effects still being triggered while effect is active:
     * Some Slow effects, Tar slow effect (ex. from Dunestrider), Void Reaver Nullify, Perfected Elites Cripple, Merc Expose

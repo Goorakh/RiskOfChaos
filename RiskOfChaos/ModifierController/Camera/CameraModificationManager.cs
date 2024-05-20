@@ -61,9 +61,9 @@ namespace RiskOfChaos.ModifierController.Camera
                 const float MIN_FOV = 10f;
                 const float MAX_FOV = 170f;
 
-                result.cameraState.fov = Mathf.Clamp(result.cameraState.fov * _instance.NetworkFOVMultiplier, MIN_FOV, MAX_FOV);
+                result.cameraState.fov = Mathf.Clamp(result.cameraState.fov * _instance.CurrentFOVMultiplier, MIN_FOV, MAX_FOV);
 
-                result.cameraState.rotation *= _instance.NetworkCameraRotationOffset;
+                result.cameraState.rotation *= _instance.CurrentCameraRotationOffset;
             }
         }
 
@@ -73,8 +73,8 @@ namespace RiskOfChaos.ModifierController.Camera
 
             if (_instance && _instance.AnyModificationActive && context.targetInfo.target)
             {
-                Vector2 rotatedLookInput = _instance.NetworkCameraRotationOffset * result.lookInput;
-                if (rotatedLookInput != Vector2.zero)
+                Vector2 rotatedLookInput = _instance.CurrentCameraRotationOffset * result.lookInput;
+                if (rotatedLookInput.sqrMagnitude > 0f)
                 {
                     float lookInputMagnitude = result.lookInput.magnitude;
                     result.lookInput = rotatedLookInput.normalized * lookInputMagnitude;
@@ -88,7 +88,7 @@ namespace RiskOfChaos.ModifierController.Camera
             {
                 const float ROTATION_TO_CONSIDER_FLIPPED = 120f;
 
-                float zOffset = _instance.NetworkCameraRotationOffset.eulerAngles.z;
+                float zOffset = _instance.CurrentCameraRotationOffset.eulerAngles.z;
                 if (zOffset >= ROTATION_TO_CONSIDER_FLIPPED && zOffset <= 360f - ROTATION_TO_CONSIDER_FLIPPED)
                 {
                     moveInput.x *= -1;
@@ -112,7 +112,7 @@ namespace RiskOfChaos.ModifierController.Camera
 
         float _FOVMultiplier = 1f;
         const uint FOV_MULTIPLIER_DIRTY_BIT = 1 << 2;
-        public float NetworkFOVMultiplier
+        float networkFOVMultiplier
         {
             get
             {
@@ -124,9 +124,13 @@ namespace RiskOfChaos.ModifierController.Camera
             }
         }
 
+        float _clientFOVMultiplierVelocity;
+        float _clientFOVMultiplier = 1f;
+        public float CurrentFOVMultiplier => NetworkServer.active ? networkFOVMultiplier : _clientFOVMultiplier;
+
         Quaternion _cameraRotationOffset = Quaternion.identity;
         const uint CAMERA_ROTATION_OFFSET_DIRTY_BIT = 1 << 3;
-        public Quaternion NetworkCameraRotationOffset
+        Quaternion networkCameraRotationOffset
         {
             get
             {
@@ -137,6 +141,9 @@ namespace RiskOfChaos.ModifierController.Camera
                 SetSyncVar(value, ref _cameraRotationOffset, CAMERA_ROTATION_OFFSET_DIRTY_BIT);
             }
         }
+
+        Quaternion _clientCameraRotationOffset = Quaternion.identity;
+        public Quaternion CurrentCameraRotationOffset => NetworkServer.active ? networkCameraRotationOffset : _clientCameraRotationOffset;
 
         protected override void OnEnable()
         {
@@ -153,6 +160,23 @@ namespace RiskOfChaos.ModifierController.Camera
             SingletonHelper.Unassign(ref _instance, this);
         }
 
+        public override void OnStartClient()
+        {
+            base.OnStartClient();
+
+            _clientFOVMultiplier = networkFOVMultiplier;
+            _clientCameraRotationOffset = networkCameraRotationOffset;
+        }
+
+        void Update()
+        {
+            if (!NetworkServer.active)
+            {
+                _clientFOVMultiplier = Mathf.SmoothDamp(_clientFOVMultiplier, networkFOVMultiplier, ref _clientFOVMultiplierVelocity, 0.75f, float.PositiveInfinity, Time.unscaledDeltaTime);
+                _clientCameraRotationOffset = Quaternion.RotateTowards(_clientCameraRotationOffset, networkCameraRotationOffset, 180f * Time.unscaledDeltaTime);
+            }
+        }
+
         public override CameraModificationData InterpolateValue(in CameraModificationData a, in CameraModificationData b, float t)
         {
             return CameraModificationData.Interpolate(a, b, t, ValueInterpolationFunctionType.Linear);
@@ -163,8 +187,8 @@ namespace RiskOfChaos.ModifierController.Camera
             CameraModificationData modificationData = GetModifiedValue(new CameraModificationData());
 
             NetworkRecoilMultiplier = modificationData.RecoilMultiplier;
-            NetworkFOVMultiplier = modificationData.FOVMultiplier;
-            NetworkCameraRotationOffset = modificationData.RotationOffset;
+            networkFOVMultiplier = modificationData.FOVMultiplier;
+            networkCameraRotationOffset = modificationData.RotationOffset;
         }
 
         protected override bool serialize(NetworkWriter writer, bool initialState, uint dirtyBits)
