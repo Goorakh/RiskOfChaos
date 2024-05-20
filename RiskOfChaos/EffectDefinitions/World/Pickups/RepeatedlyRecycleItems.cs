@@ -31,7 +31,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                 if (!pickupDef.displayPrefab ||
                     !pickupDef.dropletDisplayPrefab ||
                     string.IsNullOrWhiteSpace(pickupDef.nameToken) ||
-                    Language.GetString(pickupDef.nameToken) == pickupDef.nameToken)
+                    Language.IsTokenInvalid(pickupDef.nameToken))
                 {
                     return false;
                 }
