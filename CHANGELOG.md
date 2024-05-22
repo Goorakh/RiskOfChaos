@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**1.17.0 Changes:**
 
 * Updated for Devotion Update
 
