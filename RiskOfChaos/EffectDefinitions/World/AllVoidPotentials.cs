@@ -1,5 +1,6 @@
 ﻿using HG;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities.Extensions;
@@ -20,6 +21,26 @@ namespace RiskOfChaos.EffectDefinitions.World
         public static event OverrideAllowChoicesDelegate OverrideAllowChoices;
 
         static readonly GameObject _optionPickupPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/OptionPickup/OptionPickup.prefab").WaitForCompletion();
+
+        static bool _appliedPatches = false;
+
+        static void tryApplyPatches()
+        {
+            if (_appliedPatches)
+                return;
+
+            On.RoR2.PickupDropletController.CreatePickup += (orig, self) =>
+            {
+                foreach (AllVoidPotentials effect in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<AllVoidPotentials>())
+                {
+                    effect.modifyPickupInfo(ref self.createPickupInfo);
+                }
+
+                orig(self);
+            };
+
+            _appliedPatches = true;
+        }
 
         [EffectCanActivate]
         static bool CanActivate()
@@ -128,12 +149,11 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         public override void OnStart()
         {
-            PickupDropletController.onDropletHitGroundServer += onDropletHitGroundServer;
+            tryApplyPatches();
         }
 
         public override void OnEnd()
         {
-            PickupDropletController.onDropletHitGroundServer -= onDropletHitGroundServer;
         }
 
         bool tryGetAvailableOptionsFor(PickupIndex sourcePickup, out PickupIndex[] options)
@@ -192,38 +212,17 @@ namespace RiskOfChaos.EffectDefinitions.World
             }
         }
 
-        void onDropletHitGroundServer(ref GenericPickupController.CreatePickupInfo createPickupInfo, ref bool shouldSpawn)
+        void modifyPickupInfo(ref GenericPickupController.CreatePickupInfo createPickupInfo)
         {
-            if (!shouldSpawn)
+            if (createPickupInfo.pickerOptions != null || (createPickupInfo.artifactFlag & GenericPickupController.PickupArtifactFlag.DELUSION) != 0)
                 return;
 
             PickupIndex pickupIndex = createPickupInfo.pickupIndex;
             if (!pickupIndex.isValid)
                 return;
 
-            PickupDef pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
-            if (pickupDef == null)
-                return;
-
-            // Only create options if this pickup won't already have any
-            if (createPickupInfo.pickerOptions != null)
-                return;
-
-            GameObject dropletDisplay = GameObject.Instantiate(_optionPickupPrefab, createPickupInfo.position, createPickupInfo.rotation);
-
-            if (dropletDisplay.TryGetComponent(out PickupIndexNetworker pickupIndexNetworker))
-            {
-                pickupIndexNetworker.NetworkpickupIndex = pickupIndex;
-            }
-
-            if (dropletDisplay.TryGetComponent(out PickupPickerController pickupPickerController))
-            {
-                pickupPickerController.SetOptionsServer(getPickableOptions(pickupIndex));
-            }
-
-            NetworkServer.Spawn(dropletDisplay);
-
-            shouldSpawn = false;
+            createPickupInfo.pickerOptions = getPickableOptions(pickupIndex);
+            createPickupInfo.prefabOverride = _optionPickupPrefab;
         }
     }
 }

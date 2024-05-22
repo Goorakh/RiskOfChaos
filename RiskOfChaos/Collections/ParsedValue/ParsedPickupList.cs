@@ -22,10 +22,7 @@ namespace RiskOfChaos.Collections.ParsedValue
             if (!AdditionalResourceAvailability.PickupCatalog.available)
             {
                 ParseReady = false;
-                AdditionalResourceAvailability.PickupCatalog.onAvailable += () =>
-                {
-                    ParseReady = true;
-                };
+                AdditionalResourceAvailability.PickupCatalog.CallWhenAvailable(() => ParseReady = true);
             }
         }
 

@@ -26,10 +26,7 @@ namespace RiskOfChaos.Collections.ParsedValue
             if (!ItemCatalog.availability.available)
             {
                 ParseReady = false;
-                ItemCatalog.availability.onAvailable += () =>
-                {
-                    ParseReady = true;
-                };
+                ItemCatalog.availability.CallWhenAvailable(() => ParseReady = true);
             }
         }
 

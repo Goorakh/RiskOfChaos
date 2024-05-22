@@ -11,18 +11,17 @@ namespace RiskOfChaos.Patches
         [SystemInitializer]
         static void Init()
         {
-            On.RoR2.PickupDropletController.CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet;
+            On.RoR2.PickupDropletController.CreatePickupDroplet_CreatePickupInfo_Vector3 += PickupDropletController_CreatePickupDroplet;
         }
 
         static bool _patchDisabled;
 
-        static void PickupDropletController_CreatePickupDroplet(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 orig,
+        static void PickupDropletController_CreatePickupDroplet(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_CreatePickupInfo_Vector3 orig,
                                                                 GenericPickupController.CreatePickupInfo pickupInfo,
-                                                                Vector3 position,
                                                                 Vector3 velocity)
         {
-            orig(pickupInfo, position, velocity);
-
+            orig(pickupInfo, velocity);
+            
             if (!NetworkServer.active || _patchDisabled)
                 return;
 
@@ -44,7 +43,7 @@ namespace RiskOfChaos.Patches
                         _patchDisabled = true;
                         try
                         {
-                            PickupDropletController.CreatePickupDroplet(pickupInfo, position, velocity);
+                            PickupDropletController.CreatePickupDroplet(pickupInfo, velocity);
                         }
                         finally
                         {

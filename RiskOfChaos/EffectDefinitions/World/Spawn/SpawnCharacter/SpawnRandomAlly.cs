@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using RiskOfChaos.Collections.CatalogIndex;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -8,6 +9,7 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -16,6 +18,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
     [ChaosEffect("spawn_random_ally", DefaultSelectionWeight = 0.9f)]
     public sealed class SpawnRandomAlly : GenericSpawnCombatCharacterEffect, MasterSummon.IInventorySetupCallback
     {
+        static CharacterMaster _devotedLemurianPrefab;
+
         static CharacterSpawnEntry[] _spawnEntries;
 
         [SystemInitializer(typeof(MasterCatalog))]
@@ -37,6 +41,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 
                 return new CharacterSpawnEntry(master, weight);
             }).ToArray();
+
+            _devotedLemurianPrefab = MasterCatalog.FindMasterPrefab("DevotedLemurianMaster")?.GetComponent<CharacterMaster>();
         }
 
         [EffectConfig]
@@ -60,6 +66,15 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                                .OptionConfig(new CheckBoxConfig())
                                .Build();
 
+        static readonly MasterIndexCollection _mastersToConvertToDevotedLemurian = new MasterIndexCollection([
+            "LemurianBruiserMaster",
+            "LemurianBruiserMasterFire",
+            "LemurianBruiserMasterHaunted",
+            "LemurianBruiserMasterIce",
+            "LemurianBruiserMasterPoison",
+            "LemurianMaster"
+        ]);
+
         protected override float eliteChance => _eliteChance.Value;
 
         protected override bool allowDirectorUnavailableElites => _allowDirectorUnavailableElites.Value;
@@ -70,13 +85,61 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
             return areAnyAvailable(_spawnEntries);
         }
 
+        bool _isElite;
+
         public override void OnStart()
         {
             CharacterMaster allySpawnPrefab = getItemToSpawn(_spawnEntries, RNG);
+
+            bool isDevotedLemurian = _devotedLemurianPrefab &&
+                                     RunArtifactManager.instance.IsArtifactEnabled(CU8Content.Artifacts.Devotion) &&
+                                     _mastersToConvertToDevotedLemurian.Contains(allySpawnPrefab.masterIndex);
+
+            if (isDevotedLemurian)
+            {
+#if DEBUG
+                Log.Debug($"Replacing {allySpawnPrefab} with {_devotedLemurianPrefab}");
+#endif
+
+                allySpawnPrefab = _devotedLemurianPrefab;
+            }
+
             setupPrefab(allySpawnPrefab);
+
+            HashSet<DevotionInventoryController> devotionInventories = [];
 
             foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
             {
+                DevotionInventoryController devotionInventoryController = null;
+                if (isDevotedLemurian && playerBody.TryGetComponent(out Interactor playerInteractor))
+                {
+                    devotionInventoryController = DevotionInventoryController.GetOrCreateDevotionInventoryController(playerInteractor);
+                }
+
+                if (devotionInventoryController)
+                {
+                    devotionInventories.Add(devotionInventoryController);
+                }
+
+                void onSpawnedCallback(CharacterMaster spawnedMaster)
+                {
+                    if (spawnedMaster.TryGetComponent(out DevotedLemurianController devotedLemurianController))
+                    {
+                        if (devotionInventoryController)
+                        {
+                        devotedLemurianController.InitializeDevotedLemurian(ItemIndex.None, devotionInventoryController);
+                    }
+
+                        if (_isElite)
+                        {
+                            // Skip first level so that elite aspect doesn't get overriden
+                            devotedLemurianController.DevotedEvolutionLevel = 1;
+                        }
+                    }
+
+                    onSpawned(spawnedMaster);
+                }
+
                 new MasterSummon()
                 {
                     summonerBodyObject = playerBody.gameObject,
@@ -85,10 +148,22 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                     rotation = Quaternion.identity,
                     ignoreTeamMemberLimit = true,
                     useAmbientLevel = true,
-                    preSpawnSetupCallback = onSpawned,
+                    preSpawnSetupCallback = onSpawnedCallback,
                     inventorySetupCallback = this
                 }.Perform();
             }
+
+            foreach (DevotionInventoryController devotionInventoryController in devotionInventories)
+            {
+                devotionInventoryController.UpdateAllMinions();
+            }
+        }
+
+        protected override void modifySpawnData(ref CharacterSpawnData spawnData)
+        {
+            base.modifySpawnData(ref spawnData);
+
+            _isElite = EliteUtils.IsEliteEquipment(spawnData.OverrideEquipment);
         }
 
         protected override void onSpawned(CharacterMaster master)

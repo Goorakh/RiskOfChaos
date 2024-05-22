@@ -127,6 +127,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
             "BeetleCrystalMaster", // Weird beetle reskin
             "BeetleGuardMasterCrystal", // Weird beetle buard reskin
             "ClaymanMaster", // No hitboxes
+            "DevotedLemurianMaster", // Just regular Lemurian without Devotion artifact
             "EngiBeamTurretMaster", // Seems to ignore the player
             "LemurianBruiserMasterHaunted", // Would include if it had a more distinct appearance
             "LemurianBruiserMasterPoison", // Would include if it had a more distinct appearance

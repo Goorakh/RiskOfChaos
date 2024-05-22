@@ -2,6 +2,8 @@
 
 **?.?.? Changes:**
 
+* Updated for Devotion Update
+
 * Added 1 new effect:
   * Splitscreen: Splits the screen into 9 copies of the game view, lasts 90 seconds
 
