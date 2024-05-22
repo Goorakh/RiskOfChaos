@@ -18,7 +18,7 @@ namespace RiskOfChaos.Content
     {
         public static readonly ItemDef InvincibleLemurianMarker;
 
-        public static readonly ItemDef LevelBasedRegen;
+        public static readonly ItemDef MinAllyRegen;
 
         static Items()
         {
@@ -178,22 +178,22 @@ namespace RiskOfChaos.Content
                 };
             }
 
-            // LevelBasedRegen
+            // MinAllyRegen
             {
-                LevelBasedRegen = ScriptableObject.CreateInstance<ItemDef>();
-                LevelBasedRegen.name = nameof(LevelBasedRegen);
+                MinAllyRegen = ScriptableObject.CreateInstance<ItemDef>();
+                MinAllyRegen.name = nameof(MinAllyRegen);
 
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
 #pragma warning disable CS0618 // Type or member is obsolete
                 // Setting the tier property here will not work because the ItemTierCatalog is not yet initialized
-                LevelBasedRegen.deprecatedTier = ItemTier.NoTier;
+                MinAllyRegen.deprecatedTier = ItemTier.NoTier;
 #pragma warning restore CS0618 // Type or member is obsolete
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
-                LevelBasedRegen.hidden = true;
-                LevelBasedRegen.canRemove = false;
+                MinAllyRegen.hidden = true;
+                MinAllyRegen.canRemove = false;
 
-                LevelBasedRegen.AutoPopulateTokens();
+                MinAllyRegen.AutoPopulateTokens();
             }
 
             RecalculateStatsAPI.GetStatCoefficients += static (body, args) =>
@@ -211,9 +211,19 @@ namespace RiskOfChaos.Content
                     args.moveSpeedReductionMultAdd += 1f;
                 }
 
-                if (inventory.GetItemCount(LevelBasedRegen) > 0)
+                if (inventory.GetItemCount(MinAllyRegen) > 0)
                 {
-                    args.baseRegenAdd += 2.5f + (Mathf.Max(0, body.level - 1) * 0.5f);
+                    const float TARGT_BASE_REGEN = 2.5f;
+                    if (body.baseRegen < TARGT_BASE_REGEN)
+                    {
+                        args.baseRegenAdd += TARGT_BASE_REGEN - body.baseRegen;
+                    }
+
+                    const float TARGET_LEVEL_REGEN = 0.5f;
+                    if (body.levelRegen < TARGET_LEVEL_REGEN)
+                    {
+                        args.levelRegenAdd += TARGET_LEVEL_REGEN - body.levelRegen;
+                    }
                 }
             };
         }
@@ -222,7 +232,7 @@ namespace RiskOfChaos.Content
         {
             itemCollection.Add([
                 InvincibleLemurianMarker,
-                LevelBasedRegen,
+                MinAllyRegen,
             ]);
         }
     }

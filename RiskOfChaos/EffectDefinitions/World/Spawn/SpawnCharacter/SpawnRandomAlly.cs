@@ -127,8 +127,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                     {
                         if (devotionInventoryController)
                         {
-                        devotedLemurianController.InitializeDevotedLemurian(ItemIndex.None, devotionInventoryController);
-                    }
+                            devotedLemurianController.InitializeDevotedLemurian(ItemIndex.None, devotionInventoryController);
+                        }
 
                         if (_isElite)
                         {
@@ -175,20 +175,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 
         public void SetupSummonedInventory(MasterSummon masterSummon, Inventory summonedInventory)
         {
-            if (!masterSummon.masterPrefab || !masterSummon.masterPrefab.TryGetComponent(out CharacterMaster masterPrefab))
-                return;
-
-            if (!masterPrefab.bodyPrefab || !masterPrefab.bodyPrefab.TryGetComponent(out CharacterBody bodyPrefab))
-                return;
-
-            if (bodyPrefab.baseRegen <= 0f && bodyPrefab.levelRegen <= 0f)
-            {
-                summonedInventory.GiveItem(Items.LevelBasedRegen, 1);
-
-#if DEBUG
-                Log.Debug($"Added health regen to {Util.GetBestMasterName(summonedInventory.GetComponent<CharacterMaster>())}");
-#endif
-            }
+            summonedInventory.GiveItem(Items.MinAllyRegen);
         }
     }
 }
