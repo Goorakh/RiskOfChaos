@@ -137,6 +137,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     }
 
                     master.gameObject.SetDontDestroyOnLoad(true);
+
+                    master.inventory.GiveItem(Items.MinAllyRegen);
                 }
 
                 if (master && master.inventory.GetItemCount(Items.InvincibleLemurianMarker) > 0)

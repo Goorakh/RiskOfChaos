@@ -1,5 +1,10 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* Recruit Random Enemy:
+  * Now gives recruited enemy a minimum of 2.5hp/s (scaling with level) health regeneration
+
 **1.17.0 Changes:**
 
 * Updated for Devotion Update
