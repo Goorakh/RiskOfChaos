@@ -214,7 +214,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         void modifyPickupInfo(ref GenericPickupController.CreatePickupInfo createPickupInfo)
         {
-            if (createPickupInfo.pickerOptions != null || (createPickupInfo.artifactFlag & GenericPickupController.PickupArtifactFlag.DELUSION) != 0)
+            if (createPickupInfo.pickerOptions != null)
                 return;
 
             PickupIndex pickupIndex = createPickupInfo.pickupIndex;
