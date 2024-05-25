@@ -5,6 +5,9 @@
 * Recruit Random Enemy:
   * Now gives recruited enemy a minimum of 2.5hp/s (scaling with level) health regeneration
 
+* Knockback Recoil:
+  * Proc projectiles (AtG, Ukulele, Plasma Shrimp, etc) no longer apply knockback
+
 **1.17.0 Changes:**
 
 * Updated for Devotion Update

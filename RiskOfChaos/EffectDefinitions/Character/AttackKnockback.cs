@@ -34,7 +34,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (!TimedChaosEffectHandler.Instance || !TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
                     return;
 
-                if (!self.owner)
+                if (!self.owner || self.procChainMask.mask != 0)
                     return;
 
                 CharacterBody ownerBody = self.owner.GetComponent<CharacterBody>();
@@ -52,6 +52,9 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     return;
 
                 if (orb is null || !orb.target)
+                    return;
+
+                if (orb.TryGetProcChainMask(out ProcChainMask orbProcChainMask) && orbProcChainMask.mask != 0)
                     return;
 
                 CharacterBody attacker = orb.GetAttacker();
@@ -83,7 +86,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (!TimedChaosEffectHandler.Instance || !TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
                     return;
 
-                if (!fireProjectileInfo.owner)
+                if (!fireProjectileInfo.owner || fireProjectileInfo.procChainMask.mask != 0)
                     return;
 
                 CharacterBody ownerBody = fireProjectileInfo.owner.GetComponent<CharacterBody>();
