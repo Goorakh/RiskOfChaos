@@ -30,14 +30,12 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="BepInEx.Core" Version="5.4.21" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" GeneratePathProperty="true" />
     <PackageReference Include="R2API.Core" Version="5.0.12" />
     <PackageReference Include="R2API.DamageType" Version="1.0.4" />
     <PackageReference Include="R2API.Dot" Version="1.0.1" />
     <PackageReference Include="R2API.Networking" Version="1.0.2" />
     <PackageReference Include="R2API.Prefab" Version="1.0.3" />
     <PackageReference Include="R2API.RecalculateStats" Version="1.3.0" />
-    <PackageReference Include="TwitchLib" Version="3.5.3" GeneratePathProperty="true" />
     <PackageReference Include="Rune580-Risk_Of_Options" Version="2.8.0" />
     <PackageReference Include="RiskOfRain2.GameLibs" Version="1.2.4.4-r.1" />
     <PackageReference Include="UnityEngine.Modules" Version="2019.4.37" />
@@ -123,14 +121,6 @@
     
     <Copy SourceFiles="$(OutDir)/$(AssemblyName).pdb" DestinationFolder="$(TSPackagePluginDir)" Condition="'$(Configuration)'=='Debug'" />
     <Delete Files="$(TSPackagePluginDir)/$(AssemblyName).pdb" Condition="'$(Configuration)'=='Release'" />
-
-    <!-- This is probably a really terrible way of doing this, but it works, so fuck you -->
-    <ItemGroup>
-      <TwitchLibFiles Include="$(PkgTwitchLib)/../../twitchlib.*/*/lib/netstandard2.0/*.dll" />
-      <Microsoft_Extensions_Logging_Abstractions_Files Include="$(PkgMicrosoft_Extensions_Logging_Abstractions)/lib/netstandard2.0/*.dll" />
-    </ItemGroup>
-
-    <Copy SourceFiles="@(TwitchLibFiles);@(Microsoft_Extensions_Logging_Abstractions_Files)" DestinationFolder="$(TSPackagePluginDir)" />
       
     <ZipDirectory SourceDirectory="$(TSPackageDir)" DestinationFile="$(BuildDir)/$(SolutionName).zip" Overwrite="true" />
   </Target>
