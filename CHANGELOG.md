@@ -8,6 +8,10 @@
 * Knockback Recoil:
   * Proc projectiles (AtG, Ukulele, Plasma Shrimp, etc) no longer apply knockback
 
+* Increase & Decrease World speed:
+  * Default duration: 1 stage -> 120 seconds
+  * Default Increase/Decrease amount: ±25% -> ±35%
+
 **1.17.0 Changes:**
 
 * Updated for Devotion Update

@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
-using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -12,12 +11,12 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 {
-    [ChaosTimedEffect("increase_time_scale", TimedEffectType.UntilStageEnd, ConfigName = "Increase World Speed")]
+    [ChaosTimedEffect("increase_time_scale", 120f, ConfigName = "Increase World Speed")]
     public sealed class IncreaseTimeScale : GenericMultiplyTimeScaleEffect
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _timeScaleIncrease =
-            ConfigFactory<float>.CreateConfig("World Speed Increase", 0.25f)
+            ConfigFactory<float>.CreateConfig("World Speed Increase", 0.35f)
                                 .AcceptableValues(new AcceptableValueMin<float>(0f))
                                 .OptionConfig(new StepSliderConfig
                                 {
