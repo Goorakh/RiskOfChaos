@@ -12,12 +12,15 @@ namespace RiskOfChaos.Utilities.CameraEffects
 
         public readonly Material Material;
 
+        public readonly CameraEffectType Type;
+
         readonly MaterialPropertyInterpolator _propertyInterpolator;
 
-        public CameraEffect(Material material, MaterialPropertyInterpolator propertyInterpolator)
+        public CameraEffect(Material material, MaterialPropertyInterpolator propertyInterpolator, CameraEffectType type)
         {
             Material = material;
             _propertyInterpolator = propertyInterpolator;
+            Type = type;
         }
 
         public void StartInterpolatingIn(ValueInterpolationFunctionType interpolationType, float duration)

@@ -51,12 +51,12 @@ namespace RiskOfChaos.Utilities.CameraEffects
             ActiveEffects = new ReadOnlyCollection<CameraEffect>(_activeEffects);
         }
 
-        public static void AddEffect(Material effectMaterial)
+        public static CameraEffect AddEffect(Material effectMaterial, CameraEffectType effectType)
         {
-            AddEffect(effectMaterial, null, ValueInterpolationFunctionType.Snap, 0f);
+            return AddEffect(effectMaterial, effectType, null, ValueInterpolationFunctionType.Snap, 0f);
         }
 
-        public static InterpolationState AddEffect(Material effectMaterial, MaterialPropertyInterpolator propertyInterpolator, ValueInterpolationFunctionType blendType, float interpolationTime)
+        public static CameraEffect AddEffect(Material effectMaterial, CameraEffectType effectType, MaterialPropertyInterpolator propertyInterpolator, ValueInterpolationFunctionType blendType, float interpolationTime)
         {
             foreach (CameraEffect existingCameraEffect in _activeEffects)
             {
@@ -67,7 +67,7 @@ namespace RiskOfChaos.Utilities.CameraEffects
                 }
             }
 
-            CameraEffect cameraEffect = new CameraEffect(effectMaterial, propertyInterpolator);
+            CameraEffect cameraEffect = new CameraEffect(effectMaterial, propertyInterpolator, effectType);
             _activeEffects.Add(cameraEffect);
 
             if (interpolationTime > 0f)
@@ -77,7 +77,7 @@ namespace RiskOfChaos.Utilities.CameraEffects
 
             updateEventEnabled = true;
 
-            return cameraEffect.InterpolationState;
+            return cameraEffect;
         }
 
         public static void RemoveEffect(Material effectMaterial, bool destroyMaterial = true)
@@ -178,14 +178,26 @@ namespace RiskOfChaos.Utilities.CameraEffects
             static void Init()
             {
                 On.RoR2.SceneCamera.Awake += SceneCamera_Awake;
+                On.RoR2.UICamera.Awake += UICamera_Awake;
             }
 
             static void SceneCamera_Awake(On.RoR2.SceneCamera.orig_Awake orig, SceneCamera self)
             {
                 orig(self);
 
-                self.camera.gameObject.AddComponent<CameraEffectApplier>();
+                CameraEffectApplier cameraEffectApplier = self.camera.gameObject.AddComponent<CameraEffectApplier>();
+                cameraEffectApplier._acceptEffectType = CameraEffectType.World;
             }
+
+            static void UICamera_Awake(On.RoR2.UICamera.orig_Awake orig, UICamera self)
+            {
+                orig(self);
+
+                CameraEffectApplier cameraEffectApplier = self.camera.gameObject.AddComponent<CameraEffectApplier>();
+                cameraEffectApplier._acceptEffectType = CameraEffectType.UIAndWorld;
+            }
+
+            CameraEffectType _acceptEffectType;
 
             void OnRenderImage(RenderTexture source, RenderTexture destination)
             {
@@ -196,20 +208,52 @@ namespace RiskOfChaos.Utilities.CameraEffects
                 }
                 else
                 {
-                    RenderTextureDescriptor temporaryTextureDescriptor = (destination ? destination : source).descriptor;
+                    int effectsToApplyCount = 0;
+                    CameraEffect[] effectsToApply = new CameraEffect[activeEffectsCount];
 
-                    RenderTexture lastTexture = source;
-                    for (int i = 0; i < activeEffectsCount; i++)
+                    foreach (CameraEffect cameraEffect in _activeEffects)
                     {
-                        RenderTexture nextTexture = i == activeEffectsCount - 1 ? destination : RenderTexture.GetTemporary(temporaryTextureDescriptor);
+                        if (cameraEffect.Type != _acceptEffectType)
+                            continue;
 
-                        Graphics.Blit(lastTexture, nextTexture, _activeEffects[i].Material);
-
-                        if (lastTexture != source)
-                            RenderTexture.ReleaseTemporary(lastTexture);
-
-                        lastTexture = nextTexture;
+                        effectsToApply[effectsToApplyCount++] = cameraEffect;
                     }
+
+                    if (effectsToApplyCount > 0)
+                    {
+                        RenderTextureDescriptor temporaryTextureDescriptor = (destination ? destination : source).descriptor;
+
+                        RenderTexture current = source;
+                        for (int i = 0; i < effectsToApplyCount; i++)
+                        {
+                            RenderTexture tmp = i == effectsToApplyCount - 1 ? destination : RenderTexture.GetTemporary(temporaryTextureDescriptor);
+
+                            Graphics.Blit(current, tmp, effectsToApply[i].Material);
+
+                            if (i > 0)
+                            {
+                                RenderTexture.ReleaseTemporary(current);
+                            }
+
+                            current = tmp;
+                        }
+                    }
+                    else
+                    {
+                        Graphics.Blit(source, destination);
+                    }
+                }
+            }
+
+            class BlitStep
+            {
+                public RenderTexture Destination;
+                public Material Material;
+
+                public BlitStep(RenderTexture destination, Material material)
+                {
+                    Destination = destination;
+                    Material = material;
                 }
             }
         }

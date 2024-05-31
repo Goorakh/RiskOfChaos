@@ -2,6 +2,10 @@
 
 **?.?.? Changes:**
 
+* Splitscreen:
+  * Screen effect now applies to the game UI
+    * HUD scale is automatically increased so it's still mostly readable, can be disabled in config
+
 * Recruit Random Enemy:
   * Now gives recruited enemy a minimum of 2.5hp/s (scaling with level) health regeneration
 

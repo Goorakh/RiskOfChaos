@@ -1,5 +1,4 @@
-﻿using RoR2;
-using System;
+﻿using System;
 using UnityEngine;
 
 namespace RiskOfChaos.Utilities.Interpolation
@@ -8,12 +7,14 @@ namespace RiskOfChaos.Utilities.Interpolation
     {
         public ValueInterpolationFunctionType InterpolationType { get; private set; }
 
-        Run.TimeStamp _interpolationStartTime = Run.TimeStamp.negativeInfinity;
+        float _interpolationStartTime = -1f;
         float _interpolationDuration;
 
         bool _invert;
 
-        public bool IsInterpolating => _interpolationStartTime.timeSince <= _interpolationDuration;
+        float interpolationTimeElapsed => _interpolationStartTime >= 0f ? (Time.unscaledTime - _interpolationStartTime) : -1f;
+
+        public bool IsInterpolating => interpolationTimeElapsed >= 0f;
 
         public float CurrentFraction
         {
@@ -34,7 +35,7 @@ namespace RiskOfChaos.Utilities.Interpolation
                     end = 0f;
                 }
 
-                return InterpolationType.Interpolate(start, end, Mathf.Clamp01(_interpolationStartTime.timeSince / _interpolationDuration));
+                return InterpolationType.Interpolate(start, end, Mathf.Clamp01(interpolationTimeElapsed / _interpolationDuration));
             }
         }
 
@@ -45,7 +46,7 @@ namespace RiskOfChaos.Utilities.Interpolation
 
         public void StartInterpolating(ValueInterpolationFunctionType type, float duration, bool invert)
         {
-            _interpolationStartTime = Run.TimeStamp.now;
+            _interpolationStartTime = Time.unscaledTime;
 
             InterpolationType = type;
             _interpolationDuration = duration;
