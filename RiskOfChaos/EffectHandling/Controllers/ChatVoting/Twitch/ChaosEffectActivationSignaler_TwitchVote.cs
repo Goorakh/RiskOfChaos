@@ -73,15 +73,14 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
         {
             base.Update();
 
-            if (_messageQueue.Count > 0 && Run.FixedTimeStamp.tNow >= 1f)
+            if (Run.FixedTimeStamp.tNow >= 1f)
             {
-                do
+                while (_messageQueue.Count > 0)
                 {
                     ChatMessageBase message = _messageQueue.Dequeue();
 
                     Chat.SendBroadcastChat(message);
                 }
-                while (_messageQueue.Count > 0);
             }
         }
 
