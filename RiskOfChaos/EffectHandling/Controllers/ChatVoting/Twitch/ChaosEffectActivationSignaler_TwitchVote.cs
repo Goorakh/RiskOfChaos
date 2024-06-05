@@ -27,6 +27,8 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
                 case "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_USER_REMOVED":
                 case "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_AUTHORIZATION_REVOKED":
                 case "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_VERSION_REMOVED":
+                case "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_USER_RETRIEVE_FAILED":
+                case "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_SUBSCRIBE_FAILED":
                 case "TWITCH_EFFECT_VOTING_LOGIN_SUCCESS":
                 case "TWITCH_EFFECT_VOTING_LOGIN_SUCCESS_CHANNEL_FALLBACK":
                     return true;
@@ -151,12 +153,26 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             reconnectClient();
         }
 
-        void onConnectionError(object sender, EventArgs e)
+        void onConnectionError(object sender, ConnectionErrorEventArgs e)
         {
+            string reasonString;
+            switch (e.Type)
+            {
+                case ConnectionErrorType.FailedRetrieveUser:
+                    reasonString = Language.GetString("TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_USER_RETRIEVE_FAILED");
+                    break;
+                case ConnectionErrorType.FailedEventSubscribe:
+                    reasonString = Language.GetString("TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_SUBSCRIBE_FAILED");
+                    break;
+                default:
+                    reasonString = Language.GetString("TWITCH_EFFECT_VOTING_GENERIC_CLIENT_CONNECT_FAIL");
+                    break;
+            }
+
             _messageQueue.Enqueue(new Chat.SimpleChatMessage
             {
                 baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
-                paramTokens = [Language.GetString("TWITCH_EFFECT_VOTING_GENERIC_CLIENT_CONNECT_FAIL")]
+                paramTokens = [reasonString]
             });
         }
 

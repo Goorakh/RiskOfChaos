@@ -49,7 +49,7 @@ namespace RiskOfTwitch.EventSub
 
         public event EventHandler OnFullyConnected;
 
-        public event EventHandler OnConnectionError;
+        public event EventHandler<ConnectionErrorEventArgs> OnConnectionError;
 
         public TwitchEventSubClient(string accessToken, string overrideBroadcasterName)
         {
@@ -355,28 +355,30 @@ namespace RiskOfTwitch.EventSub
             }
 
             string broadcasterId = tokenValidationResponse.UserID;
-            string broadcasterName = null;
+            string broadcasterName;
 
-            if (!string.IsNullOrEmpty(_overrideBroadcasterName))
+            GetUsersResponse getUsersResponse = await StaticTwitchAPI.GetUsers(_accessToken, [broadcasterId], [], cancellationToken).ConfigureAwait(false);
+            if (getUsersResponse != null && getUsersResponse.Users.Length > 0)
             {
-                GetUsersResponse getUsersResponse = await StaticTwitchAPI.GetUsers(_accessToken, [], [_overrideBroadcasterName], cancellationToken).ConfigureAwait(false);
-                if (getUsersResponse != null && getUsersResponse.Users.Length > 0)
-                {
-                    broadcasterName = _overrideBroadcasterName;
-
-                    broadcasterId = getUsersResponse.Users[0].UserId;
-                }
+                broadcasterName = getUsersResponse.Users[0].UserLoginName;
             }
             else
             {
-                GetUsersResponse getUsersResponse = await StaticTwitchAPI.GetUsers(_accessToken, [broadcasterId], [], cancellationToken).ConfigureAwait(false);
+                OnConnectionError?.Invoke(this, new ConnectionErrorEventArgs(ConnectionErrorType.FailedRetrieveUser));
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(_overrideBroadcasterName))
+            {
+                getUsersResponse = await StaticTwitchAPI.GetUsers(_accessToken, [], [_overrideBroadcasterName], cancellationToken).ConfigureAwait(false);
                 if (getUsersResponse != null && getUsersResponse.Users.Length > 0)
                 {
-                    broadcasterName = getUsersResponse.Users[0].UserLoginName;
+                    broadcasterName = _overrideBroadcasterName;
+                    broadcasterId = getUsersResponse.Users[0].UserId;
                 }
             }
 
-            ConnectedToChannel = broadcasterName ?? broadcasterId;
+            ConnectedToChannel = broadcasterName;
 
             string userId = tokenValidationResponse.UserID;
 
@@ -420,7 +422,7 @@ namespace RiskOfTwitch.EventSub
             }
             else
             {
-                OnConnectionError?.Invoke(this, EventArgs.Empty);
+                OnConnectionError?.Invoke(this, new ConnectionErrorEventArgs(ConnectionErrorType.FailedEventSubscribe));
             }
         }
 
