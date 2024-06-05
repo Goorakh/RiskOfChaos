@@ -1,12 +1,12 @@
-﻿using RoR2;
-using RoR2.UI;
-using TwitchLib.Client;
-using TwitchLib.Client.Enums;
-using TwitchLib.Client.Events;
-using TwitchLib.Communication.Clients;
-using TwitchLib.Communication.Events;
-using UnityEngine;
-using UnityEngine.Networking;
+﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.Twitch;
+using RiskOfTwitch.Chat.Message;
+using RiskOfTwitch.Chat.Notification;
+using RiskOfTwitch.EventSub;
+using RoR2;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 {
@@ -24,8 +24,9 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
                 case "TWITCH_LOGIN_FAIL_NOT_LOGGED_IN":
                 case "TWITCH_EFFECT_VOTING_CONNECTION_ERROR":
                 case "TWITCH_EFFECT_VOTING_GENERIC_CLIENT_CONNECT_FAIL":
-                case "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_NO_PERMISSION":
-                case "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_INCORRECT_LOGIN":
+                case "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_USER_REMOVED":
+                case "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_AUTHORIZATION_REVOKED":
+                case "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_VERSION_REMOVED":
                 case "TWITCH_EFFECT_VOTING_LOGIN_SUCCESS":
                     return true;
                 default:
@@ -35,237 +36,9 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 
         protected override Configs.ChatVoting.ChatVotingMode votingMode { get; } = Configs.ChatVoting.ChatVotingMode.Twitch;
 
-        static TwitchLoginCredentials _loginCredentials = TwitchLoginCredentials.TryReadFromFile();
+        TwitchEventSubClient _twitchClient;
 
-        [SystemInitializer]
-        static void Init()
-        {
-            Configs.ChatVoting.OnReconnectButtonPressed += () =>
-            {
-                if (Configs.ChatVoting.VotingMode.Value == Configs.ChatVoting.ChatVotingMode.Twitch && !_loginCredentials.IsValid())
-                {
-                    SimpleDialogBox notLoggedInDialog = SimpleDialogBox.Create();
-
-                    notLoggedInDialog.headerToken = new SimpleDialogBox.TokenParamsPair("ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_HEADER");
-                    notLoggedInDialog.descriptionToken = new SimpleDialogBox.TokenParamsPair("ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_DESCRIPTION_TWITCH");
-
-                    notLoggedInDialog.AddCancelButton(CommonLanguageTokens.ok);
-                }
-            };
-        }
-
-        const string ROC_TWITCH_LOGIN_COMMAND = "roc_twitch_login";
-        const string ROC_TWITCH_LOGIN_COMMAND_USAGE = $"{ROC_TWITCH_LOGIN_COMMAND} [username] [oauth]";
-
-        [ConCommand(commandName = ROC_TWITCH_LOGIN_COMMAND, helpText = $"Saves Twitch connection credentials so the mod can connect to your Twitch channel. Usage: {ROC_TWITCH_LOGIN_COMMAND_USAGE}")]
-        static void CCLogin(ConCommandArgs args)
-        {
-            if (args.Count == 0)
-            {
-                if (_loginCredentials.IsValid())
-                {
-                    Debug.Log($"Logged in as {_loginCredentials.Username}");
-                }
-                else
-                {
-                    Debug.Log($"Not currently logged in, command usage: {ROC_TWITCH_LOGIN_COMMAND_USAGE}");
-                }
-
-                return;
-            }
-
-            args.CheckArgumentCount(2);
-
-            string username = args[0];
-            string oauth = args[1];
-
-            TwitchLoginCredentials newLoginCredentials = new TwitchLoginCredentials(username, oauth);
-            if (_loginCredentials != newLoginCredentials)
-            {
-                _loginCredentials = newLoginCredentials;
-                _loginCredentials.WriteToFile();
-
-                onClientCredentialsChanged();
-
-                Debug.Log($"Saved new login: {username}");
-            }
-            else
-            {
-                Debug.Log($"Already logged in as {username}");
-            }
-
-            Debug.Log("Login info is successfully saved, please also run the `clear` command if you are streaming to avoid accidentally showing the auth token");
-        }
-
-        [ConCommand(commandName = "roc_twitch_logout", helpText = "Removes the active twitch login credentials")]
-        static void CCLogout(ConCommandArgs args)
-        {
-            if (_loginCredentials != TwitchLoginCredentials.Empty)
-            {
-                string oldLoginUsername = _loginCredentials.Username;
-
-                _loginCredentials = TwitchLoginCredentials.Empty;
-                _loginCredentials.WriteToFile();
-
-                onClientCredentialsChanged();
-
-                Debug.Log($"Logged out {oldLoginUsername}");
-            }
-            else
-            {
-                Debug.Log("Cannot log out: Not currently logged in");
-            }
-        }
-
-        static TwitchClient _client;
-        static void createClient()
-        {
-            if (_loginCredentials.IsValid())
-            {
-                WebSocketClient socketClient = new WebSocketClient();
-
-                BepInExLogger<TwitchClient> clientLogger = new BepInExLogger<TwitchClient>(!Configs.ChatVoting.ExtendedClientLogging.Value);
-                Configs.ChatVoting.ExtendedClientLogging.SettingChanged += (s, e) =>
-                {
-                    clientLogger.TreatInfoLogsAsDebug = !e.NewValue;
-                };
-
-                _client = new TwitchClient(socketClient, ClientProtocol.WebSocket, clientLogger);
-                _client.Initialize(_loginCredentials.ConnectionCredentials);
-                _client.RemoveChatCommandIdentifier('!');
-
-                _client.OnConnectionError += onConnectionError;
-                _client.OnError += onClientError;
-                _client.OnFailureToReceiveJoinConfirmation += onFailureToReceiveJoinConfirmation;
-                _client.OnIncorrectLogin += onIncorrectLogin;
-                _client.OnNoPermissionError += onNoPermissionError;
-
-                if (!_client.Connect())
-                {
-                    Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-                    {
-                        baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
-                        paramTokens = [ Language.GetString("TWITCH_EFFECT_VOTING_GENERIC_CLIENT_CONNECT_FAIL") ]
-                    });
-                }
-            }
-        }
-
-        static void onNoPermissionError(object sender, System.EventArgs e)
-        {
-            if (!NetworkServer.active)
-                return;
-
-            Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-            {
-                baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
-                paramTokens = [ Language.GetString("TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_NO_PERMISSION") ]
-            });
-        }
-
-        static void onIncorrectLogin(object sender, OnIncorrectLoginArgs e)
-        {
-            if (!NetworkServer.active)
-                return;
-
-            Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-            {
-                baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
-                paramTokens = [ Language.GetString("TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_INCORRECT_LOGIN") ]
-            });
-        }
-
-        static void onFailureToReceiveJoinConfirmation(object sender, OnFailureToReceiveJoinConfirmationArgs e)
-        {
-            if (!NetworkServer.active)
-                return;
-
-            string details;
-            if (!string.IsNullOrWhiteSpace(e.Exception.Details))
-            {
-                details = e.Exception.Details;
-            }
-            else
-            {
-                details = Language.GetString("TWITCH_EFFECT_VOTING_GENERIC_CLIENT_CONNECT_FAIL");
-            }
-
-            Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-            {
-                baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
-                paramTokens = [ details ]
-            });
-        }
-
-        static void onClientError(object sender, OnErrorEventArgs e)
-        {
-            if (!NetworkServer.active)
-                return;
-
-            Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-            {
-                baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
-                paramTokens = [ e.Exception.GetType().Name ]
-            });
-        }
-
-        static void onConnectionError(object s, OnConnectionErrorArgs e)
-        {
-            if (!NetworkServer.active)
-                return;
-
-            Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-            {
-                baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
-                paramTokens = [ e.Error.Message ]
-            });
-        }
-
-        static void onClientCredentialsChanged()
-        {
-            if (_client == null)
-            {
-                if (_instance)
-                {
-                    createClient();
-                }
-
-                return;
-            }
-
-            if (_loginCredentials.IsValid())
-            {
-                bool wasConnected = false;
-                if (_client.IsConnected)
-                {
-                    _client.Disconnect();
-                    wasConnected = true;
-                }
-
-                _client.SetConnectionCredentials(_loginCredentials.ConnectionCredentials);
-
-                if (wasConnected || _instance)
-                {
-                    _client.Connect();
-                }
-            }
-            else
-            {
-                _client.Disconnect();
-            }
-        }
-
-        float _scheduledAttemptJoinChannelTime;
-        bool _channelJoinAttemptScheduled;
-
-        void scheduleAttemptJoinChannel(float waitTime)
-        {
-            _channelJoinAttemptScheduled = true;
-            _scheduledAttemptJoinChannelTime = Time.time + waitTime;
-        }
-
-        string _joinedChannel;
-        bool _addedClientListeners;
+        readonly Queue<ChatMessageBase> _messageQueue = [];
 
         protected override void OnEnable()
         {
@@ -273,103 +46,11 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 
             SingletonHelper.Assign(ref _instance, this);
 
-            if (_client == null)
-            {
-                createClient();
-            }
+            connectClient();
 
-            if (_client != null)
-            {
-                addClientListeners();
-            }
-
-            scheduleAttemptJoinChannel(1.5f);
-
-            Configs.ChatVoting.OnReconnectButtonPressed += onReconnectButtonPressed;
-        }
-
-        void addClientListeners()
-        {
-            if (_addedClientListeners)
-                return;
-
-            _client.OnConnected += onConnected;
-            _client.OnJoinedChannel += onJoinedChannel;
-            _client.OnMessageReceived += onMessageReceived;
-
-            _addedClientListeners = true;
-        }
-
-        protected override void Update()
-        {
-            base.Update();
-
-            if (_channelJoinAttemptScheduled && Time.time >= _scheduledAttemptJoinChannelTime)
-            {
-                _channelJoinAttemptScheduled = false;
-
-                if (!_loginCredentials.IsValid())
-                {
-                    Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-                    {
-                        baseToken = "TWITCH_EFFECT_VOTING_LOGIN_FAIL_FORMAT",
-                        paramTokens = [ Language.GetString("TWITCH_LOGIN_FAIL_NOT_LOGGED_IN") ]
-                    });
-
-                    scheduleAttemptJoinChannel(5f);
-                }
-                else if (_client != null)
-                {
-                    if (_client.IsConnected)
-                    {
-                        addClientListeners();
-
-                        _client.JoinChannel(_loginCredentials.Username);
-                    }
-                    else
-                    {
-                        scheduleAttemptJoinChannel(2f);
-                    }
-                }
-            }
-        }
-
-        void onReconnectButtonPressed()
-        {
-            if (_client == null)
-                return;
-
-            string channel = _joinedChannel;
-            if (channel != null)
-            {
-                _client.LeaveChannel(channel);
-
-                scheduleAttemptJoinChannel(1f);
-            }
-        }
-
-        void onConnected(object sender, OnConnectedArgs e)
-        {
-            if (!_channelJoinAttemptScheduled)
-            {
-                scheduleAttemptJoinChannel(1f);
-            }
-        }
-
-        void onJoinedChannel(object sender, OnJoinedChannelArgs e)
-        {
-            Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-            {
-                baseToken = "TWITCH_EFFECT_VOTING_LOGIN_SUCCESS",
-                paramTokens = [ e.Channel ]
-            });
-
-            _joinedChannel = e.Channel;
-        }
-
-        void onMessageReceived(object s, OnMessageReceivedArgs e)
-        {
-            processVoteMessage(e.ChatMessage.UserId, e.ChatMessage.Message);
+            Configs.ChatVoting.OnReconnectButtonPressed += ChatVoting_OnReconnectButtonPressed;
+            Configs.ChatVoting.OverrideChannelName.SettingChanged += OverrideChannelName_SettingChanged;
+            TwitchAuthenticationManager.OnAccessTokenChanged += TwitchAuthenticationManager_OnAccessTokenChanged;
         }
 
         protected override void OnDisable()
@@ -378,22 +59,150 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 
             SingletonHelper.Unassign(ref _instance, this);
 
-            if (_client != null)
+            disconnectClient();
+
+            Configs.ChatVoting.OnReconnectButtonPressed -= ChatVoting_OnReconnectButtonPressed;
+            Configs.ChatVoting.OverrideChannelName.SettingChanged -= OverrideChannelName_SettingChanged;
+            TwitchAuthenticationManager.OnAccessTokenChanged -= TwitchAuthenticationManager_OnAccessTokenChanged;
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            if (_messageQueue.Count > 0 && Run.FixedTimeStamp.tNow >= 1f)
             {
-                _client.OnConnected -= onConnected;
-                _client.OnJoinedChannel -= onJoinedChannel;
-                _client.OnMessageReceived -= onMessageReceived;
+                do
+                {
+                    ChatMessageBase message = _messageQueue.Dequeue();
+
+                    Chat.SendBroadcastChat(message);
+                }
+                while (_messageQueue.Count > 0);
+            }
+        }
+
+        void connectClient()
+        {
+            if (_twitchClient != null)
+            {
+                Log.Warning("Attempting to connect while client connection is already active");
+                return;
             }
 
-            _addedClientListeners = false;
-
-            if (_joinedChannel != null)
+            if (TwitchAuthenticationManager.CurrentAccessToken.IsEmpty)
             {
-                _client.LeaveChannel(_joinedChannel);
-                _joinedChannel = null;
+                _messageQueue.Enqueue(new Chat.SimpleChatMessage
+                {
+                    baseToken = "TWITCH_EFFECT_VOTING_LOGIN_FAIL_FORMAT",
+                    paramTokens = [Language.GetString("TWITCH_LOGIN_FAIL_NOT_LOGGED_IN")]
+                });
+
+                return;
             }
 
-            Configs.ChatVoting.OnReconnectButtonPressed -= onReconnectButtonPressed;
+            _twitchClient = new TwitchEventSubClient(TwitchAuthenticationManager.CurrentAccessToken.Token, Configs.ChatVoting.OverrideChannelName.Value);
+            _twitchClient.OnChannelChatMessage += onChannelChatMessage;
+            _twitchClient.OnChannelChatNotification += onChannelChatNotification;
+            _twitchClient.OnFullyConnected += onFullyConnected;
+            _twitchClient.OnConnectionError += onConnectionError;
+            _twitchClient.OnTokenAccessRevoked += onTokenAccessRevoked;
+
+            TwitchEventSubClient client = _twitchClient;
+            Task.Run(() => client.Connect());
+        }
+
+        void disconnectClient()
+        {
+            if (_twitchClient != null)
+            {
+                _twitchClient.OnChannelChatMessage -= onChannelChatMessage;
+                _twitchClient.OnChannelChatNotification -= onChannelChatNotification;
+                _twitchClient.OnFullyConnected -= onFullyConnected;
+                _twitchClient.OnConnectionError -= onConnectionError;
+                _twitchClient.OnTokenAccessRevoked -= onTokenAccessRevoked;
+
+                TwitchEventSubClient client = _twitchClient;
+                Task.Run(() => client.Disconnect());
+
+                _twitchClient = null;
+            }
+        }
+
+        void reconnectClient()
+        {
+            disconnectClient();
+            connectClient();
+        }
+
+        void ChatVoting_OnReconnectButtonPressed()
+        {
+            reconnectClient();
+        }
+
+        void OverrideChannelName_SettingChanged(object sender, ConfigChangedArgs<string> e)
+        {
+            reconnectClient();
+        }
+
+        void TwitchAuthenticationManager_OnAccessTokenChanged()
+        {
+            reconnectClient();
+        }
+
+        void onConnectionError(object sender, EventArgs e)
+        {
+            _messageQueue.Enqueue(new Chat.SimpleChatMessage
+            {
+                baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
+                paramTokens = [Language.GetString("TWITCH_EFFECT_VOTING_GENERIC_CLIENT_CONNECT_FAIL")]
+            });
+        }
+
+        void onFullyConnected(object sender, EventArgs e)
+        {
+            TwitchEventSubClient client = sender as TwitchEventSubClient;
+
+            _messageQueue.Enqueue(new Chat.SimpleChatMessage
+            {
+                baseToken = "TWITCH_EFFECT_VOTING_LOGIN_SUCCESS",
+                paramTokens = [client?.ConnectedToChannel]
+            });
+        }
+
+        void onChannelChatMessage(object sender, ChannelChatMessageEvent messageEvent)
+        {
+            if (string.IsNullOrEmpty(messageEvent.ChatterUserId) || messageEvent.MessageData == null)
+                return;
+
+            processVoteMessage(messageEvent.ChatterUserId, messageEvent.MessageData.FullText);
+        }
+
+        void onChannelChatNotification(object sender, ChannelChatNotificationEvent notificationEvent)
+        {
+            if (notificationEvent.AnonymousChatter || string.IsNullOrEmpty(notificationEvent.ChatterUserId) || notificationEvent.MessageData == null)
+                return;
+
+            processVoteMessage(notificationEvent.ChatterUserId, notificationEvent.MessageData.FullText);
+        }
+
+        void onTokenAccessRevoked(object sender, TokenAccessRevokedEventData e)
+        {
+            string reason = e.Status switch
+            {
+                "user_removed" => Language.GetString("TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_USER_REMOVED"),
+                "authorization_revoked" => Language.GetString("TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_AUTHORIZATION_REVOKED"),
+                "version_removed" => Language.GetString("TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_VERSION_REMOVED"),
+                _ => e.Status,
+            };
+
+            _messageQueue.Enqueue(new Chat.SimpleChatMessage
+            {
+                baseToken = "TWITCH_EFFECT_VOTING_CONNECTION_ERROR",
+                paramTokens = [reason]
+            });
+
+            disconnectClient();
         }
     }
 }

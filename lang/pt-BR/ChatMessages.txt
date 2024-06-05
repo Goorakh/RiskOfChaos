@@ -2,7 +2,7 @@
 	strings:
 	{
 		"TWITCH_EFFECT_VOTING_LOGIN_FAIL_FORMAT": "<style=cWorldEvent>[Risk of Chaos]: Unable to connect to Twitch channel: {0}</style>",
-		"TWITCH_LOGIN_FAIL_NOT_LOGGED_IN": "Not logged in, please use the roc_twitch_login console command",
+		"TWITCH_LOGIN_FAIL_NOT_LOGGED_IN": "Not logged in, please authenticate in the mod settings",
 
 		"TWITCH_EFFECT_VOTING_CONNECTION_ERROR": "<style=cWorldEvent>[Risk of Chaos]: Erro de conexão com a Twitch: {0}</style>",
 		"TWITCH_EFFECT_VOTING_GENERIC_CLIENT_CONNECT_FAIL": "Falha ao conectar com o Cliente da Twitch",

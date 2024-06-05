@@ -9,7 +9,7 @@ namespace RiskOfTwitch
 
         static string getLogPrefix(string callerPath, string callerMemberName, int callerLineNumber)
         {
-            const string PATH_NAME = "RiskOfTwitch/";
+            const string PATH_NAME = "RiskOfTwitch";
 
             int nameLastPathIndex = callerPath.LastIndexOf(PATH_NAME);
             if (nameLastPathIndex >= 0)

@@ -2,6 +2,7 @@
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.Controllers.ChatVoting;
+using RiskOfChaos.Twitch;
 using RiskOfOptions;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
@@ -34,6 +35,17 @@ namespace RiskOfChaos
             }
 
             public static event Action OnReconnectButtonPressed;
+
+            public static readonly ConfigHolder<string> OverrideChannelName =
+                ConfigFactory<string>.CreateConfig("Override Channel Name", string.Empty)
+                                     .Description("Used to specify a different channel the mod will connect to, leave empty to use the channel of the account that you authenticated with")
+                                     .OptionConfig(new InputFieldConfig
+                                     {
+                                        lineType = TMPro.TMP_InputField.LineType.SingleLine,
+                                        richText = false,
+                                        submitOn = InputFieldConfig.SubmitEnum.OnExitOrSubmit
+                                     })
+                                     .Build();
 
             const int NUM_EFFECT_OPTIONS_MIN_VALUE = 2;
 
@@ -100,12 +112,6 @@ namespace RiskOfChaos
                                     })
                                     .Build();
 
-            public static readonly ConfigHolder<bool> ExtendedClientLogging =
-                ConfigFactory<bool>.CreateConfig("Extended Client Logging", false)
-                                   .Description("More information is sent to the log file about data received from the chat connection. No sensitive information is logged, but keep this off if you care about the size of your log file.")
-                                   .OptionConfig(new CheckBoxConfig())
-                                   .Build();
-
             internal static void Bind(ConfigFile file)
             {
                 const string SECTION_NAME = "Streamer Integration";
@@ -116,6 +122,13 @@ namespace RiskOfChaos
                 }
 
                 bindConfig(VotingMode);
+
+                ModSettingsManager.AddOption(new GenericButtonOption("Authenticate (Twitch)", SECTION_NAME, "Authenticate your account with Risk of Chaos (Opens browser tab)", "Open", () =>
+                {
+                    TwitchAuthenticationManager.AuthenticateNewToken();
+                }), CONFIG_GUID, CONFIG_NAME);
+
+                bindConfig(OverrideChannelName);
 
                 ModSettingsManager.AddOption(new GenericButtonOption("Manual reconnect", SECTION_NAME, "Use this to manually reconnect the mod to your channel if connection is lost", "Reconnect", () =>
                 {
@@ -133,8 +146,6 @@ namespace RiskOfChaos
                 bindConfig(VoteDisplayTextColor);
 
                 bindConfig(VoteDisplayBackgroundColor);
-
-                bindConfig(ExtendedClientLogging);
             }
         }
     }

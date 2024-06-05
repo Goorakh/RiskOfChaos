@@ -6,7 +6,25 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="build\**" />
+    <EmbeddedResource Remove="build\**" />
+    <None Remove="build\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <BuildDir>$(ProjectDir)build/</BuildDir>
+  </PropertyGroup>
+
+  <Target Name="makethething" AfterTargets="Build">
+    <MakeDir Directories="$(BuildDir)" />
+    
+    <Copy SourceFiles="$(OutDir)/$(AssemblyName).dll" DestinationFolder="$(BuildDir)" />
+    
+    <Copy SourceFiles="$(OutDir)/$(AssemblyName).pdb" DestinationFolder="$(BuildDir)" Condition="'$(Configuration)'=='Debug'" />
+    <Delete Files="$(BuildDir)/$(AssemblyName).pdb" Condition="'$(Configuration)'=='Release'" />
+  </Target>
 </Project>

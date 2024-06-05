@@ -42,7 +42,7 @@ namespace RiskOfTwitch
                 query = string.Join("&", [combinedUserIds, combinedUsernames]);
             }
 
-            using HttpResponseMessage getUsersResponseMessage = await client.GetAsync($"https://api.twitch.tv/helix/users?{query}", cancellationToken);
+            using HttpResponseMessage getUsersResponseMessage = await client.GetAsync($"https://api.twitch.tv/helix/users?{query}", cancellationToken).ConfigureAwait(false);
             if (!getUsersResponseMessage.IsSuccessStatusCode)
             {
                 Log.Error($"Twitch API responded with error code {getUsersResponseMessage.StatusCode:D} {getUsersResponseMessage.ReasonPhrase}");
@@ -52,7 +52,7 @@ namespace RiskOfTwitch
             GetUsersResponse getUsersResponse;
             try
             {
-                getUsersResponse = JsonConvert.DeserializeObject<GetUsersResponse>(await getUsersResponseMessage.Content.ReadAsStringAsync());
+                getUsersResponse = JsonConvert.DeserializeObject<GetUsersResponse>(await getUsersResponseMessage.Content.ReadAsStringAsync().ConfigureAwait(false));
             }
             catch (JsonException e)
             {

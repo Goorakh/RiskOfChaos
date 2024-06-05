@@ -39,7 +39,7 @@ namespace RiskOfTwitch.Chat.Notification
         public string MessageId { get; set; }
 
         [JsonProperty("message")]
-        public ChannelChatMessageData Message { get; set; }
+        public ChannelChatMessageData MessageData { get; set; }
 
         [JsonProperty("notice_type")]
         public string NoticeType { get; set; }

@@ -1,7 +1,7 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.Utilities;
 using RoR2.UI;
-using RoR2.UI.MainMenu;
 using System.Linq;
 
 namespace RiskOfChaos
@@ -47,41 +47,31 @@ namespace RiskOfChaos
             {
                 if (isOutdatedVersion())
                 {
-                    void BaseMainMenuScreen_OnEnter(On.RoR2.UI.MainMenu.BaseMainMenuScreen.orig_OnEnter orig, BaseMainMenuScreen self, MainMenuController mainMenuController)
+                    PopupAlertQueue.EnqueueAlert(dialogBox =>
                     {
-                        orig(self, mainMenuController);
+                        dialogBox.headerToken = new SimpleDialogBox.TokenParamsPair("POPUP_CONFIG_UPDATE_HEADER");
+                        dialogBox.descriptionToken = new SimpleDialogBox.TokenParamsPair("POPUP_CONFIG_UPDATE_DESCRIPTION");
 
-                        if (self == mainMenuController.titleMenuScreen)
+                        dialogBox.AddActionButton(() =>
                         {
-                            On.RoR2.UI.MainMenu.BaseMainMenuScreen.OnEnter -= BaseMainMenuScreen_OnEnter;
-
-                            SimpleDialogBox dialogBox = SimpleDialogBox.Create();
-                            dialogBox.headerToken = new SimpleDialogBox.TokenParamsPair("POPUP_CONFIG_UPDATE_HEADER");
-                            dialogBox.descriptionToken = new SimpleDialogBox.TokenParamsPair("POPUP_CONFIG_UPDATE_DESCRIPTION");
-
-                            dialogBox.AddActionButton(() =>
+                            foreach (ConfigHolderBase config in ConfigMonitor.AllConfigs)
                             {
-                                foreach (ConfigHolderBase config in ConfigMonitor.AllConfigs)
-                                {
-                                    if (config.Entry.Definition.Section == SECTION_NAME)
-                                        continue;
+                                if (config.Entry.Definition.Section == SECTION_NAME)
+                                    continue;
 
 #if DEBUG
-                                    if (!config.IsDefaultValue)
-                                    {
-                                        Log.Debug($"Reset config value: {config.Entry.Definition}");
-                                    }
+                                if (!config.IsDefaultValue)
+                                {
+                                    Log.Debug($"Reset config value: {config.Entry.Definition}");
+                                }
 #endif
 
-                                    config.LocalBoxedValue = config.Entry.DefaultValue;
-                                }
-                            }, "POPUP_CONFIG_UPDATE_RESET");
+                                config.LocalBoxedValue = config.Entry.DefaultValue;
+                            }
+                        }, "POPUP_CONFIG_UPDATE_RESET");
 
-                            dialogBox.AddCancelButton("POPUP_CONFIG_UPDATE_IGNORE");
-                        }
-                    }
-
-                    On.RoR2.UI.MainMenu.BaseMainMenuScreen.OnEnter += BaseMainMenuScreen_OnEnter;
+                        dialogBox.AddCancelButton("POPUP_CONFIG_UPDATE_IGNORE");
+                    });
                 }
 
                 ConfigFileVersion.LocalValue = CURRENT_CONFIG_FILE_VERSION;

@@ -23,7 +23,7 @@ namespace RiskOfTwitch.Chat.Message
         public string ChatterLoginName { get; set; }
 
         [JsonProperty("message")]
-        public ChannelChatMessageData Message { get; set; }
+        public ChannelChatMessageData MessageData { get; set; }
 
         [JsonProperty("message_type")]
         public string MessageType { get; set; }

@@ -1,7 +1,10 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
+using System.Net.Http;
+using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -74,17 +77,17 @@ namespace RiskOfTwitch
                 httpListener.Prefixes.Add(AUTH_REDIRECT_URL + "/");
                 httpListener.Start();
 
-                HttpListenerContext context = await httpListener.GetContextAsync();
+                HttpListenerContext context = await httpListener.GetContextAsync().ConfigureAwait(false);
 
                 context.Response.ContentType = "text/html";
                 context.Response.ContentEncoding = Encoding.ASCII;
                 context.Response.ContentLength64 = _authRedirectResponseBytes.LongLength;
 
-                await context.Response.OutputStream.WriteAsync(_authRedirectResponseBytes, 0, _authRedirectResponseBytes.Length, cancellationToken);
+                await context.Response.OutputStream.WriteAsync(_authRedirectResponseBytes, 0, _authRedirectResponseBytes.Length, cancellationToken).ConfigureAwait(false);
 
                 context.Response.Close();
 
-                context = await httpListener.GetContextAsync();
+                context = await httpListener.GetContextAsync().ConfigureAwait(false);
 
                 string fragmentHeader = context.Request.Headers["fragment"];
                 Uri url = context.Request.Url;
@@ -122,19 +125,26 @@ namespace RiskOfTwitch
                 context.Response.Close();
 
                 if (!fragments.TryGetValue("state", out string receivedAuthState) || !string.Equals(authState, receivedAuthState))
-                {
-                    Log.Error("Invalid auth state");
-                    return null;
-                }
+                    throw new AuthenticationException("Invalid authentication state");
 
                 if (!fragments.TryGetValue("access_token", out string accessToken))
-                {
-                    Log.Error("No access token was received");
-                    return null;
-                }
+                    throw new AuthenticationException("No token received");
 
                 return accessToken;
             }
+        }
+
+        public static async Task<AuthenticationTokenValidationResponse> GetAccessTokenValidationAsync(string accessToken, CancellationToken cancellationToken = default)
+        {
+            using HttpClient client = new HttpClient();
+
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+
+            using HttpResponseMessage validationResponse = await client.GetAsync("https://id.twitch.tv/oauth2/validate", cancellationToken).ConfigureAwait(false);
+
+            validationResponse.EnsureSuccessStatusCode();
+
+            return JsonConvert.DeserializeObject<AuthenticationTokenValidationResponse>(await validationResponse.Content.ReadAsStringAsync().ConfigureAwait(false));
         }
     }
 }

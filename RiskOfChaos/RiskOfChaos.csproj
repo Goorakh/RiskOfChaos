@@ -44,6 +44,10 @@
     </PackageReference>
   </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\RiskOfTwitch\RiskOfTwitch.csproj" />
+    </ItemGroup>
+
   <ItemGroup>
     <Reference Include="Facepunch.Steamworks">
       <HintPath>libs\Facepunch.Steamworks.dll</HintPath>
@@ -112,16 +116,28 @@
     <Copy SourceFiles="$(BuildDir)icon.png" DestinationFolder="$(TSPackageDir)" ContinueOnError="true" />
 
     <ItemGroup>
+      <PreviousBuildFiles Include="$(TSPackagePluginDir)*.dll;$(TSPackagePluginDir)*.pdb" />
+    </ItemGroup>
+
+    <Delete Files="@(PreviousBuildFiles)" />
+
+    <ItemGroup>
       <LangFiles Include="$(SolutionDir)lang/**/*.*" />
     </ItemGroup>
-    
+
     <Copy SourceFiles="@(LangFiles)" DestinationFolder="$(TSPackagePluginDir)/lang/%(RecursiveDir)" />
     
     <Copy SourceFiles="$(OutDir)/$(AssemblyName).dll" DestinationFolder="$(TSPackagePluginDir)" />
     
     <Copy SourceFiles="$(OutDir)/$(AssemblyName).pdb" DestinationFolder="$(TSPackagePluginDir)" Condition="'$(Configuration)'=='Debug'" />
     <Delete Files="$(TSPackagePluginDir)/$(AssemblyName).pdb" Condition="'$(Configuration)'=='Release'" />
-      
+
+    <ItemGroup>
+      <RiskOfTwitchFiles Include="$(SolutionDir)RiskOfTwitch/build/*" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(RiskOfTwitchFiles)" DestinationFolder="$(TSPackagePluginDir)/%(RecursiveDir)" />
+    
     <ZipDirectory SourceDirectory="$(TSPackageDir)" DestinationFile="$(BuildDir)/$(SolutionName).zip" Overwrite="true" />
   </Target>
 </Project>
