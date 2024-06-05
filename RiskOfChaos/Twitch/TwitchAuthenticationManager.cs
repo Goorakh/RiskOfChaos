@@ -37,6 +37,47 @@ namespace RiskOfChaos.Twitch
 
         static bool _isAuthenticatingToken;
 
+        // Twitch requires that access tokens are validated at least hourly
+        const float TOKEN_AUTHENTICATION_PERIOD = 60f * 50f;
+        static float _tokenAuthenticationTimer = TOKEN_AUTHENTICATION_PERIOD;
+
+        [SystemInitializer]
+        static void Init()
+        {
+            RoR2Application.onUpdate += RoR2Application_onUpdate;
+        }
+
+        static void RoR2Application_onUpdate()
+        {
+            _tokenAuthenticationTimer -= Time.deltaTime;
+            if (_tokenAuthenticationTimer <= 0f)
+            {
+                _tokenAuthenticationTimer += TOKEN_AUTHENTICATION_PERIOD;
+
+                if (!CurrentAccessToken.IsEmpty)
+                {
+                    validateToken();
+                }
+            }
+        }
+
+        static void validateToken()
+        {
+#if DEBUG
+            Log.Debug("Validating current token");
+#endif
+
+            Task.Run(async () =>
+            {
+                AuthenticationTokenValidationResponse validation = await Authentication.GetAccessTokenValidationAsync(CurrentAccessToken.Token);
+
+                // EventSub will notify us if the token is invalidated, and currently all API access relies on an EventSub connection
+                // So there's not really anything to do here :)
+
+                // A sudden popup about your access token when you're not playing with Twitch integration would probably be annoying anyway
+            });
+        }
+
         public static void SetTokenFromFile(TwitchUserAccessToken accessToken)
         {
             CurrentAccessToken = accessToken;
@@ -118,6 +159,7 @@ namespace RiskOfChaos.Twitch
             }, UnityUpdateTaskScheduler.Instance);
         }
 
+        readonly record struct AuthenticationResult(string Token, TwitchUserData User);
         public static void AuthenticateNewToken()
         {
             if (_isAuthenticatingToken)
@@ -205,7 +247,5 @@ namespace RiskOfChaos.Twitch
                 CurrentAccessToken = accessToken;
             }, UnityUpdateTaskScheduler.Instance);
         }
-
-        readonly record struct AuthenticationResult(string Token, TwitchUserData User);
     }
 }
