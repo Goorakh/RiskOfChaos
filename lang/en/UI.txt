@@ -13,7 +13,7 @@
 		"CHAOS_EFFECT_VOTING_OPTION_FORMAT": "{0}: {1} ({2:F0}%)",
 
 		"ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_HEADER": "Reconnect Failed",
-		"ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_DESCRIPTION_TWITCH": "No valid Twitch login found. Please use the roc_twitch_login console command to connect to Twitch. See the README or Thunderstore page for instructions.",
+		"ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_DESCRIPTION_TWITCH": "No valid Twitch login found. Please authenticate in the mod settings.",
 
 		"TWITCH_USER_TOKEN_AUTHENTICATING_HEADER": "Authenticating",
 		"TWITCH_USER_TOKEN_AUTHENTICATING_DESCRIPTION": "If a browser tab does not open, cancel and try again",
