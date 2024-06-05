@@ -132,6 +132,30 @@ namespace RiskOfChaos.EffectDefinitions.UI
             if (_excludeEffectNames.Value && ChaosEffectCatalog.IsEffectRelatedToken(token))
                 return;
 
+            // Miscellaneous important tokens that should always be readable
+            switch (token)
+            {
+                case "ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_HEADER":
+                case "ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_DESCRIPTION_TWITCH":
+                case "TWITCH_USER_TOKEN_AUTHENTICATING_HEADER":
+                case "TWITCH_USER_TOKEN_AUTHENTICATING_DESCRIPTION":
+                case "TWITCH_USER_TOKEN_AUTHENTICATED_HEADER":
+                case "TWITCH_USER_TOKEN_AUTHENTICATED_DESCRIPTION":
+                case "TWITCH_USER_TOKEN_AUTHENTICATION_ERROR_HEADER":
+                case "TWITCH_USER_TOKEN_AUTHENTICATION_ERROR_DESCRIPTION":
+                case "POPUP_CONFIG_UPDATE_HEADER":
+                case "POPUP_CONFIG_UPDATE_DESCRIPTION":
+                case "POPUP_CONFIG_UPDATE_RESET":
+                case "POPUP_CONFIG_UPDATE_IGNORE":
+                case "POPUP_TWITCH_USER_TOKEN_EXPIRED_HEADER":
+                case "POPUP_TWITCH_USER_TOKEN_EXPIRED_DESCRIPTION":
+                case "POPUP_TWITCH_USER_TOKEN_ABOUT_TO_EXPIRE_HEADER":
+                case "POPUP_TWITCH_USER_TOKEN_ABOUT_TO_EXPIRE_DESCRIPTION":
+                case "POPUP_TWITCH_USER_TOKEN_MISSING_SCOPES_HEADER":
+                case "POPUP_TWITCH_USER_TOKEN_MISSING_SCOPES_DESCRIPTION":
+                    return;
+            }
+
             if (_tokenOverrideCache.TryGetValue(token, out string cachedOverride))
             {
                 str = cachedOverride;
