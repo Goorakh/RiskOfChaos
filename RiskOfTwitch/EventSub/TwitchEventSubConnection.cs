@@ -59,11 +59,14 @@ namespace RiskOfTwitch.EventSub
         protected override bool shouldReconnect(WebSocketMessage closingMessage)
         {
             // https://dev.twitch.tv/docs/eventsub/handling-websocket-events/#close-message
-            switch (closingMessage.CloseStatus)
+            if (closingMessage.CloseStatus.HasValue)
             {
-                case (WebSocketCloseStatus)4003: // Connection unused
-                case (WebSocketCloseStatus)4004: // Reconnect grace time expired
+                WebSocketCloseStatus closeStatus = closingMessage.CloseStatus.Value;
+                if (closeStatus == (WebSocketCloseStatus)4003 || // Connection unused
+                    closeStatus == (WebSocketCloseStatus)4004)   // Reconnect grace time expired
+                {
                     return false;
+                }
             }
 
             return base.shouldReconnect(closingMessage);
