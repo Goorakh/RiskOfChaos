@@ -11,6 +11,7 @@
 		"TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_VERSION_REMOVED": "API version error, report this immediately please",
 
 		"TWITCH_EFFECT_VOTING_LOGIN_SUCCESS": "<style=cWorldEvent>[Risk of Chaos]: Successfully connected to Twitch channel: {0}</style>",
+		"TWITCH_EFFECT_VOTING_LOGIN_SUCCESS_CHANNEL_FALLBACK": "<style=cWorldEvent>[Risk of Chaos]: Invalid override channel '{0}', using authenticated account's channel instead</style>",
 
 		"MONSTER_INVENTORY_ADD_ITEM": "<style=cWorldEvent><b>{1}</b> was added to monster inventory</style> {2}",
 

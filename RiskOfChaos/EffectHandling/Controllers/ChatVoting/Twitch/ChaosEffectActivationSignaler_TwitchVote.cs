@@ -28,6 +28,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
                 case "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_AUTHORIZATION_REVOKED":
                 case "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_VERSION_REMOVED":
                 case "TWITCH_EFFECT_VOTING_LOGIN_SUCCESS":
+                case "TWITCH_EFFECT_VOTING_LOGIN_SUCCESS_CHANNEL_FALLBACK":
                     return true;
                 default:
                     return false;
@@ -163,10 +164,20 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
         {
             TwitchEventSubClient client = sender as TwitchEventSubClient;
 
+            if (!string.IsNullOrEmpty(Configs.ChatVoting.OverrideChannelName.Value) &&
+                !string.Equals(client.ConnectedToChannel, Configs.ChatVoting.OverrideChannelName.Value))
+            {
+                _messageQueue.Enqueue(new Chat.SimpleChatMessage
+                {
+                    baseToken = "TWITCH_EFFECT_VOTING_LOGIN_SUCCESS_CHANNEL_FALLBACK",
+                    paramTokens = [Configs.ChatVoting.OverrideChannelName.Value]
+                });
+            }
+
             _messageQueue.Enqueue(new Chat.SimpleChatMessage
             {
                 baseToken = "TWITCH_EFFECT_VOTING_LOGIN_SUCCESS",
-                paramTokens = [client?.ConnectedToChannel]
+                paramTokens = [client.ConnectedToChannel]
             });
         }
 

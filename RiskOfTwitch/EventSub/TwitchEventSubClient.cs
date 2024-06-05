@@ -359,11 +359,11 @@ namespace RiskOfTwitch.EventSub
 
             if (!string.IsNullOrEmpty(_overrideBroadcasterName))
             {
-                broadcasterName = _overrideBroadcasterName;
-
                 GetUsersResponse getUsersResponse = await StaticTwitchAPI.GetUsers(_accessToken, [], [_overrideBroadcasterName], cancellationToken).ConfigureAwait(false);
                 if (getUsersResponse != null && getUsersResponse.Users.Length > 0)
                 {
+                    broadcasterName = _overrideBroadcasterName;
+
                     broadcasterId = getUsersResponse.Users[0].UserId;
                 }
             }
