@@ -153,6 +153,8 @@ namespace RiskOfChaos.EffectDefinitions.UI
                 case "POPUP_TWITCH_USER_TOKEN_ABOUT_TO_EXPIRE_DESCRIPTION":
                 case "POPUP_TWITCH_USER_TOKEN_MISSING_SCOPES_HEADER":
                 case "POPUP_TWITCH_USER_TOKEN_MISSING_SCOPES_DESCRIPTION":
+                case "POPUP_TWITCH_LOGIN_OAUTH_NO_LONGER_USED_HEADER":
+                case "POPUP_TWITCH_LOGIN_OAUTH_NO_LONGER_USED_DESCRIPTION":
                     return;
             }
 

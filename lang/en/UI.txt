@@ -46,5 +46,8 @@
 
 		"POPUP_TWITCH_USER_TOKEN_MISSING_SCOPES_HEADER": "Risk of Chaos",
 		"POPUP_TWITCH_USER_TOKEN_MISSING_SCOPES_DESCRIPTION": "Your stored access token is no longer valid, if you intend to use Twitch voting you must authenticate again to refresh it.",
+
+		"POPUP_TWITCH_LOGIN_OAUTH_NO_LONGER_USED_HEADER": "Risk of Chaos: Old login detected!",
+		"POPUP_TWITCH_LOGIN_OAUTH_NO_LONGER_USED_DESCRIPTION": "Your saved login is not compatible with the current authentication method. You must authenticate in the mod settings if you intend to use Twitch integration. See README for more instructions.",
 	}
 }

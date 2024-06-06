@@ -14,10 +14,13 @@ namespace RiskOfChaos.Twitch
 
         static readonly string _tokenStoreFilePath = PersistentSaveDataManager.GetSaveFilePath(TOKEN_STORE_FILE_NAME);
 
+        public static bool HasStoredToken { get; private set; }
+
         [SystemInitializer]
         static void Init()
         {
-            if (tryLoadAccessToken(out TwitchUserAccessToken storedAccessToken))
+            HasStoredToken = tryLoadAccessToken(out TwitchUserAccessToken storedAccessToken);
+            if (HasStoredToken)
             {
 #if DEBUG
                 Log.Debug("Loaded access token from file");
@@ -73,16 +76,22 @@ namespace RiskOfChaos.Twitch
                 if (File.Exists(_tokenStoreFilePath))
                     File.Delete(_tokenStoreFilePath);
 
+                HasStoredToken = false;
+
                 return;
             }
 
-            using FileStream fs = File.Open(_tokenStoreFilePath, FileMode.Create, FileAccess.Write);
-            using BinaryWriter writer = new BinaryWriter(fs, Encoding.ASCII);
+            using (FileStream fs = File.Open(_tokenStoreFilePath, FileMode.Create, FileAccess.Write))
+            {
+                using BinaryWriter writer = new BinaryWriter(fs, Encoding.ASCII);
 
-            writer.Write(CURRENT_TOKEN_STORE_FORMAT_VERSION);
+                writer.Write(CURRENT_TOKEN_STORE_FORMAT_VERSION);
 
-            writer.Write(accessToken.Scopes);
-            writer.Write(accessToken.Token);
+                writer.Write(accessToken.Scopes);
+                writer.Write(accessToken.Token);
+            }
+
+            HasStoredToken = true;
         }
     }
 }
