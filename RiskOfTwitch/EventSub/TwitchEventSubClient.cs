@@ -176,13 +176,13 @@ namespace RiskOfTwitch.EventSub
                 return;
             }
 
-            CancellationTokenSource cancelledOrDisconnectedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _disconnectedTokenSource.Token);
+            using CancellationTokenSource cancelledOrDisconnectedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _disconnectedTokenSource.Token);
 
             string messageType = messageTypeToken.ToObject<string>();
             switch (messageType)
             {
                 case "session_welcome":
-                    _ = handleSessionWelcomeMessage(jsonObject, cancelledOrDisconnectedSource.Token);
+                    await handleSessionWelcomeMessage(jsonObject, cancelledOrDisconnectedSource.Token);
                     break;
                 case "session_keepalive":
                     // This message has no payload, no handling needs to be done. All relevant processing this needs is done above.

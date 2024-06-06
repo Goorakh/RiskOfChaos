@@ -53,7 +53,10 @@ namespace RiskOfTwitch.EventSub
                 return;
             }
 
-            await _eventHandler.HandleEventAsync(deserializedMessage, cancellationToken).ConfigureAwait(false);
+            _ = Task.Run(async () =>
+            {
+                await _eventHandler.HandleEventAsync(deserializedMessage, cancellationToken).ConfigureAwait(false);
+            });
         }
 
         protected override bool shouldReconnect(WebSocketMessage closingMessage)
