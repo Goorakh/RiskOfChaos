@@ -2,14 +2,18 @@
 	strings:
 	{
 		"TWITCH_EFFECT_VOTING_LOGIN_FAIL_FORMAT": "<style=cWorldEvent>[Risk of Chaos]: Unable to connect to Twitch channel: {0}</style>",
-		"TWITCH_LOGIN_FAIL_NOT_LOGGED_IN": "Not logged in, please use the roc_twitch_login console command",
+		"TWITCH_LOGIN_FAIL_NOT_LOGGED_IN": "Not logged in, please authenticate in the mod settings",
 
 		"TWITCH_EFFECT_VOTING_CONNECTION_ERROR": "<style=cWorldEvent>[Risk of Chaos]: Twitch connection error: {0}</style>",
 		"TWITCH_EFFECT_VOTING_GENERIC_CLIENT_CONNECT_FAIL": "Failed to connect Twitch Client",
-		"TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_NO_PERMISSION": "Client received NoPermissionError",
-		"TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_INCORRECT_LOGIN": "Invalid login credentials",
+		"TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_USER_REMOVED": "Invalid user",
+		"TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_AUTHORIZATION_REVOKED": "Access revoked by user",
+		"TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_VERSION_REMOVED": "API version error, report this immediately please",
+		"TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_USER_RETRIEVE_FAILED": "Invalid access token, authenticate in mod settings",
+		"TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_SUBSCRIBE_FAILED": "Invalid access token, authenticate in mod settings",
 
 		"TWITCH_EFFECT_VOTING_LOGIN_SUCCESS": "<style=cWorldEvent>[Risk of Chaos]: Successfully connected to Twitch channel: {0}</style>",
+		"TWITCH_EFFECT_VOTING_LOGIN_SUCCESS_CHANNEL_FALLBACK": "<style=cWorldEvent>[Risk of Chaos]: Invalid override channel '{0}', using authenticated account's channel instead</style>",
 
 		"MONSTER_INVENTORY_ADD_ITEM": "<style=cWorldEvent><b>{1}</b> was added to monster inventory</style> {2}",
 

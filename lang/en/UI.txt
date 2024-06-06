@@ -13,8 +13,16 @@
 		"CHAOS_EFFECT_VOTING_OPTION_FORMAT": "{0}: {1} ({2:F0}%)",
 
 		"ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_HEADER": "Reconnect Failed",
-		
-		"ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_DESCRIPTION_TWITCH": "No valid Twitch login found. Please use the roc_twitch_login console command to connect to Twitch. See the README or Thunderstore page for instructions.",
+		"ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_DESCRIPTION_TWITCH": "No valid Twitch login found. Please authenticate in the mod settings.",
+
+		"TWITCH_USER_TOKEN_AUTHENTICATING_HEADER": "Authenticating",
+		"TWITCH_USER_TOKEN_AUTHENTICATING_DESCRIPTION": "If a browser tab does not open, cancel and try again",
+
+		"TWITCH_USER_TOKEN_AUTHENTICATED_HEADER": "Connected!",
+		"TWITCH_USER_TOKEN_AUTHENTICATED_DESCRIPTION": "Risk of Chaos has been successfully connected to Twitch account '{0}'",
+
+		"TWITCH_USER_TOKEN_AUTHENTICATION_ERROR_HEADER": "Connection Error",
+		"TWITCH_USER_TOKEN_AUTHENTICATION_ERROR_DESCRIPTION": "An unexpected error occured while authenticating, please try again. If the issue persists, please send a bug report :)",
 
 		"LOGBOOK_INVINCIBLE_LEMURIAN_ENCOUNTERS_FORMAT": "Encountered: <style=cEvent>{0}</style>",
 		"LOGBOOK_INVINCIBLE_LEMURIAN_DEATHS_FORMAT": "Killed By: <style=cEvent>{0}</style>",
@@ -29,5 +37,17 @@
 		"POPUP_CONFIG_UPDATE_DESCRIPTION": "The mod has updated since you last played, it is recommended that you reset your config before playing, otherwise you may miss important balance changes. All of your mod settings will be lost",
 		"POPUP_CONFIG_UPDATE_RESET": "Reset Config",
 		"POPUP_CONFIG_UPDATE_IGNORE": "Keep Config",
+
+		"POPUP_TWITCH_USER_TOKEN_EXPIRED_HEADER": "Risk of Chaos",
+		"POPUP_TWITCH_USER_TOKEN_EXPIRED_DESCRIPTION": "Your stored access token has expired. If you want to use Twitch voting you will need to authenticate again.",
+
+		"POPUP_TWITCH_USER_TOKEN_ABOUT_TO_EXPIRE_HEADER": "Risk of Chaos",
+		"POPUP_TWITCH_USER_TOKEN_ABOUT_TO_EXPIRE_DESCRIPTION": "Your stored access token will expire in {0} hour(s), if you intend to use Twitch voting it is recommended that you authenticate again to refresh it.",
+
+		"POPUP_TWITCH_USER_TOKEN_MISSING_SCOPES_HEADER": "Risk of Chaos",
+		"POPUP_TWITCH_USER_TOKEN_MISSING_SCOPES_DESCRIPTION": "Your stored access token is no longer valid, if you intend to use Twitch voting you must authenticate again to refresh it.",
+
+		"POPUP_TWITCH_LOGIN_OAUTH_NO_LONGER_USED_HEADER": "Risk of Chaos: Old login detected!",
+		"POPUP_TWITCH_LOGIN_OAUTH_NO_LONGER_USED_DESCRIPTION": "Your saved login is not compatible with the current authentication method. You must authenticate in the mod settings if you intend to use Twitch integration. See README for more instructions.",
 	}
 }

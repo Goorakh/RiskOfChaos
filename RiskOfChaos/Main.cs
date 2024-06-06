@@ -42,6 +42,10 @@ namespace RiskOfChaos
 
             Log.Init(Logger);
 
+            TaskExceptionHandler.Initialize();
+
+            RiskOfTwitch.Log.LogSource = new TwitchLibLogSource();
+
             ModDirectory = Path.GetDirectoryName(Info.Location);
 
             ContentPackProvider = new ContentPackProvider();
@@ -99,6 +103,8 @@ namespace RiskOfChaos
 
         void OnDestroy()
         {
+            TaskExceptionHandler.Cleanup();
+
             if (ProperSaveCompat.Active)
             {
                 ProperSaveCompat.Cleanup();

@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="build\**" />
+    <EmbeddedResource Remove="build\**" />
+    <None Remove="build\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <BuildDir>$(ProjectDir)build/</BuildDir>
+  </PropertyGroup>
+
+  <Target Name="makethething" AfterTargets="Build">
+    <MakeDir Directories="$(BuildDir)" />
+    
+    <Copy SourceFiles="$(OutDir)/$(AssemblyName).dll" DestinationFolder="$(BuildDir)" />
+    
+    <Copy SourceFiles="$(OutDir)/$(AssemblyName).pdb" DestinationFolder="$(BuildDir)" Condition="'$(Configuration)'=='Debug'" />
+    <Delete Files="$(BuildDir)/$(AssemblyName).pdb" Condition="'$(Configuration)'=='Release'" />
+  </Target>
+</Project>
