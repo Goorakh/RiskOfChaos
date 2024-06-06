@@ -124,10 +124,7 @@ namespace RiskOfChaos
 
                 bindConfig(VotingMode);
 
-                ModSettingsManager.AddOption(new GenericButtonOption("Authenticate (Twitch)", SECTION_NAME, "Authenticate your account with Risk of Chaos (Opens browser tab)", "Open", () =>
-                {
-                    TwitchAuthenticationManager.AuthenticateNewToken();
-                }), CONFIG_GUID, CONFIG_NAME);
+                ModSettingsManager.AddOption(new GenericButtonOption("Authenticate (Twitch)", SECTION_NAME, "Authenticate your account with Risk of Chaos (Opens browser tab)", "Open", TwitchAuthenticationManager.AuthenticateNewToken), CONFIG_GUID, CONFIG_NAME);
 
                 bindConfig(OverrideChannelName);
 
