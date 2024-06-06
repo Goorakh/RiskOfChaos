@@ -1,5 +1,7 @@
 ﻿using BepInEx.Configuration;
 using RiskOfOptions;
+using System;
+using System.IO;
 using UnityEngine;
 
 namespace RiskOfChaos
@@ -9,16 +11,36 @@ namespace RiskOfChaos
         const string CONFIG_GUID = $"RoC_Config_General";
         const string CONFIG_NAME = $"Risk of Chaos: General";
 
-        public static readonly Sprite GenericIcon;
+        public static Sprite GenericIcon { get; private set; }
 
-        static Configs()
+        static void findIcon()
         {
-            Texture2D genericIconTexture = new Texture2D(256, 256);
-            if (genericIconTexture.LoadImage(Properties.Resources.icon))
+            FileInfo iconFile = null;
+
+            DirectoryInfo dir = new DirectoryInfo(Main.ModDirectory);
+            do
             {
-                GenericIcon = Sprite.Create(genericIconTexture, new Rect(0f, 0f, genericIconTexture.width, genericIconTexture.height), new Vector2(0.5f, 0.5f));
+                FileInfo[] files = dir.GetFiles("icon.png", SearchOption.TopDirectoryOnly);
+                if (files != null && files.Length > 0)
+                {
+                    iconFile = files[0];
+                    break;
+                }
+
+                dir = dir.Parent;
+
+            } while (dir != null && !string.Equals(dir.Name, "plugins", StringComparison.OrdinalIgnoreCase));
+
+            if (iconFile != null)
+            {
+                Texture2D iconTexture = new Texture2D(256, 256);
+                if (iconTexture.LoadImage(File.ReadAllBytes(iconFile.FullName)))
+                {
+                    GenericIcon = Sprite.Create(iconTexture, new Rect(0f, 0f, iconTexture.width, iconTexture.height), new Vector2(0.5f, 0.5f));
+                }
             }
-            else
+
+            if (!GenericIcon)
             {
                 Log.Error("Failed to load config icon");
             }
@@ -39,6 +61,8 @@ namespace RiskOfChaos
 #endif
 
             Metadata.Bind(file);
+
+            findIcon();
 
             if (GenericIcon)
             {
