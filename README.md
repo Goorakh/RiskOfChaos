@@ -149,13 +149,29 @@ Currently features 138 different effects.
 * Splitscreen: Splits the screen into 9 copies of the game view, lasts 90 seconds
 </details>
 
+<hr>
+
 ### Twitch Integration:
 
 Twitch integration allows viewers to vote for the next effect.
 
-To set up Twitch voting, set the General->Streamer Integration->Voting Mode config to "Twitch", then open [the console](https://riskofrain2.fandom.com/wiki/Developer_Console), and use the command "roc_twitch_login" then provide your channel name and [oauth token](https://twitchapps.com/tmi/) (ex. "roc_twitch_login goorakh oauth:yourtokengoeshere"). You can remove the stored login information with the "roc_twitch_logout" command
+#### Setup:
 
-If the game loses connection to your channel, it will automatically attempt to reconnect, if this doesn't work however, you can manually make it reconnect in the Streamer Integration options menu by pressing the Reconnect button
+Setting up Twitch integration is done from in-game in the Mod Options.
+
+<img src="https://raw.githubusercontent.com/Goorakh/RiskOfChaos/master/Thunderstore/Readme_TwitchSetup_1.png" alt="setup instructions 1" width=500 />
+
+Set the voting mode to "Twitch" and authenticate
+
+<img src="https://raw.githubusercontent.com/Goorakh/RiskOfChaos/master/Thunderstore/Readme_TwitchSetup_1.png" alt="setup instructions 2" width=500 />
+
+<br>
+<br>
+<br>
+
+If the mod loses connection to your channel, it will automatically attempt to reconnect, if this doesn't work however, you can manually make it reconnect by pressing the Reconnect button in the settings.
+
+<hr>
 
 FAQ:
 

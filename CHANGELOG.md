@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Twitch Integration:
+  * Complete rewrite, the mod no longer requires a full-access account token, see README for new authentication instructions
+
 * Splitscreen:
   * Screen effect now applies to the game UI
     * HUD scale is automatically increased so it's still mostly readable, can be disabled in config
