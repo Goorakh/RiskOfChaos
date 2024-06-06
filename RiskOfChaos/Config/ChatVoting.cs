@@ -43,7 +43,8 @@ namespace RiskOfChaos
                                      {
                                         lineType = TMPro.TMP_InputField.LineType.SingleLine,
                                         richText = false,
-                                        submitOn = InputFieldConfig.SubmitEnum.OnExitOrSubmit
+                                        submitOn = InputFieldConfig.SubmitEnum.OnExitOrSubmit,
+                                        checkIfDisabled = isVotingDisabled
                                      })
                                      .Build();
 
