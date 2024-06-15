@@ -163,13 +163,15 @@ Setting up Twitch integration is done from in-game in the Mod Options.
 
 Set the voting mode to "Twitch" and authenticate
 
-<img src="https://raw.githubusercontent.com/Goorakh/RiskOfChaos/master/Thunderstore/Readme_TwitchSetup_1.png" alt="setup instructions 2" width=500 />
+<img src="https://raw.githubusercontent.com/Goorakh/RiskOfChaos/master/Thunderstore/Readme_TwitchSetup_2.png" alt="setup instructions 2" width=500 />
 
 <br>
 <br>
 <br>
 
 If the mod loses connection to your channel, it will automatically attempt to reconnect, if this doesn't work however, you can manually make it reconnect by pressing the Reconnect button in the settings.
+
+**If you run into issues that are not covered here, please contact me on Discord (@gorakh/Gorakh#0821) or open a [GitHub issue](https://github.com/Goorakh/RiskOfChaos/issues/new)**
 
 <hr>
 

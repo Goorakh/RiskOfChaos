@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**1.18.0 Changes:**
 
 * Twitch Integration:
   * Complete rewrite, the mod no longer requires a full-access account token, see README for new authentication instructions
@@ -17,7 +17,7 @@
 
 * Increase & Decrease World speed:
   * Default duration: 1 stage -> 120 seconds
-  * Default Increase/Decrease amount: ±25% -> ±35%
+  * Default Increase/Decrease amount: 25% -> 35%
 
 **1.17.0 Changes:**
 
