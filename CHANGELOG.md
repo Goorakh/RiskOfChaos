@@ -1,5 +1,9 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* Fixed missing icon for Effects config
+
 **1.18.0 Changes:**
 
 * Twitch Integration:

@@ -24,7 +24,7 @@ namespace RiskOfChaos.EffectHandling
         public const string CONFIG_MOD_NAME = $"Risk of Chaos: {CONFIG_SECTION_NAME}";
 
         static ConfigFile _effectConfigFile;
-        static readonly Sprite _effectsConfigIcon = Configs.GenericIcon;
+        static Sprite effectsConfigIcon => Configs.GenericIcon;
 
         public static ResourceAvailability Availability = new ResourceAvailability();
 
@@ -45,9 +45,9 @@ namespace RiskOfChaos.EffectHandling
         {
             _effectConfigFile = config;
 
-            if (_effectsConfigIcon)
+            if (effectsConfigIcon)
             {
-                ModSettingsManager.SetModIcon(_effectsConfigIcon, CONFIG_MOD_GUID, CONFIG_MOD_NAME);
+                ModSettingsManager.SetModIcon(effectsConfigIcon, CONFIG_MOD_GUID, CONFIG_MOD_NAME);
             }
 
             ModSettingsManager.SetModDescription("Effect config options for Risk of Chaos", CONFIG_MOD_GUID, CONFIG_MOD_NAME);
