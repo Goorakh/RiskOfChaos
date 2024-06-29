@@ -8,7 +8,6 @@ using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.Audio;
 using RoR2.Navigation;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -78,13 +77,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             base.OnPreStartServer();
 
-            _blackHoleRadius = _maxRadiusConfig.Value;
+            float maxRadius = _maxRadiusConfig.Value;
 
-            Vector3 spawnOffset = new Vector3(0f, _blackHoleRadius + 12.5f, 0f);
+            Vector3 spawnOffset = new Vector3(0f, maxRadius + 12.5f, 0f);
 
             DirectorPlacementRule placementRule = SpawnUtils.GetBestValidRandomPlacementRule();
 
-            Collider[] spawnPositionOverlaps = new Collider[byte.MaxValue];
+            Collider[] spawnPositionOverlapsBuffer = new Collider[32];
 
             Vector3 bestEncounteredSpawnPosition = Vector3.zero;
             float bestSpawnPositionSqrFitRadius = 0f;
@@ -96,7 +95,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 Vector3 groundPosition = placementRule.EvaluateToPosition(RNG, HullClassification.Golem, MapNodeGroup.GraphType.Ground);
                 Vector3 spawnPosition = groundPosition + spawnOffset;
 
-                int overlapCount = Physics.OverlapSphereNonAlloc(spawnPosition, _blackHoleRadius, spawnPositionOverlaps, LayerIndex.world.mask.value);
+                int overlapCount = Physics.OverlapSphereNonAlloc(spawnPosition, maxRadius, spawnPositionOverlapsBuffer, LayerIndex.world.mask.value);
 
                 // No overlap: It fits completely, no need to check any more positions
                 if (overlapCount == 0)
@@ -106,48 +105,50 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 #endif
 
                     bestEncounteredSpawnPosition = spawnPosition;
-                    bestSpawnPositionSqrFitRadius = _blackHoleRadius * _blackHoleRadius;
+                    bestSpawnPositionSqrFitRadius = maxRadius * maxRadius;
                     break;
                 }
 
-                float sqrFitRadius = spawnPositionOverlaps.Take(overlapCount)
-                                                          .Select(c =>
-                                                          {
-                                                              Vector3 closestPoint;
-                                                              switch (c)
-                                                              {
-                                                                  case BoxCollider:
-                                                                  case SphereCollider:
-                                                                  case CapsuleCollider:
-                                                                  case MeshCollider meshCollider when meshCollider.convex:
-                                                                      closestPoint = c.ClosestPoint(spawnPosition);
-                                                                      break;
-                                                                  default:
-                                                                      closestPoint = c.ClosestPointOnBounds(spawnPosition);
-                                                                      break;
-                                                              }
+                float closestOverlapPointSqrDistance = float.PositiveInfinity;
+                for (int j = 0; j < overlapCount; j++)
+                {
+                    Collider overlapCollider = spawnPositionOverlapsBuffer[j];
 
-                                                              return (closestPoint - spawnPosition).sqrMagnitude;
-                                                          })
-                                                          .Min();
+                    Vector3 closestPoint;
+                    switch (overlapCollider)
+                    {
+                        case BoxCollider:
+                        case SphereCollider:
+                        case CapsuleCollider:
+                        case MeshCollider meshCollider when meshCollider.convex:
+                            closestPoint = overlapCollider.ClosestPoint(spawnPosition);
+                            break;
+                        default:
+                            closestPoint = overlapCollider.ClosestPointOnBounds(spawnPosition);
+                            break;
+                    }
+
+                    closestOverlapPointSqrDistance = Mathf.Min(closestOverlapPointSqrDistance, (closestPoint - spawnPosition).sqrMagnitude);
+                }
 
 #if DEBUG
-                float fitRadius = Mathf.Sqrt(sqrFitRadius);
-                Log.Debug($"Candidate {i} overlaps {overlapCount} object(s) ({_blackHoleRadius - fitRadius} units, {fitRadius / _blackHoleRadius:P} fit): [{string.Join(", ", spawnPositionOverlaps.Take(overlapCount))}]");
+                float fitRadius = Mathf.Sqrt(closestOverlapPointSqrDistance);
+                Log.Debug($"Candidate {i} overlaps {overlapCount} object(s) ({maxRadius - fitRadius} units, {fitRadius / maxRadius:P} fit): [{string.Join(", ", spawnPositionOverlapsBuffer.Take(overlapCount))}]");
 #endif
 
-                if (sqrFitRadius > bestSpawnPositionSqrFitRadius)
+                if (closestOverlapPointSqrDistance > bestSpawnPositionSqrFitRadius)
                 {
-                    bestSpawnPositionSqrFitRadius = sqrFitRadius;
+                    bestSpawnPositionSqrFitRadius = closestOverlapPointSqrDistance;
                     bestEncounteredSpawnPosition = spawnPosition;
                 }
             }
 
 #if DEBUG
             float bestSpawnPositionFitRadius = Mathf.Sqrt(bestSpawnPositionSqrFitRadius);
-            Log.Debug($"Selected spawn position with {_blackHoleRadius - bestSpawnPositionFitRadius} units overlap ({bestSpawnPositionFitRadius / _blackHoleRadius:P} fit)");
+            Log.Debug($"Selected spawn position with {maxRadius - bestSpawnPositionFitRadius} units overlap ({bestSpawnPositionFitRadius / maxRadius:P} fit)");
 #endif
 
+            _blackHoleRadius = maxRadius;
             _blackHolePosition = bestEncounteredSpawnPosition;
         }
 
