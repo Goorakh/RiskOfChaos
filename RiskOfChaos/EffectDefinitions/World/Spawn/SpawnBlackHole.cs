@@ -133,7 +133,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
 #if DEBUG
                 float fitRadius = Mathf.Sqrt(closestOverlapPointSqrDistance);
-                Log.Debug($"Candidate {i} overlaps {overlapCount} object(s) ({maxRadius - fitRadius} units, {fitRadius / maxRadius:P} fit): [{string.Join(", ", spawnPositionOverlapsBuffer.Take(overlapCount))}]");
+
+                Collider[] overlaps = new Collider[overlapCount];
+                System.Array.Copy(spawnPositionOverlapsBuffer, overlaps, overlapCount);
+
+                Log.Debug($"Candidate {i} overlaps {overlapCount} object(s) ({maxRadius - fitRadius} units, {fitRadius / maxRadius:P} fit): [{string.Join<Collider>(", ", overlaps)}]");
 #endif
 
                 if (closestOverlapPointSqrDistance > bestSpawnPositionSqrFitRadius)
