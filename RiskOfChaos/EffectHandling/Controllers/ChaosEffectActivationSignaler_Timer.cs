@@ -113,7 +113,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         {
             Xoroshiro128Plus rng = new Xoroshiro128Plus(Run.instance.stageRng);
 
-            int effectsListSize = Configs.EffectSelection.PerStageEffectListSize.Value;
+            int effectsListSize = Configs.EffectSelection.PerStageEffectListSize?.Value ?? -1;
             if (effectsListSize <= 0)
             {
                 Log.Error($"Invalid effect list size: {effectsListSize}, per-stage effects will not be used");

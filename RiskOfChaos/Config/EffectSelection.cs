@@ -26,10 +26,7 @@ namespace RiskOfChaos
                                    .OptionConfig(new CheckBoxConfig())
                                    .Build();
 
-            public static readonly ConfigHolder<int> PerStageEffectListSize =
-                ConfigFactory<int>.CreateConfig("Effect List Size", 50)
-                                  .Description("The size of the per-stage effect list\nNot supported in any chat voting mode")
-                                  .Build();
+            public static ConfigHolder<int> PerStageEffectListSize { get; private set; }
 
             internal static void Bind(ConfigFile file)
             {
@@ -44,12 +41,17 @@ namespace RiskOfChaos
 
                 ChaosEffectCatalog.Availability.CallWhenAvailable(() =>
                 {
-                    PerStageEffectListSize.SetOptionConfig(new IntSliderConfig
-                    {
-                        min = 1,
-                        max = ChaosEffectCatalog.EffectCount,
-                        checkIfDisabled = perStageEffectListDisabled
-                    });
+                    PerStageEffectListSize =
+                        ConfigFactory<int>.CreateConfig("Effect List Size", 50)
+                                          .Description("The size of the per-stage effect list\nNot supported in any chat voting mode")
+                                          .AcceptableValues(new AcceptableValueRange<int>(1, ChaosEffectCatalog.EffectCount))
+                                          .OptionConfig(new IntSliderConfig
+                                          {
+                                              min = 1,
+                                              max = ChaosEffectCatalog.EffectCount,
+                                              checkIfDisabled = perStageEffectListDisabled
+                                          })
+                                          .Build();
 
                     bindConfig(PerStageEffectListSize);
                 });
