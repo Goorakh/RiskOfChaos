@@ -4,7 +4,7 @@
     {
         public readonly float GetWeight()
         {
-            return OverrideWeight.GetValueOrDefault(Effect.TotalSelectionWeight);
+            return OverrideWeight ?? Effect.TotalSelectionWeight;
         }
     }
 }
