@@ -1,6 +1,7 @@
 ﻿using MonoMod.Cil;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities.Interpolation;
+using RoR2;
 using RoR2.CameraModes;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -47,6 +48,8 @@ namespace RiskOfChaos.ModifierController.Camera
 
             On.RoR2.CameraModes.CameraModeBase.CollectLookInput += CameraModeBase_CollectLookInput;
 
+            On.RoR2.CameraTargetParams.CalcParams += CameraTargetParams_CalcParams;
+
             PlayerInputHook.ModifyPlayerMoveInput += PlayerInputHook_ModifyPlayerMoveInput;
 
             _appliedPatches = true;
@@ -82,7 +85,19 @@ namespace RiskOfChaos.ModifierController.Camera
             }
         }
 
-        static void PlayerInputHook_ModifyPlayerMoveInput(RoR2.PlayerCharacterMasterController playerMasterController, ref Vector2 moveInput)
+        static void CameraTargetParams_CalcParams(On.RoR2.CameraTargetParams.orig_CalcParams orig, CameraTargetParams self, out CharacterCameraParamsData dest)
+        {
+            orig(self, out dest);
+
+            if (_instance && _instance.AnyModificationActive)
+            {
+                float distanceMultiplier = _instance.CurrentCameraDistanceMultiplier;
+
+                dest.idealLocalCameraPos.value *= distanceMultiplier;
+            }
+        }
+
+        static void PlayerInputHook_ModifyPlayerMoveInput(PlayerCharacterMasterController playerMasterController, ref Vector2 moveInput)
         {
             if (_instance && _instance.AnyModificationActive)
             {
@@ -145,6 +160,24 @@ namespace RiskOfChaos.ModifierController.Camera
         Quaternion _clientCameraRotationOffset = Quaternion.identity;
         public Quaternion CurrentCameraRotationOffset => NetworkServer.active ? networkCameraRotationOffset : _clientCameraRotationOffset;
 
+        float _cameraDistanceMultiplier = 1f;
+        const uint CAMERA_DISTANCE_MULTIPLIER_DIRTY_BIT = 1 << 4;
+        float networkCameraDistanceMultiplier
+        {
+            get
+            {
+                return _cameraDistanceMultiplier;
+            }
+            set
+            {
+                SetSyncVar(value, ref _cameraDistanceMultiplier, CAMERA_DISTANCE_MULTIPLIER_DIRTY_BIT);
+            }
+        }
+
+        float _clientCameraDistanceMultiplierVelocity = 0f;
+        float _clientCameraDistanceMultiplier = 1f;
+        public float CurrentCameraDistanceMultiplier => NetworkServer.active ? networkCameraDistanceMultiplier : _clientCameraDistanceMultiplier;
+
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -166,6 +199,7 @@ namespace RiskOfChaos.ModifierController.Camera
 
             _clientFOVMultiplier = networkFOVMultiplier;
             _clientCameraRotationOffset = networkCameraRotationOffset;
+            _clientCameraDistanceMultiplier = networkCameraDistanceMultiplier;
         }
 
         void Update()
@@ -174,6 +208,7 @@ namespace RiskOfChaos.ModifierController.Camera
             {
                 _clientFOVMultiplier = Mathf.SmoothDamp(_clientFOVMultiplier, networkFOVMultiplier, ref _clientFOVMultiplierVelocity, 0.75f, float.PositiveInfinity, Time.unscaledDeltaTime);
                 _clientCameraRotationOffset = Quaternion.RotateTowards(_clientCameraRotationOffset, networkCameraRotationOffset, 180f * Time.unscaledDeltaTime);
+                _clientCameraDistanceMultiplier = Mathf.SmoothDamp(_clientCameraDistanceMultiplier, networkCameraDistanceMultiplier, ref _clientCameraDistanceMultiplierVelocity, 0.75f, float.PositiveInfinity, Time.unscaledDeltaTime);
             }
         }
 
@@ -189,6 +224,7 @@ namespace RiskOfChaos.ModifierController.Camera
             NetworkRecoilMultiplier = modificationData.RecoilMultiplier;
             networkFOVMultiplier = modificationData.FOVMultiplier;
             networkCameraRotationOffset = modificationData.RotationOffset;
+            networkCameraDistanceMultiplier = modificationData.CameraDistanceMultiplier;
         }
 
         protected override bool serialize(NetworkWriter writer, bool initialState, uint dirtyBits)
@@ -200,6 +236,7 @@ namespace RiskOfChaos.ModifierController.Camera
                 writer.Write(_recoilMultiplier);
                 writer.Write(_FOVMultiplier);
                 writer.Write(_cameraRotationOffset);
+                writer.Write(_cameraDistanceMultiplier);
 
                 return baseValue;
             }
@@ -224,6 +261,12 @@ namespace RiskOfChaos.ModifierController.Camera
                 anythingWritten = true;
             }
 
+            if ((dirtyBits & CAMERA_DISTANCE_MULTIPLIER_DIRTY_BIT) != 0)
+            {
+                writer.Write(_cameraDistanceMultiplier);
+                anythingWritten = true;
+            }
+
             return baseValue || anythingWritten;
         }
 
@@ -236,6 +279,7 @@ namespace RiskOfChaos.ModifierController.Camera
                 _recoilMultiplier = reader.ReadVector2();
                 _FOVMultiplier = reader.ReadSingle();
                 _cameraRotationOffset = reader.ReadQuaternion();
+                _cameraDistanceMultiplier = reader.ReadSingle();
                 return;
             }
 
@@ -252,6 +296,11 @@ namespace RiskOfChaos.ModifierController.Camera
             if ((dirtyBits & CAMERA_ROTATION_OFFSET_DIRTY_BIT) != 0)
             {
                 _cameraRotationOffset = reader.ReadQuaternion();
+            }
+
+            if ((dirtyBits & CAMERA_DISTANCE_MULTIPLIER_DIRTY_BIT) != 0)
+            {
+                _cameraDistanceMultiplier = reader.ReadSingle();
             }
         }
     }

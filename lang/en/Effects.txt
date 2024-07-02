@@ -155,5 +155,6 @@
 		"EFFECT_SWAP_HEALTH_SHIELD_NAME": "Swap Health & Shield",
 		"EFFECT_CLEANSE_RANDOM_ITEM_NAME": "Cleanse Random Item",
 		"EFFECT_REPEAT_SCREEN_NAME": "Splitscreen",
+		"EFFECT_INCREASE_CAMERA_DISTANCE_NAME": "Distant Camera",
 	}
 }

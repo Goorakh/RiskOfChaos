@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Added 1 effect:
+  * Distant Camera: Moves the camera further away from the player, lasts 90 seconds
+
 * Fixed missing icon for Effects config
 
 **1.18.0 Changes:**

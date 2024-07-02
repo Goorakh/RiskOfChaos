@@ -11,6 +11,8 @@ namespace RiskOfChaos.ModifierController.Camera
 
         public Quaternion RotationOffset = Quaternion.identity;
 
+        public float CameraDistanceMultiplier = 1f;
+
         public CameraModificationData()
         {
         }
@@ -21,7 +23,8 @@ namespace RiskOfChaos.ModifierController.Camera
             {
                 RecoilMultiplier = type.Interpolate(a.RecoilMultiplier, b.RecoilMultiplier, t),
                 FOVMultiplier = type.Interpolate(a.FOVMultiplier, b.FOVMultiplier, t),
-                RotationOffset = type.Interpolate(a.RotationOffset, b.RotationOffset, t)
+                RotationOffset = type.Interpolate(a.RotationOffset, b.RotationOffset, t),
+                CameraDistanceMultiplier = type.Interpolate(a.CameraDistanceMultiplier, b.CameraDistanceMultiplier, t),
             };
         }
     }
