@@ -2,8 +2,9 @@
 
 **?.?.? Changes:**
 
-* Added 1 effect:
+* Added 2 effects:
   * Distant Camera: Moves the camera further away from the player, lasts 90 seconds
+  * Unlimited Proc Chains: Disables proc chain restrictions, lasts 60 seconds
 
 * Fixed missing icon for Effects config
 

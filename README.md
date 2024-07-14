@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 139 different effects.
+Currently features 140 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -148,6 +148,7 @@ Currently features 139 different effects.
 * Cleanse Random Item: Turns a random item (lunars prioritized) or lunar equipment from every player into a random pearl
 * Splitscreen: Splits the screen into 9 copies of the game view, lasts 90 seconds
 * Distant Camera: Moves the camera further away from the player, lasts 90 seconds
+* Unlimited Proc Chains: Disables proc chain restrictions, lasts 60 seconds
 </details>
 
 <hr>
