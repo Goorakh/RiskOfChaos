@@ -25,9 +25,9 @@ namespace RiskOfChaos.Utilities.Assets
                     _cachedAssets.Add(assetName, asset);
                 }
 
-                if (asset is T)
+                if (asset is T tAsset)
                 {
-                    return (T)asset;
+                    return tAsset;
                 }
                 else
                 {

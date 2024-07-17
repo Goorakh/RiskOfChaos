@@ -46,7 +46,7 @@ namespace RiskOfChaos.EffectHandling.Formatting
 
         public static bool operator ==(EffectNameFormatter left, EffectNameFormatter right)
         {
-            if (left is null && right is null)
+            if (left is null || right is null)
                 return left is null && right is null;
 
             return left.Equals(right);

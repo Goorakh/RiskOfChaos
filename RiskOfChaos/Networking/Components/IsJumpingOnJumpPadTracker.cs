@@ -8,20 +8,8 @@ namespace RiskOfChaos.Networking.Components
     [RequireComponent(typeof(CharacterMotor))]
     public sealed class IsJumpingOnJumpPadTracker : NetworkBehaviour
     {
-        const uint IS_JUMPING_DIRTY_BIT = 1 << 0;
-
-        bool _isJumping;
-        public bool NetworkedIsJumping
-        {
-            get
-            {
-                return _isJumping;
-            }
-            set
-            {
-                SetSyncVar(value, ref _isJumping, IS_JUMPING_DIRTY_BIT);
-            }
-        }
+        [SyncVar]
+        public bool IsJumping;
 
         CharacterMotor _motor;
 
@@ -30,55 +18,34 @@ namespace RiskOfChaos.Networking.Components
             _motor = GetComponent<CharacterMotor>();
         }
 
-        void FixedUpdate()
+        void OnEnable()
         {
-            if (_motor && _isJumping && _motor.hasEffectiveAuthority && _motor.isGrounded)
-            {
-                NetworkedIsJumping = false;
+            _motor.onHitGroundAuthority += onHitGroundAuthority;
+        }
+
+        void OnDisable()
+        {
+            _motor.onHitGroundAuthority -= onHitGroundAuthority;
+        }
+
+        void onHitGroundAuthority(ref CharacterMotor.HitGroundInfo hitGroundInfo)
+        {
+            if (!IsJumping)
+                return;
+
+            CmdSetIsJumping(false);
 
 #if DEBUG
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                Log.Debug($"{FormatUtils.GetBestBodyName(_motor.body)} has landed from jump pad");
+            Log.Debug($"{FormatUtils.GetBestBodyName(_motor.body)} has landed from jump pad");
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
 #endif
-            }
         }
 
-        public override bool OnSerialize(NetworkWriter writer, bool initialState)
+        [Command]
+        public void CmdSetIsJumping(bool isJumping)
         {
-            if (initialState)
-            {
-                writer.Write(_isJumping);
-                return true;
-            }
-
-            uint dirtyBits = syncVarDirtyBits;
-            writer.WritePackedUInt32(dirtyBits);
-
-            bool anythingWritten = false;
-            if ((dirtyBits & IS_JUMPING_DIRTY_BIT) != 0)
-            {
-                writer.Write(_isJumping);
-                anythingWritten = true;
-            }
-
-            return anythingWritten;
-        }
-
-        public override void OnDeserialize(NetworkReader reader, bool initialState)
-        {
-            if (initialState)
-            {
-                _isJumping = reader.ReadBoolean();
-                return;
-            }
-
-            uint dirtyBits = reader.ReadPackedUInt32();
-
-            if ((dirtyBits & IS_JUMPING_DIRTY_BIT) != 0)
-            {
-                _isJumping = reader.ReadBoolean();
-            }
+            IsJumping = isJumping;
         }
     }
 }

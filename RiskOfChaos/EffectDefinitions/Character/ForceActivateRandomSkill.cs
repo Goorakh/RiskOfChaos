@@ -43,7 +43,18 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         static IEnumerable<SkillSlot> getAllForcableSkillSlots()
         {
-            return SkillSlotModificationManager.Instance.NonLockedNonForceActivatedSkillSlots.Where(canForceSkill);
+            uint lockedSlotsMask = SkillSlotModificationManager.Instance.LockedSkillSlotsMask;
+            uint forceActivatesSlotsMask = SkillSlotModificationManager.Instance.ForceActivateSkillSlotsMask;
+
+            uint nonLockedNonForceActivatedSlotsMask = ~(lockedSlotsMask | forceActivatesSlotsMask);
+
+            for (SkillSlot i = 0; i < (SkillSlot)SkillSlotModificationManager.SKILL_SLOT_COUNT; i++)
+            {
+                if (SkillSlotModificationManager.IsSkillSlotBitSet(nonLockedNonForceActivatedSlotsMask, i) && canForceSkill(i))
+                {
+                    yield return i;
+                }
+            }
         }
 
         [EffectCanActivate]

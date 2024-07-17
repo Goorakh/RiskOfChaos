@@ -123,16 +123,16 @@ namespace RiskOfChaos.UI.NextEffectDisplay
                 return null;
 
             NextEffectProvider nextEffectProvider = NextEffectProvider.Instance;
-            if (nextEffectProvider && nextEffectProvider.NetworkHasValidNextEffectState)
+            if (nextEffectProvider && nextEffectProvider.HasValidNextEffectState)
             {
-                ChaosEffectIndex nextEffect = nextEffectProvider.NetworkNextEffectIndex;
+                ChaosEffectIndex nextEffect = nextEffectProvider.NextEffectIndex;
                 if (Configs.UI.DisplayNextEffect.Value && nextEffect != ChaosEffectIndex.Invalid)
                 {
-                    return new EffectDisplayData(nextEffect, nextEffectProvider.NetworkNextEffectActivationTime.timeUntilClamped, nextEffectProvider.NetworkNextEffectNameFormatter);
+                    return new EffectDisplayData(nextEffect, nextEffectProvider.NextEffectActivationTime.timeUntilClamped, nextEffectProvider.NextEffectNameFormatter);
                 }
                 else if (Configs.UI.ShouldShowNextEffectTimer(_ownerHud))
                 {
-                    return new EffectDisplayData(ChaosEffectIndex.Invalid, nextEffectProvider.NetworkNextEffectActivationTime.timeUntilClamped, EffectNameFormatter_None.Instance);
+                    return new EffectDisplayData(ChaosEffectIndex.Invalid, nextEffectProvider.NextEffectActivationTime.timeUntilClamped, EffectNameFormatter_None.Instance);
                 }
             }
 

@@ -18,7 +18,7 @@ namespace RiskOfChaos.Patches
             {
                 if (ProjectileModificationManager.Instance)
                 {
-                    return (int)ProjectileModificationManager.Instance.NetworkedBulletBounceCount;
+                    return (int)ProjectileModificationManager.Instance.BulletBounceCount;
                 }
                 else
                 {

@@ -1,40 +1,33 @@
-﻿using System.Runtime.InteropServices;
-using RiskOfChaos.Utilities.Interpolation;
+﻿using RiskOfChaos.Utilities.Interpolation;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.Knockback
 {
-    [ValueModificationManager]
-    public class KnockbackModificationManager : NetworkedValueModificationManager<float>
+    [ValueModificationManager(typeof(SyncKnockbackModification))]
+    public class KnockbackModificationManager : ValueModificationManager<float>
     {
         static KnockbackModificationManager _instance;
         public static KnockbackModificationManager Instance => _instance;
 
-        const uint TOTAL_KNOCKBACK_MULTIPLIER_DIRTY_BIT = 1 << 1;
+        SyncKnockbackModification _clientSync;
 
-        float _totalKnockbackMultiplier = 1f;
-        public float NetworkedTotalKnockbackMultiplier
+        public override bool AnyModificationActive => NetworkServer.active ? base.AnyModificationActive : _clientSync.AnyModificationActive;
+
+        public float TotalKnockbackMultiplier
         {
             get
             {
-                return _totalKnockbackMultiplier;
+                return _clientSync.TotalKnockbackMultiplier;
             }
-
-            [param: In]
-            set
+            private set
             {
-                SetSyncVar(value, ref _totalKnockbackMultiplier, TOTAL_KNOCKBACK_MULTIPLIER_DIRTY_BIT);
+                _clientSync.TotalKnockbackMultiplier = value;
             }
         }
 
-        public override float InterpolateValue(in float a, in float b, float t)
+        void Awake()
         {
-            return ValueInterpolationFunctionType.Linear.Interpolate(a, b, t);
-        }
-
-        public override void UpdateValueModifications()
-        {
-            NetworkedTotalKnockbackMultiplier = GetModifiedValue(1f);
+            _clientSync = GetComponent<SyncKnockbackModification>();
         }
 
         protected override void OnEnable()
@@ -51,40 +44,22 @@ namespace RiskOfChaos.ModifierController.Knockback
             SingletonHelper.Unassign(ref _instance, this);
         }
 
-        protected override bool serialize(NetworkWriter writer, bool initialState, uint dirtyBits)
+        public override float InterpolateValue(in float a, in float b, float t)
         {
-            bool baseResult = base.serialize(writer, initialState, dirtyBits);
-            if (initialState)
-            {
-                writer.Write(_totalKnockbackMultiplier);
-                return true;
-            }
-
-            bool anythingWritten = false;
-
-            if ((dirtyBits & TOTAL_KNOCKBACK_MULTIPLIER_DIRTY_BIT) != 0)
-            {
-                writer.Write(_totalKnockbackMultiplier);
-                anythingWritten = true;
-            }
-
-            return baseResult || anythingWritten;
+            return ValueInterpolationFunctionType.Linear.Interpolate(a, b, t);
         }
 
-        protected override void deserialize(NetworkReader reader, bool initialState, uint dirtyBits)
+        public override void UpdateValueModifications()
         {
-            base.deserialize(reader, initialState, dirtyBits);
-
-            if (initialState)
+            if (!NetworkServer.active)
             {
-                _totalKnockbackMultiplier = reader.ReadSingle();
+                Log.Warning("Called on client");
                 return;
             }
 
-            if ((dirtyBits & TOTAL_KNOCKBACK_MULTIPLIER_DIRTY_BIT) != 0)
-            {
-                _totalKnockbackMultiplier = reader.ReadSingle();
-            }
+            _clientSync.AnyModificationActive = base.AnyModificationActive;
+
+            TotalKnockbackMultiplier = GetModifiedValue(1f);
         }
     }
 }

@@ -6,11 +6,20 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.Gravity
 {
-    [ValueModificationManager(typeof(SyncWorldGravity), typeof(SyncBaseGravity))]
-    public class GravityModificationManager : NetworkedValueModificationManager<Vector3>
+    [ValueModificationManager(typeof(GravitySync), typeof(SyncGravityModification))]
+    public class GravityModificationManager : ValueModificationManager<Vector3>
     {
         static GravityModificationManager _instance;
         public static GravityModificationManager Instance => _instance;
+
+        SyncGravityModification _clientSync;
+
+        public override bool AnyModificationActive => NetworkServer.active ? base.AnyModificationActive : _clientSync.AnyModificationActive;
+
+        void Awake()
+        {
+            _clientSync = GetComponent<SyncGravityModification>();
+        }
 
         protected override void OnEnable()
         {
@@ -35,6 +44,12 @@ namespace RiskOfChaos.ModifierController.Gravity
 
         void onBaseGravityChanged(Vector3 newGravity)
         {
+            if (!NetworkServer.active)
+            {
+                Log.Warning("Called on client");
+                return;
+            }
+
             if (AnyModificationActive)
             {
                 MarkValueModificationsDirty();
@@ -48,6 +63,14 @@ namespace RiskOfChaos.ModifierController.Gravity
 
         public override void UpdateValueModifications()
         {
+            if (!NetworkServer.active)
+            {
+                Log.Warning("Called on client");
+                return;
+            }
+
+            _clientSync.AnyModificationActive = base.AnyModificationActive;
+
             GravityTracker.SetGravityUntracked(GetModifiedValue(GravityTracker.BaseGravity));
         }
     }

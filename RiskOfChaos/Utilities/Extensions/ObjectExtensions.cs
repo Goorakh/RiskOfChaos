@@ -52,9 +52,9 @@ namespace RiskOfChaos.Utilities.Extensions
                     Type fieldType = field.FieldType;
                     if (fieldType.IsClass)
                     {
-                        if (typeof(ICloneable).IsAssignableFrom(fieldType))
+                        if (fieldValue is ICloneable fieldValueCloneable)
                         {
-                            fieldValue = ((ICloneable)fieldValue).Clone();
+                            fieldValue = fieldValueCloneable.Clone();
                         }
                         else if (fieldType.IsGenericType)
                         {

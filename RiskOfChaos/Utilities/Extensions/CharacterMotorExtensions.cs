@@ -14,7 +14,7 @@ namespace RiskOfChaos.Utilities.Extensions
 
         public static Vector3 GetGravity(this CharacterMotor motor, Vector3 worldGravity)
         {
-            if (motor && motor.TryGetComponent(out IsJumpingOnJumpPadTracker jumpingTracker) && jumpingTracker.NetworkedIsJumping)
+            if (motor && motor.TryGetComponent(out IsJumpingOnJumpPadTracker jumpingTracker) && jumpingTracker.IsJumping)
             {
                 return GravityTracker.BaseGravity;
             }

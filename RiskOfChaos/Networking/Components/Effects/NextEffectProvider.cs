@@ -78,17 +78,17 @@ namespace RiskOfChaos.Networking.Components.Effects
 
         void refreshNextEffectState()
         {
-            if (NetworkHasValidNextEffectState = tryGetNextEffectState(out NextEffectState nextEffectState))
+            if (HasValidNextEffectState = tryGetNextEffectState(out NextEffectState nextEffectState))
             {
-                NetworkNextEffectIndex = nextEffectState.EffectIndex;
-                NetworkNextEffectActivationTime = nextEffectState.ActivationTime;
-                NetworkNextEffectNameFormatter = nextEffectState.DisplayNameFormatter;
+                NextEffectIndex = nextEffectState.EffectIndex;
+                NextEffectActivationTime = nextEffectState.ActivationTime;
+                NextEffectNameFormatter = nextEffectState.DisplayNameFormatter;
             }
             else
             {
-                NetworkNextEffectIndex = ChaosEffectIndex.Invalid;
-                NetworkNextEffectActivationTime = Run.FixedTimeStamp.negativeInfinity;
-                NetworkNextEffectNameFormatter = EffectNameFormatter_None.Instance;
+                NextEffectIndex = ChaosEffectIndex.Invalid;
+                NextEffectActivationTime = Run.FixedTimeStamp.negativeInfinity;
+                NextEffectNameFormatter = EffectNameFormatter_None.Instance;
             }
         }
 
@@ -100,7 +100,7 @@ namespace RiskOfChaos.Networking.Components.Effects
             refreshNextEffectState();
         }
 
-        public ChaosEffectIndex NetworkNextEffectIndex
+        public ChaosEffectIndex NextEffectIndex
         {
             get
             {
@@ -116,7 +116,7 @@ namespace RiskOfChaos.Networking.Components.Effects
             }
         }
 
-        public Run.FixedTimeStamp NetworkNextEffectActivationTime
+        public Run.FixedTimeStamp NextEffectActivationTime
         {
             get
             {
@@ -128,7 +128,7 @@ namespace RiskOfChaos.Networking.Components.Effects
             }
         }
 
-        public EffectNameFormatter NetworkNextEffectNameFormatter
+        public EffectNameFormatter NextEffectNameFormatter
         {
             get
             {
@@ -151,7 +151,7 @@ namespace RiskOfChaos.Networking.Components.Effects
             }
         }
 
-        public bool NetworkHasValidNextEffectState
+        public bool HasValidNextEffectState
         {
             get
             {

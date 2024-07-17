@@ -116,7 +116,7 @@ namespace RiskOfChaos.Patches
                 return false;
             }
 
-            totalMultiplier = ProjectileModificationManager.Instance.NetworkedTotalProjectileSpeedMultiplier;
+            totalMultiplier = ProjectileModificationManager.Instance.TotalProjectileSpeedMultiplier;
 
             const float MULTIPLIER_ACTIVE_MIN_DIFF = 0.01f;
             return Mathf.Abs(totalMultiplier - 1f) >= MULTIPLIER_ACTIVE_MIN_DIFF;

@@ -1,6 +1,7 @@
 ﻿using HG.Reflection;
 using RoR2.ContentManagement;
 using System;
+using System.Linq;
 
 namespace RiskOfChaos.Content
 {
@@ -9,7 +10,7 @@ namespace RiskOfChaos.Content
     {
         public static void AddStateTypesTo(NamedAssetCollection<Type> types)
         {
-            types.Add(Array.ConvertAll(GetInstances<EntityStateTypeAttribute>().ToArray(), a => a.target as Type));
+            types.Add(GetInstances<EntityStateTypeAttribute>().Select(a => (Type)a.target).Distinct().ToArray());
         }
     }
 }

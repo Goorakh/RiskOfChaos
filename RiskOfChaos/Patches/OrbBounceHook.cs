@@ -67,7 +67,7 @@ namespace RiskOfChaos.Patches
             {
                 if (ProjectileModificationManager.Instance)
                 {
-                    return ClampedConversion.Int32(ProjectileModificationManager.Instance.NetworkedOrbBounceCount);
+                    return ClampedConversion.Int32(ProjectileModificationManager.Instance.OrbBounceCount);
                 }
                 else
                 {

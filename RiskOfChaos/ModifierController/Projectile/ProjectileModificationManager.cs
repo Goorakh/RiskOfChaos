@@ -1,113 +1,81 @@
 ﻿using RiskOfChaos.Utilities.Interpolation;
-using System.Runtime.InteropServices;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.Projectile
 {
-    [ValueModificationManager]
-    public class ProjectileModificationManager : NetworkedValueModificationManager<ProjectileModificationData>
+    [ValueModificationManager(typeof(SyncProjectileModification))]
+    public class ProjectileModificationManager : ValueModificationManager<ProjectileModificationData>
     {
         static ProjectileModificationManager _instance;
         public static ProjectileModificationManager Instance => _instance;
 
-        const uint TOTAL_PROJECTILE_SPEED_MULTIPLIER_DIRTY_BIT = 1 << 1;
+        SyncProjectileModification _clientSync;
 
-        float _totalProjectileSpeedMultiplier = 1f;
-        public float NetworkedTotalProjectileSpeedMultiplier
+        public override bool AnyModificationActive => NetworkServer.active ? base.AnyModificationActive : _clientSync.AnyModificationActive;
+
+        public float TotalProjectileSpeedMultiplier
         {
             get
             {
-                return _totalProjectileSpeedMultiplier;
+                return _clientSync.SpeedMultiplier;
             }
-
-            [param: In]
-            set
+            private set
             {
-                SetSyncVar(value, ref _totalProjectileSpeedMultiplier, TOTAL_PROJECTILE_SPEED_MULTIPLIER_DIRTY_BIT);
+                _clientSync.SpeedMultiplier = value;
             }
         }
 
-        const uint PROJECTILE_BOUNCE_COUNT_DIRTY_BIT = 1 << 2;
-
-        uint _projectileBounceCount;
-        public uint NetworkedProjectileBounceCount
+        public uint ProjectileBounceCount
         {
             get
             {
-                return _projectileBounceCount;
+                return _clientSync.ProjectileBounceCount;
             }
-
-            [param: In]
-            set
+            private set
             {
-                SetSyncVar(value, ref _projectileBounceCount, PROJECTILE_BOUNCE_COUNT_DIRTY_BIT);
+                _clientSync.ProjectileBounceCount = value;
             }
         }
 
-        const uint BULLET_BOUNCE_COUNT_DIRTY_BIT = 1 << 3;
-
-        uint _bulletBounceCount;
-        public uint NetworkedBulletBounceCount
+        public uint BulletBounceCount
         {
             get
             {
-                return _bulletBounceCount;
+                return _clientSync.BulletBounceCount;
             }
-
-            [param: In]
-            set
+            private set
             {
-                SetSyncVar(value, ref _bulletBounceCount, BULLET_BOUNCE_COUNT_DIRTY_BIT);
+                _clientSync.BulletBounceCount = value;
             }
         }
 
-        const uint ORB_BOUNCE_COUNT_DIRTY_BIT = 1 << 4;
-
-        uint _orbBounceCount;
-        public uint NetworkedOrbBounceCount
+        public uint OrbBounceCount
         {
             get
             {
-                return _orbBounceCount;
+                return _clientSync.OrbBounceCount;
             }
-
-            [param: In]
-            set
+            private set
             {
-                SetSyncVar(value, ref _orbBounceCount, ORB_BOUNCE_COUNT_DIRTY_BIT);
+                _clientSync.OrbBounceCount = value;
             }
         }
 
-        const uint EXTRA_SPAWN_COUNT_DIRTY_BIT = 1 << 5;
-
-        byte _extraSpawnCount;
-        public byte NetworkedExtraSpawnCount
+        public byte ExtraSpawnCount
         {
             get
             {
-                return _extraSpawnCount;
+                return _clientSync.ExtraSpawnCount;
             }
-            set
+            private set
             {
-                SetSyncVar(value, ref _extraSpawnCount, EXTRA_SPAWN_COUNT_DIRTY_BIT);
+                _clientSync.ExtraSpawnCount = value;
             }
         }
 
-        public override ProjectileModificationData InterpolateValue(in ProjectileModificationData a, in ProjectileModificationData b, float t)
+        void Awake()
         {
-            return ProjectileModificationData.Interpolate(a, b, t, ValueInterpolationFunctionType.Linear);
-        }
-
-        public override void UpdateValueModifications()
-        {
-            ProjectileModificationData modificationData = GetModifiedValue(new ProjectileModificationData());
-            NetworkedTotalProjectileSpeedMultiplier = modificationData.SpeedMultiplier;
-
-            NetworkedProjectileBounceCount = modificationData.ProjectileBounceCount;
-            NetworkedBulletBounceCount = modificationData.BulletBounceCount;
-            NetworkedOrbBounceCount = modificationData.OrbBounceCount;
-
-            NetworkedExtraSpawnCount = modificationData.ExtraSpawnCount;
+            _clientSync = GetComponent<SyncProjectileModification>();
         }
 
         protected override void OnEnable()
@@ -124,92 +92,29 @@ namespace RiskOfChaos.ModifierController.Projectile
             SingletonHelper.Unassign(ref _instance, this);
         }
 
-        protected override bool serialize(NetworkWriter writer, bool initialState, uint dirtyBits)
+        public override ProjectileModificationData InterpolateValue(in ProjectileModificationData a, in ProjectileModificationData b, float t)
         {
-            bool baseResult = base.serialize(writer, initialState, dirtyBits);
-            if (initialState)
-            {
-                writer.Write(_totalProjectileSpeedMultiplier);
-                writer.WritePackedUInt32(_projectileBounceCount);
-                writer.WritePackedUInt32(_bulletBounceCount);
-                writer.WritePackedUInt32(_orbBounceCount);
-                writer.Write(_extraSpawnCount);
-                return true;
-            }
-
-            bool anythingWritten = false;
-
-            if ((dirtyBits & TOTAL_PROJECTILE_SPEED_MULTIPLIER_DIRTY_BIT) != 0)
-            {
-                writer.Write(_totalProjectileSpeedMultiplier);
-                anythingWritten = true;
-            }
-
-            if ((dirtyBits & PROJECTILE_BOUNCE_COUNT_DIRTY_BIT) != 0)
-            {
-                writer.WritePackedUInt32(_projectileBounceCount);
-                anythingWritten = true;
-            }
-
-            if ((dirtyBits & BULLET_BOUNCE_COUNT_DIRTY_BIT) != 0)
-            {
-                writer.WritePackedUInt32(_bulletBounceCount);
-                anythingWritten = true;
-            }
-
-            if ((dirtyBits & ORB_BOUNCE_COUNT_DIRTY_BIT) != 0)
-            {
-                writer.WritePackedUInt32(_orbBounceCount);
-                anythingWritten = true;
-            }
-
-            if ((dirtyBits & EXTRA_SPAWN_COUNT_DIRTY_BIT) != 0)
-            {
-                writer.Write(_extraSpawnCount);
-                anythingWritten = true;
-            }
-
-            return baseResult || anythingWritten;
+            return ProjectileModificationData.Interpolate(a, b, t, ValueInterpolationFunctionType.Linear);
         }
 
-        protected override void deserialize(NetworkReader reader, bool initialState, uint dirtyBits)
+        public override void UpdateValueModifications()
         {
-            base.deserialize(reader, initialState, dirtyBits);
-
-            if (initialState)
+            if (!NetworkServer.active)
             {
-                _totalProjectileSpeedMultiplier = reader.ReadSingle();
-                _projectileBounceCount = reader.ReadPackedUInt32();
-                _bulletBounceCount = reader.ReadPackedUInt32();
-                _orbBounceCount = reader.ReadPackedUInt32();
-                _extraSpawnCount = reader.ReadByte();
+                Log.Warning("Called on client");
                 return;
             }
 
-            if ((dirtyBits & TOTAL_PROJECTILE_SPEED_MULTIPLIER_DIRTY_BIT) != 0)
-            {
-                _totalProjectileSpeedMultiplier = reader.ReadSingle();
-            }
+            _clientSync.AnyModificationActive = base.AnyModificationActive;
 
-            if ((dirtyBits & PROJECTILE_BOUNCE_COUNT_DIRTY_BIT) != 0)
-            {
-                _projectileBounceCount = reader.ReadPackedUInt32();
-            }
+            ProjectileModificationData modificationData = GetModifiedValue(new ProjectileModificationData());
+            TotalProjectileSpeedMultiplier = modificationData.SpeedMultiplier;
 
-            if ((dirtyBits & BULLET_BOUNCE_COUNT_DIRTY_BIT) != 0)
-            {
-                _bulletBounceCount = reader.ReadPackedUInt32();
-            }
+            ProjectileBounceCount = modificationData.ProjectileBounceCount;
+            BulletBounceCount = modificationData.BulletBounceCount;
+            OrbBounceCount = modificationData.OrbBounceCount;
 
-            if ((dirtyBits & ORB_BOUNCE_COUNT_DIRTY_BIT) != 0)
-            {
-                _orbBounceCount = reader.ReadPackedUInt32();
-            }
-
-            if ((dirtyBits & EXTRA_SPAWN_COUNT_DIRTY_BIT) != 0)
-            {
-                _extraSpawnCount = reader.ReadByte();
-            }
+            ExtraSpawnCount = modificationData.ExtraSpawnCount;
         }
     }
 }

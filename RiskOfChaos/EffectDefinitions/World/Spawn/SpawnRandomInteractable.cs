@@ -65,13 +65,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             InteractableSpawnCard iscNewtStatue = ScriptableObject.CreateInstance<InteractableSpawnCard>();
             iscNewtStatue.name = "iscNewtStatue";
             {
-                GameObject prefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/NewtStatue/NewtStatue.prefab").WaitForCompletion().InstantiateClone("NewtStatueFixedOrigin");
-                for (int i = 0; i < prefab.transform.childCount; i++)
-                {
-                    prefab.transform.GetChild(i).Translate(new Vector3(0f, 1.25f, 0f), Space.World);
-                }
-
-                iscNewtStatue.prefab = prefab;
+                iscNewtStatue.prefab = NetPrefabs.NewtStatueFixedOriginPrefab;
                 iscNewtStatue.orientToFloor = false;
                 iscNewtStatue.hullSize = HullClassification.Golem;
                 iscNewtStatue.requiredFlags = NodeFlags.None;

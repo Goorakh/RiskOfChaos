@@ -8,78 +8,46 @@ namespace RiskOfChaos.Networking.Components
     {
         JumpVolume _jumpVolume;
 
-        const int JUMP_VELOCITY_DIRTY_BIT = 1 << 0;
-        Vector3 _lastJumpVelocity;
+        [SyncVar(hook = nameof(syncJumpVelocity))]
+        Vector3 _jumpVelocity;
 
         void Awake()
         {
             _jumpVolume = GetComponentInChildren<JumpVolume>();
         }
 
-        public override void OnStartAuthority()
+        public override void OnStartServer()
         {
-            base.OnStartAuthority();
-            _lastJumpVelocity = _jumpVolume.jumpVelocity;
+            base.OnStartServer();
+            _jumpVelocity = _jumpVolume.jumpVelocity;
+        }
+
+        public override void OnStartClient()
+        {
+            base.OnStartClient();
+            syncJumpVelocity(_jumpVelocity);
         }
 
         void FixedUpdate()
         {
-            if (_jumpVolume && _jumpVolume.jumpVelocity != _lastJumpVelocity)
+            if (NetworkServer.active)
             {
-                if (hasAuthority)
-                {
-#if DEBUG
-                    Log.Debug("Jump velocity changed as authority, setting dirty bit");
-#endif
-
-                    _lastJumpVelocity = _jumpVolume.jumpVelocity;
-                    SetDirtyBit(JUMP_VELOCITY_DIRTY_BIT);
-                }
-                else
-                {
-#if DEBUG
-                    Log.Debug("Jump velocity changed as non-authority, setting jumpVelocity");
-#endif
-
-                    _jumpVolume.jumpVelocity = _lastJumpVelocity;
-                }
+                _jumpVelocity = _jumpVolume.jumpVelocity;
             }
         }
 
-        public override bool OnSerialize(NetworkWriter writer, bool initialState)
+        void syncJumpVelocity(Vector3 newJumpVelocity)
         {
-            if (initialState)
-            {
-                writer.Write(_lastJumpVelocity);
-                return true;
-            }
+            _jumpVelocity = newJumpVelocity;
 
-            uint dirtyBits = syncVarDirtyBits;
-
-            bool anythingWritten = false;
-
-            if ((dirtyBits & JUMP_VELOCITY_DIRTY_BIT) != 0)
-            {
-                writer.Write(_lastJumpVelocity);
-                anythingWritten = true;
-            }
-
-            return anythingWritten;
-        }
-
-        public override void OnDeserialize(NetworkReader reader, bool initialState)
-        {
-            if (initialState)
-            {
-                _lastJumpVelocity = reader.ReadVector3();
+            if (_jumpVolume.jumpVelocity == newJumpVelocity)
                 return;
-            }
 
-            uint dirtyBits = syncVarDirtyBits;
-            if ((dirtyBits & JUMP_VELOCITY_DIRTY_BIT) != 0)
-            {
-                _lastJumpVelocity = reader.ReadVector3();
-            }
+#if DEBUG
+            Log.Debug($"{name} ({netId}) Jump velocity changed: {_jumpVolume.jumpVelocity} -> {newJumpVelocity}");
+#endif
+
+            _jumpVolume.jumpVelocity = newJumpVelocity;
         }
     }
 }

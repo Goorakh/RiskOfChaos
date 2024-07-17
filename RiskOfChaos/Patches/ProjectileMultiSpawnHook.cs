@@ -23,7 +23,7 @@ namespace RiskOfChaos.Patches
             if (_patchDisabled)
                 return;
 
-            if (!ProjectileModificationManager.Instance || ProjectileModificationManager.Instance.NetworkedExtraSpawnCount <= 0)
+            if (!ProjectileModificationManager.Instance || ProjectileModificationManager.Instance.ExtraSpawnCount <= 0)
                 return;
 
             // Don't allow procs to repeat
@@ -34,7 +34,7 @@ namespace RiskOfChaos.Patches
             {
                 Stage startingStage = Stage.instance;
 
-                for (byte i = 0; i < ProjectileModificationManager.Instance.NetworkedExtraSpawnCount; i++)
+                for (byte i = 0; i < ProjectileModificationManager.Instance.ExtraSpawnCount; i++)
                 {
                     yield return new WaitForSeconds(0.2f);
 

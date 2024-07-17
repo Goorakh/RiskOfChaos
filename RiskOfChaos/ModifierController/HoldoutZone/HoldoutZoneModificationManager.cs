@@ -1,6 +1,7 @@
-﻿using RiskOfChaos.Components;
+﻿using RiskOfChaos.Networking.Components;
 using RiskOfChaos.Utilities.Interpolation;
 using RoR2;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.HoldoutZone
 {
@@ -33,6 +34,12 @@ namespace RiskOfChaos.ModifierController.HoldoutZone
 
         public override void UpdateValueModifications()
         {
+            if (!NetworkServer.active)
+            {
+                Log.Warning("Called on client");
+                return;
+            }
+
             foreach (HoldoutZoneModifier zoneModifier in InstanceTracker.GetInstancesList<HoldoutZoneModifier>())
             {
                 modifyHoldoutZone(zoneModifier);
@@ -41,6 +48,12 @@ namespace RiskOfChaos.ModifierController.HoldoutZone
 
         void modifyHoldoutZone(HoldoutZoneModifier zoneModifier)
         {
+            if (!NetworkServer.active)
+            {
+                Log.Warning("Called on client");
+                return;
+            }
+
             HoldoutZoneModificationInfo modificationInfo = GetModifiedValue(new HoldoutZoneModificationInfo(zoneModifier.HoldoutZoneController));
 
             zoneModifier.RadiusMultiplier = modificationInfo.RadiusMultiplier;

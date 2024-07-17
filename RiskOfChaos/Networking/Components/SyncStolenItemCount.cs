@@ -1,5 +1,4 @@
-﻿using HG;
-using RoR2;
+﻿using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,14 +12,117 @@ namespace RiskOfChaos.Networking.Components
     {
         ItemStealController _itemStealController;
 
+        class SyncListInventoryInfo : SyncListStruct<InventoryInfo> { }
+        readonly SyncListInventoryInfo _inventoryInfos = new SyncListInventoryInfo();
+
+        float _refreshInventoriesTimer;
+
+        void Awake()
+        {
+            _itemStealController = GetComponent<ItemStealController>();
+        }
+
+        void FixedUpdate()
+        {
+            if (!_itemStealController)
+                return;
+
+            if (NetworkServer.active)
+            {
+                _refreshInventoriesTimer -= Time.fixedDeltaTime;
+                if (_refreshInventoriesTimer <= 0)
+                {
+                    _refreshInventoriesTimer += GetNetworkSendInterval();
+                    refreshInventories();
+                }
+            }
+        }
+
+        [Server]
+        void refreshInventories()
+        {
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+            ItemStealController.StolenInventoryInfo[] stolenInventoryInfos = _itemStealController.stolenInventoryInfos;
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+
+            List<InventoryInfo> previousInventoryInfos = _inventoryInfos.ToList();
+            List<InventoryInfo> newInventoryInfos = stolenInventoryInfos.Select(i => new InventoryInfo(i.victimInventory.gameObject, i.stolenItemCount)).ToList();
+
+            for (int i = newInventoryInfos.Count - 1; i >= 0; i--)
+            {
+                InventoryInfo newInventoryInfo = newInventoryInfos[i];
+
+                for (int j = 0; j < _inventoryInfos.Count; j++)
+                {
+                    if (_inventoryInfos[j].VictimObject == newInventoryInfo.VictimObject)
+                    {
+                        _inventoryInfos[j] = newInventoryInfo;
+
+                        newInventoryInfos.RemoveAt(i);
+
+                        break;
+                    }
+                }
+
+                for (int j = 0; j < previousInventoryInfos.Count; j++)
+                {
+                    if (previousInventoryInfos[j].VictimObject == newInventoryInfo.VictimObject)
+                    {
+                        previousInventoryInfos.RemoveAt(j);
+                        break;
+                    }
+                }
+            }
+
+            int replaceInventoryIndex = 0;
+
+            foreach (InventoryInfo removeInventoryInfo in previousInventoryInfos)
+            {
+                for (int i = 0; i < _inventoryInfos.Count; i++)
+                {
+                    if (_inventoryInfos[i].VictimObject == removeInventoryInfo.VictimObject)
+                    {
+                        if (replaceInventoryIndex < newInventoryInfos.Count)
+                        {
+                            _inventoryInfos[i] = newInventoryInfos[replaceInventoryIndex++];
+                        }
+                        else
+                        {
+                            _inventoryInfos.RemoveAt(i);
+                        }
+
+                        break;
+                    }
+                }
+            }
+
+            for (int i = replaceInventoryIndex; i < newInventoryInfos.Count; i++)
+            {
+                _inventoryInfos.Add(newInventoryInfos[i]);
+            }
+        }
+
+        public int GetStolenItemsCount(Inventory victimInventory)
+        {
+            for (int i = 0; i < _inventoryInfos.Count; i++)
+            {
+                if (_inventoryInfos[i].VictimObject == victimInventory.gameObject)
+                {
+                    return _inventoryInfos[i].StolenItemCount;
+                }
+            }
+
+            return 0;
+        }
+
         struct InventoryInfo : IEquatable<InventoryInfo>
         {
-            public Inventory Inventory;
+            public GameObject VictimObject;
             public int StolenItemCount;
 
-            public InventoryInfo(Inventory inventory, int stolenItemCount)
+            public InventoryInfo(GameObject victimObject, int stolenItemCount)
             {
-                Inventory = inventory;
+                VictimObject = victimObject;
                 StolenItemCount = stolenItemCount;
             }
 
@@ -31,14 +133,14 @@ namespace RiskOfChaos.Networking.Components
 
             public readonly bool Equals(InventoryInfo other)
             {
-                return EqualityComparer<Inventory>.Default.Equals(Inventory, other.Inventory) &&
+                return VictimObject == other.VictimObject &&
                        StolenItemCount == other.StolenItemCount;
             }
 
             public override readonly int GetHashCode()
             {
                 int hashCode = 1658819947;
-                hashCode = (hashCode * -1521134295) + EqualityComparer<Inventory>.Default.GetHashCode(Inventory);
+                hashCode = (hashCode * -1521134295) + VictimObject.GetHashCode();
                 hashCode = (hashCode * -1521134295) + StolenItemCount.GetHashCode();
                 return hashCode;
             }
@@ -51,114 +153,6 @@ namespace RiskOfChaos.Networking.Components
             public static bool operator !=(InventoryInfo left, InventoryInfo right)
             {
                 return !(left == right);
-            }
-        }
-
-        int _inventoryInfosLength = 0;
-        InventoryInfo[] _inventoryInfos = [];
-
-        const uint INVENTORY_INFOS_DIRTY_BIT = 1 << 0;
-
-        void Awake()
-        {
-            _itemStealController = GetComponent<ItemStealController>();
-        }
-
-        void FixedUpdate()
-        {
-            if (!_itemStealController || !NetworkServer.active)
-                return;
-
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-            ItemStealController.StolenInventoryInfo[] stolenInventoryInfos = _itemStealController.stolenInventoryInfos;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-
-            InventoryInfo[] newInventoryInfos = stolenInventoryInfos.Select(i => new InventoryInfo(i.victimInventory, i.stolenItemCount)).ToArray();
-
-            if (_inventoryInfosLength != newInventoryInfos.Length ||
-                Enumerable.Range(0, newInventoryInfos.Length).Any(i => _inventoryInfos[i] != newInventoryInfos[i]))
-            {
-                _inventoryInfosLength = newInventoryInfos.Length;
-
-                ArrayUtils.EnsureCapacity(ref _inventoryInfos, _inventoryInfosLength);
-                Array.Copy(newInventoryInfos, _inventoryInfos, _inventoryInfosLength);
-
-                SetDirtyBit(INVENTORY_INFOS_DIRTY_BIT);
-            }
-        }
-
-        public int GetStolenItemsCount(Inventory victimInventory)
-        {
-            for (int i = 0; i < _inventoryInfosLength; i++)
-            {
-                if (_inventoryInfos[i].Inventory == victimInventory)
-                {
-                    return _inventoryInfos[i].StolenItemCount;
-                }
-            }
-
-            return 0;
-        }
-
-        public override bool OnSerialize(NetworkWriter writer, bool initialState)
-        {
-            if (initialState)
-            {
-                writer.WritePackedUInt32((uint)_inventoryInfosLength);
-                for (int i = 0; i < _inventoryInfosLength; i++)
-                {
-                    writer.Write(_inventoryInfos[i].Inventory.gameObject);
-                    writer.WritePackedUInt32((uint)_inventoryInfos[i].StolenItemCount);
-                }
-
-                return true;
-            }
-
-            uint dirtyBits = syncVarDirtyBits;
-            writer.WritePackedUInt32(dirtyBits);
-
-            bool anythingWritten = false;
-            if ((dirtyBits & INVENTORY_INFOS_DIRTY_BIT) != 0)
-            {
-                writer.WritePackedUInt32((uint)_inventoryInfosLength);
-                for (int i = 0; i < _inventoryInfosLength; i++)
-                {
-                    writer.Write(_inventoryInfos[i].Inventory.gameObject);
-                    writer.WritePackedUInt32((uint)_inventoryInfos[i].StolenItemCount);
-                }
-
-                anythingWritten = true;
-            }
-
-            return anythingWritten;
-        }
-
-        public override void OnDeserialize(NetworkReader reader, bool initialState)
-        {
-            if (initialState)
-            {
-                _inventoryInfosLength = (int)reader.ReadPackedUInt32();
-                ArrayUtils.EnsureCapacity(ref _inventoryInfos, _inventoryInfosLength);
-
-                for (int i = 0; i < _inventoryInfosLength; i++)
-                {
-                    _inventoryInfos[i] = new InventoryInfo(reader.ReadGameObject()?.GetComponent<Inventory>(), (int)reader.ReadPackedUInt32());
-                }
-
-                return;
-            }
-
-            uint dirtybits = reader.ReadPackedUInt32();
-
-            if ((dirtybits & INVENTORY_INFOS_DIRTY_BIT) != 0)
-            {
-                _inventoryInfosLength = (int)reader.ReadPackedUInt32();
-                ArrayUtils.EnsureCapacity(ref _inventoryInfos, _inventoryInfosLength);
-
-                for (int i = 0; i < _inventoryInfosLength; i++)
-                {
-                    _inventoryInfos[i] = new InventoryInfo(reader.ReadGameObject()?.GetComponent<Inventory>(), (int)reader.ReadPackedUInt32());
-                }
             }
         }
     }

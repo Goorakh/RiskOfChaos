@@ -6,6 +6,18 @@
   * Distant Camera: Moves the camera further away from the player, lasts 90 seconds
   * Unlimited Proc Chains: Disables proc chain restrictions, lasts 60 seconds
 
+* Superhot:
+  * Improved accuracy of time scale changes for non-host players in multiplayer
+
+* Flip Camera & High/Low FOV:
+  * Fixed value snapping for non-host players
+
+* Spawn Random Interactable:
+  * Fixed Newt Altars not spawning for non-host players in multiplayer
+
+* Explosive Deaths:
+  * Fixed pre-explosion VFX & SFX not triggering for non-host players
+
 * Fixed missing icon for Effects config
 
 **1.18.0 Changes:**

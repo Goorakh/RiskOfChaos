@@ -55,7 +55,7 @@ namespace RiskOfChaos.Patches
             if (!KnockbackModificationManager.Instance || !KnockbackModificationManager.Instance.AnyModificationActive)
                 return;
 
-            force *= KnockbackModificationManager.Instance.NetworkedTotalKnockbackMultiplier;
+            force *= KnockbackModificationManager.Instance.TotalKnockbackMultiplier;
         }
     }
 }

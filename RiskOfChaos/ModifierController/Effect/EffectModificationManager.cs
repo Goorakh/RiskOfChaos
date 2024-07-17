@@ -3,25 +3,31 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.Effect
 {
-    [ValueModificationManager]
-    public sealed class EffectModificationManager : NetworkedValueModificationManager<EffectModificationInfo>
+    [ValueModificationManager(typeof(SyncEffectModification))]
+    public sealed class EffectModificationManager : ValueModificationManager<EffectModificationInfo>
     {
         static EffectModificationManager _instance;
         public static EffectModificationManager Instance => _instance;
 
-        float _durationMultiplier = 1f;
-        const uint DURATION_MULTIPLIER_DIRTY_BIT = 1 << 1;
+        SyncEffectModification _clientSync;
+
+        public override bool AnyModificationActive => NetworkServer.active ? base.AnyModificationActive : _clientSync.AnyModificationActive;
 
         public float DurationMultiplier
         {
             get
             {
-                return _durationMultiplier;
+                return _clientSync.DurationMultiplier;
             }
-            set
+            private set
             {
-                SetSyncVar(value, ref _durationMultiplier, DURATION_MULTIPLIER_DIRTY_BIT);
+                _clientSync.DurationMultiplier = value;
             }
+        }
+
+        void Awake()
+        {
+            _clientSync = GetComponent<SyncEffectModification>();
         }
 
         protected override void OnEnable()
@@ -45,47 +51,17 @@ namespace RiskOfChaos.ModifierController.Effect
 
         public override void UpdateValueModifications()
         {
-            EffectModificationInfo modificationInfo = GetModifiedValue(new EffectModificationInfo());
-
-            DurationMultiplier = modificationInfo.DurationMultiplier;
-        }
-
-        protected override bool serialize(NetworkWriter writer, bool initialState, uint dirtyBits)
-        {
-            bool baseResult = base.serialize(writer, initialState, dirtyBits);
-
-            if (initialState)
+            if (!NetworkServer.active)
             {
-                writer.Write(_durationMultiplier);
-
-                return true;
-            }
-
-            bool anythingWritten = false;
-
-            if ((dirtyBits & DURATION_MULTIPLIER_DIRTY_BIT) != 0)
-            {
-                writer.Write(_durationMultiplier);
-                anythingWritten = true;
-            }
-
-            return baseResult || anythingWritten;
-        }
-
-        protected override void deserialize(NetworkReader reader, bool initialState, uint dirtyBits)
-        {
-            base.deserialize(reader, initialState, dirtyBits);
-
-            if (initialState)
-            {
-                _durationMultiplier = reader.ReadSingle();
+                Log.Warning("Called on client");
                 return;
             }
 
-            if ((dirtyBits & DURATION_MULTIPLIER_DIRTY_BIT) != 0)
-            {
-                _durationMultiplier = reader.ReadSingle();
-            }
+            _clientSync.AnyModificationActive = base.AnyModificationActive;
+
+            EffectModificationInfo modificationInfo = GetModifiedValue(new EffectModificationInfo());
+
+            DurationMultiplier = modificationInfo.DurationMultiplier;
         }
     }
 }

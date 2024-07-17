@@ -43,7 +43,15 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         static IEnumerable<SkillSlot> getAllLockableSkillSlots()
         {
-            return SkillSlotModificationManager.Instance.NonLockedSkillSlots.Where(canLockSkill);
+            uint nonLockedSlotsMask = ~SkillSlotModificationManager.Instance.LockedSkillSlotsMask;
+
+            for (SkillSlot i = 0; i < (SkillSlot)SkillSlotModificationManager.SKILL_SLOT_COUNT; i++)
+            {
+                if (SkillSlotModificationManager.IsSkillSlotBitSet(nonLockedSlotsMask, i) && canLockSkill(i))
+                {
+                    yield return i;
+                }
+            }
         }
 
         [EffectCanActivate]

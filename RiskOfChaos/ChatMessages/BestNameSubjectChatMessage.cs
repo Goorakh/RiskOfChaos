@@ -1,15 +1,14 @@
 ﻿using RoR2;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace RiskOfChaos.ChatMessages
 {
     public class BestNameSubjectChatMessage : ChatMessageBase
     {
-        GameObject _subjectNetworkUserObject;
+        public GameObject SubjectNetworkUserObject;
         MemoizedGetComponent<NetworkUser> _subjectNetworkUserGetComponent;
 
-        GameObject _subjectCharacterBodyGameObject;
+        public GameObject SubjectCharacterBodyObject;
         MemoizedGetComponent<CharacterBody> _subjectCharacterBodyGetComponent;
 
         public string BaseToken;
@@ -18,14 +17,14 @@ namespace RiskOfChaos.ChatMessages
         {
             get
             {
-                return _subjectNetworkUserGetComponent.Get(_subjectNetworkUserObject);
+                return _subjectNetworkUserGetComponent.Get(SubjectNetworkUserObject);
             }
             set
             {
-                _subjectNetworkUserObject = value ? value.gameObject : null;
+                SubjectNetworkUserObject = value ? value.gameObject : null;
 
                 CharacterBody characterBody = value ? value.GetCurrentBody() : null;
-                _subjectCharacterBodyGameObject = characterBody ? characterBody.gameObject : null;
+                SubjectCharacterBodyObject = characterBody ? characterBody.gameObject : null;
             }
         }
 
@@ -33,14 +32,14 @@ namespace RiskOfChaos.ChatMessages
         {
             get
             {
-                return _subjectCharacterBodyGetComponent.Get(_subjectCharacterBodyGameObject);
+                return _subjectCharacterBodyGetComponent.Get(SubjectCharacterBodyObject);
             }
             set
             {
-                _subjectCharacterBodyGameObject = value ? value.gameObject : null;
+                SubjectCharacterBodyObject = value ? value.gameObject : null;
 
                 NetworkUser networkUser = Util.LookUpBodyNetworkUser(value);
-                _subjectNetworkUserObject = networkUser ? networkUser.gameObject : null;
+                SubjectNetworkUserObject = networkUser ? networkUser.gameObject : null;
             }
         }
 
@@ -81,22 +80,6 @@ namespace RiskOfChaos.ChatMessages
         public override string ConstructChatString()
         {
             return Language.GetStringFormatted(getResolvedToken(), getSubjectName());
-        }
-
-        public override void Serialize(NetworkWriter writer)
-        {
-            base.Serialize(writer);
-            writer.Write(_subjectNetworkUserObject);
-            writer.Write(_subjectCharacterBodyGameObject);
-            writer.Write(BaseToken);
-        }
-
-        public override void Deserialize(NetworkReader reader)
-        {
-            base.Deserialize(reader);
-            _subjectNetworkUserObject = reader.ReadGameObject();
-            _subjectCharacterBodyGameObject = reader.ReadGameObject();
-            BaseToken = reader.ReadString();
         }
     }
 }

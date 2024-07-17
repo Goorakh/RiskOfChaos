@@ -32,12 +32,19 @@ namespace RiskOfChaos.ModifierController
         static ModificationManagerInfo createFromAttribute(ValueModificationManagerAttribute attribute)
         {
             Type modificationManagerType = attribute.target;
-            bool isNetworked = typeof(NetworkBehaviour).IsAssignableFrom(modificationManagerType);
             string name = modificationManagerType.Name;
+
+            Type[] additionalComponentTypes = attribute.GetAdditionalComponentTypes().ToArray();
+
+            bool isNetworked = typeof(NetworkBehaviour).IsAssignableFrom(modificationManagerType);
+            foreach (Type componentType in additionalComponentTypes)
+            {
+                isNetworked |= typeof(NetworkBehaviour).IsAssignableFrom(componentType);
+            }
 
             GameObject prefab = NetPrefabs.CreateEmptyPrefabObject(name, isNetworked);
 
-            foreach (Type componentType in attribute.GetAdditionalComponentTypes())
+            foreach (Type componentType in additionalComponentTypes)
             {
                 prefab.AddComponent(componentType);
             }

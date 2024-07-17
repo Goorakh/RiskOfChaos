@@ -24,7 +24,7 @@ namespace RiskOfChaos.Patches
 
         static bool isBouncingEnabled => maxBounces > 0;
 
-        static uint maxBounces => ProjectileModificationManager.Instance ? ProjectileModificationManager.Instance.NetworkedProjectileBounceCount : 0;
+        static uint maxBounces => ProjectileModificationManager.Instance ? ProjectileModificationManager.Instance.ProjectileBounceCount : 0;
 
         static void ProjectileManager_InitializeProjectile(On.RoR2.Projectile.ProjectileManager.orig_InitializeProjectile orig, ProjectileController projectileController, FireProjectileInfo fireProjectileInfo)
         {

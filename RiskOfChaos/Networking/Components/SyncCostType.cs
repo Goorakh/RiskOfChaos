@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.Components.CostProviders;
+using RiskOfChaos.Networking.Wrappers;
 using RoR2;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -8,10 +9,10 @@ namespace RiskOfChaos.Networking.Components
 {
     public sealed class SyncCostType : NetworkBehaviour
     {
-        const uint COST_TYPE_DIRTY_BIT = 1 << 0;
-
-        CostTypeIndex _lastCostType;
         ICostProvider _costProvider;
+
+        [SyncVar(hook = nameof(syncCostType))]
+        CostTypeIndexWrapper _costType;
 
         void Awake()
         {
@@ -29,66 +30,42 @@ namespace RiskOfChaos.Networking.Components
                 enabled = false;
                 return;
             }
+        }
 
-            _lastCostType = _costProvider.CostType;
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            _costType = _costProvider.CostType;
+        }
+
+        public override void OnStartClient()
+        {
+            base.OnStartClient();
+
+            syncCostType(_costType);
         }
 
         void FixedUpdate()
         {
-            if (hasAuthority && _lastCostType != _costProvider.CostType)
+            if (NetworkServer.active)
             {
-#if DEBUG
-                Log.Debug($"{name} ({netId}): Cost type changed ({_lastCostType}->{_costProvider.CostType}), setting dirty bit");
-#endif
-
-                SetDirtyBit(COST_TYPE_DIRTY_BIT);
-                _lastCostType = _costProvider.CostType;
+                _costType = _costProvider.CostType;
             }
         }
 
-        public override bool OnSerialize(NetworkWriter writer, bool initialState)
+        void syncCostType(CostTypeIndexWrapper newCostType)
         {
-            if (initialState)
-            {
-                writer.WritePackedUInt32((uint)_costProvider.CostType);
-                return true;
-            }
+            _costType = newCostType;
 
-            uint dirtyBits = syncVarDirtyBits;
-            writer.WritePackedUInt32(dirtyBits);
-
-            bool anythingWritten = false;
-            if ((dirtyBits & COST_TYPE_DIRTY_BIT) != 0)
-            {
-                writer.WritePackedUInt32((uint)_costProvider.CostType);
-                anythingWritten |= true;
-            }
-
-            return anythingWritten;
-        }
-
-        public override void OnDeserialize(NetworkReader reader, bool initialState)
-        {
-            if (initialState)
-            {
-                _costProvider.CostType = (CostTypeIndex)reader.ReadPackedUInt32();
-
-#if DEBUG
-                Log.Debug($"Set costType to {_costProvider.CostType} (initialState)");
-#endif
-
+            if (_costProvider.CostType == newCostType)
                 return;
-            }
-
-            uint dirtyBits = reader.ReadPackedUInt32();
-            if ((dirtyBits & COST_TYPE_DIRTY_BIT) != 0)
-            {
-                _costProvider.CostType = (CostTypeIndex)reader.ReadPackedUInt32();
 
 #if DEBUG
-                Log.Debug($"Set costType to {_costProvider.CostType} (dirtyBits)");
+            Log.Debug($"{name} ({netId}): Cost type changed ({_costProvider.CostType}->{newCostType})");
 #endif
-            }
+
+            _costProvider.CostType = newCostType;
         }
 
         [SystemInitializer]

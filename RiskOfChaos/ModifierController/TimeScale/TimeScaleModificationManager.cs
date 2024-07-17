@@ -1,14 +1,24 @@
 ﻿using RiskOfChaos.Networking.Components;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Interpolation;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.TimeScale
 {
-    [ValueModificationManager(typeof(SyncTimeScale))]
-    public class TimeScaleModificationManager : NetworkedValueModificationManager<float>
+    [ValueModificationManager(typeof(SyncTimeScaleModification), typeof(SyncTimeScale))]
+    public class TimeScaleModificationManager : ValueModificationManager<float>
     {
         static TimeScaleModificationManager _instance;
         public static TimeScaleModificationManager Instance => _instance;
+
+        SyncTimeScaleModification _clientSync;
+
+        public override bool AnyModificationActive => NetworkServer.active ? base.AnyModificationActive : _clientSync.AnyModificationActive;
+
+        void Awake()
+        {
+            _clientSync = GetComponent<SyncTimeScaleModification>();
+        }
 
         protected override void OnEnable()
         {
@@ -33,6 +43,13 @@ namespace RiskOfChaos.ModifierController.TimeScale
 
         public override void UpdateValueModifications()
         {
+            if (!NetworkServer.active)
+            {
+                Log.Warning("Called on client");
+                return;
+            }
+
+            _clientSync.AnyModificationActive = base.AnyModificationActive;
             TimeUtils.UnpausedTimeScale = GetModifiedValue(1f);
         }
     }

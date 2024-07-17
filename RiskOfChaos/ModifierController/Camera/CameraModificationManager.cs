@@ -8,8 +8,8 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.Camera
 {
-    [ValueModificationManager]
-    public sealed class CameraModificationManager : NetworkedValueModificationManager<CameraModificationData>
+    [ValueModificationManager(typeof(SyncCameraModification))]
+    public sealed class CameraModificationManager : ValueModificationManager<CameraModificationData>
     {
         static CameraModificationManager _instance;
         public static CameraModificationManager Instance => _instance;
@@ -30,7 +30,7 @@ namespace RiskOfChaos.ModifierController.Camera
                     {
                         if (_instance && _instance.AnyModificationActive)
                         {
-                            return Vector2.Scale(recoil, _instance.NetworkRecoilMultiplier);
+                            return Vector2.Scale(recoil, _instance.RecoilMultiplier);
                         }
                         else
                         {
@@ -64,9 +64,9 @@ namespace RiskOfChaos.ModifierController.Camera
                 const float MIN_FOV = 10f;
                 const float MAX_FOV = 170f;
 
-                result.cameraState.fov = Mathf.Clamp(result.cameraState.fov * _instance.CurrentFOVMultiplier, MIN_FOV, MAX_FOV);
+                result.cameraState.fov = Mathf.Clamp(result.cameraState.fov * _instance.FovMultiplier, MIN_FOV, MAX_FOV);
 
-                result.cameraState.rotation *= _instance.CurrentCameraRotationOffset;
+                result.cameraState.rotation *= _instance.CameraRotationOffset;
             }
         }
 
@@ -76,7 +76,7 @@ namespace RiskOfChaos.ModifierController.Camera
 
             if (_instance && _instance.AnyModificationActive && context.targetInfo.target)
             {
-                Vector2 rotatedLookInput = _instance.CurrentCameraRotationOffset * result.lookInput;
+                Vector2 rotatedLookInput = _instance.CameraRotationOffset * result.lookInput;
                 if (rotatedLookInput.sqrMagnitude > 0f)
                 {
                     float lookInputMagnitude = result.lookInput.magnitude;
@@ -91,7 +91,7 @@ namespace RiskOfChaos.ModifierController.Camera
 
             if (_instance && _instance.AnyModificationActive)
             {
-                float distanceMultiplier = _instance.CurrentCameraDistanceMultiplier;
+                float distanceMultiplier = _instance.CameraDistanceMultiplier;
 
                 dest.idealLocalCameraPos.value *= distanceMultiplier;
             }
@@ -103,7 +103,7 @@ namespace RiskOfChaos.ModifierController.Camera
             {
                 const float ROTATION_TO_CONSIDER_FLIPPED = 120f;
 
-                float zOffset = _instance.CurrentCameraRotationOffset.eulerAngles.z;
+                float zOffset = _instance.CameraRotationOffset.eulerAngles.z;
                 if (zOffset >= ROTATION_TO_CONSIDER_FLIPPED && zOffset <= 360f - ROTATION_TO_CONSIDER_FLIPPED)
                 {
                     moveInput.x *= -1;
@@ -111,72 +111,62 @@ namespace RiskOfChaos.ModifierController.Camera
             }
         }
 
-        Vector2 _recoilMultiplier = Vector2.one;
-        const uint RECOIL_MULTIPLIER_DIRTY_BIT = 1 << 1;
-        public Vector2 NetworkRecoilMultiplier
+        SyncCameraModification _clientSync;
+
+        public override bool AnyModificationActive => NetworkServer.active ? base.AnyModificationActive : _clientSync.AnyModificationActive;
+
+        public Vector2 RecoilMultiplier
         {
             get
             {
-                return _recoilMultiplier;
+                return _clientSync.RecoilMultiplier;
             }
-            set
+            private set
             {
-                SetSyncVar(value, ref _recoilMultiplier, RECOIL_MULTIPLIER_DIRTY_BIT);
+                _clientSync.RecoilMultiplier = value;
             }
         }
 
-        float _FOVMultiplier = 1f;
-        const uint FOV_MULTIPLIER_DIRTY_BIT = 1 << 2;
-        float networkFOVMultiplier
+        public float FovMultiplier
         {
             get
             {
-                return _FOVMultiplier;
+                return _clientSync.FovMultiplier;
             }
-            set
+            private set
             {
-                SetSyncVar(value, ref _FOVMultiplier, FOV_MULTIPLIER_DIRTY_BIT);
+                _clientSync.FovMultiplier = value;
             }
         }
 
-        float _clientFOVMultiplierVelocity;
-        float _clientFOVMultiplier = 1f;
-        public float CurrentFOVMultiplier => NetworkServer.active ? networkFOVMultiplier : _clientFOVMultiplier;
-
-        Quaternion _cameraRotationOffset = Quaternion.identity;
-        const uint CAMERA_ROTATION_OFFSET_DIRTY_BIT = 1 << 3;
-        Quaternion networkCameraRotationOffset
+        public Quaternion CameraRotationOffset
         {
             get
             {
-                return _cameraRotationOffset;
+                return _clientSync.RotationOffset;
             }
-            set
+            private set
             {
-                SetSyncVar(value, ref _cameraRotationOffset, CAMERA_ROTATION_OFFSET_DIRTY_BIT);
+                _clientSync.RotationOffset = value;
             }
         }
 
-        Quaternion _clientCameraRotationOffset = Quaternion.identity;
-        public Quaternion CurrentCameraRotationOffset => NetworkServer.active ? networkCameraRotationOffset : _clientCameraRotationOffset;
-
-        float _cameraDistanceMultiplier = 1f;
-        const uint CAMERA_DISTANCE_MULTIPLIER_DIRTY_BIT = 1 << 4;
-        float networkCameraDistanceMultiplier
+        public float CameraDistanceMultiplier
         {
             get
             {
-                return _cameraDistanceMultiplier;
+                return _clientSync.DistanceMultiplier;
             }
-            set
+            private set
             {
-                SetSyncVar(value, ref _cameraDistanceMultiplier, CAMERA_DISTANCE_MULTIPLIER_DIRTY_BIT);
+                _clientSync.DistanceMultiplier = value;
             }
         }
 
-        float _clientCameraDistanceMultiplierVelocity = 0f;
-        float _clientCameraDistanceMultiplier = 1f;
-        public float CurrentCameraDistanceMultiplier => NetworkServer.active ? networkCameraDistanceMultiplier : _clientCameraDistanceMultiplier;
+        void Awake()
+        {
+            _clientSync = GetComponent<SyncCameraModification>();
+        }
 
         protected override void OnEnable()
         {
@@ -193,25 +183,6 @@ namespace RiskOfChaos.ModifierController.Camera
             SingletonHelper.Unassign(ref _instance, this);
         }
 
-        public override void OnStartClient()
-        {
-            base.OnStartClient();
-
-            _clientFOVMultiplier = networkFOVMultiplier;
-            _clientCameraRotationOffset = networkCameraRotationOffset;
-            _clientCameraDistanceMultiplier = networkCameraDistanceMultiplier;
-        }
-
-        void Update()
-        {
-            if (!NetworkServer.active)
-            {
-                _clientFOVMultiplier = Mathf.SmoothDamp(_clientFOVMultiplier, networkFOVMultiplier, ref _clientFOVMultiplierVelocity, 0.75f, float.PositiveInfinity, Time.unscaledDeltaTime);
-                _clientCameraRotationOffset = Quaternion.RotateTowards(_clientCameraRotationOffset, networkCameraRotationOffset, 180f * Time.unscaledDeltaTime);
-                _clientCameraDistanceMultiplier = Mathf.SmoothDamp(_clientCameraDistanceMultiplier, networkCameraDistanceMultiplier, ref _clientCameraDistanceMultiplierVelocity, 0.75f, float.PositiveInfinity, Time.unscaledDeltaTime);
-            }
-        }
-
         public override CameraModificationData InterpolateValue(in CameraModificationData a, in CameraModificationData b, float t)
         {
             return CameraModificationData.Interpolate(a, b, t, ValueInterpolationFunctionType.Linear);
@@ -219,89 +190,20 @@ namespace RiskOfChaos.ModifierController.Camera
 
         public override void UpdateValueModifications()
         {
-            CameraModificationData modificationData = GetModifiedValue(new CameraModificationData());
-
-            NetworkRecoilMultiplier = modificationData.RecoilMultiplier;
-            networkFOVMultiplier = modificationData.FOVMultiplier;
-            networkCameraRotationOffset = modificationData.RotationOffset;
-            networkCameraDistanceMultiplier = modificationData.CameraDistanceMultiplier;
-        }
-
-        protected override bool serialize(NetworkWriter writer, bool initialState, uint dirtyBits)
-        {
-            bool baseValue = base.serialize(writer, initialState, dirtyBits);
-
-            if (initialState)
+            if (!NetworkServer.active)
             {
-                writer.Write(_recoilMultiplier);
-                writer.Write(_FOVMultiplier);
-                writer.Write(_cameraRotationOffset);
-                writer.Write(_cameraDistanceMultiplier);
-
-                return baseValue;
-            }
-
-            bool anythingWritten = false;
-
-            if ((dirtyBits & RECOIL_MULTIPLIER_DIRTY_BIT) != 0)
-            {
-                writer.Write(_recoilMultiplier);
-                anythingWritten = true;
-            }
-
-            if ((dirtyBits & FOV_MULTIPLIER_DIRTY_BIT) != 0)
-            {
-                writer.Write(_FOVMultiplier);
-                anythingWritten = true;
-            }
-
-            if ((dirtyBits & CAMERA_ROTATION_OFFSET_DIRTY_BIT) != 0)
-            {
-                writer.Write(_cameraRotationOffset);
-                anythingWritten = true;
-            }
-
-            if ((dirtyBits & CAMERA_DISTANCE_MULTIPLIER_DIRTY_BIT) != 0)
-            {
-                writer.Write(_cameraDistanceMultiplier);
-                anythingWritten = true;
-            }
-
-            return baseValue || anythingWritten;
-        }
-
-        protected override void deserialize(NetworkReader reader, bool initialState, uint dirtyBits)
-        {
-            base.deserialize(reader, initialState, dirtyBits);
-
-            if (initialState)
-            {
-                _recoilMultiplier = reader.ReadVector2();
-                _FOVMultiplier = reader.ReadSingle();
-                _cameraRotationOffset = reader.ReadQuaternion();
-                _cameraDistanceMultiplier = reader.ReadSingle();
+                Log.Warning("Called on client");
                 return;
             }
 
-            if ((dirtyBits & RECOIL_MULTIPLIER_DIRTY_BIT) != 0)
-            {
-                _recoilMultiplier = reader.ReadVector2();
-            }
+            _clientSync.AnyModificationActive = base.AnyModificationActive;
 
-            if ((dirtyBits & FOV_MULTIPLIER_DIRTY_BIT) != 0)
-            {
-                _FOVMultiplier = reader.ReadSingle();
-            }
+            CameraModificationData modificationData = GetModifiedValue(new CameraModificationData());
 
-            if ((dirtyBits & CAMERA_ROTATION_OFFSET_DIRTY_BIT) != 0)
-            {
-                _cameraRotationOffset = reader.ReadQuaternion();
-            }
-
-            if ((dirtyBits & CAMERA_DISTANCE_MULTIPLIER_DIRTY_BIT) != 0)
-            {
-                _cameraDistanceMultiplier = reader.ReadSingle();
-            }
+            RecoilMultiplier = modificationData.RecoilMultiplier;
+            FovMultiplier = modificationData.FOVMultiplier;
+            CameraRotationOffset = modificationData.RotationOffset;
+            CameraDistanceMultiplier = modificationData.CameraDistanceMultiplier;
         }
     }
 }

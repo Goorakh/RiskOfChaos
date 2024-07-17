@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosTimedEffect("repeat_projectiles", 90f, IsNetworked = true)]
+    [ChaosTimedEffect("repeat_projectiles", 90f)]
     public sealed class RepeatProjectiles : TimedEffect, IProjectileModificationProvider
     {
         [EffectConfig]

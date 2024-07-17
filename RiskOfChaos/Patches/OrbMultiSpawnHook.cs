@@ -24,7 +24,7 @@ namespace RiskOfChaos.Patches
                                          && orb != null
                                          && !OrbUtils.IsTransferOrb(orb)
                                          && ProjectileModificationManager.Instance
-                                         && ProjectileModificationManager.Instance.NetworkedExtraSpawnCount > 0
+                                         && ProjectileModificationManager.Instance.ExtraSpawnCount > 0
                                          // Don't allow procs to repeat
                                          && (!orb.TryGetProcChainMask(out ProcChainMask orbProcChain) || orbProcChain.Equals(default));
 
@@ -39,7 +39,7 @@ namespace RiskOfChaos.Patches
                 {
                     Stage startingStage = Stage.instance;
 
-                    for (byte i = 0; i < ProjectileModificationManager.Instance.NetworkedExtraSpawnCount; i++)
+                    for (byte i = 0; i < ProjectileModificationManager.Instance.ExtraSpawnCount; i++)
                     {
                         yield return new WaitForSeconds(0.2f);
 

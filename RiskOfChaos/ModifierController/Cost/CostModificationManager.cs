@@ -2,6 +2,7 @@
 using RiskOfChaos.Utilities.Interpolation;
 using RoR2;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.Cost
 {
@@ -36,6 +37,12 @@ namespace RiskOfChaos.ModifierController.Cost
 
         public override void UpdateValueModifications()
         {
+            if (!NetworkServer.active)
+            {
+                Log.Warning("Called on client");
+                return;
+            }
+
             foreach (OriginalCostProvider originalCostProvider in InstanceTracker.GetInstancesList<OriginalCostProvider>())
             {
                 modifyCost(originalCostProvider);
@@ -44,6 +51,12 @@ namespace RiskOfChaos.ModifierController.Cost
 
         void modifyCost(OriginalCostProvider originalCostProvider)
         {
+            if (!NetworkServer.active)
+            {
+                Log.Warning("Called on client");
+                return;
+            }
+
             CostModificationInfo modificationInfo = GetModifiedValue(new CostModificationInfo(originalCostProvider));
 
             ICostProvider activeCostProvider = originalCostProvider.ActiveCostProvider;

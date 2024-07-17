@@ -3,25 +3,31 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.AttackDelay
 {
-    [ValueModificationManager]
-    public class AttackDelayModificationManager : NetworkedValueModificationManager<AttackDelayModificationInfo>
+    [ValueModificationManager(typeof(SyncAttackDelayModification))]
+    public class AttackDelayModificationManager : ValueModificationManager<AttackDelayModificationInfo>
     {
         static AttackDelayModificationManager _instance;
         public static AttackDelayModificationManager Instance => _instance;
 
-        const uint TOTAL_ATTACK_DELAY_DIRTY_BIT = 1 << 1;
+        SyncAttackDelayModification _clientSync;
 
-        float _totalAttackDelay = 0f;
-        public float NetworkedTotalAttackDelay
+        public override bool AnyModificationActive => NetworkServer.active ? base.AnyModificationActive : _clientSync.AnyModificationActive;
+
+        public float TotalAttackDelay
         {
             get
             {
-                return _totalAttackDelay;
+                return _clientSync.TotalAttackDelay;
             }
-            set
+            private set
             {
-                SetSyncVar(value, ref _totalAttackDelay, TOTAL_ATTACK_DELAY_DIRTY_BIT);
+                _clientSync.TotalAttackDelay = value;
             }
+        }
+
+        void Awake()
+        {
+            _clientSync = GetComponent<SyncAttackDelayModification>();
         }
 
         protected override void OnEnable()
@@ -43,45 +49,16 @@ namespace RiskOfChaos.ModifierController.AttackDelay
 
         public override void UpdateValueModifications()
         {
-            AttackDelayModificationInfo attackDelayModificationInfo = GetModifiedValue(new AttackDelayModificationInfo(0f));
-            NetworkedTotalAttackDelay = attackDelayModificationInfo.TotalDelay;
-        }
-
-        protected override bool serialize(NetworkWriter writer, bool initialState, uint dirtyBits)
-        {
-            bool baseAnythingWritten = base.serialize(writer, initialState, dirtyBits);
-
-            if (initialState)
+            if (!NetworkServer.active)
             {
-                writer.Write(_totalAttackDelay);
-                return true;
-            }
-
-            bool anythingWritten = false;
-
-            if ((dirtyBits & TOTAL_ATTACK_DELAY_DIRTY_BIT) != 0)
-            {
-                writer.Write(_totalAttackDelay);
-                anythingWritten = true;
-            }
-
-            return baseAnythingWritten || anythingWritten;
-        }
-
-        protected override void deserialize(NetworkReader reader, bool initialState, uint dirtyBits)
-        {
-            base.deserialize(reader, initialState, dirtyBits);
-
-            if (initialState)
-            {
-                _totalAttackDelay = reader.ReadSingle();
+                Log.Warning("Called on client");
                 return;
             }
 
-            if ((dirtyBits & TOTAL_ATTACK_DELAY_DIRTY_BIT) != 0)
-            {
-                _totalAttackDelay = reader.ReadSingle();
-            }
+            _clientSync.AnyModificationActive = base.AnyModificationActive;
+
+            AttackDelayModificationInfo attackDelayModificationInfo = GetModifiedValue(new AttackDelayModificationInfo(0f));
+            TotalAttackDelay = attackDelayModificationInfo.TotalDelay;
         }
     }
 }

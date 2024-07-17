@@ -14,7 +14,14 @@ namespace RiskOfChaos.Utilities.Interpolation
 
         float interpolationTimeElapsed => _interpolationStartTime >= 0f ? (Time.unscaledTime - _interpolationStartTime) : -1f;
 
-        public bool IsInterpolating => interpolationTimeElapsed >= 0f;
+        public bool IsInterpolating
+        {
+            get
+            {
+                float timeElapsed = interpolationTimeElapsed;
+                return timeElapsed >= 0f && timeElapsed <= _interpolationDuration;
+            }
+        }
 
         public float CurrentFraction
         {

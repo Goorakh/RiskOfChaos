@@ -54,14 +54,14 @@ namespace RiskOfChaos.Patches
                     if (!characterMotor)
                         return;
 
-                    if (characterMotor.TryGetComponent(out IsJumpingOnJumpPadTracker jumpingTracker) && !jumpingTracker.NetworkedIsJumping)
+                    if (characterMotor.TryGetComponent(out IsJumpingOnJumpPadTracker jumpingTracker) && !jumpingTracker.IsJumping)
                     {
 #if DEBUG
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public
                         Log.Debug($"{FormatUtils.GetBestBodyName(characterMotor.body)} started jumping on jump pad");
 #pragma warning restore Publicizer001 // Accessing a member that was not originally public
 #endif
-                        jumpingTracker.NetworkedIsJumping = true;
+                        jumpingTracker.CmdSetIsJumping(true);
                     }
                 });
             }

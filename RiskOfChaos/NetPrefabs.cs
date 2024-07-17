@@ -1,5 +1,7 @@
-﻿using R2API;
+﻿using EntityStates;
+using R2API;
 using RiskOfChaos.Components;
+using RiskOfChaos.EffectDefinitions.Character;
 using RiskOfChaos.Networking.Components;
 using RiskOfChaos.Networking.Components.Effects;
 using RoR2;
@@ -33,6 +35,12 @@ namespace RiskOfChaos
         public static GameObject DummyDamageInflictorPrefab { get; private set; }
 
         public static GameObject ConfigNetworkerPrefab { get; private set; }
+
+        public static GameObject SuperhotControllerPrefab { get; private set; }
+
+        public static GameObject NewtStatueFixedOriginPrefab { get; private set; }
+
+        public static GameObject ExplodeAtLowHealthBodyAttachmentPrefab { get; private set; }
 
         public static GameObject CreateEmptyPrefabObject(string name, bool networked = true)
         {
@@ -70,6 +78,7 @@ namespace RiskOfChaos
 
                 NetworkedBodyAttachment networkedBodyAttachment = MonsterItemStealControllerPrefab.GetComponent<NetworkedBodyAttachment>();
                 networkedBodyAttachment.shouldParentToAttachedBody = true;
+                networkedBodyAttachment.forceHostAuthority = true;
 
                 ItemStealController itemStealController = MonsterItemStealControllerPrefab.GetComponent<ItemStealController>();
                 itemStealController.stealInterval = 0.2f;
@@ -112,7 +121,7 @@ namespace RiskOfChaos
 
             // ItemStealerPositionIndicatorPrefab
             {
-                ItemStealerPositionIndicatorPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Common/BossPositionIndicator.prefab").WaitForCompletion().InstantiateClone("ItemStealerPositionIndicator", false);
+                ItemStealerPositionIndicatorPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Common/BossPositionIndicator.prefab").WaitForCompletion().InstantiateClone(Main.PluginGUID + "_ItemStealerPositionIndicator", false);
 
                 PositionIndicator positionIndicator = ItemStealerPositionIndicatorPrefab.GetComponent<PositionIndicator>();
 
@@ -160,6 +169,42 @@ namespace RiskOfChaos
                 ConfigNetworkerPrefab.AddComponent<SetDontDestroyOnLoad>();
                 ConfigNetworkerPrefab.AddComponent<DestroyOnRunEnd>();
                 ConfigNetworkerPrefab.AddComponent<SyncConfigValue>();
+            }
+
+            // SuperhotControllerPrefab
+            {
+                SuperhotControllerPrefab = CreateEmptyPrefabObject("SuperhotController");
+
+                NetworkIdentity networkIdentity = SuperhotControllerPrefab.GetComponent<NetworkIdentity>();
+                networkIdentity.localPlayerAuthority = true;
+
+                NetworkedBodyAttachment networkedBodyAttachment = SuperhotControllerPrefab.AddComponent<NetworkedBodyAttachment>();
+                networkedBodyAttachment.shouldParentToAttachedBody = true;
+                networkedBodyAttachment.forceHostAuthority = false;
+
+                SuperhotControllerPrefab.AddComponent<SuperhotPlayerController>();
+            }
+
+            // NewtStatueFixedOriginPrefab
+            {
+                NewtStatueFixedOriginPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/NewtStatue/NewtStatue.prefab").WaitForCompletion().InstantiateClone("NewtStatueFixedOrigin");
+                for (int i = 0; i < NewtStatueFixedOriginPrefab.transform.childCount; i++)
+                {
+                    NewtStatueFixedOriginPrefab.transform.GetChild(i).Translate(new Vector3(0f, 1.25f, 0f), Space.World);
+                }
+            }
+
+            // ExplodeAtLowHealthBodyAttachmentPrefab
+            {
+                GameObject fuelArrayAttachmentPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/QuestVolatileBattery/QuestVolatileBatteryAttachment.prefab").WaitForCompletion();
+
+                ExplodeAtLowHealthBodyAttachmentPrefab = fuelArrayAttachmentPrefab.InstantiateClone($"{Main.PluginGUID}_ExplodeAtLowHealth");
+
+                EntityStateMachine esm = ExplodeAtLowHealthBodyAttachmentPrefab.GetComponent<EntityStateMachine>();
+                esm.initialStateType = new SerializableEntityStateType(typeof(ExplodeAtLowHealth.MonitorState));
+                esm.mainStateType = new SerializableEntityStateType(typeof(ExplodeAtLowHealth.MonitorState));
+
+                ExplodeAtLowHealthBodyAttachmentPrefab.AddComponent<GenericOwnership>();
             }
 
             Run.onRunStartGlobal += onRunStart;

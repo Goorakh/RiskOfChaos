@@ -1,43 +1,17 @@
 ﻿using RiskOfChaos.Utilities;
-using System.Runtime.InteropServices;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.Networking.Components
 {
     public class SyncTimeScale : NetworkBehaviour
     {
-        const uint TIME_SCALE_DIRTY_BIT = 1 << 0;
+        [SyncVar(hook = nameof(syncTimeScale))]
+        float _timeScale = 1f;
 
-        float _timeScale;
-        public float NetworkedTimeScale
+        public override void OnStartServer()
         {
-            get
-            {
-                return _timeScale;
-            }
+            base.OnStartServer();
 
-            [param: In]
-            set
-            {
-                if (NetworkServer.localClientActive && !syncVarHookGuard)
-                {
-                    syncVarHookGuard = true;
-                    syncTimeScale(value);
-                    syncVarHookGuard = false;
-                }
-
-                SetSyncVar(value, ref _timeScale, TIME_SCALE_DIRTY_BIT);
-            }
-        }
-
-        void syncTimeScale(float value)
-        {
-            NetworkedTimeScale = value;
-            TimeUtils.UnpausedTimeScale = value;
-        }
-
-        void Awake()
-        {
             _timeScale = TimeUtils.UnpausedTimeScale;
         }
 
@@ -48,11 +22,11 @@ namespace RiskOfChaos.Networking.Components
             syncTimeScale(_timeScale);
         }
 
-        public override void OnStartAuthority()
+        void syncTimeScale(float value)
         {
-            base.OnStartAuthority();
+            _timeScale = value;
 
-            NetworkedTimeScale = TimeUtils.UnpausedTimeScale;
+            TimeUtils.UnpausedTimeScale = value;
         }
 
         void FixedUpdate()
@@ -60,9 +34,9 @@ namespace RiskOfChaos.Networking.Components
             float timeScale = TimeUtils.UnpausedTimeScale;
             if (_timeScale != timeScale)
             {
-                if (hasAuthority)
+                if (NetworkServer.active)
                 {
-                    NetworkedTimeScale = timeScale;
+                    _timeScale = timeScale;
                 }
                 else
                 {
@@ -71,41 +45,9 @@ namespace RiskOfChaos.Networking.Components
             }
         }
 
-        public override bool OnSerialize(NetworkWriter writer, bool initialState)
+        public override float GetNetworkSendInterval()
         {
-            if (initialState)
-            {
-                writer.Write(_timeScale);
-                return true;
-            }
-
-            uint dirtyBits = syncVarDirtyBits;
-            writer.WritePackedUInt32(dirtyBits);
-
-            bool anythingWritten = false;
-
-            if ((dirtyBits & TIME_SCALE_DIRTY_BIT) != 0)
-            {
-                writer.Write(_timeScale);
-                anythingWritten = true;
-            }
-
-            return anythingWritten;
-        }
-
-        public override void OnDeserialize(NetworkReader reader, bool initialState)
-        {
-            if (initialState)
-            {
-                _timeScale = reader.ReadSingle();
-                return;
-            }
-
-            uint dirtyBits = reader.ReadPackedUInt32();
-            if ((dirtyBits & TIME_SCALE_DIRTY_BIT) != 0)
-            {
-                syncTimeScale(reader.ReadSingle());
-            }
+            return base.GetNetworkSendInterval() * TimeUtils.UnpausedTimeScale;
         }
     }
 }

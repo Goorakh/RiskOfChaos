@@ -18,22 +18,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
     {
         static GameObject _explosionVFXPrefab;
 
-        static GameObject _explodeAtLowHealthBodyAttachmentPrefab;
-
         [SystemInitializer]
         static void Init()
         {
             _explosionVFXPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/QuestVolatileBattery/VolatileBatteryExplosion.prefab").WaitForCompletion();
-
-            GameObject fuelArrayAttachmentPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/QuestVolatileBattery/QuestVolatileBatteryAttachment.prefab").WaitForCompletion();
-
-            _explodeAtLowHealthBodyAttachmentPrefab = fuelArrayAttachmentPrefab.InstantiateClone($"{Main.PluginGUID}_ExplodeAtLowHealth");
-
-            EntityStateMachine esm = _explodeAtLowHealthBodyAttachmentPrefab.GetComponent<EntityStateMachine>();
-            esm.initialStateType = new SerializableEntityStateType(typeof(MonitorState));
-            esm.mainStateType = new SerializableEntityStateType(typeof(MonitorState));
-
-            _explodeAtLowHealthBodyAttachmentPrefab.AddComponent<GenericOwnership>();
         }
 
         readonly List<GameObject> _exploderBodyAttachments = [];
@@ -80,7 +68,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             if (body.isPlayerControlled)
                 return;
 
-            GameObject attachment = GameObject.Instantiate(_explodeAtLowHealthBodyAttachmentPrefab);
+            GameObject attachment = GameObject.Instantiate(NetPrefabs.ExplodeAtLowHealthBodyAttachmentPrefab);
 
             NetworkedBodyAttachment exploderAttachment = attachment.GetComponent<NetworkedBodyAttachment>();
             exploderAttachment.AttachToGameObjectAndSpawn(body.gameObject);
@@ -161,7 +149,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             blastAttack.Fire();
         }
 
-        class BaseState : EntityState
+        public class BaseState : EntityState
         {
             protected CharacterBody attachedBody { get; private set; }
 
@@ -187,7 +175,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         }
 
         [EntityStateType]
-        class MonitorState : BaseState
+        public class MonitorState : BaseState
         {
             const float EXPLODE_HEALTH_FRACTION_PLAYER = 0.15f;
             const float EXPLODE_HEALTH_FRACTION_ENEMY = 0.45f;
@@ -262,7 +250,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         }
 
         [EntityStateType]
-        class CountDownState : BaseState
+        public class CountDownState : BaseState
         {
             static readonly GameObject _countDownVFXPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/QuestVolatileBattery/VolatileBatteryPreDetonation.prefab").WaitForCompletion();
 

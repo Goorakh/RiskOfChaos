@@ -1,14 +1,14 @@
 ﻿using RiskOfChaos.Networking.Components;
 using RoR2;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace RiskOfChaos.Components
 {
     [RequireComponent(typeof(ItemStealController), typeof(SyncStolenItemCount))]
     public class ShowStolenItemsPositionIndicator : MonoBehaviour
     {
+        NetworkedBodyAttachment _bodyAttachment;
+
         ItemStealController _itemStealController;
         SyncStolenItemCount _syncedStolenItemCount;
 
@@ -17,54 +17,18 @@ namespace RiskOfChaos.Components
 
         void Awake()
         {
+            _bodyAttachment = GetComponent<NetworkedBodyAttachment>();
             _itemStealController = GetComponent<ItemStealController>();
             _syncedStolenItemCount = GetComponent<SyncStolenItemCount>();
         }
 
-        void OnEnable()
-        {
-            if (_itemStealController)
-            {
-                if (NetworkServer.active)
-                {
-                    _itemStealController.onStealFinishServer.AddListener(refreshShowPositionIndicator);
-                }
-                else
-                {
-                    _itemStealController.onStealFinishClient += refreshShowPositionIndicator;
-                }
-            }
-
-            LocalUserManager.onLocalUsersUpdated += refreshShowPositionIndicator;
-
-            refreshShowPositionIndicator();
-        }
-
         void FixedUpdate()
         {
-            // If the target object has been destroyed, remove the position indicator, otherwise a position indicator at (0, 0, 0) is left behind
-            if (_positionIndicator && !_positionIndicator.targetTransform)
-            {
-                Destroy(_positionIndicatorObject);
-            }
+            refreshShowPositionIndicator();
         }
 
         void OnDisable()
         {
-            if (_itemStealController)
-            {
-                if (NetworkServer.active)
-                {
-                    _itemStealController.onStealFinishServer.RemoveListener(refreshShowPositionIndicator);
-                }
-                else
-                {
-                    _itemStealController.onStealFinishClient -= refreshShowPositionIndicator;
-                }
-            }
-
-            LocalUserManager.onLocalUsersUpdated -= refreshShowPositionIndicator;
-
             if (_positionIndicator)
             {
                 Destroy(_positionIndicatorObject);
@@ -73,18 +37,29 @@ namespace RiskOfChaos.Components
 
         bool shouldShowPositionIndicator()
         {
-            return _syncedStolenItemCount && LocalUserManager.readOnlyLocalUsersList.Any(user =>
+            CharacterBody body = _bodyAttachment.attachedBody;
+            if (!body || !body.gameObject.activeInHierarchy)
+                return false;
+
+            HealthComponent healthComponent = body.healthComponent;
+            if (healthComponent && !healthComponent.alive)
+                return false;
+
+            foreach (LocalUser user in LocalUserManager.readOnlyLocalUsersList)
             {
-                if (user == null)
-                    return false;
+                CharacterMaster userMaster = user.cachedMaster;
+                if (!userMaster)
+                    continue;
 
-                CharacterMaster master = user.cachedMaster;
-                if (!master)
-                    return false;
+                Inventory userInventory = userMaster.inventory;
+                if (!userInventory)
+                    continue;
 
-                Inventory inventory = master.inventory;
-                return inventory && _syncedStolenItemCount.GetStolenItemsCount(inventory) > 0;
-            });
+                if (_syncedStolenItemCount.GetStolenItemsCount(userInventory) > 0)
+                    return true;
+            }
+
+            return false;
         }
 
         void refreshShowPositionIndicator()
@@ -93,23 +68,12 @@ namespace RiskOfChaos.Components
             {
                 if (!_positionIndicatorObject)
                 {
-                    if (_itemStealController.TryGetComponent(out NetworkedBodyAttachment itemStealControllerBodyAttachment) &&
-                        itemStealControllerBodyAttachment.attachedBodyObject)
+                    if (_bodyAttachment.attachedBody)
                     {
                         _positionIndicatorObject = Instantiate(NetPrefabs.ItemStealerPositionIndicatorPrefab);
 
-                        if (_positionIndicatorObject.TryGetComponent(out _positionIndicator))
-                        {
-                            _positionIndicator.targetTransform = itemStealControllerBodyAttachment.attachedBodyObject.transform;
-                        }
-                        else
-                        {
-                            Log.Error("Position indicator is missing PositionIndicator component");
-                        }
-                    }
-                    else
-                    {
-                        Log.Warning("Unable to find body object from ItemStealController");
+                        _positionIndicator = _positionIndicatorObject.GetComponent<PositionIndicator>();
+                        _positionIndicator.targetTransform = _bodyAttachment.attachedBody.coreTransform;
                     }
                 }
                 else if (!_positionIndicatorObject.activeSelf)

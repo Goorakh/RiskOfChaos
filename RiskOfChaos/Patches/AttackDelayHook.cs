@@ -21,7 +21,7 @@ namespace RiskOfChaos.Patches
                 if (!instance)
                     return 0f;
 
-                return instance.NetworkedTotalAttackDelay;
+                return instance.TotalAttackDelay;
             }
         }
 

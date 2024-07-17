@@ -68,7 +68,9 @@ namespace RiskOfChaos.EffectHandling.Formatting
         public static EffectNameFormatter ReadEffectNameFormatter(this NetworkReader reader)
         {
             int formatterTypeIndex = reader.ReadPackedIndex32();
-            if (!ArrayUtils.IsInBounds(_effectNameFormatterTypes, formatterTypeIndex))
+
+            Type formatterType = ArrayUtils.GetSafe(_effectNameFormatterTypes, formatterTypeIndex);
+            if (formatterType == null)
                 return EffectNameFormatter_None.Instance;
 
             EffectNameFormatter formatter = (EffectNameFormatter)Activator.CreateInstance(_effectNameFormatterTypes[formatterTypeIndex]);
