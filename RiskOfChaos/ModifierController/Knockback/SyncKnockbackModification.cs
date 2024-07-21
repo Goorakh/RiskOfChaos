@@ -2,10 +2,10 @@
 
 namespace RiskOfChaos.ModifierController.Knockback
 {
-    public sealed class SyncKnockbackModification : NetworkBehaviour
+    public sealed class SyncKnockbackModification : NetworkBehaviour, IValueModificationFieldsProvider
     {
-        [SyncVar]
-        public bool AnyModificationActive;
+        [field: SyncVar]
+        public bool AnyModificationActive { get; set; }
 
         [SyncVar]
         public float TotalKnockbackMultiplier = 1f;

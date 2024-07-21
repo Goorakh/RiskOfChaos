@@ -2,9 +2,9 @@
 
 namespace RiskOfChaos.ModifierController.Gravity
 {
-    public sealed class SyncGravityModification : NetworkBehaviour
+    public sealed class SyncGravityModification : NetworkBehaviour, IValueModificationFieldsProvider
     {
-        [SyncVar]
-        public bool AnyModificationActive;
+        [field: SyncVar]
+        public bool AnyModificationActive { get; set; }
     }
 }

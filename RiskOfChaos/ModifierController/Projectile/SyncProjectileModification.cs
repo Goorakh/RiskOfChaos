@@ -2,10 +2,10 @@
 
 namespace RiskOfChaos.ModifierController.Projectile
 {
-    public sealed class SyncProjectileModification : NetworkBehaviour
+    public sealed class SyncProjectileModification : NetworkBehaviour, IValueModificationFieldsProvider
     {
-        [SyncVar]
-        public bool AnyModificationActive;
+        [field: SyncVar]
+        public bool AnyModificationActive { get; set; }
 
         [SyncVar]
         public float SpeedMultiplier = 1f;

@@ -11,8 +11,6 @@ namespace RiskOfChaos.ModifierController.Effect
 
         SyncEffectModification _clientSync;
 
-        public override bool AnyModificationActive => NetworkServer.active ? base.AnyModificationActive : _clientSync.AnyModificationActive;
-
         public float DurationMultiplier
         {
             get
@@ -25,8 +23,9 @@ namespace RiskOfChaos.ModifierController.Effect
             }
         }
 
-        void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             _clientSync = GetComponent<SyncEffectModification>();
         }
 
@@ -56,8 +55,6 @@ namespace RiskOfChaos.ModifierController.Effect
                 Log.Warning("Called on client");
                 return;
             }
-
-            _clientSync.AnyModificationActive = base.AnyModificationActive;
 
             EffectModificationInfo modificationInfo = GetModifiedValue(new EffectModificationInfo());
 

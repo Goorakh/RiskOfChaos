@@ -38,8 +38,6 @@ namespace RiskOfChaos.ModifierController.SkillSlots
 
         SyncSkillSlotModification _clientSync;
 
-        public override bool AnyModificationActive => NetworkServer.active ? base.AnyModificationActive : _clientSync.AnyModificationActive;
-
         public uint LockedSkillSlotsMask
         {
             get
@@ -116,8 +114,9 @@ namespace RiskOfChaos.ModifierController.SkillSlots
             return SkillSlotStockAdds[(int)skillSlot];
         }
 
-        void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             _clientSync = GetComponent<SyncSkillSlotModification>();
         }
 
@@ -163,8 +162,6 @@ namespace RiskOfChaos.ModifierController.SkillSlots
                 Log.Warning("Called on client");
                 return;
             }
-
-            _clientSync.AnyModificationActive = base.AnyModificationActive;
 
             uint forceLockedSkillSlotsMask = 0;
             uint forceActivateSkillSlotsMask = 0;

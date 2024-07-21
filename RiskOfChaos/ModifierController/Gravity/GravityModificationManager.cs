@@ -14,10 +14,9 @@ namespace RiskOfChaos.ModifierController.Gravity
 
         SyncGravityModification _clientSync;
 
-        public override bool AnyModificationActive => NetworkServer.active ? base.AnyModificationActive : _clientSync.AnyModificationActive;
-
-        void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             _clientSync = GetComponent<SyncGravityModification>();
         }
 
@@ -68,8 +67,6 @@ namespace RiskOfChaos.ModifierController.Gravity
                 Log.Warning("Called on client");
                 return;
             }
-
-            _clientSync.AnyModificationActive = base.AnyModificationActive;
 
             GravityTracker.SetGravityUntracked(GetModifiedValue(GravityTracker.BaseGravity));
         }

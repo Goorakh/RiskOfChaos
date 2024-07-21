@@ -1,24 +1,21 @@
-﻿using HG;
-using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.Camera
 {
-    public sealed class SyncCameraModification : NetworkBehaviour
+    public sealed class SyncCameraModification : NetworkBehaviour, IValueModificationFieldsProvider
     {
         [SyncVar]
-        bool _anyModificationActiveServer;
+        bool _anyModificationActive;
         public bool AnyModificationActive
         {
             get
             {
-                return _anyModificationActiveServer || _isInterpolatingValuesClient;
+                return _anyModificationActive || _isInterpolatingValuesClient;
             }
-            [Server]
             set
             {
-                _anyModificationActiveServer = value;
+                _anyModificationActive = value;
             }
         }
 

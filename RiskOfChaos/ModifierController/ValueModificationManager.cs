@@ -1,7 +1,6 @@
 ﻿using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.Interpolation;
 using RoR2;
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -15,29 +14,26 @@ namespace RiskOfChaos.ModifierController
 
         protected readonly List<ModificationProviderInfo<TValue>> _modificationProviders = [];
 
-        bool _anyModificationActive;
-        public virtual bool AnyModificationActive
+        IValueModificationFieldsProvider _fieldsProvider;
+
+        public bool AnyModificationActive
         {
             get
             {
-                return _anyModificationActive;
+                return _fieldsProvider.AnyModificationActive;
             }
             private set
             {
-                if (_anyModificationActive == value)
-                    return;
-                
-                _anyModificationActive = value;
-                OnAnyModificationActiveChanged?.Invoke(_anyModificationActive);
+                _fieldsProvider.AnyModificationActive = value;
             }
         }
 
-        public delegate void AnyModificationActiveChangedDelegate(bool newValue);
-        public event AnyModificationActiveChangedDelegate OnAnyModificationActiveChanged;
-
-        public event Action OnValueModificationUpdated;
-
         bool _modificationProvidersDirty;
+
+        protected virtual void Awake()
+        {
+            _fieldsProvider = GetComponent<IValueModificationFieldsProvider>() ?? gameObject.AddComponent<ValueModificationManagerLocalFields>();
+        }
 
         protected virtual void OnEnable()
         {
@@ -162,8 +158,6 @@ namespace RiskOfChaos.ModifierController
             AnyModificationActive = _modificationProviders.Count > 0;
 
             UpdateValueModifications();
-
-            OnValueModificationUpdated?.Invoke();
         }
 
         public abstract void UpdateValueModifications();

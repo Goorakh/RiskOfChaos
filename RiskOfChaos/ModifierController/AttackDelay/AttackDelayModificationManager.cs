@@ -11,8 +11,6 @@ namespace RiskOfChaos.ModifierController.AttackDelay
 
         SyncAttackDelayModification _clientSync;
 
-        public override bool AnyModificationActive => NetworkServer.active ? base.AnyModificationActive : _clientSync.AnyModificationActive;
-
         public float TotalAttackDelay
         {
             get
@@ -25,8 +23,9 @@ namespace RiskOfChaos.ModifierController.AttackDelay
             }
         }
 
-        void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             _clientSync = GetComponent<SyncAttackDelayModification>();
         }
 
@@ -54,8 +53,6 @@ namespace RiskOfChaos.ModifierController.AttackDelay
                 Log.Warning("Called on client");
                 return;
             }
-
-            _clientSync.AnyModificationActive = base.AnyModificationActive;
 
             AttackDelayModificationInfo attackDelayModificationInfo = GetModifiedValue(new AttackDelayModificationInfo(0f));
             TotalAttackDelay = attackDelayModificationInfo.TotalDelay;

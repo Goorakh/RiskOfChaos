@@ -11,8 +11,6 @@ namespace RiskOfChaos.ModifierController.Projectile
 
         SyncProjectileModification _clientSync;
 
-        public override bool AnyModificationActive => NetworkServer.active ? base.AnyModificationActive : _clientSync.AnyModificationActive;
-
         public float TotalProjectileSpeedMultiplier
         {
             get
@@ -73,8 +71,9 @@ namespace RiskOfChaos.ModifierController.Projectile
             }
         }
 
-        void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             _clientSync = GetComponent<SyncProjectileModification>();
         }
 
@@ -104,8 +103,6 @@ namespace RiskOfChaos.ModifierController.Projectile
                 Log.Warning("Called on client");
                 return;
             }
-
-            _clientSync.AnyModificationActive = base.AnyModificationActive;
 
             ProjectileModificationData modificationData = GetModifiedValue(new ProjectileModificationData());
             TotalProjectileSpeedMultiplier = modificationData.SpeedMultiplier;

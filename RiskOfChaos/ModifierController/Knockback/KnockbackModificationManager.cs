@@ -11,8 +11,6 @@ namespace RiskOfChaos.ModifierController.Knockback
 
         SyncKnockbackModification _clientSync;
 
-        public override bool AnyModificationActive => NetworkServer.active ? base.AnyModificationActive : _clientSync.AnyModificationActive;
-
         public float TotalKnockbackMultiplier
         {
             get
@@ -25,8 +23,9 @@ namespace RiskOfChaos.ModifierController.Knockback
             }
         }
 
-        void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             _clientSync = GetComponent<SyncKnockbackModification>();
         }
 
@@ -56,8 +55,6 @@ namespace RiskOfChaos.ModifierController.Knockback
                 Log.Warning("Called on client");
                 return;
             }
-
-            _clientSync.AnyModificationActive = base.AnyModificationActive;
 
             TotalKnockbackMultiplier = GetModifiedValue(1f);
         }

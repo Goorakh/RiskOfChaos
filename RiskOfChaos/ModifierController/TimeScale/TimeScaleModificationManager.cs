@@ -13,10 +13,9 @@ namespace RiskOfChaos.ModifierController.TimeScale
 
         SyncTimeScaleModification _clientSync;
 
-        public override bool AnyModificationActive => NetworkServer.active ? base.AnyModificationActive : _clientSync.AnyModificationActive;
-
-        void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             _clientSync = GetComponent<SyncTimeScaleModification>();
         }
 
@@ -49,7 +48,6 @@ namespace RiskOfChaos.ModifierController.TimeScale
                 return;
             }
 
-            _clientSync.AnyModificationActive = base.AnyModificationActive;
             TimeUtils.UnpausedTimeScale = GetModifiedValue(1f);
         }
     }

@@ -2,10 +2,10 @@
 
 namespace RiskOfChaos.ModifierController.Effect
 {
-    public sealed class SyncEffectModification : NetworkBehaviour
+    public sealed class SyncEffectModification : NetworkBehaviour, IValueModificationFieldsProvider
     {
-        [SyncVar]
-        public bool AnyModificationActive;
+        [field: SyncVar]
+        public bool AnyModificationActive { get; set; }
 
         [SyncVar]
         public float DurationMultiplier = 1f;

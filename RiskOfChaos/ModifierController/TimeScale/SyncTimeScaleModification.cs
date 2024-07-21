@@ -2,9 +2,9 @@
 
 namespace RiskOfChaos.ModifierController.TimeScale
 {
-    public sealed class SyncTimeScaleModification : NetworkBehaviour
+    public sealed class SyncTimeScaleModification : NetworkBehaviour, IValueModificationFieldsProvider
     {
-        [SyncVar]
-        public bool AnyModificationActive;
+        [field: SyncVar]
+        public bool AnyModificationActive { get; set; }
     }
 }

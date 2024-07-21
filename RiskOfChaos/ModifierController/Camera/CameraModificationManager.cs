@@ -113,8 +113,6 @@ namespace RiskOfChaos.ModifierController.Camera
 
         SyncCameraModification _clientSync;
 
-        public override bool AnyModificationActive => NetworkServer.active ? base.AnyModificationActive : _clientSync.AnyModificationActive;
-
         public Vector2 RecoilMultiplier
         {
             get
@@ -163,8 +161,9 @@ namespace RiskOfChaos.ModifierController.Camera
             }
         }
 
-        void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             _clientSync = GetComponent<SyncCameraModification>();
         }
 
@@ -195,8 +194,6 @@ namespace RiskOfChaos.ModifierController.Camera
                 Log.Warning("Called on client");
                 return;
             }
-
-            _clientSync.AnyModificationActive = base.AnyModificationActive;
 
             CameraModificationData modificationData = GetModifiedValue(new CameraModificationData());
 

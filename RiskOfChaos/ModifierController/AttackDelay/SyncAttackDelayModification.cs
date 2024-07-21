@@ -2,10 +2,10 @@
 
 namespace RiskOfChaos.ModifierController.AttackDelay
 {
-    public sealed class SyncAttackDelayModification : NetworkBehaviour
+    public sealed class SyncAttackDelayModification : NetworkBehaviour, IValueModificationFieldsProvider
     {
-        [SyncVar]
-        public bool AnyModificationActive;
+        [field: SyncVar]
+        public bool AnyModificationActive { get; set; }
 
         [SyncVar]
         public float TotalAttackDelay = 0f;

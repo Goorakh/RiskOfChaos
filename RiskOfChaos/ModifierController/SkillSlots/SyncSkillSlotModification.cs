@@ -5,10 +5,10 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.SkillSlots
 {
-    public sealed class SyncSkillSlotModification : NetworkBehaviour
+    public sealed class SyncSkillSlotModification : NetworkBehaviour, IValueModificationFieldsProvider
     {
-        [SyncVar]
-        public bool AnyModificationActive;
+        [field: SyncVar]
+        public bool AnyModificationActive { get; set; }
 
         [SyncVar(hook = nameof(syncLockedSkillSlotsMask))]
         public uint LockedSkillSlotsMask;
