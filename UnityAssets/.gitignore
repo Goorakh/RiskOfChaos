@@ -73,3 +73,5 @@ crashlytics-build.properties
 
 # Exported AssetBundles
 /Assets/Export/
+
+!*.meta
