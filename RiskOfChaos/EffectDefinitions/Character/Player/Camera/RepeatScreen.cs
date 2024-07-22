@@ -21,16 +21,16 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
         [EffectConfig]
         static readonly ConfigHolder<bool> _increaseHUDScale =
             ConfigFactory<bool>.CreateConfig("Increase HUD Scale", true)
-                                .Description("Increases HUD scale slightly while the effect is active. Makes it easier to see the UI, but can also have scaling issues")
-                                .OptionConfig(new CheckBoxConfig())
-                                .OnValueChanged(() =>
-                                {
-                                    if (!TimedChaosEffectHandler.Instance)
-                                        return;
+                               .Description("Increases HUD scale slightly while the effect is active. Makes it easier to see the UI, but can also have scaling issues")
+                               .OptionConfig(new CheckBoxConfig())
+                               .OnValueChanged(() =>
+                               {
+                                   if (!TimedChaosEffectHandler.Instance)
+                                       return;
 
-                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<RepeatScreen>(e => e.OnValueDirty);
-                                })
-                                .Build();
+                                   TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<RepeatScreen>(e => e.OnValueDirty);
+                               })
+                               .Build();
 
         static readonly int _repeatCountID = Shader.PropertyToID("_RepeatCount");
         static readonly int _centerOffsetID = Shader.PropertyToID("_CenterOffset");
@@ -42,7 +42,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
         [SystemInitializer]
         static void Init()
         {
-            _screenMaterial = AssetLoader.LoadAssetCached<Material>("assets", "RepeatScreen");
+            _screenMaterial = AssetLoader.LoadAssetCached<Material>("riskofchaos", "RepeatScreen");
         }
 
         [EffectCanActivate]
