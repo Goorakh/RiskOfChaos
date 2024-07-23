@@ -6,6 +6,8 @@
   * Distant Camera: Moves the camera further away from the player, lasts 90 seconds
   * Unlimited Proc Chains: Disables proc chain restrictions, lasts 60 seconds
 
+* Cleanse Random Item default weight: 0.7 -> 0.5
+
 * Fixed missing icon for Effects config
 
 **1.18.0 Changes:**

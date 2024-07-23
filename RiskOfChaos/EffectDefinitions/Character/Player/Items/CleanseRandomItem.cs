@@ -16,7 +16,7 @@ using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
-    [ChaosEffect("cleanse_random_item", DefaultSelectionWeight = 0.7f)]
+    [ChaosEffect("cleanse_random_item", DefaultSelectionWeight = 0.5f)]
     public sealed class CleanseRandomItem : BaseEffect
     {
         static PickupDropTable _pearlDropTable;
