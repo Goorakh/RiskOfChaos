@@ -6,6 +6,9 @@
   * Distant Camera: Moves the camera further away from the player, lasts 90 seconds
   * Unlimited Proc Chains: Disables proc chain restrictions, lasts 60 seconds
 
+* Disable Equipment:
+  * Fixed The Crowdfunder still being usable while effect is active.
+
 * Cleanse Random Item default weight: 0.7 -> 0.5
 
 * Fixed missing icon for Effects config

@@ -1,6 +1,8 @@
-﻿using HarmonyLib;
+﻿using EntityStates.GoldGat;
+using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -9,9 +11,11 @@ using RiskOfChaos.Patches;
 using RoR2;
 using RoR2.Skills;
 using RoR2.UI;
+using System;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Equipment
 {
@@ -35,54 +39,83 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
                     _lockedIconTexture = exhaustedIcon.texture;
                 }
             }
+        }
 
-            IL.RoR2.Items.MultiShopCardUtils.OnPurchase += il =>
+        static bool _appliedPatches;
+        static void tryApplyPatches()
+        {
+            if (_appliedPatches)
+                return;
+
+            _appliedPatches = true;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            static bool isEffectActive()
+            {
+                return TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo);
+            }
+
+            MethodInfo equipmentSlotStockGetter = AccessTools.DeclaredPropertyGetter(typeof(EquipmentSlot), nameof(EquipmentSlot.stock));
+            if (equipmentSlotStockGetter != null)
+            {
+                new Hook(equipmentSlotStockGetter, (Func<EquipmentSlot, int> orig, EquipmentSlot self) =>
+                {
+                    int stock = orig(self);
+                    if (isEffectActive())
+                        stock = 0;
+
+                    return stock;
+                });
+            }
+            else
+            {
+                Log.Error("Failed to find EquipmentSlot stock getter method");
+            }
+
+            IL.EntityStates.GoldGat.BaseGoldGatState.CheckReturnToIdle += il =>
             {
                 ILCursor c = new ILCursor(il);
 
-                ILLabel afterCardLogicLabel = null;
-                if (c.TryGotoNext(MoveType.After,
-                                  x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertyGetter(typeof(EquipmentSlot), nameof(EquipmentSlot.stock))),
-                                  x => x.MatchLdcI4(0),
-                                  x => x.MatchBle(out afterCardLogicLabel)))
+                if (c.TryGotoNext(x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertyGetter(typeof(CharacterMaster), nameof(CharacterMaster.money)))))
                 {
-                    c.EmitDelegate(() =>
+                    ILLabel afterIfLabel = null;
+                    if (c.TryGotoNext(MoveType.After,
+                                      x => x.MatchBleUn(out afterIfLabel)))
                     {
-                        return TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo);
-                    });
+                        c.MoveAfterLabels();
 
-                    c.Emit(OpCodes.Brtrue, afterCardLogicLabel);
+                        c.Emit(OpCodes.Ldarg_0);
+                        c.EmitDelegate(isOutOfEquipmentStocks);
+                        static bool isOutOfEquipmentStocks(BaseGoldGatState state)
+                        {
+                            return state.bodyEquipmentSlot && state.bodyEquipmentSlot.stock <= 0;
+                        }
+
+                        c.Emit(OpCodes.Brtrue, afterIfLabel);
+                    }
+                    else
+                    {
+                        Log.Error("[GoldGat equipment stock] Failed to find patch location");
+                    }
                 }
                 else
                 {
-                    Log.Error("Failed to find card logic patch location");
+                    Log.Error("[GoldGat equipment stock] Failed to find get_money call");
                 }
             };
-        }
-
-        static bool _appliedServerPatches;
-        static void tryApplyServerPatches()
-        {
-            if (_appliedServerPatches)
-                return;
 
             On.RoR2.EquipmentSlot.PerformEquipmentAction += (orig, self, equipmentDef) =>
             {
-                if (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
+                if (isEffectActive())
                     return false;
 
                 return orig(self, equipmentDef);
             };
-
-            _appliedServerPatches = true;
         }
 
         public override void OnStart()
         {
-            if (NetworkServer.active)
-            {
-                tryApplyServerPatches();
-            }
+            tryApplyPatches();
 
             OverrideEquipmentIconHook.OverrideEquipmentIcon += overrideEquipmentIcon;
         }
