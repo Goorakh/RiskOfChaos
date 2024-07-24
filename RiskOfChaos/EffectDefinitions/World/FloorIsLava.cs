@@ -71,7 +71,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             [SystemInitializer(typeof(CustomDOTs))]
             static void Init()
             {
-                _dotIndex = CustomDOTs.PercentHealthDotIndex;
+                _dotIndex = CustomDOTs.PercentHealthBurnDotIndex;
                 _dotDef = DotController.GetDotDef(_dotIndex);
             }
 

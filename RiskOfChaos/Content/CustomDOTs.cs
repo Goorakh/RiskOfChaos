@@ -11,13 +11,13 @@ namespace RiskOfChaos.Content
 {
     public static class CustomDOTs
     {
-        public static DotController.DotIndex PercentHealthDotIndex { get; private set; } = DotController.DotIndex.None;
+        public static DotController.DotIndex PercentHealthBurnDotIndex { get; private set; } = DotController.DotIndex.None;
 
         [SystemInitializer(typeof(DotController))]
         static void Init()
         {
             const float PERCENT_HEALTH_DOT_TICKS_PER_SECOND = 7f;
-            PercentHealthDotIndex = DotAPI.RegisterDotDef(new DotController.DotDef
+            PercentHealthBurnDotIndex = DotAPI.RegisterDotDef(new DotController.DotDef
             {
                 damageCoefficient = 1f / PERCENT_HEALTH_DOT_TICKS_PER_SECOND,
                 interval = 1f / PERCENT_HEALTH_DOT_TICKS_PER_SECOND,
@@ -53,12 +53,6 @@ namespace RiskOfChaos.Content
                     return false;
                 }
 
-                if (!tryFindParameterIndex(typeof(DotController.DotIndex), "dotIndex", out int dotIndexParameterIndex))
-                {
-                    Log.Error("Unable to find dotIndex argument");
-                    return;
-                }
-
                 if (!tryFindParameterIndex(typeof(float), "damageMultiplier", out int damageMultiplierParameterIndex))
                 {
                     Log.Error("Unable to find damageMultiplier argument");
@@ -66,30 +60,18 @@ namespace RiskOfChaos.Content
                 }
 
                 int dotStackLocalIndex = -1;
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 if (c.TryGotoNext(x => x.MatchLdsfld<DotController>(nameof(DotController.dotStackPool)),
                                   x => x.MatchCallOrCallvirt(out _),
                                   x => x.MatchStloc(out dotStackLocalIndex)))
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
                 {
-                    if (c.TryGotoNext(MoveType.Before, x => x.MatchLdarg(out _), x => x.MatchSwitch(out _)))
+                    if (c.TryGotoNext(MoveType.Before,
+                                      x => x.MatchSwitch(out _)))
                     {
                         c.Emit(OpCodes.Ldarg_0);
-                        c.Emit(OpCodes.Ldarg, dotIndexParameterIndex);
                         c.Emit(OpCodes.Ldarg, damageMultiplierParameterIndex);
                         c.Emit(OpCodes.Ldloc, dotStackLocalIndex);
 
-                        c.EmitDelegate((DotController instance, DotController.DotIndex dotIndex, float damageMultipler, DotController.DotStack dotStack) =>
-                        {
-                            if (PercentHealthDotIndex != DotController.DotIndex.None && dotIndex == PercentHealthDotIndex)
-                            {
-                                DotController.DotDef dotDef = DotController.GetDotDef(dotIndex);
-
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                                dotStack.damage = (instance.victimHealthComponent.fullCombinedHealth / 100f) * damageMultipler * dotDef.damageCoefficient;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-                            }
-                        });
+                        c.EmitDelegate(handleCustomDOTs);
                     }
                     else
                     {
@@ -101,6 +83,20 @@ namespace RiskOfChaos.Content
                     Log.Error("Failed to find dotStack local index");
                 }
             };
+        }
+
+        static void handleCustomDOTs(DotController instance, float damageMultipler, DotController.DotStack dotStack)
+        {
+            DotController.DotIndex dotIndex = dotStack.dotIndex;
+            if (dotIndex == DotController.DotIndex.None)
+                return;
+
+            DotController.DotDef dotDef = DotController.GetDotDef(dotIndex);
+
+            if (dotIndex == PercentHealthBurnDotIndex)
+            {
+                dotStack.damage = (instance.victimHealthComponent.fullCombinedHealth / 100f) * damageMultipler * dotDef.damageCoefficient;
+            }
         }
     }
 }
