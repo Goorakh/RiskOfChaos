@@ -9,6 +9,9 @@
 * Disable Equipment:
   * Fixed The Crowdfunder still being usable while effect is active.
 
+* Bouncy Projectiles:
+  * Fixed certain projectile types targetting the wrong team after bouncing
+
 * Swap Health & Shield:
   * Fixed effect allowing multiple instances to be active at once
 

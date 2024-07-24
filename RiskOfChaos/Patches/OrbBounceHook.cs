@@ -154,17 +154,21 @@ namespace RiskOfChaos.Patches
                 newOrbTargetSearchPosition = oldOrbTargetPosition;
             }
 
-            CharacterBody attackerBody = orbInstance.GetAttacker();
-
             if (!orbInstance.TryGetTeamIndex(out TeamIndex orbTeam))
             {
+                orbTeam = TeamIndex.None;
+            }
+
+            CharacterBody attackerBody = orbInstance.GetAttacker();
                 if (attackerBody)
                 {
-                    orbTeam = attackerBody.teamComponent.teamIndex;
-                }
-                else
+                if (orbTeam == TeamIndex.None || orbTeam == TeamIndex.Neutral)
                 {
-                    orbTeam = TeamIndex.None;
+                    TeamIndex attackerTeam = attackerBody.teamComponent.teamIndex;
+                    if (attackerTeam != TeamIndex.None && attackerTeam != TeamIndex.Neutral)
+                    {
+                        orbTeam = attackerTeam;
+                    }
                 }
             }
 
