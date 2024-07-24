@@ -1,5 +1,4 @@
-﻿using HarmonyLib;
-using Mono.Cecil.Cil;
+﻿using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
@@ -30,17 +29,21 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                 if (c.TryGotoNext(x => x.MatchLdsfld(typeof(RoR2Content.Buffs), nameof(RoR2Content.Buffs.Cripple))))
                 {
+                    ILLabel afterIfLabel = null;
                     if (c.TryGotoPrev(MoveType.After,
-                                      x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<CharacterBody>(_ => _.HasBuff(default(BuffDef))))))
+                                      x => x.MatchBrfalse(out afterIfLabel)))
                     {
-                        c.EmitDelegate((bool hasBuff) =>
+                        c.EmitDelegate(isEffectActive);
+                        static bool isEffectActive()
                         {
-                            return hasBuff && (!TimedChaosEffectHandler.Instance || !TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo));
-                        });
+                            return TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo);
+                        }
+
+                        c.Emit(OpCodes.Brtrue, afterIfLabel);
                     }
                     else
                     {
-                        Log.Error("Failed to find patch location");
+                        Log.Error("Failed to find Cripple patch location");
                     }
                 }
                 else
