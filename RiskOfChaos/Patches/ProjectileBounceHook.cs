@@ -49,11 +49,12 @@ namespace RiskOfChaos.Patches
                 cursor.Index++;
 
                 cursor.Emit(OpCodes.Ldarg_0);
-                cursor.Emit(OpCodes.Ldloc, impactInfoLocalIndex);
-                cursor.EmitDelegate((ProjectileController instance, ProjectileImpactInfo impactInfo) =>
+                cursor.Emit(OpCodes.Ldloca, impactInfoLocalIndex);
+                cursor.EmitDelegate(tryBounce);
+                static bool tryBounce(ProjectileController instance, in ProjectileImpactInfo impactInfo)
                 {
                     return instance && instance.TryGetComponent(out ProjectileEnvironmentBounceBehavior projectileBounceBehavior) && projectileBounceBehavior.TryBounce(impactInfo);
-                });
+                }
 
                 ILLabel afterRetLbl = il.DefineLabel();
 
@@ -71,10 +72,11 @@ namespace RiskOfChaos.Patches
             if (c.TryGotoNext(MoveType.Before,
                               x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertySetter(typeof(FireProjectileInfo), nameof(FireProjectileInfo.fuseOverride)))))
             {
-                c.EmitDelegate((float fuseOverride) =>
+                c.EmitDelegate(modifyFuse);
+                static float modifyFuse(float fuseOverride)
                 {
                     return isBouncingEnabled ? Mathf.Max(10f, fuseOverride) : fuseOverride;
-                });
+                }
             }
         }
 
@@ -160,7 +162,7 @@ namespace RiskOfChaos.Patches
                 transform.forward = Vector3.Reflect(transform.forward, normal);
             }
 
-            public bool TryBounce(ProjectileImpactInfo impactInfo)
+            public bool TryBounce(in ProjectileImpactInfo impactInfo)
             {
                 if (!isBouncingEnabled || _bouncesRemaining <= 0 || hitEnemy(impactInfo))
                 {
@@ -185,16 +187,12 @@ namespace RiskOfChaos.Patches
 
                 if (_projectileSimple)
                 {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                     _projectileSimple.stopwatch = 0f;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
                 }
 
                 if (_projectileImpactExplosion)
                 {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                     _projectileImpactExplosion.stopwatch = 0f;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
                 }
 
                 if (_projectileGrappleController)
@@ -212,7 +210,7 @@ namespace RiskOfChaos.Patches
                 return true;
             }
 
-            bool hitEnemy(ProjectileImpactInfo impactInfo)
+            bool hitEnemy(in ProjectileImpactInfo impactInfo)
             {
                 if (!_projectileController || !_projectileController.teamFilter)
                     return false;
