@@ -9,9 +9,13 @@
 * Disable Equipment:
   * Fixed The Crowdfunder still being usable while effect is active.
 
-* Cleanse Random Item default weight: 0.7 -> 0.5
+* Swap Health & Shield:
+  * Fixed effect allowing multiple instances to be active at once
 
-* Fixed missing icon for Effects config
+* Cleanse Random Item:
+  * Default weight: 0.7 -> 0.5
+
+* Fixed missing icon for Risk of Options Effects config
 
 **1.18.0 Changes:**
 

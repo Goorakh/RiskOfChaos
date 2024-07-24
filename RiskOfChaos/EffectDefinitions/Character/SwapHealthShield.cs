@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosTimedEffect("swap_health_shield", 60f)]
+    [ChaosTimedEffect("swap_health_shield", 60f, AllowDuplicates = false)]
     public sealed class SwapHealthShield : TimedEffect
     {
         [InitEffectInfo]
