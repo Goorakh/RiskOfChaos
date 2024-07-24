@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.ModifierController.TimeScale;
+using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities.Interpolation;
 using RoR2;
 using System;
@@ -32,17 +33,15 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
                 return multiplier;
             }
 
-            On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
+            CharacterBodyRecalculateStatsHook.PostRecalculateStats += (body) =>
             {
-                orig(self);
-
-                if (self.isPlayerControlled)
+                if (body.isPlayerControlled)
                 {
                     float timeScaleMultiplier = getTotalTimeScaleMultiplier();
 
-                    self.moveSpeed /= timeScaleMultiplier;
-                    self.attackSpeed /= timeScaleMultiplier;
-                    self.acceleration /= timeScaleMultiplier;
+                    body.moveSpeed /= timeScaleMultiplier;
+                    body.attackSpeed /= timeScaleMultiplier;
+                    body.acceleration /= timeScaleMultiplier;
                 }
             };
 

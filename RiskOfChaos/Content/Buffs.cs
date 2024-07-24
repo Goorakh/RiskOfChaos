@@ -1,4 +1,5 @@
 ﻿using R2API;
+using RiskOfChaos.Patches;
 using RoR2;
 using RoR2.ContentManagement;
 using UnityEngine;
@@ -27,21 +28,14 @@ namespace RiskOfChaos.Content
                     }
                 };
 
-                On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
+                CharacterBodyRecalculateStatsHook.PostRecalculateStats += (body) =>
                 {
-                    orig(self);
-
-                    if (self.HasBuff(SetTo1Hp))
+                    if (body.HasBuff(SetTo1Hp))
                     {
-                        // Use shatter death animation
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                        self.isGlass = true;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+                        body.isGlass = true;
 
-                        // Make sure barrier still decays, default behaviour means barrier decay will be so small it basically will never decay
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                        self.barrierDecayRate = self.maxBarrier;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+                        // Make sure barrier still decays, default behaviour makes barrier decay so small it basically never decays
+                        body.barrierDecayRate = body.maxBarrier;
                     }
                 };
             }
