@@ -17,6 +17,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
         [InitEffectInfo]
         public static new readonly TimedEffectInfo EffectInfo;
 
+        static GameObject sniperTargetHitEffect => BulletAttack.sniperTargetHitEffect;
+
         static bool _appliedPatches = false;
 
         static void tryApplyPatches()
@@ -59,17 +61,15 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     {
                         c.Index++;
                         c.Emit(OpCodes.Ldloc, hitPointLocalIndex);
-                        c.EmitDelegate((BlastAttack.BlastAttackDamageInfo blastDamageInfo, BlastAttack.HitPoint hitPoint) =>
+
+                        c.EmitDelegate(trySniperHit);
+                        static BlastAttack.BlastAttackDamageInfo trySniperHit(BlastAttack.BlastAttackDamageInfo blastDamageInfo, BlastAttack.HitPoint hitPoint)
                         {
                             if (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
                             {
                                 if (hitPoint.hurtBox.isSniperTarget)
                                 {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                                    GameObject hitEffect = BulletAttack.sniperTargetHitEffect;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-
-                                    if (hitEffect)
+                                    if (sniperTargetHitEffect)
                                     {
                                         EffectData effectData = new EffectData
                                         {
@@ -78,7 +78,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                         };
                                         effectData.SetHurtBoxReference(hitPoint.hurtBox);
 
-                                        EffectManager.SpawnEffect(hitEffect, effectData, true);
+                                        EffectManager.SpawnEffect(sniperTargetHitEffect, effectData, true);
                                     }
 
                                     blastDamageInfo.crit = true;
@@ -87,7 +87,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                             }
 
                             return blastDamageInfo;
-                        });
+                        }
                     }
                     else
                     {
@@ -109,11 +109,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                 if (boxedHitList is List<OverlapAttack.OverlapInfo> hitList)
                 {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                    GameObject hitEffect = BulletAttack.sniperTargetHitEffect;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-
-                    if (hitEffect)
+                    if (sniperTargetHitEffect)
                     {
                         foreach (OverlapAttack.OverlapInfo overlapInfo in hitList)
                         {
@@ -126,7 +122,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                 };
                                 effectData.SetHurtBoxReference(overlapInfo.hurtBox);
 
-                                EffectManager.SpawnEffect(hitEffect, effectData, true);
+                                EffectManager.SpawnEffect(sniperTargetHitEffect, effectData, true);
                             }
                         }
                     }
@@ -137,13 +133,9 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 ILCursor c = new ILCursor(il);
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                const string OVERLAPINFO_HURTBOX_NAME = nameof(OverlapAttack.OverlapInfo.hurtBox);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-
                 int overlapInfoLocalIndex = -1;
                 if (!c.TryGotoNext(x => x.MatchLdloc(out overlapInfoLocalIndex),
-                                   x => x.MatchLdfld<OverlapAttack.OverlapInfo>(OVERLAPINFO_HURTBOX_NAME)))
+                                   x => x.MatchLdfld<OverlapAttack.OverlapInfo>(nameof(OverlapAttack.OverlapInfo.hurtBox))))
                 {
                     Log.Error("Unable to find overlapInfo local index");
                     return;
@@ -165,7 +157,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                     c.Emit(OpCodes.Ldloc, overlapInfoLocalIndex);
                     c.Emit(OpCodes.Ldloc, damageInfoLocalIndex);
-                    c.EmitDelegate((OverlapAttack.OverlapInfo overlapInfo, DamageInfo damageInfo) =>
+                    c.EmitDelegate(applySniperDamage);
+                    void applySniperDamage(OverlapAttack.OverlapInfo overlapInfo, DamageInfo damageInfo)
                     {
                         if (!overlapInfo.hurtBox || !overlapInfo.hurtBox.isSniperTarget)
                             return;
@@ -175,7 +168,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                         damageInfo.crit = true;
                         damageInfo.damageColorIndex = DamageColorIndex.Sniper;
-                    });
+                    }
                 }
                 else
                 {
