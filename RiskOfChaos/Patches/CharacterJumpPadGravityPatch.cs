@@ -23,10 +23,11 @@ namespace RiskOfChaos.Patches
                                  x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertyGetter(typeof(Physics), nameof(Physics.gravity)))))
             {
                 c.Emit(OpCodes.Ldarg_0);
-                c.EmitDelegate((Vector3 worldGravity, CharacterMotor instance) =>
+                c.EmitDelegate(overrideGravity);
+                static Vector3 overrideGravity(Vector3 worldGravity, CharacterMotor instance)
                 {
                     return instance.GetGravity(worldGravity);
-                });
+                }
             }
         }
     }
