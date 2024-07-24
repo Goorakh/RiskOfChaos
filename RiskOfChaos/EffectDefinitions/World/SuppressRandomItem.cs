@@ -11,7 +11,6 @@ using RoR2;
 using RoR2.Items;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
@@ -23,7 +22,9 @@ namespace RiskOfChaos.EffectDefinitions.World
         [SystemInitializer(typeof(ItemCatalog), typeof(ItemTierCatalog))]
         static void FixStrangeScrap()
         {
-            static void fixScrapItem(ItemDef item, ItemTier itemTier)
+            HashSet<ItemDef> strangeScrapItems = [];
+
+            void fixScrapItem(ItemDef item, ItemTier itemTier)
             {
                 if (!item)
                 {
@@ -38,32 +39,35 @@ namespace RiskOfChaos.EffectDefinitions.World
                     ArrayUtils.ArrayAppend(ref item.tags, ItemTag.Scrap);
                 }
 
-                // Hide strange scrap from the logbook if RFTV isn't installed
-                if (!BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.Anreol.ReleasedFromTheVoid"))
-                {
-                    On.RoR2.UI.LogBook.LogBookController.CanSelectItemEntry += (orig, itemDef, expansionAvailability) =>
-                    {
-                        return orig(itemDef, expansionAvailability) && itemDef != item;
-                    };
-
-                    On.RoR2.GameCompletionStatsHelper.ctor += (orig, self) =>
-                    {
-                        orig(self);
-
-                        PickupDef scrapPickupDef = PickupCatalog.GetPickupDef(PickupCatalog.FindPickupIndex(item.itemIndex));
-                        if (scrapPickupDef != null)
-                        {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                            self.encounterablePickups.Remove(scrapPickupDef);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-                        }
-                    };
-                }
+                strangeScrapItems.Add(item);
             }
 
             fixScrapItem(DLC1Content.Items.ScrapWhiteSuppressed, ItemTier.Tier1);
             fixScrapItem(DLC1Content.Items.ScrapGreenSuppressed, ItemTier.Tier2);
             fixScrapItem(DLC1Content.Items.ScrapRedSuppressed, ItemTier.Tier3);
+
+            // Hide strange scrap from the logbook if RFTV isn't installed
+            if (!BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.Anreol.ReleasedFromTheVoid"))
+            {
+                On.RoR2.UI.LogBook.LogBookController.CanSelectItemEntry += (orig, itemDef, expansionAvailability) =>
+                {
+                    return orig(itemDef, expansionAvailability) && !strangeScrapItems.Contains(itemDef);
+                };
+
+                On.RoR2.GameCompletionStatsHelper.ctor += (orig, self) =>
+                {
+                    orig(self);
+
+                    foreach (ItemDef item in strangeScrapItems)
+                    {
+                        PickupDef scrapPickupDef = PickupCatalog.GetPickupDef(PickupCatalog.FindPickupIndex(item.itemIndex));
+                        if (scrapPickupDef != null)
+                        {
+                            self.encounterablePickups.Remove(scrapPickupDef);
+                        }
+                    }
+                };
+            }
         }
 
         [SystemInitializer]

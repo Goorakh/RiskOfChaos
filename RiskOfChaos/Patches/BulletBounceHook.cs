@@ -28,7 +28,8 @@ namespace RiskOfChaos.Patches
         }
 
         static int _currentBulletBounceDepth;
-        static int _currentBulletBouncesRemaining;
+        static int currentBulletBouncesRemaining => bounceCount - _currentBulletBounceDepth;
+
         static BulletAttack.BulletHit? _currentBounceSourceHitInfo;
 
         [SystemInitializer]
@@ -48,7 +49,7 @@ namespace RiskOfChaos.Patches
             bool isFirstBulletInBounceChain = isEnabled && _currentBulletBounceDepth <= 0;
             if (isFirstBulletInBounceChain)
             {
-                _currentBulletBouncesRemaining = bounceCount;
+                _currentBulletBounceDepth = 0;
             }
 
             // Ensure all values are reset afterwards even in the case of an exception
@@ -60,9 +61,6 @@ namespace RiskOfChaos.Patches
             {
                 if (isFirstBulletInBounceChain || !isEnabled)
                 {
-                    // The bullet may have bounced less than the max count, such as if it bounces in a direction with no hit point (sky)
-                    _currentBulletBouncesRemaining = 0;
-
                     // Should be properly reset by the bounce hook, bust just in case
                     _currentBulletBounceDepth = 0;
                 }
@@ -80,8 +78,8 @@ namespace RiskOfChaos.Patches
                               x => x.MatchNewobj<List<BulletAttack.BulletHit>>(),
                               x => x.MatchStloc(out hitListLocalIndex)))
             {
-                const string BULLET_ATTACK_PROCESS_HIT_LIST_NAME = nameof(BulletAttack.ProcessHitList);
-                if (c.TryGotoNext(MoveType.After, x => x.MatchCallOrCallvirt<BulletAttack>(BULLET_ATTACK_PROCESS_HIT_LIST_NAME)))
+                if (c.TryGotoNext(MoveType.After,
+                                  x => x.MatchCallOrCallvirt<BulletAttack>(nameof(BulletAttack.ProcessHitList))))
                 {
                     int hitPositionLocalIndex = -1;
                     if (new ILCursor(c).TryGotoPrev(x => x.MatchLdloca(out hitPositionLocalIndex)))
@@ -92,81 +90,7 @@ namespace RiskOfChaos.Patches
                         c.Emit(OpCodes.Ldarg_2);
                         c.Emit(OpCodes.Ldloc, hitPositionLocalIndex);
                         c.Emit(OpCodes.Ldloc, hitListLocalIndex);
-                        c.EmitDelegate((GameObject hitEntity, BulletAttack instance, Vector3 fireDirection, int muzzleIndex, Vector3 hitPosition, List<BulletAttack.BulletHit> hitList) =>
-                        {
-                            if (!isEnabled || _currentBulletBouncesRemaining <= 0)
-                                return;
-
-                            if (!hitEntity) // If the bullet hit nothing, bouncing can't happen
-                                return;
-
-                            foreach (BulletAttack.BulletHit hit in hitList)
-                            {
-                                if (hit.entityObject == hitEntity && hit.point == hitPosition)
-                                {
-                                    _currentBulletBouncesRemaining--;
-
-                                    _currentBulletBounceDepth++;
-
-                                    _currentBounceSourceHitInfo = hit;
-
-                                    Vector3 oldBulletOrigin = instance.origin;
-                                    instance.origin = hit.point;
-
-                                    instance.maxDistance -= hit.distance;
-                                    if (instance.maxDistance > 0f)
-                                    {
-                                        Vector3 bounceDirection = Vector3.Reflect(fireDirection, hit.surfaceNormal);
-
-                                        // Slight "homing" on bullets to make it easier to bounce off walls and still hit
-                                        if (instance.owner)
-                                        {
-                                            CharacterBody ownerBody = instance.owner.GetComponent<CharacterBody>();
-
-                                            if (ownerBody.isPlayerControlled)
-                                            {
-                                                BullseyeSearch autoAimSearch = new BullseyeSearch
-                                                {
-                                                    searchOrigin = instance.origin,
-                                                    filterByLoS = true,
-                                                    minDistanceFilter = 0f,
-                                                    maxDistanceFilter = instance.maxDistance,
-                                                    minAngleFilter = 0f,
-                                                    maxAngleFilter = 35f,
-                                                    searchDirection = bounceDirection,
-                                                    queryTriggerInteraction = QueryTriggerInteraction.Ignore,
-                                                    sortMode = BullseyeSearch.SortMode.Angle,
-                                                    viewer = ownerBody,
-                                                };
-
-                                                TeamMask searchTeamMask = TeamMask.allButNeutral;
-                                                searchTeamMask.RemoveTeam(TeamComponent.GetObjectTeam(instance.owner));
-                                                autoAimSearch.teamMaskFilter = searchTeamMask;
-
-                                                autoAimSearch.RefreshCandidates();
-
-                                                HurtBox overrideTargetHurtBox = autoAimSearch.GetResults().FirstOrDefault(h => h.healthComponent.gameObject != hit.entityObject);
-                                                if (overrideTargetHurtBox)
-                                                {
-                                                    bounceDirection = (overrideTargetHurtBox.randomVolumePoint - instance.origin).normalized;
-                                                }
-                                            }
-                                        }
-
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                                        instance.FireSingle(bounceDirection, muzzleIndex);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-                                    }
-
-                                    instance.origin = oldBulletOrigin;
-
-                                    _currentBounceSourceHitInfo = null;
-
-                                    _currentBulletBounceDepth--;
-                                    return;
-                                }
-                            }
-                        });
+                        c.EmitDelegate(fireBulletBounce);
                     }
                     else
                     {
@@ -181,6 +105,73 @@ namespace RiskOfChaos.Patches
             else
             {
                 Log.Error("Failed to find hitList local index");
+            }
+        }
+
+        static void fireBulletBounce(GameObject hitEntity, BulletAttack instance, Vector3 fireDirection, int muzzleIndex, Vector3 hitPosition, List<BulletAttack.BulletHit> hitList)
+        {
+            if (!isEnabled || currentBulletBouncesRemaining <= 0)
+                return;
+
+            if (!hitEntity) // If the bullet hit nothing, bouncing can't happen
+                return;
+
+            foreach (BulletAttack.BulletHit hit in hitList)
+            {
+                if (hit.entityObject == hitEntity && hit.point == hitPosition)
+                {
+                    _currentBulletBounceDepth++;
+
+                    _currentBounceSourceHitInfo = hit;
+
+                    Vector3 oldBulletOrigin = instance.origin;
+                    instance.origin = hit.point;
+
+                    instance.maxDistance -= hit.distance;
+                    if (instance.maxDistance > 0f)
+                    {
+                        Vector3 bounceDirection = Vector3.Reflect(fireDirection, hit.surfaceNormal);
+
+                        // Slight "homing" on bullets to make it easier to bounce off walls and still hit
+                        if (instance.owner && instance.owner.TryGetComponent(out CharacterBody ownerBody) && ownerBody.isPlayerControlled)
+                        {
+                            TeamMask searchTeamMask = TeamMask.GetEnemyTeams(TeamComponent.GetObjectTeam(instance.owner));
+                            searchTeamMask.RemoveTeam(TeamIndex.Neutral);
+
+                            BullseyeSearch autoAimSearch = new BullseyeSearch
+                            {
+                                searchOrigin = instance.origin,
+                                filterByLoS = true,
+                                minDistanceFilter = 0f,
+                                maxDistanceFilter = instance.maxDistance,
+                                minAngleFilter = 0f,
+                                maxAngleFilter = 35f,
+                                searchDirection = bounceDirection,
+                                queryTriggerInteraction = QueryTriggerInteraction.Ignore,
+                                sortMode = BullseyeSearch.SortMode.Angle,
+                                viewer = ownerBody,
+                                teamMaskFilter = searchTeamMask,
+                            };
+
+                            autoAimSearch.RefreshCandidates();
+
+                            HurtBox overrideTargetHurtBox = autoAimSearch.GetResults().FirstOrDefault(h => HurtBox.FindEntityObject(h) != hit.entityObject);
+                            if (overrideTargetHurtBox)
+                            {
+                                bounceDirection = (overrideTargetHurtBox.randomVolumePoint - instance.origin).normalized;
+                            }
+                        }
+
+                        instance.FireSingle(bounceDirection, muzzleIndex);
+                    }
+
+                    instance.origin = oldBulletOrigin;
+
+                    _currentBounceSourceHitInfo = null;
+
+                    _currentBulletBounceDepth--;
+                    break;
+                }
             }
         }
 

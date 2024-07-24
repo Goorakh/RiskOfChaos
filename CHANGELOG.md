@@ -6,6 +6,15 @@
   * Distant Camera: Moves the camera further away from the player, lasts 90 seconds
   * Unlimited Proc Chains: Disables proc chain restrictions, lasts 60 seconds
 
+* Disable Equipment:
+  * Fixed The Crowdfunder still being usable while effect is active.
+
+* Bouncy Projectiles:
+  * Fixed certain projectile types targetting the wrong team after bouncing
+
+* Swap Health & Shield:
+  * Fixed effect allowing multiple instances to be active at once
+
 * Superhot:
   * Improved accuracy of time scale changes for non-host players in multiplayer
 
@@ -18,7 +27,10 @@
 * Explosive Deaths:
   * Fixed pre-explosion VFX & SFX not triggering for non-host players
 
-* Fixed missing icon for Effects config
+* Fixed missing icon for Risk of Options Effects config
+
+* Cleanse Random Item:
+  * Default weight: 0.7 -> 0.5
 
 **1.18.0 Changes:**
 

@@ -39,10 +39,11 @@ namespace RiskOfChaos.Patches
                 if (c.TryGotoPrev(MoveType.After, x => x.MatchLdfld<BulletAttack>(nameof(BulletAttack.weapon))))
                 {
                     c.Emit(OpCodes.Ldarg_0);
-                    c.EmitDelegate((GameObject weapon, BulletAttack instance) =>
+                    c.EmitDelegate(overrideEffectOrigin);
+                    static GameObject overrideEffectOrigin(GameObject weapon, BulletAttack instance)
                     {
                         return shouldUseExplicitOriginPosition(instance) ? null : weapon;
-                    });
+                    }
                 }
                 else
                 {

@@ -35,10 +35,11 @@ namespace RiskOfChaos.Patches
 
                         cursor.Emit(OpCodes.Ldarg_0);
                         cursor.Emit(OpCodes.Ldloca, moveInputLocalIndex);
-                        cursor.EmitDelegate((PlayerCharacterMasterController playerMasterController, ref Vector2 moveInput) =>
+                        cursor.EmitDelegate(modifyInput);
+                        static void modifyInput(PlayerCharacterMasterController playerMasterController, ref Vector2 moveInput)
                         {
                             _modifiyPlayerInput?.Invoke(playerMasterController, ref moveInput);
-                        });
+                        }
                     }
                     else
                     {

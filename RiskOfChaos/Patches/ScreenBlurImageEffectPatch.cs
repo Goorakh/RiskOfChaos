@@ -16,9 +16,7 @@ namespace RiskOfChaos.Patches
         [SystemInitializer]
         static void Init()
         {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             MethodInfo from = SymbolExtensions.GetMethodInfo<TranslucentImageSource>(_ => _.ProgressiveBlur(default));
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
             new ILHook(from, TranslucentImageSource_ProgressiveBlur);
         }
@@ -36,7 +34,8 @@ namespace RiskOfChaos.Patches
                 if (c.TryGotoPrev(MoveType.After,
                                   x => x.MatchLdloc(out temporaryTextureLocalIndex) && il.Body.Variables[temporaryTextureLocalIndex].VariableType.Is(typeof(RenderTexture))))
                 {
-                    c.EmitDelegate((RenderTexture texture) =>
+                    c.EmitDelegate(applyCameraEffects);
+                    static RenderTexture applyCameraEffects(RenderTexture texture)
                     {
                         int effectCount = CameraEffectManager.ActiveEffects.Count;
                         if (effectCount > 0)
@@ -55,7 +54,7 @@ namespace RiskOfChaos.Patches
                         }
 
                         return texture;
-                    });
+                    }
 
                     c.Emit(OpCodes.Dup);
                     c.Emit(OpCodes.Stloc, temporaryTextureLocalIndex);

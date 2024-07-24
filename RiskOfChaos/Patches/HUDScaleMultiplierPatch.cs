@@ -38,13 +38,14 @@ namespace RiskOfChaos.Patches
                 if (c.Clone().TryGotoPrev(x => x.MatchLdloca(out scaleLocalIndex) && il.Method.Body.Variables[scaleLocalIndex].VariableType.Is(typeof(Vector3))))
                 {
                     c.Emit(OpCodes.Ldloca, scaleLocalIndex);
-                    c.EmitDelegate((ref Vector3 scale) =>
+                    c.EmitDelegate(modifyScale);
+                    static void modifyScale(ref Vector3 scale)
                     {
-                        if (UIModificationManager.Instance)
+                        if (UIModificationManager.Instance && UIModificationManager.Instance.AnyModificationActive)
                         {
                             scale *= UIModificationManager.Instance.HudScaleMultiplier;
                         }
-                    });
+                    }
                 }
                 else
                 {

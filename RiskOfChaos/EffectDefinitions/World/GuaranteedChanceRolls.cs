@@ -1,11 +1,12 @@
 ﻿using HarmonyLib;
+using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RoR2;
-using System;
+using System.Reflection;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
@@ -35,19 +36,29 @@ namespace RiskOfChaos.EffectDefinitions.World
             {
                 ILCursor c = new ILCursor(il);
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                const string ITEM_COUNTS_BEAR_FIELD_NAME = nameof(HealthComponent.ItemCounts.bear);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-
                 if (c.TryFindNext(out ILCursor[] foundCursors,
-                                  x => x.MatchLdfld<HealthComponent.ItemCounts>(ITEM_COUNTS_BEAR_FIELD_NAME),
+                                  x => x.MatchLdfld<HealthComponent.ItemCounts>(nameof(HealthComponent.ItemCounts.bear)),
                                   x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo(() => Util.CheckRoll(default, default, default)))))
                 {
                     ILCursor cursor = foundCursors[1];
 
-                    cursor.EmitDelegate<Action>(() => _tempDisablePatchCount++);
+                    FieldInfo tempDisablePatchCount = AccessTools.DeclaredField(typeof(GuaranteedChanceRolls), nameof(_tempDisablePatchCount));
+
+                    cursor.Emit(OpCodes.Ldsfld, tempDisablePatchCount);
+                    cursor.Emit(OpCodes.Ldc_I4_1);
+                    cursor.Emit(OpCodes.Add);
+                    cursor.Emit(OpCodes.Stsfld, tempDisablePatchCount);
+
                     cursor.Index++;
-                    cursor.EmitDelegate<Action>(() => _tempDisablePatchCount--);
+
+                    cursor.Emit(OpCodes.Ldsfld, tempDisablePatchCount);
+                    cursor.Emit(OpCodes.Ldc_I4_1);
+                    cursor.Emit(OpCodes.Sub);
+                    cursor.Emit(OpCodes.Stsfld, tempDisablePatchCount);
+                }
+                else
+                {
+                    Log.Error("Failed to find Tougher Times patch location");
                 }
             };
 

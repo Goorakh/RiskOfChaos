@@ -27,7 +27,8 @@ namespace RiskOfChaos.Patches
 
                     cursor.Emit(OpCodes.Ldarg_0);
                     cursor.Emit(OpCodes.Ldarg_1);
-                    cursor.EmitDelegate((CharacterMotor instance, float deltaTime) =>
+                    cursor.EmitDelegate(applyXZGravity);
+                    static void applyXZGravity(CharacterMotor instance, float deltaTime)
                     {
                         if (instance.isGrounded)
                             return;
@@ -36,7 +37,7 @@ namespace RiskOfChaos.Patches
 
                         Vector3 xzGravity = new Vector3(gravity.x, 0f, gravity.z);
                         instance.velocity += xzGravity * deltaTime;
-                    });
+                    }
                 }
             };
 
@@ -47,10 +48,11 @@ namespace RiskOfChaos.Patches
                 while (c.TryGotoNext(MoveType.After,
                                      x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertyGetter(typeof(Vector3), nameof(Vector3.up)))))
                 {
-                    c.EmitDelegate((Vector3 up) =>
+                    c.EmitDelegate(getWorldUpByGravity);
+                    static Vector3 getWorldUpByGravity(Vector3 up)
                     {
                         Vector3 gravity = Physics.gravity;
-                        if (Mathf.Abs(gravity.x) > float.Epsilon || Mathf.Abs(gravity.z) > float.Epsilon)
+                        if (Mathf.Abs(gravity.x) > float.Epsilon || Mathf.Abs(gravity.z) > float.Epsilon || Mathf.Sign(-gravity.y) != Mathf.Sign(up.y))
                         {
                             return -gravity.normalized;
                         }
@@ -58,7 +60,7 @@ namespace RiskOfChaos.Patches
                         {
                             return up;
                         }
-                    });
+                    }
                 }
             };
         }

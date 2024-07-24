@@ -59,6 +59,8 @@ namespace RiskOfChaos.Patches
 
         readonly record struct OrbTargetCandidate(HurtBox Target, float SqrDistance, float Weight);
 
+        static readonly RaycastHit[] _sharedOrbTargetSearchRaycastHitsBuffer = new RaycastHit[32];
+
         static bool isEnabled => NetworkServer.active && bounceCount > 0;
 
         static int bounceCount
@@ -154,17 +156,21 @@ namespace RiskOfChaos.Patches
                 newOrbTargetSearchPosition = oldOrbTargetPosition;
             }
 
-            CharacterBody attackerBody = orbInstance.GetAttacker();
-
             if (!orbInstance.TryGetTeamIndex(out TeamIndex orbTeam))
             {
-                if (attackerBody)
+                orbTeam = TeamIndex.None;
+            }
+
+            CharacterBody attackerBody = orbInstance.GetAttacker();
+            if (attackerBody)
+            {
+                if (orbTeam == TeamIndex.None || orbTeam == TeamIndex.Neutral)
                 {
-                    orbTeam = attackerBody.teamComponent.teamIndex;
-                }
-                else
-                {
-                    orbTeam = TeamIndex.None;
+                    TeamIndex attackerTeam = attackerBody.teamComponent.teamIndex;
+                    if (attackerTeam != TeamIndex.None && attackerTeam != TeamIndex.Neutral)
+                    {
+                        orbTeam = attackerTeam;
+                    }
                 }
             }
 
@@ -215,8 +221,6 @@ namespace RiskOfChaos.Patches
 
             List<OrbTargetCandidate> targetCandidates = new List<OrbTargetCandidate>(potentialTargets.Length);
 
-            RaycastHit[] raycastHits = new RaycastHit[128];
-
             foreach (HurtBox potentialTarget in potentialTargets)
             {
                 if (potentialTarget.healthComponent == orbInstance.target.healthComponent)
@@ -246,15 +250,16 @@ namespace RiskOfChaos.Patches
                 Vector3 losSearchDirection = targetCorePosition - newTargetSearch.origin;
                 float targetDistance = losSearchDirection.magnitude;
 
-                int hitCount = Physics.RaycastNonAlloc(new Ray(newTargetSearch.origin, losSearchDirection), raycastHits, targetDistance, LayerIndex.world.mask, QueryTriggerInteraction.Ignore);
+                int hitCount = Physics.RaycastNonAlloc(new Ray(newTargetSearch.origin, losSearchDirection), _sharedOrbTargetSearchRaycastHitsBuffer, targetDistance, LayerIndex.world.mask, QueryTriggerInteraction.Ignore);
 
                 bool losBlocked = false;
                 for (int i = 0; i < hitCount; i++)
                 {
-                    if (!raycastHits[i].transform)
+                    Transform hitTransform = _sharedOrbTargetSearchRaycastHitsBuffer[i].transform;
+                    if (!hitTransform)
                         continue;
 
-                    if (!raycastHits[i].transform.GetComponent<HurtBox>())
+                    if (!hitTransform.GetComponent<HurtBox>())
                     {
                         losBlocked = true;
                         break;

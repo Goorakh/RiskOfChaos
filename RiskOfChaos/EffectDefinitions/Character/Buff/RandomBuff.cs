@@ -44,18 +44,24 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                 {
                     c.Index = 0;
 
+                    ILLabel afterSpawnLabel = null;
                     int victimBodyLocalIndex = -1;
+
                     if (c.TryGotoNext(MoveType.After,
                                   x => x.MatchLdloc(out victimBodyLocalIndex),
                                   x => x.MatchLdsfld(buffDeclaringType, buffFieldName),
-                                  x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<CharacterBody>(_ => _.HasBuff(default(BuffDef))))))
+                                  x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<CharacterBody>(_ => _.HasBuff(default(BuffDef)))),
+                                  x => x.MatchBrfalse(out afterSpawnLabel)))
                     {
                         c.Emit(OpCodes.Ldloc, victimBodyLocalIndex);
-                        c.EmitDelegate((CharacterBody victimBody) =>
+                        c.Emit(OpCodes.Ldstr, spawnedBodyName);
+                        c.EmitDelegate(checkCanSpawn);
+                        static bool checkCanSpawn(CharacterBody victimBody, string spawnedBodyName)
                         {
                             return victimBody && victimBody.bodyIndex != BodyCatalog.FindBodyIndex(spawnedBodyName);
-                        });
-                        c.Emit(OpCodes.And);
+                        }
+
+                        c.Emit(OpCodes.Brfalse, afterSpawnLabel);
 
                         return true;
                     }

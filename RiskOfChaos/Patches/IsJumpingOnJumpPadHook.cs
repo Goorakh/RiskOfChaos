@@ -29,7 +29,6 @@ namespace RiskOfChaos.Patches
             ILCursor c = new ILCursor(il);
 
             int characterMotorLocalIndex = -1;
-
             if (!c.TryFindNext(out _,
                                x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<Component>(_ => _.GetComponent<CharacterMotor>())),
                                x => x.MatchStloc(out characterMotorLocalIndex)))
@@ -38,18 +37,12 @@ namespace RiskOfChaos.Patches
                 return;
             }
 
-            ILCursor[] foundCursors;
-            if (c.TryFindNext(out foundCursors,
-                              x => x.MatchLdloc(characterMotorLocalIndex),
-                              x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertyGetter(typeof(CharacterMotor), nameof(CharacterMotor.hasEffectiveAuthority))),
-                              x => x.MatchBrfalse(out _)))
+            if (c.TryGotoNext(MoveType.After,
+                              x => x.MatchStfld<CharacterMotor>(nameof(CharacterMotor.velocity))))
             {
-                ILCursor cursor = foundCursors[2];
-                cursor.Next.MatchBrfalse(out ILLabel label);
-                cursor.Next = label.Target;
-
-                cursor.Emit(OpCodes.Ldloc, characterMotorLocalIndex);
-                cursor.EmitDelegate((CharacterMotor characterMotor) =>
+                c.Emit(OpCodes.Ldloc, characterMotorLocalIndex);
+                c.EmitDelegate(trackJump);
+                static void trackJump(CharacterMotor characterMotor)
                 {
                     if (!characterMotor)
                         return;
@@ -57,18 +50,15 @@ namespace RiskOfChaos.Patches
                     if (characterMotor.TryGetComponent(out IsJumpingOnJumpPadTracker jumpingTracker) && !jumpingTracker.IsJumping)
                     {
 #if DEBUG
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                         Log.Debug($"{FormatUtils.GetBestBodyName(characterMotor.body)} started jumping on jump pad");
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 #endif
                         jumpingTracker.CmdSetIsJumping(true);
                     }
-                });
+                }
             }
             else
             {
-                Log.Error("Unable to find patch location");
-                return;
+                Log.Error("Failed to find patch location");
             }
         }
     }

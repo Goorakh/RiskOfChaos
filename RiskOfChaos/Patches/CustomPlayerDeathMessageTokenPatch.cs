@@ -34,14 +34,15 @@ namespace RiskOfChaos.Patches
                         c.GotoLabel(messageTokenDecidedLabel);
                         c.Emit(OpCodes.Ldloca, deathMessageTokenLocalIndex);
                         c.Emit(OpCodes.Ldarg_1); // DamageReport damageReport
-                        c.EmitDelegate((ref string messageToken, DamageReport damageReport) =>
+                        c.EmitDelegate(overrideMessageToken);
+                        static void overrideMessageToken(ref string messageToken, DamageReport damageReport)
                         {
 #if DEBUG
                             Log.Debug($"Overriding death message token: {messageToken}");
 #endif
 
                             OverridePlayerDeathMessageToken?.Invoke(damageReport, ref messageToken);
-                        });
+                        }
                     }
                     else
                     {

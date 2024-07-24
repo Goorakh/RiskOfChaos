@@ -21,10 +21,11 @@ namespace RiskOfChaos.Patches
                                   x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertySetter(typeof(GenericSkill), nameof(GenericSkill.maxStock)))))
                 {
                     c.Emit(OpCodes.Ldarg_0);
-                    c.EmitDelegate((int maxStock, GenericSkill instance) =>
+                    c.EmitDelegate(modifyMaxStock);
+                    static int modifyMaxStock(int maxStock, GenericSkill instance)
                     {
                         return Math.Max(1, maxStock + getStockAdds(instance));
-                    });
+                    }
                 }
             };
 
@@ -41,10 +42,7 @@ namespace RiskOfChaos.Patches
 
                     // arg1: GenericSkill skillSlot
                     c.Emit(OpCodes.Ldarg_1);
-                    c.EmitDelegate((GenericSkill skillSlot) =>
-                    {
-                        return skillSlot.maxStock;
-                    });
+                    c.Emit(OpCodes.Callvirt, AccessTools.DeclaredPropertyGetter(typeof(GenericSkill), nameof(GenericSkill.maxStock)));
                 }
             };
         }

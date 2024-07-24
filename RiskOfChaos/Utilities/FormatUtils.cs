@@ -34,10 +34,10 @@ namespace RiskOfChaos.Utilities
             if (!item)
                 return "null";
 
-            if (!string.IsNullOrWhiteSpace(item.nameToken))
+            if (!string.IsNullOrWhiteSpace(item.nameToken) && !Language.IsTokenInvalid(item.nameToken))
             {
                 string displayName = Language.GetString(item.nameToken);
-                if (!string.IsNullOrWhiteSpace(displayName) && displayName != item.nameToken)
+                if (!string.IsNullOrWhiteSpace(displayName))
                 {
                     return displayName;
                 }

@@ -1,8 +1,10 @@
 ﻿using HarmonyLib;
+using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using RoR2;
+using System.Reflection;
 
 namespace RiskOfChaos.Patches
 {
@@ -31,20 +33,19 @@ namespace RiskOfChaos.Patches
             VariableDefinition oldMoneyVar = new VariableDefinition(il.Module.ImportReference(typeof(uint)));
             il.Method.Body.Variables.Add(oldMoneyVar);
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-            const string MONEY_FIELD_NAME = nameof(CharacterMaster._money);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+            FieldInfo characterMasterMoneyField = AccessTools.DeclaredField(typeof(CharacterMaster), nameof(CharacterMaster._money));
+            FieldReference characterMasterMoneyFieldRef = il.Import(characterMasterMoneyField);
 
-            while (c.TryGotoNext(MoveType.Before, x => x.MatchStfld<CharacterMaster>(MONEY_FIELD_NAME)))
+            int patchCount = 0;
+
+            while (c.TryGotoNext(MoveType.Before,
+                                 x => x.MatchStfld(characterMasterMoneyField)))
             {
                 c.Emit(OpCodes.Stloc, newMoneyVar);
                 c.Emit(OpCodes.Stloc, masterInstanceVar);
 
                 c.Emit(OpCodes.Ldloc, masterInstanceVar);
-                c.EmitDelegate((CharacterMaster masterInstance) =>
-                {
-                    return masterInstance.money;
-                });
+                c.Emit(OpCodes.Ldfld, characterMasterMoneyFieldRef);
                 c.Emit(OpCodes.Stloc, oldMoneyVar);
 
                 c.Emit(OpCodes.Ldloc, masterInstanceVar);
@@ -54,14 +55,29 @@ namespace RiskOfChaos.Patches
 
                 c.Emit(OpCodes.Ldloc, masterInstanceVar);
                 c.Emit(OpCodes.Ldloc, oldMoneyVar);
-                c.Emit(OpCodes.Ldloc, newMoneyVar);
-                c.EmitDelegate((CharacterMaster masterInstance, uint oldMoney, uint newMoney) =>
+                c.Emit(OpCodes.Ldloc, masterInstanceVar);
+                c.Emit(OpCodes.Ldfld, characterMasterMoneyFieldRef);
+                c.EmitDelegate(onSetMoney);
+                static void onSetMoney(CharacterMaster masterInstance, uint oldMoney, uint newMoney)
                 {
                     if (masterInstance && oldMoney != newMoney)
                     {
                         OnCharacterMoneyChanged?.Invoke(masterInstance, newMoney - (long)oldMoney);
                     }
-                });
+                }
+
+                patchCount++;
+            }
+
+            if (patchCount == 0)
+            {
+                Log.Warning("Found 0 patch locations");
+            }
+            else
+            {
+#if DEBUG
+                Log.Debug($"Found {patchCount} patch locations");
+#endif
             }
         }
     }

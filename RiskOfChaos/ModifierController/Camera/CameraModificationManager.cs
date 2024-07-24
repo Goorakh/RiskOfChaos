@@ -26,7 +26,8 @@ namespace RiskOfChaos.ModifierController.Camera
 
                 if (c.TryGotoNext(MoveType.After, x => x.MatchNewobj<Vector2>()))
                 {
-                    c.EmitDelegate((Vector2 recoil) =>
+                    c.EmitDelegate(modifyRecoil);
+                    static Vector2 modifyRecoil(Vector2 recoil)
                     {
                         if (_instance && _instance.AnyModificationActive)
                         {
@@ -36,7 +37,7 @@ namespace RiskOfChaos.ModifierController.Camera
                         {
                             return recoil;
                         }
-                    });
+                    }
                 }
                 else
                 {

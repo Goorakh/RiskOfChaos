@@ -14,9 +14,7 @@ namespace RiskOfChaos.Patches
         {
             IL.EntityStates.Bandit2.Weapon.BaseSidearmState.FixedUpdate += fixStateSprintCancel;
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             MethodInfo acridBiteAllowExitFire = AccessTools.DeclaredPropertyGetter(typeof(EntityStates.Croco.Bite), nameof(EntityStates.Croco.Bite.allowExitFire));
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
             if (acridBiteAllowExitFire != null)
             {
                 new ILHook(acridBiteAllowExitFire, fixStateSprintCancel);
@@ -26,9 +24,7 @@ namespace RiskOfChaos.Patches
                 Log.Warning("Failed to find method EntityStates.Croco.Bite.get_allowExitFire");
             }
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             MethodInfo acridSlashAllowExitFire = AccessTools.DeclaredPropertyGetter(typeof(EntityStates.Croco.Slash), nameof(EntityStates.Croco.Slash.allowExitFire));
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
             if (acridSlashAllowExitFire != null)
             {
                 new ILHook(acridSlashAllowExitFire, fixStateSprintCancel);
@@ -58,13 +54,14 @@ namespace RiskOfChaos.Patches
             while (c.TryGotoNext(MoveType.After,
                                  x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertyGetter(typeof(CharacterBody), nameof(CharacterBody.isSprinting)))))
             {
-                c.EmitDelegate((bool isSprinting) =>
+                c.EmitDelegate(shouldConsiderSprining);
+                static bool shouldConsiderSprining(bool isSprinting)
                 {
                     if (forceAllSkillsAgileActive())
                         return false;
 
                     return isSprinting;
-                });
+                }
             }
         }
     }

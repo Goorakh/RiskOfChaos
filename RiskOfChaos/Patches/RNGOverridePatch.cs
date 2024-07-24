@@ -19,10 +19,7 @@ namespace RiskOfChaos.Patches
                                      x => x.MatchLdfld(declaringType, fieldName)))
                 {
                     c.Emit(OpCodes.Ldarg_0);
-                    c.EmitDelegate((Xoroshiro128Plus originalRNG, MonoBehaviour instance) =>
-                    {
-                        return RNGOverrideTracker.GetOverrideRNG(instance, originalRNG);
-                    });
+                    c.EmitDelegate(RNGOverrideTracker.GetOverrideRNG);
                 }
             }
 
@@ -55,26 +52,20 @@ namespace RiskOfChaos.Patches
                 {
                     c.Emit(OpCodes.Dup);
                     c.Emit(OpCodes.Ldarg_0);
-                    c.EmitDelegate((GameObject spawnedInteractable, CampDirector instance) =>
+                    c.EmitDelegate(overrideInteractableRNG);
+                    static void overrideInteractableRNG(GameObject spawnedInteractable, CampDirector instance)
                     {
                         if (Configs.EffectSelection.SeededEffectSelection.Value && spawnedInteractable)
                         {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                            Xoroshiro128Plus campDirectorRNG = instance.rng;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-
-                            OverrideRNG(spawnedInteractable, new Xoroshiro128Plus(campDirectorRNG));
+                            OverrideRNG(spawnedInteractable, new Xoroshiro128Plus(instance.rng));
                         }
-                    });
-
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                    const string CAMP_DIRECTOR_RNG_FIELD_NAME = nameof(CampDirector.rng);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+                    }
 
                     if (c.TryGotoPrev(MoveType.After,
-                                      x => x.MatchLdfld<CampDirector>(CAMP_DIRECTOR_RNG_FIELD_NAME)))
+                                      x => x.MatchLdfld<CampDirector>(nameof(CampDirector.rng))))
                     {
-                        c.EmitDelegate((Xoroshiro128Plus rng) =>
+                        c.EmitDelegate(createCloneInstanceIfNeeded);
+                        static Xoroshiro128Plus createCloneInstanceIfNeeded(Xoroshiro128Plus rng)
                         {
                             if (Configs.EffectSelection.SeededEffectSelection.Value)
                             {
@@ -84,7 +75,7 @@ namespace RiskOfChaos.Patches
                             {
                                 return rng;
                             }
-                        });
+                        }
                     }
                     else
                     {
@@ -112,7 +103,7 @@ namespace RiskOfChaos.Patches
         {
             public Xoroshiro128Plus RNG;
 
-            public static Xoroshiro128Plus GetOverrideRNG(MonoBehaviour instance, Xoroshiro128Plus defaultRNG)
+            public static Xoroshiro128Plus GetOverrideRNG(Xoroshiro128Plus defaultRNG, MonoBehaviour instance)
             {
                 RNGOverrideTracker rngOverride = instance.GetComponentInParent<RNGOverrideTracker>();
                 if (rngOverride && rngOverride.RNG != null)
@@ -122,7 +113,7 @@ namespace RiskOfChaos.Patches
 
                 if (instance is ShopTerminalBehavior shopTerminalBehavior && shopTerminalBehavior.serverMultiShopController)
                 {
-                    return GetOverrideRNG(shopTerminalBehavior.serverMultiShopController, defaultRNG);
+                    return GetOverrideRNG(defaultRNG, shopTerminalBehavior.serverMultiShopController);
                 }
 
                 return defaultRNG;
