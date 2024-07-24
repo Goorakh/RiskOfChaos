@@ -2,6 +2,7 @@
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RoR2;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -37,27 +38,21 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
                                   x => x.MatchLdfld<InteractableSpawnCard>(nameof(InteractableSpawnCard.orientToFloor)),
                                   x => x.MatchBrfalse(out patchLocationLbl)))
                 {
-                    c.Goto(patchLocationLbl.Target, MoveType.Before);
-
-                    int beforeDelegateIndex = c.Index;
+                    c.Goto(patchLocationLbl.Target, MoveType.AfterLabel);
 
                     c.Emit(OpCodes.Ldarg_0);
-                    c.EmitDelegate((InteractableSpawnCard instance) =>
+                    c.EmitDelegate(allowRandomRotation);
+
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    static bool allowRandomRotation(InteractableSpawnCard instance)
                     {
                         return instance != SpawnCard;
-                    });
+                    }
 
                     ILLabel afterRotateLbl = c.DefineLabel();
-
                     c.Emit(OpCodes.Brfalse, afterRotateLbl);
-
-                    int afterDelegateIndex = c.Index;
-
-                    c.Goto(beforeDelegateIndex, MoveType.Before);
-                    patchLocationLbl.Target = c.Next;
-
-                    c.Index = afterDelegateIndex;
-
+                    Instruction fallbackAfterRotateLblTarget = c.Next;
+                    
                     if (c.TryGotoNext(MoveType.After,
                                       x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<Transform>(_ => _.Rotate(default(Vector3), default, default)))))
                     {
@@ -65,6 +60,7 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
                     }
                     else
                     {
+                        afterRotateLbl.Target = fallbackAfterRotateLblTarget;
                         Log.Error($"Failed to find {nameof(afterRotateLbl)} target location");
                     }
                 }
