@@ -57,27 +57,41 @@ namespace RiskOfChaos.Patches
         {
             ILCursor c = new ILCursor(il);
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-            const string InventoryReplacementCandidate_time_NAME = nameof(ContagiousItemManager.InventoryReplacementCandidate.time);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-
             int inventoryReplacementCandidateLocalIndex = -1;
             if (c.TryGotoNext(MoveType.After,
                               x => x.MatchLdloca(out inventoryReplacementCandidateLocalIndex),
-                              x => x.MatchLdflda<ContagiousItemManager.InventoryReplacementCandidate>(InventoryReplacementCandidate_time_NAME),
+                              x => x.MatchLdflda<ContagiousItemManager.InventoryReplacementCandidate>(nameof(ContagiousItemManager.InventoryReplacementCandidate.time)),
                               x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertyGetter(typeof(Run.FixedTimeStamp), nameof(Run.FixedTimeStamp.hasPassed)))))
             {
-                c.Emit(OpCodes.Ldloc, inventoryReplacementCandidateLocalIndex);
-                c.EmitDelegate((ContagiousItemManager.InventoryReplacementCandidate inventoryReplacementCandidate) =>
+                ILLabel afterIfLabel = null;
+                if (c.TryGotoNext(MoveType.After,
+                                  x => x.MatchBrfalse(out afterIfLabel)))
                 {
-                    return !_ignoreTransformationsFor.Contains(inventoryReplacementCandidate.inventory);
-                });
+                    c.Emit(OpCodes.Ldloca, inventoryReplacementCandidateLocalIndex);
+                    c.EmitDelegate(canProcessReplacement);
 
-                c.Emit(OpCodes.And);
+                    static bool canProcessReplacement(ref ContagiousItemManager.InventoryReplacementCandidate inventoryReplacementCandidate)
+                    {
+                        bool ignored = _ignoreTransformationsFor.Contains(inventoryReplacementCandidate.inventory);
+
+                        if (ignored)
+                        {
+                            inventoryReplacementCandidate.time += ContagiousItemManager.transformDelay;
+                        }
+
+                        return !ignored;
+                    }
+
+                    c.Emit(OpCodes.Brfalse, afterIfLabel);
+                }
+                else
+                {
+                    Log.Error("Failed to find patch location");
+                }
             }
             else
             {
-                Log.Error("Failed to find patch location");
+                Log.Error("Failed to find inventory replacement local");
             }
         }
     }
