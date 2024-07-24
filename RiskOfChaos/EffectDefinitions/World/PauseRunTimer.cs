@@ -23,12 +23,14 @@ namespace RiskOfChaos.EffectDefinitions.World
             {
                 ILCursor c = new ILCursor(il);
 
-                if (c.TryGotoNext(MoveType.Before, x => x.MatchCallOrCallvirt<Run>(nameof(Run.SetRunStopwatchPaused))))
+                if (c.TryGotoNext(MoveType.Before,
+                                  x => x.MatchCallOrCallvirt<Run>(nameof(Run.SetRunStopwatchPaused))))
                 {
-                    c.EmitDelegate((bool isPaused) =>
+                    c.EmitDelegate(modifyIsPaused);
+                    bool modifyIsPaused(bool isPaused)
                     {
                         return isPaused || (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo));
-                    });
+                    }
                 }
             };
 
