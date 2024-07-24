@@ -27,10 +27,10 @@
 * Explosive Deaths:
   * Fixed pre-explosion VFX & SFX not triggering for non-host players
 
-* Fixed missing icon for Risk of Options Effects config
-
 * Cleanse Random Item:
   * Default weight: 0.7 -> 0.5
+
+* Fixed missing icon for Risk of Options Effects config
 
 **1.18.0 Changes:**
 
