@@ -72,10 +72,12 @@ namespace RiskOfChaos.Content
                 {
                     ILCursor c = new ILCursor(il);
 
-                    if (c.TryGotoNext(MoveType.After, x => x.MatchCallOrCallvirt<BullseyeSearch>(nameof(BullseyeSearch.GetResults))))
+                    if (c.TryGotoNext(MoveType.After,
+                                      x => x.MatchCallOrCallvirt<BullseyeSearch>(nameof(BullseyeSearch.GetResults))))
                     {
                         c.Emit(OpCodes.Ldarg_0);
-                        c.EmitDelegate((IEnumerable<HurtBox> results, BaseAI instance) =>
+                        c.EmitDelegate(filterTargets);
+                        static IEnumerable<HurtBox> filterTargets(IEnumerable<HurtBox> results, BaseAI instance)
                         {
                             if (instance && instance.master.inventory.GetItemCount(InvincibleLemurianMarker) > 0)
                             {
@@ -93,7 +95,7 @@ namespace RiskOfChaos.Content
                             {
                                 return results;
                             }
-                        });
+                        }
                     }
                 };
 
