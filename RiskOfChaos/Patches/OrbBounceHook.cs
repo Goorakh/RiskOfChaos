@@ -59,6 +59,8 @@ namespace RiskOfChaos.Patches
 
         readonly record struct OrbTargetCandidate(HurtBox Target, float SqrDistance, float Weight);
 
+        static readonly RaycastHit[] _sharedOrbTargetSearchRaycastHitsBuffer = new RaycastHit[32];
+
         static bool isEnabled => NetworkServer.active && bounceCount > 0;
 
         static int bounceCount
@@ -160,8 +162,8 @@ namespace RiskOfChaos.Patches
             }
 
             CharacterBody attackerBody = orbInstance.GetAttacker();
-                if (attackerBody)
-                {
+            if (attackerBody)
+            {
                 if (orbTeam == TeamIndex.None || orbTeam == TeamIndex.Neutral)
                 {
                     TeamIndex attackerTeam = attackerBody.teamComponent.teamIndex;
@@ -219,8 +221,6 @@ namespace RiskOfChaos.Patches
 
             List<OrbTargetCandidate> targetCandidates = new List<OrbTargetCandidate>(potentialTargets.Length);
 
-            RaycastHit[] raycastHits = new RaycastHit[128];
-
             foreach (HurtBox potentialTarget in potentialTargets)
             {
                 if (potentialTarget.healthComponent == orbInstance.target.healthComponent)
@@ -250,15 +250,16 @@ namespace RiskOfChaos.Patches
                 Vector3 losSearchDirection = targetCorePosition - newTargetSearch.origin;
                 float targetDistance = losSearchDirection.magnitude;
 
-                int hitCount = Physics.RaycastNonAlloc(new Ray(newTargetSearch.origin, losSearchDirection), raycastHits, targetDistance, LayerIndex.world.mask, QueryTriggerInteraction.Ignore);
+                int hitCount = Physics.RaycastNonAlloc(new Ray(newTargetSearch.origin, losSearchDirection), _sharedOrbTargetSearchRaycastHitsBuffer, targetDistance, LayerIndex.world.mask, QueryTriggerInteraction.Ignore);
 
                 bool losBlocked = false;
                 for (int i = 0; i < hitCount; i++)
                 {
-                    if (!raycastHits[i].transform)
+                    Transform hitTransform = _sharedOrbTargetSearchRaycastHitsBuffer[i].transform;
+                    if (!hitTransform)
                         continue;
 
-                    if (!raycastHits[i].transform.GetComponent<HurtBox>())
+                    if (!hitTransform.GetComponent<HurtBox>())
                     {
                         losBlocked = true;
                         break;
