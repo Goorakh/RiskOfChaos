@@ -1,6 +1,7 @@
 ﻿using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using MonoMod.Utils;
 using RiskOfChaos.ModifierController.SkillSlots;
 using RiskOfChaos.Utilities;
 using RoR2;
@@ -72,7 +73,7 @@ namespace RiskOfChaos.Patches
 
             ILCursor[] foundCursors;
             while (c.TryFindNext(out foundCursors,
-                                 x => x.MatchLdflda(out FieldReference field) && field.DeclaringType.FullName == typeof(InputBankTest).FullName && field.Name.StartsWith("skill"),
+                                 x => x.MatchLdflda(out FieldReference field) && field.DeclaringType.Is(typeof(InputBankTest)) && field.Name.StartsWith("skill"),
                                  x => x.MatchCallOrCallvirt<InputBankTest.ButtonState>(nameof(InputBankTest.ButtonState.PushState))))
             {
                 FieldReference buttonField = foundCursors[0].Next.Operand as FieldReference;
@@ -81,33 +82,35 @@ namespace RiskOfChaos.Patches
                     ILCursor cursor = foundCursors[1];
                     cursor.Emit(OpCodes.Ldc_I4, (int)slotIndex);
                     cursor.Emit(OpCodes.Ldarg_0);
-                    cursor.EmitDelegate((bool origButtonState, SkillSlot skillSlot, MonoBehaviour instance) =>
+                    cursor.EmitDelegate(overrideButtonState);
+                    static bool overrideButtonState(bool origButtonState, SkillSlot skillSlot, MonoBehaviour instance)
                     {
-                        CharacterBody body;
-                        switch (instance)
+                        if (SkillSlotModificationManager.Instance && SkillSlotModificationManager.Instance.IsSkillSlotForceActivated(skillSlot))
                         {
-                            case PlayerCharacterMasterController playerCharacter:
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                                body = playerCharacter.body;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-                                break;
-                            case BaseAI ai:
-                                body = ai.body;
-                                break;
-                            default:
-                                Log.Error($"Unhandled instance type: {instance}");
-                                return origButtonState;
-                        }
+                            CharacterBody body;
+                            switch (instance)
+                            {
+                                case PlayerCharacterMasterController playerCharacter:
+                                    body = playerCharacter.body;
+                                    break;
+                                case BaseAI ai:
+                                    body = ai.body;
+                                    break;
+                                default:
+                                    Log.Error($"Unhandled instance type: {instance}");
+                                    body = null;
+                                    break;
+                            }
 
-                        if (body && !shouldIgnoreSkillSlot(body.bodyIndex, skillSlot) &&
-                            SkillSlotModificationManager.Instance && SkillSlotModificationManager.Instance.IsSkillSlotForceActivated(skillSlot))
-                        {
-                            // Don't actually have it active *all* the time, since some skills require the key to not be held
-                            return RoR2Application.rng.nextNormalizedFloat > 0.2f;
+                            if (body && !shouldIgnoreSkillSlot(body.bodyIndex, skillSlot))
+                            {
+                                // Don't actually have it active *all* the time, since some skills require the key to not be held
+                                return RoR2Application.rng.nextNormalizedFloat > 0.2f;
+                            }
                         }
 
                         return origButtonState;
-                    });
+                    }
                 }
 
                 c.Index = foundCursors.Last().Index + 1;
