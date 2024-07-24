@@ -3,6 +3,7 @@ using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using RoR2;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace RiskOfChaos.Patches
 {
@@ -22,24 +23,24 @@ namespace RiskOfChaos.Patches
         static void set_NetworkselectedDifficultyInternal_Hook(orig_set_NetworkselectedDifficultyInternal orig, Run self, int value)
         {
             orig(self, value);
-            OnRunDifficultyChanged?.Invoke();
+            onSetRunDifficulty();
         }
 
         static void Run_OnDeserialize(ILContext il)
         {
             ILCursor c = new ILCursor(il);
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-            const string SELECTED_DIFFUICULTY_FIELD_NAME = nameof(Run.selectedDifficultyInternal);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-
-            while (c.TryGotoNext(MoveType.After, x => x.MatchStfld<Run>(SELECTED_DIFFUICULTY_FIELD_NAME)))
+            while (c.TryGotoNext(MoveType.After,
+                                 x => x.MatchStfld<Run>(nameof(Run.selectedDifficultyInternal))))
             {
-                c.EmitDelegate(static () =>
-                {
-                    OnRunDifficultyChanged?.Invoke();
-                });
+                c.EmitDelegate(onSetRunDifficulty);
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static void onSetRunDifficulty()
+        {
+            OnRunDifficultyChanged?.Invoke();
         }
     }
 }
