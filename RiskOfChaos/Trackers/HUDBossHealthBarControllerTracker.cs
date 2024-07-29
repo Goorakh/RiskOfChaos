@@ -35,12 +35,15 @@ namespace RiskOfChaos.Trackers
             }
             private set
             {
+                if (_hudBossHealthBarController == value)
+                    return;
+
                 _hudBossHealthBarController = value;
 
                 HealthBarRoot = null;
-                if (_hudBossHealthBarController && _hudBossHealthBarController.container)
+                if (HUDBossHealthBarController && HUDBossHealthBarController.container)
                 {
-                    Transform healthBarRootTransform = _hudBossHealthBarController.container.transform.Find("BossHealthBarContainer");
+                    Transform healthBarRootTransform = HUDBossHealthBarController.container.transform.Find("BossHealthBarContainer");
                     if (healthBarRootTransform)
                     {
                         HealthBarRoot = healthBarRootTransform.gameObject;
