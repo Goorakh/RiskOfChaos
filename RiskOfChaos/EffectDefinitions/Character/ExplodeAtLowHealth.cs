@@ -148,15 +148,15 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 teamIndex = body.teamComponent.teamIndex
             };
 
-            DamageAPI.AddModdedDamageType(blastAttack, DamageTypes.BypassArmorSelf);
-            DamageAPI.AddModdedDamageType(blastAttack, DamageTypes.BypassBlockSelf);
+            blastAttack.AddModdedDamageType(DamageTypes.BypassArmorSelf);
+            blastAttack.AddModdedDamageType(DamageTypes.BypassBlockSelf);
 
             if (!body.isPlayerControlled)
             {
-                DamageAPI.AddModdedDamageType(blastAttack, DamageTypes.BypassOSPSelf);
+                blastAttack.AddModdedDamageType(DamageTypes.BypassOSPSelf);
             }
 
-            DamageAPI.AddModdedDamageType(blastAttack, DamageTypes.NonLethalToNonAttackerPlayers);
+            blastAttack.AddModdedDamageType(DamageTypes.NonLethalToNonAttackerPlayers);
 
             blastAttack.Fire();
         }
