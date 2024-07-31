@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 140 different effects.
+Currently features 141 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -149,6 +149,7 @@ Currently features 140 different effects.
 * Splitscreen: Splits the screen into 9 copies of the game view, lasts 90 seconds
 * Distant Camera: Moves the camera further away from the player, lasts 90 seconds
 * Unlimited Proc Chains: Disables proc chain restrictions, lasts 60 seconds
+* Hide Health Bar: Hides all health bars, lasts 60 seconds
 </details>
 
 <hr>

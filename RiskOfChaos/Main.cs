@@ -37,8 +37,7 @@ namespace RiskOfChaos
 
         void Awake()
         {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
+            Stopwatch stopwatch = Stopwatch.StartNew();
 
             Log.Init(Logger);
 
@@ -70,7 +69,7 @@ namespace RiskOfChaos
 
             initConfigs();
 
-            Log.Info_NoCallerPrefix($"Initialized in {stopwatch.Elapsed.TotalSeconds:F2} seconds");
+            Log.Message_NoCallerPrefix($"Initialized in {stopwatch.Elapsed.TotalSeconds:F2} seconds");
             stopwatch.Stop();
         }
 

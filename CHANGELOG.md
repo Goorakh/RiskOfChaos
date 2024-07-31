@@ -2,9 +2,10 @@
 
 **?.?.? Changes:**
 
-* Added 2 effects:
+* Added 3 effects:
   * Distant Camera: Moves the camera further away from the player, lasts 90 seconds
   * Unlimited Proc Chains: Disables proc chain restrictions, lasts 60 seconds
+  * Hide Health Bar: Hides all health bars, lasts 60 seconds
 
 * Disable Equipment:
   * Fixed The Crowdfunder still being usable while effect is active.
