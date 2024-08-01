@@ -21,7 +21,8 @@
 
 * Fixed missing icon for Risk of Options Effects config
 
-**1.18.0 Changes:**
+<details>
+  <summary>1.18.0 Changes:</summary>
 
 * Twitch Integration:
   * Complete rewrite, the mod no longer requires a full-access account token, see README for new authentication instructions
@@ -40,7 +41,10 @@
   * Default duration: 1 stage -> 120 seconds
   * Default Increase/Decrease amount: 25% -> 35%
 
-**1.17.0 Changes:**
+</details>
+  
+<details>
+  <summary>1.17.0 Changes:</summary>
 
 * Updated for Devotion Update
 
@@ -104,6 +108,8 @@
   * Updated R2API.RecalculateStats dependency: 1.2.0 -> 1.3.0
   * Updated R2API.Core dependency: 5.0.11 -> 5.0.12
   * Updated RiskOfOptions dependency: 2.7.1 -> 2.8.0
+
+</details>
 
 <details>
   <summary>1.16.0 Changes:</summary>
