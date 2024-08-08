@@ -49,7 +49,7 @@ namespace RiskOfChaos.Twitch
 
         static void RoR2Application_onUpdate()
         {
-            _tokenAuthenticationTimer -= Time.deltaTime;
+            _tokenAuthenticationTimer -= Time.unscaledDeltaTime;
             if (_tokenAuthenticationTimer <= 0f)
             {
                 _tokenAuthenticationTimer += TOKEN_AUTHENTICATION_PERIOD;
