@@ -188,7 +188,7 @@ namespace RiskOfChaos.EffectHandling
             return true;
         }
 
-        public override string GetDisplayName(EffectNameFormatter formatter, EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)
+        public override string GetDisplayName(EffectNameFormatter formatter, EffectNameFormatFlags formatFlags = EffectNameFormatFlags.Default)
         {
             string displayName = base.GetDisplayName(formatter, formatFlags);
 

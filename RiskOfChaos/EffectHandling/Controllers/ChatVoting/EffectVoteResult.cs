@@ -2,10 +2,10 @@
 {
     public readonly struct EffectVoteResult
     {
-        public readonly UniqueVoteSelection<string, EffectVoteInfo> VoteSelection;
+        public readonly VoteSelection<EffectVoteInfo> VoteSelection;
         public readonly EffectVoteInfo WinningOption;
 
-        public EffectVoteResult(UniqueVoteSelection<string, EffectVoteInfo> effectVoteSelection, EffectVoteInfo voteResult)
+        public EffectVoteResult(VoteSelection<EffectVoteInfo> effectVoteSelection, EffectVoteInfo voteResult)
         {
             VoteSelection = effectVoteSelection;
             WinningOption = voteResult;

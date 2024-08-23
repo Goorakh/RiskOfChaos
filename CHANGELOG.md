@@ -7,6 +7,9 @@
   * Unlimited Proc Chains: Disables proc chain restrictions, lasts 60 seconds
   * Hide Health Bar: Hides all health bars, lasts 60 seconds
 
+* Twitch Poll Voting:
+  * Added option to enable effect voting via Twitch Polls (Voting Mode: Twitch Polls)
+
 * Disable Equipment:
   * Fixed The Crowdfunder still being usable while effect is active.
 

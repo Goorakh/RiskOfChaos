@@ -311,14 +311,24 @@ namespace RiskOfChaos.EffectHandling
             nameFormatterDirty = true;
         }
 
-        public string GetLocalDisplayName(EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)
+        public string GetLocalDisplayName(EffectNameFormatFlags formatFlags = EffectNameFormatFlags.Default)
         {
             return GetDisplayName(LocalDisplayNameFormatter, formatFlags);
         }
 
-        public virtual string GetDisplayName(EffectNameFormatter formatter, EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)
+        public virtual string GetDisplayName(EffectNameFormatter formatter, EffectNameFormatFlags formatFlags = EffectNameFormatFlags.Default)
         {
-            string displayName = Language.GetString(NameToken);
+            string nameToken = NameToken;
+            if ((formatFlags & EffectNameFormatFlags.Short) != 0)
+            {
+                string shortToken = nameToken + "_SHORT";
+                if (!Language.IsTokenInvalid(shortToken))
+                {
+                    nameToken = shortToken;
+                }
+            }
+
+            string displayName = Language.GetString(nameToken);
 
             if ((formatFlags & EffectNameFormatFlags.RuntimeFormatArgs) != 0 && formatter is not null)
             {

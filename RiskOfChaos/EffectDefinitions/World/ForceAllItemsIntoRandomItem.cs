@@ -133,7 +133,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         [SystemInitializer]
         static void InitHooks()
         {
-            ChaosEffectActivationSignaler_ChatVote.OnEffectVotingFinishedServer += (in EffectVoteResult result) =>
+            ChaosEffectActivationSignaler_CrowdControlVote.OnEffectVotingFinishedServer += (in EffectVoteResult result) =>
             {
                 if (TimedChaosEffectHandler.Instance &&
                     TimedChaosEffectHandler.Instance.IsTimedEffectActive(_effectInfo))

@@ -11,10 +11,10 @@ using System.Threading.Tasks;
 namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 {
     [ChaosEffectActivationSignaler(Configs.ChatVoting.ChatVotingMode.Twitch)]
-    public class ChaosEffectActivationSignaler_TwitchVote : ChaosEffectActivationSignaler_ChatVote
+    public class ChaosEffectActivationSignaler_TwitchChatMessageVote : ChaosEffectActivationSignaler_ChatMessageVote
     {
-        static ChaosEffectActivationSignaler_TwitchVote _instance;
-        public static ChaosEffectActivationSignaler_TwitchVote Instance => _instance;
+        static ChaosEffectActivationSignaler_TwitchChatMessageVote _instance;
+        public static ChaosEffectActivationSignaler_TwitchChatMessageVote Instance => _instance;
 
         public static bool IsConnectionMessageToken(string token)
         {

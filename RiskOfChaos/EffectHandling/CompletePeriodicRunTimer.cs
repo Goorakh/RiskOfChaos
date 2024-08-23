@@ -7,7 +7,10 @@ namespace RiskOfChaos.EffectHandling
     {
         public event Action OnActivate;
 
-        bool _wasRunStopwatchPausedLastUpdate = false;
+        readonly TimerFlags _flags;
+
+        RunTimerType _lastTimerType;
+        float _lastTimerTimeRemaining;
 
         PeriodicRunTimer _stopwatchEffectDispatchTimer;
         PeriodicRunTimer _realtimeEffectDispatchTimer;
@@ -47,10 +50,14 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
-        public CompletePeriodicRunTimer(float period)
+        public CompletePeriodicRunTimer(float period, TimerFlags flags = TimerFlags.None)
         {
             _stopwatchEffectDispatchTimer = new PeriodicRunTimer(RunTimerType.Stopwatch, period);
             _realtimeEffectDispatchTimer = new PeriodicRunTimer(RunTimerType.Realtime, period);
+
+            _flags = flags;
+
+            _lastTimerType = currentTimer.TimeType;
         }
 
         public void SkipAllScheduledActivations()
@@ -80,7 +87,7 @@ namespace RiskOfChaos.EffectHandling
         {
             ref PeriodicRunTimer timer = ref currentTimer;
 
-            updateStopwatchPaused(ref timer);
+            updateTimer(ref timer);
 
             if (timer.ShouldActivate())
             {
@@ -103,22 +110,37 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
-        void updateStopwatchPaused(ref PeriodicRunTimer timer)
+        void updateTimer(ref PeriodicRunTimer timer)
         {
-            bool isStopwatchPaused = Run.instance.isRunStopwatchPaused;
-            if (_wasRunStopwatchPausedLastUpdate != isStopwatchPaused)
+            if (_lastTimerType != timer.TimeType)
             {
-                _wasRunStopwatchPausedLastUpdate = isStopwatchPaused;
-
-                if (isStopwatchPaused)
+                if (timer.TimeType == RunTimerType.Realtime)
                 {
                     // Skip all the activations that should have already happened, but didn't since this timer hasn't updated
-                    while (timer.ShouldActivate())
+                    timer.SkipAllScheduledActivations();
+                }
+                else
+                {
+                    int scheduledActivations = timer.GetNumScheduledActivations();
+                    if (scheduledActivations > 1)
+                        timer.SkipActivations(scheduledActivations - 1);
+                }
+
+                if ((_flags & TimerFlags.EnforcePeriodOnTimerSwitch) != 0)
+                {
+                    if (timer.GetTimeRemaining() < _lastTimerTimeRemaining && Period >= _lastTimerTimeRemaining)
                     {
-                        timer.ScheduleNextActivation();
+                        timer.SkipAllScheduledActivations();
+
+#if DEBUG
+                        Log.Debug("Skipped timer activation(s) to not trigger timer early");
+#endif
                     }
                 }
             }
+
+            _lastTimerType = timer.TimeType;
+            _lastTimerTimeRemaining = timer.GetTimeRemaining();
         }
 
         public float GetTimeRemaining()

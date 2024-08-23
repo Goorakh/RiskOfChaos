@@ -19,7 +19,8 @@ namespace RiskOfChaos
             public enum ChatVotingMode
             {
                 Disabled,
-                Twitch
+                Twitch,
+                TwitchPolls
             }
 
             public static readonly ConfigHolder<ChatVotingMode> VotingMode =
@@ -34,17 +35,30 @@ namespace RiskOfChaos
                 return VotingMode.Value == ChatVotingMode.Disabled;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            static bool isVotingDisabledOrUsingThirdPartyPolls()
+            {
+                switch (VotingMode.Value)
+                {
+                    case ChatVotingMode.Disabled:
+                    case ChatVotingMode.TwitchPolls:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
             public static event Action OnReconnectButtonPressed;
 
             public static readonly ConfigHolder<string> OverrideChannelName =
                 ConfigFactory<string>.CreateConfig("Override Channel Name", string.Empty)
-                                     .Description("Used to specify a different channel the mod will connect to, leave empty to use the channel of the account that you authenticated with")
+                                     .Description("Used to specify a different channel the mod will connect to, leave empty to use the channel of the account that you authenticated with, does not work in any external poll voting mode")
                                      .OptionConfig(new InputFieldConfig
                                      {
                                         lineType = TMPro.TMP_InputField.LineType.SingleLine,
                                         richText = false,
                                         submitOn = InputFieldConfig.SubmitEnum.OnExitOrSubmit,
-                                        checkIfDisabled = isVotingDisabled
+                                        checkIfDisabled = isVotingDisabledOrUsingThirdPartyPolls
                                      })
                                      .Build();
 
@@ -73,10 +87,10 @@ namespace RiskOfChaos
 
             public static readonly ConfigHolder<VoteWinnerSelectionMode> WinnerSelectionMode =
                 ConfigFactory<VoteWinnerSelectionMode>.CreateConfig("Vote Winner Selection Mode", VoteWinnerSelectionMode.MostVotes)
-                                                      .Description($"How the winner of any vote should be selected.\n\n{nameof(VoteWinnerSelectionMode.MostVotes)} (Default): The vote with the most votes will be selected, if there is a tie, a random tied option is selected\n{nameof(VoteWinnerSelectionMode.RandomProportional)}: Every option has a chance to be selected, weighted by the number of votes. Ex. an option with 70% of the votes will have a 70% chance to be selected.")
+                                                      .Description($"How the winner of any vote should be selected.\n\n{nameof(VoteWinnerSelectionMode.MostVotes)} (Default): The vote with the most votes will be selected, if there is a tie, a random tied option is selected\n{nameof(VoteWinnerSelectionMode.RandomProportional)}: Every option has a chance to be selected, weighted by the number of votes. Ex. an option with 70% of the votes will have a 70% chance to be selected.\n\nAny external poll voting mode will always use {nameof(VoteWinnerSelectionMode.MostVotes)}")
                                                       .OptionConfig(new ChoiceConfig
                                                       {
-                                                          checkIfDisabled = isVotingDisabled
+                                                          checkIfDisabled = isVotingDisabledOrUsingThirdPartyPolls
                                                       })
                                                       .ValueValidator(CommonValueValidators.DefinedEnumValue<VoteWinnerSelectionMode>())
                                                       .Build();
@@ -91,7 +105,7 @@ namespace RiskOfChaos
                                         min = 0f,
                                         max = 2.5f,
                                         increment = 0.05f,
-                                        checkIfDisabled = isVotingDisabled
+                                        checkIfDisabled = isVotingDisabledOrUsingThirdPartyPolls
                                     })
                                     .Build();
 
@@ -100,7 +114,7 @@ namespace RiskOfChaos
                                     .Description("The color of the effect voting options text")
                                     .OptionConfig(new ColorOptionConfig
                                     {
-                                        checkIfDisabled = isVotingDisabled
+                                        checkIfDisabled = isVotingDisabledOrUsingThirdPartyPolls
                                     })
                                     .Build();
 
@@ -109,7 +123,7 @@ namespace RiskOfChaos
                                     .Description("The color of the effect voting options backdrop")
                                     .OptionConfig(new ColorOptionConfig
                                     {
-                                        checkIfDisabled = isVotingDisabled
+                                        checkIfDisabled = isVotingDisabledOrUsingThirdPartyPolls
                                     })
                                     .Build();
 
@@ -123,8 +137,6 @@ namespace RiskOfChaos
                 }
 
                 bindConfig(VotingMode);
-
-                ModSettingsManager.AddOption(new GenericButtonOption("Authenticate (Twitch)", SECTION_NAME, "Authenticate your account with Risk of Chaos (Opens browser tab)", "Open", TwitchAuthenticationManager.AuthenticateNewToken), CONFIG_GUID, CONFIG_NAME);
 
                 bindConfig(OverrideChannelName);
 

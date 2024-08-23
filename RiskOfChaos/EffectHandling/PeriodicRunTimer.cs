@@ -72,16 +72,6 @@ namespace RiskOfChaos.EffectHandling
             _nextActivationTime = value >= 0f ? value + Period : 0f;
         }
 
-        public void ScheduleNextActivation()
-        {
-            _lastActivationTime = _nextActivationTime;
-            _nextActivationTime += Period;
-
-#if DEBUG
-            Log.Debug($"{nameof(_lastActivationTime)}={_lastActivationTime}, {nameof(_nextActivationTime)}={_nextActivationTime}");
-#endif
-        }
-
         public void SkipActivations(int numActivationsToSkip)
         {
             if (numActivationsToSkip < 0 && -(numActivationsToSkip * Period) > _nextActivationTime)

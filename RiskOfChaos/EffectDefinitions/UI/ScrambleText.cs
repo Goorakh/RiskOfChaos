@@ -126,7 +126,7 @@ namespace RiskOfChaos.EffectDefinitions.UI
             if (string.IsNullOrEmpty(str) || !language.TokenIsRegistered(token))
                 return;
 
-            if (ChaosEffectActivationSignaler_TwitchVote.IsConnectionMessageToken(token))
+            if (ChaosEffectActivationSignaler_TwitchChatMessageVote.IsConnectionMessageToken(token))
                 return;
 
             if (_excludeEffectNames.Value && ChaosEffectCatalog.IsEffectRelatedToken(token))

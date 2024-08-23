@@ -12,7 +12,7 @@ namespace RiskOfChaos.Twitch
 {
     static class TwitchAuthenticationManager
     {
-        public static readonly string[] ScopesArray = ["user:read:chat"];
+        public static readonly string[] ScopesArray = ["user:read:chat", "channel:manage:polls"];
 
         public static readonly string CombinedScopes = string.Join(" ", ScopesArray);
 

@@ -61,11 +61,16 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
         {
         }
 
+        public string GetEffectName(EffectNameFormatFlags formatFlags = EffectNameFormatFlags.Default)
+        {
+            return IsRandom ? Language.GetString("CHAOS_EFFECT_VOTING_RANDOM_OPTION_NAME") : EffectInfo.GetLocalDisplayName(formatFlags);
+        }
+
         public object[] GetArgs()
         {
             return [
                 VoteNumber,
-                IsRandom ? Language.GetString("CHAOS_EFFECT_VOTING_RANDOM_OPTION_NAME") : EffectInfo.GetLocalDisplayName(),
+                GetEffectName(),
                 VotePercentage * 100f
             ];
         }

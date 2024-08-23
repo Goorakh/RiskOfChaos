@@ -56,6 +56,8 @@ namespace RiskOfChaos
 
             ChatVoting.Bind(file);
 
+            TwitchVoting.Bind(file);
+
 #if DEBUG
             Debug.Bind(file);
 #endif

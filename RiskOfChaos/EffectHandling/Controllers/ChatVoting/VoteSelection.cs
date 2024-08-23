@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 {
-    public abstract class VoteSelection<TVoteResult>
+    public class VoteSelection<TVoteResult>
     {
         public struct VoteOption
         {
@@ -216,6 +216,14 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
             result = getOption(optionIndex);
             return true;
+        }
+
+        public void SetVoteCount(int optionIndex, int voteCount)
+        {
+            checkOptionIndex(optionIndex);
+
+            ref VoteOption option = ref getOption(optionIndex);
+            option.NumVotes = voteCount;
         }
 
         public TVoteResult[] GetVoteOptions()

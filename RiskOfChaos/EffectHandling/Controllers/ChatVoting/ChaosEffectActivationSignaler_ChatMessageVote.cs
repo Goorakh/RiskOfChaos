@@ -7,25 +7,15 @@ using RiskOfChaos.UI;
 using RiskOfChaos.UI.ChatVoting;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 {
-    public abstract class ChaosEffectActivationSignaler_ChatVote : ChaosEffectActivationSignaler
+    public abstract class ChaosEffectActivationSignaler_ChatMessageVote : ChaosEffectActivationSignaler_CrowdControlVote
     {
-        public delegate void OnEffectVotingFinishedDelegate(in EffectVoteResult result);
-        public static event OnEffectVotingFinishedDelegate OnEffectVotingFinishedServer;
-
-        static int numVoteOptions => Configs.ChatVoting.NumEffectOptions.Value + (Configs.ChatVoting.IncludeRandomEffectInVote.Value ? 1 : 0);
-
         public override event SignalShouldDispatchEffectDelegate SignalShouldDispatchEffect;
-
-        public event Action OnVotingStarted;
-
-        protected abstract Configs.ChatVoting.ChatVotingMode votingMode { get; }
 
         protected UniqueVoteSelection<string, EffectVoteInfo> _effectVoteSelection;
 
@@ -42,7 +32,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
         {
             if (_offsetVoteNumbers)
             {
-                voteIndex += numVoteOptions;
+                voteIndex += NumVoteOptions;
             }
 
             // 0-indexed to 1-indexed
@@ -97,7 +87,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
                 _rng = new Xoroshiro128Plus(Run.instance.seed);
             }
 
-            _effectVoteSelection = new UniqueVoteSelection<string, EffectVoteInfo>(numVoteOptions)
+            _effectVoteSelection = new UniqueVoteSelection<string, EffectVoteInfo>(NumVoteOptions)
             {
                 WinnerSelectionMode = Configs.ChatVoting.WinnerSelectionMode.Value
             };
@@ -201,8 +191,6 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
                     effectVoteDisplayController.DisplayVote(effectVotes);
                 }
             }
-
-            OnVotingStarted?.Invoke();
         }
 
         void onDisableEffectDispatchingChanged(object s, ConfigChangedArgs<bool> args)
@@ -248,7 +236,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
                         {
                             EffectVoteInfo effectVoteInfo = voteOption.Value;
                             effectVoteInfo.VoteCount = voteOption.NumVotes;
-                            effectVoteInfo.VotePercentage = voteOption.NumVotes / (float)totalVotes;
+                            effectVoteInfo.VotePercentage = totalVotes > 0 ? voteOption.NumVotes / (float)totalVotes : 1f / numVoteOptions;
                         }
                     }
                 }
@@ -345,7 +333,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
             _offsetVoteNumbers = _voteStartCount++ % 2 != 0;
 
-            int numOptions = numVoteOptions;
+            int numOptions = NumVoteOptions;
             _effectVoteSelection.NumOptions = numOptions;
 
             WeightedSelection<ChaosEffectInfo> effectSelection = ChaosEffectCatalog.GetAllActivatableEffects(new EffectCanActivateContext(_voteTimer.GetTimeRemaining()));
@@ -383,8 +371,6 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
                     effectVoteDisplayController.DisplayVote(voteOptions);
                 }
             }
-
-            OnVotingStarted?.Invoke();
         }
 
         void onEffectDisplayControllerCreated(ChaosEffectVoteDisplayController effectVoteDisplayController)
@@ -401,7 +387,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             {
                 if (_effectVoteSelection.TryGetVoteResult(out EffectVoteInfo voteResult))
                 {
-                    OnEffectVotingFinishedServer?.Invoke(new EffectVoteResult(_effectVoteSelection, voteResult));
+                    onEffectVotingFinishedServer(new EffectVoteResult(_effectVoteSelection, voteResult));
                     startEffect(voteResult);
                 }
                 else

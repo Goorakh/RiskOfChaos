@@ -8,6 +8,8 @@ namespace RiskOfChaos.EffectHandling
         None = 0,
         RuntimeFormatArgs = 1 << 0,
         TimedType = 1 << 1,
-        All = byte.MaxValue
+        Short = 1 << 2,
+
+        Default = RuntimeFormatArgs | TimedType,
     }
 }
