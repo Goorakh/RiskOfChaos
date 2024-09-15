@@ -28,7 +28,7 @@
     <None Include="..\.editorconfig" Link=".editorconfig" />
   </ItemGroup>
 
-    <ItemGroup>
+  <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.0.*">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -46,11 +46,13 @@
     <PackageReference Include="MMHOOK.RoR2" Version="2024.9.5">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
+
+    <PackageDownload Include="NETStandard.Library.Ref" Version="[2.1.0]" />
   </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\RiskOfTwitch\RiskOfTwitch.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\RiskOfTwitch\RiskOfTwitch.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="Facepunch.Steamworks">
@@ -116,7 +118,7 @@
 
     <Copy SourceFiles="@(LangFiles)" DestinationFolder="$(TSPackagePluginDir)/lang/%(RecursiveDir)" />
 
-    <Exec Command="Unity.UNetWeaver.exe $(PkgUnityEngine_Modules)\lib\$(TargetFramework)\UnityEngine.CoreModule.dll $(PkgRiskOfRain2_GameLibs)\lib\$(TargetFramework)\com.unity.multiplayer-hlapi.Runtime.dll $(TSPackagePluginDir) $(SolutionDir)$(ProjectName)\$(OutDir)$(AssemblyName).dll $(ProjectDir)\libs\" WorkingDirectory="$(ProjectDir)\NetworkWeaver" />
+    <Exec Command="Unity.UNetWeaver.exe $(PkgUnityEngine_Modules)\lib\netstandard2.0\UnityEngine.CoreModule.dll $(PkgRiskOfRain2_GameLibs)\lib\netstandard2.0\com.unity.multiplayer-hlapi.Runtime.dll $(TSPackagePluginDir) $(SolutionDir)$(ProjectName)\$(OutDir)$(AssemblyName).dll $(NugetPackageRoot)\netstandard.library.ref\2.1.0\ref\netstandard2.1" WorkingDirectory="$(ProjectDir)\NetworkWeaver" />
 
     <PropertyGroup>
       <NetWeaverHasOutput>false</NetWeaverHasOutput>
