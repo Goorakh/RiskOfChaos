@@ -1,4 +1,4 @@
-﻿using RoR2.UI;
+﻿using RoR2;
 using UnityEngine;
 
 namespace RiskOfChaos.Utilities
@@ -9,12 +9,10 @@ namespace RiskOfChaos.Utilities
         {
             get
             {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                if (PauseScreenController.paused)
+                if (PauseStopController.instance && PauseStopController.instance.isPaused)
                 {
-                    return PauseScreenController.oldTimeScale;
+                    return PauseStopController.instance._oldTimeScale;
                 }
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
                 else
                 {
                     return Time.timeScale;
@@ -22,12 +20,10 @@ namespace RiskOfChaos.Utilities
             }
             set
             {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                if (PauseScreenController.paused)
+                if (PauseStopController.instance && PauseStopController.instance.isPaused)
                 {
-                    PauseScreenController.oldTimeScale = value;
+                    PauseStopController.instance._oldTimeScale = value;
                 }
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
                 else
                 {
                     Time.timeScale = value;

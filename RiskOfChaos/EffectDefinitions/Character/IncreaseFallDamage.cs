@@ -28,7 +28,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                 .AcceptableValues(new AcceptableValueMin<float>(0f))
                                 .OptionConfig(new StepSliderConfig
                                 {
-                                    formatString = "+{0:P0}",
+                                    FormatString = "+{0:P0}",
                                     min = 0f,
                                     max = 2f,
                                     increment = 0.05f

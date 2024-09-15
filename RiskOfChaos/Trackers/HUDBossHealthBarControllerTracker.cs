@@ -9,10 +9,10 @@ namespace RiskOfChaos.Trackers
         [SystemInitializer]
         static void Init()
         {
-            On.RoR2.UI.HUDBossHealthBarController.FixedUpdate += HUDBossHealthBarController_FixedUpdate;
+            On.RoR2.UI.HUDBossHealthBarController.OnEnable += HUDBossHealthBarController_OnEnable;
         }
 
-        static void HUDBossHealthBarController_FixedUpdate(On.RoR2.UI.HUDBossHealthBarController.orig_FixedUpdate orig, HUDBossHealthBarController self)
+        static void HUDBossHealthBarController_OnEnable(On.RoR2.UI.HUDBossHealthBarController.orig_OnEnable orig, HUDBossHealthBarController self)
         {
             orig(self);
 

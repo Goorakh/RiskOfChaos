@@ -22,7 +22,7 @@ namespace RiskOfChaos.EffectDefinitions.Meta
                                 .AcceptableValues(new AcceptableValueRange<float>(0f, 1f))
                                 .OptionConfig(new StepSliderConfig
                                 {
-                                    formatString = "{0}x",
+                                    FormatString = "{0}x",
                                     min = 0f,
                                     max = 1f,
                                     increment = 0.1f

@@ -30,7 +30,7 @@ namespace RiskOfChaos.Patches
         static int _currentBulletBounceDepth;
         static int currentBulletBouncesRemaining => bounceCount - _currentBulletBounceDepth;
 
-        static BulletAttack.BulletHit? _currentBounceSourceHitInfo;
+        static BulletAttack.BulletHit _currentBounceSourceHitInfo;
 
         [SystemInitializer]
         static void Init()
@@ -118,7 +118,7 @@ namespace RiskOfChaos.Patches
 
             foreach (BulletAttack.BulletHit hit in hitList)
             {
-                if (hit.entityObject == hitEntity && hit.point == hitPosition)
+                if (hit != null && hit.entityObject == hitEntity && hit.point == hitPosition)
                 {
                     _currentBulletBounceDepth++;
 
@@ -180,13 +180,13 @@ namespace RiskOfChaos.Patches
             if (!orig(bulletAttack, ref hitInfo))
                 return false;
 
-            if (isEnabled && _currentBounceSourceHitInfo.HasValue)
+            if (isEnabled && _currentBounceSourceHitInfo != null)
             {
-                if (_currentBounceSourceHitInfo.Value.collider == hitInfo.collider || _currentBounceSourceHitInfo.Value.entityObject == hitInfo.entityObject)
+                if (_currentBounceSourceHitInfo.collider == hitInfo.collider || _currentBounceSourceHitInfo.entityObject == hitInfo.entityObject)
                 {
                     const float MIN_DISTANCE_TO_ALLOW = 1f;
                     const float MIN_SQR_DISTANCE_TO_ALLOW = MIN_DISTANCE_TO_ALLOW * MIN_DISTANCE_TO_ALLOW;
-                    return (_currentBounceSourceHitInfo.Value.point - hitInfo.point).sqrMagnitude >= MIN_SQR_DISTANCE_TO_ALLOW;
+                    return (_currentBounceSourceHitInfo.point - hitInfo.point).sqrMagnitude >= MIN_SQR_DISTANCE_TO_ALLOW;
                 }
             }
 

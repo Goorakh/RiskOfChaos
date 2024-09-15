@@ -87,7 +87,7 @@ namespace RiskOfChaos
                                     .AcceptableValues(new AcceptableValueMin<float>(0f))
                                     .OptionConfig(new StepSliderConfig
                                     {
-                                        formatString = "{0:F2}X",
+                                        FormatString = "{0:F2}X",
                                         min = 0f,
                                         max = 2.5f,
                                         increment = 0.05f,

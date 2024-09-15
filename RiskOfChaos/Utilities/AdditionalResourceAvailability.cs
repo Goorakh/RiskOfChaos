@@ -22,9 +22,9 @@
                 MasterCatalog.MakeAvailable();
             };
 
-            On.RoR2.PickupCatalog.Init += orig =>
+            On.RoR2.PickupCatalog.SetEntries += (orig, entries) =>
             {
-                orig();
+                orig(entries);
                 PickupCatalog.MakeAvailable();
             };
         }

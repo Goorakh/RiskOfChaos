@@ -26,7 +26,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
                                     min = 0f,
                                     max = 1f,
                                     increment = 0.01f,
-                                    formatString = "-{0:P0}"
+                                    FormatString = "-{0:P0}"
                                 })
                                 .OnValueChanged(() =>
                                 {
