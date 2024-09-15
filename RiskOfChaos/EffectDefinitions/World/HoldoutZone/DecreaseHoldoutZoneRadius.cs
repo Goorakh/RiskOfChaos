@@ -23,7 +23,7 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
                                 .AcceptableValues(new AcceptableValueRange<float>(0f, 1f))
                                 .OptionConfig(new StepSliderConfig
                                 {
-                                    formatString = "-{0:P0}",
+                                    FormatString = "-{0:P0}",
                                     increment = 0.01f,
                                     min = 0f,
                                     max = 1f

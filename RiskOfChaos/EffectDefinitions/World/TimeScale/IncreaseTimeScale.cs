@@ -20,7 +20,7 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
                                 .AcceptableValues(new AcceptableValueMin<float>(0f))
                                 .OptionConfig(new StepSliderConfig
                                 {
-                                    formatString = "+{0:P0}",
+                                    FormatString = "+{0:P0}",
                                     min = 0f,
                                     max = 1f,
                                     increment = 0.01f

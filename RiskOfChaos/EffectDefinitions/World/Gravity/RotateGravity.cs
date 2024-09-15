@@ -25,7 +25,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
                                 .AcceptableValues(new AcceptableValueRange<float>(MAX_DEVITATION_MIN_VALUE, MAX_DEVITATION_MAX_VALUE))
                                 .OptionConfig(new StepSliderConfig
                                 {
-                                    formatString = "{0:F1}",
+                                    FormatString = "{0:F1}",
                                     min = MAX_DEVITATION_MIN_VALUE,
                                     max = MAX_DEVITATION_MAX_VALUE,
                                     increment = 0.5f

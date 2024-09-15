@@ -25,7 +25,7 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
                                 .AcceptableValues(new AcceptableValueMin<float>(INCREASE_AMOUNT_MIN_VALUE))
                                 .OptionConfig(new StepSliderConfig
                                 {
-                                    formatString = "+{0:P0}",
+                                    FormatString = "+{0:P0}",
                                     min = INCREASE_AMOUNT_MIN_VALUE,
                                     max = 2f,
                                     increment = 0.05f

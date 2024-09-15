@@ -28,7 +28,7 @@ namespace RiskOfChaos
                                     .OptionConfig(new StepSliderConfig
                                     {
                                         checkIfDisabled = effectDispatchingDisabled,
-                                        formatString = "{0:F0}s",
+                                        FormatString = "{0:F0}s",
                                         increment = 5f,
                                         min = TIME_BETWEEN_EFFECTS_MIN_VALUE,
                                         max = 60f * 5f
