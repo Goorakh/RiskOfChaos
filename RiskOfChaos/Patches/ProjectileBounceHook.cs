@@ -17,7 +17,7 @@ namespace RiskOfChaos.Patches
             On.RoR2.Projectile.ProjectileManager.InitializeProjectile += ProjectileManager_InitializeProjectile;
 
             IL.RoR2.Projectile.ProjectileController.OnCollisionEnter += ProjectileController_tryBouncePatch;
-            IL.RoR2.Projectile.ProjectileController.OnTriggerEnter += ProjectileController_tryBouncePatch;
+            IL.RoR2.Projectile.ProjectileControllerTrigger.OnTriggerEnter += ProjectileController_tryBouncePatch;
 
             IL.EntityStates.AimThrowableBase.FireProjectile += AimThrowableBase_FireProjectile;
         }
