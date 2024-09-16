@@ -1,5 +1,4 @@
-﻿using R2API;
-using RiskOfChaos.Networking.Components.Effects;
+﻿using RiskOfChaos.Networking.Components.Effects;
 using RoR2;
 using RoR2.UI;
 using RoR2.UI.SkinControllers;
@@ -7,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
 
 namespace RiskOfChaos.UI.ActiveEffectsPanel
@@ -16,90 +14,72 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
     {
         static GameObject _activeEffectsPanelPrefab;
 
-        [SystemInitializer]
+        [SystemInitializer(typeof(UISkins))]
         static void Init()
         {
-            GameObject hudInfoPanelPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/ClassicRun/ClassicRunInfoHudPanel.prefab").WaitForCompletion();
-            if (!hudInfoPanelPrefab)
+            UISkinData uiSkin = UISkins.ActiveEffectsPanel;
+
+            GameObject activeEffectsPanelPrefab = NetPrefabs.CreateEmptyPrefabObject("ActiveEffectsPanel", false);
+
+            RectTransform activeEffectsTransform = activeEffectsPanelPrefab.AddComponent<RectTransform>();
+
+            CanvasRenderer panelCanvasRenderer = activeEffectsPanelPrefab.AddComponent<CanvasRenderer>();
+            
+            Image panelImage = activeEffectsPanelPrefab.AddComponent<Image>();
+            panelImage.type = Image.Type.Sliced;
+            panelImage.raycastTarget = false;
+
+            PanelSkinController panelSkinController = activeEffectsPanelPrefab.AddComponent<PanelSkinController>();
+            panelSkinController.panelType = PanelSkinController.PanelType.Default;
+            panelSkinController.skinData = uiSkin;
+
+            VerticalLayoutGroup panelLayoutGroup = activeEffectsPanelPrefab.AddComponent<VerticalLayoutGroup>();
+            panelLayoutGroup.childAlignment = TextAnchor.UpperCenter;
+            panelLayoutGroup.padding = new RectOffset(4, 4, 4, 8);
+
+            Canvas panelCanvas = activeEffectsPanelPrefab.AddComponent<Canvas>();
+
+            ChaosActiveEffectsDisplayController activeEffectsDisplayController = activeEffectsPanelPrefab.AddComponent<ChaosActiveEffectsDisplayController>();
+
+            // ActiveEffectsHeader
             {
-                Log.Warning("Unable to find HUD info panel prefab");
-                return;
+                GameObject headerObject = new GameObject("ActiveEffectsLabel");
+                RectTransform headerTransform = headerObject.AddComponent<RectTransform>();
+                headerTransform.SetParent(activeEffectsTransform, false);
+
+                HGTextMeshProUGUI headerLabel = headerObject.AddComponent<HGTextMeshProUGUI>();
+
+                LabelSkinController headerLabelSkinController = headerObject.AddComponent<LabelSkinController>();
+                headerLabelSkinController.labelType = LabelSkinController.LabelType.Header;
+                headerLabelSkinController.skinData = uiSkin;
+
+                LanguageTextMeshController headerLanguageController = headerObject.AddComponent<LanguageTextMeshController>();
+                headerLanguageController.token = "CHAOS_ACTIVE_EFFECTS_BAR_TITLE";
+
+                LayoutElement layoutElement = headerObject.AddComponent<LayoutElement>();
+                layoutElement.minHeight = 15f;
+
+                activeEffectsDisplayController._activeEffectsTitleLabel = headerLabel;
             }
 
-            ChildLocator childLocator = hudInfoPanelPrefab.GetComponent<ChildLocator>();
-            if (!childLocator)
+            // ActiveEffectsContainer
             {
-                Log.Warning("Info panel is missing ChildLocator component");
-                return;
+                GameObject containerObject = new GameObject("EffectsContainer");
+                RectTransform containerTransform = containerObject.AddComponent<RectTransform>();
+                containerTransform.SetParent(activeEffectsTransform, false);
+
+                VerticalLayoutGroup containerLayoutGroup = containerObject.AddComponent<VerticalLayoutGroup>();
+                containerLayoutGroup.childAlignment = TextAnchor.UpperCenter;
+                containerLayoutGroup.childForceExpandHeight = false;
+                containerLayoutGroup.padding = new RectOffset(0, 0, 10, 0);
+                containerLayoutGroup.spacing = 7f;
+
+                activeEffectsDisplayController._activeEffectsContainer = containerTransform;
             }
 
-            Transform rightInfoBar = childLocator.FindChild("RightInfoBar");
-            if (!rightInfoBar)
-            {
-                Log.Warning("Could not find RightInfoBar");
-                return;
-            }
+            activeEffectsPanelPrefab.layer = LayerIndex.ui.intVal;
 
-            Transform objectivePanel = rightInfoBar.Find("ObjectivePanel");
-            if (!objectivePanel)
-            {
-                Log.Warning("Could not find ObjectivePanel");
-                return;
-            }
-
-            _activeEffectsPanelPrefab = objectivePanel.gameObject.InstantiateClone("ActiveEffectsPanel", false);
-
-            if (_activeEffectsPanelPrefab.TryGetComponent(out LayoutGroup layoutGroup))
-            {
-                layoutGroup.padding.bottom = 10;
-            }
-
-            ChaosActiveEffectsDisplayController activeEffectsDisplayController = _activeEffectsPanelPrefab.AddComponent<ChaosActiveEffectsDisplayController>();
-
-            ObjectivePanelController objectivePanelController = _activeEffectsPanelPrefab.GetComponent<ObjectivePanelController>();
-
-            ChaosActiveEffectItemController.InitializePrefab(objectivePanelController.objectiveTrackerPrefab);
-            activeEffectsDisplayController._activeEffectsContainer = objectivePanelController.objectiveTrackerContainer;
-
-            Destroy(objectivePanelController);
-            Destroy(_activeEffectsPanelPrefab.GetComponent<HudObjectiveTargetSetter>());
-
-            Transform titleLabelTransform = _activeEffectsPanelPrefab.transform.Find("Label");
-            if (titleLabelTransform)
-            {
-                if (titleLabelTransform.TryGetComponent(out LayoutElement layoutElement))
-                {
-                    layoutElement.minHeight = 10f;
-                    layoutElement.preferredHeight = 10f;
-                }
-
-                if (titleLabelTransform.TryGetComponent(out LanguageTextMeshController languageTextController))
-                {
-                    languageTextController.token = "CHAOS_ACTIVE_EFFECTS_BAR_TITLE";
-                }
-                else
-                {
-                    Log.Warning("Title is missing LanguageTextMeshController component");
-                }
-
-                if (titleLabelTransform.TryGetComponent(out activeEffectsDisplayController._activeEffectsTitleLabel))
-                {
-                    activeEffectsDisplayController._activeEffectsTitleLabel.fontSize = 14f;
-                }
-                else
-                {
-                    Log.Warning("Title is missing HGTextMeshProUGUI component");
-                }
-
-                if (titleLabelTransform.TryGetComponent(out LabelSkinController labelSkinController))
-                {
-                    Destroy(labelSkinController);
-                }
-            }
-            else
-            {
-                Log.Warning("Unable to find title label");
-            }
+            _activeEffectsPanelPrefab = activeEffectsPanelPrefab;
         }
 
         public static ChaosActiveEffectsDisplayController Create(ChaosUIController chaosUIController)

@@ -1,5 +1,4 @@
-﻿using R2API;
-using RiskOfChaos.ConfigHandling;
+﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
@@ -15,49 +14,30 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
     {
         static GameObject _itemPrefab;
 
-        internal static void InitializePrefab(GameObject objectiveTrackerPrefab)
+        [SystemInitializer]
+        static void Init()
         {
-            if (!objectiveTrackerPrefab)
-            {
-                Log.Warning($"{nameof(objectiveTrackerPrefab)} is null");
-                return;
-            }
+            GameObject activeEffectItemObject = NetPrefabs.CreateEmptyPrefabObject("ActiveEffectItem", false);
+            RectTransform activeEffectItemTransform = activeEffectItemObject.AddComponent<RectTransform>();
 
-            _itemPrefab = objectiveTrackerPrefab.InstantiateClone("ActiveEffectItem", false);
-            VerticalLayoutGroup verticalLayoutGroup = _itemPrefab.GetComponent<VerticalLayoutGroup>();
-            if (verticalLayoutGroup)
-            {
-                verticalLayoutGroup.enabled = false;
-            }
+            LayoutElement layoutElement = activeEffectItemObject.AddComponent<LayoutElement>();
 
-            LayoutElement layoutElement = _itemPrefab.GetComponent<LayoutElement>();
-            if (layoutElement)
-            {
-                layoutElement.enabled = true;
-                layoutElement.minHeight = 20f;
-            }
-
-            Transform checkBoxTransform = _itemPrefab.transform.Find("Checkbox");
-            if (checkBoxTransform)
-            {
-                Destroy(checkBoxTransform.gameObject);
-            }
-
-            ChaosActiveEffectItemController activeEffectItemController = _itemPrefab.AddComponent<ChaosActiveEffectItemController>();
-
-            Transform labelTransform = _itemPrefab.transform.Find("Label");
-            HGTextMeshProUGUI effectNameLabel = labelTransform.GetComponent<HGTextMeshProUGUI>();
-            effectNameLabel.horizontalAlignment = HorizontalAlignmentOptions.Center;
+            HGTextMeshProUGUI effectNameLabel = activeEffectItemObject.AddComponent<HGTextMeshProUGUI>();
+            effectNameLabel.alignment = TextAlignmentOptions.Center;
+            effectNameLabel.fontSizeMin = 8f;
+            effectNameLabel.fontSizeMax = 12f;
+            effectNameLabel.fontSize = 12f;
             effectNameLabel.enableAutoSizing = true;
             effectNameLabel.enableWordWrapping = false;
 
-            effectNameLabel.rectTransform.sizeDelta = new Vector2(140f, 25f);
-            effectNameLabel.rectTransform.localPosition = new Vector3(0f, 0f, 0f);
+            LanguageTextMeshController languageTextMeshController = activeEffectItemObject.AddComponent<LanguageTextMeshController>();
 
-            activeEffectItemController._effectNameLabel = effectNameLabel;
-            activeEffectItemController._effectNameText = labelTransform.gameObject.AddComponent<LanguageTextMeshController>();
+            ChaosActiveEffectItemController chaosActiveEffectItemController = activeEffectItemObject.AddComponent<ChaosActiveEffectItemController>();
+            chaosActiveEffectItemController._effectNameLabel = effectNameLabel;
+            chaosActiveEffectItemController._effectNameText = languageTextMeshController;
 
-            _itemPrefab.SetActive(true);
+            activeEffectItemObject.layer = LayerIndex.ui.intVal;
+            _itemPrefab = activeEffectItemObject;
         }
 
         public static ChaosActiveEffectItemController CreateEffectDisplayItem(Transform parent, ActiveEffectItemInfo effectItemInfo)
