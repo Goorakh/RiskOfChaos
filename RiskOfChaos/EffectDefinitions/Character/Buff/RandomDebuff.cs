@@ -26,6 +26,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         static uint configStackCount => ClampedConversion.UInt32(_stackableDebuffCount.Value);
 
         static readonly BuffIndexCollection _debuffBlacklist = new BuffIndexCollection([
+            "bdDisableAllSkills", // Nullref spam and not fun
+            "bdEliteBeadThorns", // Does nothing
             "bdEntangle", // Immobile
             "bdLunarSecondaryRoot", // Immobile
             "bdNullified", // Immobile

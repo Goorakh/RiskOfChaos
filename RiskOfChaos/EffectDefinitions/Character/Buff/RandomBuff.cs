@@ -40,10 +40,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             {
                 ILCursor c = new ILCursor(il);
 
-                bool tryPatchOnDeathSpawn(Type buffDeclaringType, string buffFieldName, string spawnedBodyName)
+                bool tryPatchOnDeathSpawn(ILCursor c, Type buffDeclaringType, string buffFieldName, string spawnedBodyName)
                 {
-                    c.Index = 0;
-
                     ILLabel afterSpawnLabel = null;
                     int victimBodyLocalIndex = -1;
 
@@ -71,17 +69,17 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                     }
                 }
 
-                if (!tryPatchOnDeathSpawn(typeof(RoR2Content.Buffs), nameof(RoR2Content.Buffs.AffixPoison), "UrchinTurretBody"))
+                if (!tryPatchOnDeathSpawn(new ILCursor(il), typeof(RoR2Content.Buffs), nameof(RoR2Content.Buffs.AffixPoison), "UrchinTurretBody"))
                 {
                     Log.Warning("Failed to find malachite urchin patch location");
                 }
 
-                if (!tryPatchOnDeathSpawn(typeof(DLC1Content.Buffs), nameof(DLC1Content.Buffs.EliteEarth), "AffixEarthHealerBody"))
+                if (!tryPatchOnDeathSpawn(new ILCursor(il), typeof(DLC1Content.Buffs), nameof(DLC1Content.Buffs.EliteEarth), "AffixEarthHealerBody"))
                 {
                     Log.Warning("Failed to find healing core patch location");
                 }
 
-                if (!tryPatchOnDeathSpawn(typeof(DLC1Content.Buffs), nameof(DLC1Content.Buffs.EliteVoid), "VoidInfestorBody"))
+                if (!tryPatchOnDeathSpawn(new ILCursor(il), typeof(DLC1Content.Buffs), nameof(DLC1Content.Buffs.EliteVoid), "VoidInfestorBody"))
                 {
                     Log.Warning("Failed to find void infestor patch location");
                 }
@@ -91,32 +89,47 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         }
 
         static readonly BuffIndexCollection _buffBlacklist = new BuffIndexCollection([
+            "bdAurelioniteBlessing", // Nullref spam
             "bdBearVoidReady", // Invincibility
             "bdBodyArmor", // Invincibility
+            "bdBoostAllStatsBuff", // Doesn't work without the item
+            "bdBoosted", // Does nothing unless you are Chef
+            "bdChakraBuff", // Does nothing unless you are Seeker
             "bdCloak", // Invisibility not fun
             "bdCrocoRegen", // Too much regen
             "bdElementalRingsReady", // Doesn't work without the item
             "bdElementalRingVoidReady", // Doesn't work without the item
             "bdEliteSecretSpeed", // Does nothing
             "bdEliteHauntedRecipient", // Invisibility not fun
+            "bdExtraLifeBuff", // Basically invincibility
+            "bdExtraStatsOnLevelUpBuff", // Doesn't work without the item
             "bdGoldEmpowered", // Invincibility
             "bdHiddenInvincibility", // Invincibility
             "bdImmune", // Invincibility
             "bdImmuneToDebuffReady", // Does nothing without the item
+            "bdIncreasePrimaryDamageBuff", // Doesn't work without the item
             "bdIntangible", // Invincibility
+            "bdKnockDownHitEnemies", // Does nothing
             "bdLaserTurbineKillCharge", // Doesn't work without the item
             "bdLightningShield", // Does nothing
             "bdLoaderOvercharged", // Does nothing unless you are Loader
+            "bdLowerHealthHigherDamageBuff", // Doesn't work without the item
             "bdMedkitHeal", // Doesn't do anything if constantly applied
             "bdMushroomVoidActive", // Does nothing without the item
             "bdOutOfCombatArmorBuff", // Does nothing without the item
             "bdPrimarySkillShurikenBuff", // Does nothing without the item
+            "bdStunAndPierceBuff", // Does nothing
             "bdTeslaField", // Doesn't work without the item
             "bdVoidFogMild", // Does nothing
             "bdVoidFogStrong", // Does nothing
             "bdVoidRaidCrabWardWipeFog", // Does nothing
             "bdVoidSurvivorCorruptMode", // Does nothing
             "bdWhipBoost", // Doesn't work without the item
+
+            // Patchable
+            "bdDelayedDamageBuff", // Removed if item is missing, otherwise works
+            "bdIncreaseDamageBuff", // Removed if multikill missing, otherwise works
+            "bdTeleportOnLowHealth", // Only triggers if item is present
 
             #region MysticsItems compat
             "MysticsItems_BuffInTPRange", // Doesn't work without item
@@ -125,7 +138,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             "MysticsItems_MechanicalArmCharge", // Does nothing
             "MysticsItems_NanomachineArmor", // Doesn't work without item
             "MysticsItems_StarPickup", // Doesn't work without item
-
             #endregion
 
             #region TsunamiItemsRevived compat
