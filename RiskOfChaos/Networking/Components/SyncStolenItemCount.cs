@@ -135,10 +135,7 @@ namespace RiskOfChaos.Networking.Components
 
             public override readonly int GetHashCode()
             {
-                int hashCode = 1658819947;
-                hashCode = (hashCode * -1521134295) + VictimObject.GetHashCode();
-                hashCode = (hashCode * -1521134295) + StolenItemCount.GetHashCode();
-                return hashCode;
+                return HashCode.Combine(VictimObject, StolenItemCount);
             }
 
             public static bool operator ==(InventoryInfo left, InventoryInfo right)

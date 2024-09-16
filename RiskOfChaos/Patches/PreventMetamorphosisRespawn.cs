@@ -37,8 +37,7 @@ namespace RiskOfChaos.Patches
 
             ILLabel afterIfLbl = null;
 
-            ILCursor[] foundCursors;
-            if (c.TryFindNext(out foundCursors,
+            if (c.TryFindNext(out ILCursor[] foundCursors,
                               x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertyGetter(typeof(RoR2Content.Artifacts), nameof(RoR2Content.Artifacts.randomSurvivorOnRespawnArtifactDef))),
                               x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<RunArtifactManager>(_ => _.IsArtifactEnabled(default(ArtifactDef)))),
                               x => x.MatchBrfalse(out afterIfLbl)))

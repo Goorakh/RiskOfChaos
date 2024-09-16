@@ -16,8 +16,7 @@ namespace RiskOfChaos.Patches
             {
                 ILCursor c = new ILCursor(il);
 
-                ILCursor[] foundCursors;
-                if (c.TryFindNext(out foundCursors,
+                if (c.TryFindNext(out ILCursor[] foundCursors,
                                   x => x.MatchLdarg(0),
                                   x => x.MatchCall(AccessTools.DeclaredPropertyGetter(typeof(CharacterMotor), nameof(CharacterMotor.useGravity))),
                                   x => x.MatchBrfalse(out _)))

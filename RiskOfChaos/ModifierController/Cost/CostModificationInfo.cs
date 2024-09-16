@@ -61,12 +61,7 @@ namespace RiskOfChaos.ModifierController.Cost
 
         public override readonly int GetHashCode()
         {
-            int hashCode = 1229816820;
-            hashCode = (hashCode * -1521134295) + EqualityComparer<ICostProvider>.Default.GetHashCode(OriginalCostProvider);
-            hashCode = (hashCode * -1521134295) + CostType.GetHashCode();
-            hashCode = (hashCode * -1521134295) + CostMultiplier.GetHashCode();
-            hashCode = (hashCode * -1521134295) + AllowZeroCostResultOverride.GetHashCode();
-            return hashCode;
+            return HashCode.Combine(OriginalCostProvider, CostType, CostMultiplier, AllowZeroCostResultOverride);
         }
 
         public static bool operator ==(in CostModificationInfo left, in CostModificationInfo right)

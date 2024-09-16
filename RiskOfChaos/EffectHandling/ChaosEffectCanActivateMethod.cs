@@ -49,6 +49,7 @@ namespace RiskOfChaos.EffectHandling
                         {
                             Log.Error($"Invalid parameter type {methodParameters[0].ParameterType.FullName} in {_methodDescription}");
                         }
+
                         break;
                     default:
                         Log.Error($"Invalid parameter count for method {_methodDescription}: {methodParameters.Length}");

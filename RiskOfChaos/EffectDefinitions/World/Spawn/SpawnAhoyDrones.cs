@@ -97,24 +97,25 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             {
                 summonerBodyObject = ownerBody.gameObject,
                 teamIndexOverride = ownerBody.teamComponent.teamIndex,
-                ignoreTeamMemberLimit = true
-            };
-
-            spawnRequest.onSpawnedServer = result =>
-            {
-                if (!result.success || !result.spawnedInstance)
-                    return;
-
-                if (result.spawnedInstance.TryGetComponent(out Inventory inventory))
-                {
-                    if (inventory.GetEquipmentIndex() == EquipmentIndex.None)
-                    {
-                        inventory.SetEquipmentIndex(DLC1Content.Equipment.BossHunterConsumed.equipmentIndex);
-                    }
-                }
+                ignoreTeamMemberLimit = true,
+                onSpawnedServer = onDroneSpawnedServer
             };
 
             DirectorCore.instance.TrySpawnObject(spawnRequest);
+        }
+
+        static void onDroneSpawnedServer(SpawnCard.SpawnResult result)
+        {
+            if (!result.success || !result.spawnedInstance)
+                return;
+
+            if (result.spawnedInstance.TryGetComponent(out Inventory inventory))
+            {
+                if (inventory.GetEquipmentIndex() == EquipmentIndex.None)
+                {
+                    inventory.SetEquipmentIndex(DLC1Content.Equipment.BossHunterConsumed.equipmentIndex);
+                }
+            }
         }
     }
 }

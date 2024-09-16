@@ -14,3 +14,9 @@ dotnet_diagnostic.IDE0051.severity = silent
 
 # IDE0045: Convert to conditional expression
 dotnet_style_prefer_conditional_expression_over_assignment = false
+
+# IDE0290: Use primary constructor
+csharp_style_prefer_primary_constructors = false
+
+# IDE0066: Convert switch statement to expression
+csharp_style_prefer_switch_expression = false

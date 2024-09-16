@@ -6,7 +6,6 @@ using RiskOfChaos.ModifierController.SkillSlots;
 using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.CharacterAI;
-using System;
 using System.Linq;
 using UnityEngine;
 
@@ -71,8 +70,7 @@ namespace RiskOfChaos.Patches
         {
             ILCursor c = new ILCursor(il);
 
-            ILCursor[] foundCursors;
-            while (c.TryFindNext(out foundCursors,
+            while (c.TryFindNext(out ILCursor[] foundCursors,
                                  x => x.MatchLdflda(out FieldReference field) && field.DeclaringType.Is(typeof(InputBankTest)) && field.Name.StartsWith("skill"),
                                  x => x.MatchCallOrCallvirt<InputBankTest.ButtonState>(nameof(InputBankTest.ButtonState.PushState))))
             {

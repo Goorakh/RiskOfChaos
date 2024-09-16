@@ -2,7 +2,6 @@
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RoR2;
-using System;
 using UnityEngine;
 
 namespace RiskOfChaos.Patches
@@ -19,8 +18,7 @@ namespace RiskOfChaos.Patches
             {
                 ILCursor c = new ILCursor(il);
 
-                ILCursor[] foundCursors;
-                if (c.TryFindNext(out foundCursors,
+                if (c.TryFindNext(out ILCursor[] foundCursors,
                                   x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<Rewired.Player>(_ => _.GetAxis(default(int)))),
                                   x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<Rewired.Player>(_ => _.GetAxis(default(int)))),
                                   x => x.MatchCall(AccessTools.DeclaredConstructor(typeof(Vector2), [typeof(float), typeof(float)]))))
