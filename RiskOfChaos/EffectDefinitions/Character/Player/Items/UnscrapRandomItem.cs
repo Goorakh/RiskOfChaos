@@ -87,7 +87,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         static IEnumerable<ItemDef> getAllScrapItems(Inventory inventory)
         {
             if (!inventory)
-                return Enumerable.Empty<ItemDef>();
+                return [];
 
             return getAllScrapItems().Where(i => inventory.GetItemCount(i) > 0);
         }
@@ -134,7 +134,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     }
                 }
 
-                return Enumerable.Empty<UnscrapInfo>();
+                return [];
             }).ToArray();
 
             Util.ShuffleArray(_unscrapOrder, RNG.Branch());

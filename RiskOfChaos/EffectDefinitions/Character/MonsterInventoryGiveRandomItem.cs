@@ -66,13 +66,12 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 List<ItemTag> bannedItemTags = new List<ItemTag>(_dropTable.bannedItemTags);
                 if (_applyAIBlacklist.Value)
                 {
-                    bannedItemTags.AddRange(new ItemTag[]
-                    {
+                    bannedItemTags.AddRange([
                         ItemTag.AIBlacklist,
                         ItemTag.Scrap,
                         ItemTag.CannotCopy,
                         ItemTag.PriorityScrap
-                    });
+                    ]);
                 }
 
                 _dropTable.bannedItemTags = bannedItemTags.Distinct().ToArray();

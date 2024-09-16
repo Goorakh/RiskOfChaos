@@ -67,7 +67,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         static IEnumerable<ItemIndex> getAllCorruptableItems(Inventory inventory)
         {
             if (!inventory)
-                return Enumerable.Empty<ItemIndex>();
+                return [];
 
             return getAllCorruptableItems().Where(i => inventory.GetItemCount(i) > 0);
         }

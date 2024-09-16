@@ -133,7 +133,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         static IEnumerable<ItemIndex> getAllSuppressableItems()
         {
             if (!Run.instance || Run.instance.availableItems == null)
-                return Enumerable.Empty<ItemIndex>();
+                return [];
 
             return ItemCatalog.allItems.Where(i => getTransformedItemIndex(i) != ItemIndex.None && Run.instance.availableItems.Contains(i));
         }

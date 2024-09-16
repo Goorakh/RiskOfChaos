@@ -105,7 +105,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         static IEnumerable<ItemIndex> getAllScrappableItems(Inventory inventory)
         {
             if (!inventory)
-                return Enumerable.Empty<ItemIndex>();
+                return [];
 
             return getAllScrappableItems().Where(i => inventory.GetItemCount(i) > 0);
         }
