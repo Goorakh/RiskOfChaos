@@ -18,9 +18,7 @@ namespace RiskOfChaos.Utilities
 
         public static Loadout GetRandomLoadoutFor(BodyIndex bodyIndex, Xoroshiro128Plus rng, GeneratorFlags flags = GeneratorFlags.All)
         {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             Loadout.BodyLoadoutManager.BodyInfo bodyInfo = Loadout.BodyLoadoutManager.allBodyInfos[(int)bodyIndex];
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
             Loadout loadout = new Loadout();
 

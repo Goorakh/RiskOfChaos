@@ -169,9 +169,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         static void multiplyCredits(CombatDirector director, float multiplier)
         {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             CombatDirector.DirectorMoneyWave[] moneyWaves = director.moneyWaves;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
             if (moneyWaves == null || moneyWaves.Length <= 0)
                 return;

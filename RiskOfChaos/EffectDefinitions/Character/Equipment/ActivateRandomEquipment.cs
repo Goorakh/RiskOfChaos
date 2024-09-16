@@ -192,9 +192,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
                 bool equipmentSuccessfullyPerformed;
                 try
                 {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                     equipmentSuccessfullyPerformed = equipmentSlot.PerformEquipmentAction(equipment);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
                 }
                 catch (Exception ex)
                 {

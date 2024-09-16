@@ -90,9 +90,7 @@ namespace RiskOfChaos
         {
             // Enabling/Disabling an artifact doesn't refresh the info panel, so Artifact of Kin doesn't display properly if it's enabled or disabled mid-run
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             EnemyInfoPanel.MarkDirty();
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
         }
 
         static void onSacrificeEnabled()
@@ -136,10 +134,8 @@ namespace RiskOfChaos
 
             foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
             {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 // Give equipment if missing
                 EnigmaArtifactManager.OnPlayerCharacterBodyStartServer(playerBody);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
             }
         }
 

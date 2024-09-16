@@ -40,9 +40,7 @@ namespace RiskOfChaos.Components
                         return;
                     }
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                     _body.SetBuffCount(BuffIndex, newBuffCount);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
                     onAppliedBuffStacksChanged();
                 }
@@ -80,9 +78,7 @@ namespace RiskOfChaos.Components
             int currentBuffCount = _body.GetBuffCount(BuffIndex);
             if (currentBuffCount < BuffStackCount)
             {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 _body.SetBuffCount(BuffIndex, ClampedConversion.Int32(BuffStackCount));
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
                 onAppliedBuffStacksChanged();
             }
@@ -93,9 +89,7 @@ namespace RiskOfChaos.Components
             // Refresh some of the elite buffs
             if (_body.inventory)
             {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 _body.inventory.HandleInventoryChanged();
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
             }
             else
             {

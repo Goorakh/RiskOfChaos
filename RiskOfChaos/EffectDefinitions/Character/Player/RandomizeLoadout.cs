@@ -98,9 +98,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
         {
             NetworkUser networkUser = master && master.playerCharacterMasterController ? master.playerCharacterMasterController.networkUser : null;
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             Loadout.BodyLoadoutManager.BodyInfo bodyInfo = Loadout.BodyLoadoutManager.allBodyInfos[(int)bodyIndex];
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
             uint[] currentSkillVariants = new uint[bodyInfo.skillSlotCount];
             for (int i = 0; i < currentSkillVariants.Length; i++)

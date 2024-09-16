@@ -41,9 +41,7 @@ namespace RiskOfChaos.Utilities.BodySnapshots
 
                 if (!snapshot.OutOfDanger)
                 {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                     body.outOfDangerStopwatch = 0f;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
                 }
             }
 

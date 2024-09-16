@@ -31,14 +31,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 static void Transpiler(ILContext il)
                 {
                     ILCursor c = new ILCursor(il);
-
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                    const string CLOVER_VOID_RNG_FIELD_NAME = nameof(CharacterMaster.cloverVoidRng);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-
+                    
                     while (c.TryGotoNext(MoveType.After,
                                          x => x.MatchLdarg(0),
-                                         x => x.MatchLdfld<CharacterMaster>(CLOVER_VOID_RNG_FIELD_NAME)))
+                                         x => x.MatchLdfld<CharacterMaster>(nameof(CharacterMaster.cloverVoidRng))))
                     {
                         // Removing instructions causes issues with labels, so just pop the value instead
                         c.Emit(OpCodes.Pop);

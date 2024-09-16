@@ -85,9 +85,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                 int equipmentSlotCount = _inventory.GetEquipmentSlotCount();
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 const int MIN_CAPACITY = WeightedSelection<PickupInfo>.minCapacity;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
                 WeightedSelection<PickupInfo> droppableItemSelection = new WeightedSelection<PickupInfo>(Math.Max(MIN_CAPACITY, _inventory.itemAcquisitionOrder.Count + equipmentSlotCount));
 

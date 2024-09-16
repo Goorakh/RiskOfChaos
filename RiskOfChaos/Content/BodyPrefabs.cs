@@ -45,9 +45,7 @@ namespace RiskOfChaos.Content
                     GameObject model = new GameObject("EmptyModel");
                     model.transform.SetParent(modelBase, false);
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                     modelLocator._modelTransform = model.transform;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
                 }
 
                 CharacterBody body = ChaosFakeInteractorBodyPrefab.GetComponent<CharacterBody>();
@@ -61,9 +59,7 @@ namespace RiskOfChaos.Content
                 entityStateMachine.mainStateType = new SerializableEntityStateType(typeof(Idle));
 
                 TeamComponent teamComponent = ChaosFakeInteractorBodyPrefab.GetComponent<TeamComponent>();
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 teamComponent._teamIndex = TeamIndex.None;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
                 ChaosFakeInteractorBodyPrefab.AddComponent<Interactor>();
                 ChaosFakeInteractorBodyPrefab.AddComponent<SetDontDestroyOnLoad>();

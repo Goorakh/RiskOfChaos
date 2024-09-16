@@ -12,10 +12,8 @@ namespace RiskOfChaos.ChatMessages
         {
             foreach (Type type in Assembly.GetExecutingAssembly().GetTypes().Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(ChatMessageBase))))
             {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 ChatMessageBase.chatMessageTypeToIndex.Add(type, (byte)ChatMessageBase.chatMessageIndexToType.Count);
                 ChatMessageBase.chatMessageIndexToType.Add(type);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
             }
         }
     }

@@ -161,18 +161,14 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
             {
                 dropTable = rouletteChestController.dropTable;
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 RouletteChestController.Entry[] entries = rouletteChestController.entries;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
                 if (entries != null && entries.Length > 0)
                 {
                     rolledPickups = Array.ConvertAll(entries, e => e.pickupIndex);
                 }
                 else if (dropTable)
                 {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                     Xoroshiro128Plus lootRNG = new Xoroshiro128Plus(0) { state0 = rouletteChestController.rng.state0, state1 = rouletteChestController.rng.state1 };
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
                     rolledPickups = new PickupIndex[rouletteChestController.maxEntries];
 
@@ -218,14 +214,12 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
             }
             else if (interactableObject.TryGetComponent(out OptionChestBehavior optionChestBehavior))
             {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 dropTable = optionChestBehavior.dropTable;
 
                 if (optionChestBehavior.generatedDrops != null)
                 {
                     rolledPickups = optionChestBehavior.generatedDrops;
                 }
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
             }
             else
             {

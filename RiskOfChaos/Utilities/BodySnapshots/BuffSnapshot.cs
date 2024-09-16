@@ -11,9 +11,7 @@ namespace RiskOfChaos.Utilities.BodySnapshots
 
         public readonly void ApplyTo(CharacterBody body)
         {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             body.SetBuffCount(BuffIndex, StackCount);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
         }
     }
 }

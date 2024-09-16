@@ -145,9 +145,7 @@ namespace RiskOfChaos.UI.NextEffectDisplay
             if (!notificationController)
                 return false;
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             return notificationController.currentNotification;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
         }
 
         void FixedUpdate()

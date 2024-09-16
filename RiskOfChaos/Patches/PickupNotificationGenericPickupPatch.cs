@@ -15,9 +15,7 @@ namespace RiskOfChaos.Patches
         {
             orig(self, notificationInfo);
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             GenericNotification notification = self.currentNotification;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
             if (!notification || notificationInfo is null)
                 return;

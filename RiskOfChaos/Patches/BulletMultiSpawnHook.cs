@@ -1,7 +1,5 @@
-﻿using MonoMod.Cil;
-using RiskOfChaos.ModifierController.Projectile;
+﻿using RiskOfChaos.ModifierController.Projectile;
 using RoR2;
-using RoR2.Projectile;
 using System.Collections;
 using UnityEngine;
 
@@ -47,9 +45,7 @@ namespace RiskOfChaos.Patches
                     _isFiringRepeat = true;
                     try
                     {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                         self.FireSingle(normal, muzzleIndex);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
                     }
                     finally
                     {

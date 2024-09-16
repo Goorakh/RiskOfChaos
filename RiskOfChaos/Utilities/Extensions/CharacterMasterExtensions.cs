@@ -77,7 +77,7 @@ namespace RiskOfChaos.Utilities.Extensions
                 new ConditionalBodySnapshot(HealthSnapshot.FromBody(body), CharacterRespawnFlags.KeepHealth),
             ];
 
-            body = master.Respawn(body.footPosition, body.GetRotation());
+            body = master.Respawn(body.footPosition, body.transform.rotation);
 
             if ((flags & CharacterRespawnFlags.SkipIntroState) != 0)
             {

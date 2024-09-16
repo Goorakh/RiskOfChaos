@@ -33,11 +33,9 @@ namespace RiskOfChaos.Trackers
 
         public static NotificationUIController GetNotificationUIControllerForHUD(HUD hud)
         {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             return InstanceTracker.GetInstancesList<NotificationUIControllerTracker>()
                                   .Select(t => t.NotificationUIController)
                                   .FirstOrDefault(c => c.hud == hud);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
         }
     }
 }

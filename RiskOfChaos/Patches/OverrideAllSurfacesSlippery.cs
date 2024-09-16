@@ -48,10 +48,8 @@ namespace RiskOfChaos.Patches
 
             if (IsActive)
             {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 // For some reason this is how ice gets slippery???
                 self.isAirControlForced = true;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
             }
         }
     }

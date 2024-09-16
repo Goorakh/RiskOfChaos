@@ -144,11 +144,7 @@ namespace RiskOfChaos.Utilities
         {
             if (!allowDirectorUnavailableElites)
             {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                CombatDirector.EliteTierDef[] eliteTiers = CombatDirector.eliteTiers;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-
-                CombatDirector.EliteTierDef[] availableEliteTiers = eliteTiers.Where(e => e.eliteTypes.All(ed => ed) && e.CanSelect(SpawnCard.EliteRules.Default)).ToArray();
+                CombatDirector.EliteTierDef[] availableEliteTiers = CombatDirector.eliteTiers.Where(e => e.eliteTypes.All(ed => ed) && e.CanSelect(SpawnCard.EliteRules.Default)).ToArray();
                 if (availableEliteTiers.Length > 0)
                 {
                     return availableEliteTiers.SelectMany(t => t.eliteTypes).Distinct().Select(e => e.eliteIndex).ToArray();

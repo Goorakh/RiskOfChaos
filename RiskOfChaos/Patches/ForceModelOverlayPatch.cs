@@ -1,9 +1,6 @@
 ﻿using RiskOfChaos.Components;
 using RoR2;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace RiskOfChaos.Patches
@@ -22,12 +19,10 @@ namespace RiskOfChaos.Patches
 
             foreach (Material overlayMaterial in self.GetComponents<ForceModelOverlay>().Select(f => f.Overlay).Distinct())
             {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 if (self.activeOverlayCount >= CharacterModel.maxOverlays)
                     break;
 
                 self.currentOverlays[self.activeOverlayCount++] = overlayMaterial;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
             }
         }
     }

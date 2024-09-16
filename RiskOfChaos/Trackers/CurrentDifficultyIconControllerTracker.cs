@@ -40,10 +40,8 @@ namespace RiskOfChaos.Trackers
 
         void OnRunDifficultyChanged()
         {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             // Refreshes the icon based on the current difficulty
             IconController.Start();
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
         }
     }
 }

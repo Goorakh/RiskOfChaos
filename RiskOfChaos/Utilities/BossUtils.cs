@@ -27,10 +27,8 @@ namespace RiskOfChaos.Utilities
 
         public static void RefreshBossTitle(BossGroup bossGroup)
         {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             bossGroup.bestObservedName = string.Empty;
             bossGroup.bestObservedSubtitle = string.Empty;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
         }
     }
 }

@@ -64,9 +64,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                             EquipmentState equipmentState = inventory.GetEquipment(i);
                             if (equipmentState.equipmentIndex != EquipmentIndex.None)
                             {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                                 float equipmentCooldown = equipmentState.equipmentDef.cooldown * inventory.CalculateEquipmentCooldownScale();
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
                                 inventory.SetEquipment(new EquipmentState(equipmentState.equipmentIndex, Run.FixedTimeStamp.now + equipmentCooldown, 0), i);
                             }

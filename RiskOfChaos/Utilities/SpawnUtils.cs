@@ -69,11 +69,7 @@ namespace RiskOfChaos.Utilities
 
                                     if (!closestValidNodeIndex.HasValue || sqrDistance < closestNodeSqrDistance)
                                     {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                                        bool positionFree = self.CheckPositionFree(nodeGraph, nodeIndex, spawnCard);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-
-                                        if (positionFree)
+                                        if (self.CheckPositionFree(nodeGraph, nodeIndex, spawnCard))
                                         {
                                             closestValidNodeIndex = nodeIndex;
                                             closestNodeSqrDistance = sqrDistance;
@@ -437,10 +433,7 @@ namespace RiskOfChaos.Utilities
                     DirectorCore directorCore = DirectorCore.instance;
                     if (directorCore)
                     {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                        DirectorCore.NodeReference[] occupiedNodes = directorCore.occupiedNodes;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-                        if (Array.IndexOf(occupiedNodes, new DirectorCore.NodeReference(node.NodeGraph, node.NodeIndex)) >= 0)
+                        if (Array.IndexOf(directorCore.occupiedNodes, new DirectorCore.NodeReference(node.NodeGraph, node.NodeIndex)) >= 0)
                         {
                             continue;
                         }

@@ -23,10 +23,8 @@ namespace RiskOfChaos.SaveHandling.DataContainers
             }
             else
             {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 state0 = rng.state0;
                 state1 = rng.state1;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
             }
         }
 

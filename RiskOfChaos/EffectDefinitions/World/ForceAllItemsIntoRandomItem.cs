@@ -300,9 +300,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                     continue;
                 }
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 bool originalHasBeenPurchased = shopTerminalBehavior.hasBeenPurchased;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
                 shopTerminalBehavior.SetHasBeenPurchased(false);
                 shopTerminalBehavior.GenerateNewPickupServer();

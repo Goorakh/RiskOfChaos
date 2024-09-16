@@ -66,9 +66,7 @@ namespace RiskOfChaos.Content.Logbook
                 statSheet.SetStatValueFromString(ElderLemurianStats.KilledStat, ZERO_STRING);
             }
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             List<string> viewedViewables = userProfile.viewedViewables;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
             viewedViewables.Remove("/Logbook/LOGBOOK_CATEGORY_MONSTER/INVINCIBLE_LEMURIAN_BODY_NAME");
             viewedViewables.Remove("/Logbook/LOGBOOK_CATEGORY_MONSTER/INVINCIBLE_LEMURIAN_ELDER_BODY_NAME");
@@ -213,9 +211,7 @@ namespace RiskOfChaos.Content.Logbook
 
             static void addLeonardUserStats(PageBuilder builder, CharacterBody body, in LemurianStatCollection statCollection)
             {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 StatSheet statSheet = builder.statSheet;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
                 ulong timesEncountered = statSheet.GetStatValueULong(statCollection.EncounteredStat);
                 ulong timesKilledBy = statSheet.GetStatValueULong(statCollection.KilledByStat);

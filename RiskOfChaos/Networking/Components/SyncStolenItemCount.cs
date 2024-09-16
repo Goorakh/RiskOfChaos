@@ -41,12 +41,8 @@ namespace RiskOfChaos.Networking.Components
         [Server]
         void refreshInventories()
         {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-            ItemStealController.StolenInventoryInfo[] stolenInventoryInfos = _itemStealController.stolenInventoryInfos;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-
             List<InventoryInfo> previousInventoryInfos = _inventoryInfos.ToList();
-            List<InventoryInfo> newInventoryInfos = stolenInventoryInfos.Select(i => new InventoryInfo(i.victimInventory.gameObject, i.stolenItemCount)).ToList();
+            List<InventoryInfo> newInventoryInfos = _itemStealController.stolenInventoryInfos.Select(i => new InventoryInfo(i.victimInventory.gameObject, i.stolenItemCount)).ToList();
 
             for (int i = newInventoryInfos.Count - 1; i >= 0; i--)
             {

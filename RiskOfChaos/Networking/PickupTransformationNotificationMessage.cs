@@ -59,9 +59,7 @@ namespace RiskOfChaos.Networking
 
             CharacterMasterNotificationQueue.NotificationInfo notificationInfo = new CharacterMasterNotificationQueue.NotificationInfo(PickupCatalog.GetPickupDef(_toPickupIndex), transformationInfo);
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             notificationQueue.PushNotification(notificationInfo, 6f);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
         }
     }
 }

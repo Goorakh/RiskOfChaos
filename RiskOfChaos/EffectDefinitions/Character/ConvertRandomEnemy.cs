@@ -96,9 +96,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
             if (!_enemyToConvert)
                 return;
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             GameObject positionIndicator = _enemyToConvert.teamComponent.indicator;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+
             if (positionIndicator)
             {
 #if DEBUG
@@ -130,9 +129,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     {
                         if (combatSquad.ContainsMember(master))
                         {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                             combatSquad.RemoveMember(master);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
                         }
                     }
 

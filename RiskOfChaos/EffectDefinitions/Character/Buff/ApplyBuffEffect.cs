@@ -93,10 +93,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 
         protected static bool isDOT(BuffDef buff)
         {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-            DotController.DotDef[] dotDefs = DotController.dotDefs;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-            foreach (DotController.DotDef dotDef in dotDefs)
+            foreach (DotController.DotDef dotDef in DotController.dotDefs)
             {
                 if (dotDef == null)
                     continue;

@@ -107,10 +107,8 @@ namespace RiskOfChaos.EffectDefinitions.UI
                                 stateMachine.SetState(state);
                             }
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                             state.age = age - duration;
                             state.fixedAge = age - duration;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
                             return true;
                         }

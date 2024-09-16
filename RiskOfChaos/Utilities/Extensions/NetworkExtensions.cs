@@ -18,10 +18,8 @@ namespace RiskOfChaos.Utilities.Extensions
 
         public static void WriteRNG(this NetworkWriter writer, Xoroshiro128Plus rng)
         {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             writer.WritePackedUInt64(rng.state0);
             writer.WritePackedUInt64(rng.state1);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
         }
 
         public static Xoroshiro128Plus ReadRNG(this NetworkReader reader)

@@ -42,11 +42,7 @@ namespace RiskOfChaos.Patches
 
         static void PickupDropletController_OnCollisionEnter(On.RoR2.PickupDropletController.orig_OnCollisionEnter orig, PickupDropletController self, Collision collision)
         {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-            bool alive = self.alive;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-
-            if (alive && self.TryGetComponent(out ItemBounceTracker bounceTracker) && bounceTracker.TryBounce(collision))
+            if (self.alive && self.TryGetComponent(out ItemBounceTracker bounceTracker) && bounceTracker.TryBounce(collision))
             {
                 return;
             }

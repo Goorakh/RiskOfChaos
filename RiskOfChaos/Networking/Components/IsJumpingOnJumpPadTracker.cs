@@ -36,9 +36,7 @@ namespace RiskOfChaos.Networking.Components
             CmdSetIsJumping(false);
 
 #if DEBUG
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             Log.Debug($"{FormatUtils.GetBestBodyName(_motor.body)} has landed from jump pad");
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 #endif
         }
 

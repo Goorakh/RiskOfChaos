@@ -37,10 +37,8 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             if (interactableComponent.TryGetComponent(out ShopTerminalBehavior shopTerminalBehavior))
             {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 if (shopTerminalBehavior.hasBeenPurchased)
                     return false;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
             }
 
             return true;

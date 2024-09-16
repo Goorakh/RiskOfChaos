@@ -90,11 +90,7 @@ namespace RiskOfChaos.Patches
             {
                 new Hook(orbDurationSetter, (Action<Orb, float> orig, Orb self, float value) =>
                 {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                    float distanceToTarget = self.distanceToTarget;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-
-                    if (distanceToTarget > 0f)
+                    if (self.distanceToTarget > 0f)
                     {
                         tryMultiplyProjectileTravelTime(ref value, self);
                     }

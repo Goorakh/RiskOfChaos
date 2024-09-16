@@ -24,17 +24,13 @@ namespace RiskOfChaos.Utilities.Extensions
             if (stacks <= 0)
                 return;
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             List<DotController.DotStack> dotStackList = controller.dotStackList;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
             for (int i = dotStackList.Count - 1; i >= 0; i--)
             {
                 if (dotStackList[i].dotIndex == dotIndex)
                 {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                     controller.RemoveDotStackAtServer(i);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
                     if (--stacks <= 0)
                     {

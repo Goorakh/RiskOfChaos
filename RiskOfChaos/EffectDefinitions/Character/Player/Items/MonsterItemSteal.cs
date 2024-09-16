@@ -206,10 +206,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 ItemStealController = initializer.ItemStealController;
                 Master = initializer.Master;
                 NumSteps = 0;
-
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 VictimInventory = ItemStealController.stolenInventoryInfos.FirstOrDefault()?.victimInventory;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
                 if (VictimInventory)
                 {
@@ -241,16 +238,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 {
                     IEnumerator waitUntilAllOrbsArrivedThenSetNotStealing()
                     {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                         yield return new WaitWhile(() => ItemStealController && ItemStealController.stolenInventoryInfos.Any(i => i.hasOrbsInFlight));
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
                         if (!ItemStealController)
                             yield break;
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                         ItemStealController.inItemSteal = false;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
                     }
 
                     ItemStealController.StartCoroutine(waitUntilAllOrbsArrivedThenSetNotStealing());
@@ -299,19 +292,15 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                         {
                             _returnStolenItems = bodyObject.AddComponent<ReturnStolenItemsOnGettingHit>();
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                             _returnStolenItems.minPercentagePerItem = 0.01f;
                             _returnStolenItems.maxPercentagePerItem = 100f;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
                             _returnStolenItems.itemStealController = ItemStealController;
 
                             HealthComponent healthComponent = bodyObject.GetComponent<CharacterBody>().healthComponent;
                             _returnStolenItems.healthComponent = healthComponent;
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                             ArrayUtils.ArrayAppend(ref healthComponent.onTakeDamageReceivers, _returnStolenItems);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
                         }
                     }
 
@@ -331,9 +320,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                 // We want to control the stealing manually, this is probably the best way to do it?
                 itemStealController.stealInterval = float.PositiveInfinity;
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 itemStealController.stealTimer = float.PositiveInfinity;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
                 if (!_isStealing)
                 {

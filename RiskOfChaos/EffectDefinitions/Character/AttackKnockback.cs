@@ -102,17 +102,13 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 orig(self);
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 if (!self.isAuthority)
                     return;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
                 if (!TimedChaosEffectHandler.Instance || !TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
                     return;
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 CharacterBody body = self.characterBody;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
                 tryKnockbackBody(body, -self.laserDirection.normalized, EntityStates.GolemMonster.FireLaser.damageCoefficient * body.damage);
             };

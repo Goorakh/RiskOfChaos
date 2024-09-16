@@ -17,9 +17,7 @@ namespace RiskOfChaos.Components
 
                 if (self.GetComponent<ExcludeFromBodyInstancesList>())
                 {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                     CharacterBody.instancesList.Remove(self);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
                 }
             };
         }

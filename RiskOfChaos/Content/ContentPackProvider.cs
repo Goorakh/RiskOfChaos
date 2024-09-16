@@ -30,9 +30,7 @@ namespace RiskOfChaos.Content
 
         public IEnumerator LoadStaticContentAsync(LoadStaticContentAsyncArgs args)
         {
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             _contentPack.identifier = identifier;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
             Items.AddItemDefsTo(_contentPack.itemDefs);
             Buffs.AddBuffDefsTo(_contentPack.buffDefs);

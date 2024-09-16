@@ -11,6 +11,8 @@ using UnityEngine;
 
 namespace RiskOfChaos.Patches
 {
+    // TODO: Fix this? Class was changed quite significantly in SotS. But maybe don't bother, it's not very important.
+    /*
     static class ScreenBlurEffectApplier
     {
         [SystemInitializer]
@@ -70,4 +72,5 @@ namespace RiskOfChaos.Patches
             }
         }
     }
+    */
 }

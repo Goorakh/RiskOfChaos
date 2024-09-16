@@ -27,12 +27,10 @@ namespace RiskOfChaos.Content
                 InvincibleLemurianMarker = ScriptableObject.CreateInstance<ItemDef>();
                 InvincibleLemurianMarker.name = nameof(InvincibleLemurianMarker);
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
 #pragma warning disable CS0618 // Type or member is obsolete
                 // Setting the tier property here will not work because the ItemTierCatalog is not yet initialized
                 InvincibleLemurianMarker.deprecatedTier = ItemTier.NoTier;
 #pragma warning restore CS0618 // Type or member is obsolete
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
                 InvincibleLemurianMarker.hidden = true;
                 InvincibleLemurianMarker.canRemove = false;
@@ -185,12 +183,10 @@ namespace RiskOfChaos.Content
                 MinAllyRegen = ScriptableObject.CreateInstance<ItemDef>();
                 MinAllyRegen.name = nameof(MinAllyRegen);
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
 #pragma warning disable CS0618 // Type or member is obsolete
                 // Setting the tier property here will not work because the ItemTierCatalog is not yet initialized
                 MinAllyRegen.deprecatedTier = ItemTier.NoTier;
 #pragma warning restore CS0618 // Type or member is obsolete
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
                 MinAllyRegen.hidden = true;
                 MinAllyRegen.canRemove = false;

@@ -3,7 +3,6 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.ExpansionManagement;
-using System;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -79,9 +78,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 includedIfNoConditionsMet = []
             };
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             _allFamilyEventsPool.poolCategories = [ category ];
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
         }
 
         static bool _appliedPatches = false;
@@ -104,9 +101,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         static bool CanActivate()
         {
             ClassicStageInfo stageInfo = ClassicStageInfo.instance;
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             return stageInfo && stageInfo.modifiableMonsterCategories is not FamilyDirectorCardCategorySelection;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
         }
 
         public override void OnStart()
@@ -115,21 +110,15 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             ClassicStageInfo stageInfo = ClassicStageInfo.instance;
 
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-            ref DccsPool monsterDccsPool = ref stageInfo.monsterDccsPool;
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+            DccsPool originalDccsPool = stageInfo.monsterDccsPool;
 
-            DccsPool originalDccsPool = monsterDccsPool;
-
-            monsterDccsPool = _allFamilyEventsPool;
+            stageInfo.monsterDccsPool = _allFamilyEventsPool;
 
             _forceAllFamilyEventsAvailable = true;
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             stageInfo.RebuildCards();
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
             _forceAllFamilyEventsAvailable = false;
 
-            monsterDccsPool = originalDccsPool;
+            stageInfo.monsterDccsPool = originalDccsPool;
         }
     }
 }
