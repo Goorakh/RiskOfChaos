@@ -145,7 +145,7 @@ Currently features 141 different effects.
 * Always Sprinting: Forces all characters to constantly sprint, lasts 60 seconds
 * Repeating Projectiles: All projectiles spawn an additional 5 copies after a delay, lasts 90 seconds
 * Swap Health & Shield: Swaps health and shield values for all characters, lasts 60 seconds
-* Cleanse Random Item: Turns a random item (lunars prioritized) or lunar equipment from every player into a random pearl
+* Cleanse Random Item: Turns a random item or equipment (lunars prioritized) from every player into a random pearl
 * Splitscreen: Splits the screen into 9 copies of the game view, lasts 90 seconds
 * Distant Camera: Moves the camera further away from the player, lasts 90 seconds
 * Unlimited Proc Chains: Disables proc chain restrictions, lasts 60 seconds

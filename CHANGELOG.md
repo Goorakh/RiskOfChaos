@@ -30,6 +30,7 @@
 
 * Cleanse Random Item:
   * Default weight: 0.7 -> 0.5
+  * Non-lunar equipments can now be cleansed
 
 * Fixed missing icon for Risk of Options Effects config
 

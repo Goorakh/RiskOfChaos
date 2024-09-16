@@ -60,22 +60,26 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         {
             foreach (PickupDef pickup in PickupCatalog.allPickups)
             {
+                bool isValidForCleanse = false;
                 if (pickup.itemIndex != ItemIndex.None)
                 {
                     ItemDef itemDef = ItemCatalog.GetItemDef(pickup.itemIndex);
-                    if (!itemDef || itemDef.hidden || !itemDef.canRemove)
-                        continue;
+                    if (itemDef && !itemDef.hidden && itemDef.canRemove)
+                    {
+                        isValidForCleanse = true;
+                    }
                 }
                 else if (pickup.equipmentIndex != EquipmentIndex.None)
                 {
                     EquipmentDef equipmentDef = EquipmentCatalog.GetEquipmentDef(pickup.equipmentIndex);
-                    if (!equipmentDef || !equipmentDef.isLunar)
-                        continue;
+                    if (equipmentDef)
+                    {
+                        isValidForCleanse = true;
+                    }
                 }
-                else
-                {
+
+                if (!isValidForCleanse)
                     continue;
-                }
 
                 if (_itemBlacklist.Contains(pickup.pickupIndex))
                 {
