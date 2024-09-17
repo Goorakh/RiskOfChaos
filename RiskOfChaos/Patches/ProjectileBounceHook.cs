@@ -106,9 +106,9 @@ namespace RiskOfChaos.Patches
             Vector3 _lastAngularVelocity;
             Rigidbody _rigidbody;
 
-            bool _bouncedLastCollision;
+            bool _physicMaterialOverrideActive;
 
-            readonly List<OriginalColliderMaterialPair> _originalMaterials = [];
+            OriginalColliderMaterialPair[] _originalMaterials = [];
 
             void Awake()
             {
@@ -121,14 +121,19 @@ namespace RiskOfChaos.Patches
                 _projectileGrappleController = GetComponent<ProjectileGrappleController>();
                 _projectileStateMachine = GetComponent<EntityStateMachine>();
 
-                foreach (Collider collider in GetComponentsInChildren<Collider>(true))
+                Collider[] colliders = GetComponentsInChildren<Collider>(true);
+                List<OriginalColliderMaterialPair> originalMaterials = new List<OriginalColliderMaterialPair>(colliders.Length);
+                foreach (Collider collider in colliders)
                 {
                     if (collider.isTrigger)
                         continue;
 
-                    _originalMaterials.Add(new OriginalColliderMaterialPair(collider, collider.sharedMaterial));
+                    originalMaterials.Add(new OriginalColliderMaterialPair(collider, collider.sharedMaterial));
                     collider.sharedMaterial = _bouncyMaterial;
                 }
+
+                _originalMaterials = originalMaterials.ToArray();
+                _physicMaterialOverrideActive = true;
             }
 
             void FixedUpdate()
@@ -168,7 +173,7 @@ namespace RiskOfChaos.Patches
                 {
                     _bouncesRemaining = 0;
 
-                    if (_bouncedLastCollision)
+                    if (_physicMaterialOverrideActive)
                     {
                         foreach (OriginalColliderMaterialPair originalMaterialPair in _originalMaterials)
                         {
@@ -177,9 +182,10 @@ namespace RiskOfChaos.Patches
                                 originalMaterialPair.Collider.sharedMaterial = originalMaterialPair.Material;
                             }
                         }
+
+                        _physicMaterialOverrideActive = false;
                     }
 
-                    _bouncedLastCollision = false;
                     return false;
                 }
 
@@ -205,7 +211,6 @@ namespace RiskOfChaos.Patches
                 }
 
                 _bouncesRemaining--;
-                _bouncedLastCollision = true;
 
                 return true;
             }
