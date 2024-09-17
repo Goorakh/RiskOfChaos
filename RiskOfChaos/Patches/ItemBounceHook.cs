@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.ModifierController.Pickups;
 using RoR2;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -42,85 +43,73 @@ namespace RiskOfChaos.Patches
 
         static void PickupDropletController_OnCollisionEnter(On.RoR2.PickupDropletController.orig_OnCollisionEnter orig, PickupDropletController self, Collision collision)
         {
-            if (self.alive && self.TryGetComponent(out ItemBounceTracker bounceTracker) && bounceTracker.TryBounce(collision))
-            {
+            if (self.alive && self.TryGetComponent(out ItemBounceTracker bounceTracker) && bounceTracker.TryBounce())
                 return;
-            }
 
             orig(self, collision);
         }
 
         class ItemBounceTracker : MonoBehaviour
         {
-            static readonly float _bounceVelocityMultiplier = 1f;
+            static readonly PhysicMaterial _bouncyMaterial = new PhysicMaterial("PickupBounce")
+            {
+                bounciness = 1f,
+                bounceCombine = PhysicMaterialCombine.Maximum,
+                staticFriction = 0f,
+                dynamicFriction = 0f,
+                frictionCombine = PhysicMaterialCombine.Minimum
+            };
+
+            readonly record struct OriginalColliderMaterialPair(Collider Collider, PhysicMaterial Material);
 
             public uint BouncesRemaining;
 
-            float _timeSinceLastBounce;
+            bool _physicMaterialOverrideActive;
 
-            Vector3 _lastNonZeroVelocity;
-            Rigidbody _rigidbody;
+            OriginalColliderMaterialPair[] _originalMaterials = [];
 
             void Awake()
             {
-                _rigidbody = GetComponent<Rigidbody>();
+                Collider[] colliders = GetComponentsInChildren<Collider>(true);
+                List<OriginalColliderMaterialPair> originalMaterials = new List<OriginalColliderMaterialPair>(colliders.Length);
+                foreach (Collider collider in colliders)
+                {
+                    if (collider.isTrigger)
+                        continue;
+
+                    originalMaterials.Add(new OriginalColliderMaterialPair(collider, collider.sharedMaterial));
+                    collider.sharedMaterial = _bouncyMaterial;
+                }
+
+                _originalMaterials = originalMaterials.ToArray();
+                _physicMaterialOverrideActive = true;
             }
 
-            void FixedUpdate()
+            void OnDestroy()
             {
-                _timeSinceLastBounce += Time.fixedDeltaTime;
-                if (_timeSinceLastBounce > 7.5f)
+                if (_physicMaterialOverrideActive)
                 {
-#if DEBUG
-                    Log.Debug($"Pickup bounce timeout reached for {name}");
-#endif
+                    _physicMaterialOverrideActive = false;
 
-                    BouncesRemaining = 0;
-                    Destroy(this);
-
-                    // IMPORTANT: Always leave this part as the last part to be executed before returning,
-                    // OnCollisionEnter could potentially raise an exception if null argument isn't accounted for
-                    if (TryGetComponent(out PickupDropletController pickupDropletController))
+                    foreach (OriginalColliderMaterialPair originalMaterialPair in _originalMaterials)
                     {
-                        pickupDropletController.OnCollisionEnter(null);
+                        if (originalMaterialPair.Collider)
+                        {
+                            originalMaterialPair.Collider.sharedMaterial = originalMaterialPair.Material;
+                        }
                     }
-
-                    return;
-                }
-
-                Vector3 velocity = _rigidbody.velocity;
-                if (velocity.sqrMagnitude > 0f)
-                {
-                    _lastNonZeroVelocity = velocity;
                 }
             }
 
-            public bool TryBounce(Collision collision)
+            public bool TryBounce()
             {
                 if (BouncesRemaining <= 0)
                 {
                     Destroy(this);
                     return false;
                 }
-
-                if (collision is null || collision.contactCount <= 0)
-                    return false;
-
-                Vector3 normal = collision.GetContact(0).normal;
-
-                Vector3 newDirection = Vector3.Reflect(_lastNonZeroVelocity.normalized, normal);
-
-                _rigidbody.velocity = newDirection * (_lastNonZeroVelocity.magnitude * _bounceVelocityMultiplier);
-
-                _timeSinceLastBounce = 0f;
 
                 BouncesRemaining--;
-
-                if (BouncesRemaining <= 0)
-                {
-                    Destroy(this);
-                }
-
                 return true;
             }
         }
