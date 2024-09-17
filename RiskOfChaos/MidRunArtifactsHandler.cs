@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Trackers;
+﻿using RiskOfChaos.Patches;
+using RiskOfChaos.Trackers;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -18,31 +19,30 @@ namespace RiskOfChaos
         {
             RunArtifactManager.onArtifactEnabledGlobal += RunArtifactManager_onArtifactEnabledGlobal;
             RunArtifactManager.onArtifactDisabledGlobal += RunArtifactManager_onArtifactDisabledGlobal;
+
+            // Enabling/Disabling an artifact doesn't refresh the info panel, so Artifact of Kin display doesn't update if it's enabled or disabled mid-run
+            SingleMonsterTypeChangedHook.OnSingleMonsterTypeChanged += EnemyInfoPanel.MarkDirty;
         }
 
         static void RunArtifactManager_onArtifactEnabledGlobal(RunArtifactManager runArtifactManager, ArtifactDef artifactDef)
         {
             if (Stage.instance)
             {
-                if (artifactDef == RoR2Content.Artifacts.sacrificeArtifactDef)
+                if (artifactDef == RoR2Content.Artifacts.Sacrifice)
                 {
                     onSacrificeEnabled();
                 }
-                else if (artifactDef == RoR2Content.Artifacts.randomSurvivorOnRespawnArtifactDef)
+                else if (artifactDef == RoR2Content.Artifacts.RandomSurvivorOnRespawn)
                 {
                     onMetamorphosisEnabled();
                 }
-                else if (artifactDef == RoR2Content.Artifacts.enigmaArtifactDef)
+                else if (artifactDef == RoR2Content.Artifacts.Enigma)
                 {
                     onEnigmaEnabled();
                 }
-                else if (artifactDef == RoR2Content.Artifacts.glassArtifactDef)
+                else if (artifactDef == RoR2Content.Artifacts.Glass)
                 {
                     onGlassEnabledOrDisabled();
-                }
-                else if (artifactDef == RoR2Content.Artifacts.singleMonsterTypeArtifactDef)
-                {
-                    onKinEnabledOrDisabled();
                 }
                 else if (artifactDef == CU8Content.Artifacts.Devotion)
                 {
@@ -50,7 +50,11 @@ namespace RiskOfChaos
                 }
                 else if (artifactDef == CU8Content.Artifacts.Delusion)
                 {
-                    onDelusionEnabledOrDisabled();
+                    onDelusionEnabledOrDisabled(true);
+                }
+                else if (artifactDef == DLC2Content.Artifacts.Rebirth)
+                {
+                    onRebirthEnabled();
                 }
 
                 foreach (LocalUser user in LocalUserManager.readOnlyLocalUsersList)
@@ -71,26 +75,30 @@ namespace RiskOfChaos
         {
             if (Stage.instance)
             {
-                if (artifactDef == RoR2Content.Artifacts.glassArtifactDef)
+                if (artifactDef == RoR2Content.Artifacts.Glass)
                 {
                     onGlassEnabledOrDisabled();
                 }
-                else if (artifactDef == RoR2Content.Artifacts.singleMonsterTypeArtifactDef)
+                else if (artifactDef == RoR2Content.Artifacts.SingleMonsterType)
                 {
-                    onKinEnabledOrDisabled();
+                    onKinDisabled();
                 }
                 else if (artifactDef == CU8Content.Artifacts.Delusion)
                 {
-                    onDelusionEnabledOrDisabled();
+                    onDelusionEnabledOrDisabled(false);
                 }
             }
         }
 
-        static void onKinEnabledOrDisabled()
+        static void onKinDisabled()
         {
-            // Enabling/Disabling an artifact doesn't refresh the info panel, so Artifact of Kin doesn't display properly if it's enabled or disabled mid-run
+            if (!NetworkServer.active)
+                return;
 
-            EnemyInfoPanel.MarkDirty();
+            if (Stage.instance)
+            {
+                Stage.instance.singleMonsterTypeBodyIndex = BodyIndex.None;
+            }
         }
 
         static void onSacrificeEnabled()
@@ -208,10 +216,8 @@ namespace RiskOfChaos
             }
         }
 
-        static void onDelusionEnabledOrDisabled()
+        static void onDelusionEnabledOrDisabled(bool enabled)
         {
-            bool delusionEnabled = RunArtifactManager.instance && RunArtifactManager.instance.IsArtifactEnabled(CU8Content.Artifacts.Delusion);
-
             TeleporterInteraction teleporterInteraction = TeleporterInteraction.instance;
 
             bool teleporterFinished;
@@ -230,7 +236,7 @@ namespace RiskOfChaos
                 if (!delusionChestController)
                     continue;
 
-                if (delusionEnabled)
+                if (enabled)
                 {
                     if (!delusionChestController.hasBeenReset)
                     {
@@ -271,6 +277,27 @@ namespace RiskOfChaos
                         {
                             stateMachine.SetNextState(new EntityStates.Barrel.Opening());
                         }
+                    }
+                }
+            }
+        }
+
+        static void onRebirthEnabled()
+        {
+            if (NetworkServer.active && Run.instance)
+            {
+                Run.instance.ServerGiveRebirthItems();
+            }
+
+            if (NetworkClient.active)
+            {
+                foreach (NetworkUser networkUser in NetworkUser.readOnlyInstancesList)
+                {
+                    UserProfile profile = networkUser.localUser?.userProfile;
+                    if (profile != null && !string.IsNullOrEmpty(profile.RebirthItem))
+                    {
+                        profile.RebirthItem = null;
+                        profile.RequestEventualSave();
                     }
                 }
             }
