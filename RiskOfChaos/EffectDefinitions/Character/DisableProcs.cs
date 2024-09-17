@@ -8,6 +8,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.ModifierController.Damage;
 using RoR2;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
@@ -23,7 +24,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             if (_appliedPatches)
                 return;
 
-            IL.RoR2.HealthComponent.TakeDamage += il =>
+            IL.RoR2.HealthComponent.TakeDamageProcess += il =>
             {
                 ILCursor c = new ILCursor(il);
 
@@ -33,7 +34,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     if (c.TryGotoPrev(MoveType.After,
                                       x => x.MatchBrfalse(out afterIfLabel)))
                     {
+                        c.MoveAfterLabels();
                         c.EmitDelegate(isEffectActive);
+
+                        [MethodImpl(MethodImplOptions.AggressiveInlining)]
                         static bool isEffectActive()
                         {
                             return TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo);
@@ -69,7 +73,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             if (value.attacker)
             {
-                value.damageType &= ~(DamageType.SlowOnHit | DamageType.ClayGoo | DamageType.Nullify | DamageType.CrippleOnHit | DamageType.ApplyMercExpose);
+                value.damageType.damageType &= ~(DamageType.SlowOnHit | DamageType.ClayGoo | DamageType.Nullify | DamageType.CrippleOnHit | DamageType.ApplyMercExpose);
             }
         }
 

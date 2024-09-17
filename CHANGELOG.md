@@ -28,6 +28,9 @@
 * Explosive Deaths:
   * Fixed pre-explosion VFX & SFX not triggering for non-host players
 
+* Disable Procs:
+  * Fixed certain attacks being able to apply Cripple while effect is active
+
 * Cleanse Random Item:
   * Default weight: 0.7 -> 0.5
   * Non-lunar equipments can now be cleansed
