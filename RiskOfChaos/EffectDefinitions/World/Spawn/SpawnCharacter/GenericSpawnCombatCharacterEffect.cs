@@ -132,6 +132,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
             "LemurianBruiserMasterHaunted", // Would include if it had a more distinct appearance
             "LemurianBruiserMasterPoison", // Would include if it had a more distinct appearance
             "MajorConstructMaster", // Beta Xi Construct
+            "MiniVoidRaidCrabMasterBase", // Base voidling
             "MinorConstructAttachableMaster", // Instantly dies
             "MinorConstructOnKillMaster", // Alpha construct reskin
             "ParentPodMaster", // Just a worse Parent spawn
