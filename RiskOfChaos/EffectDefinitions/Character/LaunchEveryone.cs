@@ -47,21 +47,21 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                     inventory.GiveItem(RoR2Content.Items.Feather);
 
-                    void onHitGroundServer(ref CharacterMotor.HitGroundInfo hitGroundInfo)
+                    void onHitGroundServer(CharacterBody characterBody, in CharacterMotor.HitGroundInfo hitGroundInfo)
                     {
+                        if (characterBody != b)
+                            return;
+
                         if (inventory)
                         {
                             inventory.RemoveItem(RoR2Content.Items.Feather);
                             IgnoreItemTransformations.ResumeTransformationsFor(inventory);
                         }
 
-                        if (characterMotor)
-                        {
-                            characterMotor.onHitGroundServer -= onHitGroundServer;
-                        }
+                        OnCharacterHitGroundServerHook.OnCharacterHitGround -= onHitGroundServer;
                     }
 
-                    characterMotor.onHitGroundServer += onHitGroundServer;
+                    OnCharacterHitGroundServerHook.OnCharacterHitGround += onHitGroundServer;
                 }
             }, FormatUtils.GetBestBodyName);
 
@@ -77,20 +77,20 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     {
                         inventory.GiveItem(RoR2Content.Items.TeleportWhenOob);
 
-                        void onHitGroundServer(ref CharacterMotor.HitGroundInfo hitGroundInfo)
+                        void onHitGroundServer(CharacterBody characterBody, in CharacterMotor.HitGroundInfo hitGroundInfo)
                         {
+                            if (characterBody != b)
+                                return;
+
                             if (inventory)
                             {
                                 inventory.RemoveItem(RoR2Content.Items.TeleportWhenOob);
                             }
 
-                            if (characterMotor)
-                            {
-                                characterMotor.onHitGroundServer -= onHitGroundServer;
-                            }
+                            OnCharacterHitGroundServerHook.OnCharacterHitGround -= onHitGroundServer;
                         }
 
-                        characterMotor.onHitGroundServer += onHitGroundServer;
+                        OnCharacterHitGroundServerHook.OnCharacterHitGround += onHitGroundServer;
                     }
                 }
             }, FormatUtils.GetBestBodyName);
