@@ -22,7 +22,7 @@ namespace RiskOfChaos
 
             internal static void Bind(ConfigFile file)
             {
-                void bindConfig<T>(ConfigHolder<T> config)
+                void bindConfig(ConfigHolderBase config)
                 {
                     config.Bind(file, SECTION_NAME, CONFIG_GUID, CONFIG_NAME);
                 }

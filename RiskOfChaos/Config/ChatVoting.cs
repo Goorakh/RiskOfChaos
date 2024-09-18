@@ -117,7 +117,7 @@ namespace RiskOfChaos
             {
                 const string SECTION_NAME = "Streamer Integration";
 
-                void bindConfig<T>(ConfigHolder<T> configHolder)
+                void bindConfig(ConfigHolderBase configHolder)
                 {
                     configHolder.Bind(file, SECTION_NAME, CONFIG_GUID, CONFIG_NAME);
                 }
