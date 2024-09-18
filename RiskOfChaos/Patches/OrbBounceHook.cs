@@ -106,13 +106,27 @@ namespace RiskOfChaos.Patches
         {
             ILCursor c = new ILCursor(il);
 
+            int patchCount = 0;
+
             while (c.TryGotoNext(MoveType.Before, x => x.MatchCallOrCallvirt<Orb>(nameof(Orb.OnArrival))))
             {
                 c.Emit(OpCodes.Dup);
                 c.EmitDelegate(tryBounceOrb);
 
                 c.Index++;
+                patchCount++;
             }
+
+            if (patchCount == 0)
+            {
+                Log.Error("Found 0 patch locations");
+            }
+#if DEBUG
+            else
+            {
+                Log.Debug($"Found {patchCount} patch location(s)");
+            }
+#endif
         }
 
         static void tryBounceOrb(Orb orbInstance)

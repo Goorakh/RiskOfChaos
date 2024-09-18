@@ -63,6 +63,10 @@ namespace RiskOfChaos.Patches
 
                 cursor.MarkLabel(afterRetLbl);
             }
+            else
+            {
+                Log.Error("Failed to find patch location");
+            }
         }
 
         static void AimThrowableBase_FireProjectile(ILContext il)
@@ -77,6 +81,10 @@ namespace RiskOfChaos.Patches
                 {
                     return isBouncingEnabled ? Mathf.Max(10f, fuseOverride) : fuseOverride;
                 }
+            }
+            else
+            {
+                Log.Error("Failed to find patch location");
             }
         }
 

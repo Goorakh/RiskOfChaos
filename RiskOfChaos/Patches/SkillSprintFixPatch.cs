@@ -51,6 +51,8 @@ namespace RiskOfChaos.Patches
         {
             ILCursor c = new ILCursor(il);
 
+            int patchCount = 0;
+
             while (c.TryGotoNext(MoveType.After,
                                  x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertyGetter(typeof(CharacterBody), nameof(CharacterBody.isSprinting)))))
             {
@@ -62,7 +64,20 @@ namespace RiskOfChaos.Patches
 
                     return isSprinting;
                 }
+
+                patchCount++;
             }
+
+            if (patchCount == 0)
+            {
+                Log.Error("Found 0 patch locations");
+            }
+#if DEBUG
+            else
+            {
+                Log.Debug($"Found {patchCount} patch location(s)");
+            }
+#endif
         }
     }
 }

@@ -15,12 +15,27 @@ namespace RiskOfChaos.Patches
             {
                 ILCursor c = new ILCursor(il);
 
+                int patchCount = 0;
+
                 while (c.TryGotoNext(MoveType.After,
                                      x => x.MatchLdfld(declaringType, fieldName)))
                 {
                     c.Emit(OpCodes.Ldarg_0);
                     c.EmitDelegate(RNGOverrideTracker.GetOverrideRNG);
+
+                    patchCount++;
                 }
+
+                if (patchCount == 0)
+                {
+                    Log.Error("Found 0 patch locations");
+                }
+#if DEBUG
+                else
+                {
+                    Log.Debug($"Found {patchCount} patch location(s)");
+                }
+#endif
             }
 
             static void replaceStageRNG(ILContext il)

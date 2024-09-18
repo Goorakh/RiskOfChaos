@@ -71,12 +71,12 @@ namespace RiskOfChaos.Patches
 
             if (patchCount == 0)
             {
-                Log.Warning("Found 0 patch locations");
+                Log.Error("Found 0 patch locations");
             }
             else
             {
 #if DEBUG
-                Log.Debug($"Found {patchCount} patch locations");
+                Log.Debug($"Found {patchCount} patch location(s)");
 #endif
             }
         }

@@ -31,7 +31,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 static void Transpiler(ILContext il)
                 {
                     ILCursor c = new ILCursor(il);
-                    
+
+                    int replaceRngPatchCount = 0;
                     while (c.TryGotoNext(MoveType.After,
                                          x => x.MatchLdarg(0),
                                          x => x.MatchLdfld<CharacterMaster>(nameof(CharacterMaster.cloverVoidRng))))
@@ -39,7 +40,20 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                         // Removing instructions causes issues with labels, so just pop the value instead
                         c.Emit(OpCodes.Pop);
                         c.Emit(OpCodes.Ldarg, RNG_ARG_INDEX);
+
+                        replaceRngPatchCount++;
                     }
+
+                    if (replaceRngPatchCount == 0)
+                    {
+                        Log.Error("Found 0 clover rng field patch locations");
+                    }
+#if DEBUG
+                    else
+                    {
+                        Log.Debug($"Found {replaceRngPatchCount} clover rng field patch locations");
+                    }
+#endif
 
                     c.Index = 0;
 
@@ -51,6 +65,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                         c.Index--;
                         c.Emit(OpCodes.Pop);
                         c.Emit(OpCodes.Ldarg, NUM_TRANSFORMATIONS_ARG_INDEX);
+                    }
+                    else
+                    {
+                        Log.Error("Failed to find numTransformations patch location");
                     }
                 }
 

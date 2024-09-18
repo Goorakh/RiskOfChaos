@@ -40,14 +40,14 @@ namespace RiskOfChaos.Patches
 
             if (patchCount == 0)
             {
-                Log.Warning("Unable to find any patch locations");
+                Log.Error("Found 0 patch locations");
             }
+#if DEBUG
             else
             {
-#if DEBUG
                 Log.Debug($"Found {patchCount} patch location(s)");
-#endif
             }
+#endif
         }
 
         public static void ForceRefresh()

@@ -38,11 +38,17 @@ namespace RiskOfChaos.Patches
                         instance.velocity += xzGravity * deltaTime;
                     }
                 }
+                else
+                {
+                    Log.Error("Failed to find XZ gravity patch location");
+                }
             };
 
             IL.RoR2.ModelLocator.UpdateTargetNormal += il =>
             {
                 ILCursor c = new ILCursor(il);
+
+                int patchCount = 0;
 
                 while (c.TryGotoNext(MoveType.After,
                                      x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertyGetter(typeof(Vector3), nameof(Vector3.up)))))
@@ -60,7 +66,20 @@ namespace RiskOfChaos.Patches
                             return up;
                         }
                     }
+
+                    patchCount++;
                 }
+
+                if (patchCount == 0)
+                {
+                    Log.Error("Found 0 up override patch locations");
+                }
+#if DEBUG
+                else
+                {
+                    Log.Debug($"Found {patchCount} up override patch location(s)");
+                }
+#endif
             };
         }
     }

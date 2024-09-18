@@ -71,17 +71,17 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 
                 if (!tryPatchOnDeathSpawn(new ILCursor(il), typeof(RoR2Content.Buffs), nameof(RoR2Content.Buffs.AffixPoison), "UrchinTurretBody"))
                 {
-                    Log.Warning("Failed to find malachite urchin patch location");
+                    Log.Error("Failed to find malachite urchin patch location");
                 }
 
                 if (!tryPatchOnDeathSpawn(new ILCursor(il), typeof(DLC1Content.Buffs), nameof(DLC1Content.Buffs.EliteEarth), "AffixEarthHealerBody"))
                 {
-                    Log.Warning("Failed to find healing core patch location");
+                    Log.Error("Failed to find healing core patch location");
                 }
 
                 if (!tryPatchOnDeathSpawn(new ILCursor(il), typeof(DLC1Content.Buffs), nameof(DLC1Content.Buffs.EliteVoid), "VoidInfestorBody"))
                 {
-                    Log.Warning("Failed to find void infestor patch location");
+                    Log.Error("Failed to find void infestor patch location");
                 }
             };
 

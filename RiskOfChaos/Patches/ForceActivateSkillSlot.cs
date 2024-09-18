@@ -70,6 +70,8 @@ namespace RiskOfChaos.Patches
         {
             ILCursor c = new ILCursor(il);
 
+            int patchCount = 0;
+
             while (c.TryFindNext(out ILCursor[] foundCursors,
                                  x => x.MatchLdflda(out FieldReference field) && field.DeclaringType.Is(typeof(InputBankTest)) && field.Name.StartsWith("skill"),
                                  x => x.MatchCallOrCallvirt<InputBankTest.ButtonState>(nameof(InputBankTest.ButtonState.PushState))))
@@ -112,7 +114,20 @@ namespace RiskOfChaos.Patches
                 }
 
                 c.Index = foundCursors.Last().Index + 1;
+
+                patchCount++;
             }
+
+            if (patchCount == 0)
+            {
+                Log.Error("Found 0 patch locations");
+            }
+#if DEBUG
+            else
+            {
+                Log.Debug($"Found {patchCount} patch location(s)");
+            }
+#endif
         }
     }
 }

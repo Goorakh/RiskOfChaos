@@ -32,6 +32,10 @@ namespace RiskOfChaos.EffectDefinitions.World
                         return isPaused || (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo));
                     }
                 }
+                else
+                {
+                    Log.Error("Failed to find paused override patch location");
+                }
             };
 
             _appliedPatches = true;

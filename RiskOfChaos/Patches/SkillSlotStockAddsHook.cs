@@ -27,6 +27,10 @@ namespace RiskOfChaos.Patches
                         return Math.Max(1, maxStock + getStockAdds(instance));
                     }
                 }
+                else
+                {
+                    Log.Error("Failed to find maxStock patch location");
+                }
             };
 
             // Fix ReloadSkillDef reading from the SkillDef max stock instead of the skill slot's max stock
@@ -43,6 +47,10 @@ namespace RiskOfChaos.Patches
                     // arg1: GenericSkill skillSlot
                     c.Emit(OpCodes.Ldarg_1);
                     c.Emit(OpCodes.Callvirt, AccessTools.DeclaredPropertyGetter(typeof(GenericSkill), nameof(GenericSkill.maxStock)));
+                }
+                else
+                {
+                    Log.Error("Failed to find ReloadSkillDef stock fix patch location");
                 }
             };
         }

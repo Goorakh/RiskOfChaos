@@ -95,6 +95,10 @@ namespace RiskOfChaos.Content
                             }
                         }
                     }
+                    else
+                    {
+                        Log.Error("Failed to find InvincibleLemurianMarker ai targets override patch location");
+                    }
                 };
 
                 On.RoR2.Projectile.ProjectileController.Start += static (orig, self) =>
