@@ -34,9 +34,11 @@ namespace RiskOfChaos
             if (iconFile != null)
             {
                 Texture2D iconTexture = new Texture2D(256, 256);
+                iconTexture.name = $"tex{Main.PluginName}Icon";
                 if (iconTexture.LoadImage(File.ReadAllBytes(iconFile.FullName)))
                 {
                     GenericIcon = Sprite.Create(iconTexture, new Rect(0f, 0f, iconTexture.width, iconTexture.height), new Vector2(0.5f, 0.5f));
+                    GenericIcon.name = $"{Main.PluginName}Icon";
                 }
             }
 
