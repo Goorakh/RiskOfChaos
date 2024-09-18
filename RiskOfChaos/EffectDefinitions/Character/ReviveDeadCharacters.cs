@@ -301,7 +301,12 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 if (_itemStacks != null)
                 {
-                    summonedInventory.AddItemsFrom(_itemStacks, Inventory.defaultItemCopyFilterDelegate);
+                    static bool itemCopyFilter(ItemIndex i)
+                    {
+                        return true;
+                    }
+
+                    summonedInventory.AddItemsFrom(_itemStacks, itemCopyFilter);
                     ItemCatalog.ReturnItemStackArray(_itemStacks);
                 }
 
