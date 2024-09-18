@@ -16,13 +16,7 @@ namespace RiskOfChaos.ConfigHandling
 
         public static bool TryRegisterConfig(string section, string key, ConfigHolderBase instance)
         {
-            string configKey = getKey(section, key);
-
-            if (_registeredConfigs.ContainsKey(configKey))
-                return false;
-
-            _registeredConfigs.Add(getKey(section, key), instance);
-            return true;
+            return _registeredConfigs.TryAdd(getKey(section, key), instance);
         }
 
         public static bool IsConfigRegistered(string section, string key)
