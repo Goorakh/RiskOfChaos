@@ -47,7 +47,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             }
             else
             {
-                Log.Warning("Failed to get equipment drone hull size");
+                Log.Error("Failed to get equipment drone hull size");
+                _equipmentDroneSpawnCard.hullSize = HullClassification.Human;
             }
         }
 
