@@ -40,7 +40,7 @@ namespace RiskOfChaos.Patches
         [SystemInitializer]
         static void Init()
         {
-            IL.RoR2.PlayerCharacterMasterController.FixedUpdate += hookPushInputState;
+            IL.RoR2.PlayerCharacterMasterController.PollButtonInput += hookPushInputState;
             IL.RoR2.CharacterAI.BaseAI.UpdateBodyInputs += hookPushInputState;
         }
 
