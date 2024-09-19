@@ -241,14 +241,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 CharacterMotor characterMotor = body.characterMotor;
                 if (characterMotor && characterMotor.Motor)
                 {
-                    Vector3 finalMovement;
+                    Vector3 finalMovement = displacement + characterMotor.velocity;
                     if (characterMotor.useGravity)
                     {
-                        finalMovement = displacement + characterMotor.GetGravity();
-                    }
-                    else
-                    {
-                        finalMovement = displacement;
+                        finalMovement += characterMotor.GetGravity();
                     }
 
                     if (finalMovement.y > 0f)
