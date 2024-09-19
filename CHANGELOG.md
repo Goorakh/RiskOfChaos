@@ -35,6 +35,10 @@
   * Default weight: 0.7 -> 0.5
   * Non-lunar equipments can now be cleansed
 
+* Spawn Random Jump Pad:
+  * Added mushrooms from Sundered Grove
+  * Added void launch pads from Void Locus
+
 * Fixed missing icon for Risk of Options Effects config
 
 <details>

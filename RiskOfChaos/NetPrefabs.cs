@@ -5,6 +5,7 @@ using RiskOfChaos.EffectDefinitions.Character;
 using RiskOfChaos.Networking.Components;
 using RiskOfChaos.Networking.Components.Effects;
 using RoR2;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -18,11 +19,16 @@ namespace RiskOfChaos
         public static GameObject MonsterItemStealControllerPrefab { get; private set; }
 
         static readonly string[] _geyserPrefabPaths = [
-            "RoR2/Base/Common/Props/Geyser.prefab",
             "RoR2/Base/artifactworld/AWGeyser.prefab",
+            "RoR2/Base/Common/Props/Geyser.prefab",
+            //"RoR2/Base/frozenwall/FW_HumanFan.prefab",
             "RoR2/Base/moon/MoonGeyser.prefab",
-            "RoR2/DLC1/ancientloft/AncientLoft_Geyser.prefab",
-            "RoR2/DLC1/snowyforest/SFGeyser.prefab"
+            //"RoR2/Base/moon2/MoonElevator.prefab",
+            "RoR2/Base/rootjungle/RJ_BounceShroom.prefab",
+            "RoR2/DLC1/ancientloft/AL_Geyser.prefab",
+            "RoR2/DLC1/snowyforest/SFGeyser.prefab",
+            "RoR2/DLC1/voidstage/mdlVoidGravityGeyser.prefab",
+            "RoR2/DLC2/meridian/PMLaunchPad.prefab"
         ];
         public static GameObject[] GeyserPrefabs { get; private set; } = [];
 
@@ -90,10 +96,13 @@ namespace RiskOfChaos
             // GeyserPrefabs
             {
                 int geyserCount = _geyserPrefabPaths.Length;
-                GeyserPrefabs = new GameObject[geyserCount];
+                List<GameObject> geyserPrefabs = new List<GameObject>(geyserCount);
                 for (int i = 0; i < geyserCount; i++)
                 {
                     GameObject geyserPrefab = Addressables.LoadAssetAsync<GameObject>(_geyserPrefabPaths[i]).WaitForCompletion();
+                    if (!geyserPrefab)
+                        continue;
+
                     string prefabName = geyserPrefab.name;
 
                     GameObject geyserHolderPrefab = new GameObject(Main.PluginGUID + "_Networked" + prefabName);
@@ -103,10 +112,12 @@ namespace RiskOfChaos
 
                     geyserHolderPrefab.AddComponent<NetworkIdentity>();
                     geyserHolderPrefab.AddComponent<SyncJumpVolumeVelocity>();
-                    GeyserPrefabs[i] = geyserHolderPrefab.InstantiateClone(Main.PluginGUID + "_Networked" + prefabName, true);
+                    geyserPrefabs.Add(geyserHolderPrefab.InstantiateClone(Main.PluginGUID + "_Networked" + prefabName, true));
 
                     GameObject.Destroy(geyserHolderPrefab);
                 }
+
+                GeyserPrefabs = geyserPrefabs.ToArray();
             }
 
             // EffectsNetworkerPrefab

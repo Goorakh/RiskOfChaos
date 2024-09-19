@@ -43,7 +43,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 DirectorPlacementRule placementRule = new DirectorPlacementRule
                 {
                     position = body.footPosition,
-                    minDistance = 0f,
+                    minDistance = 2f,
                     maxDistance = float.PositiveInfinity,
                     placementMode = SpawnUtils.ExtraPlacementModes.NearestNodeWithConditions
                 };
