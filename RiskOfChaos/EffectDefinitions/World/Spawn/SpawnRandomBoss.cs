@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
@@ -65,6 +66,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         static readonly GameObject _bossCombatSquadPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Core/BossCombatSquad.prefab").WaitForCompletion();
 
+        static InteractableSpawnCard _geodeSpawnCard;
+
         [SystemInitializer]
         static void Init()
         {
@@ -91,7 +94,18 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 loadBasicSpawnEntry("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase2.asset", 0.4f),
                 loadBasicSpawnEntry("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase3.asset", 0.2f),
                 loadBasicSpawnEntry("RoR2/DLC1/VoidMegaCrab/cscVoidMegaCrab.asset", 0.6f),
+                loadBasicSpawnEntry("RoR2/DLC2/FalseSonBoss/cscFalseSonBoss.asset", 0.25f),
+                loadBasicSpawnEntry("RoR2/DLC2/FalseSonBoss/cscFalseSonBossLunarShard.asset", 0.25f),
+                loadBasicSpawnEntry("RoR2/DLC2/FalseSonBoss/cscFalseSonBossBrokenLunarShard.asset", 0.1f),
             ];
+
+            Addressables.LoadAssetAsync<InteractableSpawnCard>("RoR2/DLC2/iscGeode.asset").Completed += handle =>
+            {
+                _geodeSpawnCard = ScriptableObject.Instantiate(handle.Result);
+                _geodeSpawnCard.name = "iscGeodeFixed";
+                _geodeSpawnCard.orientToFloor = false; // causes it to have really strange rotation since the raycast to find the floor normal hits itself
+                _geodeSpawnCard.occupyPosition = true;
+            };
         }
 
         [EffectConfig]
@@ -158,6 +172,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 bossCombatSquad = null;
             }
 
+            bool shouldSpawnGeodes = false;
+
             spawnRequest.onSpawnedServer = result =>
             {
                 if (!result.success)
@@ -187,9 +203,62 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 {
                     bossCombatSquad.AddMember(master);
                 }
+
+                if (!shouldSpawnGeodes && master.masterIndex == MasterCatalog.FindMasterIndex("FalseSonBossLunarShardBrokenMaster"))
+                {
+                    shouldSpawnGeodes = true;
+                }
             };
 
             spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());
+
+            if (shouldSpawnGeodes && _geodeSpawnCard)
+            {
+                const float GEODE_MIN_SPAWN_DISTANCE = 5f;
+                const float GEODE_MAX_SPAWN_DISTANCE = 100f;
+
+                int playerGeodeSpawnsAttempted = 0;
+                int spawnedGeodes = 0;
+
+                foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
+                {
+                    DirectorPlacementRule geodePlacementRule = new DirectorPlacementRule
+                    {
+                        placementMode = DirectorPlacementRule.PlacementMode.Approximate,
+                        position = playerBody.footPosition,
+                        minDistance = GEODE_MIN_SPAWN_DISTANCE,
+                        maxDistance = GEODE_MAX_SPAWN_DISTANCE / 2f
+                    };
+
+                    DirectorSpawnRequest geodeSpawnRequest = new DirectorSpawnRequest(_geodeSpawnCard, geodePlacementRule, RNG.Branch());
+
+                    playerGeodeSpawnsAttempted++;
+                    if (DirectorCore.instance.TrySpawnObject(geodeSpawnRequest))
+                    {
+                        spawnedGeodes++;
+                    }
+                }
+
+                const int EXTRA_GEODE_COUNT = 5;
+
+                int missedPlayerSpawnGeodes = Math.Max(0, playerGeodeSpawnsAttempted - spawnedGeodes);
+                int additionalGeodeSpawnCount = missedPlayerSpawnGeodes + EXTRA_GEODE_COUNT;
+
+                for (int i = 0; i < additionalGeodeSpawnCount; i++)
+                {
+                    DirectorPlacementRule geodePlacementRule = SpawnUtils.GetPlacementRule_AtRandomPlayerApproximate(RNG, GEODE_MIN_SPAWN_DISTANCE, GEODE_MAX_SPAWN_DISTANCE);
+                    DirectorSpawnRequest geodeSpawnRequest = new DirectorSpawnRequest(_geodeSpawnCard, geodePlacementRule, RNG.Branch());
+
+                    if (geodeSpawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule()))
+                    {
+                        spawnedGeodes++;
+                    }
+                }
+                
+#if DEBUG
+                Log.Debug($"Spawned {spawnedGeodes} geode(s)");
+#endif
+            }
         }
     }
 }
