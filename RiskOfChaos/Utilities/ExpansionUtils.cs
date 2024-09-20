@@ -17,6 +17,14 @@ namespace RiskOfChaos.Utilities
 
         public static readonly ExpansionDef DLC1 = Addressables.LoadAssetAsync<ExpansionDef>("RoR2/DLC1/Common/DLC1.asset").WaitForCompletion();
 
+        public static bool DLC2Enabled
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => IsExpansionEnabled(DLC2);
+        }
+
+        public static readonly ExpansionDef DLC2 = Addressables.LoadAssetAsync<ExpansionDef>("RoR2/DLC2/Common/DLC2.asset").WaitForCompletion();
+
         public static bool IsExpansionEnabled(ExpansionDef expansionDef)
         {
             return expansionDef && Run.instance && Run.instance.IsExpansionEnabled(expansionDef);
