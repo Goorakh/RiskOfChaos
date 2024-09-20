@@ -21,7 +21,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 loadBasicSpawnEntry("RoR2/DLC1/GameModes/InfiniteTowerRun/InfiniteTowerAssets/iscInfiniteTowerPortal.asset"),
                 loadBasicSpawnEntry("RoR2/DLC1/DeepVoidPortal/iscDeepVoidPortal.asset", 0.8f),
                 loadBasicSpawnEntry("RoR2/DLC1/PortalVoid/iscVoidPortal.asset", 0.8f),
-                loadBasicSpawnEntry("RoR2/DLC1/VoidOutroPortal/iscVoidOutroPortal.asset", 0.8f)
+                loadBasicSpawnEntry("RoR2/DLC1/VoidOutroPortal/iscVoidOutroPortal.asset", 0.8f),
+                loadBasicSpawnEntry("RoR2/DLC2/iscDestinationPortal.asset", 0.8f),
+                loadBasicSpawnEntry("RoR2/DLC2/iscColossusPortal.asset", 1f),
             ];
         }
 

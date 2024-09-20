@@ -1,6 +1,7 @@
 ﻿using R2API;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectUtils.World.Spawn;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
@@ -17,7 +18,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
     {
         static SpawnCardEntry[] _spawnCards;
 
-        [SystemInitializer]
+        [SystemInitializer(typeof(CustomSpawnCards))]
         static void Init()
         {
             static InteractableSpawnCard loadSpawnCard(string path)
@@ -25,10 +26,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 InteractableSpawnCard isc = Addressables.LoadAssetAsync<InteractableSpawnCard>(path).WaitForCompletion();
 
                 // Make sure it can always be spawned
-                if (isc.skipSpawnWhenSacrificeArtifactEnabled)
+                if (isc.skipSpawnWhenSacrificeArtifactEnabled || isc.skipSpawnWhenDevotionArtifactEnabled)
                 {
+                    string name = isc.name;
                     isc = ScriptableObject.Instantiate(isc);
+                    isc.name = $"{name}_UnrestrictedSpawn";
                     isc.skipSpawnWhenSacrificeArtifactEnabled = false;
+                    isc.skipSpawnWhenDevotionArtifactEnabled = false;
                 }
 
                 return isc;
@@ -103,7 +107,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 getEntryMany([
                     "RoR2/Base/Chest1/iscChest1.asset",
                     "RoR2/Base/Chest2/iscChest2.asset",
-                    "RoR2/Base/GoldChest/iscGoldChest.asset"
+                    "RoR2/Base/GoldChest/iscGoldChest.asset",
+                    "RoR2/CommandChest/iscCommandChest.asset"
                 ]),
                 getEntryMany([
                     "RoR2/Base/Duplicator/iscDuplicator.asset",
@@ -113,7 +118,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 ]),
                 getEntrySingle("RoR2/Base/EquipmentBarrel/iscEquipmentBarrel.asset"),
                 getEntrySingle("RoR2/Base/LunarChest/iscLunarChest.asset"),
-                getEntrySingle("RoR2/Base/RadarTower/iscRadarTower.asset"),
+                getEntrySingle("RoR2/Base/RadarTower/iscRadarTower.asset", 0.7f),
                 getEntrySingle("RoR2/Base/Scrapper/iscScrapper.asset"),
                 getEntryMany([
                     "RoR2/Base/ShrineBlood/iscShrineBlood.asset",
@@ -152,9 +157,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     "RoR2/Base/TripleShopEquipment/iscTripleShopEquipment.asset",
                     "RoR2/Base/TripleShopLarge/iscTripleShopLarge.asset"
                 ]),
-                getEntrySingle("RoR2/Base/goldshores/iscGoldshoresBeacon.asset"),
+                getEntrySingle("RoR2/Base/goldshores/iscGoldshoresBeacon.asset", 0.8f),
                 getEntrySingle("RoR2/DLC1/VoidChest/iscVoidChest.asset"),
-                getEntrySingle("RoR2/DLC1/VoidSuppressor/iscVoidSuppressor.asset"),
+                getEntrySingle("RoR2/DLC1/VoidSuppressor/iscVoidSuppressor.asset", 0.7f),
                 getEntrySingle("RoR2/DLC1/VoidTriple/iscVoidTriple.asset"),
                 getEntrySingle("RoR2/DLC1/FreeChest/iscFreeChest.asset"),
                 getEntryMany([
@@ -167,7 +172,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     createCauldronSpawnCard("RoR2/Base/LunarCauldrons/LunarCauldron, RedToWhite Variant.prefab"),
                     createCauldronSpawnCard("RoR2/Base/LunarCauldrons/LunarCauldron, WhiteToGreen.prefab")
                 }, 1f),
-                new SpawnCardEntry(iscNewtStatue, 1f)
+                new SpawnCardEntry(iscNewtStatue, 1f),
+                getEntrySingle("RoR2/CU8/LemurianEgg/iscLemurianEgg.asset"),
+                getEntrySingle("RoR2/DLC2/iscShrineHalcyonite.asset"),
+                getEntrySingle("RoR2/DLC2/iscShrineColossusAccess.asset"),
+                new SpawnCardEntry(CustomSpawnCards.iscGeodeFixed, 1f),
             ];
         }
 

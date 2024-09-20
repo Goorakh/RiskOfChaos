@@ -3,6 +3,7 @@ using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectUtils.World.Spawn;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
@@ -68,7 +69,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         static InteractableSpawnCard _geodeSpawnCard;
 
-        [SystemInitializer]
+        [SystemInitializer(typeof(CustomSpawnCards))]
         static void Init()
         {
             _bossSpawnEntries = [
@@ -99,13 +100,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 loadBasicSpawnEntry("RoR2/DLC2/FalseSonBoss/cscFalseSonBossBrokenLunarShard.asset", 0.1f),
             ];
 
-            Addressables.LoadAssetAsync<InteractableSpawnCard>("RoR2/DLC2/iscGeode.asset").Completed += handle =>
-            {
-                _geodeSpawnCard = ScriptableObject.Instantiate(handle.Result);
-                _geodeSpawnCard.name = "iscGeodeFixed";
-                _geodeSpawnCard.orientToFloor = false; // causes it to have really strange rotation since the raycast to find the floor normal hits itself
-                _geodeSpawnCard.occupyPosition = true;
-            };
+            _geodeSpawnCard = CustomSpawnCards.iscGeodeFixed;
         }
 
         [EffectConfig]
