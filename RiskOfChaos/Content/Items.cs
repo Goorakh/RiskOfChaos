@@ -47,7 +47,7 @@ namespace RiskOfChaos.Content
                         attackerBody.inventory.GetItemCount(InvincibleLemurianMarker) > 0)
                     {
                         // Instantly die no matter what
-                        damageInfo.damageType |= DamageType.BypassArmor | DamageType.BypassBlock | DamageType.BypassOneShotProtection;
+                        damageInfo.damageType |= new DamageTypeCombo(DamageType.BypassArmor | DamageType.BypassBlock | DamageType.BypassOneShotProtection, DamageTypeExtended.SojournVehicleDamage);
                         damageInfo.damage = float.PositiveInfinity;
                     }
 
@@ -215,10 +215,10 @@ namespace RiskOfChaos.Content
 
                 if (inventory.GetItemCount(MinAllyRegen) > 0)
                 {
-                    const float TARGT_BASE_REGEN = 2.5f;
-                    if (body.baseRegen < TARGT_BASE_REGEN)
+                    const float TARGET_BASE_REGEN = 2.5f;
+                    if (body.baseRegen < TARGET_BASE_REGEN)
                     {
-                        args.baseRegenAdd += TARGT_BASE_REGEN - body.baseRegen;
+                        args.baseRegenAdd += TARGET_BASE_REGEN - body.baseRegen;
                     }
 
                     const float TARGET_LEVEL_REGEN = 0.5f;
