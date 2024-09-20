@@ -13,7 +13,9 @@ namespace RiskOfChaos.Utilities
     {
         public static class ExtraPlacementModes
         {
-            public const DirectorPlacementRule.PlacementMode NearestNodeWithConditions = (DirectorPlacementRule.PlacementMode)134;
+            const DirectorPlacementRule.PlacementMode CUSTOM_PLACEMENT_MODES_VALUE_START = (DirectorPlacementRule.PlacementMode)134;
+
+            public const DirectorPlacementRule.PlacementMode NearestNodeWithConditions = CUSTOM_PLACEMENT_MODES_VALUE_START + 0;
 
             [SystemInitializer]
             static void Init()
@@ -50,13 +52,6 @@ namespace RiskOfChaos.Utilities
                     {
                         case NearestNodeWithConditions:
                             List<NodeGraph.NodeIndex> validNodes = nodeGraph.FindNodesInRangeWithFlagConditions(placementRule.position, placementRule.minDistance, placementRule.maxDistance, (HullMask)(1 << (int)spawnCard.hullSize), spawnCard.requiredFlags, spawnCard.forbiddenFlags, placementRule.preventOverhead);
-                            int nodesRemoved = validNodes.RemoveAll(n => !nodeGraph.GetNodePosition(n, out _));
-#if DEBUG
-                            if (nodesRemoved > 0)
-                            {
-                                Log.Debug($"Excluded {nodesRemoved} invalid nodes");
-                            }
-#endif
 
                             NodeGraph.NodeIndex? closestValidNodeIndex = null;
                             float closestNodeSqrDistance = float.PositiveInfinity;
