@@ -1,4 +1,5 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities.Extensions;
+using RoR2;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -11,7 +12,7 @@ namespace RiskOfChaos.Components
         static void Init()
         {
             GameObject debugAddressableSpawner = new GameObject("DebugAddressableSpawner");
-            DontDestroyOnLoad(debugAddressableSpawner);
+            debugAddressableSpawner.SetDontDestroyOnLoad(true);
 
             debugAddressableSpawner.AddComponent<DebugAddressableSpawner>();
         }

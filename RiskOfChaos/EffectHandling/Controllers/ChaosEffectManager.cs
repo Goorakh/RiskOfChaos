@@ -1,4 +1,5 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities.Extensions;
+using RoR2;
 using System;
 using System.Linq;
 using UnityEngine;
@@ -63,7 +64,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         static void InitializeObject()
         {
             _effectManagerObject = new GameObject("ChaosEffectManager");
-            DontDestroyOnLoad(_effectManagerObject);
+            _effectManagerObject.SetDontDestroyOnLoad(true);
             _effectManagerObject.AddComponent<ChaosEffectManager>();
         }
 
