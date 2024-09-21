@@ -17,8 +17,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         static void Init()
         {
             _spawnEntries = [
-                loadBasicSpawnEntry("RoR2/Base/Scav/iscScavBackpack.asset"),
-                loadBasicSpawnEntry("RoR2/Base/Scav/iscScavLunarBackpack.asset", 0.25f)
+                loadBasicSpawnEntry("RoR2/Base/Scav/iscScavBackpack.asset", 0.8f),
+                loadBasicSpawnEntry("RoR2/Base/Scav/iscScavLunarBackpack.asset", 0.2f)
             ];
         }
 
