@@ -1,24 +1,49 @@
-﻿using Mono.Cecil.Cil;
+﻿using Mono.Cecil;
+using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using MonoMod.Utils;
 using RiskOfChaos.ModifierController.Projectile;
+using RiskOfChaos.Utilities;
 using RoR2;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 
 namespace RiskOfChaos.Patches
 {
     static class BulletBounceHook
     {
+        class BulletBounceInfo
+        {
+            public readonly BulletAttack BulletAttack;
+            public Vector3 CurrentBulletDirection;
+            public int MuzzleIndex;
+            public BulletAttack.BulletHit CurrentBounceHit;
+            public uint BounceDepth;
+
+            public uint BouncesRemaining => ClampedConversion.UInt32((long)bounceCount - BounceDepth);
+
+            public BulletBounceInfo(BulletAttack bulletAttack, Vector3 currentBulletDirection, int muzzleIndex, BulletAttack.BulletHit currentBounceHit, uint bounceDepth)
+            {
+                BulletAttack = bulletAttack;
+                CurrentBulletDirection = currentBulletDirection;
+                MuzzleIndex = muzzleIndex;
+                CurrentBounceHit = currentBounceHit;
+                BounceDepth = bounceDepth;
+            }
+        }
+
         static bool isEnabled => bounceCount > 0;
 
-        static int bounceCount
+        static uint bounceCount
         {
             get
             {
                 if (ProjectileModificationManager.Instance)
                 {
-                    return (int)ProjectileModificationManager.Instance.BulletBounceCount;
+                    return ProjectileModificationManager.Instance.BulletBounceCount;
                 }
                 else
                 {
@@ -27,170 +52,223 @@ namespace RiskOfChaos.Patches
             }
         }
 
-        static int _currentBulletBounceDepth;
-        static int currentBulletBouncesRemaining => bounceCount - _currentBulletBounceDepth;
-
-        static BulletAttack.BulletHit _currentBounceSourceHitInfo;
+        static BulletBounceInfo _currentBounceInfo;
 
         [SystemInitializer]
         static void Init()
         {
-            IL.RoR2.BulletAttack.FireSingle += BulletAttack_FireSingle_CreateBounceBullet;
+            IL.RoR2.BulletAttack.FireSingle += BulletAttack_InitializeBounce;
+            IL.RoR2.BulletAttack.FireSingle_ReturnHit += BulletAttack_InitializeBounce;
+            IL.RoR2.BulletAttack.FireMulti += BulletAttack_InitializeBounce;
 
-            On.RoR2.BulletAttack.FireSingle += BulletAttack_FireSingle;
+            IL.RoR2.BulletAttack.ProcessHitList += BulletAttack_ProcessHitList_TryFireBounces;
 
             On.RoR2.BulletAttack.DefaultFilterCallbackImplementation += BulletAttack_DefaultFilterCallbackImplementation_IgnoreBounceSource;
 
-            OverrideBulletTracerOriginExplicitPatch.UseExplicitOriginPosition += _ => _currentBulletBounceDepth > 0;
+            OverrideBulletTracerOriginExplicitPatch.UseExplicitOriginPosition += attack => _currentBounceInfo != null && _currentBounceInfo.BulletAttack == attack && _currentBounceInfo.BounceDepth > 0;
         }
 
-        static void BulletAttack_FireSingle(On.RoR2.BulletAttack.orig_FireSingle orig, BulletAttack self, Vector3 normal, int muzzleIndex)
-        {
-            bool isFirstBulletInBounceChain = isEnabled && _currentBulletBounceDepth <= 0;
-            if (isFirstBulletInBounceChain)
-            {
-                _currentBulletBounceDepth = 0;
-            }
-
-            // Ensure all values are reset afterwards even in the case of an exception
-            try
-            {
-                orig(self, normal, muzzleIndex);
-            }
-            finally
-            {
-                if (isFirstBulletInBounceChain || !isEnabled)
-                {
-                    // Should be properly reset by the bounce hook, bust just in case
-                    _currentBulletBounceDepth = 0;
-                }
-
-                _currentBounceSourceHitInfo = null;
-            }
-        }
-
-        static void BulletAttack_FireSingle_CreateBounceBullet(ILContext il)
+        static void BulletAttack_InitializeBounce(ILContext il)
         {
             ILCursor c = new ILCursor(il);
 
-            int hitListLocalIndex = -1;
-            if (c.TryFindNext(out _,
-                              x => x.MatchNewobj<List<BulletAttack.BulletHit>>(),
-                              x => x.MatchStloc(out hitListLocalIndex)))
+            ParameterDefinition normalParameter = null;
+            ParameterDefinition muzzleIndexParameter = null;
+
+            foreach (ParameterDefinition parameter in il.Method.Parameters)
             {
-                if (c.TryGotoNext(MoveType.After,
-                                  x => x.MatchCallOrCallvirt<BulletAttack>(nameof(BulletAttack.ProcessHitList))))
+                if (parameter.ParameterType.Is(typeof(Vector3)) && string.Equals(parameter.Name, "normal", StringComparison.OrdinalIgnoreCase))
                 {
-                    int hitPositionLocalIndex = -1;
-                    if (new ILCursor(c).TryGotoPrev(x => x.MatchLdloca(out hitPositionLocalIndex)))
-                    {
-                        c.Emit(OpCodes.Dup);
-                        c.Emit(OpCodes.Ldarg_0);
-                        c.Emit(OpCodes.Ldarg_1);
-                        c.Emit(OpCodes.Ldarg_2);
-                        c.Emit(OpCodes.Ldloc, hitPositionLocalIndex);
-                        c.Emit(OpCodes.Ldloc, hitListLocalIndex);
-                        c.EmitDelegate(fireBulletBounce);
-                    }
-                    else
-                    {
-                        Log.Error("Failed to find hitPosition local index");
-                    }
+                    normalParameter ??= parameter;
                 }
-                else
+                else if (parameter.ParameterType.Is(typeof(int)) && string.Equals(parameter.Name, "muzzleIndex", StringComparison.OrdinalIgnoreCase))
                 {
-                    Log.Error("Failed to find patch location");
+                    muzzleIndexParameter ??= parameter;
                 }
             }
-            else
+
+            if (normalParameter == null)
             {
-                Log.Error("Failed to find hitList local index");
+                Log.Error("Failed to find normal parameter");
+                return;
+            }
+
+            if (muzzleIndexParameter == null)
+            {
+                Log.Error("Failed to find muzzleIndex parameter");
+                return;
+            }
+
+            c.Emit(OpCodes.Ldarg_0);
+            c.Emit(OpCodes.Ldarg, normalParameter);
+            c.Emit(OpCodes.Ldarg, muzzleIndexParameter);
+            c.EmitDelegate(initBounce);
+            static void initBounce(BulletAttack bulletAttack, Vector3 normal, int muzzleIndex)
+            {
+                if (!isEnabled)
+                {
+                    _currentBounceInfo = null;
+                    return;
+                }
+
+                if (_currentBounceInfo != null)
+                {
+                    if (!ReferenceEquals(_currentBounceInfo.BulletAttack, bulletAttack))
+                    {
+                        Log.Warning("Current bounce belongs to a different BulletAttack instance");
+                        _currentBounceInfo = null;
+                    }
+                }
+
+                _currentBounceInfo ??= new BulletBounceInfo(bulletAttack, normal, muzzleIndex, null, 0);
             }
         }
 
-        static void fireBulletBounce(GameObject hitEntity, BulletAttack instance, Vector3 fireDirection, int muzzleIndex, Vector3 hitPosition, List<BulletAttack.BulletHit> hitList)
+        static void BulletAttack_ProcessHitList_TryFireBounces(ILContext il)
         {
-            if (!isEnabled || currentBulletBouncesRemaining <= 0)
-                return;
+            ILCursor c = new ILCursor(il);
 
-            if (!hitEntity) // If the bullet hit nothing, bouncing can't happen
-                return;
+            VariableDefinition finalHitVar = new VariableDefinition(il.Import(typeof(BulletAttack.BulletHit)));
+            il.Method.Body.Variables.Add(finalHitVar);
 
-            foreach (BulletAttack.BulletHit hit in hitList)
+            c.Emit(OpCodes.Ldnull);
+            c.Emit(OpCodes.Stloc, finalHitVar);
+
+            MethodInfo bulletHitListGetter = typeof(List<BulletAttack.BulletHit>).GetProperty("Item").GetMethod;
+
+            if (c.TryFindNext(out ILCursor[] cursors,
+                              x => x.MatchCallOrCallvirt<BulletAttack>(nameof(BulletAttack.ProcessHit)),
+                              x => x.MatchCallOrCallvirt(bulletHitListGetter)))
             {
-                if (hit != null && hit.entityObject == hitEntity && hit.point == hitPosition)
+                ILCursor getFinalHitCursor = cursors[1];
+
+                getFinalHitCursor.Index++;
+                getFinalHitCursor.Emit(OpCodes.Dup)
+                                 .Emit(OpCodes.Stloc, finalHitVar);
+            }
+            else
+            {
+                Log.Error("Failed to find hit patch location");
+            }
+
+            int retPatchCount = 0;
+
+            c.Index = 0;
+            while (c.TryGotoNext(MoveType.Before,
+                                 x => x.MatchRet()))
+            {
+                c.Emit(OpCodes.Ldarg_0)
+                 .Emit(OpCodes.Ldloc, finalHitVar)
+                 .EmitDelegate(tryHandleBounce);
+
+                static void tryHandleBounce(BulletAttack instance, BulletAttack.BulletHit hit)
                 {
-                    _currentBulletBounceDepth++;
+                    if (_currentBounceInfo == null)
+                        return;
 
-                    _currentBounceSourceHitInfo = hit;
-
-                    Vector3 oldBulletOrigin = instance.origin;
-                    instance.origin = hit.point;
-
-                    instance.maxDistance -= hit.distance;
-                    if (instance.maxDistance > 0f)
+                    if (!isEnabled || hit == null || !hit.entityObject || _currentBounceInfo.BulletAttack != instance || _currentBounceInfo.BouncesRemaining <= 0)
                     {
-                        Vector3 bounceDirection = Vector3.Reflect(fireDirection, hit.surfaceNormal);
-
-                        // Slight "homing" on bullets to make it easier to bounce off walls and still hit
-                        if (instance.owner && instance.owner.TryGetComponent(out CharacterBody ownerBody) && ownerBody.isPlayerControlled)
-                        {
-                            TeamMask searchTeamMask = TeamMask.GetEnemyTeams(TeamComponent.GetObjectTeam(instance.owner));
-                            searchTeamMask.RemoveTeam(TeamIndex.Neutral);
-
-                            BullseyeSearch autoAimSearch = new BullseyeSearch
-                            {
-                                searchOrigin = instance.origin,
-                                filterByLoS = true,
-                                minDistanceFilter = 0f,
-                                maxDistanceFilter = instance.maxDistance,
-                                minAngleFilter = 0f,
-                                maxAngleFilter = 35f,
-                                searchDirection = bounceDirection,
-                                queryTriggerInteraction = QueryTriggerInteraction.Ignore,
-                                sortMode = BullseyeSearch.SortMode.Angle,
-                                viewer = ownerBody,
-                                teamMaskFilter = searchTeamMask,
-                            };
-
-                            autoAimSearch.RefreshCandidates();
-
-                            HurtBox overrideTargetHurtBox = autoAimSearch.GetResults().FirstOrDefault(h => HurtBox.FindEntityObject(h) != hit.entityObject);
-                            if (overrideTargetHurtBox)
-                            {
-                                bounceDirection = (overrideTargetHurtBox.randomVolumePoint - instance.origin).normalized;
-                            }
-                        }
-
-                        instance.FireSingle(bounceDirection, muzzleIndex);
+                        _currentBounceInfo = null;
+                        return;
                     }
 
-                    instance.origin = oldBulletOrigin;
+                    _currentBounceInfo.CurrentBounceHit = hit;
+                    tryFireBulletBounce(_currentBounceInfo);
 
-                    _currentBounceSourceHitInfo = null;
-
-                    _currentBulletBounceDepth--;
-                    break;
+                    if (_currentBounceInfo != null)
+                    {
+                        if (_currentBounceInfo.BouncesRemaining <= 0)
+                        {
+                            _currentBounceInfo = null;
+                        }
+                    }
                 }
+
+                c.SearchTarget = SearchTarget.Next;
+
+                retPatchCount++;
             }
+
+            if (retPatchCount == 0)
+            {
+                Log.Error("Found 0 ret patch locations");
+            }
+#if DEBUG
+            else
+            {
+                Log.Debug($"Found {retPatchCount} ret patch location(s)");
+            }
+#endif
+        }
+
+        static void tryFireBulletBounce(BulletBounceInfo bounceInfo)
+        {
+            bounceInfo.BounceDepth++;
+
+            BulletAttack bulletAttack = bounceInfo.BulletAttack;
+            BulletAttack.BulletHit bulletHit = bounceInfo.CurrentBounceHit;
+
+            Vector3 oldBulletOrigin = bulletAttack.origin;
+            bulletAttack.origin = bulletHit.point;
+
+            bulletAttack.maxDistance -= bulletHit.distance;
+            if (bulletAttack.maxDistance > 0f)
+            {
+                Vector3 bounceDirection = Vector3.Reflect(bounceInfo.CurrentBulletDirection, bulletHit.surfaceNormal);
+
+                // Slight "homing" on bullets to make it easier to bounce off walls and still hit
+                if (bulletAttack.owner && bulletAttack.owner.TryGetComponent(out CharacterBody ownerBody) && ownerBody.isPlayerControlled)
+                {
+                    TeamMask searchTeamMask = TeamMask.GetEnemyTeams(TeamComponent.GetObjectTeam(bulletAttack.owner));
+                    searchTeamMask.RemoveTeam(TeamIndex.Neutral);
+
+                    BullseyeSearch autoAimSearch = new BullseyeSearch
+                    {
+                        searchOrigin = bulletAttack.origin,
+                        filterByLoS = true,
+                        minDistanceFilter = 0f,
+                        maxDistanceFilter = bulletAttack.maxDistance,
+                        minAngleFilter = 0f,
+                        maxAngleFilter = 35f,
+                        searchDirection = bounceDirection,
+                        queryTriggerInteraction = QueryTriggerInteraction.Ignore,
+                        sortMode = BullseyeSearch.SortMode.Angle,
+                        viewer = ownerBody,
+                        teamMaskFilter = searchTeamMask,
+                    };
+
+                    autoAimSearch.RefreshCandidates();
+
+                    HurtBox overrideTargetHurtBox = autoAimSearch.GetResults().FirstOrDefault(h => HurtBox.FindEntityObject(h) != bulletHit.entityObject);
+                    if (overrideTargetHurtBox)
+                    {
+                        bounceDirection = (overrideTargetHurtBox.randomVolumePoint - bulletAttack.origin).normalized;
+                    }
+                }
+
+                bulletAttack.FireSingle(bounceDirection, bounceInfo.MuzzleIndex);
+            }
+
+            bulletAttack.origin = oldBulletOrigin;
         }
 
         static bool BulletAttack_DefaultFilterCallbackImplementation_IgnoreBounceSource(On.RoR2.BulletAttack.orig_DefaultFilterCallbackImplementation orig, BulletAttack bulletAttack, ref BulletAttack.BulletHit hitInfo)
         {
-            if (!orig(bulletAttack, ref hitInfo))
-                return false;
-
-            if (isEnabled && _currentBounceSourceHitInfo != null)
+            bool result = orig(bulletAttack, ref hitInfo);
+            if (result)
             {
-                if (_currentBounceSourceHitInfo.collider == hitInfo.collider || _currentBounceSourceHitInfo.entityObject == hitInfo.entityObject)
+                if (isEnabled && _currentBounceInfo != null)
                 {
-                    const float MIN_DISTANCE_TO_ALLOW = 1f;
-                    const float MIN_SQR_DISTANCE_TO_ALLOW = MIN_DISTANCE_TO_ALLOW * MIN_DISTANCE_TO_ALLOW;
-                    return (_currentBounceSourceHitInfo.point - hitInfo.point).sqrMagnitude >= MIN_SQR_DISTANCE_TO_ALLOW;
+                    if (_currentBounceInfo.CurrentBounceHit == hitInfo)
+                    {
+                        const float MIN_DISTANCE_TO_ALLOW = 1f;
+                        const float MIN_SQR_DISTANCE_TO_ALLOW = MIN_DISTANCE_TO_ALLOW * MIN_DISTANCE_TO_ALLOW;
+                        return (_currentBounceInfo.CurrentBounceHit.point - hitInfo.point).sqrMagnitude >= MIN_SQR_DISTANCE_TO_ALLOW;
+                    }
                 }
             }
 
-            return true;
+            return result;
         }
     }
 }

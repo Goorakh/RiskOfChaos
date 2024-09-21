@@ -1,10 +1,8 @@
-﻿using Mono.Cecil.Cil;
+﻿using Mono.Cecil;
+using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using MonoMod.Utils;
 using RoR2;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using UnityEngine;
 
 namespace RiskOfChaos.Patches
 {
@@ -15,10 +13,13 @@ namespace RiskOfChaos.Patches
 
         static bool shouldUseExplicitOriginPosition(BulletAttack bulletAttack)
         {
-            foreach (UseExplicitOriginPositionDelegate useExplicitPositionDelegate in UseExplicitOriginPosition.GetInvocationList())
+            if (UseExplicitOriginPosition != null)
             {
-                if (useExplicitPositionDelegate(bulletAttack))
-                    return true;
+                foreach (UseExplicitOriginPositionDelegate useExplicitPositionDelegate in UseExplicitOriginPosition.GetInvocationList())
+                {
+                    if (useExplicitPositionDelegate(bulletAttack))
+                        return true;
+                }
             }
 
             return false;
@@ -28,32 +29,67 @@ namespace RiskOfChaos.Patches
         static void Init()
         {
             IL.RoR2.BulletAttack.FireSingle += BulletAttack_FireSingle_FixTracerEffectOrigin;
+            IL.RoR2.BulletAttack.FireSingle_ReturnHit += BulletAttack_FireSingle_FixTracerEffectOrigin;
+            IL.RoR2.BulletAttack.FireMulti += BulletAttack_FireSingle_FixTracerEffectOrigin;
         }
 
         static void BulletAttack_FireSingle_FixTracerEffectOrigin(ILContext il)
         {
             ILCursor c = new ILCursor(il);
 
-            if (c.TryGotoNext(x => x.MatchCallOrCallvirt<EffectData>(nameof(EffectData.SetChildLocatorTransformReference))))
+            VariableDefinition shouldUseExplicitOriginVar = new VariableDefinition(il.Import(typeof(bool)));
+            il.Method.Body.Variables.Add(shouldUseExplicitOriginVar);
+
+            c.Emit(OpCodes.Ldarg_0);
+            c.EmitDelegate(shouldUseExplicitOriginPosition);
+            c.Emit(OpCodes.Stloc, shouldUseExplicitOriginVar);
+
+            int patchCount = 0;
+
+            while (c.TryGotoNext(MoveType.Before,
+                                 x => x.MatchCallOrCallvirt<EffectData>(nameof(EffectData.SetChildLocatorTransformReference))))
             {
-                if (c.TryGotoPrev(MoveType.After, x => x.MatchLdfld<BulletAttack>(nameof(BulletAttack.weapon))))
+                MethodReference method = (MethodReference)c.Next.Operand;
+
+                ILLabel skipCallLabel = c.DefineLabel();
+                ILLabel afterPatchLabel = c.DefineLabel();
+
+                c.Emit(OpCodes.Ldloc, shouldUseExplicitOriginVar);
+                c.Emit(OpCodes.Brtrue, skipCallLabel);
+
+                c.Index++;
+
+                c.Emit(OpCodes.Br, afterPatchLabel);
+
+                c.MarkLabel(skipCallLabel);
+
+                int popCount = method.Parameters.Count + (method.Resolve().IsStatic ? 0 : 1);
+                for (int i = 0; i < popCount; i++)
                 {
-                    c.Emit(OpCodes.Ldarg_0);
-                    c.EmitDelegate(overrideEffectOrigin);
-                    static GameObject overrideEffectOrigin(GameObject weapon, BulletAttack instance)
-                    {
-                        return shouldUseExplicitOriginPosition(instance) ? null : weapon;
-                    }
+                    c.Emit(OpCodes.Pop);
                 }
-                else
+
+                if (method.ReturnType != il.Import(typeof(void)))
                 {
-                    Log.Error("Failed to find weapon ldfld");
+                    Log.Warning("Skipped method is not void, emitting null, this will probably cause issues");
+                    c.Emit(OpCodes.Ldnull);
                 }
+
+                c.MarkLabel(afterPatchLabel);
+
+                patchCount++;
             }
+
+            if (patchCount == 0)
+            {
+                Log.Error("Found 0 patch locations");
+            }
+#if DEBUG
             else
             {
-                Log.Error("Failed to find EffectData.SetChildLocatorTransformReference call");
+                Log.Debug($"Found {patchCount} patch location(s)");
             }
+#endif
         }
     }
 }
