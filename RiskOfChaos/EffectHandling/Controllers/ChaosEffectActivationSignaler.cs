@@ -21,7 +21,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         {
             get
             {
-                if (PauseManager.isPaused && NetworkServer.dontListen)
+                if (PauseStopController.instance && PauseStopController.instance.isPaused)
                     return true;
 
                 if (SceneExitController.isRunning)

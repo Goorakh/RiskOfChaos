@@ -100,7 +100,7 @@ namespace RiskOfChaos.Networking.Components
 
         void Update()
         {
-            if (NetworkServer.dontListen && PauseManager.isPaused)
+            if (PauseStopController.instance && PauseStopController.instance.isPaused)
                 return;
 
             CharacterBody body = _networkedBodyAttachment.attachedBody;

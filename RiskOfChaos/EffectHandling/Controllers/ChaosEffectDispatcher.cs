@@ -72,7 +72,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void Update()
         {
-            if (!NetworkServer.active || PauseManager.isPaused || InputUtils.IsUsingInputField())
+            if (PauseStopController.instance && PauseStopController.instance.isPaused)
+                return;
+
+            if (!NetworkServer.active || InputUtils.IsUsingInputField())
                 return;
 
             foreach (ChaosEffectInfo effectInfo in ChaosEffectCatalog.AllEffects)
