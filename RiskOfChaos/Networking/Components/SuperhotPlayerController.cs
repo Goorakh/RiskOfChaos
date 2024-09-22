@@ -23,7 +23,7 @@ namespace RiskOfChaos.Networking.Components
             public float CurrentMultiplier
             {
                 get => _currentMultiplier;
-                set
+                private set
                 {
                     if (_currentMultiplier == value)
                         return;
@@ -33,6 +33,8 @@ namespace RiskOfChaos.Networking.Components
                 }
             }
 
+            public float TargetMultiplier = 1f;
+
             bool _disposed;
 
             public TimeScaleModificationProvider(SuperhotPlayerController playerController)
@@ -41,6 +43,20 @@ namespace RiskOfChaos.Networking.Components
                 _activeProviderCount++;
 
                 TimeScaleModificationManager.Instance.RegisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 0.5f);
+
+                RoR2Application.onUpdate += update;
+            }
+
+            void update()
+            {
+                if (PauseStopController.instance && PauseStopController.instance.isPaused)
+                    return;
+
+                const float TIME_SCALE_CHANGE_UP_MAX_DELTA = 1f;
+                const float TIME_SCALE_CHANGE_DOWN_MAX_DELTA = 2f;
+                float maxDelta = CurrentMultiplier > TargetMultiplier ? TIME_SCALE_CHANGE_DOWN_MAX_DELTA : TIME_SCALE_CHANGE_UP_MAX_DELTA;
+
+                CurrentMultiplier = Mathf.MoveTowards(CurrentMultiplier, TargetMultiplier, maxDelta * Time.unscaledDeltaTime);
             }
 
             public void ModifyValue(ref float value)
@@ -65,6 +81,8 @@ namespace RiskOfChaos.Networking.Components
                 {
                     TimeScaleModificationManager.Instance.UnregisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 0.5f);
                 }
+
+                RoR2Application.onUpdate -= update;
             }
         }
 
@@ -75,10 +93,7 @@ namespace RiskOfChaos.Networking.Components
 
         TimeScaleModificationProvider _timeScaleModificationProviderServer;
 
-        float _lastSetClientTimeScaleMultiplier = 1f;
-        float _clientTimeScaleMultiplier = 1f;
-
-        float _lastClientTimeScaleSyncTime = float.NegativeInfinity;
+        float _lastSetTargetMultiplier = 1f;
 
         void Awake()
         {
@@ -122,27 +137,15 @@ namespace RiskOfChaos.Networking.Components
 
             _body = body;
 
-            float timeStamp = Time.unscaledTime;
             float deltaTime = Time.unscaledDeltaTime;
             if (deltaTime <= 0f)
                 return;
 
             float targetTimeScaleMultiplier = getTargetTimeScaleMultiplier(deltaTime);
-
-            const float TIME_SCALE_CHANGE_UP_MAX_DELTA = 1f;
-            const float TIME_SCALE_CHANGE_DOWN_MAX_DELTA = 2f;
-            float maxDelta = _clientTimeScaleMultiplier > targetTimeScaleMultiplier ? TIME_SCALE_CHANGE_DOWN_MAX_DELTA : TIME_SCALE_CHANGE_UP_MAX_DELTA;
-
-            _clientTimeScaleMultiplier = Mathf.MoveTowards(_clientTimeScaleMultiplier, targetTimeScaleMultiplier, maxDelta * deltaTime);
-            if (_clientTimeScaleMultiplier != _lastSetClientTimeScaleMultiplier)
+            if (targetTimeScaleMultiplier != _lastSetTargetMultiplier)
             {
-                if (isServer || timeStamp - _lastClientTimeScaleSyncTime >= 0.15f)
-                {
-                    _lastClientTimeScaleSyncTime = timeStamp;
-                    _lastSetClientTimeScaleMultiplier = _clientTimeScaleMultiplier;
-
-                    CmdSetCurrentTimeScaleMultiplier(_clientTimeScaleMultiplier);
-                }
+                _lastSetTargetMultiplier = targetTimeScaleMultiplier;
+                CmdSetTargetTimeScaleMultiplier(targetTimeScaleMultiplier);
             }
         }
 
@@ -174,20 +177,20 @@ namespace RiskOfChaos.Networking.Components
             const float MAX_TIME_SCALE_MULTIPLIER = 1.7f;
             const float TIME_SCALE_COEFFICIENT = TIME_SCALE_MULTIPLIER * (MAX_TIME_SCALE_MULTIPLIER - MIN_TIME_SCALE_MULTIPLIER) / MAX_TIME_SCALE_MULTIPLIER;
 
-            float moveSpeed = _body.moveSpeed;
+            float maxSpeed = _body.moveSpeed;
             if (!_body.isSprinting)
-                moveSpeed *= _body.sprintingSpeedMultiplier;
+                maxSpeed *= _body.sprintingSpeedMultiplier;
 
-            float unscaledMultiplier = velocity / moveSpeed;
+            float unscaledMultiplier = velocity / maxSpeed;
             float scaledMultiplier = (TIME_SCALE_COEFFICIENT * unscaledMultiplier) + MIN_TIME_SCALE_MULTIPLIER;
 
             return Mathf.Clamp(scaledMultiplier, MIN_TIME_SCALE_MULTIPLIER, MAX_TIME_SCALE_MULTIPLIER);
         }
 
         [Command]
-        void CmdSetCurrentTimeScaleMultiplier(float multiplier)
+        void CmdSetTargetTimeScaleMultiplier(float targetMultiplier)
         {
-            _timeScaleModificationProviderServer.CurrentMultiplier = multiplier;
+            _timeScaleModificationProviderServer.TargetMultiplier = targetMultiplier;
         }
     }
 }
