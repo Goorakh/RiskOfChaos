@@ -18,21 +18,24 @@ namespace RiskOfChaos.EffectDefinitions.World
         static readonly TimedEffectInfo _effectInfo;
 
         static bool _hasAppliedPatches;
-        static int _tempDisablePatchCount;
+        static bool _isRollingTougherTimesProc;
         static void tryApplyPatches()
         {
             if (_hasAppliedPatches)
                 return;
 
-            On.RoR2.Util.CheckRoll_float_float_CharacterMaster += (orig, percentChance, luck, effectOriginMaster) =>
+            _hasAppliedPatches = true;
+
+            On.RoR2.Util.CheckRoll_float_float_CharacterMaster += checkGuaranteedRoll;
+            static bool checkGuaranteedRoll(On.RoR2.Util.orig_CheckRoll_float_float_CharacterMaster orig, float percentChance, float luck, CharacterMaster effectOriginMaster)
             {
                 return orig(percentChance, luck, effectOriginMaster) || (percentChance > 0f &&
-                                                                         _tempDisablePatchCount <= 0 &&
+                                                                         !_isRollingTougherTimesProc &&
                                                                          TimedChaosEffectHandler.Instance &&
                                                                          TimedChaosEffectHandler.Instance.IsTimedEffectActive(_effectInfo));
-            };
+            }
 
-            IL.RoR2.HealthComponent.TakeDamage += il =>
+            IL.RoR2.HealthComponent.TakeDamageProcess += il =>
             {
                 ILCursor c = new ILCursor(il);
 
@@ -42,38 +45,32 @@ namespace RiskOfChaos.EffectDefinitions.World
                 {
                     ILCursor cursor = foundCursors[1];
 
-                    FieldInfo tempDisablePatchCount = AccessTools.DeclaredField(typeof(GuaranteedChanceRolls), nameof(_tempDisablePatchCount));
+                    FieldInfo isRollingTougherTimesProc = AccessTools.DeclaredField(typeof(GuaranteedChanceRolls), nameof(_isRollingTougherTimesProc));
 
-                    cursor.Emit(OpCodes.Ldsfld, tempDisablePatchCount);
                     cursor.Emit(OpCodes.Ldc_I4_1);
-                    cursor.Emit(OpCodes.Add);
-                    cursor.Emit(OpCodes.Stsfld, tempDisablePatchCount);
+                    cursor.Emit(OpCodes.Stsfld, isRollingTougherTimesProc);
 
                     cursor.Index++;
 
-                    cursor.Emit(OpCodes.Ldsfld, tempDisablePatchCount);
-                    cursor.Emit(OpCodes.Ldc_I4_1);
-                    cursor.Emit(OpCodes.Sub);
-                    cursor.Emit(OpCodes.Stsfld, tempDisablePatchCount);
+                    cursor.Emit(OpCodes.Ldc_I4_0);
+                    cursor.Emit(OpCodes.Stsfld, isRollingTougherTimesProc);
                 }
                 else
                 {
                     Log.Error("Failed to find Tougher Times patch location");
                 }
             };
-
-            _hasAppliedPatches = true;
         }
 
         public override void OnStart()
         {
             tryApplyPatches();
-            _tempDisablePatchCount = 0;
+            _isRollingTougherTimesProc = false;
         }
 
         public override void OnEnd()
         {
-            _tempDisablePatchCount = 0;
+            _isRollingTougherTimesProc = false;
         }
     }
 }
