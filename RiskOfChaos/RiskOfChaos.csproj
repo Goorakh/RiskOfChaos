@@ -18,12 +18,6 @@
     <None Remove="NetworkWeaver\**" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <BuildDir>$(SolutionDir)build/</BuildDir>
-    <TSPackageDir>$(BuildDir)/package/</TSPackageDir>
-    <TSPackagePluginDir>$(TSPackageDir)/plugins/$(SolutionName)/</TSPackagePluginDir>
-  </PropertyGroup>
-
   <ItemGroup>
     <None Include="..\.editorconfig" Link=".editorconfig" />
   </ItemGroup>
@@ -100,17 +94,19 @@
     </Reference>
   </ItemGroup>
 
+  <PropertyGroup>
+    <BuildDir>$(SolutionDir)build/</BuildDir>
+    <TSPackageDir>$(BuildDir)/package/</TSPackageDir>
+    <TSPackagePluginDir>$(TSPackageDir)/plugins/$(SolutionName)/</TSPackagePluginDir>
+  </PropertyGroup>
+
   <Target Name="BuildTSPackage" AfterTargets="Build">
+    <RemoveDir Directories="$(TSPackageDir)" />
     <MakeDir Directories="$(TSPackageDir);$(TSPackagePluginDir)" />
+
     <Copy SourceFiles="$(SolutionDir)manifest.json;$(SolutionDir)README.md;$(SolutionDir)CHANGELOG.md" DestinationFolder="$(TSPackageDir)" />
 
     <Copy SourceFiles="$(BuildDir)icon.png" DestinationFolder="$(TSPackageDir)" ContinueOnError="true" />
-
-    <ItemGroup>
-      <PreviousBuildFiles Include="$(TSPackagePluginDir)*.dll;$(TSPackagePluginDir)*.pdb" />
-    </ItemGroup>
-
-    <Delete Files="@(PreviousBuildFiles)" />
 
     <ItemGroup>
       <LangFiles Include="$(SolutionDir)lang/**/*.*" />
