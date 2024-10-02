@@ -59,7 +59,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         void lockInteractable(PurchaseInteraction purchaseInteraction)
         {
-            if (!purchaseInteraction.available)
+            if (!purchaseInteraction.available || purchaseInteraction.lockGameObject)
                 return;
 
             GameObject lockObject = GameObject.Instantiate(_purchaseLockPrefab, purchaseInteraction.transform.position, Quaternion.Euler(0f, RNG.RangeFloat(0f, 360f), 0f));
