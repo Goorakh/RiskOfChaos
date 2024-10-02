@@ -7,7 +7,7 @@
 	"description": "Every minute, a random effect happens. Heavily inspired by the \"Chaos Mod\" series of GTA games.\nNow with Twitch Integration!",
 	"dependencies": [
 		"bbepis-BepInExPack-5.4.2113",
-		"RiskofThunder-HookGenPatcher-1.2.4",
+		"RiskofThunder-HookGenPatcher-1.2.5",
 		"RiskofThunder-R2API_Core-5.1.2",
 		"RiskofThunder-R2API_Networking-1.0.2",
 		"RiskofThunder-R2API_RecalculateStats-1.4.0",
