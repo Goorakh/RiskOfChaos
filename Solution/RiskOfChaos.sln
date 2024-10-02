@@ -10,9 +10,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RiskOfChaos", "RiskOfChaos\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Metadata", "Metadata", "{3A26DDA8-2697-4D64-962B-DB9E2DC00EF6}"
 	ProjectSection(SolutionItems) = preProject
-		CHANGELOG.md = CHANGELOG.md
-		manifest.json = manifest.json
-		README.md = README.md
+		..\CHANGELOG.md = ..\CHANGELOG.md
+		..\manifest.json = ..\manifest.json
+		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lang", "lang", "{82611093-7B12-4659-9602-8B7BE0BC0AED}"
@@ -38,7 +38,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RiskOfTwitch", "RiskOfTwitch\RiskOfTwitch.csproj", "{CABDF368-415B-431F-8316-54707FD2F695}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RiskOfTwitch", "RiskOfTwitch\RiskOfTwitch.csproj", "{CABDF368-415B-431F-8316-54707FD2F695}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -95,17 +95,18 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <BuildDir>$(SolutionDir)build/</BuildDir>
+    <RootDir>$(SolutionDir)../</RootDir>
+    <BuildDir>$(RootDir)build/</BuildDir>
     <TSPackageDir>$(BuildDir)/package/</TSPackageDir>
     <TSPackagePluginDir>$(TSPackageDir)/plugins/$(SolutionName)/</TSPackagePluginDir>
-    <UnityProjectDir>$(SolutionDir)UnityAssets/</UnityProjectDir>
+    <UnityProjectDir>$(RootDir)UnityAssets/</UnityProjectDir>
   </PropertyGroup>
 
   <Target Name="BuildTSPackage" AfterTargets="Build">
     <RemoveDir Directories="$(TSPackageDir)" />
     <MakeDir Directories="$(TSPackageDir);$(TSPackagePluginDir)" />
 
-    <Copy SourceFiles="$(SolutionDir)manifest.json;$(SolutionDir)README.md;$(SolutionDir)CHANGELOG.md" DestinationFolder="$(TSPackageDir)" />
+    <Copy SourceFiles="$(RootDir)manifest.json;$(RootDir)README.md;$(RootDir)CHANGELOG.md" DestinationFolder="$(TSPackageDir)" />
 
     <Copy SourceFiles="$(BuildDir)icon.png" DestinationFolder="$(TSPackageDir)" ContinueOnError="true" />
 
