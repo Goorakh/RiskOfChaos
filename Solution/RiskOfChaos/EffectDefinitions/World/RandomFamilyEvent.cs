@@ -3,6 +3,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.ExpansionManagement;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -12,20 +13,36 @@ namespace RiskOfChaos.EffectDefinitions.World
     [ChaosEffect("random_family_event", DefaultSelectionWeight = 0.4f)]
     public sealed class RandomFamilyEvent : BaseEffect
     {
-        static readonly DccsPool _allFamilyEventsPool = ScriptableObject.CreateInstance<DccsPool>();
+        static readonly HashSet<FamilyDirectorCardCategorySelection> _forcedFamilyCardSelections = [];
+
+        static DccsPool _allFamilyEventsPool;
 
         [SystemInitializer(typeof(ExpansionCatalog))]
         static void Init()
         {
+            _allFamilyEventsPool = ScriptableObject.CreateInstance<DccsPool>();
+            _allFamilyEventsPool.name = "dpAllMonsterFamilies";
+
             ExpansionDef dlc1 = ExpansionUtils.DLC1;
-            ExpansionDef[] dlc1Expansions = [ dlc1 ];
+            ExpansionDef[] dlc1Expansions = [dlc1];
 
             static void loadAndSetPoolEntryDccs(DccsPool.PoolEntry poolEntry, string assetKey)
             {
                 AsyncOperationHandle<FamilyDirectorCardCategorySelection> loadAssetHandle = Addressables.LoadAssetAsync<FamilyDirectorCardCategorySelection>(assetKey);
                 loadAssetHandle.Completed += handle =>
                 {
-                    poolEntry.dccs = handle.Result;
+                    FamilyDirectorCardCategorySelection familyDccs = handle.Result;
+                    string name = handle.Result.name;
+
+                    familyDccs = ScriptableObject.Instantiate(familyDccs);
+                    familyDccs.name = name + "Forced";
+
+                    familyDccs.minimumStageCompletion = 0;
+                    familyDccs.maximumStageCompletion = int.MaxValue;
+
+                    poolEntry.dccs = familyDccs;
+
+                    _forcedFamilyCardSelections.Add(familyDccs);
                 };
             }
 
@@ -39,6 +56,20 @@ namespace RiskOfChaos.EffectDefinitions.World
                 loadAndSetPoolEntryDccs(poolEntry, assetKey);
 
                 return poolEntry;
+            }
+
+            static DccsPool.PoolEntry[] getGroupedPoolEntries(string[] assetKeys, float totalWeight = 1f)
+            {
+                int entryCount = assetKeys.Length;
+                float entryWeight = totalWeight / entryCount;
+
+                DccsPool.PoolEntry[] entries = new DccsPool.PoolEntry[entryCount];
+                for (int i = 0; i < entryCount; i++)
+                {
+                    entries[i] = getPoolEntry(assetKeys[i], entryWeight);
+                }
+
+                return entries;
             }
 
             static DccsPool.ConditionalPoolEntry getConditionalPoolEntry(string assetKey, ExpansionDef[] requiredExpansions, float weight = 1f)
@@ -59,8 +90,8 @@ namespace RiskOfChaos.EffectDefinitions.World
                 name = "AllFamilies",
                 categoryWeight = 1f,
                 alwaysIncluded = [
-                    getPoolEntry("RoR2/Base/Common/dccsBeetleFamily.asset"),
-                    getPoolEntry("RoR2/Base/Common/dccsGolemFamily.asset"),
+                    .. getGroupedPoolEntries(["RoR2/Base/Common/dccsBeetleFamily.asset", "RoR2/Base/Common/dccsBeetleFamilySulfur.asset"]),
+                    .. getGroupedPoolEntries(["RoR2/Base/Common/dccsGolemFamily.asset", "RoR2/Base/Common/dccsGolemFamilyNature.asset", "RoR2/Base/Common/dccsGolemFamilySandy.asset", "RoR2/Base/Common/dccsGolemFamilySnowy.asset"]),
                     getPoolEntry("RoR2/Base/Common/dccsImpFamily.asset"),
                     getPoolEntry("RoR2/Base/Common/dccsJellyfishFamily.asset"),
                     getPoolEntry("RoR2/Base/Common/dccsLemurianFamily.asset"),
@@ -78,11 +109,10 @@ namespace RiskOfChaos.EffectDefinitions.World
                 includedIfNoConditionsMet = []
             };
 
-            _allFamilyEventsPool.poolCategories = [ category ];
+            _allFamilyEventsPool.poolCategories = [category];
         }
 
         static bool _appliedPatches = false;
-        static bool _forceAllFamilyEventsAvailable = false;
 
         static void applyPatchesIfNeeded()
         {
@@ -91,7 +121,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             On.RoR2.FamilyDirectorCardCategorySelection.IsAvailable += static (orig, self) =>
             {
-                return orig(self) || _forceAllFamilyEventsAvailable;
+                return orig(self) || _forcedFamilyCardSelections.Contains(self);
             };
 
             _appliedPatches = true;
@@ -110,15 +140,8 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             ClassicStageInfo stageInfo = ClassicStageInfo.instance;
 
-            DccsPool originalDccsPool = stageInfo.monsterDccsPool;
-
             stageInfo.monsterDccsPool = _allFamilyEventsPool;
-
-            _forceAllFamilyEventsAvailable = true;
             stageInfo.RebuildCards();
-            _forceAllFamilyEventsAvailable = false;
-
-            stageInfo.monsterDccsPool = originalDccsPool;
         }
     }
 }

@@ -12,6 +12,9 @@
     * Captain beacons
     * SotS interactables
 
+* Trigger Random Family Event:
+  * Added visual variant events for Beetles and Golems
+
 * Disable Equipment:
   * Fixed The Crowdfunder still being usable while effect is active.
 
