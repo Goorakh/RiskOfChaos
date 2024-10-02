@@ -69,7 +69,7 @@ namespace RiskOfChaos.Patches
                     c.Emit(OpCodes.Pop);
                 }
 
-                if (method.ReturnType != il.Import(typeof(void)))
+                if (!method.ReturnType.Is(typeof(void)))
                 {
                     Log.Warning("Skipped method is not void, emitting null, this will probably cause issues");
                     c.Emit(OpCodes.Ldnull);
