@@ -7,6 +7,11 @@
   * Unlimited Proc Chains: Disables proc chain restrictions, lasts 60 seconds
   * Hide Health Bar: Hides all health bars, lasts 60 seconds
 
+* Activate All Interactables:
+  * Added interactables to effect
+    * Captain beacons
+    * SotS interactables
+
 * Disable Equipment:
   * Fixed The Crowdfunder still being usable while effect is active.
 

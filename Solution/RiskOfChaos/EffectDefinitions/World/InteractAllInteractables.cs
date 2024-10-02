@@ -51,10 +51,20 @@ namespace RiskOfChaos.EffectDefinitions.World
                 return _allowOrderShrineActivation.Value || !purchaseInteraction.GetComponent<ShrineRestackBehavior>();
             }
 
+            static bool isGenericInteractionValid(GenericInteraction genericInteraction)
+            {
+                return !genericInteraction.GetComponent<SceneExitController>();
+            }
+
             return InstanceTracker.GetInstancesList<PurchaseInteraction>().Where(isPurchaseInteractionValid)
                                   .Cast<IInteractable>()
+                                  .Concat(InstanceTracker.GetInstancesList<AurelioniteHeartController>())
                                   .Concat(InstanceTracker.GetInstancesList<BarrelInteraction>())
+                                  .Concat(InstanceTracker.GetInstancesList<GenericInteraction>().Where(isGenericInteractionValid))
+                                  .Concat(InstanceTracker.GetInstancesList<GeodeController>())
+                                  .Concat(InstanceTracker.GetInstancesList<ProxyInteraction>())
                                   .Concat(InstanceTracker.GetInstancesList<TimedChestController>())
+                                  .Concat(InstanceTracker.GetInstancesList<WokController>())
                                   .Where(canBeOpened);
         }
 
