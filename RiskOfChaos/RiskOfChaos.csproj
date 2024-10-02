@@ -98,6 +98,7 @@
     <BuildDir>$(SolutionDir)build/</BuildDir>
     <TSPackageDir>$(BuildDir)/package/</TSPackageDir>
     <TSPackagePluginDir>$(TSPackageDir)/plugins/$(SolutionName)/</TSPackagePluginDir>
+    <UnityProjectDir>$(SolutionDir)UnityAssets/</UnityProjectDir>
   </PropertyGroup>
 
   <Target Name="BuildTSPackage" AfterTargets="Build">
@@ -113,6 +114,8 @@
     </ItemGroup>
 
     <Copy SourceFiles="@(LangFiles)" DestinationFolder="$(TSPackagePluginDir)/lang/%(RecursiveDir)" />
+
+    <Copy SourceFiles="$(UnityProjectDir)/Assets/Export/riskofchaos" DestinationFolder="$(TSPackagePluginDir)" />
 
     <Exec Command="Unity.UNetWeaver.exe $(PkgUnityEngine_Modules)\lib\netstandard2.0\UnityEngine.CoreModule.dll $(PkgRiskOfRain2_GameLibs)\lib\netstandard2.0\com.unity.multiplayer-hlapi.Runtime.dll $(TSPackagePluginDir) $(SolutionDir)$(ProjectName)\$(OutDir)$(AssemblyName).dll $(NugetPackageRoot)\netstandard.library.ref\2.1.0\ref\netstandard2.1" WorkingDirectory="$(ProjectDir)\NetworkWeaver" />
 
