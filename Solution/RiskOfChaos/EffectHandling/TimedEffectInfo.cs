@@ -37,6 +37,8 @@ namespace RiskOfChaos.EffectHandling
         public readonly bool IgnoreDurationModifiers;
 
         readonly ConfigHolder<int> _stageCountDuration;
+        public int StageDuration => _stageCountDuration.Value;
+
         public float MaxStocks
         {
             get
@@ -57,6 +59,22 @@ namespace RiskOfChaos.EffectHandling
                 }
 
                 return maxStocks;
+            }
+        }
+
+        public float Duration
+        {
+            get
+            {
+                switch (TimedType)
+                {
+                    case TimedEffectType.UntilStageEnd:
+                        return StageDuration;
+                    case TimedEffectType.FixedDuration:
+                        return DurationSeconds;
+                    default:
+                        return 1f;
+                }
             }
         }
 
