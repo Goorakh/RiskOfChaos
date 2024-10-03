@@ -1,45 +1,49 @@
 ﻿using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.Utilities;
 using RoR2;
+using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
     [ChaosTimedEffect("everyone_1hp", 30f, AllowDuplicates = false)]
-    public sealed class Everyone1Hp : ApplyBuffEffect
+    [RequireComponent(typeof(ApplyBuffEffect))]
+    public sealed class Everyone1Hp : MonoBehaviour
     {
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return canSelectBuff(Buffs.SetTo1Hp.buffIndex);
+            return ApplyBuffEffect.CanSelectBuff(Buffs.SetTo1Hp.buffIndex);
         }
 
-        protected override BuffIndex getBuffIndexToApply()
-        {
-            return Buffs.SetTo1Hp.buffIndex;
-        }
+        ApplyBuffEffect _applyBuffEffect;
 
-        public override void OnStart()
+        void Awake()
         {
-            foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
+            _applyBuffEffect = GetComponent<ApplyBuffEffect>();
+            _applyBuffEffect.OnBuffAppliedServer += onBuffAppliedServer;
+
+            if (NetworkServer.active)
             {
-                playerBody.AddTimedBuff(RoR2Content.Buffs.HiddenInvincibility, 1f);
-
-                Util.CleanseBody(playerBody, false, false, false, true, false, false);
+                _applyBuffEffect.BuffIndex = Buffs.SetTo1Hp.buffIndex;
+                _applyBuffEffect.BuffStackCount = 1;
             }
-
-            base.OnStart();
         }
 
-        protected override void onBuffApplied(CharacterBody body)
+        static void onBuffAppliedServer(CharacterBody body)
         {
-            base.onBuffApplied(body);
-
             HealthComponent healthComponent = body.healthComponent;
             if (healthComponent)
             {
                 healthComponent.Networkbarrier = 0f;
+            }
+
+            if (body.isPlayerControlled)
+            {
+                body.AddTimedBuff(RoR2Content.Buffs.HiddenInvincibility, 1f);
+
+                Util.CleanseBody(body, false, false, false, true, false, false);
             }
         }
     }

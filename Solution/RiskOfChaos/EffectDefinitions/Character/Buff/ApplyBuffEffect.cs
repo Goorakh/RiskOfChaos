@@ -1,6 +1,4 @@
 ﻿using HarmonyLib;
-using HG;
-using RiskOfChaos.Collections.CatalogIndex;
 using RiskOfChaos.Components;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
@@ -8,31 +6,30 @@ using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
-    public abstract class ApplyBuffEffect : TimedEffect
+    public sealed class ApplyBuffEffect : MonoBehaviour
     {
-        static uint[] _activeBuffStacks = [];
+        static readonly List<ApplyBuffEffect> _instancesList = [];
 
-        [SystemInitializer(typeof(BuffCatalog))]
-        static void Init()
+        public static int GetActiveBuffStackCount(BuffIndex buffIndex)
         {
-            _activeBuffStacks = BuffCatalog.GetPerBuffBuffer<uint>();
-
-            Run.onRunStartGlobal += _ =>
+            int stackCount = 0;
+            foreach (ApplyBuffEffect applyBuffEffect in _instancesList)
             {
-                ArrayUtils.SetAll(_activeBuffStacks, 0U);
-            };
+                if (applyBuffEffect.BuffIndex == buffIndex)
+                {
+                    stackCount += applyBuffEffect.BuffStackCount;
+                }
+            }
+
+            return stackCount;
         }
 
-        protected static uint getBuffStackCount(BuffIndex buffIndex)
-        {
-            return ArrayUtils.GetSafe(_activeBuffStacks, (int)buffIndex);
-        }
-
-        protected static bool canSelectBuff(BuffIndex buffIndex)
+        public static bool CanSelectBuff(BuffIndex buffIndex)
         {
             if (buffIndex == BuffIndex.None)
                 return false;
@@ -41,155 +38,127 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             if (!buffDef)
                 return false;
 
-            uint stackCount = getBuffStackCount(buffIndex);
+            int stackCount = GetActiveBuffStackCount(buffIndex);
             return stackCount < int.MaxValue && (buffDef.canStack || stackCount == 0);
         }
 
-        protected static IEnumerable<BuffIndex> filterSelectableBuffs(IEnumerable<BuffIndex> buffIndices)
+        public static IEnumerable<BuffIndex> FilterSelectableBuffs(IEnumerable<BuffIndex> buffIndices)
         {
-            return buffIndices.Where(canSelectBuff);
+            return buffIndices.Where(CanSelectBuff);
         }
 
-        static readonly BuffIndexCollection _isDebuffOverrideList = new BuffIndexCollection([
-            // MysticsItems compat
-            "MysticsItems_Crystallized",
-            "MysticsItems_TimePieceSlow",
+        public delegate void OnBuffAppliedDelegate(CharacterBody body);
+        public event OnBuffAppliedDelegate OnBuffAppliedServer;
 
-            // Starstorm2 compat
-            "bdMULENet",
-
-            "bdBlinded",
-        ]);
-
-        protected static bool isDebuff(BuffDef buff)
+        BuffIndex _buffIndex = BuffIndex.None;
+        public BuffIndex BuffIndex
         {
-            if (buff.isDebuff)
-                return true;
-
-            if (_isDebuffOverrideList.Contains(buff.buffIndex))
-                return true;
-
-            return false;
-        }
-
-        static readonly BuffIndexCollection _isCooldownOverrideList = new BuffIndexCollection([
-            // LostInTransit compat
-            "RepulsionArmorCD",
-
-            // Starstorm2 compat
-            "BuffTerminationCooldown",
-        ]);
-
-        protected static bool isCooldown(BuffDef buff)
-        {
-            if (buff.isCooldown)
-                return true;
-
-            if (_isCooldownOverrideList.Contains(buff.buffIndex))
-                return true;
-
-            return false;
-        }
-
-        protected static bool isDOT(BuffDef buff)
-        {
-            foreach (DotController.DotDef dotDef in DotController.dotDefs)
+            get
             {
-                if (dotDef == null)
-                    continue;
+                return _buffIndex;
+            }
+            set
+            {
+                if (_buffIndex == value)
+                    return;
 
-                if (dotDef.associatedBuff == buff)
+                _buffIndex = value;
+                updateAllBuffComponents();
+            }
+        }
+
+        int _buffStackCount = 1;
+        public int BuffStackCount
+        {
+            get
+            {
+                return _buffStackCount;
+            }
+            set
+            {
+                if (_buffStackCount == value)
+                    return;
+
+                _buffStackCount = value;
+                updateAllBuffComponents();
+            }
+        }
+
+        readonly List<KeepBuff> _keepBuffComponents = [];
+
+        void OnEnable()
+        {
+            _instancesList.Add(this);
+
+            updateAllBuffComponents();
+        }
+
+        void OnDisable()
+        {
+            _instancesList.Remove(this);
+
+            foreach (KeepBuff keepBuff in _keepBuffComponents)
+            {
+                if (keepBuff)
                 {
-                    return true;
+                    keepBuff.enabled = false;
+                }
+            }
+        }
+
+        void Start()
+        {
+            if (NetworkServer.active)
+            {
+                CharacterBody.readOnlyInstancesList.TryDo(tryAddBuff, FormatUtils.GetBestBodyName);
+                CharacterBody.onBodyStartGlobal += tryAddBuff;
+            }
+        }
+
+        void OnDestroy()
+        {
+            CharacterBody.onBodyStartGlobal -= tryAddBuff;
+
+            foreach (KeepBuff keepBuff in _keepBuffComponents)
+            {
+                if (keepBuff)
+                {
+                    Destroy(keepBuff);
                 }
             }
 
-            return false;
+            _keepBuffComponents.Clear();
         }
 
-        protected abstract BuffIndex getBuffIndexToApply();
-
-        protected BuffIndex _buffIndex = BuffIndex.None;
-
-        protected uint _buffCount = 1;
-
-        public override void OnPreStartServer()
+        void tryAddBuff(CharacterBody body)
         {
-            base.OnPreStartServer();
-
-            _buffIndex = getBuffIndexToApply();
-        }
-
-        public override void Serialize(NetworkWriter writer)
-        {
-            base.Serialize(writer);
-
-            writer.WritePackedIndex32((int)_buffIndex);
-            writer.WritePackedUInt32(_buffCount);
-        }
-
-        public override void Deserialize(NetworkReader reader)
-        {
-            base.Deserialize(reader);
-
-            _buffIndex = (BuffIndex)reader.ReadPackedIndex32();
-            _buffCount = reader.ReadPackedUInt32();
-        }
-
-        public override void OnStart()
-        {
-            CharacterBody.readOnlyInstancesList.Do(addBuff);
-            CharacterBody.onBodyStartGlobal += addBuff;
-
-            if (ArrayUtils.IsInBounds(_activeBuffStacks, (int)_buffIndex))
-            {
-                _activeBuffStacks[(int)_buffIndex] += _buffCount;
-            }
-            else
-            {
-                Log.Warning($"Buff index {_buffIndex} out of range (max={_activeBuffStacks.Length - 1})");
-            }
-        }
-
-        public override void OnEnd()
-        {
-            CharacterBody.onBodyStartGlobal -= addBuff;
-
-            InstanceTracker.GetInstancesList<KeepBuff>().TryDo(keepBuff =>
-            {
-                if (keepBuff.BuffIndex == _buffIndex)
-                {
-                    keepBuff.BuffStackCount -= _buffCount;
-                }
-            });
-
-            if (ArrayUtils.IsInBounds(_activeBuffStacks, (int)_buffIndex))
-            {
-                _activeBuffStacks[(int)_buffIndex] -= _buffCount;
-            }
-            else
-            {
-                Log.Warning($"Buff index {_buffIndex} out of range (max={_activeBuffStacks.Length - 1})");
-            }
-        }
-
-        void addBuff(CharacterBody body)
-        {
-            try
-            {
-                KeepBuff.AddTo(body, _buffIndex, _buffCount);
-            }
-            catch (Exception ex)
-            {
-                Log.Error_NoCallerPrefix($"Failed to add buff {BuffCatalog.GetBuffDef(_buffIndex)} to {FormatUtils.GetBestBodyName(body)}: {ex}");
+            if (!NetworkServer.active || !isActiveAndEnabled || BuffIndex == BuffIndex.None || BuffStackCount <= 0)
                 return;
-            }
 
-            onBuffApplied(body);
+            KeepBuff keepBuff = body.gameObject.AddComponent<KeepBuff>();
+            updateBuffComponent(keepBuff);
+
+            _keepBuffComponents.Add(keepBuff);
+
+            OnBuffAppliedServer?.Invoke(body);
         }
 
-        protected virtual void onBuffApplied(CharacterBody body)
+        void updateAllBuffComponents()
         {
+            foreach (KeepBuff keepBuff in _keepBuffComponents)
+            {
+                if (keepBuff)
+                {
+                    updateBuffComponent(keepBuff);
+                }
+            }
+        }
+
+        void updateBuffComponent(KeepBuff keepBuff)
+        {
+            keepBuff.BuffIndex = BuffIndex;
+            keepBuff.MinBuffCount = BuffStackCount;
+            keepBuff.enabled = isActiveAndEnabled && keepBuff.BuffIndex != BuffIndex.None && keepBuff.MinBuffCount > 0;
         }
     }
 }

@@ -7,17 +7,21 @@ using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
 using System.Linq;
+using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
     [ChaosTimedEffect("random_buff", 90f)]
     [EffectConfigBackwardsCompatibility("Effect: Give Everyone a Random Buff (Lasts 1 stage)")]
-    public sealed class RandomBuff : ApplyBuffEffect
+    [RequireComponent(typeof(ApplyBuffEffect))]
+    public sealed class RandomBuff : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<int> _stackableBuffCount =
@@ -26,8 +30,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                               .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntFieldConfig { Min = 1 })
                               .Build();
-
-        static uint configStackCount => ClampedConversion.UInt32(_stackableBuffCount.Value);
 
         static bool _hasAppliedPatches = false;
         static void tryApplyPatches()
@@ -203,7 +205,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 	        #endregion
         ]);
 
-        static BuffIndex[] _availableBuffIndices;
+        static BuffIndex[] _availableBuffIndices = [];
 
         [SystemInitializer(typeof(BuffCatalog), typeof(DotController))]
         static void InitAvailableBuffs()
@@ -214,7 +216,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                     return false;
 
                 BuffDef buffDef = BuffCatalog.GetBuffDef(bi);
-                if (!buffDef || buffDef.isHidden || isDebuff(buffDef) || isCooldown(buffDef))
+                if (!buffDef || buffDef.isHidden || BuffUtils.IsDebuff(buffDef) || BuffUtils.IsCooldown(buffDef))
                 {
 #if DEBUG
                     Log.Debug($"Excluding hidden/debuff/cooldown buff {buffDef.name}");
@@ -222,7 +224,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                     return false;
                 }
 
-                if (isDOT(buffDef))
+                if (BuffUtils.IsDOT(buffDef))
                 {
 #if DEBUG
                     Log.Debug($"Excluding DOT buff: {buffDef.name}");
@@ -249,16 +251,31 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return _availableBuffIndices != null && filterSelectableBuffs(_availableBuffIndices).Any();
+            return _availableBuffIndices.Length > 0 && ApplyBuffEffect.FilterSelectableBuffs(_availableBuffIndices).Any();
         }
 
-        public override void OnPreStartServer()
-        {
-            base.OnPreStartServer();
-            tryApplyPatches();
+        ChaosEffectComponent _chaosEffect;
+        ApplyBuffEffect _applyBuffEffect;
 
-            BuffDef buffDef = BuffCatalog.GetBuffDef(_buffIndex);
-            _buffCount = buffDef && buffDef.canStack ? configStackCount : 1;
+        Xoroshiro128Plus _rng;
+
+        void Awake()
+        {
+            _chaosEffect = GetComponent<ChaosEffectComponent>();
+            _applyBuffEffect = GetComponent<ApplyBuffEffect>();
+
+            if (NetworkServer.active)
+            {
+                tryApplyPatches();
+
+                _rng = new Xoroshiro128Plus(_chaosEffect.RngServer.nextUlong);
+
+                BuffIndex buffIndex = getBuffIndexToApply();
+                _applyBuffEffect.BuffIndex = buffIndex;
+
+                BuffDef buffDef = BuffCatalog.GetBuffDef(buffIndex);
+                _applyBuffEffect.BuffStackCount = buffDef && buffDef.canStack ? _stackableBuffCount.Value : 1;
+            }
         }
 
 #if DEBUG
@@ -266,7 +283,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         static bool _enableDebugIndex = false;
 #endif
 
-        protected override BuffIndex getBuffIndexToApply()
+        BuffIndex getBuffIndexToApply()
         {
             BuffIndex selectedBuff;
 
@@ -278,7 +295,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             else
 #endif
             {
-                selectedBuff = RNG.NextElementUniform(filterSelectableBuffs(_availableBuffIndices).ToList());
+                selectedBuff = _rng.NextElementUniform(ApplyBuffEffect.FilterSelectableBuffs(_availableBuffIndices).ToList());
             }
 
 #if DEBUG
