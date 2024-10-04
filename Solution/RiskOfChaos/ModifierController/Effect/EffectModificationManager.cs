@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Utilities.Interpolation;
+﻿using RiskOfChaos.EffectHandling;
+using RiskOfChaos.Utilities.Interpolation;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModifierController.Effect
@@ -59,6 +60,15 @@ namespace RiskOfChaos.ModifierController.Effect
             EffectModificationInfo modificationInfo = GetModifiedValue(new EffectModificationInfo());
 
             DurationMultiplier = modificationInfo.DurationMultiplier;
+        }
+
+        public bool TryModifyDuration(TimedEffectInfo effectInfo, ref float duration)
+        {
+            if (effectInfo == null || effectInfo.IgnoreDurationModifiers || !AnyModificationActive || DurationMultiplier == 1f)
+                return false;
+
+            duration *= DurationMultiplier;
+            return true;
         }
     }
 }

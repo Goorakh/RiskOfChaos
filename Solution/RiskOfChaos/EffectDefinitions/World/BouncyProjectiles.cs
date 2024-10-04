@@ -35,10 +35,10 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         static void bounceCountConfigChanged()
         {
-            if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+            if (!NetworkServer.active || !ChaosEffectTracker.Instance)
                 return;
 
-            TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<BouncyProjectiles>(e => e.OnValueDirty);
+            ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<BouncyProjectiles>(e => e.OnValueDirty);
         }
 
         [EffectCanActivate]

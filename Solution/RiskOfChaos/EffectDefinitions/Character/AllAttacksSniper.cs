@@ -28,7 +28,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             On.RoR2.BulletAttack.Fire += (orig, self) =>
             {
-                if (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
+                if (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(EffectInfo))
                 {
                     self.sniper = true;
                 }
@@ -65,7 +65,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                         c.EmitDelegate(trySniperHit);
                         static BlastAttack.BlastAttackDamageInfo trySniperHit(BlastAttack.BlastAttackDamageInfo blastDamageInfo, BlastAttack.HitPoint hitPoint)
                         {
-                            if (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
+                            if (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(EffectInfo))
                             {
                                 if (hitPoint.hurtBox.isSniperTarget)
                                 {
@@ -104,7 +104,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 orig(self, boxedHitList);
 
-                if (!TimedChaosEffectHandler.Instance || !TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
+                if (!ChaosEffectTracker.Instance || !ChaosEffectTracker.Instance.IsTimedEffectActive(EffectInfo))
                     return;
 
                 if (boxedHitList is List<OverlapAttack.OverlapInfo> hitList)
@@ -163,7 +163,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                         if (!overlapInfo.hurtBox || !overlapInfo.hurtBox.isSniperTarget)
                             return;
 
-                        if (!TimedChaosEffectHandler.Instance || !TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
+                        if (!ChaosEffectTracker.Instance || !ChaosEffectTracker.Instance.IsTimedEffectActive(EffectInfo))
                             return;
 
                         damageInfo.crit = true;

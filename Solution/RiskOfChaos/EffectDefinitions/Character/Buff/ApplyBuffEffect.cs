@@ -1,9 +1,9 @@
-﻿using HarmonyLib;
-using RiskOfChaos.Components;
+﻿using RiskOfChaos.Components;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -11,6 +11,8 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
+    [DisallowMultipleComponent]
+    [RequiredComponents(typeof(ChaosEffectComponent))]
     public sealed class ApplyBuffEffect : MonoBehaviour
     {
         static readonly List<ApplyBuffEffect> _instancesList = [];

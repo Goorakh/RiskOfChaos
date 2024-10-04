@@ -30,10 +30,10 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
                                 })
                                 .OnValueChanged(() =>
                                 {
-                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                                    if (!NetworkServer.active || !ChaosEffectTracker.Instance)
                                         return;
 
-                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<DecreaseInteractableCosts>(e => e.OnValueDirty);
+                                    ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<DecreaseInteractableCosts>(e => e.OnValueDirty);
                                 })
                                 .FormatsEffectName()
                                 .Build();

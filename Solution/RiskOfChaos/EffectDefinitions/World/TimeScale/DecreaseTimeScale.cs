@@ -27,10 +27,10 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
                                 })
                                 .OnValueChanged(() =>
                                 {
-                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                                    if (!NetworkServer.active || !ChaosEffectTracker.Instance)
                                         return;
 
-                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<DecreaseTimeScale>(e => e.OnValueDirty);
+                                    ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<DecreaseTimeScale>(e => e.OnValueDirty);
                                 })
                                 .FormatsEffectName()
                                 .Build();

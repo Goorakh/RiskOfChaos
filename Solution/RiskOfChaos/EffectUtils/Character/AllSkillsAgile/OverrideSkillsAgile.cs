@@ -55,7 +55,7 @@ namespace RiskOfChaos.EffectUtils.Character.AllSkillsAgile
                 {
                     if (isActive)
                     {
-                        _skillIsAgileOverrides.Capacity = SkillCatalog.allSkillDefs.Count();
+                        _skillIsAgileOverrides.EnsureCapacity(SkillCatalog.allSkillDefs.Count());
 
                         SkillCatalog.allSkillDefs.TryDo(skillDef =>
                         {

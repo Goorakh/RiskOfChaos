@@ -1,121 +1,94 @@
-﻿using RiskOfChaos.Utilities.Extensions;
+﻿using RiskOfChaos.Components;
+using RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling.Controllers
 {
+    [DisallowMultipleComponent]
     public class ChaosEffectManager : MonoBehaviour
     {
-        static GameObject _effectManagerObject;
+        static GameObject _chaosEffectManagerPrefab;
 
-        static ChaosEffectManager _instance;
-        public static ChaosEffectManager Instance => _instance;
+        static GameObject[] _effectActivationSignalerPrefabs = [];
 
-        class ManagerComponent : IDisposable
+        internal static void Load()
         {
-            readonly Behaviour _behaviour;
-            readonly ChaosControllerAttribute _controllerAttribute;
+            _chaosEffectManagerPrefab = NetPrefabs.CreateEmptyPrefabObject("ChaosEffectManager", true, [
+                typeof(SetDontDestroyOnLoad),
+                typeof(DestroyOnRunEnd),
+                typeof(ChaosEffectManager),
+                typeof(ChaosEffectDispatcher),
+                typeof(ChaosEffectTracker),
+                typeof(ChaosAlwaysActiveEffectsHandler),
+                typeof(ChaosEffectActivationSoundHandler)
+            ]);
 
-            bool _isEnabled;
-            public bool IsEnabled
+            static GameObject createBasicEffectActivationSignaler<TSignalerComponent>(Configs.ChatVoting.ChatVotingMode? requiredVotingMode) where TSignalerComponent : ChaosEffectActivationSignaler
             {
-                get
+                Type signalerComponentType = typeof(TSignalerComponent);
+
+                List<Type> prefabComponentTypes = [
+                    signalerComponentType
+                ];
+
+                bool hasAnyEnableRequirement = requiredVotingMode.HasValue;
+                if (hasAnyEnableRequirement)
                 {
-                    return _isEnabled;
+                    prefabComponentTypes.Add(typeof(ChaosEffectActivationSignalerEnableRequirements));
                 }
-                set
+
+                GameObject signalerPrefab = NetPrefabs.CreateEmptyPrefabObject(signalerComponentType.Name, false, prefabComponentTypes.ToArray());
+
+                if (signalerPrefab.TryGetComponent(out ChaosEffectActivationSignalerEnableRequirements enableRequirements))
                 {
-                    _isEnabled = value;
-                    refreshComponentEnabledState();
+                    enableRequirements.RequiredVotingMode = requiredVotingMode;
+
+                    foreach (ChaosEffectActivationSignaler signalerComponent in signalerPrefab.GetComponents<ChaosEffectActivationSignaler>())
+                    {
+                        signalerComponent.enabled = false;
+                    }
                 }
+
+                return signalerPrefab;
             }
 
-            public ManagerComponent(Behaviour behaviour, ChaosControllerAttribute controllerAttribute)
-            {
-                _behaviour = behaviour;
-                _controllerAttribute = controllerAttribute;
+            GameObject effectSignalerTimer = createBasicEffectActivationSignaler<ChaosEffectActivationSignaler_Timer>(Configs.ChatVoting.ChatVotingMode.Disabled);
 
-                _controllerAttribute.OnShouldRefreshEnabledState += refreshComponentEnabledState;
-            }
+            GameObject effectSignalerTwitchChatVote = createBasicEffectActivationSignaler<ChaosEffectActivationSignaler_TwitchVote>(Configs.ChatVoting.ChatVotingMode.Twitch);
 
-            public void Dispose()
-            {
-                _controllerAttribute.OnShouldRefreshEnabledState -= refreshComponentEnabledState;
-            }
+            _effectActivationSignalerPrefabs = [
+                effectSignalerTimer,
+                effectSignalerTwitchChatVote
+            ];
 
-            void refreshComponentEnabledState()
-            {
-                _behaviour.enabled = _isEnabled && _controllerAttribute.CanBeActive();
-
-#if DEBUG
-                if (_isEnabled && !_controllerAttribute.CanBeActive())
-                {
-                    Log.Debug($"Not enabling manager {_behaviour.GetType().Name}");
-                }
-#endif
-            }
+            Run.onRunStartGlobal += onRunStartGlobal;
         }
 
-        ManagerComponent[] _managerComponents;
-
-        [SystemInitializer]
-        static void InitializeObject()
+        static void onRunStartGlobal(Run run)
         {
-            _effectManagerObject = new GameObject("ChaosEffectManager");
-            _effectManagerObject.SetDontDestroyOnLoad(true);
-            _effectManagerObject.AddComponent<ChaosEffectManager>();
+            if (!NetworkServer.active)
+                return;
+
+            NetworkServer.Spawn(Instantiate(_chaosEffectManagerPrefab));
         }
 
         void Awake()
         {
-            SingletonHelper.Assign(ref _instance, this);
-
-            gameObject.SetActive(false);
-
-            _managerComponents = ChaosControllerAttribute.GetInstances<ChaosControllerAttribute>()
-                                                         .Cast<ChaosControllerAttribute>()
-                                                         .Select(s => new ManagerComponent((Behaviour)gameObject.AddComponent(s.target), s))
-                                                         .ToArray();
-
-            setManagersActive(Run.instance);
-
-            gameObject.SetActive(true);
-
-            Run.onRunStartGlobal += Run_onRunStartGlobal;
-            Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
-        }
-
-        void OnDestroy()
-        {
-            SingletonHelper.Unassign(ref _instance, this);
-
-            foreach (ManagerComponent manager in _managerComponents)
+            if (!NetworkServer.active)
             {
-                manager.Dispose();
+                enabled = false;
+                return;
             }
 
-            Run.onRunStartGlobal -= Run_onRunStartGlobal;
-            Run.onRunDestroyGlobal -= Run_onRunDestroyGlobal;
-        }
-
-        void setManagersActive(bool active)
-        {
-            foreach (ManagerComponent manager in _managerComponents)
+            foreach (GameObject signalerPrefab in _effectActivationSignalerPrefabs)
             {
-                manager.IsEnabled = active;
+                GameObject signalerObject = Instantiate(signalerPrefab, transform);
             }
-        }
-
-        void Run_onRunStartGlobal(Run _)
-        {
-            setManagersActive(true);
-        }
-
-        void Run_onRunDestroyGlobal(Run _)
-        {
-            setManagersActive(false);
         }
     }
 }

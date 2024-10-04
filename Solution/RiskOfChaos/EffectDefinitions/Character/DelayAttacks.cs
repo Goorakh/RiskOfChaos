@@ -22,10 +22,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                 .OptionConfig(new FloatFieldConfig { Min = 0f, FormatString = "{0}s" })
                                 .OnValueChanged(() =>
                                 {
-                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                                    if (!NetworkServer.active || !ChaosEffectTracker.Instance)
                                         return;
 
-                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<DelayAttacks>(e => e.OnValueDirty);
+                                    ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<DelayAttacks>(e => e.OnValueDirty);
                                 })
                                 .Build();
 

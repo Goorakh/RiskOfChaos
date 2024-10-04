@@ -18,7 +18,7 @@ namespace RiskOfChaos.Utilities.Extensions
                 }
             }
 
-            foreach (MethodInfo method in type.GetMethods(flags))
+            foreach (MethodInfo method in type.GetMethods(flags | BindingFlags.DeclaredOnly))
             {
                 yield return method;
             }

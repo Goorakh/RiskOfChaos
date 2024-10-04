@@ -7,10 +7,12 @@ namespace RiskOfChaos.SaveHandling
     static class SaveManager
     {
         public delegate void CollectSaveDataDelegate(ref SaveContainer container);
+        [Obsolete]
         public static event CollectSaveDataDelegate CollectSaveData;
 
         public delegate void OnSaveDataLoadedDelegate(in SaveContainer container);
         static event OnSaveDataLoadedDelegate _loadSaveData;
+        [Obsolete]
         public static event OnSaveDataLoadedDelegate LoadSaveData
         {
             add
@@ -37,8 +39,11 @@ namespace RiskOfChaos.SaveHandling
 
         public static bool IsCollectingSaveData { get; private set; }
 
+        [Obsolete]
         internal static SaveContainer CollectAllSaveData()
         {
+            return null;
+
             if (!UseSaveData)
                 return null;
 
@@ -66,8 +71,11 @@ namespace RiskOfChaos.SaveHandling
             return container;
         }
 
+        [Obsolete]
         internal static void OnSaveDataLoaded(SaveContainer saveContainer)
         {
+            return;
+
             if (!UseSaveData || saveContainer is null)
                 return;
 

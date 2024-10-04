@@ -35,10 +35,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                 })
                                 .OnValueChanged(() =>
                                 {
-                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                                    if (!NetworkServer.active || !ChaosEffectTracker.Instance)
                                         return;
 
-                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseFallDamage>(e => e.OnValueDirty);
+                                    ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<IncreaseFallDamage>(e => e.OnValueDirty);
                                 })
                                 .FormatsEffectName()
                                 .Build();

@@ -30,7 +30,7 @@ namespace RiskOfChaos.EffectDefinitions.UI
                                .OptionConfig(new CheckBoxConfig())
                                .OnValueChanged(() =>
                                {
-                                   if (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
+                                   if (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(EffectInfo))
                                    {
                                        LocalizedStringOverridePatch.RefreshLanguageTokens();
                                    }

@@ -2,9 +2,11 @@
 using R2API;
 using RiskOfChaos.Components;
 using RiskOfChaos.EffectDefinitions.Character;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Networking.Components;
 using RiskOfChaos.Networking.Components.Effects;
 using RoR2;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -48,17 +50,31 @@ namespace RiskOfChaos
 
         public static GameObject ExplodeAtLowHealthBodyAttachmentPrefab { get; private set; }
 
-        public static GameObject CreateEmptyPrefabObject(string name, bool networked = true)
+        public static GameObject CreateEmptyPrefabObject(string name, bool networked = true, params Type[] componentTypes)
         {
             GameObject tmp = new GameObject(name);
 
-            if (networked)
+            if (componentTypes.Length > 0)
+            {
+                componentTypes = RequiredComponentsAttribute.ResolveRequiredComponentTypes(componentTypes);
+            }
+
+            if (networked || Array.FindIndex(componentTypes, t => t == typeof(NetworkIdentity) || typeof(NetworkBehaviour).IsAssignableFrom(t)) != -1)
             {
                 tmp.AddComponent<NetworkIdentity>();
+                networked = true;
             }
 
             GameObject prefab = tmp.InstantiateClone(Main.PluginGUID + "_" + name, networked);
             GameObject.Destroy(tmp);
+
+            foreach (Type componentType in componentTypes)
+            {
+                if (!prefab.GetComponent(componentType))
+                {
+                    prefab.AddComponent(componentType);
+                }
+            }
 
             return prefab;
         }
@@ -67,13 +83,13 @@ namespace RiskOfChaos
         {
             // GenericTeamInventoryPrefab
             {
-                GenericTeamInventoryPrefab = CreateEmptyPrefabObject("GenericTeamInventory");
-
-                GenericTeamInventoryPrefab.AddComponent<SetDontDestroyOnLoad>();
-                GenericTeamInventoryPrefab.AddComponent<TeamFilter>();
-                GenericTeamInventoryPrefab.AddComponent<Inventory>();
-                GenericTeamInventoryPrefab.AddComponent<EnemyInfoPanelInventoryProvider>();
-                GenericTeamInventoryPrefab.AddComponent<DestroyOnRunEnd>();
+                GenericTeamInventoryPrefab = CreateEmptyPrefabObject("GenericTeamInventory", true, [
+                    typeof(SetDontDestroyOnLoad),
+                    typeof(TeamFilter),
+                    typeof(Inventory),
+                    typeof(EnemyInfoPanelInventoryProvider),
+                    typeof(DestroyOnRunEnd)
+                ]);
             }
 
             // MonsterItemStealControllerPrefab
@@ -122,12 +138,12 @@ namespace RiskOfChaos
 
             // EffectsNetworkerPrefab
             {
-                EffectsNetworkerPrefab = CreateEmptyPrefabObject("EffectsNetworker");
-
-                EffectsNetworkerPrefab.AddComponent<SetDontDestroyOnLoad>();
-                EffectsNetworkerPrefab.AddComponent<DestroyOnRunEnd>();
-                EffectsNetworkerPrefab.AddComponent<ActiveTimedEffectsProvider>();
-                EffectsNetworkerPrefab.AddComponent<NextEffectProvider>();
+                EffectsNetworkerPrefab = CreateEmptyPrefabObject("EffectsNetworker", true, [
+                    typeof(SetDontDestroyOnLoad),
+                    typeof(DestroyOnRunEnd),
+                    typeof(ActiveTimedEffectsProvider),
+                    typeof(NextEffectProvider)
+                ]);
             }
 
             // ItemStealerPositionIndicatorPrefab
@@ -168,18 +184,20 @@ namespace RiskOfChaos
 
             // DummyDamageInflictorPrefab
             {
-                DummyDamageInflictorPrefab = CreateEmptyPrefabObject("DummyDamageInflictor");
-                DummyDamageInflictorPrefab.AddComponent<SetDontDestroyOnLoad>();
-                DummyDamageInflictorPrefab.AddComponent<DestroyOnRunEnd>();
-                DummyDamageInflictorPrefab.AddComponent<DummyDamageInflictor>();
+                DummyDamageInflictorPrefab = CreateEmptyPrefabObject("DummyDamageInflictor", true, [
+                    typeof(SetDontDestroyOnLoad),
+                    typeof(DestroyOnRunEnd),
+                    typeof(DummyDamageInflictor)
+                ]);
             }
 
             // ConfigNetworkerPrefab
             {
-                ConfigNetworkerPrefab = CreateEmptyPrefabObject("ConfigNetworker");
-                ConfigNetworkerPrefab.AddComponent<SetDontDestroyOnLoad>();
-                ConfigNetworkerPrefab.AddComponent<DestroyOnRunEnd>();
-                ConfigNetworkerPrefab.AddComponent<SyncConfigValue>();
+                ConfigNetworkerPrefab = CreateEmptyPrefabObject("ConfigNetworker", true, [
+                    typeof(SetDontDestroyOnLoad),
+                    typeof(DestroyOnRunEnd),
+                    typeof(SyncConfigValue)
+                ]);
             }
 
             // SuperhotControllerPrefab

@@ -40,9 +40,9 @@ namespace RiskOfChaos.Networking.Components.Effects
         {
             SingletonHelper.Assign(ref _instance, this);
 
-            TimedChaosEffectHandler.OnTimedEffectStartServer += onTimedEffectStartServer;
-            TimedChaosEffectHandler.OnTimedEffectEndServer += onTimedEffectEndServer;
-            TimedChaosEffectHandler.OnTimedEffectDirtyServer += refreshEffectDisplay;
+            ChaosEffectTracker.OnTimedEffectStartServer += onTimedEffectStartServer;
+            ChaosEffectTracker.OnTimedEffectEndServer += onTimedEffectEndServer;
+            ChaosEffectTracker.OnTimedEffectDirtyServer += refreshEffectDisplay;
             ChaosEffectInfo.OnEffectNameFormatterDirty += ChaosEffectInfo_OnEffectNameFormatterDirty;
         }
 
@@ -50,20 +50,20 @@ namespace RiskOfChaos.Networking.Components.Effects
         {
             SingletonHelper.Unassign(ref _instance, this);
 
-            TimedChaosEffectHandler.OnTimedEffectStartServer -= onTimedEffectStartServer;
-            TimedChaosEffectHandler.OnTimedEffectEndServer -= onTimedEffectEndServer;
-            TimedChaosEffectHandler.OnTimedEffectDirtyServer -= refreshEffectDisplay;
+            ChaosEffectTracker.OnTimedEffectStartServer -= onTimedEffectStartServer;
+            ChaosEffectTracker.OnTimedEffectEndServer -= onTimedEffectEndServer;
+            ChaosEffectTracker.OnTimedEffectDirtyServer -= refreshEffectDisplay;
             ChaosEffectInfo.OnEffectNameFormatterDirty -= ChaosEffectInfo_OnEffectNameFormatterDirty;
         }
 
         void ChaosEffectInfo_OnEffectNameFormatterDirty(ChaosEffectInfo effectInfo)
         {
-            if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+            if (!NetworkServer.active || !ChaosEffectTracker.Instance)
                 return;
 
             if (effectInfo is TimedEffectInfo timedEffectInfo)
             {
-                TimedChaosEffectHandler.Instance.GetActiveEffects(timedEffectInfo).Do(refreshEffectDisplay);
+                ChaosEffectTracker.Instance.OLD_GetActiveEffects(timedEffectInfo).Do(refreshEffectDisplay);
             }
         }
 

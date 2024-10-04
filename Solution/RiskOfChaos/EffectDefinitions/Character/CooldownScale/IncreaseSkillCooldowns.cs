@@ -30,10 +30,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
                                 })
                                 .OnValueChanged(() =>
                                 {
-                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                                    if (!NetworkServer.active || !ChaosEffectTracker.Instance)
                                         return;
 
-                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseSkillCooldowns>(e => e.OnValueDirty);
+                                    ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<IncreaseSkillCooldowns>(e => e.OnValueDirty);
                                 })
                                 .FormatsEffectName()
                                 .Build();

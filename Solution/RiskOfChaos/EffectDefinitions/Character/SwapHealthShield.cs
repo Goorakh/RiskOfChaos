@@ -81,7 +81,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         static void trySwapHealthShield(CharacterBody body)
         {
-            if (!TimedChaosEffectHandler.Instance || !TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
+            if (!ChaosEffectTracker.Instance || !ChaosEffectTracker.Instance.IsTimedEffectActive(EffectInfo))
                 return;
 
             float prevMaxHealth = body.maxHealth;

@@ -1,18 +1,15 @@
 ﻿using RiskOfChaos.EffectHandling;
-using RiskOfChaos.Utilities.Extensions;
-using RoR2;
-using UnityEngine.Networking;
+using System;
 
 namespace RiskOfChaos.EffectDefinitions
 {
+    [Obsolete]
     public abstract class TimedEffect : BaseEffect
     {
         public readonly new TimedEffectInfo EffectInfo;
 
         public TimedEffect() : base()
         {
-            EffectInfo = base.EffectInfo as TimedEffectInfo;
-            _maxStocks = EffectInfo.MaxStocks;
         }
 
         public bool IsNetDirty;
@@ -21,7 +18,7 @@ namespace RiskOfChaos.EffectDefinitions
 
         public bool MatchesFlag(TimedEffectFlags flags)
         {
-            return (flags & (TimedEffectFlags)(1 << (byte)TimedType)) != 0;
+            return false;
         }
 
         public virtual bool ShouldDisplayOnHUD
@@ -32,31 +29,25 @@ namespace RiskOfChaos.EffectDefinitions
             }
         }
 
-        float _maxStocks = 1;
         public float MaxStocks
         {
             get
             {
-                return _maxStocks;
+                return 0;
             }
             set
             {
-                _maxStocks = value;
-                IsNetDirty = true;
             }
         }
 
-        uint _spentStocks = 0;
         public uint SpentStocks
         {
             get
             {
-                return _spentStocks;
+                return 0;
             }
             set
             {
-                _spentStocks = value;
-                IsNetDirty = true;
             }
         }
 
@@ -69,14 +60,7 @@ namespace RiskOfChaos.EffectDefinitions
         {
             get
             {
-                Run run = Run.instance;
-                if (!run)
-                {
-                    Log.Warning("No run instance");
-                    return 0f;
-                }
-
-                return run.GetRunTime(RunTimerType.Realtime) - TimeStarted;
+                return 0;
             }
         }
 
@@ -84,52 +68,7 @@ namespace RiskOfChaos.EffectDefinitions
         {
             get
             {
-                if (DurationSeconds < 0f)
-                {
-                    Log.Warning($"Cannot get time remaining for effect {this}, no duration specified");
-                    return 0f;
-                }
-
-                return (DurationSeconds * StocksRemaining) - TimeElapsed;
-            }
-        }
-
-        public override void OnPreStartServer()
-        {
-            base.OnPreStartServer();
-
-            TimeStarted = Run.instance.GetRunTime(RunTimerType.Realtime);
-        }
-
-        public override void Serialize(NetworkWriter writer)
-        {
-            base.Serialize(writer);
-
-            writer.Write(TimeStarted);
-
-            writer.Write(MaxStocks);
-            writer.WritePackedUInt32(SpentStocks);
-
-            writer.Write((byte)TimedType);
-            if (TimedType == TimedEffectType.FixedDuration)
-            {
-                writer.Write(DurationSeconds);
-            }
-        }
-
-        public override void Deserialize(NetworkReader reader)
-        {
-            base.Deserialize(reader);
-
-            TimeStarted = reader.ReadSingle();
-
-            _maxStocks = reader.ReadSingle();
-            _spentStocks = reader.ReadPackedUInt32();
-
-            TimedType = (TimedEffectType)reader.ReadByte();
-            if (TimedType == TimedEffectType.FixedDuration)
-            {
-                DurationSeconds = reader.ReadSingle();
+                return 0;
             }
         }
 

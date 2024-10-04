@@ -30,10 +30,10 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
                                 })
                                 .OnValueChanged(() =>
                                 {
-                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                                    if (!NetworkServer.active || !ChaosEffectTracker.Instance)
                                         return;
 
-                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseHoldoutZoneRadius>(e => e.OnValueDirty);
+                                    ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<IncreaseHoldoutZoneRadius>(e => e.OnValueDirty);
                                 })
                                 .FormatsEffectName()
                                 .Build();

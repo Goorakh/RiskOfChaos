@@ -31,7 +31,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 orig(self);
 
-                if (!TimedChaosEffectHandler.Instance || !TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
+                if (!ChaosEffectTracker.Instance || !ChaosEffectTracker.Instance.IsTimedEffectActive(EffectInfo))
                     return;
 
                 if (!self.owner || self.procChainMask.mask != 0)
@@ -48,7 +48,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 orig(self, orb);
 
-                if (!TimedChaosEffectHandler.Instance || !TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
+                if (!ChaosEffectTracker.Instance || !ChaosEffectTracker.Instance.IsTimedEffectActive(EffectInfo))
                     return;
 
                 if (orb is null || !orb.target)
@@ -83,7 +83,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 orig(self, fireProjectileInfo);
 
-                if (!TimedChaosEffectHandler.Instance || !TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
+                if (!ChaosEffectTracker.Instance || !ChaosEffectTracker.Instance.IsTimedEffectActive(EffectInfo))
                     return;
 
                 if (!fireProjectileInfo.owner || fireProjectileInfo.procChainMask.mask != 0)
@@ -105,7 +105,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (!self.isAuthority)
                     return;
 
-                if (!TimedChaosEffectHandler.Instance || !TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo))
+                if (!ChaosEffectTracker.Instance || !ChaosEffectTracker.Instance.IsTimedEffectActive(EffectInfo))
                     return;
 
                 CharacterBody body = self.characterBody;
@@ -125,7 +125,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             float damageCoefficient = damage / body.damage;
             float damageForceMultiplier = Mathf.Pow(damageCoefficient, damageCoefficient > 1f ? 1f / 1.5f : 2f);
-            float effectStackMultiplier = TimedChaosEffectHandler.Instance.GetEffectStackCount(EffectInfo);
+            float effectStackMultiplier = ChaosEffectTracker.Instance.GetEffectStackCount(EffectInfo);
 
             Vector3 force = knockbackDirection * (baseForce * damageForceMultiplier * effectStackMultiplier);
 

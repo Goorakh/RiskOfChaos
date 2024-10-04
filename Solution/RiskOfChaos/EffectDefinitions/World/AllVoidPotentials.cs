@@ -31,7 +31,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             On.RoR2.PickupDropletController.CreatePickup += (orig, self) =>
             {
-                foreach (AllVoidPotentials effect in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<AllVoidPotentials>())
+                foreach (AllVoidPotentials effect in ChaosEffectTracker.Instance.OLD_GetActiveEffectInstancesOfType<AllVoidPotentials>())
                 {
                     effect.modifyPickupInfo(ref self.createPickupInfo);
                 }

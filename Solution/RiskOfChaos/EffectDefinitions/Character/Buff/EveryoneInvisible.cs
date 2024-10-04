@@ -1,14 +1,13 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RoR2;
-using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
     [ChaosTimedEffect("everyone_invisible", 30f, AllowDuplicates = false)]
-    [RequireComponent(typeof(ApplyBuffEffect))]
-    public sealed class EveryoneInvisible : MonoBehaviour
+    [RequiredComponents(typeof(ApplyBuffEffect))]
+    public sealed class EveryoneInvisible : NetworkBehaviour
     {
         [EffectCanActivate]
         static bool CanActivate()
@@ -21,12 +20,14 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         void Awake()
         {
             _applyBuffEffect = GetComponent<ApplyBuffEffect>();
+        }
 
-            if (NetworkServer.active)
-            {
-                _applyBuffEffect.BuffIndex = RoR2Content.Buffs.Cloak.buffIndex;
-                _applyBuffEffect.BuffStackCount = 1;
-            }
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            _applyBuffEffect.BuffIndex = RoR2Content.Buffs.Cloak.buffIndex;
+            _applyBuffEffect.BuffStackCount = 1;
         }
     }
 }

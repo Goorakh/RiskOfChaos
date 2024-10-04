@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Components
 {
+    [DisallowMultipleComponent]
     public class DestroyOnRunEnd : MonoBehaviour
     {
         void Awake()

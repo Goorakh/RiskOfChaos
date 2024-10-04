@@ -16,8 +16,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
     [ChaosTimedEffect("random_debuff", 60f, DefaultSelectionWeight = 0.9f)]
     [EffectConfigBackwardsCompatibility("Effect: Give Everyone a Random Debuff (Lasts 1 stage)")]
-    [RequireComponent(typeof(ApplyBuffEffect))]
-    public sealed class RandomDebuff : MonoBehaviour
+    [RequiredComponents(typeof(ApplyBuffEffect))]
+    public sealed class RandomDebuff : NetworkBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<int> _stackableDebuffCount =
@@ -104,23 +104,23 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         ChaosEffectComponent _chaosEffect;
         ApplyBuffEffect _applyBuffEffect;
 
-        Xoroshiro128Plus _rng;
-
         void Awake()
         {
             _chaosEffect = GetComponent<ChaosEffectComponent>();
             _applyBuffEffect = GetComponent<ApplyBuffEffect>();
+        }
 
-            if (NetworkServer.active)
-            {
-                _rng = new Xoroshiro128Plus(_chaosEffect.RngServer.nextUlong);
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
 
-                BuffIndex buffIndex = getBuffIndexToApply();
-                _applyBuffEffect.BuffIndex = buffIndex;
+            Xoroshiro128Plus rng = new Xoroshiro128Plus(_chaosEffect.Rng.nextUlong);
 
-                BuffDef buffDef = BuffCatalog.GetBuffDef(buffIndex);
-                _applyBuffEffect.BuffStackCount = buffDef && buffDef.canStack ? _stackableDebuffCount.Value : 1;
-            }
+            BuffIndex buffIndex = getBuffIndexToApply(rng);
+            _applyBuffEffect.BuffIndex = buffIndex;
+
+            BuffDef buffDef = BuffCatalog.GetBuffDef(buffIndex);
+            _applyBuffEffect.BuffStackCount = buffDef && buffDef.canStack ? _stackableDebuffCount.Value : 1;
         }
 
 #if DEBUG
@@ -128,7 +128,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         static bool _enableDebugIndex = false;
 #endif
 
-        BuffIndex getBuffIndexToApply()
+        static BuffIndex getBuffIndexToApply(Xoroshiro128Plus rng)
         {
             BuffIndex selectedBuff;
 
@@ -140,7 +140,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             else
 #endif
             {
-                selectedBuff = _rng.NextElementUniform(ApplyBuffEffect.FilterSelectableBuffs(_availableBuffIndices).ToList());
+                selectedBuff = rng.NextElementUniform(ApplyBuffEffect.FilterSelectableBuffs(_availableBuffIndices).ToList());
             }
 
 #if DEBUG

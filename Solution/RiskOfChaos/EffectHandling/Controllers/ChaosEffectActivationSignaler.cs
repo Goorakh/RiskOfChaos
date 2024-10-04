@@ -11,8 +11,13 @@ namespace RiskOfChaos.EffectHandling.Controllers
     {
         public const float MIN_STAGE_TIME_REQUIRED_TO_DISPATCH = 2f;
 
-        public delegate void SignalShouldDispatchEffectDelegate(ChaosEffectInfo effect, in ChaosEffectDispatchArgs args = default);
-        public abstract event SignalShouldDispatchEffectDelegate SignalShouldDispatchEffect;
+        public delegate void SignalShouldDispatchEffectDelegate(ChaosEffectActivationSignaler signaler, ChaosEffectInfo effect, in ChaosEffectDispatchArgs args = default);
+        public static event SignalShouldDispatchEffectDelegate SignalShouldDispatchEffect;
+
+        protected void signalEffectDispatch(ChaosEffectInfo effect, in ChaosEffectDispatchArgs args = default)
+        {
+            SignalShouldDispatchEffect?.Invoke(this, effect, args);
+        }
 
         public delegate bool CanDispatchEffectsOverrideDelegate();
         public static event CanDispatchEffectsOverrideDelegate CanDispatchEffectsOverride;
@@ -114,8 +119,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 dispatchArgs = new ChaosEffectDispatchArgs
                 {
-                    DispatchFlags = EffectDispatchFlags.CheckCanActivate,
-                    OverrideRNGSeed = rng.nextUlong
+                    DispatchFlags = EffectDispatchFlags.CheckCanActivate
                 };
 
                 return ChaosEffectCatalog.PickEnabledEffect(rng, excludeEffects);
@@ -133,8 +137,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 dispatchArgs = new ChaosEffectDispatchArgs
                 {
-                    DispatchFlags = EffectDispatchFlags.CheckCanActivate,
-                    OverrideRNGSeed = rng.nextUlong
+                    DispatchFlags = EffectDispatchFlags.CheckCanActivate
                 };
             }
             else
@@ -167,8 +170,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 dispatchArgs = new ChaosEffectDispatchArgs
                 {
-                    DispatchFlags = EffectDispatchFlags.CheckCanActivate,
-                    OverrideRNGSeed = rng.nextUlong
+                    DispatchFlags = EffectDispatchFlags.CheckCanActivate
                 };
             }
             else

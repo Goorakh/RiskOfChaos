@@ -22,10 +22,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
                                 .OptionConfig(new FloatFieldConfig { Min = 1f, FormatString = "{0}x" })
                                 .OnValueChanged(() =>
                                 {
-                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                                    if (!NetworkServer.active || !ChaosEffectTracker.Instance)
                                         return;
 
-                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseCameraDistance>(e => e.OnValueDirty);
+                                    ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<IncreaseCameraDistance>(e => e.OnValueDirty);
                                 })
                                 .Build();
 

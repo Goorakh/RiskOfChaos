@@ -29,10 +29,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
                                 })
                                 .OnValueChanged(() =>
                                 {
-                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                                    if (!NetworkServer.active || !ChaosEffectTracker.Instance)
                                         return;
 
-                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseGravity>(e => e.OnValueDirty);
+                                    ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<IncreaseGravity>(e => e.OnValueDirty);
                                 })
                                 .FormatsEffectName()
                                 .Build();

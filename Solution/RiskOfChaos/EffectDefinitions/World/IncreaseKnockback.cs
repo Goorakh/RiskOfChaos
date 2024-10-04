@@ -25,10 +25,10 @@ namespace RiskOfChaos.EffectDefinitions.World
                                 .OptionConfig(new FloatFieldConfig { Min = 1f, FormatString = "{0}x" })
                                 .OnValueChanged(() =>
                                 {
-                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                                    if (!NetworkServer.active || !ChaosEffectTracker.Instance)
                                         return;
 
-                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseKnockback>(e => e.OnValueDirty);
+                                    ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<IncreaseKnockback>(e => e.OnValueDirty);
                                 })
                                 .FormatsEffectName()
                                 .Build();

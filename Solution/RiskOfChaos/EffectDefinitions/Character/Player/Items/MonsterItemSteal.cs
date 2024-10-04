@@ -100,7 +100,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
         public override void OnStart()
         {
-            _activeStealControllers.Capacity = CharacterMaster.readOnlyInstancesList.Count;
+            _activeStealControllers.EnsureCapacity(CharacterMaster.readOnlyInstancesList.Count);
 
             CharacterMaster.onStartGlobal += initializeMasterForStealing;
         }

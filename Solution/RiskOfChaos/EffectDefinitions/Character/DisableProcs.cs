@@ -40,7 +40,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                         [MethodImpl(MethodImplOptions.AggressiveInlining)]
                         static bool isEffectActive()
                         {
-                            return TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo);
+                            return ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(EffectInfo);
                         }
 
                         c.Emit(OpCodes.Brtrue, afterIfLabel);

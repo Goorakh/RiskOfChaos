@@ -22,9 +22,9 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
             {
                 float multiplier = 1f;
 
-                if (NetworkServer.active && TimedChaosEffectHandler.Instance)
+                if (NetworkServer.active && ChaosEffectTracker.Instance)
                 {
-                    foreach (GenericMultiplyTimeScaleEffect effect in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<GenericMultiplyTimeScaleEffect>())
+                    foreach (GenericMultiplyTimeScaleEffect effect in ChaosEffectTracker.Instance.OLD_GetActiveEffectInstancesOfType<GenericMultiplyTimeScaleEffect>())
                     {
                         multiplier *= effect.multiplier;
                     }

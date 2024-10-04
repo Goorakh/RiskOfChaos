@@ -1,4 +1,6 @@
-﻿using RoR2.ContentManagement;
+﻿using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Controllers;
+using RoR2.ContentManagement;
 using System.Collections;
 
 namespace RiskOfChaos.Content
@@ -31,6 +33,9 @@ namespace RiskOfChaos.Content
         public IEnumerator LoadStaticContentAsync(LoadStaticContentAsyncArgs args)
         {
             _contentPack.identifier = identifier;
+
+            ChaosEffectCatalog.Load();
+            ChaosEffectManager.Load();
 
             Items.AddItemDefsTo(_contentPack.itemDefs);
             Buffs.AddBuffDefsTo(_contentPack.buffDefs);

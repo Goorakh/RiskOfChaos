@@ -1,6 +1,6 @@
 ﻿using BepInEx.Configuration;
-using RiskOfChaos.EffectDefinitions;
 using System;
+using UnityEngine;
 
 namespace RiskOfChaos.EffectHandling.EffectClassAttributes
 {
@@ -13,6 +13,7 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes
 
         public float DefaultSelectionWeight { get; set; } = 1f;
 
+        [Obsolete]
         public bool IsNetworked { get; set; } = false;
 
         public new Type target => base.target as Type;
@@ -30,9 +31,9 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes
                 return false;
             }
 
-            if (!typeof(BaseEffect).IsAssignableFrom(target))
+            if (!typeof(MonoBehaviour).IsAssignableFrom(target))
             {
-                Log.Error($"Effect '{Identifier}' type ({target.FullName}) does not derive from {nameof(BaseEffect)}");
+                Log.Error($"Effect '{Identifier}' type ({target.FullName}) does not derive from {nameof(MonoBehaviour)}");
                 return false;
             }
 

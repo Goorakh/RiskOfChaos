@@ -1,11 +1,12 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RoR2;
+using System.Globalization;
 
 namespace RiskOfChaos.Utilities.Extensions
 {
     public static class ConCommandArgsExtensions
     {
-        public static ChaosEffectIndex? TryGetArgChaosEffectIndex(this ConCommandArgs args, int index)
+        public static ChaosEffectIndex? TryGetArgChaosEffectIndex(in this ConCommandArgs args, int index)
         {
             string effectName = args.TryGetArgString(index);
             if (string.IsNullOrEmpty(effectName))
@@ -18,7 +19,7 @@ namespace RiskOfChaos.Utilities.Extensions
             return effectIndex;
         }
 
-        public static ChaosEffectIndex GetArgChaosEffectIndex(this ConCommandArgs args, int index)
+        public static ChaosEffectIndex GetArgChaosEffectIndex(in this ConCommandArgs args, int index)
         {
             ChaosEffectIndex? effectIndex = args.TryGetArgChaosEffectIndex(index);
             if (!effectIndex.HasValue)

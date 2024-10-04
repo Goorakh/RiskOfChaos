@@ -22,10 +22,10 @@ namespace RiskOfChaos.EffectDefinitions.World
                               .OptionConfig(new IntFieldConfig { Min = 1, Max = byte.MaxValue })
                               .OnValueChanged(() =>
                               {
-                                  if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                                  if (!NetworkServer.active || !ChaosEffectTracker.Instance)
                                       return;
                               
-                                  TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<RepeatProjectiles>(e => e.OnValueDirty);
+                                  ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<RepeatProjectiles>(e => e.OnValueDirty);
                               })
                               .Build();
 

@@ -29,7 +29,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                     c.EmitDelegate(modifyIsPaused);
                     bool modifyIsPaused(bool isPaused)
                     {
-                        return isPaused || (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo));
+                        return isPaused || (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(EffectInfo));
                     }
                 }
                 else

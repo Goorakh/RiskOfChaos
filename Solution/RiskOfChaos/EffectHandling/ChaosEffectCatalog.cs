@@ -53,8 +53,7 @@ namespace RiskOfChaos.EffectHandling
             ModSettingsManager.SetModDescription("Effect config options for Risk of Chaos", CONFIG_MOD_GUID, CONFIG_MOD_NAME);
         }
 
-        [SystemInitializer]
-        static void Init()
+        internal static void Load()
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
 
@@ -92,7 +91,8 @@ namespace RiskOfChaos.EffectHandling
 
             _effectCount = _effects.Length;
 
-            _pickNextEffectSelection.Capacity = _effectCount;
+            if (_pickNextEffectSelection.Capacity < _effectCount)
+                _pickNextEffectSelection.Capacity = _effectCount;
 
             checkFindEffectIndex();
 
@@ -128,6 +128,12 @@ namespace RiskOfChaos.EffectHandling
             Log.Info($"Effect catalog initialized in {stopwatch.Elapsed.TotalSeconds:F1} seconds");
         }
 
+#warning TODO: This is a hack to make sure all the SystemInitializers depending on this catalog are actually run
+        [SystemInitializer]
+        static void DummyInit()
+        {
+        }
+
         static void checkFindEffectIndex()
         {
             for (ChaosEffectIndex effectIndex = 0; effectIndex < (ChaosEffectIndex)_effectCount; effectIndex++)
@@ -144,12 +150,6 @@ namespace RiskOfChaos.EffectHandling
                     Log.Error($"Effect Find Test: {effectInfo.Identifier} failed case-insensitive check");
                 }
             }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T[] PerEffectArray<T>()
-        {
-            return new T[_effectCount];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -60,10 +60,10 @@ namespace RiskOfChaos.EffectDefinitions.World
                                        .OptionConfig(new CheckBoxConfig())
                                        .OnValueChanged(() =>
                                        {
-                                           if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                                           if (!NetworkServer.active || !ChaosEffectTracker.Instance)
                                                return;
 
-                                           TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<AllCostsHealth>(e => e.OnValueDirty);
+                                           ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<AllCostsHealth>(e => e.OnValueDirty);
                                        })
                                        .Build();
 

@@ -31,8 +31,8 @@ namespace RiskOfChaos.EffectDefinitions.World
             {
                 return orig(percentChance, luck, effectOriginMaster) || (percentChance > 0f &&
                                                                          !_isRollingTougherTimesProc &&
-                                                                         TimedChaosEffectHandler.Instance &&
-                                                                         TimedChaosEffectHandler.Instance.IsTimedEffectActive(_effectInfo));
+                                                                         ChaosEffectTracker.Instance &&
+                                                                         ChaosEffectTracker.Instance.IsTimedEffectActive(_effectInfo));
             }
 
             IL.RoR2.HealthComponent.TakeDamageProcess += il =>

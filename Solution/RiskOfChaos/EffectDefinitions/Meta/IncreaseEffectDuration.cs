@@ -23,10 +23,10 @@ namespace RiskOfChaos.EffectDefinitions.Meta
                                 .OptionConfig(new FloatFieldConfig { Min = 1f, FormatString = "{0}x" })
                                 .OnValueChanged(() =>
                                 {
-                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                                    if (!NetworkServer.active || !ChaosEffectTracker.Instance)
                                         return;
 
-                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseEffectDuration>(e => e.OnValueDirty);
+                                    ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<IncreaseEffectDuration>(e => e.OnValueDirty);
                                 })
                                 .FormatsEffectName()
                                 .Build();
@@ -49,9 +49,9 @@ namespace RiskOfChaos.EffectDefinitions.Meta
         {
             EffectModificationManager.Instance.RegisterModificationProvider(this);
 
-            if (TimedChaosEffectHandler.Instance)
+            if (ChaosEffectTracker.Instance)
             {
-                foreach (TimedEffect effect in TimedChaosEffectHandler.Instance.GetAllActiveEffects())
+                foreach (TimedEffect effect in ChaosEffectTracker.Instance.GetAllActiveEffects())
                 {
                     if (effect.EffectInfo.IgnoreDurationModifiers)
                         continue;

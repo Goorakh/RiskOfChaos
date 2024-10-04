@@ -11,11 +11,8 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling.Controllers
 {
-    [ChaosEffectActivationSignaler(Configs.ChatVoting.ChatVotingMode.Disabled)]
     public class ChaosEffectActivationSignaler_Timer : ChaosEffectActivationSignaler
     {
-        public override event SignalShouldDispatchEffectDelegate SignalShouldDispatchEffect;
-
         CompletePeriodicRunTimer _effectDispatchTimer;
         Xoroshiro128Plus _nextEffectRNG;
 
@@ -213,7 +210,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
 
             ChaosEffectInfo effect = pickNextEffect(_nextEffectRNG.Branch(), out ChaosEffectDispatchArgs args);
-            SignalShouldDispatchEffect?.Invoke(effect, args);
+            signalEffectDispatch(effect, args);
 
             updateNextEffect();
         }

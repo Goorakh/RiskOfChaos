@@ -102,7 +102,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 if ((Run.instance && Run.instance.selectedDifficulty >= DifficultyIndex.Eclipse3) ||
                     (RunArtifactManager.instance && RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.weakAssKneesArtifactDef)) ||
-                    (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(IncreaseFallDamage.EffectInfo)))
+                    (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(IncreaseFallDamage.EffectInfo)))
                 {
                     return false;
                 }

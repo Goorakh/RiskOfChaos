@@ -29,10 +29,10 @@ namespace RiskOfChaos.EffectDefinitions.Meta
                                 })
                                 .OnValueChanged(() =>
                                 {
-                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                                    if (!NetworkServer.active || !ChaosEffectTracker.Instance)
                                         return;
 
-                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<DecreaseEffectDuration>(e => e.OnValueDirty);
+                                    ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<DecreaseEffectDuration>(e => e.OnValueDirty);
                                 })
                                 .FormatsEffectName()
                                 .Build();
@@ -55,9 +55,9 @@ namespace RiskOfChaos.EffectDefinitions.Meta
         {
             EffectModificationManager.Instance.RegisterModificationProvider(this);
 
-            if (TimedChaosEffectHandler.Instance)
+            if (ChaosEffectTracker.Instance)
             {
-                foreach (TimedEffect effect in TimedChaosEffectHandler.Instance.GetAllActiveEffects())
+                foreach (TimedEffect effect in ChaosEffectTracker.Instance.GetAllActiveEffects())
                 {
                     if (effect.EffectInfo.IgnoreDurationModifiers)
                         continue;
@@ -66,7 +66,7 @@ namespace RiskOfChaos.EffectDefinitions.Meta
 
                     if (effect.TimedType != TimedEffectType.FixedDuration && effect.StocksRemaining <= 0)
                     {
-                        TimedChaosEffectHandler.Instance.EndEffectServer(effect);
+                        ChaosEffectTracker.Instance.EndEffectServer(effect);
                     }
                 }
             }

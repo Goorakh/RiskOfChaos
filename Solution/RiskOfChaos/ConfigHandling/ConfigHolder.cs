@@ -109,6 +109,12 @@ namespace RiskOfChaos.ConfigHandling
 
         public override void Bind(ChaosEffectInfo ownerEffect)
         {
+            if (ownerEffect == null)
+            {
+                Log.Error($"Null effect owner given to config '{Key}'");
+                return;
+            }
+
             if (_optionConfig != null)
             {
                 ConfigHolder<bool> isEffectEnabledConfig = ownerEffect.IsEnabledConfig;

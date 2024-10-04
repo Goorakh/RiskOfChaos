@@ -25,10 +25,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
                                .OptionConfig(new CheckBoxConfig())
                                .OnValueChanged(() =>
                                {
-                                   if (!TimedChaosEffectHandler.Instance)
+                                   if (!ChaosEffectTracker.Instance)
                                        return;
 
-                                   TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<RepeatScreen>(e => e.OnValueDirty);
+                                   ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<RepeatScreen>(e => e.OnValueDirty);
                                })
                                .Build();
 

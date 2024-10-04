@@ -52,7 +52,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             static bool isEffectActive()
             {
-                return TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo);
+                return ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(EffectInfo);
             }
 
             MethodInfo equipmentSlotStockGetter = AccessTools.DeclaredPropertyGetter(typeof(EquipmentSlot), nameof(EquipmentSlot.stock));

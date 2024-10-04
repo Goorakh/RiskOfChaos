@@ -21,8 +21,6 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
         static int numVoteOptions => Configs.ChatVoting.NumEffectOptions.Value + (Configs.ChatVoting.IncludeRandomEffectInVote.Value ? 1 : 0);
 
-        public override event SignalShouldDispatchEffectDelegate SignalShouldDispatchEffect;
-
         public event Action OnVotingStarted;
 
         protected abstract Configs.ChatVoting.ChatVotingMode votingMode { get; }
@@ -440,7 +438,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
                 };
             }
 
-            SignalShouldDispatchEffect?.Invoke(effectInfo, dispatchArgs);
+            signalEffectDispatch(effectInfo, dispatchArgs);
         }
 
         public bool CurrentVoteContains(ChaosEffectInfo effectInfo)

@@ -30,10 +30,10 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
                                 })
                                 .OnValueChanged(() =>
                                 {
-                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                                    if (!NetworkServer.active || !ChaosEffectTracker.Instance)
                                         return;
 
-                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<DecreaseHoldoutZoneChargeRate>(e => e.OnValueDirty);
+                                    ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<DecreaseHoldoutZoneChargeRate>(e => e.OnValueDirty);
                                 })
                                 .FormatsEffectName()
                                 .Build();

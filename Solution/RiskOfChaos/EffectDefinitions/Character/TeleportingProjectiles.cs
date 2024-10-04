@@ -56,7 +56,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             if (!attackerObj)
                 return;
 
-            if (!TimedChaosEffectHandler.Instance || !TimedChaosEffectHandler.Instance.IsTimedEffectActive(_effectInfo))
+            if (!ChaosEffectTracker.Instance || !ChaosEffectTracker.Instance.IsTimedEffectActive(_effectInfo))
                 return;
 
             CharacterBody attackerBody = attackerObj.GetComponent<CharacterBody>();

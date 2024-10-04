@@ -135,8 +135,8 @@ namespace RiskOfChaos.EffectDefinitions.World
         {
             ChaosEffectActivationSignaler_ChatVote.OnEffectVotingFinishedServer += (in EffectVoteResult result) =>
             {
-                if (TimedChaosEffectHandler.Instance &&
-                    TimedChaosEffectHandler.Instance.IsTimedEffectActive(_effectInfo))
+                if (ChaosEffectTracker.Instance &&
+                    ChaosEffectTracker.Instance.IsTimedEffectActive(_effectInfo))
                 {
                     return;
                 }
@@ -215,7 +215,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             private set
             {
                 _currentOverridePickupIndex = value;
-                _effectInfo.MarkNameFormatterDirty();
+                _effectInfo?.MarkNameFormatterDirty();
             }
         }
 

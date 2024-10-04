@@ -2,14 +2,13 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RoR2;
-using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
     [ChaosTimedEffect("everyone_1hp", 30f, AllowDuplicates = false)]
-    [RequireComponent(typeof(ApplyBuffEffect))]
-    public sealed class Everyone1Hp : MonoBehaviour
+    [RequiredComponents(typeof(ApplyBuffEffect))]
+    public sealed class Everyone1Hp : NetworkBehaviour
     {
         [EffectCanActivate]
         static bool CanActivate()
@@ -23,12 +22,14 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         {
             _applyBuffEffect = GetComponent<ApplyBuffEffect>();
             _applyBuffEffect.OnBuffAppliedServer += onBuffAppliedServer;
+        }
 
-            if (NetworkServer.active)
-            {
-                _applyBuffEffect.BuffIndex = Buffs.SetTo1Hp.buffIndex;
-                _applyBuffEffect.BuffStackCount = 1;
-            }
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            _applyBuffEffect.BuffIndex = Buffs.SetTo1Hp.buffIndex;
+            _applyBuffEffect.BuffStackCount = 1;
         }
 
         static void onBuffAppliedServer(CharacterBody body)

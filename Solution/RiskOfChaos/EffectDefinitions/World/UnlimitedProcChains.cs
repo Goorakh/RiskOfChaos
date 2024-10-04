@@ -25,7 +25,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         static bool ProcChainMask_HasProc(On.RoR2.ProcChainMask.orig_HasProc orig, ref ProcChainMask self, ProcType procType)
         {
-            return orig(ref self, procType) && !(TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(_effectInfo));
+            return orig(ref self, procType) && !(ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(_effectInfo));
         }
 
         public override void OnStart()

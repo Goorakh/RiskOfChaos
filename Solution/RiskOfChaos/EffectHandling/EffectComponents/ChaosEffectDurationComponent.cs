@@ -1,23 +1,35 @@
-﻿using RoR2;
+﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RoR2;
 using System;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling.EffectComponents
 {
-    [RequireComponent(typeof(ChaosEffectComponent))]
+    [DisallowMultipleComponent]
+    [RequiredComponents(typeof(ChaosEffectComponent))]
     public sealed class ChaosEffectDurationComponent : NetworkBehaviour
     {
         ChaosEffectComponent _effectComponent;
 
         [SyncVar]
-        public TimedEffectType TimedType;
+        int _timedTypeInternal;
+
+        public TimedEffectType TimedType
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => (TimedEffectType)_timedTypeInternal;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set => _timedTypeInternal = (int)value;
+        }
 
         [SyncVar]
         public int NumStagesCompletedWhileActive;
 
         [SyncVar]
-        public float Duration;
+        public float Duration = -1f;
 
         public float Elapsed
         {
@@ -38,6 +50,8 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
             }
         }
 
+        public float Remaining => Mathf.Min(0f, Duration - Elapsed);
+
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
@@ -57,15 +71,11 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         {
             base.OnStartServer();
 
-            TimedEffectInfo effectInfo = _effectComponent.ChaosEffectInfo as TimedEffectInfo;
-            if (effectInfo == null)
+            if (Duration <= 0f)
             {
-                Log.Error($"EffectDurationComponent used on non-timed effect {_effectComponent.ChaosEffectInfo} ({name})");
-                return;
+                Log.Error($"No duration defined for effect {name} ({netId})");
+                EndEffect();
             }
-
-            TimedType = effectInfo.TimedType;
-            Duration = effectInfo.Duration;
         }
 
         void FixedUpdate()
@@ -77,22 +87,28 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         }
 
         [Server]
+        void fixedUpdateServer()
+        {
+            if (Elapsed >= Duration)
+            {
+#if DEBUG
+                Log.Debug($"Ending timed effect {name} (id={netId})");
+#endif
+
+                EndEffect();
+            }
+        }
+
+        [Server]
         void onServerStageComplete(Stage stage)
         {
             NumStagesCompletedWhileActive++;
         }
 
         [Server]
-        void fixedUpdateServer()
+        public void EndEffect()
         {
-            if (Elapsed >= Duration)
-            {
-#if DEBUG
-                Log.Debug($"Ending timed effect {_effectComponent.ChaosEffectInfo} (id={netId})");
-#endif
-
-                NetworkServer.Destroy(gameObject);
-            }
+            _effectComponent.RetireEffect();
         }
     }
 }

@@ -22,10 +22,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                                 .OptionConfig(new FloatFieldConfig { Min = 0f, FormatString = "{0}x" })
                                 .OnValueChanged(() =>
                                 {
-                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                                    if (!NetworkServer.active || !ChaosEffectTracker.Instance)
                                         return;
 
-                                    foreach (AttractPickups effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<AttractPickups>())
+                                    foreach (AttractPickups effectInstance in ChaosEffectTracker.Instance.OLD_GetActiveEffectInstancesOfType<AttractPickups>())
                                     {
                                         effectInstance?.updateAllAttractorComponents();
                                     }

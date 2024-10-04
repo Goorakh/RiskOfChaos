@@ -21,10 +21,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                               .OptionConfig(new IntFieldConfig { Min = 1 })
                               .OnValueChanged(() =>
                               {
-                                  if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
+                                  if (!NetworkServer.active || !ChaosEffectTracker.Instance)
                                       return;
 
-                                  TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<BouncyPickups>(e => e.OnValueDirty);
+                                  ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<BouncyPickups>(e => e.OnValueDirty);
                               })
                               .Build();
 

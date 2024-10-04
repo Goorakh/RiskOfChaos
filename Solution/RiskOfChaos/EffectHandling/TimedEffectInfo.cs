@@ -1,15 +1,16 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
-using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.ModifierController.Effect;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling
 {
@@ -28,55 +29,16 @@ namespace RiskOfChaos.EffectHandling
         public readonly bool HideFromEffectsListWhenPermanent;
         public bool ShouldDisplayOnHUD => !HideFromEffectsListWhenPermanent || TimedType != TimedEffectType.Permanent;
 
-        public bool CanStack => TimedType switch
-        {
-            TimedEffectType.UntilStageEnd or TimedEffectType.FixedDuration => true,
-            _ => false
-        };
+        public bool CanStack => GetCanStack(TimedType);
 
         public readonly bool IgnoreDurationModifiers;
 
         readonly ConfigHolder<int> _stageCountDuration;
         public int StageDuration => _stageCountDuration.Value;
 
-        public float MaxStocks
-        {
-            get
-            {
-                float maxStocks;
-                if (TimedType == TimedEffectType.UntilStageEnd)
-                {
-                    maxStocks = _stageCountDuration.Value;
-                }
-                else
-                {
-                    maxStocks = 1f;
-                }
+        public float BaseDuration => GetBaseDuration(TimedType);
 
-                if (!IgnoreDurationModifiers && EffectModificationManager.Instance)
-                {
-                    maxStocks *= EffectModificationManager.Instance.DurationMultiplier;
-                }
-
-                return maxStocks;
-            }
-        }
-
-        public float Duration
-        {
-            get
-            {
-                switch (TimedType)
-                {
-                    case TimedEffectType.UntilStageEnd:
-                        return StageDuration;
-                    case TimedEffectType.FixedDuration:
-                        return DurationSeconds;
-                    default:
-                        return 1f;
-                }
-            }
-        }
+        public float Duration => GetDuration(TimedType);
 
         readonly ConfigHolder<bool> _alwaysActiveEnabled;
         readonly ConfigHolder<int> _alwaysActiveStackCount;
@@ -169,6 +131,51 @@ namespace RiskOfChaos.EffectHandling
             IgnoreDurationModifiers = attribute.IgnoreDurationModifiers;
         }
 
+        public bool GetCanStack(TimedEffectType timedType)
+        {
+            switch (timedType)
+            {
+                case TimedEffectType.UntilStageEnd:
+                case TimedEffectType.FixedDuration:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        public float GetBaseDuration(TimedEffectType timedType)
+        {
+            switch (timedType)
+            {
+                case TimedEffectType.UntilStageEnd:
+                    return StageDuration;
+                case TimedEffectType.FixedDuration:
+                    return DurationSeconds;
+                default:
+                    return 1f;
+            }
+        }
+
+        public float GetDuration(TimedEffectType timedType)
+        {
+            float duration = GetBaseDuration(timedType);
+
+            if (EffectModificationManager.Instance)
+            {
+                EffectModificationManager.Instance.TryModifyDuration(this, ref duration);
+            }
+
+            return duration;
+        }
+
+        protected override void addPrefabComponents(List<Type> componentTypes)
+        {
+            base.addPrefabComponents(componentTypes);
+            componentTypes.AddRange([
+                typeof(ChaosEffectDurationComponent)
+            ]);
+        }
+
         public override void BindConfigs()
         {
             base.BindConfigs();
@@ -193,7 +200,7 @@ namespace RiskOfChaos.EffectHandling
 
             if (!CanStack && !AllowDuplicates)
             {
-                if (TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.AnyInstanceOfEffectActive(this, context))
+                if (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsAnyInstanceOfEffectRelevant(this, context))
                 {
 #if DEBUG
                     Log.Debug($"Duplicate effect {this} cannot activate");
@@ -212,50 +219,25 @@ namespace RiskOfChaos.EffectHandling
 
             if ((formatFlags & EffectNameFormatFlags.TimedType) != 0)
             {
-                float durationMultiplier = MaxStocks;
+                float duration = Duration;
 
                 switch (TimedType)
                 {
                     case TimedEffectType.UntilStageEnd:
-                        int stageCount = Mathf.CeilToInt(durationMultiplier);
+                        int stageCount = Mathf.CeilToInt(duration);
                         string token = stageCount == 1 ? "TIMED_TYPE_UNTIL_STAGE_END_SINGLE_FORMAT" : "TIMED_TYPE_UNTIL_STAGE_END_MULTI_FORMAT";
                         return Language.GetStringFormatted(token, displayName, stageCount);
                     case TimedEffectType.FixedDuration:
-                        return Language.GetStringFormatted("TIMED_TYPE_FIXED_DURATION_FORMAT", displayName, DurationSeconds * durationMultiplier);
+                        return Language.GetStringFormatted("TIMED_TYPE_FIXED_DURATION_FORMAT", displayName, duration);
                     case TimedEffectType.Permanent:
+                    case TimedEffectType.AlwaysActive:
                         return Language.GetStringFormatted("TIMED_TYPE_PERMANENT_FORMAT", displayName);
                     default:
-                        Log.Warning($"Timed type {TimedType} is not implemented");
-                        return displayName;
+                        throw new NotImplementedException($"Timed type {TimedType} is not implemented");
                 }
             }
-            else
-            {
-                return displayName;
-            }
-        }
 
-        public override BaseEffect CreateInstance(in CreateEffectInstanceArgs args)
-        {
-            BaseEffect effectInstance = base.CreateInstance(args);
-            if (effectInstance is TimedEffect timedEffect)
-            {
-                if (NetworkServer.active)
-                {
-                    timedEffect.TimedType = args.OverrideDurationType ?? TimedType;
-
-                    if (timedEffect.TimedType == TimedEffectType.FixedDuration)
-                    {
-                        timedEffect.DurationSeconds = DurationSeconds;
-                    }
-                }
-            }
-            else
-            {
-                Log.Error($"Effect info {this} is marked as timed, but instance is not of type {nameof(TimedEffect)} ({effectInstance})");
-            }
-
-            return effectInstance;
+            return displayName;
         }
     }
 }
