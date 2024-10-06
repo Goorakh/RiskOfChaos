@@ -41,7 +41,11 @@ namespace RiskOfChaos.EffectDefinitions.World
 
                 SelectionWeight =
                     ConfigFactory<float>.CreateConfig($"{ArtifactName} Weight", 1f)
-                                        .Description($"How likely the {ArtifactName} is to be picked, higher value means more likely, lower value means less likely.\n\nA value of 0 will exclude it completely")
+                                        .Description($"""
+                                         How likely the {ArtifactName} is to be picked, higher value means more likely, lower value means less likely.
+
+                                         A value of 0 will exclude it completely
+                                         """)
                                         .AcceptableValues(new AcceptableValueMin<float>(0f))
                                         .OptionConfig(new FloatFieldConfig { Min = 0f })
                                         .Build();

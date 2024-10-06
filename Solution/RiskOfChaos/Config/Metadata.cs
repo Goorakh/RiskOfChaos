@@ -17,7 +17,10 @@ namespace RiskOfChaos
 
             public static ConfigHolder<uint> ConfigFileVersion =
                 ConfigFactory<uint>.CreateConfig("VERSION", CONFIG_FILE_VERSION_LEGACY)
-                                   .Description("Used internally by the mod\nDO NOT MODIFY MANUALLY")
+                                   .Description("""
+                                    Used internally by the mod
+                                    DO NOT MODIFY MANUALLY
+                                    """)
                                    .Build();
 
             internal static void Bind(ConfigFile file)

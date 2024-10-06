@@ -64,7 +64,13 @@ namespace RiskOfChaos.EffectHandling
         public TimedEffectInfo(ChaosEffectIndex effectIndex, ChaosTimedEffectAttribute attribute, ConfigFile configFile) : base(effectIndex, attribute, configFile)
         {
             _timedType = ConfigFactory<TimedEffectType>.CreateConfig("Duration Type", attribute.TimedType)
-                                                       .Description($"What should determine how long this effect lasts.\n\n{nameof(TimedEffectType.UntilStageEnd)}: Lasts until you exit the stage.\n{nameof(TimedEffectType.FixedDuration)}: Lasts for a set number of seconds.\n{nameof(TimedEffectType.Permanent)}: Lasts until the end of the run.")
+                                                       .Description($"""
+                                                        What should determine how long this effect lasts.
+
+                                                        {nameof(TimedEffectType.UntilStageEnd)}: Lasts until you exit the stage.
+                                                        {nameof(TimedEffectType.FixedDuration)}: Lasts for a set number of seconds.
+                                                        {nameof(TimedEffectType.Permanent)}: Lasts until the end of the run.
+                                                        """)
                                                        .OptionConfig(new ChoiceConfig())
                                                        .Build();
 
@@ -73,7 +79,10 @@ namespace RiskOfChaos.EffectHandling
                 defaultDuration = 60f;
 
             _fixedTimeDuration = ConfigFactory<float>.CreateConfig("Effect Time Duration", defaultDuration)
-                                                     .Description($"How long the effect should last, in seconds.\nOnly takes effect if the Duration Type is set to {nameof(TimedEffectType.FixedDuration)}")
+                                                     .Description($"""
+                                                      How long the effect should last, in seconds.
+                                                      Only takes effect if the Duration Type is set to {nameof(TimedEffectType.FixedDuration)}
+                                                      """)
                                                      .AcceptableValues(new AcceptableValueMin<float>(0f))
                                                      .OptionConfig(new FloatFieldConfig
                                                      {
@@ -86,7 +95,10 @@ namespace RiskOfChaos.EffectHandling
 
             _stageCountDuration =
                 ConfigFactory<int>.CreateConfig("Effect Stage Duration", attribute.DefaultStageCountDuration)
-                                  .Description($"How many stages this effect should last.\nOnly applies if Duration Type is set to {nameof(TimedEffectType.UntilStageEnd)}")
+                                  .Description($"""
+                                   How many stages this effect should last.
+                                   Only applies if Duration Type is set to {nameof(TimedEffectType.UntilStageEnd)}
+                                   """)
                                   .AcceptableValues(new AcceptableValueMin<int>(1))
                                   .OptionConfig(new IntFieldConfig
                                   {

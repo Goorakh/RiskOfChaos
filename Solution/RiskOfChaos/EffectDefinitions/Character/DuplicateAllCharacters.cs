@@ -16,7 +16,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
         [EffectConfig]
         static readonly ConfigHolder<bool> _allowDontDestroyOnLoad =
             ConfigFactory<bool>.CreateConfig("Keep duplicated allies between stages", false)
-                               .Description("Allows duplicated allies to come with you to the next stage.\nThis is disabled by default to prevent lag by repeatedly duplicating your drones.")
+                               .Description("""
+                                Allows duplicated allies to come with you to the next stage.
+                                This is disabled by default to prevent lag by repeatedly duplicating your drones.
+                                """)
                                .OptionConfig(new CheckBoxConfig())
                                .Build();
 
