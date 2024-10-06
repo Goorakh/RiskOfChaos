@@ -6,6 +6,7 @@ using RiskOfChaos.Utilities;
 using RoR2;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -15,20 +16,15 @@ namespace RiskOfChaos.EffectHandling.Controllers
 {
     [DisallowMultipleComponent]
     [RequiredComponents(typeof(ChaosEffectDispatcher))]
-    public class ChaosEffectTracker : NetworkBehaviour
+    public class ChaosEffectTracker : MonoBehaviour
     {
         static ChaosEffectTracker _instance;
         public static ChaosEffectTracker Instance => _instance;
 
-        [Obsolete]
-        public delegate void TimedEffectStatusDelegate(TimedEffect effectInstance);
+        public delegate void TimedEffectDelegate(ChaosEffectComponent effectComponent);
 
-        [Obsolete]
-        public static event TimedEffectStatusDelegate OnTimedEffectStartServer;
-        [Obsolete]
-        public static event TimedEffectStatusDelegate OnTimedEffectEndServer;
-        [Obsolete]
-        public static event TimedEffectStatusDelegate OnTimedEffectDirtyServer;
+        public static event TimedEffectDelegate OnTimedEffectStartGlobal;
+        public static event TimedEffectDelegate OnTimedEffectEndGlobal;
 
         readonly struct EffectInstanceInfo
         {
@@ -42,25 +38,22 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        struct EffectActivityInfo
+        struct TimedEffectActivityInfo
         {
-            public static readonly EffectActivityInfo Empty = new EffectActivityInfo
-            {
-                ActiveEffects = [],
-                ActiveEffectsCount = 0
-            };
-
-            public EffectInstanceInfo[] ActiveEffects;
-            public int ActiveEffectsCount;
+            public EffectInstanceInfo[] Instances;
+            public int InstancesCount;
         }
 
-        EffectActivityInfo[] _effectActivity;
+        TimedEffectActivityInfo[] _timedEffectActivity;
+        readonly List<ChaosEffectComponent> _allActiveTimedEffects = [];
+        public ReadOnlyCollection<ChaosEffectComponent> AllActiveTimedEffects { get; private set; }
 
         ChaosEffectDispatcher _effectDispatcher;
 
         void Awake()
         {
             _effectDispatcher = GetComponent<ChaosEffectDispatcher>();
+            AllActiveTimedEffects = new ReadOnlyCollection<ChaosEffectComponent>(_allActiveTimedEffects);
         }
 
         void OnEnable()
@@ -76,7 +69,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             foreach (ChaosEffectComponent activeEffectComponent in ChaosEffectComponent.Instances)
             {
-                tryRegisterActiveEffect(activeEffectComponent);
+                tryRegisterActiveTimedEffect(activeEffectComponent);
             }
         }
 
@@ -94,21 +87,16 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void resetEffectActivity()
         {
-            _effectActivity ??= new EffectActivityInfo[ChaosEffectCatalog.EffectCount];
+            _allActiveTimedEffects.Clear();
 
-            for (int i = 0; i < _effectActivity.Length; i++)
+            _timedEffectActivity ??= new TimedEffectActivityInfo[ChaosEffectCatalog.EffectCount];
+
+            for (int i = 0; i < _timedEffectActivity.Length; i++)
             {
-                ref EffectActivityInfo effectActivity = ref _effectActivity[i];
+                ref TimedEffectActivityInfo effectActivity = ref _timedEffectActivity[i];
 
-                if (effectActivity.ActiveEffects == null)
-                {
-                    effectActivity.ActiveEffects = [];
-                    effectActivity.ActiveEffectsCount = 0;
-                }
-                else
-                {
-                    ArrayUtils.Clear(effectActivity.ActiveEffects, ref effectActivity.ActiveEffectsCount);
-                }
+                effectActivity.Instances ??= [];
+                effectActivity.InstancesCount = 0;
             }
         }
 
@@ -120,10 +108,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
             TimedEffectInfo timedEffectInfo = effectInfo as TimedEffectInfo;
             if (timedEffectInfo != null && !timedEffectInfo.AllowDuplicates)
             {
-                ref EffectActivityInfo effectActivity = ref _effectActivity[(int)effectInfo.EffectIndex];
-                if (effectActivity.ActiveEffectsCount > 0)
+                ref TimedEffectActivityInfo effectActivity = ref _timedEffectActivity[(int)effectInfo.EffectIndex];
+                if (effectActivity.InstancesCount > 0)
                 {
-                    ChaosEffectDurationComponent activeEffectDurationComponent = effectActivity.ActiveEffects[0].DurationComponent;
+                    ChaosEffectDurationComponent activeEffectDurationComponent = effectActivity.Instances[0].DurationComponent;
                     if (activeEffectDurationComponent)
                     {
                         if (timedEffectInfo.GetCanStack(activeEffectDurationComponent.TimedType))
@@ -137,21 +125,21 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 }
             }
 
-            for (ChaosEffectIndex effectIndex = 0; (int)effectIndex < _effectActivity.Length; effectIndex++)
+            for (ChaosEffectIndex effectIndex = 0; (int)effectIndex < _timedEffectActivity.Length; effectIndex++)
             {
-                ref EffectActivityInfo effectActivity = ref _effectActivity[(int)effectIndex];
-                if (effectActivity.ActiveEffectsCount > 0)
+                ref TimedEffectActivityInfo effectActivity = ref _timedEffectActivity[(int)effectIndex];
+                if (effectActivity.InstancesCount > 0)
                 {
                     ChaosEffectInfo activeEffectInfo = ChaosEffectCatalog.GetEffectInfo(effectIndex);
                     if (effectInfo.IncompatibleEffects.Contains(activeEffectInfo) || activeEffectInfo.IncompatibleEffects.Contains(effectInfo))
                     {
 #if DEBUG
-                        Log.Debug($"Ending {effectActivity.ActiveEffectsCount} timed effect(s) {activeEffectInfo} due to: incompatible effect about to start ({effectInfo})");
+                        Log.Debug($"Ending {effectActivity.InstancesCount} timed effect(s) {activeEffectInfo} due to: incompatible effect about to start ({effectInfo})");
 #endif
 
-                        for (int i = effectActivity.ActiveEffectsCount - 1; i >= 0; i--)
+                        for (int i = effectActivity.InstancesCount - 1; i >= 0; i--)
                         {
-                            ChaosEffectDurationComponent durationComponent = effectActivity.ActiveEffects[i].DurationComponent;
+                            ChaosEffectDurationComponent durationComponent = effectActivity.Instances[i].DurationComponent;
                             if (durationComponent)
                             {
                                 durationComponent.EndEffect();
@@ -164,13 +152,19 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void onEffectStartGlobal(ChaosEffectComponent effectComponent)
         {
-            tryRegisterActiveEffect(effectComponent);
+            tryRegisterActiveTimedEffect(effectComponent);
         }
 
-        void tryRegisterActiveEffect(ChaosEffectComponent effectComponent)
+        void tryRegisterActiveTimedEffect(ChaosEffectComponent effectComponent)
         {
+            if (_allActiveTimedEffects.Contains(effectComponent))
+            {
+                Log.Error($"Attempted to registed duplicate timed effect {effectComponent} ({effectComponent.netId})");
+                return;
+            }
+
             ChaosEffectIndex effectIndex = effectComponent.ChaosEffectIndex;
-            if (effectIndex < 0 || (int)effectIndex >= _effectActivity.Length)
+            if (effectIndex < 0 || (int)effectIndex >= _timedEffectActivity.Length)
             {
                 Log.Error($"Invalid effect index on effect {effectComponent}");
                 return;
@@ -179,15 +173,19 @@ namespace RiskOfChaos.EffectHandling.Controllers
             if (!effectComponent.TryGetComponent(out ChaosEffectDurationComponent effectDurationComponent))
                 return;
 
-            ref EffectActivityInfo effectActivity = ref _effectActivity[(int)effectIndex];
+            ref TimedEffectActivityInfo effectActivity = ref _timedEffectActivity[(int)effectIndex];
 
-            ArrayUtils.ArrayAppend(ref effectActivity.ActiveEffects, ref effectActivity.ActiveEffectsCount, new EffectInstanceInfo(effectComponent));
+            ArrayUtils.ArrayAppend(ref effectActivity.Instances, ref effectActivity.InstancesCount, new EffectInstanceInfo(effectComponent));
+
+            _allActiveTimedEffects.Add(effectComponent);
+
+            OnTimedEffectStartGlobal?.Invoke(effectComponent);
         }
 
         void onEffectEndGlobal(ChaosEffectComponent effectComponent)
         {
             ChaosEffectIndex effectIndex = effectComponent.ChaosEffectIndex;
-            if (effectIndex < 0 || (int)effectIndex >= _effectActivity.Length)
+            if (effectIndex < 0 || (int)effectIndex >= _timedEffectActivity.Length)
             {
                 Log.Error($"Invalid effect index on effect {effectComponent}");
                 return;
@@ -196,27 +194,31 @@ namespace RiskOfChaos.EffectHandling.Controllers
             if (!effectComponent.TryGetComponent(out ChaosEffectDurationComponent effectDurationComponent))
                 return;
 
-            ref EffectActivityInfo effectActivity = ref _effectActivity[(int)effectIndex];
+            ref TimedEffectActivityInfo effectActivity = ref _timedEffectActivity[(int)effectIndex];
 
-            for (int i = 0; i < effectActivity.ActiveEffectsCount; i++)
+            for (int i = 0; i < effectActivity.InstancesCount; i++)
             {
-                if (effectActivity.ActiveEffects[i].EffectComponent == effectComponent)
+                if (effectActivity.Instances[i].EffectComponent == effectComponent)
                 {
-                    ArrayUtils.ArrayRemoveAt(effectActivity.ActiveEffects, ref effectActivity.ActiveEffectsCount, i);
+                    ArrayUtils.ArrayRemoveAt(effectActivity.Instances, ref effectActivity.InstancesCount, i);
                     break;
                 }
             }
+
+            _allActiveTimedEffects.Remove(effectComponent);
+
+            OnTimedEffectEndGlobal?.Invoke(effectComponent);
         }
 
-        public bool IsAnyInstanceOfEffectRelevant(TimedEffectInfo effectInfo, in EffectCanActivateContext context)
+        public bool IsAnyInstanceOfTimedEffectRelevantForContext(TimedEffectInfo effectInfo, in EffectCanActivateContext context)
         {
-            ref EffectActivityInfo effectActivity = ref _effectActivity[(int)effectInfo.EffectIndex];
-            for (int i = 0; i < effectActivity.ActiveEffectsCount; i++)
+            ref TimedEffectActivityInfo effectActivity = ref _timedEffectActivity[(int)effectInfo.EffectIndex];
+            for (int i = 0; i < effectActivity.InstancesCount; i++)
             {
-                ChaosEffectDurationComponent durationComponent = effectActivity.ActiveEffects[i].DurationComponent;
+                ChaosEffectDurationComponent durationComponent = effectActivity.Instances[i].DurationComponent;
                 if (!durationComponent ||
                     durationComponent.TimedType != TimedEffectType.FixedDuration ||
-                    durationComponent.Remaining >= context.Delay)
+                    durationComponent.Remaining >= context.ActivationTime.TimeUntilClamped)
                 {
                     return true;
                 }
@@ -226,7 +228,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
         }
 
         [Obsolete]
-        [Server]
         public void EndEffectServer(TimedEffect effect)
         {
         }
@@ -234,53 +235,50 @@ namespace RiskOfChaos.EffectHandling.Controllers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsTimedEffectActive(TimedEffectInfo effectInfo)
         {
-            return GetEffectStackCount(effectInfo) > 0;
+            return effectInfo != null && GetTimedEffectStackCount(effectInfo) > 0;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetEffectStackCount(TimedEffectInfo effectInfo)
+        public int GetTimedEffectStackCount(TimedEffectInfo effectInfo)
         {
-            return _effectActivity[(int)effectInfo.EffectIndex].ActiveEffectsCount;
+            return effectInfo != null ? _timedEffectActivity[(int)effectInfo.EffectIndex].InstancesCount : 0;
         }
 
-        public ChaosEffectComponent[] GetActiveEffects(TimedEffectInfo effectInfo)
+        public ChaosEffectComponent[] GetActiveTimedEffects(TimedEffectInfo effectInfo)
         {
-            ref EffectActivityInfo effectActivity = ref _effectActivity[(int)effectInfo.EffectIndex];
-            if (effectActivity.ActiveEffectsCount <= 0)
+            if (effectInfo == null)
                 return [];
 
-            ChaosEffectComponent[] activeEffectComponents = new ChaosEffectComponent[effectActivity.ActiveEffectsCount];
-            for (int i = 0; i < effectActivity.ActiveEffectsCount; i++)
+            ref TimedEffectActivityInfo effectActivity = ref _timedEffectActivity[(int)effectInfo.EffectIndex];
+            if (effectActivity.InstancesCount <= 0)
+                return [];
+
+            ChaosEffectComponent[] activeEffectComponents = new ChaosEffectComponent[effectActivity.InstancesCount];
+            for (int i = 0; i < effectActivity.InstancesCount; i++)
             {
-                activeEffectComponents[i] = effectActivity.ActiveEffects[i].EffectComponent;
+                activeEffectComponents[i] = effectActivity.Instances[i].EffectComponent;
             }
 
             return activeEffectComponents;
         }
 
         [Obsolete]
-        public IEnumerable<TimedEffect> OLD_GetActiveEffects(TimedEffectInfo effectInfo)
+        public TimedEffect[] OLD_GetAllActiveEffects()
         {
             return [];
         }
 
-        [Obsolete]
-        public TimedEffect[] GetAllActiveEffects()
-        {
-            return [];
-        }
-
-        public TEffectComponent[] GetActiveEffectComponents<TEffectComponent>() where TEffectComponent : MonoBehaviour
+        public TEffectComponent[] GetActiveTimedEffectComponents<TEffectComponent>() where TEffectComponent : MonoBehaviour
         {
             List<TEffectComponent> componentsBuffer = new List<TEffectComponent>(8);
             List<TEffectComponent> componentsList = new List<TEffectComponent>(8);
 
-            for (ChaosEffectIndex effectIndex = 0; (int)effectIndex < _effectActivity.Length; effectIndex++)
+            for (ChaosEffectIndex effectIndex = 0; (int)effectIndex < _timedEffectActivity.Length; effectIndex++)
             {
-                ref EffectActivityInfo effectActivity = ref _effectActivity[(int)effectIndex];
-                for (int i = 0; i < effectActivity.ActiveEffectsCount; i++)
+                ref TimedEffectActivityInfo effectActivity = ref _timedEffectActivity[(int)effectIndex];
+                for (int i = 0; i < effectActivity.InstancesCount; i++)
                 {
-                    ChaosEffectComponent effectComponent = effectActivity.ActiveEffects[i].EffectComponent;
+                    ChaosEffectComponent effectComponent = effectActivity.Instances[i].EffectComponent;
                     if (effectComponent)
                     {
                         effectComponent.GetComponents(componentsBuffer);
@@ -301,12 +299,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
             return [];
         }
 
-        public void InvokeEventOnAllActiveEffectComponents<TEffectComponent>(Func<TEffectComponent, Action> eventGetter) where TEffectComponent : MonoBehaviour
+        public void InvokeEventOnAllActiveTimedEffectComponents<TEffectComponent>(Func<TEffectComponent, Action> eventGetter) where TEffectComponent : MonoBehaviour
         {
             if (eventGetter is null)
                 throw new ArgumentNullException(nameof(eventGetter));
 
-            foreach (TEffectComponent effectComponent in GetActiveEffectComponents<TEffectComponent>())
+            foreach (TEffectComponent effectComponent in GetActiveTimedEffectComponents<TEffectComponent>())
             {
                 Action action = eventGetter(effectComponent);
                 action?.Invoke();
@@ -316,14 +314,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
         [Obsolete]
         public void OLD_InvokeEventOnAllInstancesOfEffect<TEffect>(Func<TEffect, Action> eventGetter) where TEffect : TimedEffect
         {
-            if (eventGetter is null)
-                throw new ArgumentNullException(nameof(eventGetter));
-
-            foreach (TEffect effectInstance in OLD_GetActiveEffectInstancesOfType<TEffect>())
-            {
-                Action action = eventGetter(effectInstance);
-                action?.Invoke();
-            }
         }
 
         [ConCommand(commandName = "roc_end_all_effects", flags = ConVarFlags.SenderMustBeServer, helpText = "Ends all active timed effects")]
@@ -332,12 +322,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
             if (!NetworkServer.active || !_instance)
                 return;
 
-            for (int i = _instance._effectActivity.Length - 1; i >= 0; i--)
+            for (int i = _instance._timedEffectActivity.Length - 1; i >= 0; i--)
             {
-                ref EffectActivityInfo effectActivity = ref _instance._effectActivity[i];
-                for (int j = effectActivity.ActiveEffectsCount - 1; j >= 0; j--)
+                ref TimedEffectActivityInfo effectActivity = ref _instance._timedEffectActivity[i];
+                for (int j = effectActivity.InstancesCount - 1; j >= 0; j--)
                 {
-                    ref EffectInstanceInfo effectInstanceInfo = ref effectActivity.ActiveEffects[j];
+                    ref EffectInstanceInfo effectInstanceInfo = ref effectActivity.Instances[j];
 
                     ChaosEffectDurationComponent durationComponent = effectInstanceInfo.DurationComponent;
                     if (durationComponent && durationComponent.TimedType != TimedEffectType.AlwaysActive)
@@ -351,12 +341,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
         [ConCommand(commandName = "roc_list_active_effects", helpText = "Prints all active effects to the console")]
         static void CCListActiveEffects(ConCommandArgs args)
         {
-            for (int i = _instance._effectActivity.Length - 1; i >= 0; i--)
+            for (int i = _instance._timedEffectActivity.Length - 1; i >= 0; i--)
             {
-                ref EffectActivityInfo effectActivity = ref _instance._effectActivity[i];
-                for (int j = effectActivity.ActiveEffectsCount - 1; j >= 0; j--)
+                ref TimedEffectActivityInfo effectActivity = ref _instance._timedEffectActivity[i];
+                for (int j = effectActivity.InstancesCount - 1; j >= 0; j--)
                 {
-                    ref EffectInstanceInfo effectInstanceInfo = ref effectActivity.ActiveEffects[j];
+                    ref EffectInstanceInfo effectInstanceInfo = ref effectActivity.Instances[j];
 
                     ChaosEffectComponent effectComponent = effectInstanceInfo.EffectComponent;
                     if (effectComponent)

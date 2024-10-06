@@ -27,7 +27,7 @@ namespace RiskOfChaos.EffectHandling
         public float DurationSeconds => _fixedTimeDuration.Value;
 
         public readonly bool HideFromEffectsListWhenPermanent;
-        public bool ShouldDisplayOnHUD => !HideFromEffectsListWhenPermanent || TimedType != TimedEffectType.Permanent;
+        public bool ShouldDisplayOnHUD => GetShouldDisplayOnHUD(TimedType);
 
         public bool CanStack => GetCanStack(TimedType);
 
@@ -168,9 +168,17 @@ namespace RiskOfChaos.EffectHandling
             return duration;
         }
 
-        protected override void addPrefabComponents(List<Type> componentTypes)
+        public bool GetShouldDisplayOnHUD(TimedEffectType timedType)
         {
-            base.addPrefabComponents(componentTypes);
+            if (timedType == TimedEffectType.Permanent)
+                return !HideFromEffectsListWhenPermanent;
+
+            return true;
+        }
+
+        protected override void modifyPrefabComponents(List<Type> componentTypes)
+        {
+            base.modifyPrefabComponents(componentTypes);
             componentTypes.AddRange([
                 typeof(ChaosEffectDurationComponent)
             ]);
@@ -200,7 +208,7 @@ namespace RiskOfChaos.EffectHandling
 
             if (!CanStack && !AllowDuplicates)
             {
-                if (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsAnyInstanceOfEffectRelevant(this, context))
+                if (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsAnyInstanceOfTimedEffectRelevantForContext(this, context))
                 {
 #if DEBUG
                     Log.Debug($"Duplicate effect {this} cannot activate");

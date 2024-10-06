@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.Components;
 using RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
 using System.Collections.Generic;
@@ -25,7 +24,9 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 typeof(ChaosEffectDispatcher),
                 typeof(ChaosEffectTracker),
                 typeof(ChaosAlwaysActiveEffectsHandler),
-                typeof(ChaosEffectActivationSoundHandler)
+                typeof(ChaosEffectActivationSoundHandler),
+                typeof(ChaosEffectNameFormattersNetworker),
+                typeof(ChaosNextEffectProvider)
             ]);
 
             static GameObject createBasicEffectActivationSignaler<TSignalerComponent>(Configs.ChatVoting.ChatVotingMode? requiredVotingMode) where TSignalerComponent : ChaosEffectActivationSignaler

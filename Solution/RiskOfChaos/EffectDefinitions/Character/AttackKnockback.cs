@@ -125,7 +125,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             float damageCoefficient = damage / body.damage;
             float damageForceMultiplier = Mathf.Pow(damageCoefficient, damageCoefficient > 1f ? 1f / 1.5f : 2f);
-            float effectStackMultiplier = ChaosEffectTracker.Instance.GetEffectStackCount(EffectInfo);
+            float effectStackMultiplier = ChaosEffectTracker.Instance.GetTimedEffectStackCount(EffectInfo);
 
             Vector3 force = knockbackDirection * (baseForce * damageForceMultiplier * effectStackMultiplier);
 

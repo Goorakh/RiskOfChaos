@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RoR2;
-using System.Globalization;
 
 namespace RiskOfChaos.Utilities.Extensions
 {

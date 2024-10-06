@@ -1,7 +1,7 @@
 ﻿using R2API;
 using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.Formatting;
-using RiskOfChaos.Networking.Components.Effects;
 using RiskOfChaos.Trackers;
 using RoR2;
 using RoR2.UI;
@@ -19,6 +19,8 @@ namespace RiskOfChaos.UI.NextEffectDisplay
         [SystemInitializer]
         static void Init()
         {
+            // TODO: Construct panel prefab instead of Frankensteining existing prefabs
+
             GameObject effectDisplayPrefab = Instantiate(Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/NotificationPanel2.prefab").WaitForCompletion());
 
             // Prevent added components from running while we're setting up the prefab
@@ -122,17 +124,17 @@ namespace RiskOfChaos.UI.NextEffectDisplay
             if (Configs.General.DisableEffectDispatching.Value)
                 return null;
 
-            NextEffectProvider nextEffectProvider = NextEffectProvider.Instance;
-            if (nextEffectProvider && nextEffectProvider.HasValidNextEffectState)
+            ChaosNextEffectProvider nextEffectProvider = ChaosNextEffectProvider.Instance;
+            if (nextEffectProvider && !nextEffectProvider.NextEffectActivationTime.IsInfinity)
             {
                 ChaosEffectIndex nextEffect = nextEffectProvider.NextEffectIndex;
                 if (Configs.UI.DisplayNextEffect.Value && nextEffect != ChaosEffectIndex.Invalid)
                 {
-                    return new EffectDisplayData(nextEffect, nextEffectProvider.NextEffectActivationTime.timeUntilClamped, nextEffectProvider.NextEffectNameFormatter);
+                    return new EffectDisplayData(nextEffect, nextEffectProvider.NextEffectActivationTime, nextEffectProvider.NextEffectNameFormatter);
                 }
                 else if (Configs.UI.ShouldShowNextEffectTimer(_ownerHud))
                 {
-                    return new EffectDisplayData(ChaosEffectIndex.Invalid, nextEffectProvider.NextEffectActivationTime.timeUntilClamped, EffectNameFormatter_None.Instance);
+                    return new EffectDisplayData(ChaosEffectIndex.Invalid, nextEffectProvider.NextEffectActivationTime, EffectNameFormatter_None.Instance);
                 }
             }
 
@@ -142,10 +144,7 @@ namespace RiskOfChaos.UI.NextEffectDisplay
         bool isNotificationShowing()
         {
             NotificationUIController notificationController = NotificationUIControllerTracker.GetNotificationUIControllerForHUD(_ownerHud);
-            if (!notificationController)
-                return false;
-
-            return notificationController.currentNotification;
+            return notificationController && notificationController.currentNotification;
         }
 
         void FixedUpdate()

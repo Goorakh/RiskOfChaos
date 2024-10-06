@@ -5,6 +5,7 @@ using RiskOfChaos.SaveHandling.DataContainers;
 using RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers;
 using RiskOfChaos.UI;
 using RiskOfChaos.UI.ChatVoting;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
@@ -88,8 +89,10 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             }
         }
 
-        protected virtual void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             if (Run.instance)
             {
                 _rng = new Xoroshiro128Plus(Run.instance.seed);
@@ -125,7 +128,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             data = new EffectActivationSignalerData
             {
                 NextEffectRng = new SerializableRng(_rng),
-                LastEffectActivationTime = _voteTimer.GetLastActivationTimeStopwatch(),
+                LastEffectActivationTime = _voteTimer.GetLastActivationTimeStopwatch().Time,
                 ChatVoteData = new EffectActivationSignalerChatVoteData
                 {
                     VotingMode = votingMode,
@@ -263,7 +266,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
                     ChaosEffectVoteDisplayController effectVoteDisplayController = ChaosUIController.Instance.EffectVoteDisplayController;
                     if (effectVoteDisplayController)
                     {
-                        float voteTimeRemaining = _voteTimer.GetTimeRemaining();
+                        float voteTimeRemaining = _voteTimer.GetNextActivationTime().TimeUntilClamped;
                         if (voteTimeRemaining <= START_FADE_TIME && canDispatchEffects)
                         {
                             effectVoteDisplayController.SetVoteDisplayAlpha(Util.Remap(voteTimeRemaining, 0f, START_FADE_TIME, 0f, 1f));
@@ -282,8 +285,10 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             }
         }
 
-        protected virtual void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
+
             Configs.General.TimeBetweenEffects.SettingChanged -= onTimeBetweenEffectsChanged;
             Configs.General.DisableEffectDispatching.SettingChanged -= onDisableEffectDispatchingChanged;
             Configs.ChatVoting.WinnerSelectionMode.SettingChanged -= onVoteWinnerSelectionModeChanged;
@@ -346,7 +351,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             int numOptions = numVoteOptions;
             _effectVoteSelection.NumOptions = numOptions;
 
-            WeightedSelection<ChaosEffectInfo> effectSelection = ChaosEffectCatalog.GetAllActivatableEffects(new EffectCanActivateContext(_voteTimer.GetTimeRemaining()));
+            WeightedSelection<ChaosEffectInfo> effectSelection = ChaosEffectCatalog.GetAllActivatableEffects(new EffectCanActivateContext(_voteTimer.GetNextActivationTime()));
 
             EffectVoteInfo[] voteOptions = new EffectVoteInfo[numOptions];
             for (int i = 0; i < numOptions; i++)
@@ -393,14 +398,14 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             }
         }
 
-        void onVoteEnd()
+        void onVoteEnd(RunTimeStamp activationTime)
         {
             if (_effectVoteSelection.IsVoteActive)
             {
                 if (_effectVoteSelection.TryGetVoteResult(out EffectVoteInfo voteResult))
                 {
                     OnEffectVotingFinishedServer?.Invoke(new EffectVoteResult(_effectVoteSelection, voteResult));
-                    startEffect(voteResult);
+                    startEffect(voteResult, activationTime);
                 }
                 else
                 {
@@ -411,7 +416,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             beginNextVote();
         }
 
-        void startEffect(EffectVoteInfo voteResult)
+        void startEffect(EffectVoteInfo voteResult, RunTimeStamp activationTime)
         {
             ChaosEffectInfo effectInfo;
             ChaosEffectDispatchArgs dispatchArgs;
@@ -438,6 +443,8 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
                 };
             }
 
+            dispatchArgs.OverrideStartTime = activationTime + Mathf.Round(activationTime.TimeSinceClamped);
+
             signalEffectDispatch(effectInfo, dispatchArgs);
         }
 
@@ -446,9 +453,9 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             return _effectVoteSelection != null && _effectVoteSelection.IsVoteActive && _effectVoteSelection.GetVoteOptions().Any(voteInfo => voteInfo.EffectInfo == effectInfo);
         }
 
-        public override float GetTimeUntilNextEffect()
+        public override RunTimeStamp GetNextEffectActivationTime()
         {
-            return Mathf.Max(0f, _voteTimer.GetTimeRemaining());
+            return _voteTimer.GetNextActivationTime();
         }
     }
 }

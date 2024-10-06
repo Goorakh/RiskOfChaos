@@ -4,7 +4,6 @@ using RiskOfChaos.Components;
 using RiskOfChaos.EffectDefinitions.Character;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Networking.Components;
-using RiskOfChaos.Networking.Components.Effects;
 using RoR2;
 using System;
 using System.Collections.Generic;
@@ -34,8 +33,6 @@ namespace RiskOfChaos
         ];
         public static GameObject[] GeyserPrefabs { get; private set; } = [];
 
-        public static GameObject EffectsNetworkerPrefab { get; private set; }
-
         public static GameObject ItemStealerPositionIndicatorPrefab { get; private set; }
 
         public static GameObject SulfurPodBasePrefab { get; private set; }
@@ -50,9 +47,11 @@ namespace RiskOfChaos
 
         public static GameObject ExplodeAtLowHealthBodyAttachmentPrefab { get; private set; }
 
-        public static GameObject CreateEmptyPrefabObject(string name, bool networked = true, params Type[] componentTypes)
+        public static GameObject CreateEmptyPrefabObject(string name, bool networked = true, Type[] componentTypes = null)
         {
             GameObject tmp = new GameObject(name);
+
+            componentTypes ??= [];
 
             if (componentTypes.Length > 0)
             {
@@ -134,16 +133,6 @@ namespace RiskOfChaos
                 }
 
                 GeyserPrefabs = geyserPrefabs.ToArray();
-            }
-
-            // EffectsNetworkerPrefab
-            {
-                EffectsNetworkerPrefab = CreateEmptyPrefabObject("EffectsNetworker", true, [
-                    typeof(SetDontDestroyOnLoad),
-                    typeof(DestroyOnRunEnd),
-                    typeof(ActiveTimedEffectsProvider),
-                    typeof(NextEffectProvider)
-                ]);
             }
 
             // ItemStealerPositionIndicatorPrefab
@@ -243,8 +232,6 @@ namespace RiskOfChaos
         {
             if (!NetworkServer.active)
                 return;
-
-            NetworkServer.Spawn(GameObject.Instantiate(EffectsNetworkerPrefab));
 
             NetworkServer.Spawn(GameObject.Instantiate(DummyDamageInflictorPrefab));
         }

@@ -1,15 +1,18 @@
-﻿namespace RiskOfChaos.EffectHandling
+﻿using RiskOfChaos.Utilities;
+using RoR2;
+
+namespace RiskOfChaos.EffectHandling
 {
-    public record struct EffectCanActivateContext(float Delay, bool IsShortcut)
+    public record struct EffectCanActivateContext(RunTimeStamp ActivationTime, bool IsShortcut)
     {
-        public static readonly EffectCanActivateContext Now = new EffectCanActivateContext(0f);
+        public static EffectCanActivateContext Now => new EffectCanActivateContext(Run.FixedTimeStamp.now);
 
-        public static readonly EffectCanActivateContext Now_Shortcut = new EffectCanActivateContext(0f, true);
+        public static EffectCanActivateContext Now_Shortcut => new EffectCanActivateContext(Run.FixedTimeStamp.now, true);
 
-        public EffectCanActivateContext(float Delay) : this(Delay, false)
+        public EffectCanActivateContext(RunTimeStamp ActivationTime) : this(ActivationTime, false)
         {
         }
 
-        public readonly bool IsNow => Delay <= 0f;
+        public readonly bool IsNow => ActivationTime.HasPassed;
     }
 }

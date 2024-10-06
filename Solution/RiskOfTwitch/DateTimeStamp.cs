@@ -3,9 +3,9 @@ using System.Text;
 
 namespace RiskOfTwitch
 {
-    public readonly struct TimeStamp : IEquatable<TimeStamp>
+    public readonly struct DateTimeStamp : IEquatable<DateTimeStamp>
     {
-        public static TimeStamp Now => new TimeStamp(DateTime.Now);
+        public static DateTimeStamp Now => new DateTimeStamp(DateTime.Now);
 
         public readonly DateTime Time;
 
@@ -17,7 +17,7 @@ namespace RiskOfTwitch
 
         public readonly bool HasPassed => TimeSince.Ticks > 0;
 
-        public TimeStamp(DateTime time)
+        public DateTimeStamp(DateTime time)
         {
             Time = time;
         }
@@ -42,10 +42,10 @@ namespace RiskOfTwitch
 
         public override bool Equals(object obj)
         {
-            return obj is TimeStamp stamp && Equals(stamp);
+            return obj is DateTimeStamp stamp && Equals(stamp);
         }
 
-        public bool Equals(TimeStamp other)
+        public bool Equals(DateTimeStamp other)
         {
             return Time == other.Time;
         }
@@ -55,69 +55,69 @@ namespace RiskOfTwitch
             return 615635108 + Time.GetHashCode();
         }
 
-        public static implicit operator TimeStamp(DateTime time)
+        public static implicit operator DateTimeStamp(DateTime time)
         {
-            return new TimeStamp(time);
+            return new DateTimeStamp(time);
         }
 
-        public static bool operator ==(TimeStamp left, TimeStamp right)
+        public static bool operator ==(DateTimeStamp left, DateTimeStamp right)
         {
             return left.Equals(right);
         }
 
-        public static bool operator !=(TimeStamp left, TimeStamp right)
+        public static bool operator !=(DateTimeStamp left, DateTimeStamp right)
         {
             return !(left == right);
         }
 
-        public static bool operator <(TimeStamp left, TimeStamp right)
+        public static bool operator <(DateTimeStamp left, DateTimeStamp right)
         {
             return left.Time < right.Time;
         }
-        public static bool operator <(TimeStamp left, DateTime right)
+        public static bool operator <(DateTimeStamp left, DateTime right)
         {
             return left.Time < right;
         }
-        public static bool operator <(DateTime left, TimeStamp right)
+        public static bool operator <(DateTime left, DateTimeStamp right)
         {
             return left < right.Time;
         }
 
-        public static bool operator >(TimeStamp left, TimeStamp right)
+        public static bool operator >(DateTimeStamp left, DateTimeStamp right)
         {
             return left.Time > right.Time;
         }
-        public static bool operator >(TimeStamp left, DateTime right)
+        public static bool operator >(DateTimeStamp left, DateTime right)
         {
             return left.Time > right;
         }
-        public static bool operator >(DateTime left, TimeStamp right)
+        public static bool operator >(DateTime left, DateTimeStamp right)
         {
             return left > right.Time;
         }
 
-        public static bool operator <=(TimeStamp left, TimeStamp right)
+        public static bool operator <=(DateTimeStamp left, DateTimeStamp right)
         {
             return left.Time <= right.Time;
         }
-        public static bool operator <=(TimeStamp left, DateTime right)
+        public static bool operator <=(DateTimeStamp left, DateTime right)
         {
             return left.Time <= right;
         }
-        public static bool operator <=(DateTime left, TimeStamp right)
+        public static bool operator <=(DateTime left, DateTimeStamp right)
         {
             return left <= right.Time;
         }
 
-        public static bool operator >=(TimeStamp left, TimeStamp right)
+        public static bool operator >=(DateTimeStamp left, DateTimeStamp right)
         {
             return left.Time >= right.Time;
         }
-        public static bool operator >=(TimeStamp left, DateTime right)
+        public static bool operator >=(DateTimeStamp left, DateTime right)
         {
             return left.Time >= right;
         }
-        public static bool operator >=(DateTime left, TimeStamp right)
+        public static bool operator >=(DateTime left, DateTimeStamp right)
         {
             return left >= right.Time;
         }

@@ -1,4 +1,7 @@
-﻿using RiskOfChaos.Networking.Wrappers;
+﻿using RiskOfChaos.EffectHandling.Controllers;
+using RiskOfChaos.EffectHandling.Formatting;
+using RiskOfChaos.Networking.Wrappers;
+using RiskOfChaos.Utilities;
 using RoR2;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -18,39 +21,28 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         static readonly List<ChaosEffectComponent> _instances = [];
         public static readonly ReadOnlyCollection<ChaosEffectComponent> Instances = new ReadOnlyCollection<ChaosEffectComponent>(_instances);
 
-        [SyncVar]
-        int _chaosEffectIndexInternal;
+        public ChaosEffectIndex ChaosEffectIndex = ChaosEffectIndex.Invalid;
 
-        public ChaosEffectIndex ChaosEffectIndex
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ChaosEffectIndex)(_chaosEffectIndexInternal - 1);
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => _chaosEffectIndexInternal = (int)value + 1;
-        }
-
-        public ChaosEffectInfo ChaosEffectInfo
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ChaosEffectCatalog.GetEffectInfo(ChaosEffectIndex);
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => ChaosEffectIndex = value?.EffectIndex ?? ChaosEffectIndex.Invalid;
-        }
+        public ChaosEffectInfo ChaosEffectInfo => ChaosEffectCatalog.GetEffectInfo(ChaosEffectIndex);
 
         [SyncVar]
         Net_RunFixedTimeStampWrapper _timeStarted;
-        public Run.FixedTimeStamp TimeStarted
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _timeStarted;
 
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => _timeStarted = value;
-        }
+        IEffectHUDVisibilityProvider[] _hudVisibilityProviders;
 
         Xoroshiro128Plus _rng;
+
+        bool _isInitialized;
+
+        public RunTimeStamp TimeStarted
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => (Run.FixedTimeStamp)_timeStarted;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set => _timeStarted = (Run.FixedTimeStamp)value;
+        }
+
         public Xoroshiro128Plus Rng
         {
             [Server]
@@ -66,6 +58,37 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
             }
         }
 
+        public bool ShouldDisplayOnHUD
+        {
+            get
+            {
+                if (!isActiveAndEnabled || ChaosEffectInfo == null)
+                    return false;
+
+                foreach (IEffectHUDVisibilityProvider hudVisibilityProvider in _hudVisibilityProviders)
+                {
+                    MonoBehaviour hudVisibilityProviderComponent = hudVisibilityProvider as MonoBehaviour;
+                    if (hudVisibilityProviderComponent && hudVisibilityProviderComponent.isActiveAndEnabled && !hudVisibilityProvider.CanShowOnHUD)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        public EffectNameFormatter EffectNameFormatter
+        {
+            get
+            {
+                if (!ChaosEffectNameFormattersNetworker.Instance)
+                    return null;
+
+                return ChaosEffectNameFormattersNetworker.Instance.GetNameFormatter(ChaosEffectIndex);
+            }
+        }
+
         [Server]
         public void SetRngSeedServer(ulong seed)
         {
@@ -76,8 +99,32 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
             _rng = new Xoroshiro128Plus(seed);
         }
 
-        void Start()
+        void Awake()
         {
+            _hudVisibilityProviders = GetComponents<IEffectHUDVisibilityProvider>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            tryInitialize();
+        }
+
+        public override void OnStartClient()
+        {
+            base.OnStartClient();
+
+            tryInitialize();
+        }
+        
+        void tryInitialize()
+        {
+            if (_isInitialized)
+                return;
+
+            _isInitialized = true;
+
             if (ChaosEffectIndex == ChaosEffectIndex.Invalid)
             {
                 Log.Error($"Effect controller {name} ({netId}) is missing an effect index");

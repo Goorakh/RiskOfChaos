@@ -1,6 +1,8 @@
 ﻿using RiskOfChaos.EffectDefinitions;
+using RiskOfChaos.Utilities;
 using RoR2;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -9,6 +11,9 @@ namespace RiskOfChaos.EffectHandling.Controllers
 {
     public abstract class ChaosEffectActivationSignaler : MonoBehaviour
     {
+        static readonly List<ChaosEffectActivationSignaler> _instancesList = [];
+        public static readonly ReadOnlyCollection<ChaosEffectActivationSignaler> InstancesList = new ReadOnlyCollection<ChaosEffectActivationSignaler>(_instancesList);
+
         public const float MIN_STAGE_TIME_REQUIRED_TO_DISPATCH = 2f;
 
         public delegate void SignalShouldDispatchEffectDelegate(ChaosEffectActivationSignaler signaler, ChaosEffectInfo effect, in ChaosEffectDispatchArgs args = default);
@@ -105,6 +110,16 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
+        protected virtual void OnEnable()
+        {
+            _instancesList.Add(this);
+        }
+
+        protected virtual void OnDisable()
+        {
+            _instancesList.Remove(this);
+        }
+
         public abstract void SkipAllScheduledEffects();
         public abstract void RewindEffectScheduling(float numSeconds);
 
@@ -199,7 +214,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         protected virtual bool canDispatchEffects => !EffectDispatchingDisabled;
 
-        public abstract float GetTimeUntilNextEffect();
+        public abstract RunTimeStamp GetNextEffectActivationTime();
 
         public virtual ChaosEffectIndex GetUpcomingEffect()
         {

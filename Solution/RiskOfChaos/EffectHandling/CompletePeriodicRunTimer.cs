@@ -1,11 +1,12 @@
-﻿using RoR2;
-using System;
+﻿using RiskOfChaos.Utilities;
+using RoR2;
 
 namespace RiskOfChaos.EffectHandling
 {
     public class CompletePeriodicRunTimer : IRunTimer
     {
-        public event Action OnActivate;
+        public delegate void TimerActivateDelegate(RunTimeStamp activationTime);
+        public event TimerActivateDelegate OnActivate;
 
         bool _wasRunStopwatchPausedLastUpdate = false;
 
@@ -87,10 +88,10 @@ namespace RiskOfChaos.EffectHandling
                 timer.SkipAllScheduledActivations();
 
 #if DEBUG
-                Log.Debug($"Timer activating (time remaining: {timer.GetTimeRemaining()})");
+                Log.Debug($"Timer activating (time remaining: {timer.GetNextActivationTime().TimeUntil})");
 #endif
 
-                if (timer.GetTimeRemaining() <= 1f / 20f)
+                if (timer.GetNextActivationTime().TimeUntil <= 1f / 20f)
                 {
 #if DEBUG
                     Log.Debug($"Prevented double timer activation");
@@ -99,7 +100,7 @@ namespace RiskOfChaos.EffectHandling
                     timer.SkipActivations(1);
                 }
 
-                OnActivate?.Invoke();
+                OnActivate?.Invoke(timer.GetLastActivationTime());
             }
         }
 
@@ -121,12 +122,12 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
-        public float GetTimeRemaining()
+        public RunTimeStamp GetNextActivationTime()
         {
-            return currentTimer.GetTimeRemaining();
+            return currentTimer.GetNextActivationTime();
         }
 
-        public float GetLastActivationTimeStopwatch()
+        public RunTimeStamp GetLastActivationTimeStopwatch()
         {
             return _stopwatchEffectDispatchTimer.GetLastActivationTime();
         }

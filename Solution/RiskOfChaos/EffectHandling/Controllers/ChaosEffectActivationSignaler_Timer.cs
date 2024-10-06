@@ -3,6 +3,7 @@ using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.SaveHandling;
 using RiskOfChaos.SaveHandling.DataContainers;
 using RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Linq;
@@ -30,8 +31,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
             _effectDispatchTimer?.RewindScheduledActivations(numSeconds);
         }
 
-        void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             Configs.General.TimeBetweenEffects.SettingChanged += onTimeBetweenEffectsConfigChanged;
             Configs.EffectSelection.SeededEffectSelection.SettingChanged += onSeededEffectSelectionConfigChanged;
 
@@ -66,8 +69,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
             updateNextEffect();
         }
 
-        void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
+
             Configs.General.TimeBetweenEffects.SettingChanged -= onTimeBetweenEffectsConfigChanged;
             Configs.EffectSelection.SeededEffectSelection.SettingChanged -= onSeededEffectSelectionConfigChanged;
 
@@ -155,7 +160,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             _effectDispatchTimer.SetLastActivationTimeStopwatch(data.LastEffectActivationTime);
 
 #if DEBUG
-            Log.Debug($"Loaded timer data, remaining={_effectDispatchTimer.GetTimeRemaining()}");
+            Log.Debug($"Loaded timer data, remaining={_effectDispatchTimer.GetNextActivationTime().TimeUntil}");
 #endif
         }
 
@@ -167,7 +172,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             container.ActivationSignalerData = new EffectActivationSignalerData
             {
                 NextEffectRng = new SerializableRng(_nextEffectRNG),
-                LastEffectActivationTime = _effectDispatchTimer.GetLastActivationTimeStopwatch()
+                LastEffectActivationTime = _effectDispatchTimer.GetLastActivationTimeStopwatch().Time
             };
         }
 
@@ -201,7 +206,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        void dispatchRandomEffect()
+        void dispatchRandomEffect(RunTimeStamp activationTime)
         {
             if (!NetworkServer.active)
             {
@@ -210,6 +215,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
 
             ChaosEffectInfo effect = pickNextEffect(_nextEffectRNG.Branch(), out ChaosEffectDispatchArgs args);
+            args.OverrideStartTime = activationTime + Mathf.Round(activationTime.TimeSinceClamped);
             signalEffectDispatch(effect, args);
 
             updateNextEffect();
@@ -237,9 +243,9 @@ namespace RiskOfChaos.EffectHandling.Controllers
             _nextEffectIndex = getNextEffect();
         }
 
-        public override float GetTimeUntilNextEffect()
+        public override RunTimeStamp GetNextEffectActivationTime()
         {
-            return Mathf.Max(0f, _effectDispatchTimer.GetTimeRemaining());
+            return _effectDispatchTimer.GetNextActivationTime();
         }
 
         public override ChaosEffectIndex GetUpcomingEffect()

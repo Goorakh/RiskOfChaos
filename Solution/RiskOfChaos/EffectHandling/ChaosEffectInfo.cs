@@ -260,7 +260,7 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
-        protected virtual void addPrefabComponents(List<Type> componentTypes)
+        protected virtual void modifyPrefabComponents(List<Type> componentTypes)
         {
         }
 
@@ -274,9 +274,21 @@ namespace RiskOfChaos.EffectHandling
                 EffectType
             ];
 
-            addPrefabComponents(componentTypes);
+            modifyPrefabComponents(componentTypes);
 
-            return NetPrefabs.CreateEmptyPrefabObject($"{Identifier}_EffectController", true, componentTypes.ToArray());
+            if (!componentTypes.Contains(typeof(ChaosEffectDurationComponent)))
+            {
+                componentTypes.Add(typeof(ChaosUntimedEffectController));
+            }
+
+            GameObject prefab = NetPrefabs.CreateEmptyPrefabObject($"{Identifier}_EffectController", true, componentTypes.ToArray());
+
+            if (prefab.TryGetComponent(out ChaosEffectComponent effectComponent))
+            {
+                effectComponent.ChaosEffectIndex = EffectIndex;
+            }
+
+            return prefab;
         }
 
         internal virtual void Validate()
@@ -352,7 +364,7 @@ namespace RiskOfChaos.EffectHandling
             {
                 foreach (TimedEffectInfo incompatibleEffect in IncompatibleEffects)
                 {
-                    if (ChaosEffectTracker.Instance.IsAnyInstanceOfEffectRelevant(incompatibleEffect, context))
+                    if (ChaosEffectTracker.Instance.IsAnyInstanceOfTimedEffectRelevantForContext(incompatibleEffect, context))
                     {
 #if DEBUG
                         Log.Debug($"Effect {this} cannot activate: incompatible effect {incompatibleEffect} is active");

@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Trackers
 {
+    [DisallowMultipleComponent]
     public class NotificationUIControllerTracker : MonoBehaviour
     {
         [SystemInitializer]
@@ -14,8 +15,11 @@ namespace RiskOfChaos.Trackers
             {
                 orig(self);
 
-                NotificationUIControllerTracker tracker = self.gameObject.AddComponent<NotificationUIControllerTracker>();
-                tracker.NotificationUIController = self;
+                if (!self.GetComponent<NotificationUIControllerTracker>())
+                {
+                    NotificationUIControllerTracker tracker = self.gameObject.AddComponent<NotificationUIControllerTracker>();
+                    tracker.NotificationUIController = self;
+                }
             };
         }
 
@@ -33,9 +37,16 @@ namespace RiskOfChaos.Trackers
 
         public static NotificationUIController GetNotificationUIControllerForHUD(HUD hud)
         {
-            return InstanceTracker.GetInstancesList<NotificationUIControllerTracker>()
-                                  .Select(t => t.NotificationUIController)
-                                  .FirstOrDefault(c => c.hud == hud);
+            foreach (NotificationUIControllerTracker tracker in InstanceTracker.GetInstancesList<NotificationUIControllerTracker>())
+            {
+                NotificationUIController notificationUIController = tracker.NotificationUIController;
+                if (notificationUIController && notificationUIController.hud == hud)
+                {
+                    return notificationUIController;
+                }
+            }
+
+            return null;
         }
     }
 }

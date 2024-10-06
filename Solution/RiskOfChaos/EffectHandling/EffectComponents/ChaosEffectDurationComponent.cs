@@ -9,9 +9,11 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
 {
     [DisallowMultipleComponent]
     [RequiredComponents(typeof(ChaosEffectComponent))]
-    public sealed class ChaosEffectDurationComponent : NetworkBehaviour
+    public sealed class ChaosEffectDurationComponent : NetworkBehaviour, IEffectHUDVisibilityProvider
     {
         ChaosEffectComponent _effectComponent;
+
+        public TimedEffectInfo TimedEffectInfo => _effectComponent ? _effectComponent.ChaosEffectInfo as TimedEffectInfo : null;
 
         [SyncVar]
         int _timedTypeInternal;
@@ -40,7 +42,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
                     case TimedEffectType.UntilStageEnd:
                         return NumStagesCompletedWhileActive;
                     case TimedEffectType.FixedDuration:
-                        return _effectComponent.TimeStarted.timeSinceClamped;
+                        return _effectComponent.TimeStarted.TimeSinceClamped;
                     case TimedEffectType.Permanent:
                     case TimedEffectType.AlwaysActive:
                         return 0f;
@@ -50,7 +52,18 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
             }
         }
 
-        public float Remaining => Mathf.Min(0f, Duration - Elapsed);
+        public float Remaining => Mathf.Max(0f, Duration - Elapsed);
+
+        bool IEffectHUDVisibilityProvider.CanShowOnHUD
+        {
+            get
+            {
+                if (TimedEffectInfo == null || !TimedEffectInfo.GetShouldDisplayOnHUD(TimedType))
+                    return false;
+
+                return true;
+            }
+        }
 
         void Awake()
         {

@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using RiskOfChaos.EffectHandling.Controllers;
+using RiskOfChaos.EffectHandling;
 using System;
 using System.Runtime.Serialization;
 

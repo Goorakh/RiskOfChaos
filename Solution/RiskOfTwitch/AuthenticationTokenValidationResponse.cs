@@ -32,6 +32,6 @@ namespace RiskOfTwitch
         }
 
         [JsonIgnore]
-        public TimeStamp ExpiryDate { get; set; }
+        public DateTimeStamp ExpiryDate { get; set; }
     }
 }

@@ -57,7 +57,7 @@ namespace RiskOfChaos.EffectDefinitions.Meta
 
             if (ChaosEffectTracker.Instance)
             {
-                foreach (TimedEffect effect in ChaosEffectTracker.Instance.GetAllActiveEffects())
+                foreach (TimedEffect effect in ChaosEffectTracker.Instance.OLD_GetAllActiveEffects())
                 {
                     if (effect.EffectInfo.IgnoreDurationModifiers)
                         continue;

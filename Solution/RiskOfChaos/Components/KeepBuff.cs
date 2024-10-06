@@ -109,7 +109,7 @@ namespace RiskOfChaos.Components
                 // Kinda ugly, but it does work, all that's needed is a call to SetBuffCount for the right buff
                 int oldBuffCount = _body.GetBuffCount(_appliedBuffIndex);
 
-                _body.SetBuffCount(_appliedBuffIndex, _body.GetBuffCount(_appliedBuffIndex));
+                _body.SetBuffCount(_appliedBuffIndex, oldBuffCount);
                 _appliedBuffCount = _body.GetBuffCount(_appliedBuffIndex) - oldBuffCount;
             }
         }

@@ -1,6 +1,6 @@
 ﻿namespace RiskOfChaos.EffectHandling
 {
-    public enum RunTimerType : sbyte
+    public enum RunTimerType
     {
         Stopwatch,
         Realtime

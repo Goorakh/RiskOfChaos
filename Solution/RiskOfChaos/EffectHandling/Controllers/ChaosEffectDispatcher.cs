@@ -144,12 +144,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
         [Server]
         public void DispatchEffectServer(ChaosEffectInfo effect, in ChaosEffectDispatchArgs dispatchArgs)
         {
-            if (!dispatchArgs.HasFlag(EffectDispatchFlags.DontSendChatMessage))
+            if ((dispatchArgs.DispatchFlags & EffectDispatchFlags.DontSendChatMessage) == 0)
             {
                 Chat.SendBroadcastChat(new ChaosEffectChatMessage("CHAOS_EFFECT_ACTIVATE", effect, EffectNameFormatFlags.All));
             }
 
-            bool canActivate = !dispatchArgs.HasFlag(EffectDispatchFlags.CheckCanActivate) || effect.CanActivate(EffectCanActivateContext.Now);
+            bool canActivate = (dispatchArgs.DispatchFlags & EffectDispatchFlags.CheckCanActivate) == 0 || effect.CanActivate(EffectCanActivateContext.Now);
 
             OnEffectAboutToDispatchServer?.Invoke(effect, dispatchArgs, ref canActivate);
 
@@ -170,16 +170,28 @@ namespace RiskOfChaos.EffectHandling.Controllers
             if (effect is null)
                 throw new ArgumentNullException(nameof(effect));
 
+            GameObject effectController = null;
+
             try
             {
                 TimedEffectInfo timedEffect = effect as TimedEffectInfo;
 
-                GameObject effectController = Instantiate(effect.ControllerPrefab);
+                effectController = Instantiate(effect.ControllerPrefab);
 
                 if (effectController.TryGetComponent(out ChaosEffectComponent effectComponent))
                 {
-                    effectComponent.ChaosEffectIndex = effect.EffectIndex;
-                    effectComponent.TimeStarted = Run.FixedTimeStamp.now;
+                    if (effectComponent.ChaosEffectIndex != effect.EffectIndex)
+                    {
+                        throw new ArgumentException($"Effect prefab {effect.ControllerPrefab} is missing expected effect index, expected: {effect.EffectIndex}, set: {effectComponent.ChaosEffectIndex}");
+                    }
+
+                    RunTimeStamp startTime = Run.FixedTimeStamp.now;
+                    if (args.OverrideStartTime.HasValue)
+                    {
+                        startTime = args.OverrideStartTime.Value;
+                    }
+
+                    effectComponent.TimeStarted = startTime;
 
                     effectComponent.SetRngSeedServer(args.RNGSeed);
                 }
@@ -217,6 +229,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 Log.Error_NoCallerPrefix($"Caught exception instantiating effect {effect}: {e}");
                 Chat.AddMessage(Language.GetString("CHAOS_EFFECT_UNHANDLED_EXCEPTION_MESSAGE"));
+
+                if (effectController)
+                {
+                    Destroy(effectController);
+                }
             }
         }
     }
