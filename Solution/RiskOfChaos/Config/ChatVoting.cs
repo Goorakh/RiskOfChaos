@@ -25,7 +25,6 @@ namespace RiskOfChaos
             public static readonly ConfigHolder<ChatVotingMode> VotingMode =
                 ConfigFactory<ChatVotingMode>.CreateConfig("Voting Mode", ChatVotingMode.Disabled)
                                              .OptionConfig(new ChoiceConfig())
-                                             .ValueValidator(CommonValueValidators.DefinedEnumValue<ChatVotingMode>())
                                              .Build();
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -78,7 +77,6 @@ namespace RiskOfChaos
                                                       {
                                                           checkIfDisabled = isVotingDisabled
                                                       })
-                                                      .ValueValidator(CommonValueValidators.DefinedEnumValue<VoteWinnerSelectionMode>())
                                                       .Build();
 
             public static readonly ConfigHolder<float> VoteDisplayScaleMultiplier =

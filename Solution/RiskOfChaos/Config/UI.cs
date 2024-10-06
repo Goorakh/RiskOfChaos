@@ -59,7 +59,6 @@ namespace RiskOfChaos
                 ConfigFactory<NextEffectTimerDisplayType>.CreateConfig("Next Effect Timer Display Mode", NextEffectTimerDisplayType.WhenRunTimerUnavailable)
                                                          .Description($"Displays how much time is left until the next effect.\n\n{nameof(NextEffectTimerDisplayType.Never)}: The time remaining is never displayed.\n{nameof(NextEffectTimerDisplayType.WhenRunTimerUnavailable)}: Displays time remaining only when the regular run timer is paused or otherwise not visible.\n{nameof(NextEffectTimerDisplayType.Always)}: Time remaining is always displayed")
                                                          .OptionConfig(new ChoiceConfig())
-                                                         .ValueValidator(CommonValueValidators.DefinedEnumValue<NextEffectTimerDisplayType>())
                                                          .Build();
 
             public static bool ShouldShowNextEffectTimer(HUD hud)

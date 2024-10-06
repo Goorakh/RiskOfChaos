@@ -18,8 +18,6 @@ namespace RiskOfChaos.ConfigHandling
 
         IEqualityComparer<T> _equalityComparer;
 
-        ValueValidator<T> _valueValidator;
-
         BaseOptionConfig _optionConfig;
 
         ConfigFlags _flags;
@@ -62,12 +60,6 @@ namespace RiskOfChaos.ConfigHandling
         public ConfigFactory<T> EqualityComparer(IEqualityComparer<T> equalityComparer)
         {
             _equalityComparer = equalityComparer;
-            return this;
-        }
-
-        public ConfigFactory<T> ValueValidator(ValueValidator<T> valueValidator)
-        {
-            _valueValidator = valueValidator;
             return this;
         }
 
@@ -132,7 +124,6 @@ namespace RiskOfChaos.ConfigHandling
                                                                _defaultValue,
                                                                description,
                                                                _equalityComparer ?? EqualityComparer<T>.Default,
-                                                               _valueValidator ?? CommonValueValidators.None<T>(),
                                                                _optionConfig,
                                                                _previousKeys.ToArray(),
                                                                _previousSections.ToArray(),

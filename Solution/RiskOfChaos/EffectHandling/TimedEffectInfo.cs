@@ -66,7 +66,6 @@ namespace RiskOfChaos.EffectHandling
             _timedType = ConfigFactory<TimedEffectType>.CreateConfig("Duration Type", attribute.TimedType)
                                                        .Description($"What should determine how long this effect lasts.\n\n{nameof(TimedEffectType.UntilStageEnd)}: Lasts until you exit the stage.\n{nameof(TimedEffectType.FixedDuration)}: Lasts for a set number of seconds.\n{nameof(TimedEffectType.Permanent)}: Lasts until the end of the run.")
                                                        .OptionConfig(new ChoiceConfig())
-                                                       .ValueValidator(CommonValueValidators.DefinedEnumValue<TimedEffectType>())
                                                        .Build();
 
             float defaultDuration = attribute.DurationSeconds;
