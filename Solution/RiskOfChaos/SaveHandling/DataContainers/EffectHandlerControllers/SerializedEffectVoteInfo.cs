@@ -1,19 +1,19 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using Newtonsoft.Json;
+using RiskOfChaos.EffectHandling;
 using System;
-using System.Runtime.Serialization;
 
 namespace RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers
 {
     [Serializable]
     public class SerializedEffectVoteInfo
     {
-        [DataMember(Name = "uv")]
+        [JsonProperty("uv")]
         public string[] UserVotes;
 
-        [DataMember(Name = "e")]
+        [JsonProperty("e")]
         public ChaosEffectIndex Effect;
 
-        [DataMember(Name = "r")]
+        [JsonProperty("r")]
         public bool IsRandom;
     }
 }

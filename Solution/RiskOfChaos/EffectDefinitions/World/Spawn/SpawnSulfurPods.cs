@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
@@ -42,9 +43,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                                     * QuaternionUtils.RandomDeviation(15f, RNG.Branch())
                                     * QuaternionUtils.PointLocalDirectionAt(Vector3.up, normal);
 
-                if (NetPrefabs.SulfurPodBasePrefab)
+                if (RoCContent.NetworkedPrefabs.NetworkedSulfurPodBase)
                 {
-                    GameObject sulfurPodBase = GameObject.Instantiate(NetPrefabs.SulfurPodBasePrefab, position, rotation);
+                    GameObject sulfurPodBase = GameObject.Instantiate(RoCContent.NetworkedPrefabs.NetworkedSulfurPodBase, position, rotation);
                     NetworkServer.Spawn(sulfurPodBase);
                 }
 

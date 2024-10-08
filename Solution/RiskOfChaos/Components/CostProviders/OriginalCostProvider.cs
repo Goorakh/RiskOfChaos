@@ -1,4 +1,4 @@
-﻿using RiskOfChaos.Patches;
+﻿using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Collections;
 using UnityEngine;
@@ -16,10 +16,7 @@ namespace RiskOfChaos.Components.CostProviders
             {
                 orig(self);
 
-                if (!self.GetComponent<OriginalCostProvider>())
-                {
-                    self.gameObject.AddComponent<OriginalCostProvider>();
-                }
+                self.gameObject.EnsureComponent<OriginalCostProvider>();
             };
 
             static void addToPrefab(string assetPath)
@@ -32,10 +29,7 @@ namespace RiskOfChaos.Components.CostProviders
                     return;
                 }
 
-                if (!prefab.GetComponent<OriginalCostProvider>())
-                {
-                    prefab.AddComponent<OriginalCostProvider>();
-                }
+                prefab.EnsureComponent<OriginalCostProvider>();
             }
 
             addToPrefab("RoR2/Base/TripleShop/TripleShop.prefab");

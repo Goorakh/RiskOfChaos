@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Networking.Components;
 using RoR2;
 using System.Collections.Generic;
@@ -55,7 +56,7 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 
         void createSuperhotController(CharacterBody body)
         {
-            GameObject superhotControllerObj = GameObject.Instantiate(NetPrefabs.SuperhotControllerPrefab);
+            GameObject superhotControllerObj = GameObject.Instantiate(RoCContent.NetworkedPrefabs.SuperhotController);
 
             SuperhotPlayerController superhotController = superhotControllerObj.GetComponent<SuperhotPlayerController>();
             _superhotControllers.Add(superhotController);

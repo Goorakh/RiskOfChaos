@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -114,18 +115,19 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (!NetworkServer.active)
                     return;
 
-                if (!NetPrefabs.GenericTeamInventoryPrefab)
+                if (!RoCContent.NetworkedPrefabs.GenericTeamInventory)
                 {
-                    Log.Warning($"{nameof(NetPrefabs.GenericTeamInventoryPrefab)} is null");
+                    Log.Warning($"{nameof(RoCContent.NetworkedPrefabs.GenericTeamInventory)} is null");
                     return;
                 }
 
-                _monsterInventory = GameObject.Instantiate(NetPrefabs.GenericTeamInventoryPrefab).GetComponent<Inventory>();
+                GameObject monsterInventoryObj = GameObject.Instantiate(RoCContent.NetworkedPrefabs.GenericTeamInventory);
+                _monsterInventory = monsterInventoryObj.GetComponent<Inventory>();
 
                 _monsterTeamFilter = _monsterInventory.GetComponent<TeamFilter>();
                 _monsterTeamFilter.teamIndex = TeamIndex.Monster;
 
-                NetworkServer.Spawn(_monsterInventory.gameObject);
+                NetworkServer.Spawn(monsterInventoryObj);
             };
 
             CharacterMaster.onStartGlobal += tryGiveItems;

@@ -1,51 +1,49 @@
 ﻿using R2API;
+using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.Patches;
 using RoR2;
-using RoR2.ContentManagement;
 using UnityEngine;
 
 namespace RiskOfChaos.Content
 {
-    public static class Buffs
+    static class Buffs
     {
-        public static readonly BuffDef SetTo1Hp;
-
-        static Buffs()
+        [ContentInitializer]
+        static void LoadContent(BuffDefAssetCollection buffs)
         {
             // SetTo1Hp
             {
-                SetTo1Hp = ScriptableObject.CreateInstance<BuffDef>();
-                SetTo1Hp.name = "bd" + nameof(SetTo1Hp);
-                SetTo1Hp.isHidden = true;
-                SetTo1Hp.isDebuff = true;
-                SetTo1Hp.canStack = false;
+                BuffDef setTo1Hp = ScriptableObject.CreateInstance<BuffDef>();
+                setTo1Hp.name = "bd" + nameof(RoCContent.Buffs.SetTo1Hp);
+                setTo1Hp.isHidden = true;
+                setTo1Hp.isDebuff = true;
+                setTo1Hp.canStack = false;
 
-                RecalculateStatsAPI.GetStatCoefficients += (body, args) =>
-                {
-                    if (body.HasBuff(SetTo1Hp))
-                    {
-                        args.baseCurseAdd += 1e15f;
-                    }
-                };
-
-                CharacterBodyRecalculateStatsHook.PostRecalculateStats += (body) =>
-                {
-                    if (body.HasBuff(SetTo1Hp))
-                    {
-                        body.isGlass = true;
-
-                        // Make sure barrier still decays, default behaviour makes barrier decay so small it basically never decays
-                        body.barrierDecayRate = body.maxBarrier;
-                    }
-                };
+                buffs.Add(setTo1Hp);
             }
         }
 
-        internal static void AddBuffDefsTo(NamedAssetCollection<BuffDef> buffDefs)
+        [SystemInitializer]
+        static void Init()
         {
-            buffDefs.Add([
-                SetTo1Hp
-            ]);
+            RecalculateStatsAPI.GetStatCoefficients += (body, args) =>
+            {
+                if (body.HasBuff(RoCContent.Buffs.SetTo1Hp))
+                {
+                    args.baseCurseAdd += 1e15f;
+                }
+            };
+
+            CharacterBodyRecalculateStatsHook.PostRecalculateStats += (body) =>
+            {
+                if (body.HasBuff(RoCContent.Buffs.SetTo1Hp))
+                {
+                    body.isGlass = true;
+
+                    // Make sure barrier still decays, default behaviour makes barrier decay so small it basically never decays
+                    body.barrierDecayRate = body.maxBarrier;
+                }
+            };
         }
     }
 }

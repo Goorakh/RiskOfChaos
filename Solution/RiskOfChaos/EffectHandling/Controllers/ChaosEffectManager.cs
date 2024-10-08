@@ -1,4 +1,6 @@
 ﻿using RiskOfChaos.Components;
+using RiskOfChaos.Content;
+using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch;
 using RiskOfChaos.SaveHandling;
 using RoR2;
@@ -12,15 +14,14 @@ namespace RiskOfChaos.EffectHandling.Controllers
     [DisallowMultipleComponent]
     public class ChaosEffectManager : MonoBehaviour
     {
-        static GameObject _chaosEffectManagerPrefab;
-
         static GameObject[] _effectActivationSignalerPrefabs = [];
 
-        internal static void Load()
+        [ContentInitializer]
+        static void LoadContent(NetworkedPrefabAssetCollection networkPrefabs)
         {
             // ChaosEffectManager
             {
-                _chaosEffectManagerPrefab = NetPrefabs.CreateEmptyPrefabObject("ChaosEffectManager", true, [
+                GameObject prefab = Prefabs.CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.ChaosEffectManager), 0x3338A14E, [
                     typeof(SetDontDestroyOnLoad),
                     typeof(DestroyOnRunEnd),
                     typeof(ChaosEffectManager),
@@ -33,13 +34,15 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     typeof(ObjectSerializationComponent)
                 ]);
 
-                if (_chaosEffectManagerPrefab.TryGetComponent(out ObjectSerializationComponent serializationComponent))
+                if (prefab.TryGetComponent(out ObjectSerializationComponent serializationComponent))
                 {
                     serializationComponent.IsSingleton = true;
                 }
+
+                networkPrefabs.Add(prefab);
             }
 
-            static GameObject createBasicEffectActivationSignaler<TSignalerComponent>(Configs.ChatVoting.ChatVotingMode? requiredVotingMode) where TSignalerComponent : ChaosEffectActivationSignaler
+            GameObject createBasicEffectActivationSignaler<TSignalerComponent>(Configs.ChatVoting.ChatVotingMode? requiredVotingMode) where TSignalerComponent : ChaosEffectActivationSignaler
             {
                 Type signalerComponentType = typeof(TSignalerComponent);
 
@@ -54,7 +57,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     prefabComponentTypes.Add(typeof(ChaosEffectActivationSignalerEnableRequirements));
                 }
 
-                GameObject signalerPrefab = NetPrefabs.CreateEmptyPrefabObject(signalerComponentType.Name, true, prefabComponentTypes.ToArray());
+                GameObject signalerPrefab = Prefabs.CreateNetworkedPrefab(signalerComponentType.Name, 0x65B891C2, prefabComponentTypes.ToArray());
 
                 if (signalerPrefab.TryGetComponent(out ChaosEffectActivationSignalerEnableRequirements enableRequirements))
                 {
@@ -76,6 +79,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     serializationComponent.IsSingleton = true;
                 }
 
+                networkPrefabs.Add(signalerPrefab);
+
                 return signalerPrefab;
             }
 
@@ -96,7 +101,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             if (!NetworkServer.active)
                 return;
 
-            NetworkServer.Spawn(Instantiate(_chaosEffectManagerPrefab));
+            NetworkServer.Spawn(Instantiate(RoCContent.NetworkedPrefabs.ChaosEffectManager));
 
 #if DEBUG
             Log.Debug("Created chaos effect manager");

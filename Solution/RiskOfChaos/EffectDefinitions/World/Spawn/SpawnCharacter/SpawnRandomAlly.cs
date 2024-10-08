@@ -175,7 +175,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 
         public void SetupSummonedInventory(MasterSummon masterSummon, Inventory summonedInventory)
         {
-            summonedInventory.GiveItem(Items.MinAllyRegen);
+            summonedInventory.GiveItem(RoCContent.Items.MinAllyRegen);
         }
     }
 }

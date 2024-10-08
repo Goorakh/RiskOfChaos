@@ -1,101 +1,113 @@
 ﻿using EntityStates;
-using R2API;
 using RiskOfChaos.Components;
+using RiskOfChaos.Content.AssetCollections;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using RoR2.ContentManagement;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Content
 {
-    public static class BodyPrefabs
+    static class BodyPrefabs
     {
-        public static readonly GameObject ChaosFakeInteractorBodyPrefab;
-
-        static BodyPrefabs()
+        [ContentInitializer]
+        static IEnumerator LoadContent(BodyPrefabAssetCollection bodyPrefabs)
         {
+            List<AsyncOperationHandle> asyncOperations = [];
+
+            // ChaosFakeInteractorBody
             {
-                ChaosFakeInteractorBodyPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/AltarSkeleton/AltarSkeletonBody.prefab").WaitForCompletion().InstantiateClone("ChaosFakeInteractorBody");
-
-                Transform transform = ChaosFakeInteractorBodyPrefab.transform;
-                transform.position = Vector3.zero;
-                transform.rotation = Quaternion.identity;
-                transform.localScale = Vector3.one;
-
-                foreach (AkEvent akEvent in ChaosFakeInteractorBodyPrefab.GetComponents<AkEvent>())
+                AsyncOperationHandle<GameObject> altarSkeletonLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/AltarSkeleton/AltarSkeletonBody.prefab");
+                altarSkeletonLoad.Completed += handle =>
                 {
-                    GameObject.Destroy(akEvent);
-                }
+                    GameObject bodyPrefab = handle.Result.InstantiateNetworkedPrefab(nameof(RoCContent.BodyPrefabs.ChaosFakeInteractorBody), 0x776559F5);
 
-                GameObject.Destroy(ChaosFakeInteractorBodyPrefab.GetComponent<CharacterDeathBehavior>());
-                GameObject.Destroy(ChaosFakeInteractorBodyPrefab.GetComponent<GameObjectUnlockableFilter>());
+                    Transform transform = bodyPrefab.transform;
+                    transform.position = Vector3.zero;
+                    transform.rotation = Quaternion.identity;
+                    transform.localScale = Vector3.one;
 
-                ModelLocator modelLocator = ChaosFakeInteractorBodyPrefab.GetComponent<ModelLocator>();
-                modelLocator.dontDetatchFromParent = true;
-
-                Transform modelBase = transform.Find("ModelBase");
-                if (modelBase)
-                {
-                    for (int i = 0; i < modelBase.childCount; i++)
+                    foreach (AkEvent akEvent in bodyPrefab.GetComponents<AkEvent>())
                     {
-                        GameObject.Destroy(modelBase.GetChild(i).gameObject);
+                        GameObject.Destroy(akEvent);
                     }
 
-                    GameObject model = new GameObject("EmptyModel");
-                    model.transform.SetParent(modelBase, false);
+                    GameObject.Destroy(bodyPrefab.GetComponent<CharacterDeathBehavior>());
+                    GameObject.Destroy(bodyPrefab.GetComponent<GameObjectUnlockableFilter>());
 
-                    modelLocator._modelTransform = model.transform;
-                }
+                    ModelLocator modelLocator = bodyPrefab.GetComponent<ModelLocator>();
+                    modelLocator.dontDetatchFromParent = true;
 
-                CharacterBody body = ChaosFakeInteractorBodyPrefab.GetComponent<CharacterBody>();
-
-                body.baseNameToken = "CHAOS_FAKE_INTERACTOR_BODY_NAME";
-                body.baseMaxHealth = 1e9F; // 10^9
-                body.baseRegen = 1e9F; // 10^9
-
-                EntityStateMachine entityStateMachine = ChaosFakeInteractorBodyPrefab.GetComponent<EntityStateMachine>();
-                entityStateMachine.initialStateType = new SerializableEntityStateType(typeof(Idle));
-                entityStateMachine.mainStateType = new SerializableEntityStateType(typeof(Idle));
-
-                TeamComponent teamComponent = ChaosFakeInteractorBodyPrefab.GetComponent<TeamComponent>();
-                teamComponent._teamIndex = TeamIndex.None;
-
-                ChaosFakeInteractorBodyPrefab.AddComponent<Interactor>();
-                ChaosFakeInteractorBodyPrefab.AddComponent<SetDontDestroyOnLoad>();
-                ChaosFakeInteractorBodyPrefab.AddComponent<DestroyOnRunEnd>();
-
-                ChaosFakeInteractorBodyPrefab.AddComponent<ChaosInteractor>();
-                ChaosFakeInteractorBodyPrefab.AddComponent<ExcludeFromBodyInstancesList>();
-
-                static void trySpawnChaosInteractor()
-                {
-                    if (!ChaosInteractor.Instance)
+                    Transform modelBase = transform.Find("ModelBase");
+                    if (modelBase)
                     {
-                        NetworkServer.Spawn(GameObject.Instantiate(ChaosFakeInteractorBodyPrefab));
+                        for (int i = 0; i < modelBase.childCount; i++)
+                        {
+                            GameObject.Destroy(modelBase.GetChild(i).gameObject);
+                        }
+
+                        GameObject model = new GameObject("EmptyModel");
+                        model.transform.SetParent(modelBase, false);
+
+                        modelLocator._modelTransform = model.transform;
                     }
-                }
 
-                Run.onRunStartGlobal += _ =>
-                {
-                    if (!NetworkServer.active)
-                        return;
+                    CharacterBody body = bodyPrefab.GetComponent<CharacterBody>();
 
-                    RoR2Application.onFixedUpdate += trySpawnChaosInteractor;
+                    body.baseNameToken = "CHAOS_FAKE_INTERACTOR_BODY_NAME";
+                    body.baseMaxHealth = 1e9F; // 10^9
+                    body.baseRegen = 1e9F; // 10^9
+
+                    EntityStateMachine entityStateMachine = bodyPrefab.GetComponent<EntityStateMachine>();
+                    entityStateMachine.initialStateType = new SerializableEntityStateType(typeof(Idle));
+                    entityStateMachine.mainStateType = new SerializableEntityStateType(typeof(Idle));
+
+                    TeamComponent teamComponent = bodyPrefab.GetComponent<TeamComponent>();
+                    teamComponent._teamIndex = TeamIndex.None;
+
+                    bodyPrefab.AddComponent<Interactor>();
+                    bodyPrefab.AddComponent<SetDontDestroyOnLoad>();
+                    bodyPrefab.AddComponent<DestroyOnRunEnd>();
+
+                    bodyPrefab.AddComponent<ChaosInteractor>();
+                    bodyPrefab.AddComponent<ExcludeFromBodyInstancesList>();
+
+                    bodyPrefabs.Add(bodyPrefab);
                 };
 
-                Run.onRunDestroyGlobal += _ =>
-                {
-                    RoR2Application.onFixedUpdate -= trySpawnChaosInteractor;
-                };
+                asyncOperations.Add(altarSkeletonLoad);
             }
+
+            yield return asyncOperations.WaitForAllLoaded();
         }
 
-        internal static void AddBodyPrefabsTo(NamedAssetCollection<GameObject> bodyPrefabs)
+        [SystemInitializer]
+        static void InitHooks()
         {
-            bodyPrefabs.Add([
-                ChaosFakeInteractorBodyPrefab
-            ]);
+            static void trySpawnChaosInteractor()
+            {
+                if (!ChaosInteractor.Instance)
+                {
+                    NetworkServer.Spawn(GameObject.Instantiate(RoCContent.BodyPrefabs.ChaosFakeInteractorBody));
+                }
+            }
+
+            Run.onRunStartGlobal += _ =>
+            {
+                if (!NetworkServer.active)
+                    return;
+
+                RoR2Application.onFixedUpdate += trySpawnChaosInteractor;
+            };
+
+            Run.onRunDestroyGlobal += _ =>
+            {
+                RoR2Application.onFixedUpdate -= trySpawnChaosInteractor;
+            };
         }
     }
 }

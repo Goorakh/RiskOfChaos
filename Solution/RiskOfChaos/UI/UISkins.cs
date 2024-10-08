@@ -10,7 +10,13 @@ namespace RiskOfChaos.UI
 {
     public static class UISkins
     {
-        public static UISkinData ActiveEffectsPanel { get; private set; }
+        public static UISkinData ActiveEffectsPanel { get; }
+
+        static UISkins()
+        {
+            ActiveEffectsPanel = ScriptableObject.CreateInstance<UISkinData>();
+            ActiveEffectsPanel.name = "skinActiveEffectsPanel";
+        }
 
         [SystemInitializer]
         static IEnumerator Init()
@@ -23,9 +29,6 @@ namespace RiskOfChaos.UI
             }
 
             Sprite texUICutOffCorner = texUICutOffCornerLoad.Result;
-
-            ActiveEffectsPanel = ScriptableObject.CreateInstance<UISkinData>();
-            ActiveEffectsPanel.name = "skinActiveEffectsPanel";
 
             ActiveEffectsPanel.mainPanelStyle = new UISkinData.PanelStyle
             {

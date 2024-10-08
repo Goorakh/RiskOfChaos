@@ -1,5 +1,7 @@
 ﻿using BepInEx.Configuration;
 using HG;
+using RiskOfChaos.Content;
+using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -53,7 +55,8 @@ namespace RiskOfChaos.EffectHandling
             ModSettingsManager.SetModDescription("Effect config options for Risk of Chaos", CONFIG_MOD_GUID, CONFIG_MOD_NAME);
         }
 
-        internal static void Load()
+        [ContentInitializer]
+        static void LoadContent(NetworkedPrefabAssetCollection networkedPrefabs)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
 
@@ -63,6 +66,14 @@ namespace RiskOfChaos.EffectHandling
                                                         .OrderBy(e => e.Identifier, StringComparer.OrdinalIgnoreCase)
                                                         .Select((e, i) => e.BuildEffectInfo((ChaosEffectIndex)i, _effectConfigFile))
                                                         .ToArray();
+
+            foreach (ChaosEffectInfo effect in _effects)
+            {
+                if (!networkedPrefabs.Contains(effect.ControllerPrefab))
+                {
+                    networkedPrefabs.Add(effect.ControllerPrefab);
+                }
+            }
 
             AllEffects = new ReadOnlyArray<ChaosEffectInfo>(_effects);
 

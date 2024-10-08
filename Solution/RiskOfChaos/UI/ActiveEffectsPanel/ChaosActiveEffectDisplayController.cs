@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.Content;
+using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.Utilities;
@@ -15,12 +16,11 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 {
     public class ChaosActiveEffectDisplayController : MonoBehaviour
     {
-        public static GameObject ItemPrefab { get; private set; }
-
-        [SystemInitializer]
-        static void Init()
+        [ContentInitializer]
+        static void LoadContent(LocalPrefabAssetCollection localPrefabs)
         {
-            GameObject activeEffectItemObject = NetPrefabs.CreateEmptyPrefabObject("ActiveEffectItem", false);
+            GameObject activeEffectItemObject = Prefabs.CreatePrefab(nameof(RoCContent.LocalPrefabs.ActiveEffectListUIItem), []);
+
             RectTransform activeEffectItemTransform = activeEffectItemObject.AddComponent<RectTransform>();
 
             LayoutElement layoutElement = activeEffectItemObject.AddComponent<LayoutElement>();
@@ -40,7 +40,8 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             chaosActiveEffectItemController._effectNameText = languageTextMeshController;
 
             activeEffectItemObject.layer = LayerIndex.ui.intVal;
-            ItemPrefab = activeEffectItemObject;
+
+            localPrefabs.Add(activeEffectItemObject);
         }
 
         [SerializeField]

@@ -3,7 +3,6 @@ using HarmonyLib;
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.ModCompatibility;
-using RiskOfChaos.ModifierController;
 using RiskOfChaos.Networking;
 using RiskOfChaos.Utilities;
 using System;
@@ -16,7 +15,6 @@ namespace RiskOfChaos
     [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInDependency(R2API.RecalculateStatsAPI.PluginGUID)]
     [BepInDependency(R2API.Networking.NetworkingAPI.PluginGUID)]
-    [BepInDependency(R2API.PrefabAPI.PluginGUID)]
     [BepInDependency(R2API.DotAPI.PluginGUID)]
     [BepInDependency(R2API.DamageAPI.PluginGUID)]
     [BepInDependency("com.rune580.riskofoptions")]
@@ -33,7 +31,7 @@ namespace RiskOfChaos
 
         public static string ModDirectory { get; private set; }
 
-        public ContentPackProvider ContentPackProvider { get; private set; }
+        public RoCContent ContentPackProvider { get; private set; }
 
         void Awake()
         {
@@ -47,15 +45,12 @@ namespace RiskOfChaos
 
             ModDirectory = Path.GetDirectoryName(Info.Location);
 
-            ContentPackProvider = new ContentPackProvider();
+            ContentPackProvider = new RoCContent();
             ContentPackProvider.Register();
 
             LanguageFileHandler.Init();
 
             NetworkMessageManager.RegisterMessages();
-
-            NetPrefabs.InitializeAll();
-            ValueModificationManagerInstantiator.Initialize();
 
             AdditionalResourceAvailability.InitHooks();
 

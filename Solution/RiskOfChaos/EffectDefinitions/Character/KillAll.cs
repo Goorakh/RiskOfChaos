@@ -18,7 +18,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (!master || master.isBoss || master.playerCharacterMasterController)
                     continue;
 
-                if (master.inventory && master.inventory.GetItemCount(Items.InvincibleLemurianMarker) > 0)
+                if (master.inventory && master.inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
                 {
                     if (!sentInvincibleLemurianMessage)
                     {

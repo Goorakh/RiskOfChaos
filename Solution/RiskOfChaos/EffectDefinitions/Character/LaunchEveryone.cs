@@ -73,7 +73,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 Inventory inventory = b.inventory;
                 if (characterMotor && inventory)
                 {
-                    if (inventory.GetItemCount(Items.InvincibleLemurianMarker) > 0)
+                    if (inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
                     {
                         inventory.GiveItem(RoR2Content.Items.TeleportWhenOob);
 

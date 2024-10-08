@@ -2,6 +2,7 @@
 using HG;
 using RiskOfChaos.Collections.ParsedValue;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -62,7 +63,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         [EffectCanActivate]
         static bool CanActivate(in EffectCanActivateContext context)
         {
-            if (!NetPrefabs.MonsterItemStealControllerPrefab || _maxInventoryStealFraction.Value <= 0f)
+            if (!RoCContent.NetworkedPrefabs.MonsterItemStealController || _maxInventoryStealFraction.Value <= 0f)
                 return false;
 
             return !context.IsNow || PlayerUtils.GetAllPlayerMasters(true).Any(playerMaster =>
@@ -273,7 +274,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     if (!bodyObject)
                         return null;
 
-                    GameObject itemStealControllerObj = GameObject.Instantiate(NetPrefabs.MonsterItemStealControllerPrefab);
+                    GameObject itemStealControllerObj = GameObject.Instantiate(RoCContent.NetworkedPrefabs.MonsterItemStealController);
                     ItemStealController = itemStealControllerObj.GetComponent<ItemStealController>();
 
                     if (_ignoreAILendFilter.Value)

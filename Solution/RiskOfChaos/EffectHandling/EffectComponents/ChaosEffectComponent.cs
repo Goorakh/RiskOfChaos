@@ -26,6 +26,8 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
 
         public ChaosEffectInfo ChaosEffectInfo => ChaosEffectCatalog.GetEffectInfo(ChaosEffectIndex);
 
+        ObjectSerializationComponent _serializationComponent;
+
         [SyncVar]
         Net_RunFixedTimeStampWrapper _timeStarted;
 
@@ -53,7 +55,13 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
             {
                 if (_rng == null)
                 {
-                    Log.Error($"Effect {name} ({netId}) is missing RNG seed, generating random seed.");
+                    // If we are deserialized from save data, rng may be accessed before it has been properly set from the save data
+                    // In this case, this situation is harmless, no need to print an error :)
+                    if (!_serializationComponent || !_serializationComponent.IsDeserialized)
+                    {
+                        Log.Error($"Effect {name} ({netId}) is missing RNG seed, generating random seed.");
+                    }
+
                     SetRngSeedServer(RoR2Application.rng.nextUlong);
                 }
 
@@ -105,6 +113,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         void Awake()
         {
             _hudVisibilityProviders = GetComponents<IEffectHUDVisibilityProvider>();
+            _serializationComponent = GetComponent<ObjectSerializationComponent>();
         }
 
         public override void OnStartServer()

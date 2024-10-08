@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using RiskOfChaos.Content;
 using RiskOfChaos.ModCompatibility;
 using RiskOfChaos.SaveHandling.DataContainers;
 using RiskOfChaos.Serialization.Converters;
@@ -37,22 +38,27 @@ namespace RiskOfChaos.SaveHandling
         [Obsolete]
         public static bool IsCollectingSaveData { get; private set; }
 
-        public static JsonSerializerSettings SerializerSettings { get; } = new JsonSerializerSettings
+        public static JsonSerializerSettings GetSerializerSettings()
         {
-            Converters = [
-                new XoroshiroRngConverter(),
-                new NetworkHash128Converter(),
-                new BuffIndexConverter(),
-                new ChaosEffectIndexConverter(),
-                new StringEnumConverter(new DefaultNamingStrategy(), false),
-            ],
-            Error = onSerializerError,
-            TraceWriter = new SerializationTraceWriter()
-        };
+            return new JsonSerializerSettings
+            {
+                Converters = [
+                    new XoroshiroRngConverter(),
+                    new NetworkHash128Converter(),
+                    new BuffIndexConverter(),
+                    new ChaosEffectIndexConverter(),
+                    new StringEnumConverter(new DefaultNamingStrategy(), false),
+                ],
+                Error = onSerializerError,
+                TraceWriter = new SerializationTraceWriter()
+            };
+        }
 
         internal static string CollectAllSaveData()
         {
-            JsonSerializer jsonSerializer = JsonSerializer.CreateDefault(SerializerSettings);
+            JsonSerializerSettings serializerSettings = GetSerializerSettings();
+
+            JsonSerializer jsonSerializer = JsonSerializer.CreateDefault(serializerSettings);
 
             SaveDataContainer container = new SaveDataContainer();
 
@@ -76,14 +82,16 @@ namespace RiskOfChaos.SaveHandling
 
             container.Objects = serializedObjects.ToArray();
 
-            return JsonConvert.SerializeObject(container, SerializerSettings);
+            return JsonConvert.SerializeObject(container, serializerSettings);
         }
 
         internal static void OnSaveDataLoaded(string saveDataJson)
         {
-            JsonSerializer jsonSerializer = JsonSerializer.CreateDefault(SerializerSettings);
+            JsonSerializerSettings serializerSettings = GetSerializerSettings();
 
-            SaveDataContainer container = JsonConvert.DeserializeObject<SaveDataContainer>(saveDataJson, SerializerSettings);
+            JsonSerializer jsonSerializer = JsonSerializer.CreateDefault(serializerSettings);
+
+            SaveDataContainer container = JsonConvert.DeserializeObject<SaveDataContainer>(saveDataJson, serializerSettings);
 
             if (container.Objects != null)
             {
@@ -110,7 +118,7 @@ namespace RiskOfChaos.SaveHandling
                 {
                     if (!existingSingletonInstances.TryGetValue(serializedObject.PrefabAssetId, out ObjectSerializationComponent serializationComponent))
                     {
-                        if (!NetPrefabs.LookupPrefabByAssetId(serializedObject.PrefabAssetId, out GameObject prefab))
+                        if (!RoCContent.NetworkedPrefabs.TryGetPrefab(serializedObject.PrefabAssetId, out GameObject prefab))
                         {
                             Log.Error($"Failed to find network prefab for asset id {serializedObject.PrefabAssetId}");
                             continue;

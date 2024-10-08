@@ -1,32 +1,97 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.Content.AssetCollections;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.Networking.Components;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Navigation;
-using System.Linq;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("spawn_geyser")]
     public sealed class SpawnGeyser : GenericDirectorSpawnEffect<InteractableSpawnCard>
     {
-        static readonly SpawnCardEntry[] _spawnEntries = NetPrefabs.GeyserPrefabs.Select(p =>
+        static SpawnCardEntry[] _spawnEntries = [];
+
+        [ContentInitializer]
+        static IEnumerable LoadContent(NetworkedPrefabAssetCollection prefabs)
         {
-            InteractableSpawnCard spawnCard = ScriptableObject.CreateInstance<InteractableSpawnCard>();
+            List<AsyncOperationHandle> asyncOperations = [];
 
-            spawnCard.name = $"sc{p.name}";
-            spawnCard.prefab = p;
-            spawnCard.sendOverNetwork = true;
-            spawnCard.hullSize = HullClassification.Human;
-            spawnCard.nodeGraphType = MapNodeGroup.GraphType.Ground;
-            spawnCard.occupyPosition = true;
+            string[] geyserPrefabPaths = [
+                "RoR2/Base/artifactworld/AWGeyser.prefab",
+                "RoR2/Base/Common/Props/Geyser.prefab",
+                //"RoR2/Base/frozenwall/FW_HumanFan.prefab",
+                "RoR2/Base/moon/MoonGeyser.prefab",
+                //"RoR2/Base/moon2/MoonElevator.prefab",
+                "RoR2/Base/rootjungle/RJ_BounceShroom.prefab",
+                "RoR2/DLC1/ancientloft/AL_Geyser.prefab",
+                "RoR2/DLC1/snowyforest/SFGeyser.prefab",
+                "RoR2/DLC1/voidstage/mdlVoidGravityGeyser.prefab",
+                "RoR2/DLC2/meridian/PMLaunchPad.prefab"
+            ];
 
-            spawnCard.orientToFloor = true;
+            int geyserCount = geyserPrefabPaths.Length;
+            GameObject[] geyserPrefabs = new GameObject[geyserCount];
+            for (int i = 0; i < geyserCount; i++)
+            {
+                int prefabIndex = i;
 
-            return new SpawnCardEntry(spawnCard, 1f);
-        }).ToArray();
+                AsyncOperationHandle<GameObject> geyserLoad = Addressables.LoadAssetAsync<GameObject>(geyserPrefabPaths[i]);
+                geyserLoad.Completed += handle =>
+                {
+                    GameObject geyserPrefab = handle.Result;
+
+                    GameObject geyserHolder = Prefabs.CreateNetworkedPrefab("Networked" + geyserPrefab.name, 0x26B28783, [
+                        typeof(SyncJumpVolumeVelocity)
+                    ]);
+
+                    GameObject geyser = GameObject.Instantiate(geyserPrefab, geyserHolder.transform);
+                    geyser.transform.localPosition = Vector3.zero;
+
+                    geyserPrefabs[prefabIndex] = geyserHolder;
+
+                    prefabs.Add(geyserHolder);
+                };
+
+                asyncOperations.Add(geyserLoad);
+            }
+
+            yield return asyncOperations.WaitForAllLoaded();
+
+            List<GameObject> filteredGeyserPrefabs = new List<GameObject>(geyserPrefabs.Length);
+            foreach (GameObject prefab in geyserPrefabs)
+            {
+                if (prefab)
+                {
+                    filteredGeyserPrefabs.Add(prefab);
+                }
+            }
+
+            _spawnEntries = new SpawnCardEntry[filteredGeyserPrefabs.Count];
+            for (int i = 0; i < _spawnEntries.Length; i++)
+            {
+                GameObject prefab = filteredGeyserPrefabs[i];
+
+                InteractableSpawnCard spawnCard = ScriptableObject.CreateInstance<InteractableSpawnCard>();
+
+                spawnCard.name = $"sc{prefab.name}";
+                spawnCard.prefab = prefab;
+                spawnCard.sendOverNetwork = true;
+                spawnCard.hullSize = HullClassification.Human;
+                spawnCard.nodeGraphType = MapNodeGroup.GraphType.Ground;
+                spawnCard.occupyPosition = true;
+
+                _spawnEntries[i] = new SpawnCardEntry(spawnCard, 1f);
+            }
+        }
 
         [EffectCanActivate]
         static bool CanActivate()

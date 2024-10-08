@@ -1,4 +1,5 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities.Extensions;
+using RoR2;
 using RoR2.UI;
 using UnityEngine;
 
@@ -16,11 +17,7 @@ namespace RiskOfChaos.Trackers
         {
             orig(self);
 
-            if (!self.TryGetComponent(out HUDBossHealthBarControllerTracker tracker))
-            {
-                tracker = self.gameObject.AddComponent<HUDBossHealthBarControllerTracker>();
-            }
-
+            HUDBossHealthBarControllerTracker tracker = self.gameObject.EnsureComponent<HUDBossHealthBarControllerTracker>();
             tracker.HUDBossHealthBarController = self;
         }
 

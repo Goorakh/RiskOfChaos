@@ -1,16 +1,23 @@
-﻿using HG.Reflection;
-using RoR2.ContentManagement;
+﻿using RiskOfChaos.Content.AssetCollections;
 using System;
-using System.Linq;
+using System.Reflection;
 
 namespace RiskOfChaos.Content
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    public sealed class EntityStateTypeAttribute : SearchableAttribute
+    internal sealed class EntityStateTypeAttribute : Attribute
     {
-        public static void AddStateTypesTo(NamedAssetCollection<Type> types)
+        [ContentInitializer]
+        static void InitContent(EntityStateAssetCollection entityStates)
         {
-            types.Add(GetInstances<EntityStateTypeAttribute>().Select(a => (Type)a.target).Distinct().ToArray());
+            foreach (Type type in Assembly.GetExecutingAssembly().GetTypes())
+            {
+                EntityStateTypeAttribute entityStateTypeAttribute = type.GetCustomAttribute<EntityStateTypeAttribute>();
+                if (entityStateTypeAttribute != null)
+                {
+                    entityStates.Add(type);
+                }
+            }
         }
     }
 }

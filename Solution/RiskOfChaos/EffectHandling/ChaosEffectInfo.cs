@@ -5,14 +5,13 @@ using RiskOfChaos.Collections;
 using RiskOfChaos.Components;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
-using RiskOfChaos.EffectDefinitions;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.EffectHandling.Formatting;
-using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
@@ -282,7 +281,7 @@ namespace RiskOfChaos.EffectHandling
                 componentTypes.Add(typeof(ChaosUntimedEffectController));
             }
 
-            GameObject prefab = NetPrefabs.CreateEmptyPrefabObject($"{Identifier}_EffectController", true, componentTypes.ToArray());
+            GameObject prefab = Prefabs.CreateNetworkedPrefab($"{Identifier}_EffectController", 0x0F015BFC, componentTypes.ToArray());
 
             if (prefab.TryGetComponent(out ChaosEffectComponent effectComponent))
             {

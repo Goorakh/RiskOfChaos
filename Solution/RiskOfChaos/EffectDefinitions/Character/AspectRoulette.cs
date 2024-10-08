@@ -156,28 +156,32 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 // Generate as many steps as needed for the fixed duration, otherwise create a cycle long enough people probably won't notice the looping
                 float time = TimedType == TimedEffectType.FixedDuration ? DurationSeconds : 120f;
 
-                const float AVERAGE_ASPECT_DURATION = (MIN_ASPECT_DURATION + MAX_ASPECT_DURATION) / 2f;
-                List<AspectStep> aspectSteps = new List<AspectStep>(Mathf.CeilToInt(time / AVERAGE_ASPECT_DURATION));
+                List<AspectStep> aspectSteps = new List<AspectStep>(Mathf.CeilToInt(time / MIN_ASPECT_DURATION));
 
                 while (time > 0f)
                 {
                     AspectStep step = generateStep(RNG);
-                    aspectSteps.Add(step);
+
+                    bool addStep = true;
+
+                    // Save a tiny bit of space by collapsing together neighboring steps with the same aspect
+                    if (aspectSteps.Count > 0)
+                    {
+                        AspectStep lastStep = aspectSteps[aspectSteps.Count - 1];
+                        if (lastStep.AspectEquipmentIndex == step.AspectEquipmentIndex)
+                        {
+                            aspectSteps[aspectSteps.Count - 1] = new AspectStep(lastStep.AspectEquipmentIndex, lastStep.Duration + step.Duration);
+                            addStep = false;
+                        }
+                    }
+
+                    if (addStep)
+                    {
+                        aspectSteps.Add(step);
+                    }
+
                     time -= step.Duration;
                     _totalAspectStepsDuration += step.Duration;
-                }
-
-                // Save a tiny bit of space by collapsing together neighboring steps with the same aspect
-                for (int i = aspectSteps.Count - 1; i >= 1; i--)
-                {
-                    AspectStep previousStep = aspectSteps[i - 1];
-                    AspectStep currentStep = aspectSteps[i];
-
-                    if (previousStep.AspectEquipmentIndex == currentStep.AspectEquipmentIndex)
-                    {
-                        aspectSteps[i - 1] = new AspectStep(previousStep.AspectEquipmentIndex, previousStep.Duration + currentStep.Duration);
-                        aspectSteps.RemoveAt(i);
-                    }
                 }
 
                 _playerAspectSteps = aspectSteps.ToArray();

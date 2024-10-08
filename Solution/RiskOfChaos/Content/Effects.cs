@@ -1,10 +1,13 @@
-﻿using R2API;
-using RiskOfChaos.Components;
+﻿using RiskOfChaos.Components;
+using RiskOfChaos.Content.AssetCollections;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using RoR2.ContentManagement;
 using RoR2.Orbs;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Content
 {
@@ -12,32 +15,36 @@ namespace RiskOfChaos.Content
     {
         public static readonly EffectDef EquipmentTransferOrbEffect;
 
-        static Effects()
+        [ContentInitializer]
+        static IEnumerator LoadContent(EffectDefAssetCollection effectDefs)
         {
+            List<AsyncOperationHandle> asyncOperations = [];
+
             // EquipmentTransferOrb
             {
-                GameObject prefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Common/VFX/ItemTransferOrbEffect.prefab").WaitForCompletion().InstantiateClone(Main.PluginGUID + "_EquipmentTransferOrbEffect", false);
+                AsyncOperationHandle<GameObject> transferOrbEffectLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Common/VFX/ItemTransferOrbEffect.prefab");
+                transferOrbEffectLoad.Completed += handle =>
+                {
+                    GameObject prefab = handle.Result.InstantiatePrefab(nameof(RoCContent.Effects.EquipmentTransferOrbEffect));
 
-                ItemTakenOrbEffect itemTakenEffect = prefab.GetComponent<ItemTakenOrbEffect>();
+                    ItemTakenOrbEffect itemTakenEffect = prefab.GetComponent<ItemTakenOrbEffect>();
 
-                EquipmentTakenOrbEffect equipmentTakenEffect = prefab.AddComponent<EquipmentTakenOrbEffect>();
+                    EquipmentTakenOrbEffect equipmentTakenEffect = prefab.AddComponent<EquipmentTakenOrbEffect>();
 
-                equipmentTakenEffect.TrailToColor = itemTakenEffect.trailToColor;
-                equipmentTakenEffect.ParticlesToColor = itemTakenEffect.particlesToColor;
-                equipmentTakenEffect.SpritesToColor = itemTakenEffect.spritesToColor;
-                equipmentTakenEffect.IconSpriteRenderer = itemTakenEffect.iconSpriteRenderer;
+                    equipmentTakenEffect.TrailToColor = itemTakenEffect.trailToColor;
+                    equipmentTakenEffect.ParticlesToColor = itemTakenEffect.particlesToColor;
+                    equipmentTakenEffect.SpritesToColor = itemTakenEffect.spritesToColor;
+                    equipmentTakenEffect.IconSpriteRenderer = itemTakenEffect.iconSpriteRenderer;
 
-                GameObject.Destroy(itemTakenEffect);
+                    GameObject.Destroy(itemTakenEffect);
 
-                EquipmentTransferOrbEffect = new EffectDef(prefab);
+                    effectDefs.Add(new EffectDef(prefab));
+                };
+
+                asyncOperations.Add(transferOrbEffectLoad);
             }
-        }
 
-        internal static void AddEffectDefsTo(NamedAssetCollection<EffectDef> effectDefs)
-        {
-            effectDefs.Add([
-                EquipmentTransferOrbEffect
-            ]);
+            yield return asyncOperations.WaitForAllLoaded();
         }
     }
 }

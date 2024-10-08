@@ -1,21 +1,18 @@
-﻿using System;
-using System.Runtime.Serialization;
+﻿using Newtonsoft.Json;
+using System;
 
 namespace RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers
 {
     [Serializable]
     public class EffectActivationSignalerChatVoteData
     {
-        [DataMember(Name = "vm")]
+        [JsonProperty("vm")]
         public Configs.ChatVoting.ChatVotingMode VotingMode;
 
-        [DataMember(Name = "vsc")]
+        [JsonProperty("vsc")]
         public int VotesStartedCount;
 
-        [DataMember(Name = "ovn")]
-        public bool OffsetVoteNumbers;
-
-        [DataMember(Name = "vs")]
+        [JsonProperty("vs")]
         public SerializedEffectVoteInfo[] VoteSelection;
     }
 }

@@ -65,7 +65,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 if (!characterMaster)
                     return;
 
-                characterMaster.inventory.GiveItem(Items.InvincibleLemurianMarker);
+                characterMaster.inventory.GiveItem(RoCContent.Items.InvincibleLemurianMarker);
 
                 foreach (BaseAI baseAI in characterMaster.GetComponents<BaseAI>())
                 {

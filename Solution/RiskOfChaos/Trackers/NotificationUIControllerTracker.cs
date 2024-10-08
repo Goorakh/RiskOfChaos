@@ -1,6 +1,6 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities.Extensions;
+using RoR2;
 using RoR2.UI;
-using System.Linq;
 using UnityEngine;
 
 namespace RiskOfChaos.Trackers
@@ -15,11 +15,8 @@ namespace RiskOfChaos.Trackers
             {
                 orig(self);
 
-                if (!self.GetComponent<NotificationUIControllerTracker>())
-                {
-                    NotificationUIControllerTracker tracker = self.gameObject.AddComponent<NotificationUIControllerTracker>();
-                    tracker.NotificationUIController = self;
-                }
+                NotificationUIControllerTracker tracker = self.gameObject.EnsureComponent<NotificationUIControllerTracker>();
+                tracker.NotificationUIController = self;
             };
         }
 

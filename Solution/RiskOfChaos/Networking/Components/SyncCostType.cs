@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.Components.CostProviders;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -84,10 +85,7 @@ namespace RiskOfChaos.Networking.Components
             {
                 orig(self);
 
-                if (!self.GetComponent<SyncCostType>())
-                {
-                    SyncCostType syncCostType = self.gameObject.AddComponent<SyncCostType>();
-                }
+                self.gameObject.EnsureComponent<SyncCostType>();
             };
 
             static void addToPrefab(string assetPath)
@@ -100,10 +98,7 @@ namespace RiskOfChaos.Networking.Components
                     return;
                 }
 
-                if (!prefab.GetComponent<SyncCostType>())
-                {
-                    prefab.AddComponent<SyncCostType>();
-                }
+                prefab.EnsureComponent<SyncCostType>();
             }
 
             addToPrefab("RoR2/Base/TripleShop/TripleShop.prefab");

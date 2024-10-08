@@ -135,10 +135,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                     master.gameObject.SetDontDestroyOnLoad(true);
 
-                    master.inventory.GiveItem(Items.MinAllyRegen);
+                    master.inventory.GiveItem(RoCContent.Items.MinAllyRegen);
                 }
 
-                if (master && master.inventory.GetItemCount(Items.InvincibleLemurianMarker) > 0)
+                if (master && master.inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
                 {
                     Chat.SendBroadcastChat(new Chat.SimpleChatMessage
                     {

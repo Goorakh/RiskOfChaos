@@ -22,6 +22,8 @@ namespace RiskOfChaos.SaveHandling
 
         public bool IsSingleton;
 
+        public bool IsDeserialized { get; private set; }
+
         NetworkIdentity _networkIdentity;
 
         readonly Dictionary<Type, ComponentSerializationInfo> _serializationInfoByComponentType = [];
@@ -163,6 +165,8 @@ namespace RiskOfChaos.SaveHandling
 
         public void DeserializeFrom(SerializableGameObject serializedObject, JsonSerializer serializer)
         {
+            IsDeserialized = true;
+
             foreach (SerializableObjectComponent serializedComponent in serializedObject.Components)
             {
                 if (!_serializationInfoByComponentType.TryGetValue(serializedComponent.ComponentType, out ComponentSerializationInfo serializationInfo))

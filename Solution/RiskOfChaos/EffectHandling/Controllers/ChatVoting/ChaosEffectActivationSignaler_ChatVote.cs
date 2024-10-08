@@ -77,8 +77,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
                 EffectActivationSignalerChatVoteData voteData = new EffectActivationSignalerChatVoteData
                 {
                     VotingMode = votingMode,
-                    VotesStartedCount = _voteStartCount,
-                    OffsetVoteNumbers = _offsetVoteNumbers
+                    VotesStartedCount = _voteStartCount
                 };
 
                 EffectVoteInfo[] voteOptions = _effectVoteSelection.GetVoteOptions();
@@ -104,7 +103,6 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
                     return;
 
                 _voteStartCount = value.VotesStartedCount;
-                _offsetVoteNumbers = value.OffsetVoteNumbers;
 
                 SerializedEffectVoteInfo[] serializedVotes = value.VoteSelection;
                 EffectVoteInfo[] effectVotes = new EffectVoteInfo[serializedVotes.Length];
@@ -152,11 +150,12 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
         }
 
         int _voteStartCount;
-        bool _offsetVoteNumbers;
+
+        bool offsetVoteNumbers => _voteStartCount % 2 == 0;
 
         int getVoteNumber(int voteIndex)
         {
-            if (_offsetVoteNumbers)
+            if (offsetVoteNumbers)
             {
                 voteIndex += numVoteOptions;
             }
@@ -167,7 +166,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
         int getVoteIndex(int voteNumber)
         {
-            if (_offsetVoteNumbers)
+            if (offsetVoteNumbers)
             {
                 voteNumber -= _effectVoteSelection.NumOptions;
             }
@@ -273,7 +272,14 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
                         {
                             EffectVoteInfo effectVoteInfo = voteOption.Value;
                             effectVoteInfo.VoteCount = voteOption.NumVotes;
-                            effectVoteInfo.VotePercentage = voteOption.NumVotes / (float)totalVotes;
+
+                            float votePercentage = 0f;
+                            if (totalVotes > 0)
+                            {
+                                votePercentage = voteOption.NumVotes / (float)totalVotes;
+                            }
+
+                            effectVoteInfo.VotePercentage = votePercentage;
                         }
                     }
                 }
@@ -364,7 +370,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             if (Configs.General.DisableEffectDispatching.Value)
                 return;
 
-            _offsetVoteNumbers = _voteStartCount++ % 2 != 0;
+            _voteStartCount++;
 
             int numOptions = numVoteOptions;
             _effectVoteSelection.NumOptions = numOptions;

@@ -1,11 +1,16 @@
-﻿using R2API;
-using RiskOfChaos.Components;
+﻿using RiskOfChaos.Components;
+using RiskOfChaos.Content;
+using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.UI;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UI;
 
 namespace RiskOfChaos.EffectDefinitions.UI
@@ -13,68 +18,76 @@ namespace RiskOfChaos.EffectDefinitions.UI
     [ChaosTimedEffect("start_credits", 120f, AllowDuplicates = false, IsNetworked = true)]
     public sealed class StartCredits : TimedEffect
     {
-        static GameObject _creditsPanelPrefab;
-
-        [SystemInitializer]
-        static void Init()
+        [ContentInitializer]
+        static IEnumerator LoadContent(LocalPrefabAssetCollection localPrefabs)
         {
-            _creditsPanelPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/CreditsPanel.prefab").WaitForCompletion().InstantiateClone("CreditsPanel_NoBackground", false);
+            List<AsyncOperationHandle> asyncOperations = [];
 
-            Transform creditsPanelTransform = _creditsPanelPrefab.transform;
-
-            Transform backdrop = creditsPanelTransform.Find("Backdrop");
-            if (backdrop)
+            AsyncOperationHandle<GameObject> creditsPanelLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/CreditsPanel.prefab");
+            creditsPanelLoad.Completed += handle =>
             {
-                backdrop.gameObject.SetActive(false);
-            }
+                GameObject prefab = handle.Result.InstantiatePrefab(nameof(RoCContent.LocalPrefabs.CreditsPanelNoBackground));
 
-            Transform foreground = creditsPanelTransform.Find("Foreground");
-            if (foreground)
-            {
-                foreground.gameObject.SetActive(false);
-            }
+                Transform transform = prefab.transform;
 
-            Transform viewport = creditsPanelTransform.Find("MainArea/Viewport");
-            if (viewport)
-            {
-                if (viewport.TryGetComponent(out Image backgroundImage))
+                Transform backdrop = transform.Find("Backdrop");
+                if (backdrop)
                 {
-                    UnityEngine.Object.Destroy(backgroundImage);
+                    backdrop.gameObject.SetActive(false);
                 }
 
-                Transform creditsContent = viewport.Find("CreditsContent");
-                if (creditsContent)
+                Transform foreground = transform.Find("Foreground");
+                if (foreground)
                 {
-                    if (creditsContent.TryGetComponent(out Image moreBackgroundImage))
+                    foreground.gameObject.SetActive(false);
+                }
+
+                Transform viewport = transform.Find("MainArea/Viewport");
+                if (viewport)
+                {
+                    if (viewport.TryGetComponent(out Image backgroundImage))
                     {
-                        UnityEngine.Object.Destroy(moreBackgroundImage);
+                        UnityEngine.Object.Destroy(backgroundImage);
                     }
 
-                    Transform backgroundStamps = creditsContent.Find("BackgroundStamps");
-                    if (backgroundStamps)
+                    Transform creditsContent = viewport.Find("CreditsContent");
+                    if (creditsContent)
                     {
-                        HideUIWhileOffScreen hideUIWhileOffScreen = backgroundStamps.gameObject.AddComponent<HideUIWhileOffScreen>();
-                        hideUIWhileOffScreen.TransformsToConsider = Array.ConvertAll(backgroundStamps.GetComponentsInChildren<Image>(), i => i.rectTransform);
+                        if (creditsContent.TryGetComponent(out Image moreBackgroundImage))
+                        {
+                            UnityEngine.Object.Destroy(moreBackgroundImage);
+                        }
+
+                        Transform backgroundStamps = creditsContent.Find("BackgroundStamps");
+                        if (backgroundStamps)
+                        {
+                            HideUIWhileOffScreen hideUIWhileOffScreen = backgroundStamps.gameObject.AddComponent<HideUIWhileOffScreen>();
+                            hideUIWhileOffScreen.TransformsToConsider = Array.ConvertAll(backgroundStamps.GetComponentsInChildren<Image>(), i => i.rectTransform);
+                        }
                     }
                 }
-            }
 
-            Transform fadePanel = creditsPanelTransform.Find("FadePanel");
-            if (fadePanel)
-            {
-                fadePanel.gameObject.SetActive(false);
-            }
+                Transform fadePanel = transform.Find("FadePanel");
+                if (fadePanel)
+                {
+                    fadePanel.gameObject.SetActive(false);
+                }
 
-            Transform musicOverride = creditsPanelTransform.Find("MusicOverride");
-            if (musicOverride)
-            {
-                UnityEngine.Object.Destroy(musicOverride.gameObject);
-            }
+                Transform musicOverride = transform.Find("MusicOverride");
+                if (musicOverride)
+                {
+                    UnityEngine.Object.Destroy(musicOverride.gameObject);
+                }
 
-            CreditsPanelController creditsPanelController = _creditsPanelPrefab.GetComponent<CreditsPanelController>();
-            creditsPanelController.introDuration = 0f;
-            creditsPanelController.scrollDuration = 118f;
-            creditsPanelController.outroDuration = 5f;
+                CreditsPanelController creditsPanelController = prefab.GetComponent<CreditsPanelController>();
+                creditsPanelController.introDuration = 0f;
+                creditsPanelController.scrollDuration = 118f;
+                creditsPanelController.outroDuration = 5f;
+
+                localPrefabs.Add(prefab);
+            };
+
+            yield return asyncOperations.WaitForAllLoaded();
         }
 
         GameObject _creditsPanel;
@@ -88,7 +101,7 @@ namespace RiskOfChaos.EffectDefinitions.UI
         {
             if (!_creditsPanel)
             {
-                _creditsPanel = UnityEngine.Object.Instantiate(_creditsPanelPrefab, RoR2Application.instance.mainCanvas.transform);
+                _creditsPanel = UnityEngine.Object.Instantiate(RoCContent.LocalPrefabs.CreditsPanelNoBackground, RoR2Application.instance.mainCanvas.transform);
 
                 CreditsPanelController creditsPanelController = _creditsPanel.GetComponent<CreditsPanelController>();
                 EntityStateMachine stateMachine = _creditsPanel.GetComponent<EntityStateMachine>();

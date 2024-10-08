@@ -1,16 +1,19 @@
 ﻿using HG;
-using R2API;
 using RiskOfChaos.Components;
+using RiskOfChaos.Content.AssetCollections;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.ExpansionManagement;
 using RoR2.Stats;
 using RoR2.UI;
 using RoR2.UI.LogBook;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Content.Logbook
 {
@@ -22,23 +25,15 @@ namespace RiskOfChaos.Content.Logbook
         static CharacterBody _lemurianBruiserBodyPrefab;
         static GameObject _lemurianBruiserGlowModelPrefab;
 
-        public readonly record struct LemurianStatCollection(UnlockableDef LogUnlockableDef, StatDef EncounteredStat, StatDef KilledByStat, StatDef KilledStat);
+        public record LemurianStatCollection(UnlockableDef LogUnlockableDef, StatDef EncounteredStat, StatDef KilledByStat, StatDef KilledStat);
 
-        public static readonly LemurianStatCollection LemurianStats = new LemurianStatCollection(
-            Unlockables.InvincibleLemurianLogbook,
-            StatDef.Register("invincibleLemuriansEncountered", StatRecordType.Sum, StatDataType.ULong, 0),
-            StatDef.Register("invincibleLemuriansKilledBy", StatRecordType.Sum, StatDataType.ULong, 0),
-            StatDef.Register("invincibleLemuriansKilled", StatRecordType.Sum, StatDataType.ULong, 0));
+        static LemurianStatCollection _lemurianStats;
 
-        public static readonly LemurianStatCollection ElderLemurianStats = new LemurianStatCollection(
-            Unlockables.InvincibleLemurianElderLogbook,
-            StatDef.Register("invincibleElderLemuriansEncountered", StatRecordType.Sum, StatDataType.ULong, 0),
-            StatDef.Register("invincibleElderLemuriansKilledBy", StatRecordType.Sum, StatDataType.ULong, 0),
-            StatDef.Register("invincibleElderLemuriansKilled", StatRecordType.Sum, StatDataType.ULong, 0));
+        static LemurianStatCollection _elderLemurianStats;
 
-        public static ref readonly LemurianStatCollection GetStatCollection(bool isElder)
+        public static LemurianStatCollection GetStatCollection(bool isElder)
         {
-            return ref isElder ? ref ElderLemurianStats : ref LemurianStats;
+            return isElder ? _elderLemurianStats : _lemurianStats;
         }
 
         [ConCommand(commandName = "roc_debug_reset_leonard_stats")]
@@ -57,13 +52,13 @@ namespace RiskOfChaos.Content.Logbook
             {
                 const string ZERO_STRING = "0";
 
-                statSheet.SetStatValueFromString(LemurianStats.EncounteredStat, ZERO_STRING);
-                statSheet.SetStatValueFromString(LemurianStats.KilledByStat, ZERO_STRING);
-                statSheet.SetStatValueFromString(LemurianStats.KilledStat, ZERO_STRING);
+                statSheet.SetStatValueFromString(_lemurianStats.EncounteredStat, ZERO_STRING);
+                statSheet.SetStatValueFromString(_lemurianStats.KilledByStat, ZERO_STRING);
+                statSheet.SetStatValueFromString(_lemurianStats.KilledStat, ZERO_STRING);
 
-                statSheet.SetStatValueFromString(ElderLemurianStats.EncounteredStat, ZERO_STRING);
-                statSheet.SetStatValueFromString(ElderLemurianStats.KilledByStat, ZERO_STRING);
-                statSheet.SetStatValueFromString(ElderLemurianStats.KilledStat, ZERO_STRING);
+                statSheet.SetStatValueFromString(_elderLemurianStats.EncounteredStat, ZERO_STRING);
+                statSheet.SetStatValueFromString(_elderLemurianStats.KilledByStat, ZERO_STRING);
+                statSheet.SetStatValueFromString(_elderLemurianStats.KilledStat, ZERO_STRING);
             }
 
             List<string> viewedViewables = userProfile.viewedViewables;
@@ -71,17 +66,19 @@ namespace RiskOfChaos.Content.Logbook
             viewedViewables.Remove("/Logbook/LOGBOOK_CATEGORY_MONSTER/INVINCIBLE_LEMURIAN_BODY_NAME");
             viewedViewables.Remove("/Logbook/LOGBOOK_CATEGORY_MONSTER/INVINCIBLE_LEMURIAN_ELDER_BODY_NAME");
 
-            userProfile.RevokeUnlockable(LemurianStats.LogUnlockableDef);
-            userProfile.RevokeUnlockable(ElderLemurianStats.LogUnlockableDef);
+            userProfile.RevokeUnlockable(_lemurianStats.LogUnlockableDef);
+            userProfile.RevokeUnlockable(_elderLemurianStats.LogUnlockableDef);
 
             userProfile.RequestEventualSave();
 
             Debug.Log($"Reset Leonard stats for profile: {userProfile.name}");
         }
 
-        [SystemInitializer]
-        static void Init()
+        [ContentInitializer]
+        static IEnumerator LoadContent(LocalPrefabAssetCollection localPrefabs)
         {
+            List<AsyncOperationHandle> asyncOperations = [];
+
             static GameObject createGlowModel(CharacterBody bodyPrefab)
             {
                 if (!bodyPrefab)
@@ -94,7 +91,7 @@ namespace RiskOfChaos.Content.Logbook
                 if (!modelPrefab)
                     return null;
 
-                GameObject glowModelPrefab = modelPrefab.gameObject.InstantiateClone(modelPrefab.name + "Glow", false);
+                GameObject glowModelPrefab = modelPrefab.gameObject.InstantiatePrefab(modelPrefab.name + "Glow");
 
                 ForceModelOverlay forceModelOverlay = glowModelPrefab.AddComponent<ForceModelOverlay>();
                 forceModelOverlay.Overlay = CharacterModel.immuneMaterial;
@@ -102,29 +99,47 @@ namespace RiskOfChaos.Content.Logbook
                 return glowModelPrefab;
             }
 
-            GameObject lemurianPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Lemurian/LemurianBody.prefab").WaitForCompletion();
-            if (lemurianPrefab)
+            AsyncOperationHandle<GameObject> lemurianBodyLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Lemurian/LemurianBody.prefab");
+            lemurianBodyLoad.Completed += handle =>
             {
-                _lemurianBodyPrefab = lemurianPrefab.GetComponent<CharacterBody>();
+                _lemurianBodyPrefab = handle.Result.GetComponent<CharacterBody>();
 
                 _lemurianGlowModelPrefab = createGlowModel(_lemurianBodyPrefab);
-            }
-            else
-            {
-                Log.Warning("Failed to load lemurian body prefab");
-            }
 
-            GameObject lemurianBruiserPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/LemurianBruiser/LemurianBruiserBody.prefab").WaitForCompletion();
-            if (lemurianBruiserPrefab)
+                localPrefabs.Add(_lemurianGlowModelPrefab);
+            };
+
+            asyncOperations.Add(lemurianBodyLoad);
+
+            AsyncOperationHandle<GameObject> elderLemurianBodyLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/LemurianBruiser/LemurianBruiserBody.prefab");
+            elderLemurianBodyLoad.Completed += handle =>
             {
-                _lemurianBruiserBodyPrefab = lemurianBruiserPrefab.GetComponent<CharacterBody>();
+                _lemurianBruiserBodyPrefab = handle.Result.GetComponent<CharacterBody>();
 
                 _lemurianBruiserGlowModelPrefab = createGlowModel(_lemurianBruiserBodyPrefab);
-            }
-            else
-            {
-                Log.Warning("Failed to load elder lemurian body prefab");
-            }
+
+                localPrefabs.Add(_lemurianBruiserGlowModelPrefab);
+            };
+
+            asyncOperations.Add(elderLemurianBodyLoad);
+
+            yield return asyncOperations.WaitForAllLoaded();
+        }
+
+        [SystemInitializer]
+        static void Init()
+        {
+            _lemurianStats = new LemurianStatCollection(
+                RoCContent.Unlockables.InvincibleLemurianLog,
+                StatDef.Register("invincibleLemuriansEncountered", StatRecordType.Sum, StatDataType.ULong, 0),
+                StatDef.Register("invincibleLemuriansKilledBy", StatRecordType.Sum, StatDataType.ULong, 0),
+                StatDef.Register("invincibleLemuriansKilled", StatRecordType.Sum, StatDataType.ULong, 0));
+
+            _elderLemurianStats = new LemurianStatCollection(
+                RoCContent.Unlockables.InvincibleLemurianElderLog,
+                StatDef.Register("invincibleElderLemuriansEncountered", StatRecordType.Sum, StatDataType.ULong, 0),
+                StatDef.Register("invincibleElderLemuriansKilledBy", StatRecordType.Sum, StatDataType.ULong, 0),
+                StatDef.Register("invincibleElderLemuriansKilled", StatRecordType.Sum, StatDataType.ULong, 0));
 
             GlobalEventManager.onCharacterDeathGlobal += report =>
             {
@@ -137,11 +152,11 @@ namespace RiskOfChaos.Content.Logbook
                     if (report.attackerMaster)
                     {
                         Inventory attackerInventory = report.attackerMaster.inventory;
-                        if (attackerInventory && attackerInventory.GetItemCount(Items.InvincibleLemurianMarker) > 0)
+                        if (attackerInventory && attackerInventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
                         {
                             bool isElder = report.attackerBodyIndex == BodyCatalog.FindBodyIndex("LemurianBruiserBody");
 
-                            ref readonly LemurianStatCollection lemurianStatCollection = ref GetStatCollection(isElder);
+                            LemurianStatCollection lemurianStatCollection = GetStatCollection(isElder);
 
                             victimStatSheet.PushStatValue(lemurianStatCollection.KilledByStat, 1);
 
@@ -157,11 +172,11 @@ namespace RiskOfChaos.Content.Logbook
                 if (report.victimMaster)
                 {
                     Inventory victimInventory = report.victimMaster.inventory;
-                    if (victimInventory && victimInventory.GetItemCount(Items.InvincibleLemurianMarker) > 0)
+                    if (victimInventory && victimInventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
                     {
                         bool isElder = report.victimBodyIndex == BodyCatalog.FindBodyIndex("LemurianBruiserBody");
 
-                        ref readonly LemurianStatCollection lemurianStatCollection = ref GetStatCollection(isElder);
+                        LemurianStatCollection lemurianStatCollection = GetStatCollection(isElder);
 
                         foreach (PlayerStatsComponent statsComponent in PlayerStatsComponent.instancesList)
                         {
@@ -260,7 +275,7 @@ namespace RiskOfChaos.Content.Logbook
 
                     static EntryStatus getEntryStatus(in Entry entry, UserProfile viewerProfile)
                     {
-                        return getLeonardEntryStatus(viewerProfile, LemurianStats);
+                        return getLeonardEntryStatus(viewerProfile, _lemurianStats);
                     }
 
                     static void pageBuilder(PageBuilder builder)
@@ -268,7 +283,7 @@ namespace RiskOfChaos.Content.Logbook
                         CharacterBody body = (CharacterBody)builder.entry.extraData;
 
                         addLeonardBodyStats(builder, body);
-                        addLeonardUserStats(builder, body, LemurianStats);
+                        addLeonardUserStats(builder, body, _lemurianStats);
                         addLeonardLore(builder, "INVINCIBLE_LEMURIAN_BODY_LORE");
                     }
 
@@ -296,7 +311,7 @@ namespace RiskOfChaos.Content.Logbook
 
                     static EntryStatus getEntryStatus(in Entry entry, UserProfile viewerProfile)
                     {
-                        return getLeonardEntryStatus(viewerProfile, ElderLemurianStats);
+                        return getLeonardEntryStatus(viewerProfile, _elderLemurianStats);
                     }
 
                     static void pageBuilder(PageBuilder builder)
@@ -304,7 +319,7 @@ namespace RiskOfChaos.Content.Logbook
                         CharacterBody body = (CharacterBody)builder.entry.extraData;
 
                         addLeonardBodyStats(builder, body);
-                        addLeonardUserStats(builder, body, ElderLemurianStats);
+                        addLeonardUserStats(builder, body, _elderLemurianStats);
                         addLeonardLore(builder, "INVINCIBLE_LEMURIAN_ELDER_BODY_LORE");
                     }
 

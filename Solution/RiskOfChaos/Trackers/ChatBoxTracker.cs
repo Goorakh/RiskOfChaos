@@ -1,4 +1,5 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities.Extensions;
+using RoR2;
 using RoR2.UI;
 using UnityEngine;
 
@@ -13,11 +14,8 @@ namespace RiskOfChaos.Trackers
             {
                 orig(self);
 
-                if (!self.GetComponent<ChatBoxTracker>())
-                {
-                    ChatBoxTracker chatBoxTracker = self.gameObject.AddComponent<ChatBoxTracker>();
-                    chatBoxTracker.ChatBox = self;
-                }
+                ChatBoxTracker chatBoxTracker = self.gameObject.EnsureComponent<ChatBoxTracker>();
+                chatBoxTracker.ChatBox = self;
             };
         }
 

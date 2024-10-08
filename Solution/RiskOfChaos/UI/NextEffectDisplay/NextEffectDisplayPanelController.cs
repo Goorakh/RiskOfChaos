@@ -1,92 +1,96 @@
-﻿using R2API;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.Trackers;
-using RoR2;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2.UI;
+using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UI;
 
 namespace RiskOfChaos.UI.NextEffectDisplay
 {
     public class NextEffectDisplayPanelController : MonoBehaviour
     {
-        static GameObject _effectDisplayPrefab;
-
-        [SystemInitializer]
-        static void Init()
+        [ContentInitializer]
+        static IEnumerator LoadContent(LocalPrefabAssetCollection localPrefabs)
         {
-            // TODO: Construct panel prefab instead of Frankensteining existing prefabs
+            List<AsyncOperationHandle> asyncOperations = [];
 
-            GameObject effectDisplayPrefab = Instantiate(Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/NotificationPanel2.prefab").WaitForCompletion());
-
-            // Prevent added components from running while we're setting up the prefab
-            effectDisplayPrefab.SetActive(false);
-
-            Transform effectDisplayCanvasGroupTransform = effectDisplayPrefab.transform.Find("CanvasGroup");
-            if (!effectDisplayCanvasGroupTransform)
+            AsyncOperationHandle<GameObject> notificationPanelLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/NotificationPanel2.prefab");
+            notificationPanelLoad.Completed += handle =>
             {
-                Log.Error("Unable to find child CanvasGroup");
-                return;
-            }
+                // TODO: Construct panel prefab instead of Frankensteining existing prefabs
+                GameObject prefab = handle.Result.InstantiatePrefab(nameof(RoCContent.LocalPrefabs.ChaosNextEffectDisplay));
 
-            DestroyImmediate(effectDisplayPrefab.GetComponent<GenericNotification>());
+                Transform effectDisplayCanvasGroupTransform = prefab.transform.Find("CanvasGroup");
+                if (!effectDisplayCanvasGroupTransform)
+                {
+                    Log.Error("Unable to find child CanvasGroup");
+                    return;
+                }
 
-            GameObject effectDisplayCanvasGroup = effectDisplayCanvasGroupTransform.gameObject;
+                Destroy(prefab.GetComponent<GenericNotification>());
 
-            DestroyImmediate(effectDisplayCanvasGroup.GetComponent<HorizontalLayoutGroup>());
-            DestroyImmediate(effectDisplayCanvasGroup.GetComponent<ContentSizeFitter>());
+                GameObject effectDisplayCanvasGroup = effectDisplayCanvasGroupTransform.gameObject;
 
-            Transform iconArea = effectDisplayCanvasGroup.transform.Find("IconArea");
-            if (iconArea)
-            {
-                DestroyImmediate(iconArea.gameObject);
-            }
+                Destroy(effectDisplayCanvasGroup.GetComponent<HorizontalLayoutGroup>());
+                Destroy(effectDisplayCanvasGroup.GetComponent<ContentSizeFitter>());
 
-            Transform textArea = effectDisplayCanvasGroup.transform.Find("TextArea");
-            if (textArea)
-            {
-                DestroyImmediate(textArea.gameObject);
-            }
+                Transform iconArea = effectDisplayCanvasGroup.transform.Find("IconArea");
+                if (iconArea)
+                {
+                    Destroy(iconArea.gameObject);
+                }
 
-            GameObject effectText = new GameObject("EffectText");
-            RectTransform effectTextTransform = effectText.AddComponent<RectTransform>();
-            effectTextTransform.anchorMin = Vector2.zero;
-            effectTextTransform.anchorMax = Vector2.one;
-            effectTextTransform.sizeDelta = Vector2.zero;
-            effectTextTransform.anchoredPosition = Vector2.zero;
+                Transform textArea = effectDisplayCanvasGroup.transform.Find("TextArea");
+                if (textArea)
+                {
+                    Destroy(textArea.gameObject);
+                }
 
-            HGTextMeshProUGUI effectTextLabel = effectText.AddComponent<HGTextMeshProUGUI>();
-            effectTextLabel.alignment = TextAlignmentOptions.Center;
-            effectTextLabel.enableWordWrapping = false;
-            effectTextLabel.fontSize = 30;
-            effectTextLabel.text = string.Empty;
+                GameObject effectText = new GameObject("EffectText");
+                RectTransform effectTextTransform = effectText.AddComponent<RectTransform>();
+                effectTextTransform.anchorMin = Vector2.zero;
+                effectTextTransform.anchorMax = Vector2.one;
+                effectTextTransform.sizeDelta = Vector2.zero;
+                effectTextTransform.anchoredPosition = Vector2.zero;
 
-            effectText.transform.SetParent(effectDisplayCanvasGroup.transform);
+                HGTextMeshProUGUI effectTextLabel = effectText.AddComponent<HGTextMeshProUGUI>();
+                effectTextLabel.alignment = TextAlignmentOptions.Center;
+                effectTextLabel.enableWordWrapping = false;
+                effectTextLabel.fontSize = 30;
+                effectTextLabel.text = string.Empty;
 
-            NextEffectDisplayController displayController = effectDisplayPrefab.AddComponent<NextEffectDisplayController>();
-            displayController.EffectText = effectText.AddComponent<LanguageTextMeshController>();
+                effectText.transform.SetParent(effectDisplayCanvasGroup.transform);
 
-            Transform backdropTransform = effectDisplayCanvasGroup.transform.Find("Backdrop");
-            if (backdropTransform)
-            {
-                displayController.BackdropImage = backdropTransform.GetComponent<Image>();
-            }
+                NextEffectDisplayController displayController = prefab.AddComponent<NextEffectDisplayController>();
+                displayController.EffectText = effectText.AddComponent<LanguageTextMeshController>();
 
-            Transform flashTransform = effectDisplayCanvasGroup.transform.Find("Flash");
-            if (flashTransform)
-            {
-                displayController.FlashController = flashTransform.GetComponent<AnimateUIAlpha>();
-            }
+                Transform backdropTransform = effectDisplayCanvasGroup.transform.Find("Backdrop");
+                if (backdropTransform)
+                {
+                    displayController.BackdropImage = backdropTransform.GetComponent<Image>();
+                }
 
-            _effectDisplayPrefab = effectDisplayPrefab.InstantiateClone("ChaosNextEffectDisplay", false);
-            Destroy(effectDisplayPrefab);
+                Transform flashTransform = effectDisplayCanvasGroup.transform.Find("Flash");
+                if (flashTransform)
+                {
+                    displayController.FlashController = flashTransform.GetComponent<AnimateUIAlpha>();
+                }
 
-            // Make sure it's actually active when instantiating :|
-            _effectDisplayPrefab.SetActive(true);
+                localPrefabs.Add(prefab);
+            };
+
+            asyncOperations.Add(notificationPanelLoad);
+
+            yield return asyncOperations.WaitForAllLoaded();
         }
 
         internal static NextEffectDisplayPanelController Create(ChaosUIController chaosUIController)
@@ -163,7 +167,7 @@ namespace RiskOfChaos.UI.NextEffectDisplay
             {
                 if (!_currentDisplay)
                 {
-                    _currentDisplay = Instantiate(_effectDisplayPrefab, transform).GetComponent<NextEffectDisplayController>();
+                    _currentDisplay = Instantiate(RoCContent.LocalPrefabs.ChaosNextEffectDisplay, transform).GetComponent<NextEffectDisplayController>();
                 }
                 else if (!_currentDisplay.gameObject.activeSelf)
                 {

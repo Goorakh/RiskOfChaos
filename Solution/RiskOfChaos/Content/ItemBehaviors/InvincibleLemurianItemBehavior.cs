@@ -8,7 +8,7 @@ namespace RiskOfChaos.Content.ItemBehaviors
         [ItemDefAssociation(useOnServer = true, useOnClient = false)]
         static ItemDef GetItemDef()
         {
-            return Items.InvincibleLemurianMarker;
+            return RoCContent.Items.InvincibleLemurianMarker;
         }
 
         void FixedUpdate()

@@ -1,6 +1,9 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.Content.AssetCollections;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RoR2;
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -29,37 +32,47 @@ namespace RiskOfChaos.ModifierController
 
         static ModificationManagerInfo[] _modificationManagers = [];
 
-        static ModificationManagerInfo createFromAttribute(ValueModificationManagerAttribute attribute)
+        [ContentInitializer]
+        static void LoadContent(NetworkedPrefabAssetCollection networkedPrefabs, LocalPrefabAssetCollection localPrefabs)
         {
-            Type modificationManagerType = attribute.target;
-            string name = modificationManagerType.Name;
+            List<HG.Reflection.SearchableAttribute> modificationManagerAttributes = HG.Reflection.SearchableAttribute.GetInstances<ValueModificationManagerAttribute>();
+            List<ModificationManagerInfo> modificationManagers = new List<ModificationManagerInfo>(modificationManagerAttributes.Count);
 
-            Type[] additionalComponentTypes = attribute.GetAdditionalComponentTypes().ToArray();
-
-            bool isNetworked = typeof(NetworkBehaviour).IsAssignableFrom(modificationManagerType);
-            foreach (Type componentType in additionalComponentTypes)
+            foreach (HG.Reflection.SearchableAttribute modificationManagerAttribute in modificationManagerAttributes)
             {
-                isNetworked |= typeof(NetworkBehaviour).IsAssignableFrom(componentType);
+                if (modificationManagerAttribute is not ValueModificationManagerAttribute attribute)
+                    continue;
+
+                Type modificationManagerType = attribute.target;
+                string name = modificationManagerType.Name;
+
+                Type[] requiredComponentTypes = [.. attribute.GetAdditionalComponentTypes(), modificationManagerType];
+                requiredComponentTypes = RequiredComponentsAttribute.ResolveRequiredComponentTypes(requiredComponentTypes);
+
+                bool isNetworked = typeof(NetworkBehaviour).IsAssignableFrom(modificationManagerType);
+                foreach (Type componentType in requiredComponentTypes)
+                {
+                    isNetworked |= typeof(NetworkBehaviour).IsAssignableFrom(componentType);
+                }
+
+                GameObject prefab;
+                AssetCollection<GameObject> prefabAssetCollection;
+                if (isNetworked)
+                {
+                    prefab = Prefabs.CreateNetworkedPrefab(name, 0x0684FDB9, requiredComponentTypes);
+                    prefabAssetCollection = networkedPrefabs;
+                }
+                else
+                {
+                    prefab = Prefabs.CreatePrefab(name, requiredComponentTypes);
+                    prefabAssetCollection = localPrefabs;
+                }
+
+                modificationManagers.Add(new ModificationManagerInfo(prefab, isNetworked, name));
+                prefabAssetCollection.Add(prefab);
             }
 
-            GameObject prefab = NetPrefabs.CreateEmptyPrefabObject(name, isNetworked);
-
-            foreach (Type componentType in additionalComponentTypes)
-            {
-                prefab.AddComponent(componentType);
-            }
-
-            prefab.AddComponent(modificationManagerType);
-
-            return new ModificationManagerInfo(prefab, isNetworked, name);
-        }
-
-        public static void Initialize()
-        {
-            _modificationManagers = HG.Reflection.SearchableAttribute.GetInstances<ValueModificationManagerAttribute>()
-                                                                     .Cast<ValueModificationManagerAttribute>()
-                                                                     .Select(createFromAttribute)
-                                                                     .ToArray();
+            _modificationManagers = modificationManagers.ToArray();
 
             Run.onRunStartGlobal += Run_onRunStartGlobal;
         }

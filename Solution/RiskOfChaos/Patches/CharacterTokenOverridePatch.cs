@@ -4,7 +4,7 @@ namespace RiskOfChaos.Patches
 {
     static class CharacterTokenOverridePatch
     {
-        public delegate void OverrideNameTokenDelegate(CharacterBody body, ref string displayName);
+        public delegate void OverrideNameTokenDelegate(CharacterBody body, ref string nameToken);
         public static event OverrideNameTokenDelegate OverrideNameToken;
 
         public delegate void OverrideDisplayNameDelegate(CharacterBody body, ref string displayName);

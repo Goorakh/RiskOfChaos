@@ -1,4 +1,4 @@
-﻿using R2API;
+﻿using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectUtils.World.Spawn;
@@ -67,9 +67,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             }
 
             InteractableSpawnCard iscNewtStatue = ScriptableObject.CreateInstance<InteractableSpawnCard>();
-            iscNewtStatue.name = "iscNewtStatue";
             {
-                iscNewtStatue.prefab = NetPrefabs.NewtStatueFixedOriginPrefab;
+                iscNewtStatue.name = "iscNewtStatue";
+                iscNewtStatue.prefab = RoCContent.NetworkedPrefabs.NewtStatueFixedOrigin;
                 iscNewtStatue.orientToFloor = false;
                 iscNewtStatue.hullSize = HullClassification.Golem;
                 iscNewtStatue.requiredFlags = NodeFlags.None;

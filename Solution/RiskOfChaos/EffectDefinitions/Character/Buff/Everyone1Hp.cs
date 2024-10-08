@@ -13,7 +13,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return ApplyBuffEffect.CanSelectBuff(Buffs.SetTo1Hp.buffIndex);
+            return ApplyBuffEffect.CanSelectBuff(RoCContent.Buffs.SetTo1Hp.buffIndex);
         }
 
         ApplyBuffEffect _applyBuffEffect;
@@ -28,7 +28,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         {
             base.OnStartServer();
 
-            _applyBuffEffect.BuffIndex = Buffs.SetTo1Hp.buffIndex;
+            _applyBuffEffect.BuffIndex = RoCContent.Buffs.SetTo1Hp.buffIndex;
             _applyBuffEffect.BuffStackCount = 1;
         }
 

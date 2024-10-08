@@ -1,4 +1,6 @@
 ﻿using HG;
+using RiskOfChaos.Content;
+using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RoR2;
@@ -6,41 +8,38 @@ using RoR2.UI;
 using RoR2.UI.SkinControllers;
 using System.Collections.ObjectModel;
 using UnityEngine;
-using UnityEngine.Networking;
 using UnityEngine.UI;
 
 namespace RiskOfChaos.UI.ActiveEffectsPanel
 {
     public class ChaosActiveEffectsPanelController : MonoBehaviour
     {
-        static GameObject _activeEffectsPanelPrefab;
-
-        [SystemInitializer(typeof(UISkins))]
-        static void Init()
+        [ContentInitializer]
+        static void LoadContent(LocalPrefabAssetCollection localPrefabs)
         {
             UISkinData uiSkin = UISkins.ActiveEffectsPanel;
 
-            GameObject activeEffectsPanelObject = NetPrefabs.CreateEmptyPrefabObject("ActiveEffectsPanel", false);
+            GameObject activeEffectsPanelPrefab = Prefabs.CreatePrefab(nameof(RoCContent.LocalPrefabs.ActiveEffectsUIPanel), []);
 
-            RectTransform activeEffectsPanelTransform = activeEffectsPanelObject.AddComponent<RectTransform>();
+            RectTransform activeEffectsPanelTransform = activeEffectsPanelPrefab.AddComponent<RectTransform>();
 
-            CanvasRenderer panelCanvasRenderer = activeEffectsPanelObject.AddComponent<CanvasRenderer>();
+            CanvasRenderer panelCanvasRenderer = activeEffectsPanelPrefab.AddComponent<CanvasRenderer>();
             
-            Image panelImage = activeEffectsPanelObject.AddComponent<Image>();
+            Image panelImage = activeEffectsPanelPrefab.AddComponent<Image>();
             panelImage.type = Image.Type.Sliced;
             panelImage.raycastTarget = false;
 
-            PanelSkinController panelSkinController = activeEffectsPanelObject.AddComponent<PanelSkinController>();
+            PanelSkinController panelSkinController = activeEffectsPanelPrefab.AddComponent<PanelSkinController>();
             panelSkinController.panelType = PanelSkinController.PanelType.Default;
             panelSkinController.skinData = uiSkin;
 
-            VerticalLayoutGroup panelLayoutGroup = activeEffectsPanelObject.AddComponent<VerticalLayoutGroup>();
+            VerticalLayoutGroup panelLayoutGroup = activeEffectsPanelPrefab.AddComponent<VerticalLayoutGroup>();
             panelLayoutGroup.childAlignment = TextAnchor.UpperCenter;
             panelLayoutGroup.padding = new RectOffset(4, 4, 4, 8);
 
-            Canvas panelCanvas = activeEffectsPanelObject.AddComponent<Canvas>();
+            Canvas panelCanvas = activeEffectsPanelPrefab.AddComponent<Canvas>();
 
-            ChaosActiveEffectsPanelController activeEffectsDisplayController = activeEffectsPanelObject.AddComponent<ChaosActiveEffectsPanelController>();
+            ChaosActiveEffectsPanelController activeEffectsDisplayController = activeEffectsPanelPrefab.AddComponent<ChaosActiveEffectsPanelController>();
 
             // ActiveEffectsHeader
             {
@@ -85,9 +84,9 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
                 activeEffectsDisplayController._activeEffectsContainer = containerTransform;
             }
 
-            activeEffectsPanelObject.layer = LayerIndex.ui.intVal;
+            activeEffectsPanelPrefab.layer = LayerIndex.ui.intVal;
 
-            _activeEffectsPanelPrefab = activeEffectsPanelObject;
+            localPrefabs.Add(activeEffectsPanelPrefab);
         }
 
         public static ChaosActiveEffectsPanelController Create(ChaosUIController chaosUIController)
@@ -114,7 +113,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
                 return null;
             }
 
-            ChaosActiveEffectsPanelController displayController = Instantiate(_activeEffectsPanelPrefab, rightInfoBar).GetComponent<ChaosActiveEffectsPanelController>();
+            ChaosActiveEffectsPanelController displayController = Instantiate(RoCContent.LocalPrefabs.ActiveEffectsUIPanel, rightInfoBar).GetComponent<ChaosActiveEffectsPanelController>();
 
             return displayController;
         }
@@ -182,7 +181,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
                     ref ChaosActiveEffectDisplayController activeEffectDisplay = ref _activeEffectDisplays[displayingEffectCount];
                     if (!activeEffectDisplay)
                     {
-                        activeEffectDisplay = Instantiate(ChaosActiveEffectDisplayController.ItemPrefab, _activeEffectsContainer).GetComponent<ChaosActiveEffectDisplayController>();
+                        activeEffectDisplay = Instantiate(RoCContent.LocalPrefabs.ActiveEffectListUIItem, _activeEffectsContainer).GetComponent<ChaosActiveEffectDisplayController>();
                     }
 
                     activeEffectDisplay.gameObject.SetActive(true);
