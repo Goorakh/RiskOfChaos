@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.Components;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -53,6 +54,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         public event OnBuffAppliedDelegate OnBuffAppliedServer;
 
         BuffIndex _buffIndex = BuffIndex.None;
+
+        [SerializedMember("bi")]
         public BuffIndex BuffIndex
         {
             get
@@ -70,6 +73,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         }
 
         int _buffStackCount = 1;
+
+        [SerializedMember("sc")]
         public int BuffStackCount
         {
             get

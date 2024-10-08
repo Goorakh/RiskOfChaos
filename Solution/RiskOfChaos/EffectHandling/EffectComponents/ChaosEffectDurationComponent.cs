@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.SaveHandling;
 using RoR2;
 using System;
 using System.Runtime.CompilerServices;
@@ -18,6 +19,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         [SyncVar]
         int _timedTypeInternal;
 
+        [SerializedMember("t")]
         public TimedEffectType TimedType
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -28,9 +30,11 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         }
 
         [SyncVar]
+        [SerializedMember("sc")]
         public int NumStagesCompletedWhileActive;
 
         [SyncVar]
+        [SerializedMember("d")]
         public float Duration = -1f;
 
         public float Elapsed
@@ -80,17 +84,6 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
             Stage.onServerStageComplete -= onServerStageComplete;
         }
 
-        public override void OnStartServer()
-        {
-            base.OnStartServer();
-
-            if (Duration <= 0f)
-            {
-                Log.Error($"No duration defined for effect {name} ({netId})");
-                EndEffect();
-            }
-        }
-
         void FixedUpdate()
         {
             if (NetworkServer.active)
@@ -104,6 +97,11 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         {
             if (Elapsed >= Duration)
             {
+                if (Duration <= 0f)
+                {
+                    Log.Error($"No duration defined for effect {name} ({netId})");
+                }
+
 #if DEBUG
                 Log.Debug($"Ending timed effect {name} (id={netId})");
 #endif

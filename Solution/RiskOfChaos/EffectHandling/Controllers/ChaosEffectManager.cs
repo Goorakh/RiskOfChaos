@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.Components;
 using RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch;
+using RiskOfChaos.SaveHandling;
 using RoR2;
 using System;
 using System.Collections.Generic;
@@ -17,24 +18,34 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         internal static void Load()
         {
-            _chaosEffectManagerPrefab = NetPrefabs.CreateEmptyPrefabObject("ChaosEffectManager", true, [
-                typeof(SetDontDestroyOnLoad),
-                typeof(DestroyOnRunEnd),
-                typeof(ChaosEffectManager),
-                typeof(ChaosEffectDispatcher),
-                typeof(ChaosEffectTracker),
-                typeof(ChaosAlwaysActiveEffectsHandler),
-                typeof(ChaosEffectActivationSoundHandler),
-                typeof(ChaosEffectNameFormattersNetworker),
-                typeof(ChaosNextEffectProvider)
-            ]);
+            // ChaosEffectManager
+            {
+                _chaosEffectManagerPrefab = NetPrefabs.CreateEmptyPrefabObject("ChaosEffectManager", true, [
+                    typeof(SetDontDestroyOnLoad),
+                    typeof(DestroyOnRunEnd),
+                    typeof(ChaosEffectManager),
+                    typeof(ChaosEffectDispatcher),
+                    typeof(ChaosEffectTracker),
+                    typeof(ChaosAlwaysActiveEffectsHandler),
+                    typeof(ChaosEffectActivationSoundHandler),
+                    typeof(ChaosEffectNameFormattersNetworker),
+                    typeof(ChaosNextEffectProvider),
+                    typeof(ObjectSerializationComponent)
+                ]);
+
+                if (_chaosEffectManagerPrefab.TryGetComponent(out ObjectSerializationComponent serializationComponent))
+                {
+                    serializationComponent.IsSingleton = true;
+                }
+            }
 
             static GameObject createBasicEffectActivationSignaler<TSignalerComponent>(Configs.ChatVoting.ChatVotingMode? requiredVotingMode) where TSignalerComponent : ChaosEffectActivationSignaler
             {
                 Type signalerComponentType = typeof(TSignalerComponent);
 
                 List<Type> prefabComponentTypes = [
-                    signalerComponentType
+                    signalerComponentType,
+                    typeof(ObjectSerializationComponent)
                 ];
 
                 bool hasAnyEnableRequirement = requiredVotingMode.HasValue;
@@ -43,7 +54,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     prefabComponentTypes.Add(typeof(ChaosEffectActivationSignalerEnableRequirements));
                 }
 
-                GameObject signalerPrefab = NetPrefabs.CreateEmptyPrefabObject(signalerComponentType.Name, false, prefabComponentTypes.ToArray());
+                GameObject signalerPrefab = NetPrefabs.CreateEmptyPrefabObject(signalerComponentType.Name, true, prefabComponentTypes.ToArray());
 
                 if (signalerPrefab.TryGetComponent(out ChaosEffectActivationSignalerEnableRequirements enableRequirements))
                 {
@@ -53,6 +64,16 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     {
                         signalerComponent.enabled = false;
                     }
+                }
+
+                if (signalerPrefab.TryGetComponent(out NetworkIdentity networkIdentity))
+                {
+                    networkIdentity.serverOnly = true;
+                }
+
+                if (signalerPrefab.TryGetComponent(out ObjectSerializationComponent serializationComponent))
+                {
+                    serializationComponent.IsSingleton = true;
                 }
 
                 return signalerPrefab;
@@ -76,6 +97,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 return;
 
             NetworkServer.Spawn(Instantiate(_chaosEffectManagerPrefab));
+
+#if DEBUG
+            Log.Debug("Created chaos effect manager");
+#endif
         }
 
         void Awake()
@@ -89,6 +114,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             foreach (GameObject signalerPrefab in _effectActivationSignalerPrefabs)
             {
                 GameObject signalerObject = Instantiate(signalerPrefab, transform);
+                NetworkServer.Spawn(signalerObject);
             }
         }
     }

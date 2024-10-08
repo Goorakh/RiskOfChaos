@@ -24,6 +24,23 @@ namespace RiskOfChaos.Utilities.Extensions
             }
         }
 
+        public static IEnumerable<MemberInfo> GetAllMembersRecursive(this Type type, BindingFlags flags)
+        {
+            Type baseType = type.BaseType;
+            if (baseType != null)
+            {
+                foreach (MemberInfo baseMember in baseType.GetAllMembersRecursive(flags))
+                {
+                    yield return baseMember;
+                }
+            }
+
+            foreach (MemberInfo member in type.GetMembers(flags | BindingFlags.DeclaredOnly))
+            {
+                yield return member;
+            }
+        }
+
         public static IEnumerable<TMember> WithAttribute<TMember, TAttr>(this IEnumerable<TMember> members) where TMember : MemberInfo where TAttr : Attribute
         {
             return members.Where(m => m.GetCustomAttribute<TAttr>() != null);

@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using Newtonsoft.Json;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
@@ -6,9 +7,14 @@ using UnityEngine;
 
 namespace RiskOfChaos.Utilities
 {
+    [Serializable]
+    [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
     public struct RunTimeStamp : IEquatable<RunTimeStamp>, IComparable<RunTimeStamp>
     {
+        [JsonProperty("t")]
         public RunTimerType TimeType;
+
+        [JsonProperty("v")]
         public float Time;
 
         readonly float currentTime

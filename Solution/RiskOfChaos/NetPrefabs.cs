@@ -13,6 +13,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos
 {
+    [Obsolete]
     public static class NetPrefabs
     {
         public static GameObject GenericTeamInventoryPrefab { get; private set; }
@@ -47,6 +48,13 @@ namespace RiskOfChaos
 
         public static GameObject ExplodeAtLowHealthBodyAttachmentPrefab { get; private set; }
 
+        static readonly Dictionary<NetworkHash128, GameObject> _prefabLookup = [];
+
+        internal static bool LookupPrefabByAssetId(NetworkHash128 assetId, out GameObject prefab)
+        {
+            return _prefabLookup.TryGetValue(assetId, out prefab);
+        }
+
         public static GameObject CreateEmptyPrefabObject(string name, bool networked = true, Type[] componentTypes = null)
         {
             GameObject tmp = new GameObject(name);
@@ -73,6 +81,11 @@ namespace RiskOfChaos
                 {
                     prefab.AddComponent(componentType);
                 }
+            }
+
+            if (prefab.TryGetComponent(out NetworkIdentity networkIdentity))
+            {
+                _prefabLookup.Add(networkIdentity.assetId, prefab);
             }
 
             return prefab;

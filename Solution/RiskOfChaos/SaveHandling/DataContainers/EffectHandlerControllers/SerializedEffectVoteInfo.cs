@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RiskOfChaos.EffectHandling;
+using System;
 using System.Runtime.Serialization;
 
 namespace RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers
@@ -10,7 +11,7 @@ namespace RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers
         public string[] UserVotes;
 
         [DataMember(Name = "e")]
-        public SerializableEffect Effect;
+        public ChaosEffectIndex Effect;
 
         [DataMember(Name = "r")]
         public bool IsRandom;

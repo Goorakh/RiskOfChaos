@@ -1,7 +1,6 @@
 ﻿using RiskOfChaos.ChatMessages;
-using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.EffectHandling.EffectComponents;
-using RiskOfChaos.ModifierController.Effect;
+using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -20,6 +19,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         public delegate void EffectAboutToDispatchDelegate(ChaosEffectInfo effectInfo, in ChaosEffectDispatchArgs args, ref bool willStart);
         public event EffectAboutToDispatchDelegate OnEffectAboutToDispatchServer;
 
+        [SerializedMember("rng")]
         Xoroshiro128Plus _effectRNG;
 
         void OnEnable()

@@ -6,6 +6,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.ModifierController.Effect;
+using RiskOfChaos.SaveHandling;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
@@ -191,7 +192,8 @@ namespace RiskOfChaos.EffectHandling
         {
             base.modifyPrefabComponents(componentTypes);
             componentTypes.AddRange([
-                typeof(ChaosEffectDurationComponent)
+                typeof(ChaosEffectDurationComponent),
+                typeof(ObjectSerializationComponent)
             ]);
         }
 

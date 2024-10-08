@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.Networking.Wrappers;
+using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities;
 using RoR2;
 using System.Collections.Generic;
@@ -30,10 +31,12 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
 
         IEffectHUDVisibilityProvider[] _hudVisibilityProviders;
 
+        [SerializedMember("rng")]
         Xoroshiro128Plus _rng;
 
         bool _isInitialized;
 
+        [SerializedMember("ts")]
         public RunTimeStamp TimeStarted
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]

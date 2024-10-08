@@ -128,8 +128,6 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
         ChaosActiveEffectDisplayController[] _activeEffectDisplays = [];
         int _numDisplayingEffects;
 
-        float _lastDisplayRefreshTime;
-
         bool _activeEffectsDirty;
 
         void OnEnable()
@@ -158,7 +156,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         void FixedUpdate()
         {
-            if (_activeEffectsDirty/* || Time.unscaledTime - _lastDisplayRefreshTime > 15f*/)
+            if (_activeEffectsDirty)
             {
                 _activeEffectsDirty = false;
                 updateActiveEffects();
@@ -172,8 +170,6 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         void updateActiveEffects()
         {
-            _lastDisplayRefreshTime = Time.unscaledTime;
-
             ReadOnlyCollection<ChaosEffectComponent> allActiveEffects = ChaosEffectTracker.Instance.AllActiveTimedEffects;
 
             int displayingEffectCount = 0;

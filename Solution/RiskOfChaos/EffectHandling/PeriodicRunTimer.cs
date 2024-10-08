@@ -105,7 +105,7 @@ namespace RiskOfChaos.EffectHandling
             if (!ShouldActivate())
                 return 0;
 
-            return Mathf.CeilToInt((currentTime - _nextActivationTime.Time) / Period);
+            return Mathf.CeilToInt(_nextActivationTime.TimeSince / Period);
         }
 
         public void SkipAllScheduledActivations()

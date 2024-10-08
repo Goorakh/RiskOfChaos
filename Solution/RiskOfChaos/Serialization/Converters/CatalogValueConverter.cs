@@ -8,7 +8,7 @@ namespace RiskOfChaos.Serialization.Converters
     {
         readonly TValue _invalidValue;
 
-        public CatalogValueConverter(TValue invalidValue = default)
+        protected CatalogValueConverter(TValue invalidValue)
         {
             _invalidValue = invalidValue;
         }
@@ -24,8 +24,8 @@ namespace RiskOfChaos.Serialization.Converters
                 writer.WriteValue(string.Empty);
                 return;
             }
-
-            if (!RoR2Application.loadFinished)
+            
+            if (!SystemInitializerAttribute.hasExecuted)
             {
                 Log.Error("Cannot write catalog value before catalogs are initialized");
                 writer.WriteValue(string.Empty);
@@ -37,7 +37,7 @@ namespace RiskOfChaos.Serialization.Converters
 
         public override TValue ReadJson(JsonReader reader, Type objectType, TValue existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
-            if (!RoR2Application.loadFinished)
+            if (!SystemInitializerAttribute.hasExecuted)
             {
                 Log.Error("Cannot read catalog value before catalogs are initialized");
                 return _invalidValue;
