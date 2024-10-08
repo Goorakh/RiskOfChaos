@@ -110,7 +110,8 @@ namespace RiskOfChaos.EffectDefinitions.World
         {
             base.OnPreStartServer();
 
-            WeightedSelection<ArtifactIndex> artifactIndexSelection = new WeightedSelection<ArtifactIndex>(ArtifactCatalog.artifactCount);
+            WeightedSelection<ArtifactIndex> artifactIndexSelection = new WeightedSelection<ArtifactIndex>();
+            artifactIndexSelection.EnsureCapacity(ArtifactCatalog.artifactCount);
 
             foreach (ArtifactIndex index in getAllAvailableArtifactIndices())
             {

@@ -7,7 +7,6 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.Pickup;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using System;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character
@@ -85,9 +84,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                 int equipmentSlotCount = _inventory.GetEquipmentSlotCount();
 
-                const int MIN_CAPACITY = WeightedSelection<PickupInfo>.minCapacity;
-
-                WeightedSelection<PickupInfo> droppableItemSelection = new WeightedSelection<PickupInfo>(Math.Max(MIN_CAPACITY, _inventory.itemAcquisitionOrder.Count + equipmentSlotCount));
+                WeightedSelection<PickupInfo> droppableItemSelection = new WeightedSelection<PickupInfo>();
+                droppableItemSelection.EnsureCapacity(_inventory.itemAcquisitionOrder.Count + equipmentSlotCount);
 
                 foreach (ItemIndex item in _inventory.itemAcquisitionOrder)
                 {

@@ -111,7 +111,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             uint currentSkinIndex = loadout.bodyLoadoutManager.GetSkinIndex(bodyIndex);
             List<LoadoutSkinPreset> allSkinPresets = generateSkinPresets(bodyIndex, networkUser, currentSkinIndex);
 
-            WeightedSelection<LoadoutPreset> loadoutSelection = new WeightedSelection<LoadoutPreset>(Math.Max(8, allSkillPresets.Count * allSkinPresets.Count));
+            WeightedSelection<LoadoutPreset> loadoutSelection = new WeightedSelection<LoadoutPreset>();
+            loadoutSelection.EnsureCapacity(allSkillPresets.Count * allSkinPresets.Count);
 
             foreach (LoadoutSkillPreset skillPreset in allSkillPresets)
             {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RiskOfChaos.Utilities.Extensions;
+using System;
 using System.Linq;
 using UnityEngine.AddressableAssets;
 
@@ -64,17 +65,18 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         protected static WeightedSelection<TSpawnEntry> getWeightedEntrySelection<TSpawnEntry>(TSpawnEntry[] entries) where TSpawnEntry : SpawnEntry
         {
-            WeightedSelection<TSpawnEntry> interactableSelection = new WeightedSelection<TSpawnEntry>(entries.Length);
+            WeightedSelection<TSpawnEntry> entrySelection = new WeightedSelection<TSpawnEntry>();
+            entrySelection.EnsureCapacity(entries.Length);
 
             foreach (TSpawnEntry entry in entries)
             {
                 if (entry.IsAvailable())
                 {
-                    interactableSelection.AddChoice(entry, entry.Weight);
+                    entrySelection.AddChoice(entry, entry.Weight);
                 }
             }
 
-            return interactableSelection;
+            return entrySelection;
         }
 
         protected static TSpawnType getItemToSpawn<TSpawnEntry>(TSpawnEntry[] spawnEntries, Xoroshiro128Plus rng, out TSpawnEntry selectedEntry) where TSpawnEntry : SpawnEntry

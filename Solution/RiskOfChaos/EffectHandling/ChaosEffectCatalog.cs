@@ -91,8 +91,7 @@ namespace RiskOfChaos.EffectHandling
 
             _effectCount = _effects.Length;
 
-            if (_pickNextEffectSelection.Capacity < _effectCount)
-                _pickNextEffectSelection.Capacity = _effectCount;
+            _pickNextEffectSelection.EnsureCapacity(_effectCount);
 
             checkFindEffectIndex();
 
@@ -130,6 +129,7 @@ namespace RiskOfChaos.EffectHandling
 
 #warning TODO: This is a hack to make sure all the SystemInitializers depending on this catalog are actually run
         [SystemInitializer]
+        [Obsolete]
         static void DummyInit()
         {
         }

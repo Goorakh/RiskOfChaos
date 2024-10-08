@@ -74,8 +74,8 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             const int TOTAL_DIFFICULTIES_COUNT = (int)DifficultyIndex.Count;
 
-            // -1 since the current difficulty will be excluded
-            WeightedSelection<DifficultyIndex> newDifficultySelection = new WeightedSelection<DifficultyIndex>(TOTAL_DIFFICULTIES_COUNT - 1);
+            WeightedSelection<DifficultyIndex> newDifficultySelection = new WeightedSelection<DifficultyIndex>();
+            newDifficultySelection.EnsureCapacity(TOTAL_DIFFICULTIES_COUNT - 1); // -1 since the current difficulty will be excluded
             for (DifficultyIndex i = 0; i < (DifficultyIndex)TOTAL_DIFFICULTIES_COUNT; i++)
             {
                 if (i == currentDifficulty)

@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -162,10 +163,13 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 pickableEffects = pickableEffects.Where(e => e.CanActivate(EffectCanActivateContext.Now));
             }
 
-            if (pickableEffects.Any())
+            List<ChaosEffectInfo> pickableEffectsList = pickableEffects.ToList();
+
+            if (pickableEffectsList.Count > 0)
             {
                 WeightedSelection<ChaosEffectInfo> effectSelector = new WeightedSelection<ChaosEffectInfo>();
-                foreach (ChaosEffectInfo effect in pickableEffects)
+                effectSelector.EnsureCapacity(pickableEffectsList.Count);
+                foreach (ChaosEffectInfo effect in pickableEffectsList)
                 {
                     effectSelector.AddChoice(effect, effect.TotalSelectionWeight);
                 }
@@ -195,10 +199,13 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 overrideEffects = overrideEffects.Where(e => e.Effect.CanActivate(EffectCanActivateContext.Now));
             }
 
-            if (overrideEffects.Any())
+            List<OverrideEffect> overrideEffectsList = overrideEffects.ToList();
+
+            if (overrideEffectsList.Count > 0)
             {
                 WeightedSelection<ChaosEffectInfo> effectSelector = new WeightedSelection<ChaosEffectInfo>();
-                foreach (OverrideEffect overrideEffect in overrideEffects)
+                effectSelector.EnsureCapacity(overrideEffectsList.Count);
+                foreach (OverrideEffect overrideEffect in overrideEffectsList)
                 {
                     effectSelector.AddChoice(overrideEffect.Effect, overrideEffect.GetWeight());
                 }

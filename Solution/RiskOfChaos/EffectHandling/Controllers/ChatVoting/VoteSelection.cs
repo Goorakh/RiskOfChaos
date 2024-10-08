@@ -1,4 +1,5 @@
 ﻿using HG;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
 using System.Collections.Generic;
@@ -149,7 +150,8 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
                 return true;
             }
 
-            WeightedSelection<VoteOption> voteOptionSelection = new WeightedSelection<VoteOption>(_numOptions);
+            WeightedSelection<VoteOption> voteOptionSelection = new WeightedSelection<VoteOption>();
+            voteOptionSelection.EnsureCapacity(_numOptions);
             for (int i = 0; i < _numOptions; i++)
             {
                 VoteOption voteOption = _options[i];

@@ -70,10 +70,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
                 ref EffectNameFormatter currentNameFormatter = ref _effectNameFormatters[(int)effectIndex];
 
-                bool currentIsNull = currentNameFormatter is null;
-                bool newIsNull = newNameFormatter is null;
-
-                if (currentIsNull != newIsNull || (!currentIsNull && !newIsNull && !currentNameFormatter.Equals(newNameFormatter)))
+                if (currentNameFormatter != newNameFormatter)
                 {
                     currentNameFormatter = newNameFormatter;
                     anyNameFormatterChanged = true;

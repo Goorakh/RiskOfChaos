@@ -86,7 +86,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             if (!NetworkServer.active || !Run.instance || !_instance || !_instance.enabled)
                 return;
 
-            _instance.dispatchEffect(ChaosEffectCatalog.PickActivatableEffect(RoR2Application.rng, EffectCanActivateContext.Now), new ChaosEffectDispatchArgs
+            _instance.DispatchEffectServer(ChaosEffectCatalog.PickActivatableEffect(RoR2Application.rng, EffectCanActivateContext.Now), new ChaosEffectDispatchArgs
             {
                 RNGSeed = RoR2Application.rng.nextUlong
             });
@@ -99,7 +99,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 return;
 
             ChaosEffectIndex effectIndex = args.GetArgChaosEffectIndex(0);
-            _instance.dispatchEffect(ChaosEffectCatalog.GetEffectInfo(effectIndex), new ChaosEffectDispatchArgs
+            _instance.DispatchEffectServer(ChaosEffectCatalog.GetEffectInfo(effectIndex), new ChaosEffectDispatchArgs
             {
                 RNGSeed = args.Count > 1 ? args.GetArgULong(1) : RoR2Application.rng.nextUlong
             });
@@ -123,7 +123,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 if (ChaosEffectActivationSoundHandler.Instance)
                 {
-                    ChaosEffectActivationSoundHandler.Instance.PlayEffectActivationSound();
+                    ChaosEffectActivationSoundHandler.Instance.PlayEffectActivatedSoundServer();
                 }
 
                 Chat.AddMessage(new ChaosEffectChatMessage("CHAOS_EFFECT_SHORTCUT_CANNOT_ACTIVATE", effectInfo, EffectNameFormatFlags.RuntimeFormatArgs).ConstructChatString());

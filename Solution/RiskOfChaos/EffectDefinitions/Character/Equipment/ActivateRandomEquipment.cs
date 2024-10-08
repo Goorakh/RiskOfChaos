@@ -164,7 +164,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
             ActivatableEquipment[] availableEquipments = getAllAvailableEquipments().ToArray();
             int availableEquipmentsCount = availableEquipments.Length;
 
-            WeightedSelection<EquipmentDef> equipmentSelector = new WeightedSelection<EquipmentDef>(availableEquipmentsCount);
+            WeightedSelection<EquipmentDef> equipmentSelector = new WeightedSelection<EquipmentDef>();
+            equipmentSelector.EnsureCapacity(availableEquipmentsCount);
             for (int i = 0; i < availableEquipmentsCount; i++)
             {
                 availableEquipments[i].AddToWeightedSelection(equipmentSelector);

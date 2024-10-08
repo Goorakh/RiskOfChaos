@@ -351,7 +351,8 @@ namespace RiskOfChaos.Patches
                 bounceChain.CurrentDeadBacktrackCount = 0;
             }
 
-            WeightedSelection<HurtBox> targetSelection = new WeightedSelection<HurtBox>(Mathf.Max(8, targetCandidates.Count));
+            WeightedSelection<HurtBox> targetSelection = new WeightedSelection<HurtBox>();
+            targetCandidates.EnsureCapacity(targetCandidates.Count);
             foreach (OrbTargetCandidate candidate in targetCandidates)
             {
                 float normalizedSqrDistance = Mathf.Clamp01(candidate.SqrDistance / sqrTargetSearchDistance);

@@ -1,6 +1,6 @@
 ﻿using RiskOfChaos.Components.CostProviders;
-using RiskOfChaos.Networking.Wrappers;
 using RoR2;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -12,7 +12,16 @@ namespace RiskOfChaos.Networking.Components
         ICostProvider _costProvider;
 
         [SyncVar(hook = nameof(syncCostType))]
-        CostTypeIndexWrapper _costType;
+        int _costTypeInternal;
+
+        public CostTypeIndex CostType
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => (CostTypeIndex)_costTypeInternal;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private set => _costTypeInternal = (int)value;
+        }
 
         void Awake()
         {
@@ -36,36 +45,36 @@ namespace RiskOfChaos.Networking.Components
         {
             base.OnStartServer();
 
-            _costType = _costProvider.CostType;
+            CostType = _costProvider.CostType;
         }
 
         public override void OnStartClient()
         {
             base.OnStartClient();
 
-            syncCostType(_costType);
+            syncCostType(_costTypeInternal);
         }
 
         void FixedUpdate()
         {
             if (NetworkServer.active)
             {
-                _costType = _costProvider.CostType;
+                CostType = _costProvider.CostType;
             }
         }
 
-        void syncCostType(CostTypeIndexWrapper newCostType)
+        void syncCostType(int newCostType)
         {
-            _costType = newCostType;
+            _costTypeInternal = newCostType;
 
-            if (_costProvider.CostType == newCostType)
+            if (_costProvider.CostType == CostType)
                 return;
 
 #if DEBUG
-            Log.Debug($"{name} ({netId}): Cost type changed ({_costProvider.CostType}->{newCostType})");
+            Log.Debug($"{name} ({netId}): Cost type changed ({_costProvider.CostType}->{CostType})");
 #endif
 
-            _costProvider.CostType = newCostType;
+            _costProvider.CostType = CostType;
         }
 
         [SystemInitializer]

@@ -111,7 +111,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             EliteIndex[] elites = EliteUtils.GetElites(_allowDirectorUnavailableElites.Value);
 
-            WeightedSelection<EquipmentIndex> eliteEquipmentSelector = new WeightedSelection<EquipmentIndex>(elites.Length);
+            WeightedSelection<EquipmentIndex> eliteEquipmentSelector = new WeightedSelection<EquipmentIndex>();
+            eliteEquipmentSelector.EnsureCapacity(elites.Length);
             foreach (EliteIndex eliteIndex in elites)
             {
                 EliteDef eliteDef = EliteCatalog.GetEliteDef(eliteIndex);

@@ -75,11 +75,25 @@ namespace RiskOfChaos.Networking.Components
 
                 _disposed = true;
 
-                _activeProviderCount--;
+                InterpolationState unregisterInterpolation = null;
 
                 if (TimeScaleModificationManager.Instance)
                 {
-                    TimeScaleModificationManager.Instance.UnregisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 0.5f);
+                    unregisterInterpolation = TimeScaleModificationManager.Instance.UnregisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 0.5f);
+                }
+
+                if (unregisterInterpolation != null)
+                {
+                    unregisterInterpolation.OnFinish += onUnregister;
+                }
+                else
+                {
+                    onUnregister();
+                }
+
+                void onUnregister()
+                {
+                    _activeProviderCount--;
                 }
 
                 RoR2Application.onUpdate -= update;

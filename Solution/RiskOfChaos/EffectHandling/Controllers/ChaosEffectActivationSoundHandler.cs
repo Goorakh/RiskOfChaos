@@ -57,18 +57,18 @@ namespace RiskOfChaos.EffectHandling.Controllers
         {
             if ((dispatchArgs.DispatchFlags & EffectDispatchFlags.DontPlaySound) == 0)
             {
-                PlayEffectActivationSound();
+                PlayEffectActivatedSoundServer();
             }
         }
 
         [ClientRpc]
-        void RpcPlayEffectActivationSound()
+        void RpcPlayEffectActivatedSound()
         {
-            playEffectActivationSound();
+            PlayEffectActivatedSoundClient();
         }
 
         [Client]
-        void playEffectActivationSound()
+        public void PlayEffectActivatedSoundClient()
         {
             if (!_canPlaySound || _effectActivationSoundEventID == 0)
                 return;
@@ -80,13 +80,13 @@ namespace RiskOfChaos.EffectHandling.Controllers
         }
 
         [Server]
-        public void PlayEffectActivationSound()
+        public void PlayEffectActivatedSoundServer()
         {
-            RpcPlayEffectActivationSound();
+            RpcPlayEffectActivatedSound();
 
             if (NetworkClient.active)
             {
-                playEffectActivationSound();
+                PlayEffectActivatedSoundClient();
             }
         }
     }
