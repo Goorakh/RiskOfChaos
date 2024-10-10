@@ -1,47 +1,48 @@
-﻿using HG;
+﻿using RiskOfChaos.Components;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using RoR2.CameraModes;
 using System.Collections.Generic;
-using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
-    [ChaosTimedEffect("delay_camera_position", 45f, AllowDuplicates = false, IsNetworked = true)]
-    public sealed class DelayCameraPosition : TimedEffect
+    [ChaosTimedEffect("delay_camera_position", 45f, AllowDuplicates = false)]
+    public sealed class DelayCameraPosition : NetworkBehaviour
     {
-        readonly Dictionary<UnityObjectWrapperKey<CameraRigController>, Vector3> _cameraMoveVelocities = [];
+        readonly Dictionary<CameraRigController, DelayedCameraPositionController> _createdDelayedPositionControllers = [];
 
-        public override void OnStart()
+        void Start()
         {
-            On.RoR2.CameraModes.CameraModeBase.Update += CameraModeBase_Update;
+            _createdDelayedPositionControllers.EnsureCapacity(CameraRigController.readOnlyInstancesList.Count);
+            CameraRigController.readOnlyInstancesList.TryDo(tryAddDelayCameraComponent);
+            CameraRigController.onCameraEnableGlobal += tryAddDelayCameraComponent;
         }
 
-        public override void OnEnd()
+        void OnDestroy()
         {
-            On.RoR2.CameraModes.CameraModeBase.Update -= CameraModeBase_Update;
-            _cameraMoveVelocities.Clear();
-        }
+            CameraRigController.onCameraEnableGlobal -= tryAddDelayCameraComponent;
 
-        void CameraModeBase_Update(On.RoR2.CameraModes.CameraModeBase.orig_Update orig, CameraModeBase self, ref CameraModeBase.CameraModeContext context, out CameraModeBase.UpdateResult result)
-        {
-            orig(self, ref context, out result);
-
-            if (context.viewerInfo.localUser is null)
-                return;
-
-            CameraRigController cameraRig = context.cameraInfo.cameraRigController;
-            if (!cameraRig || !context.targetInfo.target)
-                return;
-
-            if (!_cameraMoveVelocities.TryGetValue(cameraRig, out Vector3 velocity))
+            foreach (DelayedCameraPositionController delayedPositionController in _createdDelayedPositionControllers.Values)
             {
-                velocity = Vector3.zero;
+                if (delayedPositionController)
+                {
+                    delayedPositionController.EaseOutAndDestroy(1f);
+                }
             }
 
-            result.cameraState.position = Vector3.SmoothDamp(context.cameraInfo.previousCameraState.position, result.cameraState.position, ref velocity, 0.25f, float.PositiveInfinity, Time.deltaTime);
+            _createdDelayedPositionControllers.Clear();
+        }
 
-            _cameraMoveVelocities[cameraRig] = velocity;
+        void tryAddDelayCameraComponent(CameraRigController cameraRigController)
+        {
+            if (_createdDelayedPositionControllers.ContainsKey(cameraRigController))
+                return;
+
+            DelayedCameraPositionController delayedPositionController = cameraRigController.gameObject.AddComponent<DelayedCameraPositionController>();
+            delayedPositionController.SmoothTime = 0.25f;
+            delayedPositionController.MaxSpeed = float.PositiveInfinity;
+            _createdDelayedPositionControllers.Add(cameraRigController, delayedPositionController);
         }
     }
 }

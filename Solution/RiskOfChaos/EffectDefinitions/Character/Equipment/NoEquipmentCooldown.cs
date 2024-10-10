@@ -1,44 +1,43 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Equipment
 {
     [ChaosTimedEffect("no_equipment_cooldown", 60f, AllowDuplicates = false)]
-    public sealed class NoEquipmentCooldown : TimedEffect
+    [IncompatibleEffects(typeof(DisableEquipmentActivation))]
+    public sealed class NoEquipmentCooldown : NetworkBehaviour
     {
-        public override void OnStart()
+        [InitEffectInfo]
+        public static readonly TimedEffectInfo EffectInfo;
+
+        public override void OnStartServer()
         {
-            CharacterBody.readOnlyInstancesList.TryDo(body =>
+            base.OnStartServer();
+
+            CharacterBody.readOnlyInstancesList.TryDo(skipActiveEquipmentCooldowns, FormatUtils.GetBestBodyName);
+        }
+
+        [Server]
+        static void skipActiveEquipmentCooldowns(CharacterBody body)
+        {
+            Inventory inventory = body.inventory;
+            if (!inventory)
+                return;
+
+            int equipmentSlotCount = inventory.GetEquipmentSlotCount();
+            for (uint i = 0; i < equipmentSlotCount; i++)
             {
-                Inventory inventory = body.inventory;
-                if (!inventory)
-                    return;
-
-                int equipmentSlotCount = inventory.GetEquipmentSlotCount();
-                for (uint i = 0; i < equipmentSlotCount; i++)
+                EquipmentState equipmentState = inventory.GetEquipment(i);
+                if (equipmentState.equipmentIndex != EquipmentIndex.None)
                 {
-                    EquipmentState equipmentState = inventory.GetEquipment(i);
-                    if (equipmentState.equipmentIndex != EquipmentIndex.None)
-                    {
-                        inventory.SetEquipment(new EquipmentState(equipmentState.equipmentIndex, Run.FixedTimeStamp.now, equipmentState.charges), i);
-                    }
+                    inventory.SetEquipment(new EquipmentState(equipmentState.equipmentIndex, Run.FixedTimeStamp.now, equipmentState.charges), i);
                 }
-            }, FormatUtils.GetBestBodyName);
-
-            On.RoR2.Inventory.CalculateEquipmentCooldownScale += Inventory_CalculateEquipmentCooldownScale;
-        }
-
-        public override void OnEnd()
-        {
-            On.RoR2.Inventory.CalculateEquipmentCooldownScale -= Inventory_CalculateEquipmentCooldownScale;
-        }
-
-        static float Inventory_CalculateEquipmentCooldownScale(On.RoR2.Inventory.orig_CalculateEquipmentCooldownScale orig, Inventory self)
-        {
-            orig(self);
-            return 0f;
+            }
         }
     }
 }

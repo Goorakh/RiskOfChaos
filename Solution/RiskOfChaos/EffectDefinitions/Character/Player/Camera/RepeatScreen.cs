@@ -1,5 +1,4 @@
 ﻿using RiskOfChaos.ConfigHandling;
-using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -12,24 +11,18 @@ using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
-    [ChaosTimedEffect("repeat_screen", 90f, IsNetworked = true, AllowDuplicates = true)]
-    public sealed class RepeatScreen : TimedEffect, IUIModificationProvider
+    [ChaosTimedEffect("repeat_screen", 90f)]
+    public sealed class RepeatScreen : NetworkBehaviour, IUIModificationProvider
     {
         [EffectConfig]
         static readonly ConfigHolder<bool> _increaseHUDScale =
             ConfigFactory<bool>.CreateConfig("Increase HUD Scale", true)
                                .Description("Increases HUD scale slightly while the effect is active. Makes it easier to see the UI, but can also have scaling issues")
                                .OptionConfig(new CheckBoxConfig())
-                               .OnValueChanged(() =>
-                               {
-                                   if (!ChaosEffectTracker.Instance)
-                                       return;
-
-                                   ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<RepeatScreen>(e => e.OnValueDirty);
-                               })
                                .Build();
 
         static readonly int _repeatCountID = Shader.PropertyToID("_RepeatCount");
@@ -42,7 +35,11 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
         [SystemInitializer]
         static void Init()
         {
-            _screenMaterial = AssetLoader.LoadAssetCached<Material>("riskofchaos", "RepeatScreen");
+            AssetLoadOperation<Material> screenMaterialLoad = AssetLoader.LoadAssetAsync<Material>("RepeatScreen");
+            screenMaterialLoad.OnComplete += screenMaterial =>
+            {
+                _screenMaterial = screenMaterial;
+            };
         }
 
         [EffectCanActivate]
@@ -55,37 +52,49 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 
         public event Action OnValueDirty;
 
-        public override void OnStart()
+        void Start()
         {
-            _materialInstance = new Material(_screenMaterial);
-            _materialInstance.SetVector(_centerOffsetID, _centerOffset);
+            if (NetworkClient.active)
+            {
+                _materialInstance = new Material(_screenMaterial);
+                _materialInstance.SetVector(_centerOffsetID, _centerOffset);
 
-            MaterialPropertyInterpolator propertyInterpolator = new MaterialPropertyInterpolator();
-            propertyInterpolator.SetFloat(_repeatCountID, 1f, 3f);
+                MaterialPropertyInterpolator propertyInterpolator = new MaterialPropertyInterpolator();
+                propertyInterpolator.SetFloat(_repeatCountID, 1f, 3f);
 
-            CameraEffectManager.AddEffect(_materialInstance, CameraEffectType.UIAndWorld, propertyInterpolator, ValueInterpolationFunctionType.EaseInOut, 2f);
+                CameraEffectManager.AddEffect(_materialInstance, CameraEffectType.UIAndWorld, propertyInterpolator, ValueInterpolationFunctionType.EaseInOut, 2f);
+
+                if (UIModificationManager.Instance)
+                {
+                    UIModificationManager.Instance.RegisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 2f);
+                }
+
+                _increaseHUDScale.SettingChanged += onIncreaseHUDScaleChanged;
+            }
+        }
+
+        void OnDestroy()
+        {
+            _increaseHUDScale.SettingChanged -= onIncreaseHUDScaleChanged;
+
+            CameraEffectManager.RemoveEffect(_materialInstance, ValueInterpolationFunctionType.EaseInOut, 1f);
 
             if (UIModificationManager.Instance)
             {
-                UIModificationManager.Instance.RegisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 2f);
+                UIModificationManager.Instance.UnregisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
             }
+        }
+
+        void onIncreaseHUDScaleChanged(object sender, ConfigChangedArgs<bool> e)
+        {
+            OnValueDirty?.Invoke();
         }
 
         public void ModifyValue(ref UIModificationData value)
         {
             if (_increaseHUDScale.Value)
             {
-                value.ScaleMultiplier *= 1.65f;
-            }
-        }
-
-        public override void OnEnd()
-        {
-            CameraEffectManager.RemoveEffect(_materialInstance, ValueInterpolationFunctionType.EaseInOut, 1f);
-
-            if (UIModificationManager.Instance)
-            {
-                UIModificationManager.Instance.UnregisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
+                value.ScaleMultiplier *= 1.5f;
             }
         }
     }

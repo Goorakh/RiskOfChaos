@@ -127,7 +127,7 @@ namespace RiskOfChaos.ModifierController
                     modificationsDirty = true;
                     provider.OnInterpolationUpdate();
                 }
-                else if (provider.InterpolationDirection > ModificationProviderInterpolationDirection.None) // Interpolation has finished
+                else if (provider.InterpolationState.IsFinished)
                 {
 #if DEBUG
                     Log.Debug($"{provider.ModificationProvider} value interpolation finished ({provider.InterpolationDirection})");
@@ -176,7 +176,7 @@ namespace RiskOfChaos.ModifierController
 
                     baseValue = InterpolateValue(valuePreModification, baseValue, modificationProviderInfo.InterpolationState.CurrentFraction);
                 }
-                else
+                else if (!modificationProviderInfo.InterpolationState.IsFinished)
                 {
                     modificationProviderInfo.ModificationProvider.ModifyValue(ref baseValue);
                 }

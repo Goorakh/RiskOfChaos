@@ -15,8 +15,18 @@
 * Trigger Random Family Event:
   * Added visual variant events for Beetles and Golems
 
+* Sluggish Camera
+  * Added smooth transition back to normal after the effect ends instead of just snapping back
+
+* Activate Random Equipment
+  * "Allow Non-Player Equipment Use" config default value: on -> off
+  * Fixed effect not being able to trigger equipments that are not in the normal drop pool
+
 * Disable Equipment:
   * Fixed The Crowdfunder still being usable while effect is active.
+
+* No Equipment Cooldowns
+  * This effect and Disable Equipment can no longer both be active at once
 
 * Bouncy Projectiles:
   * Fixed certain projectile types targetting the wrong team after bouncing

@@ -1,6 +1,5 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.Utilities;
 using RiskOfOptions;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
@@ -130,7 +129,7 @@ namespace RiskOfChaos.ConfigHandling
                 }
             }
 
-            ArrayUtil.AppendRange(ref _previousConfigSectionNames, ownerEffect.PreviousConfigSectionNames);
+            _previousConfigSectionNames = [.. _previousConfigSectionNames, .. ownerEffect.PreviousConfigSectionNames];
 
             if ((Flags & ConfigFlags.FormatsEffectName) == ConfigFlags.FormatsEffectName)
             {

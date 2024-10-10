@@ -1,8 +1,4 @@
-﻿using MonoMod.Cil;
-using RiskOfChaos.Patches;
-using RiskOfChaos.Utilities.Interpolation;
-using RoR2;
-using RoR2.CameraModes;
+﻿using RiskOfChaos.Utilities.Interpolation;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -13,104 +9,6 @@ namespace RiskOfChaos.ModifierController.Camera
     {
         static CameraModificationManager _instance;
         public static CameraModificationManager Instance => _instance;
-
-        static bool _appliedPatches;
-        static void tryApplyPatches()
-        {
-            if (_appliedPatches)
-                return;
-
-            IL.RoR2.CameraTargetParams.AddRecoil += il =>
-            {
-                ILCursor c = new ILCursor(il);
-
-                if (c.TryGotoNext(MoveType.After, x => x.MatchNewobj<Vector2>()))
-                {
-                    c.EmitDelegate(modifyRecoil);
-                    static Vector2 modifyRecoil(Vector2 recoil)
-                    {
-                        if (_instance && _instance.AnyModificationActive)
-                        {
-                            return Vector2.Scale(recoil, _instance.RecoilMultiplier);
-                        }
-                        else
-                        {
-                            return recoil;
-                        }
-                    }
-                }
-                else
-                {
-                    Log.Error("Failed to find AddRecoil patch location");
-                }
-            };
-
-            On.RoR2.CameraModes.CameraModeBase.Update += CameraModeBase_Update;
-
-            On.RoR2.CameraModes.CameraModeBase.CollectLookInput += CameraModeBase_CollectLookInput;
-
-            On.RoR2.CameraTargetParams.CalcParams += CameraTargetParams_CalcParams;
-
-            PlayerInputHook.ModifyPlayerMoveInput += PlayerInputHook_ModifyPlayerMoveInput;
-
-            _appliedPatches = true;
-        }
-
-        static void CameraModeBase_Update(On.RoR2.CameraModes.CameraModeBase.orig_Update orig, CameraModeBase self, ref CameraModeBase.CameraModeContext context, out CameraModeBase.UpdateResult result)
-        {
-            orig(self, ref context, out result);
-
-            if (_instance && _instance.AnyModificationActive && context.targetInfo.target)
-            {
-                const float MIN_FOV = 10f;
-                const float MAX_FOV = 170f;
-
-                result.cameraState.fov = Mathf.Clamp(result.cameraState.fov * _instance.FovMultiplier, MIN_FOV, MAX_FOV);
-
-                result.cameraState.rotation *= _instance.CameraRotationOffset;
-            }
-        }
-
-        static void CameraModeBase_CollectLookInput(On.RoR2.CameraModes.CameraModeBase.orig_CollectLookInput orig, CameraModeBase self, ref CameraModeBase.CameraModeContext context, out CameraModeBase.CollectLookInputResult result)
-        {
-            orig(self, ref context, out result);
-
-            if (_instance && _instance.AnyModificationActive && context.targetInfo.target)
-            {
-                Vector2 rotatedLookInput = _instance.CameraRotationOffset * result.lookInput;
-                if (rotatedLookInput.sqrMagnitude > 0f)
-                {
-                    float lookInputMagnitude = result.lookInput.magnitude;
-                    result.lookInput = rotatedLookInput.normalized * lookInputMagnitude;
-                }
-            }
-        }
-
-        static void CameraTargetParams_CalcParams(On.RoR2.CameraTargetParams.orig_CalcParams orig, CameraTargetParams self, out CharacterCameraParamsData dest)
-        {
-            orig(self, out dest);
-
-            if (_instance && _instance.AnyModificationActive)
-            {
-                float distanceMultiplier = _instance.CameraDistanceMultiplier;
-
-                dest.idealLocalCameraPos.value *= distanceMultiplier;
-            }
-        }
-
-        static void PlayerInputHook_ModifyPlayerMoveInput(PlayerCharacterMasterController playerMasterController, ref Vector2 moveInput)
-        {
-            if (_instance && _instance.AnyModificationActive)
-            {
-                const float ROTATION_TO_CONSIDER_FLIPPED = 120f;
-
-                float zOffset = _instance.CameraRotationOffset.eulerAngles.z;
-                if (zOffset >= ROTATION_TO_CONSIDER_FLIPPED && zOffset <= 360f - ROTATION_TO_CONSIDER_FLIPPED)
-                {
-                    moveInput.x *= -1;
-                }
-            }
-        }
 
         SyncCameraModification _clientSync;
 
@@ -172,7 +70,6 @@ namespace RiskOfChaos.ModifierController.Camera
         {
             base.OnEnable();
 
-            tryApplyPatches();
             SingletonHelper.Assign(ref _instance, this);
         }
 

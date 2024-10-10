@@ -178,7 +178,9 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
                 effectController = Instantiate(effect.ControllerPrefab);
 
-                if (effectController.TryGetComponent(out ChaosEffectComponent effectComponent))
+                ChaosEffectComponent effectComponent = effectController.GetComponent<ChaosEffectComponent>();
+
+                if (effectComponent)
                 {
                     if (effectComponent.ChaosEffectIndex != effect.EffectIndex)
                     {

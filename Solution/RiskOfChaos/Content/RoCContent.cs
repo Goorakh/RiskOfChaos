@@ -80,7 +80,17 @@ namespace RiskOfChaos.Content
 
                 object returnValue = contentInitializerMethod.Invoke(null, parameters);
 
-                if (returnValue is IEnumerator enumerator)
+                IEnumerator enumerator = null;
+                if (returnValue is IEnumerator enumeratorValue)
+                {
+                    enumerator = enumeratorValue;
+                }
+                else if (returnValue is IEnumerable enumerableValue)
+                {
+                    enumerator = enumerableValue.GetEnumerator();
+                }
+
+                if (enumerator != null)
                 {
                     yield return enumerator;
                 }

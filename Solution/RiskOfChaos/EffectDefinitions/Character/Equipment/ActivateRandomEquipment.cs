@@ -5,6 +5,7 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
@@ -12,19 +13,20 @@ using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Equipment
 {
     [ChaosEffect("activate_random_equipment")]
     [IncompatibleEffects(typeof(DisableEquipmentActivation))]
-    public sealed class ActivateRandomEquipment : BaseEffect
+    public sealed class ActivateRandomEquipment : NetworkBehaviour
     {
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;
 
         [EffectConfig]
         static readonly ConfigHolder<bool> _allowNonPlayerEquipmentUse =
-            ConfigFactory<bool>.CreateConfig("Allow Non-Player Equipment Use", true)
+            ConfigFactory<bool>.CreateConfig("Allow Non-Player Equipment Use", false)
                                .Description("If the effect should also activate equipments on non-player characters")
                                .OptionConfig(new CheckBoxConfig())
                                .Build();
@@ -58,7 +60,22 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
                                                              .Build();
             }
 
-            public readonly bool IsAvailable => _equipmentWeightConfig.Value > 0f && (!Run.instance || Run.instance.IsEquipmentEnabled(_equipmentDef.equipmentIndex));
+            public readonly bool IsAvailable
+            {
+                get
+                {
+                    if (!_equipmentDef || _equipmentWeightConfig.Value <= 0f)
+                        return false;
+
+                    if (_equipmentDef.canDrop)
+                    {
+                        if (Run.instance && !Run.instance.IsEquipmentEnabled(_equipmentDef.equipmentIndex))
+                            return false;
+                    }
+
+                    return true;
+                }
+            }
 
             public readonly void BindConfig(ChaosEffectInfo effectInfo)
             {
@@ -75,7 +92,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
 
         static bool isValidEquipment(EquipmentDef equipment)
         {
-            if (string.IsNullOrWhiteSpace(equipment.nameToken) || Language.GetString(equipment.nameToken) == equipment.nameToken)
+            if (string.IsNullOrWhiteSpace(equipment.nameToken) || Language.IsTokenInvalid(equipment.nameToken))
             {
 #if DEBUG
                 Log.Debug($"excluding equipment {equipment.name} ({equipment.nameToken}): Invalid name token");
@@ -155,11 +172,18 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
             return getAllAvailableEquipments().Any() && (!context.IsNow || getAllEquipmentActivators().Any());
         }
 
+        ChaosEffectComponent _effectComponent;
+
         EquipmentDef[] _equipmentActivationOrder = [];
 
-        public override void OnPreStartServer()
+        void Awake()
         {
-            base.OnPreStartServer();
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
 
             ActivatableEquipment[] availableEquipments = getAllAvailableEquipments().ToArray();
             int availableEquipmentsCount = availableEquipments.Length;
@@ -171,19 +195,25 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
                 availableEquipments[i].AddToWeightedSelection(equipmentSelector);
             }
 
+            Xoroshiro128Plus equipmentOrderRng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+
             _equipmentActivationOrder = new EquipmentDef[equipmentSelector.Count];
             for (int i = 0; i < _equipmentActivationOrder.Length; i++)
             {
-                _equipmentActivationOrder[i] = equipmentSelector.GetAndRemoveRandom(RNG);
+                _equipmentActivationOrder[i] = equipmentSelector.GetAndRemoveRandom(equipmentOrderRng);
             }
         }
 
-        public override void OnStart()
+        void Start()
         {
-            // ToArray since equipments might modify the underlying collection by spawning a new character
-            getAllEquipmentActivators().ToArray().TryDo(activateRandomEquipment, FormatUtils.GetBestBodyName);
+            if (NetworkServer.active)
+            {
+                // ToArray since equipments might modify the underlying collection by spawning a new character
+                getAllEquipmentActivators().ToArray().TryDo(activateRandomEquipment, FormatUtils.GetBestBodyName);
+            }
         }
 
+        [Server]
         void activateRandomEquipment(CharacterBody body)
         {
             EquipmentSlot equipmentSlot = body.equipmentSlot;

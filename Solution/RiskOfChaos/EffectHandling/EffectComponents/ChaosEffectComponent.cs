@@ -4,6 +4,7 @@ using RiskOfChaos.Networking.Wrappers;
 using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities;
 using RoR2;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
@@ -25,6 +26,9 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         public ChaosEffectIndex ChaosEffectIndex = ChaosEffectIndex.Invalid;
 
         public ChaosEffectInfo ChaosEffectInfo => ChaosEffectCatalog.GetEffectInfo(ChaosEffectIndex);
+
+        [NonSerialized]
+        public bool EffectDestructionHandledByComponent;
 
         ObjectSerializationComponent _serializationComponent;
 

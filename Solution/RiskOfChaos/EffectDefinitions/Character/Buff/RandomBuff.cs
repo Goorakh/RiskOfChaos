@@ -30,12 +30,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                               .OptionConfig(new IntFieldConfig { Min = 1 })
                               .Build();
 
-        static bool _hasAppliedPatches = false;
-        static void tryApplyPatches()
+        [SystemInitializer]
+        static void Init()
         {
-            if (_hasAppliedPatches)
-                return;
-
             // Buffs that spawn another character on death should be added here to prevent infinite respawning of that character type
             IL.RoR2.GlobalEventManager.OnCharacterDeath += il =>
             {
@@ -85,8 +82,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                     Log.Error("Failed to find void infestor patch location");
                 }
             };
-
-            _hasAppliedPatches = true;
         }
 
         static readonly BuffIndexCollection _buffBlacklist = new BuffIndexCollection([
@@ -265,8 +260,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         public override void OnStartServer()
         {
             base.OnStartServer();
-
-            tryApplyPatches();
 
             Xoroshiro128Plus rng = new Xoroshiro128Plus(_chaosEffect.Rng.nextUlong);
 

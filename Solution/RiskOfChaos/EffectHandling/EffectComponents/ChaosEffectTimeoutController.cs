@@ -6,9 +6,9 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
 {
     [DisallowMultipleComponent]
     [RequiredComponents(typeof(ChaosEffectComponent))]
-    public class ChaosUntimedEffectController : MonoBehaviour
+    public class ChaosEffectTimeoutController : MonoBehaviour
     {
-        const float DURATION = 3f;
+        const float TIMEOUT_DURATION = 3f;
 
         ChaosEffectComponent _effectComponent;
 
@@ -27,11 +27,11 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
 
         void Update()
         {
-            if (Time.deltaTime == 0f)
+            if (Time.deltaTime == 0f || _effectComponent.EffectDestructionHandledByComponent)
                 return;
 
             _age += Time.unscaledDeltaTime;
-            if (_age > DURATION)
+            if (_age > TIMEOUT_DURATION)
             {
                 _effectComponent.RetireEffect();
             }

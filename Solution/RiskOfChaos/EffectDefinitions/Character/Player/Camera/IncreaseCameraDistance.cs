@@ -13,20 +13,13 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
     [ChaosTimedEffect("increase_camera_distance", 90f, ConfigName = "Increase Camera Distance")]
-    public sealed class IncreaseCameraDistance : TimedEffect, ICameraModificationProvider
+    public sealed class IncreaseCameraDistance : NetworkBehaviour, ICameraModificationProvider
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _distanceMultiplier =
             ConfigFactory<float>.CreateConfig("Camera Distance Multiplier", 5f)
                                 .AcceptableValues(new AcceptableValueMin<float>(1f))
                                 .OptionConfig(new FloatFieldConfig { Min = 1f, FormatString = "{0}x" })
-                                .OnValueChanged(() =>
-                                {
-                                    if (!NetworkServer.active || !ChaosEffectTracker.Instance)
-                                        return;
-
-                                    ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<IncreaseCameraDistance>(e => e.OnValueDirty);
-                                })
                                 .Build();
 
         [EffectCanActivate]
@@ -36,23 +29,34 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
         }
 
         public event Action OnValueDirty;
-
-        public void ModifyValue(ref CameraModificationData value)
-        {
-            value.CameraDistanceMultiplier += _distanceMultiplier.Value - 1f;
-        }
         
-        public override void OnStart()
+        void Start()
         {
-            CameraModificationManager.Instance.RegisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
+            if (NetworkServer.active)
+            {
+                CameraModificationManager.Instance.RegisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
+                _distanceMultiplier.SettingChanged += onDistanceMultiplierChanged;
+            }
         }
 
-        public override void OnEnd()
+        void OnDestroy()
         {
             if (CameraModificationManager.Instance)
             {
                 CameraModificationManager.Instance.UnregisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
             }
+
+            _distanceMultiplier.SettingChanged -= onDistanceMultiplierChanged;
+        }
+
+        void onDistanceMultiplierChanged(object sender, ConfigChangedArgs<float> e)
+        {
+            OnValueDirty?.Invoke();
+        }
+
+        public void ModifyValue(ref CameraModificationData value)
+        {
+            value.CameraDistanceMultiplier += _distanceMultiplier.Value - 1f;
         }
     }
 }

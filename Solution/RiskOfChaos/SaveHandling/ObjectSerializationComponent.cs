@@ -204,6 +204,8 @@ namespace RiskOfChaos.SaveHandling
 
         record SerializableMemberInfo(MemberInfo Member, SerializedMemberAttribute SerializationAttribute)
         {
+            readonly PropertyInfo _networkProperty = findNetworkProperty(Member);
+
             public string Name => SerializationAttribute.GetName(Member);
 
             public Type Type => Member switch
@@ -215,20 +217,22 @@ namespace RiskOfChaos.SaveHandling
 
             public object GetValue(object instance)
             {
-                switch (Member)
+                MemberInfo member = Member;
+                switch (member)
                 {
                     case FieldInfo field:
                         return field.GetValue(instance);
                     case PropertyInfo property:
                         return property.GetValue(instance);
                     default:
-                        throw new NotImplementedException($"Member type {Member.MemberType} is not implemented");
+                        throw new NotImplementedException($"Member type {member.MemberType} is not implemented");
                 }
             }
 
             public void SetValue(MonoBehaviour instance, object value)
             {
-                switch (Member)
+                MemberInfo member = _networkProperty ?? Member;
+                switch (member)
                 {
                     case FieldInfo field:
                         field.SetValue(instance, value);
@@ -237,8 +241,24 @@ namespace RiskOfChaos.SaveHandling
                         property.SetValue(instance, value);
                         break;
                     default:
-                        throw new NotImplementedException($"Member type {Member.MemberType} is not implemented");
+                        throw new NotImplementedException($"Member type {member.MemberType} is not implemented");
                 }
+            }
+
+            static PropertyInfo findNetworkProperty(MemberInfo member)
+            {
+                SyncVarAttribute syncVarAttribute = member.GetCustomAttribute<SyncVarAttribute>();
+                if (syncVarAttribute == null)
+                    return null;
+
+                PropertyInfo networkProperty = member.DeclaringType.GetProperty("Network" + member.Name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+                if (networkProperty == null)
+                {
+                    Log.Warning($"Unable to find network property for SyncVar {member.DeclaringType.FullName}.{member.Name}");
+                    return null;
+                }
+
+                return networkProperty;
             }
         }
     }

@@ -1,48 +1,31 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
-using RiskOfChaos.ModifierController.SkillSlots;
 using RiskOfOptions.OptionConfigs;
-using System;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
 {
     [ChaosTimedEffect("increase_skill_cooldown", TimedEffectType.UntilStageEnd, ConfigName = "Increase Skill Cooldowns")]
-    public sealed class IncreaseSkillCooldowns : TimedEffect, ISkillSlotModificationProvider
+    [RequiredComponents(typeof(CooldownScaleMultiplierEffect))]
+    public sealed class IncreaseSkillCooldowns : NetworkBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _cooldownIncrease =
             ConfigFactory<float>.CreateConfig("Cooldown Increase", 0.5f)
                                 .Description("How much to increase skill cooldowns by")
                                 .AcceptableValues(new AcceptableValueMin<float>(0f))
-                                .OptionConfig(new StepSliderConfig
+                                .OptionConfig(new FloatFieldConfig
                                 {
                                     FormatString = "+{0:P0}",
-                                    min = 0f,
-                                    max = 2f,
-                                    increment = 0.01f
-                                })
-                                .OnValueChanged(() =>
-                                {
-                                    if (!NetworkServer.active || !ChaosEffectTracker.Instance)
-                                        return;
-
-                                    ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<IncreaseSkillCooldowns>(e => e.OnValueDirty);
+                                    Min = 0f
                                 })
                                 .FormatsEffectName()
                                 .Build();
-
-        [EffectCanActivate]
-        static bool CanActivate()
-        {
-            return SkillSlotModificationManager.Instance;
-        }
 
         [GetEffectNameFormatter]
         static EffectNameFormatter GetEffectNameFormatter()
@@ -50,24 +33,35 @@ namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
             return new EffectNameFormatter_GenericFloat(_cooldownIncrease.Value) { ValueFormat = "P0" };
         }
 
-        public override void OnStart()
+        CooldownScaleMultiplierEffect _cooldownMultiplierEffect;
+
+        void Awake()
         {
-            SkillSlotModificationManager.Instance.RegisterModificationProvider(this);
+            _cooldownMultiplierEffect = GetComponent<CooldownScaleMultiplierEffect>();
         }
 
-        public override void OnEnd()
+        public override void OnStartServer()
         {
-            if (SkillSlotModificationManager.Instance)
-            {
-                SkillSlotModificationManager.Instance.UnregisterModificationProvider(this);
-            }
+            base.OnStartServer();
+
+            _cooldownIncrease.SettingChanged += onCooldownIncreaseChanged;
+            updateMultiplier();
         }
 
-        public event Action OnValueDirty;
-
-        public void ModifyValue(ref SkillSlotModificationData value)
+        void onCooldownIncreaseChanged(object sender, ConfigChangedArgs<float> e)
         {
-            value.CooldownScale *= 1f + _cooldownIncrease.Value;
+            updateMultiplier();
+        }
+
+        [Server]
+        void updateMultiplier()
+        {
+            _cooldownMultiplierEffect.Multiplier = 1f + _cooldownIncrease.Value;
+        }
+
+        void OnDestroy()
+        {
+            _cooldownIncrease.SettingChanged -= onCooldownIncreaseChanged;
         }
     }
 }

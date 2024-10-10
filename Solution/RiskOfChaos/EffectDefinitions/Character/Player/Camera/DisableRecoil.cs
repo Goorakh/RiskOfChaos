@@ -3,11 +3,12 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.ModifierController.Camera;
 using System;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
     [ChaosTimedEffect("disable_recoil", 90f, AllowDuplicates = false)]
-    public sealed class DisableRecoil : TimedEffect, ICameraModificationProvider
+    public sealed class DisableRecoil : NetworkBehaviour, ICameraModificationProvider
     {
         [EffectCanActivate]
         static bool CanActivate()
@@ -17,22 +18,25 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 
         public event Action OnValueDirty;
 
-        public void ModifyValue(ref CameraModificationData value)
+        void Start()
         {
-            value.RecoilMultiplier = Vector2.zero;
+            if (NetworkServer.active)
+            {
+                CameraModificationManager.Instance.RegisterModificationProvider(this);
+            }
         }
 
-        public override void OnStart()
-        {
-            CameraModificationManager.Instance.RegisterModificationProvider(this);
-        }
-
-        public override void OnEnd()
+        void OnDestroy()
         {
             if (CameraModificationManager.Instance)
             {
                 CameraModificationManager.Instance.UnregisterModificationProvider(this);
             }
+        }
+
+        public void ModifyValue(ref CameraModificationData value)
+        {
+            value.RecoilMultiplier = Vector2.zero;
         }
     }
 }

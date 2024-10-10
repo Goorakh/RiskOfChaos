@@ -33,7 +33,7 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly string NameToken;
 
-        public readonly Type EffectType;
+        public readonly Type EffectComponentType;
 
         public readonly string ConfigSectionName;
 
@@ -130,9 +130,9 @@ namespace RiskOfChaos.EffectHandling
 
             NameToken = $"EFFECT_{Identifier.ToUpper()}_NAME";
 
-            EffectType = attribute.target;
+            EffectComponentType = attribute.target;
 
-            EffectConfigBackwardsCompatibilityAttribute configBackwardsCompatibilityAttribute = EffectType.GetCustomAttribute<EffectConfigBackwardsCompatibilityAttribute>();
+            EffectConfigBackwardsCompatibilityAttribute configBackwardsCompatibilityAttribute = EffectComponentType.GetCustomAttribute<EffectConfigBackwardsCompatibilityAttribute>();
             if (configBackwardsCompatibilityAttribute != null)
             {
                 PreviousConfigSectionNames = configBackwardsCompatibilityAttribute.ConfigSectionNames;
@@ -247,7 +247,7 @@ namespace RiskOfChaos.EffectHandling
                                                .OptionConfig(new KeyBindConfig())
                                                .Build();
 
-            foreach (MemberInfo member in EffectType.GetMembers(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly)
+            foreach (MemberInfo member in EffectComponentType.GetMembers(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly)
                                                     .WithAttribute<MemberInfo, InitEffectMemberAttribute>())
             {
                 foreach (InitEffectMemberAttribute initEffectMember in member.GetCustomAttributes<InitEffectMemberAttribute>())
@@ -270,16 +270,12 @@ namespace RiskOfChaos.EffectHandling
                 typeof(NetworkIdentity),
                 typeof(SetDontDestroyOnLoad),
                 typeof(DestroyOnRunEnd),
+                typeof(ChaosEffectTimeoutController),
                 typeof(ChaosEffectComponent),
-                EffectType
+                EffectComponentType
             ];
 
             modifyPrefabComponents(componentTypes);
-
-            if (!componentTypes.Contains(typeof(ChaosEffectDurationComponent)))
-            {
-                componentTypes.Add(typeof(ChaosUntimedEffectController));
-            }
 
             GameObject prefab = Prefabs.CreateNetworkedPrefab($"{Identifier}_EffectController", 0x0F015BFC, componentTypes.ToArray());
 

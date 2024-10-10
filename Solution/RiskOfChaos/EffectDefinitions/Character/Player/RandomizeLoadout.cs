@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using HG;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -116,7 +117,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
             foreach (LoadoutSkillPreset skillPreset in allSkillPresets)
             {
-                bool isCurrentSkills = ArrayUtil.ElementsEqual(currentSkillVariants, skillPreset.SkillVariants);
+                bool isCurrentSkills = ArrayUtils.SequenceEquals(currentSkillVariants, skillPreset.SkillVariants);
 
                 foreach (LoadoutSkinPreset skinPreset in allSkinPresets)
                 {

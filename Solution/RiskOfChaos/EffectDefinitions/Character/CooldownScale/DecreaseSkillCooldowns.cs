@@ -1,20 +1,18 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
-using RiskOfChaos.ModifierController.SkillSlots;
 using RiskOfOptions.OptionConfigs;
-using System;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
 {
     [ChaosTimedEffect("decrease_skill_cooldown", TimedEffectType.UntilStageEnd, ConfigName = "Decrease Skill Cooldowns")]
-    public sealed class DecreaseSkillCooldowns : TimedEffect, ISkillSlotModificationProvider
+    [RequiredComponents(typeof(CooldownScaleMultiplierEffect))]
+    public sealed class DecreaseSkillCooldowns : NetworkBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _cooldownDecrease =
@@ -28,21 +26,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
                                     max = 1f,
                                     increment = 0.01f
                                 })
-                                .OnValueChanged(() =>
-                                {
-                                    if (!NetworkServer.active || !ChaosEffectTracker.Instance)
-                                        return;
-
-                                    ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<DecreaseSkillCooldowns>(e => e.OnValueDirty);
-                                })
                                 .FormatsEffectName()
                                 .Build();
-
-        [EffectCanActivate]
-        static bool CanActivate()
-        {
-            return SkillSlotModificationManager.Instance;
-        }
 
         [GetEffectNameFormatter]
         static EffectNameFormatter GetEffectNameFormatter()
@@ -50,24 +35,35 @@ namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
             return new EffectNameFormatter_GenericFloat(_cooldownDecrease.Value) { ValueFormat = "P0" };
         }
 
-        public override void OnStart()
+        CooldownScaleMultiplierEffect _cooldownMultiplierEffect;
+
+        void Awake()
         {
-            SkillSlotModificationManager.Instance.RegisterModificationProvider(this);
+            _cooldownMultiplierEffect = GetComponent<CooldownScaleMultiplierEffect>();
         }
 
-        public override void OnEnd()
+        public override void OnStartServer()
         {
-            if (SkillSlotModificationManager.Instance)
-            {
-                SkillSlotModificationManager.Instance.UnregisterModificationProvider(this);
-            }
+            base.OnStartServer();
+
+            _cooldownDecrease.SettingChanged += onCooldownDecreaseChanged;
+            updateMultiplier();
         }
 
-        public event Action OnValueDirty;
-
-        public void ModifyValue(ref SkillSlotModificationData value)
+        void onCooldownDecreaseChanged(object sender, ConfigChangedArgs<float> e)
         {
-            value.CooldownScale *= 1f - _cooldownDecrease.Value;
+            updateMultiplier();
+        }
+
+        [Server]
+        void updateMultiplier()
+        {
+            _cooldownMultiplierEffect.Multiplier = 1f - _cooldownDecrease.Value;
+        }
+
+        void OnDestroy()
+        {
+            _cooldownDecrease.SettingChanged -= onCooldownDecreaseChanged;
         }
     }
 }

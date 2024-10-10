@@ -6,6 +6,12 @@ namespace RiskOfChaos.Utilities
     public static class BuffUtils
     {
         static readonly BuffIndexCollection _isDebuffOverrideList = new BuffIndexCollection([
+            "bdCookingChopped",
+            "bdCookingFlambe",
+            "bdCookingOiled",
+            "bdCookingRoasted",
+            "bdCookingRolled",
+
             // MysticsItems compat
             "MysticsItems_Crystallized",
             "MysticsItems_TimePieceSlow",

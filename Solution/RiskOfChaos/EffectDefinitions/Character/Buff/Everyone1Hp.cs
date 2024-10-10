@@ -1,7 +1,6 @@
 ﻿using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RoR2;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Buff
@@ -21,7 +20,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         void Awake()
         {
             _applyBuffEffect = GetComponent<ApplyBuffEffect>();
-            _applyBuffEffect.OnBuffAppliedServer += onBuffAppliedServer;
         }
 
         public override void OnStartServer()
@@ -30,22 +28,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 
             _applyBuffEffect.BuffIndex = RoCContent.Buffs.SetTo1Hp.buffIndex;
             _applyBuffEffect.BuffStackCount = 1;
-        }
-
-        static void onBuffAppliedServer(CharacterBody body)
-        {
-            HealthComponent healthComponent = body.healthComponent;
-            if (healthComponent)
-            {
-                healthComponent.Networkbarrier = 0f;
-            }
-
-            if (body.isPlayerControlled)
-            {
-                body.AddTimedBuff(RoR2Content.Buffs.HiddenInvincibility, 1f);
-
-                Util.CleanseBody(body, false, false, false, true, false, false);
-            }
         }
     }
 }

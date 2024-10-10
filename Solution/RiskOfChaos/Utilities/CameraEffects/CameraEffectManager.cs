@@ -10,8 +10,7 @@ namespace RiskOfChaos.Utilities.CameraEffects
     public static class CameraEffectManager
     {
         static readonly List<CameraEffect> _activeEffects = [];
-
-        public static readonly ReadOnlyCollection<CameraEffect> ActiveEffects;
+        public static readonly ReadOnlyCollection<CameraEffect> ActiveEffects = new ReadOnlyCollection<CameraEffect>(_activeEffects);
 
         static bool _updateEventEnabled;
         static bool updateEventEnabled
@@ -44,11 +43,6 @@ namespace RiskOfChaos.Utilities.CameraEffects
 #endif
                 }
             }
-        }
-
-        static CameraEffectManager()
-        {
-            ActiveEffects = new ReadOnlyCollection<CameraEffect>(_activeEffects);
         }
 
         public static CameraEffect AddEffect(Material effectMaterial, CameraEffectType effectType)
@@ -155,7 +149,7 @@ namespace RiskOfChaos.Utilities.CameraEffects
                 {
                     cameraEffect.OnInterpolationUpdate();
                 }
-                else if (cameraEffect.InterpolationDirection > ModificationProviderInterpolationDirection.None) // Interpolation has finished
+                else if (cameraEffect.InterpolationState.IsFinished) // Interpolation has finished
                 {
 #if DEBUG
                     Log.Debug($"Camera effect {cameraEffect.Material} interpolation finished ({cameraEffect.InterpolationDirection})");

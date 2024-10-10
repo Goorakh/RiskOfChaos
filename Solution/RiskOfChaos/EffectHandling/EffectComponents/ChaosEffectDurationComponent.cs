@@ -72,6 +72,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
+            _effectComponent.EffectDestructionHandledByComponent = true;
         }
 
         void OnEnable()

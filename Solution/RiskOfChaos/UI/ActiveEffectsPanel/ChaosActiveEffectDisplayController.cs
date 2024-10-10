@@ -50,6 +50,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
         [SerializeField]
         LanguageTextMeshController _effectNameText;
 
+        ChaosEffectInfo _displayingEffectInfo;
         ChaosEffectComponent _displayingEffect;
         ChaosEffectDurationComponent _displayingEffectDurationComponent;
 
@@ -66,12 +67,15 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
                 _displayingEffect = value;
 
+                ChaosEffectInfo displayingEffectInfo = null;
                 ChaosEffectDurationComponent durationComponent = null;
                 if (_displayingEffect)
                 {
+                    displayingEffectInfo = _displayingEffect.ChaosEffectInfo;
                     durationComponent = _displayingEffect.GetComponent<ChaosEffectDurationComponent>();
                 }
 
+                _displayingEffectInfo = displayingEffectInfo;
                 _displayingEffectDurationComponent = durationComponent;
 
                 if (enabled)
@@ -122,7 +126,10 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         void onEffectNameFormatterDirty(ChaosEffectInfo effectInfo)
         {
-            updateEffectLabel(true);
+            if (_displayingEffectInfo != null && _displayingEffectInfo == effectInfo)
+            {
+                updateEffectLabel(true);
+            }
         }
 
         void updateEffectLabel(bool forceUpdate)

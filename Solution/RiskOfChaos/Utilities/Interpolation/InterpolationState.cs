@@ -23,6 +23,8 @@ namespace RiskOfChaos.Utilities.Interpolation
             }
         }
 
+        public bool IsFinished => interpolationTimeElapsed > _interpolationDuration;
+
         public float CurrentFraction
         {
             get

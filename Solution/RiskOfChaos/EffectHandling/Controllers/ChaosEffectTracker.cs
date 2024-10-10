@@ -299,18 +299,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
             return [];
         }
 
-        public void InvokeEventOnAllActiveTimedEffectComponents<TEffectComponent>(Func<TEffectComponent, Action> eventGetter) where TEffectComponent : MonoBehaviour
-        {
-            if (eventGetter is null)
-                throw new ArgumentNullException(nameof(eventGetter));
-
-            foreach (TEffectComponent effectComponent in GetActiveTimedEffectComponents<TEffectComponent>())
-            {
-                Action action = eventGetter(effectComponent);
-                action?.Invoke();
-            }
-        }
-
         [Obsolete]
         public void OLD_InvokeEventOnAllInstancesOfEffect<TEffect>(Func<TEffect, Action> eventGetter) where TEffect : TimedEffect
         {

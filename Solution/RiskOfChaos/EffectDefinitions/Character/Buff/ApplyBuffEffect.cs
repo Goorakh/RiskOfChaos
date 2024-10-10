@@ -14,7 +14,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
     [DisallowMultipleComponent]
     [RequiredComponents(typeof(ChaosEffectComponent))]
-    public sealed class ApplyBuffEffect : MonoBehaviour
+    public sealed class ApplyBuffEffect : NetworkBehaviour
     {
         static readonly List<ApplyBuffEffect> _instancesList = [];
 
@@ -68,7 +68,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                     return;
 
                 _buffIndex = value;
-                updateAllBuffComponents();
+                _buffComponentsDirty = true;
             }
         }
 
@@ -87,9 +87,11 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                     return;
 
                 _buffStackCount = value;
-                updateAllBuffComponents();
+                _buffComponentsDirty = true;
             }
         }
+
+        bool _buffComponentsDirty;
 
         readonly List<KeepBuff> _keepBuffComponents = [];
 
@@ -97,7 +99,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         {
             _instancesList.Add(this);
 
-            updateAllBuffComponents();
+            if (NetworkServer.active)
+            {
+                updateAllBuffComponents();
+            }
         }
 
         void OnDisable()
@@ -117,6 +122,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         {
             if (NetworkServer.active)
             {
+                _keepBuffComponents.EnsureCapacity(CharacterBody.readOnlyInstancesList.Count);
+
                 CharacterBody.readOnlyInstancesList.TryDo(tryAddBuff, FormatUtils.GetBestBodyName);
                 CharacterBody.onBodyStartGlobal += tryAddBuff;
             }
@@ -137,9 +144,22 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             _keepBuffComponents.Clear();
         }
 
+        void FixedUpdate()
+        {
+            if (NetworkServer.active)
+            {
+                if (_buffComponentsDirty)
+                {
+                    _buffComponentsDirty = false;
+                    updateAllBuffComponents();
+                }
+            }
+        }
+
+        [Server]
         void tryAddBuff(CharacterBody body)
         {
-            if (!NetworkServer.active || !isActiveAndEnabled || BuffIndex == BuffIndex.None || BuffStackCount <= 0)
+            if (!isActiveAndEnabled || BuffIndex == BuffIndex.None || BuffStackCount <= 0)
                 return;
 
             KeepBuff keepBuff = body.gameObject.AddComponent<KeepBuff>();
@@ -150,6 +170,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             OnBuffAppliedServer?.Invoke(body);
         }
 
+        [Server]
         void updateAllBuffComponents()
         {
             foreach (KeepBuff keepBuff in _keepBuffComponents)
@@ -161,6 +182,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             }
         }
 
+        [Server]
         void updateBuffComponent(KeepBuff keepBuff)
         {
             keepBuff.BuffIndex = BuffIndex;

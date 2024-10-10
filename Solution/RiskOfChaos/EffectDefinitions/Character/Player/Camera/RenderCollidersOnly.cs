@@ -1,19 +1,24 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
-    [ChaosTimedEffect("render_colliders_only", 90f, AllowDuplicates = false, IsNetworked = true)]
-    public sealed class RenderCollidersOnly : TimedEffect
+    [ChaosTimedEffect("render_colliders_only", 90f, AllowDuplicates = false)]
+    public sealed class RenderCollidersOnly : NetworkBehaviour
     {
-        class RendererData : MonoBehaviour
+        class ColliderRendererController : MonoBehaviour
         {
+            static readonly Color _hurtBoxSniperTargetColor = new Color(224f / 255f, 56f / 255f, 44f / 255f);
+            static readonly Color _hurtBoxBullseyeColor = new Color(239f / 255f, 222f / 255f, 33f / 255f);
+            static readonly Color _hurtBoxColor = new Color(169f / 255f, 246f / 255f, 252f / 255f);
+
             readonly List<GameObject> _visualObjects = [];
             readonly List<Renderer> _visualObjectRenderers = [];
 
@@ -21,23 +26,53 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 
             void Awake()
             {
-                InstanceTracker.Add(this);
+                _characterModel = GetComponent<CharacterModel>();
+                if (!_characterModel)
+                {
+                    Log.Error("Cannot setup for character model with no CharacterModel instance");
+                    enabled = false;
+                }
+            }
+
+            void Start()
+            {
+                setupCharacterModel();
             }
 
             void OnDestroy()
             {
-                InstanceTracker.Remove(this);
-
                 if (_characterModel)
                 {
-                    if (_visualObjectRenderers.Count > 0)
+                    List<CharacterModel.RendererInfo> rendererInfos = [.. _characterModel.baseRendererInfos];
+
+                    bool rendererInfosChanged = false;
+                    foreach (Renderer visualRenderer in _visualObjectRenderers)
                     {
-                        _characterModel.baseRendererInfos = _characterModel.baseRendererInfos.Where(ri => !_visualObjectRenderers.Contains(ri.renderer)).ToArray();
+                        if (visualRenderer)
+                        {
+                            for (int i = rendererInfos.Count - 1; i >= 0; i--)
+                            {
+                                Renderer renderer = rendererInfos[i].renderer;
+                                if (!renderer || renderer == visualRenderer)
+                                {
+                                    rendererInfos.RemoveAt(i);
+                                    rendererInfosChanged = true;
+                                }
+                            }
+                        }
+                    }
+
+                    if (rendererInfosChanged)
+                    {
+                        _characterModel.baseRendererInfos = [.. rendererInfos];
                     }
 
                     foreach (CharacterModel.RendererInfo rendererInfo in _characterModel.baseRendererInfos)
                     {
-                        rendererInfo.renderer.forceRenderingOff = false;
+                        if (rendererInfo.renderer)
+                        {
+                            rendererInfo.renderer.forceRenderingOff = false;
+                        }
                     }
                 }
 
@@ -136,18 +171,14 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
                 }
             }
 
-            public void SetupCharacterModel()
+            void setupCharacterModel()
             {
-                _characterModel = GetComponent<CharacterModel>();
-                if (!_characterModel)
-                {
-                    Log.Error("Cannot setup for character model with no CharacterModel instance");
-                    return;
-                }
-
                 foreach (CharacterModel.RendererInfo rendererInfo in _characterModel.baseRendererInfos)
                 {
-                    rendererInfo.renderer.forceRenderingOff = true;
+                    if (rendererInfo.renderer)
+                    {
+                        rendererInfo.renderer.forceRenderingOff = true;
+                    }
                 }
 
                 List<CharacterModel.RendererInfo> additionalRendererInfos = [];
@@ -191,15 +222,15 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
                         Color color;
                         if (hurtBox.isSniperTarget)
                         {
-                            color = new Color(224f / 255f, 56f / 255f, 44f / 255f);
+                            color = _hurtBoxSniperTargetColor;
                         }
                         else if (hurtBox.isBullseye)
                         {
-                            color = new Color(239f / 255f, 222f / 255f, 33f / 255f);
+                            color = _hurtBoxBullseyeColor;
                         }
                         else
                         {
-                            color = new Color(169f / 255f, 246f / 255f, 252f / 255f);
+                            color = _hurtBoxColor;
                         }
 
                         Renderer renderer = hurtBoxVisual.GetComponent<Renderer>();
@@ -220,47 +251,56 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
                     }
                 }
 
-                ArrayUtil.AppendRange(ref _characterModel.baseRendererInfos, additionalRendererInfos);
+                _characterModel.baseRendererInfos = [.. _characterModel.baseRendererInfos, .. additionalRendererInfos];
             }
         }
 
-        public override void OnStart()
+        readonly List<ColliderRendererController> _colliderRenderers = [];
+
+        void Start()
         {
-            InstanceTracker.GetInstancesList<CharacterModel>().TryDo(setupModel);
-
-            On.RoR2.CharacterModel.Start += CharacterModel_Start;
-        }
-
-        public override void OnEnd()
-        {
-            On.RoR2.CharacterModel.Start -= CharacterModel_Start;
-
-            InstanceUtils.DestroyAllTrackedInstances<RendererData>();
-        }
-
-        void CharacterModel_Start(On.RoR2.CharacterModel.orig_Start orig, CharacterModel self)
-        {
-            orig(self);
-
-            IEnumerator waitForModelInitThenSetupModel()
+            if (NetworkClient.active)
             {
-                // Wait for skins to be applied first, since that overrides the model renderers
-                yield return new WaitForEndOfFrame();
+                List<CharacterModel> characterModels = InstanceTracker.GetInstancesList<CharacterModel>();
+                _colliderRenderers.EnsureCapacity(characterModels.Count);
+                characterModels.TryDo(setupModel);
 
-                // Edge case: effect may have ended while waiting
-                if (TimeRemaining > 0f)
+                CharacterModelHooks.OnCharacterModelStartGlobal += onCharacterModelStartGlobal;
+            }
+        }
+
+        void OnDestroy()
+        {
+            CharacterModelHooks.OnCharacterModelStartGlobal -= onCharacterModelStartGlobal;
+
+            foreach (ColliderRendererController colliderRenderer in _colliderRenderers)
+            {
+                if (colliderRenderer)
                 {
-                    setupModel(self);
+                    Destroy(colliderRenderer);
                 }
             }
-
-            self.StartCoroutine(waitForModelInitThenSetupModel());
         }
 
+        void onCharacterModelStartGlobal(CharacterModel model)
+        {
+            StartCoroutine(waitForModelInitThenSetupModel(model));
+        }
+
+        IEnumerator waitForModelInitThenSetupModel(CharacterModel model)
+        {
+            // Wait for skins to be applied first, since that overrides the model renderers
+            yield return new WaitForEndOfFrame();
+
+            setupModel(model);
+        }
+
+        [Client]
         void setupModel(CharacterModel model)
         {
-            RendererData rendererData = model.gameObject.AddComponent<RendererData>();
-            rendererData.SetupCharacterModel();
+            ColliderRendererController rendererData = model.gameObject.AddComponent<ColliderRendererController>();
+
+            _colliderRenderers.Add(rendererData);
         }
     }
 }

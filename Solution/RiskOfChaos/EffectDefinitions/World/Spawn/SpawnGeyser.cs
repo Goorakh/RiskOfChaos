@@ -21,7 +21,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         static SpawnCardEntry[] _spawnEntries = [];
 
         [ContentInitializer]
-        static IEnumerable LoadContent(NetworkedPrefabAssetCollection prefabs)
+        static IEnumerator LoadContent(NetworkedPrefabAssetCollection prefabs)
         {
             List<AsyncOperationHandle> asyncOperations = [];
 

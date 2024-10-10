@@ -4,11 +4,12 @@ using RiskOfChaos.ModifierController.Camera;
 using RiskOfChaos.Utilities.Interpolation;
 using System;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
     [ChaosTimedEffect("flip_camera", 30f, AllowDuplicates = false)]
-    public sealed class FlipCamera : TimedEffect, ICameraModificationProvider
+    public sealed class FlipCamera : NetworkBehaviour, ICameraModificationProvider
     {
         [EffectCanActivate]
         static bool CanActivate()
@@ -18,22 +19,25 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 
         public event Action OnValueDirty;
 
-        public void ModifyValue(ref CameraModificationData value)
+        void Start()
         {
-            value.RotationOffset *= Quaternion.Euler(0f, 0f, 180f);
+            if (NetworkServer.active)
+            {
+                CameraModificationManager.Instance.RegisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
+            }
         }
 
-        public override void OnStart()
-        {
-            CameraModificationManager.Instance.RegisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
-        }
-
-        public override void OnEnd()
+        void OnDestroy()
         {
             if (CameraModificationManager.Instance)
             {
                 CameraModificationManager.Instance.UnregisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
             }
+        }
+
+        public void ModifyValue(ref CameraModificationData value)
+        {
+            value.RotationOffset *= Quaternion.Euler(0f, 0f, 180f);
         }
     }
 }

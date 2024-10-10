@@ -9,6 +9,7 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions;
 using RoR2;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -56,10 +57,8 @@ namespace RiskOfChaos.EffectHandling
         }
 
         [ContentInitializer]
-        static void LoadContent(NetworkedPrefabAssetCollection networkedPrefabs)
+        static IEnumerator LoadContent(NetworkedPrefabAssetCollection networkedPrefabs)
         {
-            Stopwatch stopwatch = Stopwatch.StartNew();
-
             _effects = HG.Reflection.SearchableAttribute.GetInstances<ChaosEffectAttribute>()
                                                         .Cast<ChaosEffectAttribute>()
                                                         .Where(attr => attr.Validate())
@@ -67,13 +66,25 @@ namespace RiskOfChaos.EffectHandling
                                                         .Select((e, i) => e.BuildEffectInfo((ChaosEffectIndex)i, _effectConfigFile))
                                                         .ToArray();
 
-            foreach (ChaosEffectInfo effect in _effects)
+            for (int i = 0; i < _effects.Length; i++)
             {
+                ChaosEffectInfo effect = _effects[i];
                 if (!networkedPrefabs.Contains(effect.ControllerPrefab))
                 {
                     networkedPrefabs.Add(effect.ControllerPrefab);
                 }
+
+                if (i > 0 && i % 25 == 0)
+                {
+                    yield return null;
+                }
             }
+        }
+
+        [SystemInitializer]
+        static void Init()
+        {
+            Stopwatch stopwatch = Stopwatch.StartNew();
 
             AllEffects = new ReadOnlyArray<ChaosEffectInfo>(_effects);
 
@@ -90,13 +101,13 @@ namespace RiskOfChaos.EffectHandling
                     _effectIndexByNameToken.Add(effect.NameToken, effect.EffectIndex);
                 }
 
-                if (_effectIndexByType.ContainsKey(effect.EffectType))
+                if (_effectIndexByType.ContainsKey(effect.EffectComponentType))
                 {
-                    Log.Error($"Duplicate effect type: {effect.EffectType}");
+                    Log.Error($"Duplicate effect type: {effect.EffectComponentType}");
                 }
                 else
                 {
-                    _effectIndexByType.Add(effect.EffectType, effect.EffectIndex);
+                    _effectIndexByType.Add(effect.EffectComponentType, effect.EffectIndex);
                 }
             }
 
@@ -120,7 +131,7 @@ namespace RiskOfChaos.EffectHandling
 
             foreach (ChaosEffectInfo effectInfo in effectsByConfigName)
             {
-                foreach (MemberInfo member in effectInfo.EffectType.GetMembers(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly).WithAttribute<MemberInfo, InitEffectMemberAttribute>())
+                foreach (MemberInfo member in effectInfo.EffectComponentType.GetMembers(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly).WithAttribute<MemberInfo, InitEffectMemberAttribute>())
                 {
                     foreach (InitEffectMemberAttribute initEffectMember in member.GetCustomAttributes<InitEffectMemberAttribute>())
                     {
@@ -136,13 +147,6 @@ namespace RiskOfChaos.EffectHandling
 
             stopwatch.Stop();
             Log.Info($"Effect catalog initialized in {stopwatch.Elapsed.TotalSeconds:F1} seconds");
-        }
-
-#warning TODO: This is a hack to make sure all the SystemInitializers depending on this catalog are actually run
-        [SystemInitializer]
-        [Obsolete]
-        static void DummyInit()
-        {
         }
 
         static void checkFindEffectIndex()
@@ -190,7 +194,7 @@ namespace RiskOfChaos.EffectHandling
             return ChaosEffectIndex.Invalid;
         }
 
-        public static ChaosEffectIndex FindEffectIndexByType(Type type)
+        public static ChaosEffectIndex FindEffectIndexByComponentType(Type type)
         {
             if (_effectIndexByType.TryGetValue(type, out ChaosEffectIndex effectIndex))
             {
@@ -203,9 +207,9 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
-        public static ChaosEffectInfo FindEffectInfoByType(Type type)
+        public static ChaosEffectInfo FindEffectInfoByComponentType(Type type)
         {
-            ChaosEffectIndex effectIndex = FindEffectIndexByType(type);
+            ChaosEffectIndex effectIndex = FindEffectIndexByComponentType(type);
             if (effectIndex != ChaosEffectIndex.Invalid)
             {
                 return GetEffectInfo(effectIndex);
