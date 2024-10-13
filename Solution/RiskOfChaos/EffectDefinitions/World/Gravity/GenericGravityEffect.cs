@@ -1,5 +1,5 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController.Gravity;
+using RiskOfChaos.OLD_ModifierController.Gravity;
 using System;
 using UnityEngine;
 using UnityEngine.Networking;

@@ -24,7 +24,7 @@ namespace RiskOfChaos.Content
                 AsyncOperationHandle<GameObject> altarSkeletonLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/AltarSkeleton/AltarSkeletonBody.prefab");
                 altarSkeletonLoad.Completed += handle =>
                 {
-                    GameObject bodyPrefab = handle.Result.InstantiateNetworkedPrefab(nameof(RoCContent.BodyPrefabs.ChaosFakeInteractorBody), 0x776559F5);
+                    GameObject bodyPrefab = handle.Result.InstantiateNetworkedPrefab(nameof(RoCContent.BodyPrefabs.ChaosFakeInteractorBody));
 
                     Transform transform = bodyPrefab.transform;
                     transform.position = Vector3.zero;

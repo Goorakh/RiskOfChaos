@@ -1,5 +1,5 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController.Projectile;
+using RiskOfChaos.OLD_ModifierController.Projectile;
 using System;
 
 namespace RiskOfChaos.EffectDefinitions.World.ProjectileSpeed

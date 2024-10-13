@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using RiskOfChaos.ModifierController.SkillSlots;
+using RiskOfChaos.OLD_ModifierController.SkillSlots;
 using RoR2;
 using RoR2.Skills;
 using System;

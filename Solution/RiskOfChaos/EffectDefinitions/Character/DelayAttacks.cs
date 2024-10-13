@@ -1,18 +1,19 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
-using RiskOfChaos.EffectHandling.Controllers;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController.AttackDelay;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.AttackDelay;
 using RiskOfOptions.OptionConfigs;
-using System;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("delay_attacks", 90f)]
-    public sealed class DelayAttacks : TimedEffect, IAttackDelayModificationProvider
+    public sealed class DelayAttacks : NetworkBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _attackDelay =
@@ -20,39 +21,56 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                 .Description("The delay to apply to all attacks")
                                 .AcceptableValues(new AcceptableValueMin<float>(0f))
                                 .OptionConfig(new FloatFieldConfig { Min = 0f, FormatString = "{0}s" })
-                                .OnValueChanged(() =>
-                                {
-                                    if (!NetworkServer.active || !ChaosEffectTracker.Instance)
-                                        return;
-
-                                    ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<DelayAttacks>(e => e.OnValueDirty);
-                                })
                                 .Build();
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return AttackDelayModificationManager.Instance;
+            return RoCContent.NetworkedPrefabs.AttackDelayModificationProvider;
         }
 
-        public event Action OnValueDirty;
+        ValueModificationController _attackDelayModificationController;
+        AttackDelayModificationProvider _attackDelayModificationProvider;
 
-        public override void OnStart()
+        void Start()
         {
-            AttackDelayModificationManager.Instance.RegisterModificationProvider(this);
-        }
-
-        public override void OnEnd()
-        {
-            if (AttackDelayModificationManager.Instance)
+            if (NetworkServer.active)
             {
-                AttackDelayModificationManager.Instance.UnregisterModificationProvider(this);
+                _attackDelayModificationController = GameObject.Instantiate(RoCContent.NetworkedPrefabs.AttackDelayModificationProvider).GetComponent<ValueModificationController>();
+
+                _attackDelayModificationProvider = _attackDelayModificationController.GetComponent<AttackDelayModificationProvider>();
+                updateAttackDelay();
+
+                NetworkServer.Spawn(_attackDelayModificationController.gameObject);
+
+                _attackDelay.SettingChanged += onAttackDelayChanged;
             }
         }
 
-        public void ModifyValue(ref AttackDelayModificationInfo value)
+        void OnDestroy()
         {
-            value.TotalDelay += _attackDelay.Value;
+            if (_attackDelayModificationController)
+            {
+                _attackDelayModificationController.Retire();
+                _attackDelayModificationController = null;
+                _attackDelayModificationProvider = null;
+            }
+
+            _attackDelay.SettingChanged -= onAttackDelayChanged;
+        }
+
+        void onAttackDelayChanged(object sender, ConfigChangedArgs<float> e)
+        {
+            updateAttackDelay();
+        }
+
+        [Server]
+        void updateAttackDelay()
+        {
+            if (_attackDelayModificationProvider)
+            {
+                _attackDelayModificationProvider.Delay = _attackDelay.Value;
+            }
         }
     }
 }

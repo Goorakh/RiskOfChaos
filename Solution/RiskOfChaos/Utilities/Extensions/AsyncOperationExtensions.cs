@@ -23,5 +23,25 @@ namespace RiskOfChaos.Utilities.Extensions
                 }
             }
         }
+
+        public static IEnumerator WaitForAllComplete(this IEnumerable<IEnumerator> operations)
+        {
+            List<IEnumerator> operationsList = [.. operations];
+
+            while (operationsList.Count > 0)
+            {
+                for (int i = operationsList.Count - 1; i >= 0; i--)
+                {
+                    if (operationsList[i].MoveNext())
+                    {
+                        yield return operationsList[i].Current;
+                    }
+                    else
+                    {
+                        operationsList.RemoveAt(i);
+                    }
+                }
+            }
+        }
     }
 }

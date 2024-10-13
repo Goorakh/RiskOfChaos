@@ -284,7 +284,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             Debug.Log($"{ChaosEffectCatalog.GetEffectInfo(effectIndex).GetLocalDisplayName(EffectNameFormatFlags.RuntimeFormatArgs)} is not in available stage effects");
         }
 
-        [ConCommand(commandName = "roc_remove_stage_effect", flags = ConVarFlags.SenderMustBeServer, helpText = "Removes an effect from the current stage effect pool")]
+        [ConCommand(commandName = "roc_remove_stage_effect", flags = ConVarFlagUtil.SERVER, helpText = "Removes an effect from the current stage effect pool")]
         static void CCRemoveStageEffect(ConCommandArgs args)
         {
             ChaosEffectDispatcher dispatcher = ChaosEffectDispatcher.Instance;

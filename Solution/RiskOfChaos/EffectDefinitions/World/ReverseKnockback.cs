@@ -1,7 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController.Knockback;
+using RiskOfChaos.OLD_ModifierController.Knockback;
 using System;
 
 namespace RiskOfChaos.EffectDefinitions.World

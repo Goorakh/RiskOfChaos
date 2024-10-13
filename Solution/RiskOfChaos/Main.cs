@@ -29,12 +29,17 @@ namespace RiskOfChaos
 
         Harmony _harmonyInstance;
 
+        static Main _instance;
+        public static Main Instance => _instance;
+
         public static string ModDirectory { get; private set; }
 
         public RoCContent ContentPackProvider { get; private set; }
 
         void Awake()
         {
+            SingletonHelper.Assign(ref _instance, this);
+
             Stopwatch stopwatch = Stopwatch.StartNew();
 
             Log.Init(Logger);
@@ -97,6 +102,8 @@ namespace RiskOfChaos
 
         void OnDestroy()
         {
+            SingletonHelper.Unassign(ref _instance, this);
+
             TaskExceptionHandler.Cleanup();
 
             if (ProperSaveCompat.Active)

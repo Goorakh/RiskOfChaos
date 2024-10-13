@@ -1,6 +1,6 @@
 ﻿using HarmonyLib;
 using MonoMod.RuntimeDetour;
-using RiskOfChaos.ModifierController.SkillSlots;
+using RiskOfChaos.OLD_ModifierController.SkillSlots;
 using RoR2;
 using RoR2.Skills;
 using RoR2.UI;

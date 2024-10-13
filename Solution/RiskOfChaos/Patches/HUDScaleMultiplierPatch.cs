@@ -3,7 +3,7 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.Utils;
-using RiskOfChaos.ModifierController.UI;
+using RiskOfChaos.OLD_ModifierController.UI;
 using RoR2;
 using RoR2.UI;
 using UnityEngine;

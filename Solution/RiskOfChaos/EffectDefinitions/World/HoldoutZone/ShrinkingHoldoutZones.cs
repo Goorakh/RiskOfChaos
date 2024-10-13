@@ -1,7 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController.HoldoutZone;
+using RiskOfChaos.OLD_ModifierController.HoldoutZone;
 using RoR2;
 using System;
 using UnityEngine;

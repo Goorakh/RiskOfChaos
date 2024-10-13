@@ -2,7 +2,7 @@
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.Utils;
-using RiskOfChaos.ModifierController.SkillSlots;
+using RiskOfChaos.OLD_ModifierController.SkillSlots;
 using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.CharacterAI;

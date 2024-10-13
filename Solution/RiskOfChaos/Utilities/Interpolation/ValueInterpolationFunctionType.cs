@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Utilities.Interpolation
 {
+    [Obsolete]
     public enum ValueInterpolationFunctionType : byte
     {
         Snap,
@@ -10,6 +11,7 @@ namespace RiskOfChaos.Utilities.Interpolation
         EaseInOut
     }
 
+    [Obsolete]
     public static class ValueBlendExtensions
     {
         public static float Interpolate(this ValueInterpolationFunctionType type, float a, float b, float t)

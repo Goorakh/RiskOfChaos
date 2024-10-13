@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using RiskOfChaos.ModifierController.Projectile;
+using RiskOfChaos.OLD_ModifierController.Projectile;
 using RoR2;
 using RoR2.Projectile;
 using System.Collections.Generic;

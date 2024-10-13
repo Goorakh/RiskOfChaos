@@ -2,7 +2,7 @@
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.Utils;
-using RiskOfChaos.ModifierController.Projectile;
+using RiskOfChaos.OLD_ModifierController.Projectile;
 using RiskOfChaos.Utilities;
 using RoR2;
 using System;

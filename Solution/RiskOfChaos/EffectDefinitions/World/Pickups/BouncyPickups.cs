@@ -3,7 +3,7 @@ using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController.Pickups;
+using RiskOfChaos.OLD_ModifierController.Pickups;
 using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using System;

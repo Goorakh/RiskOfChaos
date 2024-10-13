@@ -21,7 +21,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         {
             // ChaosEffectManager
             {
-                GameObject prefab = Prefabs.CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.ChaosEffectManager), 0x3338A14E, [
+                GameObject prefab = Prefabs.CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.ChaosEffectManager), [
                     typeof(SetDontDestroyOnLoad),
                     typeof(DestroyOnRunEnd),
                     typeof(ChaosEffectManager),
@@ -57,7 +57,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     prefabComponentTypes.Add(typeof(ChaosEffectActivationSignalerEnableRequirements));
                 }
 
-                GameObject signalerPrefab = Prefabs.CreateNetworkedPrefab(signalerComponentType.Name, 0x65B891C2, prefabComponentTypes.ToArray());
+                GameObject signalerPrefab = Prefabs.CreateNetworkedPrefab(signalerComponentType.Name, prefabComponentTypes.ToArray());
 
                 if (signalerPrefab.TryGetComponent(out ChaosEffectActivationSignalerEnableRequirements enableRequirements))
                 {

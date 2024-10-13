@@ -1,4 +1,4 @@
-﻿using RiskOfChaos.ModifierController.SkillSlots;
+﻿using RiskOfChaos.OLD_ModifierController.SkillSlots;
 using RoR2;
 
 namespace RiskOfChaos.Patches

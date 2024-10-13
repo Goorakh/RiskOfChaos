@@ -1,4 +1,4 @@
-﻿using RiskOfChaos.ModifierController.Projectile;
+﻿using RiskOfChaos.OLD_ModifierController.Projectile;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;

@@ -2,7 +2,7 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController.SkillSlots;
+using RiskOfChaos.OLD_ModifierController.SkillSlots;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;

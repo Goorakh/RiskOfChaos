@@ -1,4 +1,4 @@
-﻿using RiskOfChaos.ModifierController.Pickups;
+﻿using RiskOfChaos.OLD_ModifierController.Pickups;
 using RoR2;
 using System.Collections.Generic;
 using UnityEngine;

@@ -1,8 +1,10 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController.UI;
+using RiskOfChaos.OLD_ModifierController.UI;
+using RiskOfChaos.ScreenEffect;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Assets;
 using RiskOfChaos.Utilities.CameraEffects;
@@ -30,22 +32,19 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 
         static readonly Vector4 _centerOffset = new Vector4(0.5f, 0.5f, 0f, 0f);
 
+        static ScreenEffectIndex _screenEffectIndex = ScreenEffectIndex.Invalid;
         static Material _screenMaterial;
 
-        [SystemInitializer]
+        [SystemInitializer(typeof(ScreenEffectCatalog))]
         static void Init()
         {
-            AssetLoadOperation<Material> screenMaterialLoad = AssetLoader.LoadAssetAsync<Material>("RepeatScreen");
-            screenMaterialLoad.OnComplete += screenMaterial =>
-            {
-                _screenMaterial = screenMaterial;
-            };
+            _screenEffectIndex = ScreenEffectCatalog.FindScreenEffectIndex("RepeatScreen");
         }
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return _screenMaterial;
+            return _screenEffectIndex != ScreenEffectIndex.Invalid;
         }
 
         Material _materialInstance;
@@ -62,7 +61,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
                 MaterialPropertyInterpolator propertyInterpolator = new MaterialPropertyInterpolator();
                 propertyInterpolator.SetFloat(_repeatCountID, 1f, 3f);
 
-                CameraEffectManager.AddEffect(_materialInstance, CameraEffectType.UIAndWorld, propertyInterpolator, ValueInterpolationFunctionType.EaseInOut, 2f);
+                CameraEffectManager.AddEffect(_materialInstance, ScreenEffectType.UIAndWorld, propertyInterpolator, ValueInterpolationFunctionType.EaseInOut, 2f);
 
                 if (UIModificationManager.Instance)
                 {

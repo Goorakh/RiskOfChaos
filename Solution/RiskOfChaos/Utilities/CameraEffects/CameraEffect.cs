@@ -1,9 +1,12 @@
-﻿using RiskOfChaos.ModifierController;
+﻿using RiskOfChaos.OLD_ModifierController;
+using RiskOfChaos.ScreenEffect;
 using RiskOfChaos.Utilities.Interpolation;
+using System;
 using UnityEngine;
 
 namespace RiskOfChaos.Utilities.CameraEffects
 {
+    [Obsolete]
     public class CameraEffect
     {
         public readonly InterpolationState InterpolationState = new InterpolationState();
@@ -12,11 +15,11 @@ namespace RiskOfChaos.Utilities.CameraEffects
 
         public readonly Material Material;
 
-        public readonly CameraEffectType Type;
+        public readonly ScreenEffectType Type;
 
         readonly MaterialPropertyInterpolator _propertyInterpolator;
 
-        public CameraEffect(Material material, MaterialPropertyInterpolator propertyInterpolator, CameraEffectType type)
+        public CameraEffect(Material material, MaterialPropertyInterpolator propertyInterpolator, ScreenEffectType type)
         {
             Material = material;
             _propertyInterpolator = propertyInterpolator;

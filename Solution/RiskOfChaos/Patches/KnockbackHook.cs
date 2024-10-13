@@ -1,4 +1,4 @@
-﻿using RiskOfChaos.ModifierController.Knockback;
+﻿using RiskOfChaos.OLD_ModifierController.Knockback;
 using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;

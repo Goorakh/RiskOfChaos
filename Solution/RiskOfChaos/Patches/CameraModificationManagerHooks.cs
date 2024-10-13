@@ -1,5 +1,8 @@
-﻿using MonoMod.Cil;
-using RiskOfChaos.ModifierController.Camera;
+﻿using Mono.Cecil;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
+using MonoMod.Utils;
+using RiskOfChaos.ModificationController.Camera;
 using RoR2;
 using RoR2.CameraModes;
 using UnityEngine;
@@ -37,7 +40,7 @@ namespace RiskOfChaos.Patches
                 }
             };
 
-            On.RoR2.CameraModes.CameraModeBase.Update += CameraModeBase_Update;
+            IL.RoR2.CameraRigController.SetCameraState += CameraRigController_SetCameraState;
 
             On.RoR2.CameraModes.CameraModeBase.CollectLookInput += CameraModeBase_CollectLookInput;
 
@@ -46,19 +49,71 @@ namespace RiskOfChaos.Patches
             PlayerInputHook.ModifyPlayerMoveInput += PlayerInputHook_ModifyPlayerMoveInput;
         }
 
-        static void CameraModeBase_Update(On.RoR2.CameraModes.CameraModeBase.orig_Update orig, CameraModeBase self, ref CameraModeBase.CameraModeContext context, out CameraModeBase.UpdateResult result)
+        static void CameraRigController_SetCameraState(ILContext il)
         {
-            orig(self, ref context, out result);
+            ILCursor c = new ILCursor(il);
 
-            CameraModificationManager modificationManager = CameraModificationManager.Instance;
-            if (modificationManager && modificationManager.AnyModificationActive && context.targetInfo.target)
+            ParameterDefinition cameraStateArg = null;
+
+            foreach (ParameterDefinition parameter in il.Method.Parameters)
             {
-                const float MIN_FOV = 10f;
-                const float MAX_FOV = 170f;
+                if (parameter.ParameterType.Is(typeof(CameraState)))
+                {
+                    cameraStateArg = parameter;
+                    break;
+                }
+            }
 
-                result.cameraState.fov = Mathf.Clamp(result.cameraState.fov * modificationManager.FovMultiplier, MIN_FOV, MAX_FOV);
+            if (cameraStateArg == null)
+            {
+                Log.Error("Failed to find cameraState argument");
+                return;
+            }
 
-                result.cameraState.rotation *= modificationManager.CameraRotationOffset;
+            VariableDefinition unmodifiedCameraStateVar = new VariableDefinition(il.Import(typeof(CameraState)));
+            il.Method.Body.Variables.Add(unmodifiedCameraStateVar);
+
+            c.Emit(OpCodes.Ldarg, cameraStateArg);
+            c.Emit(OpCodes.Stloc, unmodifiedCameraStateVar);
+
+            c.Emit(OpCodes.Ldarga, cameraStateArg);
+            c.EmitDelegate(overrideCameraState);
+            static void overrideCameraState(ref CameraState cameraState)
+            {
+                CameraModificationManager modificationManager = CameraModificationManager.Instance;
+                if (modificationManager && modificationManager.AnyModificationActive)
+                {
+                    const float MIN_FOV = 10f;
+                    const float MAX_FOV = 170f;
+
+                    cameraState.fov = Mathf.Clamp(cameraState.fov * modificationManager.FOVMultiplier, MIN_FOV, MAX_FOV);
+
+                    cameraState.rotation *= modificationManager.RotationOffset;
+                }
+            }
+
+            int setCurrentStatePatchCount = 0;
+
+            while (c.TryGotoNext(MoveType.Before,
+                                 x => x.MatchStfld<CameraRigController>(nameof(CameraRigController.currentCameraState))))
+            {
+                c.Emit(OpCodes.Pop);
+                c.Emit(OpCodes.Ldloc, unmodifiedCameraStateVar);
+
+                c.SearchTarget = SearchTarget.Next;
+
+                setCurrentStatePatchCount++;
+            }
+
+            if (setCurrentStatePatchCount == 0)
+            {
+                Log.Error("Failed to find set currentCameraState patch location");
+            }
+            else
+            {
+#if DEBUG
+                Log.Debug($"Found {setCurrentStatePatchCount} set currentCameraState patch location(s)");
+#endif
             }
         }
 
@@ -69,7 +124,7 @@ namespace RiskOfChaos.Patches
             CameraModificationManager modificationManager = CameraModificationManager.Instance;
             if (modificationManager && modificationManager.AnyModificationActive && context.targetInfo.target)
             {
-                Vector2 rotatedLookInput = modificationManager.CameraRotationOffset * result.lookInput;
+                Vector2 rotatedLookInput = modificationManager.RotationOffset * result.lookInput;
                 if (rotatedLookInput.sqrMagnitude > 0f)
                 {
                     float lookInputMagnitude = result.lookInput.magnitude;
@@ -85,7 +140,7 @@ namespace RiskOfChaos.Patches
             CameraModificationManager modificationManager = CameraModificationManager.Instance;
             if (modificationManager && modificationManager.AnyModificationActive)
             {
-                float distanceMultiplier = modificationManager.CameraDistanceMultiplier;
+                float distanceMultiplier = modificationManager.DistanceMultiplier;
 
                 dest.idealLocalCameraPos.value *= distanceMultiplier;
             }
@@ -98,7 +153,7 @@ namespace RiskOfChaos.Patches
             {
                 const float ROTATION_TO_CONSIDER_FLIPPED = 120f;
 
-                float zOffset = modificationManager.CameraRotationOffset.eulerAngles.z;
+                float zOffset = modificationManager.RotationOffset.eulerAngles.z;
                 if (zOffset >= ROTATION_TO_CONSIDER_FLIPPED && zOffset <= 360f - ROTATION_TO_CONSIDER_FLIPPED)
                 {
                     moveInput.x *= -1;

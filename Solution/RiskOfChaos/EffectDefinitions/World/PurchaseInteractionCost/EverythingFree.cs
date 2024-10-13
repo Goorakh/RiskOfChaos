@@ -1,6 +1,6 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController.Cost;
+using RiskOfChaos.OLD_ModifierController.Cost;
 using System;
 
 namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost

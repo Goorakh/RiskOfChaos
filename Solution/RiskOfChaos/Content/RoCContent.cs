@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using RiskOfChaos.Content.AssetCollections;
+using RiskOfChaos.ScreenEffect;
 using RoR2;
 using RoR2.ContentManagement;
 using System;
@@ -18,6 +19,8 @@ namespace RiskOfChaos.Content
         public string identifier => Main.PluginGUID;
 
         bool _isRegistered;
+
+        internal ScreenEffectDef[] ScreenEffectDefs { get; private set; } = [];
 
         internal RoCContent()
         {
@@ -57,6 +60,7 @@ namespace RiskOfChaos.Content
             EntityStateAssetCollection entityStates = getAssetCollection<EntityStateAssetCollection>();
             NetworkedPrefabAssetCollection networkedPrefabs = getAssetCollection<NetworkedPrefabAssetCollection>();
             LocalPrefabAssetCollection localPrefabs = getAssetCollection<LocalPrefabAssetCollection>();
+            ScreenEffectDefAssetCollection screenEffects = getAssetCollection<ScreenEffectDefAssetCollection>();
 
             List<MethodInfo> contentInitializerMethods = ContentInitializerAttribute.GetContentInitializers();
             for (int i = 0; i < contentInitializerMethods.Count; i++)
@@ -115,6 +119,9 @@ namespace RiskOfChaos.Content
             NamedAssetCollection<GameObject> localPrefabAssetCollection = new NamedAssetCollection<GameObject>(ContentPack.getGameObjectName);
             localPrefabs.AddTo(localPrefabAssetCollection);
 
+            NamedAssetCollection<ScreenEffectDef> screenEffectsAssetCollection = new NamedAssetCollection<ScreenEffectDef>(ScreenEffectDef.NameProvider);
+            screenEffects.AddTo(screenEffectsAssetCollection);
+
             populateTypeFields(typeof(Items), _contentPack.itemDefs);
 
             populateTypeFields(typeof(Buffs), _contentPack.buffDefs, fieldName => "bd" + fieldName);
@@ -129,6 +136,8 @@ namespace RiskOfChaos.Content
             NetworkedPrefabs.CacheNetworkPrefabs(networkedPrefabs);
 
             populateTypeFields(typeof(LocalPrefabs), localPrefabAssetCollection);
+
+            ScreenEffectDefs = [.. screenEffectsAssetCollection];
 
             args.ReportProgress(1f);
             yield break;
@@ -264,6 +273,12 @@ namespace RiskOfChaos.Content
             public static GameObject NewtStatueFixedOrigin;
 
             public static GameObject ExplodeAtLowHealthBodyAttachment;
+
+            public static GameObject ValueModificationManager;
+
+            public static GameObject CameraModificationProvider;
+
+            public static GameObject AttackDelayModificationProvider;
         }
 
         public static class LocalPrefabs

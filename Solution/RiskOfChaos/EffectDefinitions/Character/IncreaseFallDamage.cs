@@ -6,7 +6,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
-using RiskOfChaos.ModifierController.Damage;
+using RiskOfChaos.OLD_ModifierController.Damage;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;

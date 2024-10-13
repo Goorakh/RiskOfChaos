@@ -1,6 +1,6 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController.Pickups;
+using RiskOfChaos.OLD_ModifierController.Pickups;
 using System;
 
 namespace RiskOfChaos.EffectDefinitions.World.Pickups

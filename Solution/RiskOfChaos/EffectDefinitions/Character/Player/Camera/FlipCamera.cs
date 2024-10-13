@@ -1,43 +1,46 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController.Camera;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.Camera;
 using RiskOfChaos.Utilities.Interpolation;
-using System;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
     [ChaosTimedEffect("flip_camera", 30f, AllowDuplicates = false)]
-    public sealed class FlipCamera : NetworkBehaviour, ICameraModificationProvider
+    public sealed class FlipCamera : NetworkBehaviour
     {
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return CameraModificationManager.Instance;
+            return RoCContent.NetworkedPrefabs.CameraModificationProvider;
         }
 
-        public event Action OnValueDirty;
+        ValueModificationController _cameraModificationController;
 
         void Start()
         {
             if (NetworkServer.active)
             {
-                CameraModificationManager.Instance.RegisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
+                _cameraModificationController = Instantiate(RoCContent.NetworkedPrefabs.CameraModificationProvider).GetComponent<ValueModificationController>();
+                _cameraModificationController.SetInterpolationParameters(new InterpolationParameters(1f));
+
+                CameraModificationProvider cameraModificationProvider = _cameraModificationController.GetComponent<CameraModificationProvider>();
+                cameraModificationProvider.RotationOffset = Quaternion.Euler(0f, 0f, 180f);
+
+                NetworkServer.Spawn(_cameraModificationController.gameObject);
             }
         }
 
         void OnDestroy()
         {
-            if (CameraModificationManager.Instance)
+            if (_cameraModificationController)
             {
-                CameraModificationManager.Instance.UnregisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
+                _cameraModificationController.Retire();
+                _cameraModificationController = null;
             }
-        }
-
-        public void ModifyValue(ref CameraModificationData value)
-        {
-            value.RotationOffset *= Quaternion.Euler(0f, 0f, 180f);
         }
     }
 }

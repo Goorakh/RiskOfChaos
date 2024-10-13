@@ -6,7 +6,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
-using RiskOfChaos.ModifierController.Effect;
+using RiskOfChaos.OLD_ModifierController.Effect;
 using RiskOfOptions.OptionConfigs;
 using System;
 using UnityEngine.Networking;

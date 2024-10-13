@@ -49,7 +49,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 {
                     GameObject geyserPrefab = handle.Result;
 
-                    GameObject geyserHolder = Prefabs.CreateNetworkedPrefab("Networked" + geyserPrefab.name, 0x26B28783, [
+                    GameObject geyserHolder = Prefabs.CreateNetworkedPrefab("Networked" + geyserPrefab.name, [
                         typeof(SyncJumpVolumeVelocity)
                     ]);
 

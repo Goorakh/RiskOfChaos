@@ -1,42 +1,44 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController.Camera;
-using System;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.Camera;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
     [ChaosTimedEffect("disable_recoil", 90f, AllowDuplicates = false)]
-    public sealed class DisableRecoil : NetworkBehaviour, ICameraModificationProvider
+    public sealed class DisableRecoil : NetworkBehaviour
     {
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return CameraModificationManager.Instance;
+            return RoCContent.NetworkedPrefabs.CameraModificationProvider;
         }
 
-        public event Action OnValueDirty;
+        ValueModificationController _cameraModificationController;
 
         void Start()
         {
             if (NetworkServer.active)
             {
-                CameraModificationManager.Instance.RegisterModificationProvider(this);
+                _cameraModificationController = Instantiate(RoCContent.NetworkedPrefabs.CameraModificationProvider).GetComponent<ValueModificationController>();
+
+                CameraModificationProvider cameraModificationProvider = _cameraModificationController.GetComponent<CameraModificationProvider>();
+                cameraModificationProvider.RecoilMultiplier = Vector2.zero;
+
+                NetworkServer.Spawn(_cameraModificationController.gameObject);
             }
         }
 
         void OnDestroy()
         {
-            if (CameraModificationManager.Instance)
+            if (_cameraModificationController)
             {
-                CameraModificationManager.Instance.UnregisterModificationProvider(this);
+                _cameraModificationController.Retire();
+                _cameraModificationController = null;
             }
-        }
-
-        public void ModifyValue(ref CameraModificationData value)
-        {
-            value.RecoilMultiplier = Vector2.zero;
         }
     }
 }

@@ -277,7 +277,7 @@ namespace RiskOfChaos.EffectHandling
 
             modifyPrefabComponents(componentTypes);
 
-            GameObject prefab = Prefabs.CreateNetworkedPrefab($"{Identifier}_EffectController", 0x0F015BFC, componentTypes.ToArray());
+            GameObject prefab = Prefabs.CreateNetworkedPrefab($"{Identifier}_EffectController", componentTypes.ToArray());
 
             if (prefab.TryGetComponent(out ChaosEffectComponent effectComponent))
             {

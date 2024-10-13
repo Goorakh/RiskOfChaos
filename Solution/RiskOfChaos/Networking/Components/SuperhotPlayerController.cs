@@ -1,5 +1,5 @@
 ﻿using EntityStates;
-using RiskOfChaos.ModifierController.TimeScale;
+using RiskOfChaos.OLD_ModifierController.TimeScale;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.Interpolation;
 using RoR2;

@@ -304,7 +304,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         {
         }
 
-        [ConCommand(commandName = "roc_end_all_effects", flags = ConVarFlags.SenderMustBeServer, helpText = "Ends all active timed effects")]
+        [ConCommand(commandName = "roc_end_all_effects", flags = ConVarFlagUtil.SERVER, helpText = "Ends all active timed effects")]
         static void CCEndAllTimedEffects(ConCommandArgs args)
         {
             if (!NetworkServer.active || !_instance)
@@ -345,7 +345,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        [ConCommand(commandName = "roc_end_effect", flags = ConVarFlags.SenderMustBeServer, helpText = "Ends an effect with the specified ID, use roc_list_active_effects to get the IDs of all active effects")]
+        [ConCommand(commandName = "roc_end_effect", flags = ConVarFlagUtil.SERVER, helpText = "Ends an effect with the specified ID, use roc_list_active_effects to get the IDs of all active effects")]
         static void CCEndTimedEffect(ConCommandArgs args)
         {
             if (!NetworkServer.active || !Run.instance)

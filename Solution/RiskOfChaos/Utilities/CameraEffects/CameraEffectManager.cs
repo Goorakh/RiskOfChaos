@@ -1,12 +1,15 @@
-﻿using RiskOfChaos.ModifierController;
+﻿using RiskOfChaos.OLD_ModifierController;
+using RiskOfChaos.ScreenEffect;
 using RiskOfChaos.Utilities.Interpolation;
 using RoR2;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
 
 namespace RiskOfChaos.Utilities.CameraEffects
 {
+    [Obsolete]
     public static class CameraEffectManager
     {
         static readonly List<CameraEffect> _activeEffects = [];
@@ -45,12 +48,12 @@ namespace RiskOfChaos.Utilities.CameraEffects
             }
         }
 
-        public static CameraEffect AddEffect(Material effectMaterial, CameraEffectType effectType)
+        public static CameraEffect AddEffect(Material effectMaterial, ScreenEffectType effectType)
         {
             return AddEffect(effectMaterial, effectType, null, ValueInterpolationFunctionType.Snap, 0f);
         }
 
-        public static CameraEffect AddEffect(Material effectMaterial, CameraEffectType effectType, MaterialPropertyInterpolator propertyInterpolator, ValueInterpolationFunctionType blendType, float interpolationTime)
+        public static CameraEffect AddEffect(Material effectMaterial, ScreenEffectType effectType, MaterialPropertyInterpolator propertyInterpolator, ValueInterpolationFunctionType blendType, float interpolationTime)
         {
             foreach (CameraEffect existingCameraEffect in _activeEffects)
             {
@@ -180,7 +183,7 @@ namespace RiskOfChaos.Utilities.CameraEffects
                 orig(self);
 
                 CameraEffectApplier cameraEffectApplier = self.camera.gameObject.AddComponent<CameraEffectApplier>();
-                cameraEffectApplier._acceptEffectType = CameraEffectType.World;
+                cameraEffectApplier._acceptEffectType = ScreenEffectType.World;
             }
 
             static void UICamera_Awake(On.RoR2.UICamera.orig_Awake orig, UICamera self)
@@ -188,10 +191,10 @@ namespace RiskOfChaos.Utilities.CameraEffects
                 orig(self);
 
                 CameraEffectApplier cameraEffectApplier = self.camera.gameObject.AddComponent<CameraEffectApplier>();
-                cameraEffectApplier._acceptEffectType = CameraEffectType.UIAndWorld;
+                cameraEffectApplier._acceptEffectType = ScreenEffectType.UIAndWorld;
             }
 
-            CameraEffectType _acceptEffectType;
+            ScreenEffectType _acceptEffectType;
 
             void OnRenderImage(RenderTexture source, RenderTexture destination)
             {

@@ -1,7 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController.Damage;
+using RiskOfChaos.OLD_ModifierController.Damage;
 using RoR2;
 using System;
 

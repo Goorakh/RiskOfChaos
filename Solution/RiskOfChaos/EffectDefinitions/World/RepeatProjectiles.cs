@@ -3,7 +3,7 @@ using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
-using RiskOfChaos.ModifierController.Projectile;
+using RiskOfChaos.OLD_ModifierController.Projectile;
 using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using System;

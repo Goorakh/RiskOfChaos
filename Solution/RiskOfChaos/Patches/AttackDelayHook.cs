@@ -1,4 +1,4 @@
-﻿using RiskOfChaos.ModifierController.AttackDelay;
+﻿using RiskOfChaos.ModificationController.AttackDelay;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Orbs;
@@ -18,10 +18,10 @@ namespace RiskOfChaos.Patches
             get
             {
                 AttackDelayModificationManager instance = AttackDelayModificationManager.Instance;
-                if (!instance)
+                if (!instance || !instance.AnyModificationActive)
                     return 0f;
 
-                return instance.TotalAttackDelay;
+                return instance.TotalDelay;
             }
         }
 

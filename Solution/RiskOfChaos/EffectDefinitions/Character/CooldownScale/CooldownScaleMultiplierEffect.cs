@@ -1,5 +1,5 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController.SkillSlots;
+using RiskOfChaos.OLD_ModifierController.SkillSlots;
 using System;
 using UnityEngine.Networking;
 

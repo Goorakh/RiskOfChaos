@@ -1,6 +1,6 @@
 ﻿using HarmonyLib;
 using MonoMod.RuntimeDetour;
-using RiskOfChaos.ModifierController.Projectile;
+using RiskOfChaos.OLD_ModifierController.Projectile;
 using RoR2;
 using RoR2.Orbs;
 using RoR2.Projectile;

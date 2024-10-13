@@ -28,7 +28,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             if (NetworkServer.active)
             {
-                ChaosEffectActivationSignaler.SignalShouldDispatchEffect += onSignalerDispatchEffect;
+                ChaosEffectActivationSignaler.SignalShouldDispatchEffect += signalerDispatchEffect;
 
                 _effectRNG = new Xoroshiro128Plus(Run.instance.seed);
             }
@@ -36,10 +36,25 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void Update()
         {
-            if (PauseStopController.instance && PauseStopController.instance.isPaused)
-                return;
+            if (NetworkServer.active)
+            {
+                tryActivateShortcutEffects();
+            }
+        }
 
-            if (!NetworkServer.active || InputUtils.IsUsingInputField())
+        void OnDisable()
+        {
+            SingletonHelper.Unassign(ref _instance, this);
+
+            ChaosEffectActivationSignaler.SignalShouldDispatchEffect -= signalerDispatchEffect;
+
+            _effectRNG = null;
+        }
+
+        [Server]
+        void tryActivateShortcutEffects()
+        {
+            if ((PauseStopController.instance && PauseStopController.instance.isPaused) || Time.deltaTime == 0f || InputUtils.IsUsingInputField())
                 return;
 
             foreach (ChaosEffectInfo effectInfo in ChaosEffectCatalog.AllEffects)
@@ -50,22 +65,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     break;
                 }
             }
-        }
-
-        void OnDisable()
-        {
-            SingletonHelper.Unassign(ref _instance, this);
-
-            ChaosEffectActivationSignaler.SignalShouldDispatchEffect -= onSignalerDispatchEffect;
-
-            _effectRNG = null;
-        }
-
-        [Obsolete]
-        [Server]
-        public ChaosEffectActivationSignaler GetCurrentEffectSignaler()
-        {
-            return null;
         }
 
         [Server]
@@ -80,26 +79,30 @@ namespace RiskOfChaos.EffectHandling.Controllers
         {
         }
 
-        [ConCommand(commandName = "roc_startrandom", flags = ConVarFlags.SenderMustBeServer, helpText = "Dispatches a random effect")]
+        [ConCommand(commandName = "roc_startrandom", flags = ConVarFlagUtil.SERVER, helpText = "Dispatches a random effect")]
         static void CCDispatchRandomEffect(ConCommandArgs args)
         {
             if (!NetworkServer.active || !Run.instance || !_instance || !_instance.enabled)
                 return;
 
-            _instance.DispatchEffectServer(ChaosEffectCatalog.PickActivatableEffect(RoR2Application.rng, EffectCanActivateContext.Now), new ChaosEffectDispatchArgs
+            ChaosEffectInfo effectInfo = ChaosEffectCatalog.PickActivatableEffect(RoR2Application.rng, EffectCanActivateContext.Now);
+            if (effectInfo == null)
+                return;
+
+            _instance.consoleDispatchEffect(effectInfo.EffectIndex, new ChaosEffectDispatchArgs
             {
                 RNGSeed = RoR2Application.rng.nextUlong
             });
         }
 
-        [ConCommand(commandName = "roc_start", flags = ConVarFlags.SenderMustBeServer, helpText = "Dispatches an effect")]
+        [ConCommand(commandName = "roc_start", flags = ConVarFlagUtil.SERVER, helpText = "Dispatches an effect")]
         static void CCDispatchEffect(ConCommandArgs args)
         {
             if (!NetworkServer.active || !Run.instance || !_instance || !_instance.enabled)
                 return;
 
             ChaosEffectIndex effectIndex = args.GetArgChaosEffectIndex(0);
-            _instance.DispatchEffectServer(ChaosEffectCatalog.GetEffectInfo(effectIndex), new ChaosEffectDispatchArgs
+            _instance.consoleDispatchEffect(effectIndex, new ChaosEffectDispatchArgs
             {
                 RNGSeed = args.Count > 1 ? args.GetArgULong(1) : RoR2Application.rng.nextUlong
             });
@@ -131,7 +134,17 @@ namespace RiskOfChaos.EffectHandling.Controllers
         }
 
         [Server]
-        void onSignalerDispatchEffect(ChaosEffectActivationSignaler signaler, ChaosEffectInfo effect, in ChaosEffectDispatchArgs args = default)
+        void consoleDispatchEffect(ChaosEffectIndex effectIndex, ChaosEffectDispatchArgs args)
+        {
+            ChaosEffectInfo effectInfo = ChaosEffectCatalog.GetEffectInfo(effectIndex);
+            if (effectInfo != null)
+            {
+                DispatchEffectServer(effectInfo, args);
+            }
+        }
+
+        [Server]
+        void signalerDispatchEffect(ChaosEffectActivationSignaler signaler, ChaosEffectInfo effect, in ChaosEffectDispatchArgs args = default)
         {
             if (Configs.General.DisableEffectDispatching.Value)
                 return;

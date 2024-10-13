@@ -40,11 +40,10 @@ namespace RiskOfChaos.Content
             return _prefabParentObject.transform;
         }
 
-        static NetworkHash128 getNetworkedObjectAssetId(string prefabName, uint salt)
+        static NetworkHash128 getNetworkedObjectAssetId(string prefabName)
         {
             Hash128 hasher = Hash128.Compute(prefabName);
             hasher.Append(Main.PluginGUID);
-            hasher.Append((int)salt);
             
             return new NetworkHash128
             {
@@ -53,7 +52,7 @@ namespace RiskOfChaos.Content
             };
         }
 
-        static GameObject createPrefab(string name, Type[] componentTypes, uint networkAssetIdHashSalt, bool isNetworked)
+        static GameObject createPrefab(string name, Type[] componentTypes, bool isNetworked)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException($"'{nameof(name)}' cannot be null or whitespace.", nameof(name));
@@ -74,7 +73,7 @@ namespace RiskOfChaos.Content
                     ArrayUtils.ArrayInsert(ref componentTypes, 0, typeof(NetworkIdentity));
                 }
 
-                assetId = getNetworkedObjectAssetId(name, networkAssetIdHashSalt);
+                assetId = getNetworkedObjectAssetId(name);
             }
 
             GameObject prefab = new GameObject(name);
@@ -85,15 +84,22 @@ namespace RiskOfChaos.Content
                 prefab.EnsureComponent(componentType);
             }
 
-            if (isNetworked && prefab.TryGetComponent(out NetworkIdentity networkIdentity))
+            if (isNetworked)
             {
+                NetworkIdentity networkIdentity = prefab.GetComponent<NetworkIdentity>();
+                if (!networkIdentity)
+                {
+                    Log.Error($"Prefab {name} is networked, but missing NetworkIdentity");
+                    networkIdentity = prefab.AddComponent<NetworkIdentity>();
+                }
+
                 networkIdentity.m_AssetId = assetId;
             }
 
             return prefab;
         }
 
-        static GameObject instantiatePrefab(GameObject original, string name, uint networkAssetIdHashSalt, bool isNetworked)
+        static GameObject instantiatePrefab(GameObject original, string name, bool isNetworked)
         {
             GameObject prefab = GameObject.Instantiate(original, getPrefabParent());
             prefab.name = name;
@@ -101,30 +107,30 @@ namespace RiskOfChaos.Content
             if (isNetworked)
             {
                 NetworkIdentity networkIdentity = prefab.EnsureComponent<NetworkIdentity>();
-                networkIdentity.m_AssetId = getNetworkedObjectAssetId(name, networkAssetIdHashSalt);
+                networkIdentity.m_AssetId = getNetworkedObjectAssetId(name);
             }
 
             return prefab;
         }
 
-        public static GameObject CreateNetworkedPrefab(string name, uint assetIdHashSalt, Type[] componentTypes)
+        public static GameObject CreateNetworkedPrefab(string name, Type[] componentTypes)
         {
-            return createPrefab(name, componentTypes, assetIdHashSalt, true);
+            return createPrefab(name, componentTypes, true);
         }
 
-        public static GameObject InstantiateNetworkedPrefab(this GameObject original, string name, uint assetIdHashSalt)
+        public static GameObject InstantiateNetworkedPrefab(this GameObject original, string name)
         {
-            return instantiatePrefab(original, name, assetIdHashSalt, true);
+            return instantiatePrefab(original, name, true);
         }
 
         public static GameObject CreatePrefab(string name, Type[] componentTypes)
         {
-            return createPrefab(name, componentTypes, 0, false);
+            return createPrefab(name, componentTypes, false);
         }
 
         public static GameObject InstantiatePrefab(this GameObject original, string name)
         {
-            return instantiatePrefab(original, name, 0, false);
+            return instantiatePrefab(original, name, false);
         }
 
         [ContentInitializer]
@@ -134,7 +140,7 @@ namespace RiskOfChaos.Content
 
             // GenericTeamInventory
             {
-                GameObject prefab = CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.GenericTeamInventory), 0x0899714C, [
+                GameObject prefab = CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.GenericTeamInventory), [
                     typeof(SetDontDestroyOnLoad),
                     typeof(TeamFilter),
                     typeof(Inventory),
@@ -150,7 +156,7 @@ namespace RiskOfChaos.Content
                 AsyncOperationHandle<GameObject> itemStealControllerLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Brother/ItemStealController.prefab");
                 itemStealControllerLoad.Completed += handle =>
                 {
-                    GameObject prefab = handle.Result.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.MonsterItemStealController), 0x271EBAA3);
+                    GameObject prefab = handle.Result.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.MonsterItemStealController));
 
                     NetworkedBodyAttachment networkedBodyAttachment = prefab.GetComponent<NetworkedBodyAttachment>();
                     networkedBodyAttachment.shouldParentToAttachedBody = true;
@@ -204,7 +210,7 @@ namespace RiskOfChaos.Content
                 AsyncOperationHandle<GameObject> sulfurPodBaseLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/sulfurpools/SPSulfurPodBase.prefab");
                 sulfurPodBaseLoad.Completed += handle =>
                 {
-                    GameObject prefab = handle.Result.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.NetworkedSulfurPodBase), 0x302DA873);
+                    GameObject prefab = handle.Result.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.NetworkedSulfurPodBase));
 
                     networkedPrefabs.Add(prefab);
                 };
@@ -214,7 +220,7 @@ namespace RiskOfChaos.Content
 
             // DummyDamageInflictor
             {
-                GameObject prefab = CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.DummyDamageInflictor), 0x06D09C6D, [
+                GameObject prefab = CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.DummyDamageInflictor), [
                     typeof(SetDontDestroyOnLoad),
                     typeof(DestroyOnRunEnd),
                     typeof(DummyDamageInflictor)
@@ -225,7 +231,7 @@ namespace RiskOfChaos.Content
 
             // ConfigNetworker
             {
-                GameObject prefab = CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.ConfigNetworker), 0x4EFC582A, [
+                GameObject prefab = CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.ConfigNetworker), [
                     typeof(SetDontDestroyOnLoad),
                     typeof(DestroyOnRunEnd),
                     typeof(SyncConfigValue)
@@ -236,7 +242,7 @@ namespace RiskOfChaos.Content
 
             // SuperhotController
             {
-                GameObject prefab = CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.SuperhotController), 0x56A18107, [
+                GameObject prefab = CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.SuperhotController), [
                     typeof(NetworkedBodyAttachment),
                     typeof(SuperhotPlayerController)
                 ]);
@@ -256,7 +262,7 @@ namespace RiskOfChaos.Content
                 AsyncOperationHandle<GameObject> newtStatueLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/NewtStatue/NewtStatue.prefab");
                 newtStatueLoad.Completed += handle =>
                 {
-                    GameObject prefab = handle.Result.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.NewtStatueFixedOrigin), 0x47F8569F);
+                    GameObject prefab = handle.Result.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.NewtStatueFixedOrigin));
                     Transform transform = prefab.transform;
 
                     for (int i = 0; i < transform.childCount; i++)
@@ -275,7 +281,7 @@ namespace RiskOfChaos.Content
                 AsyncOperationHandle<GameObject> fuelArrayAttachmentLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/QuestVolatileBattery/QuestVolatileBatteryAttachment.prefab");
                 fuelArrayAttachmentLoad.Completed += handle =>
                 {
-                    GameObject prefab = handle.Result.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.ExplodeAtLowHealthBodyAttachment), 0x3FF17151);
+                    GameObject prefab = handle.Result.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.ExplodeAtLowHealthBodyAttachment));
 
                     EntityStateMachine stateMachine = prefab.GetComponent<EntityStateMachine>();
                     stateMachine.initialStateType = new SerializableEntityStateType(typeof(ExplodeAtLowHealth.MonitorState));
