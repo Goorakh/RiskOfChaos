@@ -7,6 +7,10 @@
   * Unlimited Proc Chains: Disables proc chain restrictions, lasts 60 seconds
   * Hide Health Bar: Hides all health bars, lasts 60 seconds
 
+* Permanently Active effects:
+  * Fixed issues with ProperSave save/load
+  * Fixed changing Permanently Active config settings requiring a run restart to take effect
+
 * Activate All Interactables:
   * Added interactables to effect
     * Captain beacons

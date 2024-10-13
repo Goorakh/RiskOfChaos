@@ -155,7 +155,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         }
 
         [Server]
-        public void DispatchEffectServer(ChaosEffectInfo effect, in ChaosEffectDispatchArgs dispatchArgs)
+        public ChaosEffectComponent DispatchEffectServer(ChaosEffectInfo effect, in ChaosEffectDispatchArgs dispatchArgs)
         {
             if ((dispatchArgs.DispatchFlags & EffectDispatchFlags.DontSendChatMessage) == 0)
             {
@@ -171,14 +171,14 @@ namespace RiskOfChaos.EffectHandling.Controllers
 #if DEBUG
                 Log.Debug($"{effect} is not activatable, not dispatching");
 #endif
-                return;
+                return null;
             }
 
-            dispatchEffect(effect, dispatchArgs);
+            return dispatchEffect(effect, dispatchArgs);
         }
 
         [Server]
-        void dispatchEffect(ChaosEffectInfo effect, in ChaosEffectDispatchArgs args)
+        ChaosEffectComponent dispatchEffect(ChaosEffectInfo effect, in ChaosEffectDispatchArgs args)
         {
             if (effect is null)
                 throw new ArgumentNullException(nameof(effect));
@@ -217,7 +217,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     {
                         Log.Error($"Timed effect {timedEffect} is missing duration component");
                         Destroy(effectController);
-                        return;
+                        return null;
                     }
 
                     TimedEffectType timedType = timedEffect.TimedType;
@@ -239,6 +239,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 }
 
                 NetworkServer.Spawn(effectController);
+
+                return effectComponent;
             }
             catch (Exception e)
             {
@@ -250,6 +252,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     Destroy(effectController);
                 }
             }
+
+            return null;
         }
     }
 }

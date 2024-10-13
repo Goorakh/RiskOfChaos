@@ -41,19 +41,19 @@ namespace RiskOfChaos.EffectHandling
 
         public float Duration => GetDuration(TimedType);
 
-        readonly ConfigHolder<bool> _alwaysActiveEnabled;
-        readonly ConfigHolder<int> _alwaysActiveStackCount;
+        public readonly ConfigHolder<bool> AlwaysActiveEnabledConfig;
+        public readonly ConfigHolder<int> AlwaysActiveStackCountConfig;
 
         public int AlwaysActiveCount
         {
             get
             {
-                if (!_alwaysActiveEnabled.Value)
+                if (!AlwaysActiveEnabledConfig.Value)
                     return 0;
 
-                if (AllowDuplicates && _alwaysActiveStackCount != null)
+                if (AllowDuplicates && AlwaysActiveStackCountConfig != null)
                 {
-                    return _alwaysActiveStackCount.Value;
+                    return AlwaysActiveStackCountConfig.Value;
                 }
                 else
                 {
@@ -118,7 +118,7 @@ namespace RiskOfChaos.EffectHandling
                                        .Build();
             }
 
-            _alwaysActiveEnabled =
+            AlwaysActiveEnabledConfig =
                 ConfigFactory<bool>.CreateConfig("Permanently Active", false)
                                    .Description(_allowDuplicates ? "If one or more instances of this effect should always be active during a run" : "If this effect should always be active during a run")
                                    .OptionConfig(new CheckBoxConfig())
@@ -126,14 +126,14 @@ namespace RiskOfChaos.EffectHandling
 
             if (_allowDuplicates)
             {
-                _alwaysActiveStackCount =
+                AlwaysActiveStackCountConfig =
                     ConfigFactory<int>.CreateConfig("Permanently Active Duplicate Count", 1)
                                       .Description("How many instances of this effect should always be active, only takes effect if 'Permanently Active' is set to true and 'Allow Duplicates' is set to true")
                                       .AcceptableValues(new AcceptableValueMin<int>(1))
                                       .OptionConfig(new IntFieldConfig
                                       {
                                           Min = 1,
-                                          checkIfDisabled = () => !_alwaysActiveEnabled.Value || !AllowDuplicates
+                                          checkIfDisabled = () => !AlwaysActiveEnabledConfig.Value || !AllowDuplicates
                                       })
                                       .Build();
             }
@@ -209,9 +209,9 @@ namespace RiskOfChaos.EffectHandling
 
             _allowDuplicatesOverrideConfig?.Bind(this);
 
-            _alwaysActiveEnabled?.Bind(this);
+            AlwaysActiveEnabledConfig?.Bind(this);
 
-            _alwaysActiveStackCount?.Bind(this);
+            AlwaysActiveStackCountConfig?.Bind(this);
         }
 
         public override bool CanActivate(in EffectCanActivateContext context)
