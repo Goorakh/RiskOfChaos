@@ -19,6 +19,7 @@ namespace RiskOfChaos.ModificationController
         {
             GameObject prefab = Prefabs.CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.ValueModificationManager), [
                 typeof(SetDontDestroyOnLoad),
+                typeof(AutoCreateOnRunStart),
                 typeof(DestroyOnRunEnd),
                 typeof(ValueModificationManager),
                 typeof(AttackDelayModificationManager),
@@ -26,21 +27,6 @@ namespace RiskOfChaos.ModificationController
             ]);
 
             networkPrefabs.Add(prefab);
-        }
-
-        [SystemInitializer]
-        static void Init()
-        {
-            Run.onRunStartGlobal += onRunStartGlobal;
-        }
-
-        static void onRunStartGlobal(Run run)
-        {
-            if (!NetworkServer.active)
-                return;
-
-            GameObject valueModificationManager = Instantiate(RoCContent.NetworkedPrefabs.ValueModificationManager);
-            NetworkServer.Spawn(valueModificationManager);
         }
 
         void OnEnable()

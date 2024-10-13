@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using HG;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.ScreenEffect;
 using RoR2;
@@ -6,6 +7,7 @@ using RoR2.ContentManagement;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -133,9 +135,11 @@ namespace RiskOfChaos.Content
             populateTypeFields(typeof(BodyPrefabs), _contentPack.bodyPrefabs);
 
             populateTypeFields(typeof(NetworkedPrefabs), _contentPack.networkedObjectPrefabs);
-            NetworkedPrefabs.CacheNetworkPrefabs(networkedPrefabs);
+            NetworkedPrefabs.AllPrefabs = _contentPack.networkedObjectPrefabs.ToArray();
+            NetworkedPrefabs.CacheNetworkPrefabs();
 
             populateTypeFields(typeof(LocalPrefabs), localPrefabAssetCollection);
+            LocalPrefabs.AllPrefabs = localPrefabAssetCollection.ToArray();
 
             ScreenEffectDefs = [.. screenEffectsAssetCollection];
 
@@ -223,11 +227,13 @@ namespace RiskOfChaos.Content
 
         public static class NetworkedPrefabs
         {
+            internal static GameObject[] AllPrefabs;
+
             static readonly Dictionary<NetworkHash128, GameObject> _networkPrefabsByAssetId = [];
 
-            internal static void CacheNetworkPrefabs(ICollection<GameObject> networkPrefabs)
+            internal static void CacheNetworkPrefabs()
             {
-                foreach (GameObject prefab in networkPrefabs)
+                foreach (GameObject prefab in AllPrefabs)
                 {
                     if (!prefab.TryGetComponent(out NetworkIdentity networkIdentity))
                     {
@@ -274,6 +280,10 @@ namespace RiskOfChaos.Content
 
             public static GameObject ExplodeAtLowHealthBodyAttachment;
 
+            public static GameObject ScreenEffectManager;
+
+            public static GameObject InterpolatedScreenEffect;
+
             public static GameObject ValueModificationManager;
 
             public static GameObject CameraModificationProvider;
@@ -283,6 +293,8 @@ namespace RiskOfChaos.Content
 
         public static class LocalPrefabs
         {
+            internal static GameObject[] AllPrefabs;
+
             public static GameObject ItemStealerPositionIndicator;
 
             public static GameObject ActiveEffectListUIItem;

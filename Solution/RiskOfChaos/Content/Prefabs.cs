@@ -218,17 +218,6 @@ namespace RiskOfChaos.Content
                 asyncOperations.Add(sulfurPodBaseLoad);
             }
 
-            // DummyDamageInflictor
-            {
-                GameObject prefab = CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.DummyDamageInflictor), [
-                    typeof(SetDontDestroyOnLoad),
-                    typeof(DestroyOnRunEnd),
-                    typeof(DummyDamageInflictor)
-                ]);
-
-                networkedPrefabs.Add(prefab);
-            }
-
             // ConfigNetworker
             {
                 GameObject prefab = CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.ConfigNetworker), [

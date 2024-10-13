@@ -23,6 +23,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 GameObject prefab = Prefabs.CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.ChaosEffectManager), [
                     typeof(SetDontDestroyOnLoad),
+                    typeof(AutoCreateOnRunStart),
                     typeof(DestroyOnRunEnd),
                     typeof(ChaosEffectManager),
                     typeof(ChaosEffectDispatcher),
@@ -92,20 +93,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 effectSignalerTimer,
                 effectSignalerTwitchChatVote
             ];
-
-            Run.onRunStartGlobal += onRunStartGlobal;
-        }
-
-        static void onRunStartGlobal(Run run)
-        {
-            if (!NetworkServer.active)
-                return;
-
-            NetworkServer.Spawn(Instantiate(RoCContent.NetworkedPrefabs.ChaosEffectManager));
-
-#if DEBUG
-            Log.Debug("Created chaos effect manager");
-#endif
         }
 
         void Awake()

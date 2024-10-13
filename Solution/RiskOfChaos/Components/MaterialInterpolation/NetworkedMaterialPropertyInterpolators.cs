@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.Utilities;
 using System;
-using System.Buffers;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -8,11 +7,11 @@ namespace RiskOfChaos.Components.MaterialInterpolation
 {
     public sealed class NetworkedMaterialPropertyInterpolators : NetworkBehaviour, IMaterialPropertyInterpolator
     {
-        readonly SyncListMaterialPropertyInterpolationData _propertyInterpolationData = [];
+        public readonly SyncListMaterialPropertyInterpolationData PropertyInterpolations = [];
 
         public void SetValues(Material material, float interpolationFraction)
         {
-            foreach (MaterialPropertyInterpolationData property in _propertyInterpolationData)
+            foreach (MaterialPropertyInterpolationData property in PropertyInterpolations)
             {
                 int interpolateInt(in MaterialPropertyInterpolationData.ValuePair<int> pair)
                 {

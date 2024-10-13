@@ -1,10 +1,11 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using System;
 using UnityEngine;
 
 namespace RiskOfChaos.Components.MaterialInterpolation
 {
     [RequiredComponents(typeof(GenericInterpolationComponent))]
-    public sealed class MaterialInterpolator : MonoBehaviour
+    public sealed class MaterialInterpolator : MonoBehaviour, IMaterialProvider
     {
         GenericInterpolationComponent _interpolation;
 
@@ -13,6 +14,20 @@ namespace RiskOfChaos.Components.MaterialInterpolation
         Material _sharedMaterial;
 
         public Material MaterialInstance { get; private set; }
+
+        public event Action OnMaterialPropertiesChanged;
+
+        Material IMaterialProvider.Material
+        {
+            get => MaterialInstance;
+            set => SetMaterial(value);
+        }
+
+        event Action IMaterialProvider.OnPropertiesChanged
+        {
+            add => OnMaterialPropertiesChanged += value;
+            remove => OnMaterialPropertiesChanged -= value;
+        }
 
         void Awake()
         {
@@ -29,7 +44,7 @@ namespace RiskOfChaos.Components.MaterialInterpolation
 
         public void SetMaterial(Material mat)
         {
-            if (mat && mat == _sharedMaterial)
+            if (mat && (mat == _sharedMaterial || mat == MaterialInstance))
                 return;
 
             if (MaterialInstance)
@@ -58,6 +73,8 @@ namespace RiskOfChaos.Components.MaterialInterpolation
             {
                 propertyInterpolator.SetValues(MaterialInstance, interpolationFraction);
             }
+
+            OnMaterialPropertiesChanged?.Invoke();
         }
     }
 }

@@ -2,7 +2,6 @@
 using RoR2;
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -14,9 +13,9 @@ namespace RiskOfChaos.Components.MaterialInterpolation
         public readonly int PropertyNameId;
         public readonly MaterialPropertyType PropertyType;
 
-        public readonly ValuePairUnion Value;
+        public readonly ValuePairStore Value;
 
-        public MaterialPropertyInterpolationData(string propertyName, MaterialPropertyType propertyType, ValuePairUnion value)
+        public MaterialPropertyInterpolationData(string propertyName, MaterialPropertyType propertyType, ValuePairStore value)
         {
             PropertyName = propertyName;
             PropertyNameId = Shader.PropertyToID(PropertyName);
@@ -26,7 +25,7 @@ namespace RiskOfChaos.Components.MaterialInterpolation
 
         public MaterialPropertyInterpolationData(string propertyName, in ValuePair<int> intPair) : this(propertyName,
                                                                                                         MaterialPropertyType.Integer,
-                                                                                                        new ValuePairUnion { Integer = intPair })
+                                                                                                        new ValuePairStore { Integer = intPair })
         {
         }
 
@@ -34,9 +33,13 @@ namespace RiskOfChaos.Components.MaterialInterpolation
         {
         }
 
+        public MaterialPropertyInterpolationData(string propertyName, int value) : this(propertyName, new ValuePair<int>(value, value))
+        {
+        }
+
         public MaterialPropertyInterpolationData(string propertyName, in ValuePair<float> floatPair) : this(propertyName,
                                                                                                             MaterialPropertyType.Float,
-                                                                                                            new ValuePairUnion { Float = floatPair })
+                                                                                                            new ValuePairStore { Float = floatPair })
         {
         }
 
@@ -44,9 +47,13 @@ namespace RiskOfChaos.Components.MaterialInterpolation
         {
         }
 
+        public MaterialPropertyInterpolationData(string propertyName, float value) : this(propertyName, new ValuePair<float>(value, value))
+        {
+        }
+
         public MaterialPropertyInterpolationData(string propertyName, in ValuePair<Color> colorPair) : this(propertyName,
                                                                                                             MaterialPropertyType.Color,
-                                                                                                            new ValuePairUnion { Color = colorPair })
+                                                                                                            new ValuePairStore { Color = colorPair })
         {
         }
 
@@ -54,9 +61,13 @@ namespace RiskOfChaos.Components.MaterialInterpolation
         {
         }
 
+        public MaterialPropertyInterpolationData(string propertyName, in Color value) : this(propertyName, new ValuePair<Color>(value, value))
+        {
+        }
+
         public MaterialPropertyInterpolationData(string propertyName, in ValuePair<Vector4> vectorPair) : this(propertyName,
                                                                                                                MaterialPropertyType.Vector,
-                                                                                                               new ValuePairUnion { Vector = vectorPair })
+                                                                                                               new ValuePairStore { Vector = vectorPair })
         {
         }
 
@@ -64,9 +75,13 @@ namespace RiskOfChaos.Components.MaterialInterpolation
         {
         }
 
+        public MaterialPropertyInterpolationData(string propertyName, in Vector4 value) : this(propertyName, new ValuePair<Vector4>(value, value))
+        {
+        }
+
         public MaterialPropertyInterpolationData(string propertyName, in ValuePair<Matrix4x4> matrixPair) : this(propertyName,
                                                                                                                  MaterialPropertyType.Matrix,
-                                                                                                                 new ValuePairUnion { Matrix = matrixPair })
+                                                                                                                 new ValuePairStore { Matrix = matrixPair })
         {
         }
 
@@ -74,27 +89,31 @@ namespace RiskOfChaos.Components.MaterialInterpolation
         {
         }
 
+        public MaterialPropertyInterpolationData(string propertyName, in Matrix4x4 value) : this(propertyName, new ValuePair<Matrix4x4>(value, value))
+        {
+        }
+
         public MaterialPropertyInterpolationData(string propertyName, ValuePair<float>[] floatArray) : this(propertyName,
                                                                                                             MaterialPropertyType.FloatArray,
-                                                                                                            new ValuePairUnion { FloatArray = floatArray })
+                                                                                                            new ValuePairStore { FloatArray = floatArray })
         {
         }
 
         public MaterialPropertyInterpolationData(string propertyName, ValuePair<Color>[] colorArray) : this(propertyName,
                                                                                                             MaterialPropertyType.ColorArray,
-                                                                                                            new ValuePairUnion { ColorArray = colorArray })
+                                                                                                            new ValuePairStore { ColorArray = colorArray })
         {
         }
 
         public MaterialPropertyInterpolationData(string propertyName, ValuePair<Vector4>[] vectorArray) : this(propertyName,
                                                                                                                MaterialPropertyType.VectorArray,
-                                                                                                               new ValuePairUnion { VectorArray = vectorArray })
+                                                                                                               new ValuePairStore { VectorArray = vectorArray })
         {
         }
 
         public MaterialPropertyInterpolationData(string propertyName, ValuePair<Matrix4x4>[] matrixArray) : this(propertyName,
                                                                                                                  MaterialPropertyType.MatrixArray,
-                                                                                                                 new ValuePairUnion { MatrixArray = matrixArray })
+                                                                                                                 new ValuePairStore { MatrixArray = matrixArray })
         {
         }
 
@@ -110,7 +129,7 @@ namespace RiskOfChaos.Components.MaterialInterpolation
         {
             string propertyName = reader.ReadString();
             MaterialPropertyType propertyType = (MaterialPropertyType)reader.ReadPackedIndex32();
-            ValuePairUnion value = ValuePairUnion.Read(propertyType, reader);
+            ValuePairStore value = ValuePairStore.Read(propertyType, reader);
 
             return new MaterialPropertyInterpolationData(propertyName, propertyType, value);
         }
@@ -119,37 +138,27 @@ namespace RiskOfChaos.Components.MaterialInterpolation
         {
             return PropertyType == other.PropertyType &&
                    string.Equals(PropertyName, other.PropertyName) &&
-                   ValuePairUnion.Equals(Value, other.Value, PropertyType);
+                   ValuePairStore.Equals(Value, other.Value, PropertyType);
         }
 
-        [StructLayout(LayoutKind.Explicit)]
-        public struct ValuePairUnion
+        public struct ValuePairStore
         {
-            [FieldOffset(0)]
             public ValuePair<int> Integer;
 
-            [FieldOffset(0)]
             public ValuePair<float> Float;
 
-            [FieldOffset(0)]
             public ValuePair<Color> Color;
 
-            [FieldOffset(0)]
             public ValuePair<Vector4> Vector;
 
-            [FieldOffset(0)]
             public ValuePair<Matrix4x4> Matrix;
 
-            [FieldOffset(0)]
             public ValuePair<float>[] FloatArray;
 
-            [FieldOffset(0)]
             public ValuePair<Color>[] ColorArray;
 
-            [FieldOffset(0)]
             public ValuePair<Vector4>[] VectorArray;
 
-            [FieldOffset(0)]
             public ValuePair<Matrix4x4>[] MatrixArray;
 
             public readonly void Write(MaterialPropertyType propertyType, NetworkWriter writer)
@@ -217,9 +226,9 @@ namespace RiskOfChaos.Components.MaterialInterpolation
                 }
             }
 
-            public static ValuePairUnion Read(MaterialPropertyType propertyType, NetworkReader reader)
+            public static ValuePairStore Read(MaterialPropertyType propertyType, NetworkReader reader)
             {
-                ValuePairUnion result = default;
+                ValuePairStore result = default;
 
                 switch (propertyType)
                 {
@@ -281,7 +290,7 @@ namespace RiskOfChaos.Components.MaterialInterpolation
                 return result;
             }
 
-            public static bool Equals(in ValuePairUnion a, in ValuePairUnion b, MaterialPropertyType propertyType)
+            public static bool Equals(in ValuePairStore a, in ValuePairStore b, MaterialPropertyType propertyType)
             {
                 switch (propertyType)
                 {

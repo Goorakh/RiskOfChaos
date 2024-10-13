@@ -2,7 +2,9 @@
 {
     public enum ScreenEffectType
     {
+        Invalid = -1,
         World,
-        UIAndWorld
+        UIAndWorld,
+        Count
     }
 }
