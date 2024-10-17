@@ -19,7 +19,7 @@ namespace RiskOfChaos.Components.CostProviders
 
         public int Cost
         {
-            get => MultiShopController.Networkcost;
+            get => MultiShopController.cost;
             set => MultiShopController.Networkcost = value;
         }
     }

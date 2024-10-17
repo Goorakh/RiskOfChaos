@@ -1,33 +1,22 @@
-﻿using RiskOfChaos.Utilities;
+﻿using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.UI;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace RiskOfChaos.Trackers
 {
+    [DisallowMultipleComponent]
     public class RunTimerUITracker : MonoBehaviour
     {
-        static readonly HashSet<RunTimerUIController> _trackedRunTimers = [];
-
         [SystemInitializer]
         static void Init()
         {
-            On.RoR2.UI.RunTimerUIController.Update += (orig, self) =>
+            On.RoR2.UI.RunTimerUIController.Start += (orig, self) =>
             {
                 orig(self);
 
-                if (_trackedRunTimers.Add(self))
-                {
-                    RunTimerUITracker tracker = self.gameObject.AddComponent<RunTimerUITracker>();
-                    tracker.TimerController = self;
-                }
-            };
-
-            Run.onRunDestroyGlobal += _ =>
-            {
-                _trackedRunTimers.Clear();
-                InstanceUtils.DestroyAllTrackedInstances<RunTimerUITracker>();
+                RunTimerUITracker tracker = self.gameObject.EnsureComponent<RunTimerUITracker>();
+                tracker.TimerController = self;
             };
         }
 
@@ -58,11 +47,6 @@ namespace RiskOfChaos.Trackers
         void OnDisable()
         {
             InstanceTracker.Remove(this);
-        }
-
-        void OnDestroy()
-        {
-            _trackedRunTimers.Remove(TimerController);
         }
 
         public static bool IsAnyTimerVisibleForHUD(HUD hud)

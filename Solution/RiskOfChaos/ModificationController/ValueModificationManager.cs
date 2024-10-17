@@ -3,9 +3,9 @@ using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.ModificationController.AttackDelay;
 using RiskOfChaos.ModificationController.Camera;
+using RiskOfChaos.ModificationController.Cost;
 using RoR2;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModificationController
 {
@@ -23,7 +23,8 @@ namespace RiskOfChaos.ModificationController
                 typeof(DestroyOnRunEnd),
                 typeof(ValueModificationManager),
                 typeof(AttackDelayModificationManager),
-                typeof(CameraModificationManager)
+                typeof(CameraModificationManager),
+                typeof(CostModificationManager)
             ]);
 
             networkPrefabs.Add(prefab);

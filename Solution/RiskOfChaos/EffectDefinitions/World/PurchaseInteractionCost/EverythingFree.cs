@@ -1,38 +1,44 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.OLD_ModifierController.Cost;
-using System;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.Cost;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
 {
     [ChaosTimedEffect("everything_free", 30f, AllowDuplicates = false)]
-    public sealed class EverythingFree : TimedEffect, ICostModificationProvider
+    public sealed class EverythingFree : NetworkBehaviour
     {
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return CostModificationManager.Instance;
+            return RoCContent.NetworkedPrefabs.CostModificationProvider;
         }
 
-        public event Action OnValueDirty;
+        ValueModificationController _costModificationController;
 
-        public override void OnStart()
+        void Start()
         {
-            CostModificationManager.Instance.RegisterModificationProvider(this);
-        }
-
-        public override void OnEnd()
-        {
-            if (CostModificationManager.Instance)
+            if (NetworkServer.active)
             {
-                CostModificationManager.Instance.UnregisterModificationProvider(this);
+                _costModificationController = Instantiate(RoCContent.NetworkedPrefabs.CostModificationProvider).GetComponent<ValueModificationController>();
+
+                CostModificationProvider costModificationProvider = _costModificationController.GetComponent<CostModificationProvider>();
+                costModificationProvider.CostMultiplier = 0f;
+                costModificationProvider.IgnoreZeroCostRestriction = true;
+
+                NetworkServer.Spawn(_costModificationController.gameObject);
             }
         }
 
-        public void ModifyValue(ref CostModificationInfo value)
+        void OnDestroy()
         {
-            value.CostMultiplier = 0f;
-            value.AllowZeroCostResultOverride = true;
+            if (_costModificationController)
+            {
+                _costModificationController.Retire();
+                _costModificationController = null;
+            }
         }
     }
 }

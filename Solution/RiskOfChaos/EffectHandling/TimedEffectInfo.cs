@@ -21,8 +21,8 @@ namespace RiskOfChaos.EffectHandling
         readonly ConfigHolder<bool> _allowDuplicatesOverrideConfig;
         public bool AllowDuplicates => _allowDuplicatesOverrideConfig?.Value ?? _allowDuplicates;
 
-        readonly ConfigHolder<TimedEffectType> _timedType;
-        public TimedEffectType TimedType => _timedType.Value;
+        readonly ConfigHolder<ConfigTimedEffectType> _timedType;
+        public TimedEffectType TimedType => (TimedEffectType)_timedType.Value;
 
         readonly ConfigHolder<float> _fixedTimeDuration;
         public float DurationSeconds => _fixedTimeDuration.Value;
@@ -64,16 +64,27 @@ namespace RiskOfChaos.EffectHandling
 
         public TimedEffectInfo(ChaosEffectIndex effectIndex, ChaosTimedEffectAttribute attribute, ConfigFile configFile) : base(effectIndex, attribute, configFile)
         {
-            _timedType = ConfigFactory<TimedEffectType>.CreateConfig("Duration Type", attribute.TimedType)
-                                                       .Description($"""
-                                                        What should determine how long this effect lasts.
+            ConfigTimedEffectType configTimedType;
+            if (attribute.TimedType == TimedEffectType.AlwaysActive)
+            {
+                Log.Warning($"Effect {Identifier} is defined with a duration type of {nameof(TimedEffectType.AlwaysActive)}, this is not supported, assuming {nameof(TimedEffectType.Permanent)}");
+                configTimedType = ConfigTimedEffectType.Permanent;
+            }
+            else
+            {
+                configTimedType = (ConfigTimedEffectType)attribute.TimedType;
+            }
 
-                                                        {nameof(TimedEffectType.UntilStageEnd)}: Lasts until you exit the stage.
-                                                        {nameof(TimedEffectType.FixedDuration)}: Lasts for a set number of seconds.
-                                                        {nameof(TimedEffectType.Permanent)}: Lasts until the end of the run.
-                                                        """)
-                                                       .OptionConfig(new ChoiceConfig())
-                                                       .Build();
+            _timedType = ConfigFactory<ConfigTimedEffectType>.CreateConfig("Duration Type", configTimedType)
+                                                              .Description($"""
+                                                               What should determine how long this effect lasts.
+
+                                                               {nameof(ConfigTimedEffectType.UntilStageEnd)}: Lasts until you exit the stage.
+                                                               {nameof(ConfigTimedEffectType.FixedDuration)}: Lasts for a set number of seconds.
+                                                               {nameof(ConfigTimedEffectType.Permanent)}: Lasts until the end of the run.
+                                                               """)
+                                                              .OptionConfig(new ChoiceConfig())
+                                                              .Build();
 
             float defaultDuration = attribute.DurationSeconds;
             if (defaultDuration < 0f)
@@ -182,10 +193,15 @@ namespace RiskOfChaos.EffectHandling
 
         public bool GetShouldDisplayOnHUD(TimedEffectType timedType)
         {
-            if (timedType == TimedEffectType.Permanent)
-                return !HideFromEffectsListWhenPermanent;
-
-            return true;
+            switch (timedType)
+            {
+                case TimedEffectType.Permanent:
+                    return !HideFromEffectsListWhenPermanent;
+                case TimedEffectType.AlwaysActive:
+                    return !HideFromEffectsListWhenPermanent && Configs.UI.DisplayAlwaysActiveEffects.Value;
+                default:
+                    return true;
+            }
         }
 
         protected override void modifyPrefabComponents(List<Type> componentTypes)

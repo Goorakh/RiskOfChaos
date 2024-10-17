@@ -112,7 +112,6 @@ namespace RiskOfChaos.SaveHandling
         {
             serializedObject.PrefabAssetId = AssetId;
 
-            MonoBehaviour[] components = GetComponents<MonoBehaviour>();
             List<SerializableObjectComponent> serializedComponents = new List<SerializableObjectComponent>(_serializationInfoByComponentType.Count);
 
             foreach (KeyValuePair<Type, ComponentSerializationInfo> kvp in _serializationInfoByComponentType)

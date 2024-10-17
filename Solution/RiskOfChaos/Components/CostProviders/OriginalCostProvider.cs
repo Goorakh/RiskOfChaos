@@ -1,8 +1,6 @@
 ﻿using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using System.Collections;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.Components.CostProviders
@@ -14,63 +12,65 @@ namespace RiskOfChaos.Components.CostProviders
         {
             On.RoR2.PurchaseInteraction.Awake += (orig, self) =>
             {
-                orig(self);
-
-                self.gameObject.EnsureComponent<OriginalCostProvider>();
-            };
-
-            static void addToPrefab(string assetPath)
-            {
-                GameObject prefab = Addressables.LoadAssetAsync<GameObject>(assetPath).WaitForCompletion();
-
-                if (!prefab)
+                if (NetworkServer.active)
                 {
-                    Log.Warning($"Null prefab at path {assetPath}");
-                    return;
+                    self.gameObject.EnsureComponent<OriginalCostProvider>();
                 }
 
-                prefab.EnsureComponent<OriginalCostProvider>();
-            }
+                orig(self);
+            };
 
-            addToPrefab("RoR2/Base/TripleShop/TripleShop.prefab");
-            addToPrefab("RoR2/Base/TripleShopEquipment/TripleShopEquipment.prefab");
-            addToPrefab("RoR2/Base/TripleShopLarge/TripleShopLarge.prefab");
+            On.RoR2.MultiShopController.Start += (orig, self) =>
+            {
+                if (NetworkServer.active)
+                {
+                    self.gameObject.EnsureComponent<OriginalCostProvider>();
+                }
+
+                orig(self);
+            };
         }
 
         public delegate void OnOriginalCostInitializedDelegate(OriginalCostProvider originalCost);
         public static event OnOriginalCostInitializedDelegate OnOriginalCostInitialized;
 
-        CostTypeIndex ICostProvider.CostType { get; set; }
-        public CostTypeIndex CostType
+        CostTypeIndex ICostProvider.CostType
         {
-            get => ((ICostProvider)this).CostType;
-            private set => ((ICostProvider)this).CostType = value;
+            get => OriginalCostType;
+            set => OriginalCostType = value;
         }
+        public CostTypeIndex OriginalCostType { get; private set; }
 
-        int ICostProvider.Cost { get; set; }
-        public int Cost
+        int ICostProvider.Cost
         {
-            get => ((ICostProvider)this).Cost;
-            private set => ((ICostProvider)this).Cost = value;
+            get => OriginalCost;
+            set => OriginalCost = value;
         }
+        public int OriginalCost { get; private set; }
 
-        public int EstimatedBaseCost { get; private set; } = 0;
-
-        public bool IsInitialized { get; private set; }
+        public int BaseCost { get; private set; }
 
         public ICostProvider ActiveCostProvider { get; private set; }
 
+        bool _isInitialized;
+
         void Awake()
         {
-            bool alreadyInitialized;
+            if (!NetworkServer.active)
+            {
+                Log.Error($"Added to {name} on client");
+                enabled = false;
+                return;
+            }
+
             if (TryGetComponent(out PurchaseInteraction purchaseInteraction))
             {
-                alreadyInitialized = NetworkServer.active && purchaseInteraction.automaticallyScaleCostWithDifficulty;
+                BaseCost = purchaseInteraction.cost;
                 ActiveCostProvider = new PurchaseInteractionCostProvider(purchaseInteraction);
             }
             else if (TryGetComponent(out MultiShopController multiShopController))
             {
-                alreadyInitialized = false;
+                BaseCost = multiShopController.baseCost;
                 ActiveCostProvider = new MultiShopControllerCostProvider(multiShopController);
             }
             else
@@ -80,64 +80,63 @@ namespace RiskOfChaos.Components.CostProviders
                 return;
             }
 
-            if (alreadyInitialized)
-            {
-                markInitialized();
-            }
-            else
-            {
-                StartCoroutine(waitThenInitialize());
-            }
+#if DEBUG
+            Log.Debug($"Determined base cost of {name}: {BaseCost} ({ActiveCostProvider.CostType})");
+#endif
         }
 
-        IEnumerator waitThenInitialize()
+        void Start()
         {
-            yield return new WaitForFixedUpdate();
-            yield return new WaitForFixedUpdate();
-
-            markInitialized();
-        }
-
-        void markInitialized()
-        {
-            CostType = ActiveCostProvider.CostType;
-            Cost = ActiveCostProvider.Cost;
-
-            if (ActiveCostProvider is MultiShopControllerCostProvider multishopCostProvider)
+            if (TryGetComponent(out ShopTerminalBehavior shopTerminalBehavior))
             {
-                EstimatedBaseCost = multishopCostProvider.MultiShopController.baseCost;
-            }
-            else if (CostType == CostTypeIndex.Money && Run.instance)
-            {
-                EstimatedBaseCost = Mathf.RoundToInt(Cost / Mathf.Pow(Run.instance.difficultyCoefficient, 1.25f));
-            }
-            else
-            {
-                EstimatedBaseCost = Cost;
+                if (shopTerminalBehavior.serverMultiShopController &&
+                    shopTerminalBehavior.serverMultiShopController.TryGetComponent(out OriginalCostProvider multishopControllerCostProvider))
+                {
+                    BaseCost = multishopControllerCostProvider.BaseCost;
+
+#if DEBUG
+                    Log.Debug($"Determined actual base cost of {name} from {multishopControllerCostProvider.name}: {BaseCost}");
+#endif
+                }
             }
 
-            IsInitialized = true;
+            OriginalCostType = ActiveCostProvider.CostType;
+            OriginalCost = ActiveCostProvider.Cost;
+
+#if DEBUG
+            Log.Debug($"Initialized cost of {name}: {OriginalCostType} ({OriginalCost})");
+#endif
+
+            _isInitialized = true;
             InstanceTracker.Add(this);
 
             OnOriginalCostInitialized?.Invoke(this);
-
-#if DEBUG
-            Log.Debug($"Initialized cost of {name}: {CostType} ({Cost})");
-#endif
         }
 
         void OnEnable()
         {
-            if (IsInitialized)
+            if (_isInitialized)
             {
-                OnOriginalCostInitialized?.Invoke(this);
                 InstanceTracker.Add(this);
+                OnOriginalCostInitialized?.Invoke(this);
             }
         }
 
         void OnDisable()
         {
             InstanceTracker.Remove(this);
+        }
+
+        public void ResetCost()
+        {
+            if (ActiveCostProvider == null)
+            {
+                Log.Error("Cannot reset cost, no active cost provider");
+                return;
+            }
+
+            ActiveCostProvider.Cost = OriginalCost;
+            ActiveCostProvider.CostType = OriginalCostType;
         }
     }
 }

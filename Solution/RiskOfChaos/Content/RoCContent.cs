@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using HG;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.ScreenEffect;
 using RoR2;
@@ -7,6 +6,7 @@ using RoR2.ContentManagement;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -229,10 +229,14 @@ namespace RiskOfChaos.Content
         {
             internal static GameObject[] AllPrefabs;
 
-            static readonly Dictionary<NetworkHash128, GameObject> _networkPrefabsByAssetId = [];
+            static readonly Dictionary<NetworkHash128, GameObject> _prefabsByAssetId = [];
+            public static readonly ReadOnlyDictionary<NetworkHash128, GameObject> PrefabsByAssetId = new ReadOnlyDictionary<NetworkHash128, GameObject>(_prefabsByAssetId);
 
             internal static void CacheNetworkPrefabs()
             {
+                _prefabsByAssetId.Clear();
+                _prefabsByAssetId.EnsureCapacity(AllPrefabs.Length);
+
                 foreach (GameObject prefab in AllPrefabs)
                 {
                     if (!prefab.TryGetComponent(out NetworkIdentity networkIdentity))
@@ -248,18 +252,15 @@ namespace RiskOfChaos.Content
                         continue;
                     }
 
-                    if (!_networkPrefabsByAssetId.TryAdd(assetId, prefab))
+                    if (!_prefabsByAssetId.TryAdd(assetId, prefab))
                     {
-                        GameObject existingPrefab = _networkPrefabsByAssetId[assetId];
+                        GameObject existingPrefab = _prefabsByAssetId[assetId];
 
                         Log.Error($"Duplicate assed ids! '{existingPrefab.name}' and '{prefab.name}' both have the same asset id of {assetId}");
                     }
                 }
-            }
 
-            public static bool TryGetPrefab(NetworkHash128 assetId, out GameObject prefab)
-            {
-                return _networkPrefabsByAssetId.TryGetValue(assetId, out prefab);
+                _prefabsByAssetId.TrimExcess();
             }
 
             public static GameObject ChaosEffectManager;
@@ -289,6 +290,10 @@ namespace RiskOfChaos.Content
             public static GameObject CameraModificationProvider;
 
             public static GameObject AttackDelayModificationProvider;
+
+            public static GameObject CostModificationProvider;
+
+            public static GameObject CostConversionProvider;
         }
 
         public static class LocalPrefabs

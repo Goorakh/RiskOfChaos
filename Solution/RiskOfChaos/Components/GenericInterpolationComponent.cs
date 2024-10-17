@@ -141,7 +141,10 @@ namespace RiskOfChaos.Components
         {
             if (InterpolationOut.Duration > 0f)
             {
-                InterpolationOutStartTime = Run.FixedTimeStamp.now;
+                if (InterpolationOutStartTime.isInfinity)
+                {
+                    InterpolationOutStartTime = Run.FixedTimeStamp.now;
+                }
             }
             else
             {

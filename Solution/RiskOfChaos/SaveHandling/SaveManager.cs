@@ -16,10 +16,12 @@ namespace RiskOfChaos.SaveHandling
 {
     static class SaveManager
     {
+        [Obsolete]
         public delegate void CollectSaveDataDelegate(ref SaveContainer container);
         [Obsolete]
         public static event CollectSaveDataDelegate CollectSaveData;
 
+        [Obsolete]
         public delegate void OnSaveDataLoadedDelegate(in SaveContainer container);
         [Obsolete]
         public static event OnSaveDataLoadedDelegate LoadSaveData
@@ -118,7 +120,7 @@ namespace RiskOfChaos.SaveHandling
                 {
                     if (!existingSingletonInstances.TryGetValue(serializedObject.PrefabAssetId, out ObjectSerializationComponent serializationComponent))
                     {
-                        if (!RoCContent.NetworkedPrefabs.TryGetPrefab(serializedObject.PrefabAssetId, out GameObject prefab))
+                        if (!RoCContent.NetworkedPrefabs.PrefabsByAssetId.TryGetValue(serializedObject.PrefabAssetId, out GameObject prefab))
                         {
                             Log.Error($"Failed to find network prefab for asset id {serializedObject.PrefabAssetId}");
                             continue;

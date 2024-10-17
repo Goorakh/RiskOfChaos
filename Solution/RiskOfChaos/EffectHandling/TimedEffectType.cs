@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace RiskOfChaos.EffectHandling
+﻿namespace RiskOfChaos.EffectHandling
 {
-    public enum TimedEffectType : byte
+    public enum TimedEffectType
     {
         UntilStageEnd,
         FixedDuration,
@@ -10,14 +8,10 @@ namespace RiskOfChaos.EffectHandling
         AlwaysActive
     }
 
-    [Flags]
-    public enum TimedEffectFlags
+    public enum ConfigTimedEffectType
     {
-        None = 0,
-        UntilStageEnd = 1 << TimedEffectType.UntilStageEnd,
-        FixedDuration = 1 << TimedEffectType.FixedDuration,
-        Permanent = 1 << TimedEffectType.Permanent,
-        AlwaysActive = 1 << TimedEffectType.AlwaysActive,
-        All = ~0b0
+        UntilStageEnd = TimedEffectType.UntilStageEnd,
+        FixedDuration = TimedEffectType.FixedDuration,
+        Permanent = TimedEffectType.Permanent
     }
 }

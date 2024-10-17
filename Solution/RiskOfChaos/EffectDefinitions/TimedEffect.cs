@@ -6,29 +6,13 @@ namespace RiskOfChaos.EffectDefinitions
     [Obsolete]
     public abstract class TimedEffect : BaseEffect
     {
-        public readonly new TimedEffectInfo EffectInfo;
+        [Obsolete]
+        public readonly TimedEffectInfo EffectInfo;
 
-        public TimedEffect() : base()
-        {
-        }
-
-        public bool IsNetDirty;
-
+        [Obsolete]
         public TimedEffectType TimedType { get; internal set; }
 
-        public bool MatchesFlag(TimedEffectFlags flags)
-        {
-            return false;
-        }
-
-        public virtual bool ShouldDisplayOnHUD
-        {
-            get
-            {
-                return EffectInfo.ShouldDisplayOnHUD && (TimedType != TimedEffectType.AlwaysActive || Configs.UI.DisplayAlwaysActiveEffects.Value);
-            }
-        }
-
+        [Obsolete]
         public float MaxStocks
         {
             get
@@ -40,6 +24,7 @@ namespace RiskOfChaos.EffectDefinitions
             }
         }
 
+        [Obsolete]
         public uint SpentStocks
         {
             get
@@ -51,11 +36,13 @@ namespace RiskOfChaos.EffectDefinitions
             }
         }
 
+        [Obsolete]
         public float StocksRemaining => MaxStocks - SpentStocks;
 
+        [Obsolete]
         public float DurationSeconds { get; internal set; } = -1f;
-        public float TimeStarted { get; private set; }
 
+        [Obsolete]
         public float TimeElapsed
         {
             get
@@ -64,6 +51,7 @@ namespace RiskOfChaos.EffectDefinitions
             }
         }
 
+        [Obsolete]
         public float TimeRemaining
         {
             get
@@ -72,6 +60,7 @@ namespace RiskOfChaos.EffectDefinitions
             }
         }
 
+        [Obsolete]
         public abstract void OnEnd();
     }
 }

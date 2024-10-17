@@ -2,14 +2,30 @@
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Runtime.CompilerServices;
-using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.Networking.Components
 {
     public sealed class SyncCostType : NetworkBehaviour
     {
+        [SystemInitializer]
+        static void Init()
+        {
+            On.RoR2.PurchaseInteraction.Awake += (orig, self) =>
+            {
+                orig(self);
+
+                self.gameObject.EnsureComponent<SyncCostType>();
+            };
+
+            On.RoR2.MultiShopController.Start += (orig, self) =>
+            {
+                orig(self);
+
+                self.gameObject.EnsureComponent<SyncCostType>();
+            };
+        }
+
         ICostProvider _costProvider;
 
         [SyncVar(hook = nameof(syncCostType))]
@@ -26,15 +42,9 @@ namespace RiskOfChaos.Networking.Components
 
         void Awake()
         {
-            if (TryGetComponent(out PurchaseInteraction purchaseInteraction))
-            {
-                _costProvider = new PurchaseInteractionCostProvider(purchaseInteraction);
-            }
-            else if (TryGetComponent(out MultiShopController multiShopController))
-            {
-                _costProvider = new MultiShopControllerCostProvider(multiShopController);
-            }
-            else
+            _costProvider = ICostProvider.GetFromObject(gameObject);
+
+            if (_costProvider == null)
             {
                 Log.Error($"No valid component found for {this}");
                 enabled = false;
@@ -76,34 +86,6 @@ namespace RiskOfChaos.Networking.Components
 #endif
 
             _costProvider.CostType = CostType;
-        }
-
-        [SystemInitializer]
-        static void Init()
-        {
-            On.RoR2.PurchaseInteraction.Awake += (orig, self) =>
-            {
-                orig(self);
-
-                self.gameObject.EnsureComponent<SyncCostType>();
-            };
-
-            static void addToPrefab(string assetPath)
-            {
-                GameObject prefab = Addressables.LoadAssetAsync<GameObject>(assetPath).WaitForCompletion();
-
-                if (!prefab)
-                {
-                    Log.Warning($"Null prefab at path {assetPath}");
-                    return;
-                }
-
-                prefab.EnsureComponent<SyncCostType>();
-            }
-
-            addToPrefab("RoR2/Base/TripleShop/TripleShop.prefab");
-            addToPrefab("RoR2/Base/TripleShopEquipment/TripleShopEquipment.prefab");
-            addToPrefab("RoR2/Base/TripleShopLarge/TripleShopLarge.prefab");
         }
     }
 }
