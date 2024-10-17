@@ -12,102 +12,105 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Content
 {
-    static class BodyPrefabs
+    partial class RoCContent
     {
-        [ContentInitializer]
-        static IEnumerator LoadContent(BodyPrefabAssetCollection bodyPrefabs)
+        partial class BodyPrefabs
         {
-            List<AsyncOperationHandle> asyncOperations = [];
-
-            // ChaosFakeInteractorBody
+            [ContentInitializer]
+            static IEnumerator LoadContent(BodyPrefabAssetCollection bodyPrefabs)
             {
-                AsyncOperationHandle<GameObject> altarSkeletonLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/AltarSkeleton/AltarSkeletonBody.prefab");
-                altarSkeletonLoad.Completed += handle =>
+                List<AsyncOperationHandle> asyncOperations = [];
+
+                // ChaosFakeInteractorBody
                 {
-                    GameObject bodyPrefab = handle.Result.InstantiateNetworkedPrefab(nameof(RoCContent.BodyPrefabs.ChaosFakeInteractorBody));
-
-                    Transform transform = bodyPrefab.transform;
-                    transform.position = Vector3.zero;
-                    transform.rotation = Quaternion.identity;
-                    transform.localScale = Vector3.one;
-
-                    foreach (AkEvent akEvent in bodyPrefab.GetComponents<AkEvent>())
+                    AsyncOperationHandle<GameObject> altarSkeletonLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/AltarSkeleton/AltarSkeletonBody.prefab");
+                    altarSkeletonLoad.Completed += handle =>
                     {
-                        GameObject.Destroy(akEvent);
-                    }
+                        GameObject bodyPrefab = handle.Result.InstantiateNetworkedPrefab(nameof(ChaosFakeInteractorBody));
 
-                    GameObject.Destroy(bodyPrefab.GetComponent<CharacterDeathBehavior>());
-                    GameObject.Destroy(bodyPrefab.GetComponent<GameObjectUnlockableFilter>());
+                        Transform transform = bodyPrefab.transform;
+                        transform.position = Vector3.zero;
+                        transform.rotation = Quaternion.identity;
+                        transform.localScale = Vector3.one;
 
-                    ModelLocator modelLocator = bodyPrefab.GetComponent<ModelLocator>();
-                    modelLocator.dontDetatchFromParent = true;
-
-                    Transform modelBase = transform.Find("ModelBase");
-                    if (modelBase)
-                    {
-                        for (int i = 0; i < modelBase.childCount; i++)
+                        foreach (AkEvent akEvent in bodyPrefab.GetComponents<AkEvent>())
                         {
-                            GameObject.Destroy(modelBase.GetChild(i).gameObject);
+                            GameObject.Destroy(akEvent);
                         }
 
-                        GameObject model = new GameObject("EmptyModel");
-                        model.transform.SetParent(modelBase, false);
+                        GameObject.Destroy(bodyPrefab.GetComponent<CharacterDeathBehavior>());
+                        GameObject.Destroy(bodyPrefab.GetComponent<GameObjectUnlockableFilter>());
 
-                        modelLocator._modelTransform = model.transform;
+                        ModelLocator modelLocator = bodyPrefab.GetComponent<ModelLocator>();
+                        modelLocator.dontDetatchFromParent = true;
+
+                        Transform modelBase = transform.Find("ModelBase");
+                        if (modelBase)
+                        {
+                            for (int i = 0; i < modelBase.childCount; i++)
+                            {
+                                GameObject.Destroy(modelBase.GetChild(i).gameObject);
+                            }
+
+                            GameObject model = new GameObject("EmptyModel");
+                            model.transform.SetParent(modelBase, false);
+
+                            modelLocator._modelTransform = model.transform;
+                        }
+
+                        CharacterBody body = bodyPrefab.GetComponent<CharacterBody>();
+
+                        body.baseNameToken = "CHAOS_FAKE_INTERACTOR_BODY_NAME";
+                        body.baseMaxHealth = 1e9F; // 10^9
+                        body.baseRegen = 1e9F; // 10^9
+
+                        EntityStateMachine entityStateMachine = bodyPrefab.GetComponent<EntityStateMachine>();
+                        entityStateMachine.initialStateType = new SerializableEntityStateType(typeof(Idle));
+                        entityStateMachine.mainStateType = new SerializableEntityStateType(typeof(Idle));
+
+                        TeamComponent teamComponent = bodyPrefab.GetComponent<TeamComponent>();
+                        teamComponent._teamIndex = TeamIndex.None;
+
+                        bodyPrefab.AddComponent<Interactor>();
+                        bodyPrefab.AddComponent<SetDontDestroyOnLoad>();
+                        bodyPrefab.AddComponent<DestroyOnRunEnd>();
+
+                        bodyPrefab.AddComponent<ChaosInteractor>();
+                        bodyPrefab.AddComponent<ExcludeFromBodyInstancesList>();
+
+                        bodyPrefabs.Add(bodyPrefab);
+                    };
+
+                    asyncOperations.Add(altarSkeletonLoad);
+                }
+
+                yield return asyncOperations.WaitForAllLoaded();
+            }
+
+            [SystemInitializer]
+            static void InitHooks()
+            {
+                static void trySpawnChaosInteractor()
+                {
+                    if (!ChaosInteractor.Instance)
+                    {
+                        NetworkServer.Spawn(GameObject.Instantiate(RoCContent.BodyPrefabs.ChaosFakeInteractorBody));
                     }
+                }
 
-                    CharacterBody body = bodyPrefab.GetComponent<CharacterBody>();
+                Run.onRunStartGlobal += _ =>
+                {
+                    if (!NetworkServer.active)
+                        return;
 
-                    body.baseNameToken = "CHAOS_FAKE_INTERACTOR_BODY_NAME";
-                    body.baseMaxHealth = 1e9F; // 10^9
-                    body.baseRegen = 1e9F; // 10^9
-
-                    EntityStateMachine entityStateMachine = bodyPrefab.GetComponent<EntityStateMachine>();
-                    entityStateMachine.initialStateType = new SerializableEntityStateType(typeof(Idle));
-                    entityStateMachine.mainStateType = new SerializableEntityStateType(typeof(Idle));
-
-                    TeamComponent teamComponent = bodyPrefab.GetComponent<TeamComponent>();
-                    teamComponent._teamIndex = TeamIndex.None;
-
-                    bodyPrefab.AddComponent<Interactor>();
-                    bodyPrefab.AddComponent<SetDontDestroyOnLoad>();
-                    bodyPrefab.AddComponent<DestroyOnRunEnd>();
-
-                    bodyPrefab.AddComponent<ChaosInteractor>();
-                    bodyPrefab.AddComponent<ExcludeFromBodyInstancesList>();
-
-                    bodyPrefabs.Add(bodyPrefab);
+                    RoR2Application.onFixedUpdate += trySpawnChaosInteractor;
                 };
 
-                asyncOperations.Add(altarSkeletonLoad);
-            }
-
-            yield return asyncOperations.WaitForAllLoaded();
-        }
-
-        [SystemInitializer]
-        static void InitHooks()
-        {
-            static void trySpawnChaosInteractor()
-            {
-                if (!ChaosInteractor.Instance)
+                Run.onRunDestroyGlobal += _ =>
                 {
-                    NetworkServer.Spawn(GameObject.Instantiate(RoCContent.BodyPrefabs.ChaosFakeInteractorBody));
-                }
+                    RoR2Application.onFixedUpdate -= trySpawnChaosInteractor;
+                };
             }
-
-            Run.onRunStartGlobal += _ =>
-            {
-                if (!NetworkServer.active)
-                    return;
-
-                RoR2Application.onFixedUpdate += trySpawnChaosInteractor;
-            };
-
-            Run.onRunDestroyGlobal += _ =>
-            {
-                RoR2Application.onFixedUpdate -= trySpawnChaosInteractor;
-            };
         }
     }
 }

@@ -4,25 +4,28 @@ using UnityEngine;
 
 namespace RiskOfChaos.Content
 {
-    static class Unlockables
+    partial class RoCContent
     {
-        [ContentInitializer]
-        static void LoadContent(UnlockableDefAssetCollection unlockableDefs)
+        partial class Unlockables
         {
+            [ContentInitializer]
+            static void LoadContent(UnlockableDefAssetCollection unlockableDefs)
             {
-                UnlockableDef invincibleLemurianLogbook = ScriptableObject.CreateInstance<UnlockableDef>();
-                invincibleLemurianLogbook.cachedName = "Logs.InvincibleLemurian";
-                invincibleLemurianLogbook.nameToken = "UNLOCKABLE_LOG_INVINCIBLE_LEMURIAN";
+                {
+                    UnlockableDef invincibleLemurianLogbook = ScriptableObject.CreateInstance<UnlockableDef>();
+                    invincibleLemurianLogbook.cachedName = "Logs.InvincibleLemurian";
+                    invincibleLemurianLogbook.nameToken = "UNLOCKABLE_LOG_INVINCIBLE_LEMURIAN";
 
-                unlockableDefs.Add(invincibleLemurianLogbook);
-            }
+                    unlockableDefs.Add(invincibleLemurianLogbook);
+                }
 
-            {
-                UnlockableDef invincibleLemurianElderLogbook = ScriptableObject.CreateInstance<UnlockableDef>();
-                invincibleLemurianElderLogbook.cachedName = "Logs.InvincibleLemurianElder";
-                invincibleLemurianElderLogbook.nameToken = "UNLOCKABLE_LOG_INVINCIBLE_LEMURIAN_ELDER";
+                {
+                    UnlockableDef invincibleLemurianElderLogbook = ScriptableObject.CreateInstance<UnlockableDef>();
+                    invincibleLemurianElderLogbook.cachedName = "Logs.InvincibleLemurianElder";
+                    invincibleLemurianElderLogbook.nameToken = "UNLOCKABLE_LOG_INVINCIBLE_LEMURIAN_ELDER";
 
-                unlockableDefs.Add(invincibleLemurianElderLogbook);
+                    unlockableDefs.Add(invincibleLemurianElderLogbook);
+                }
             }
         }
     }

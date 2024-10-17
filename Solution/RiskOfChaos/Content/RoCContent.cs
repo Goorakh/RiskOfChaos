@@ -14,7 +14,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.Content
 {
-    public class RoCContent : IContentPackProvider
+    public partial class RoCContent : IContentPackProvider
     {
         readonly ContentPack _contentPack = new ContentPack();
 
@@ -194,24 +194,24 @@ namespace RiskOfChaos.Content
             }
         }
 
-        public static class Items
+        public static partial class Items
         {
             public static ItemDef InvincibleLemurianMarker;
 
             public static ItemDef MinAllyRegen;
         }
 
-        public static class Buffs
+        public static partial class Buffs
         {
             public static BuffDef SetTo1Hp;
         }
 
-        public static class Effects
+        public static partial class Effects
         {
             public static EffectDef EquipmentTransferOrbEffect;
         }
 
-        public static class Unlockables
+        public static partial class Unlockables
         {
             [TargetAssetName("Logs.InvincibleLemurian")]
             public static UnlockableDef InvincibleLemurianLog;
@@ -220,7 +220,7 @@ namespace RiskOfChaos.Content
             public static UnlockableDef InvincibleLemurianElderLog;
         }
 
-        public static class BodyPrefabs
+        public static partial class BodyPrefabs
         {
             public static GameObject ChaosFakeInteractorBody;
         }
