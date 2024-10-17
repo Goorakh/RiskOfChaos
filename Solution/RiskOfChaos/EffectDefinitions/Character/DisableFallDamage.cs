@@ -1,44 +1,35 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
-using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.OLD_ModifierController.Damage;
+using RiskOfChaos.Patches;
 using RoR2;
-using System;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("disable_fall_damage", TimedEffectType.UntilStageEnd, AllowDuplicates = false)]
-    public sealed class DisableFallDamage : TimedEffect, IDamageInfoModificationProvider
+    public sealed class DisableFallDamage : NetworkBehaviour
     {
-        public event Action OnValueDirty;
-
-        [EffectCanActivate]
-        static bool CanActivate()
+        void Start()
         {
-            return DamageInfoModificationManager.Instance;
-        }
-
-        public override void OnStart()
-        {
-            DamageInfoModificationManager.Instance.RegisterModificationProvider(this);
-        }
-
-        public void ModifyValue(ref DamageInfo value)
-        {
-            if ((value.damageType & DamageType.FallDamage) != 0)
+            if (NetworkServer.active)
             {
-                value.damage = 0f;
-                value.rejected = true;
-                value.canRejectForce = true;
+                DamageModificationHooks.ModifyDamageInfo += modifyDamage;
             }
         }
 
-        public override void OnEnd()
+        void OnDestroy()
         {
-            if (DamageInfoModificationManager.Instance)
-            {
-                DamageInfoModificationManager.Instance.UnregisterModificationProvider(this);
-            }
+            DamageModificationHooks.ModifyDamageInfo -= modifyDamage;
+        }
+
+        static void modifyDamage(DamageInfo damageInfo)
+        {
+            if ((damageInfo.damageType & DamageType.FallDamage) != DamageType.FallDamage)
+                return;
+            
+            damageInfo.damage = 0f;
+            damageInfo.rejected = true;
+            damageInfo.canRejectForce = true;
         }
     }
 }

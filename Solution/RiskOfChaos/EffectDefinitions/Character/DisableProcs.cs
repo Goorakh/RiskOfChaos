@@ -4,26 +4,22 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
-using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.OLD_ModifierController.Damage;
+using RiskOfChaos.Patches;
 using RoR2;
-using System;
 using System.Runtime.CompilerServices;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("disable_procs", 45f, AllowDuplicates = false)]
-    public sealed class DisableProcs : TimedEffect, IDamageInfoModificationProvider
+    public sealed class DisableProcs : NetworkBehaviour
     {
         [InitEffectInfo]
-        public static new readonly TimedEffectInfo EffectInfo;
+        static readonly TimedEffectInfo _effectInfo;
 
-        static bool _appliedPatches;
-        static void tryApplyPatches()
+        [SystemInitializer]
+        static void Init()
         {
-            if (_appliedPatches)
-                return;
-
             IL.RoR2.HealthComponent.TakeDamageProcess += il =>
             {
                 ILCursor c = new ILCursor(il);
@@ -40,7 +36,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                         [MethodImpl(MethodImplOptions.AggressiveInlining)]
                         static bool isEffectActive()
                         {
-                            return ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(EffectInfo);
+                            return ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(_effectInfo);
                         }
 
                         c.Emit(OpCodes.Brtrue, afterIfLabel);
@@ -55,39 +51,28 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     Log.Error("Failed to find Cripple apply location");
                 }
             };
-
-            _appliedPatches = true;
         }
 
-        [EffectCanActivate]
-        static bool CanActivate()
+        void Start()
         {
-            return DamageInfoModificationManager.Instance;
-        }
-
-        public event Action OnValueDirty;
-
-        public void ModifyValue(ref DamageInfo value)
-        {
-            value.procCoefficient = 0f;
-
-            if (value.attacker)
+            if (NetworkServer.active)
             {
-                value.damageType.damageType &= ~(DamageType.SlowOnHit | DamageType.ClayGoo | DamageType.Nullify | DamageType.CrippleOnHit | DamageType.ApplyMercExpose);
+                DamageModificationHooks.ModifyDamageInfo += modifyDamage;
             }
         }
 
-        public override void OnStart()
+        void OnDestroy()
         {
-            tryApplyPatches();
-            DamageInfoModificationManager.Instance.RegisterModificationProvider(this);
+            DamageModificationHooks.ModifyDamageInfo -= modifyDamage;
         }
 
-        public override void OnEnd()
+        static void modifyDamage(DamageInfo damageInfo)
         {
-            if (DamageInfoModificationManager.Instance)
+            damageInfo.procCoefficient = 0f;
+
+            if (damageInfo.attacker)
             {
-                DamageInfoModificationManager.Instance.UnregisterModificationProvider(this);
+                damageInfo.damageType &= ~(DamageTypeCombo)(DamageType.SlowOnHit | DamageType.ClayGoo | DamageType.Nullify | DamageType.CrippleOnHit | DamageType.ApplyMercExpose);
             }
         }
     }
