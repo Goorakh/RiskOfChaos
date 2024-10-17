@@ -50,11 +50,6 @@ namespace RiskOfChaos.ModificationController.Effect
             }
         }
 
-        void FixedUpdate()
-        {
-            _modificationProviderHandler?.Update();
-        }
-
         void refreshValueModifications(IReadOnlyCollection<EffectModificationProvider> modificationProviders)
         {
             float durationMultiplier = 1f;

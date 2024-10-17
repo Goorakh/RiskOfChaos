@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.Utilities.Extensions;
+using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -17,11 +18,13 @@ namespace RiskOfChaos.ModificationController
 
         readonly RefreshValueModificationsDelegate _refreshValueModificationsFunc;
 
+        readonly bool _autoUpdate;
+
         bool _valueModificationsDirty;
 
         bool _isDisposed;
 
-        public ValueModificationProviderHandler(RefreshValueModificationsDelegate refreshValueModificationsFunc)
+        public ValueModificationProviderHandler(RefreshValueModificationsDelegate refreshValueModificationsFunc, bool autoUpdate = true)
         {
             if (refreshValueModificationsFunc is null)
                 throw new ArgumentNullException(nameof(refreshValueModificationsFunc));
@@ -30,7 +33,13 @@ namespace RiskOfChaos.ModificationController
 
             _activeProviders = [];
             ActiveProviders = new ReadOnlyCollection<TProviderComponent>(_activeProviders);
-            
+
+            _autoUpdate = autoUpdate;
+            if (_autoUpdate)
+            {
+                RoR2Application.onFixedUpdate += Update;
+            }
+
             ValueModificationController.OnModificationControllerStartGlobal += tryRegisterModificationController;
             ValueModificationController.OnModificationControllerEndGlobal += tryUnregisterModificationController;
 
@@ -63,6 +72,11 @@ namespace RiskOfChaos.ModificationController
             ValueModificationController.OnModificationControllerEndGlobal -= tryUnregisterModificationController;
 
             _activeProviders.Clear();
+
+            if (_autoUpdate)
+            {
+                RoR2Application.onFixedUpdate -= Update;
+            }
 
             _isDisposed = true;
         }

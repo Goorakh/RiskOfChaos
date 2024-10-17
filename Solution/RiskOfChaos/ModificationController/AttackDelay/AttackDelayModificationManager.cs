@@ -51,11 +51,6 @@ namespace RiskOfChaos.ModificationController.AttackDelay
             }
         }
 
-        void FixedUpdate()
-        {
-            _modificationProviderHandler?.Update();
-        }
-
         void refreshValueModifications(IReadOnlyCollection<AttackDelayModificationProvider> modificationProviders)
         {
             bool anyModificationActive = false;

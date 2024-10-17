@@ -43,7 +43,7 @@ namespace RiskOfChaos.ModificationController.Camera
         {
             SingletonHelper.Assign(ref _instance, this);
 
-            _modificationProviderHandler = new ValueModificationProviderHandler<CameraModificationProvider>(refreshValueModifications);
+            _modificationProviderHandler = new ValueModificationProviderHandler<CameraModificationProvider>(refreshValueModifications, false);
         }
 
         void OnDisable()

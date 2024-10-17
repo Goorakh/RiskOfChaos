@@ -90,9 +90,6 @@ namespace RiskOfChaos.ModificationController.Cost
 
         void FixedUpdate()
         {
-            _modificationHandler?.Update();
-            _conversionHandler?.Update();
-
             if (_anyModificationDirty)
             {
                 _anyModificationDirty = false;
