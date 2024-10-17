@@ -135,11 +135,11 @@ namespace RiskOfChaos.Content
             populateTypeFields(typeof(BodyPrefabs), _contentPack.bodyPrefabs);
 
             populateTypeFields(typeof(NetworkedPrefabs), _contentPack.networkedObjectPrefabs);
-            NetworkedPrefabs.AllPrefabs = _contentPack.networkedObjectPrefabs.ToArray();
+            NetworkedPrefabs.AllPrefabs = [.. _contentPack.networkedObjectPrefabs];
             NetworkedPrefabs.CacheNetworkPrefabs();
 
             populateTypeFields(typeof(LocalPrefabs), localPrefabAssetCollection);
-            LocalPrefabs.AllPrefabs = localPrefabAssetCollection.ToArray();
+            LocalPrefabs.AllPrefabs = [.. localPrefabAssetCollection];
 
             ScreenEffectDefs = [.. screenEffectsAssetCollection];
 
@@ -294,6 +294,8 @@ namespace RiskOfChaos.Content
             public static GameObject CostModificationProvider;
 
             public static GameObject CostConversionProvider;
+
+            public static GameObject EffectModificationProvider;
         }
 
         public static class LocalPrefabs

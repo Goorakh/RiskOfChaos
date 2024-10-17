@@ -1,0 +1,87 @@
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.EffectHandling;
+using RiskOfChaos.EffectHandling.Controllers;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.Effect;
+using UnityEngine;
+using UnityEngine.Networking;
+
+namespace RiskOfChaos.EffectDefinitions.Meta
+{
+    public sealed class EffectDurationMultiplierEffect : MonoBehaviour
+    {
+        [EffectCanActivate]
+        static bool CanActivate()
+        {
+            return RoCContent.NetworkedPrefabs.EffectModificationProvider;
+        }
+
+        float _durationMultiplier = 1f;
+        public float DurationMultiplier
+        {
+            get
+            {
+                return _durationMultiplier;
+            }
+            set
+            {
+                if (_durationMultiplier == value)
+                    return;
+
+                _durationMultiplier = value;
+                refreshDurationMultiplier();
+            }
+        }
+
+        ValueModificationController _effectModificationController;
+        EffectModificationProvider _effectModificationProvider;
+
+        void Start()
+        {
+            if (NetworkServer.active)
+            {
+                _effectModificationController = Instantiate(RoCContent.NetworkedPrefabs.EffectModificationProvider).GetComponent<ValueModificationController>();
+
+                _effectModificationProvider = _effectModificationController.GetComponent<EffectModificationProvider>();
+                refreshDurationMultiplier();
+
+                NetworkServer.Spawn(_effectModificationController.gameObject);
+
+                if (ChaosEffectTracker.Instance)
+                {
+                    foreach (ChaosEffectComponent effectComponent in ChaosEffectTracker.Instance.AllActiveTimedEffects)
+                    {
+                        if (effectComponent.TryGetComponent(out ChaosEffectDurationComponent durationComponent))
+                        {
+                            TimedEffectInfo effectInfo = durationComponent.TimedEffectInfo;
+                            if (effectInfo != null && !effectInfo.IgnoreDurationModifiers)
+                            {
+                                durationComponent.Duration *= DurationMultiplier;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        void OnDestroy()
+        {
+            if (_effectModificationController)
+            {
+                _effectModificationController.Retire();
+                _effectModificationController = null;
+                _effectModificationProvider = null;
+            }
+        }
+
+        void refreshDurationMultiplier()
+        {
+            if (_effectModificationProvider)
+            {
+                _effectModificationProvider.DurationMultiplier = DurationMultiplier;
+            }
+        }
+    }
+}

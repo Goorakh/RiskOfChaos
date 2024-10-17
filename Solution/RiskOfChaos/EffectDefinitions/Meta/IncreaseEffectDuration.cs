@@ -1,41 +1,26 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
-using RiskOfChaos.OLD_ModifierController.Effect;
 using RiskOfOptions.OptionConfigs;
-using System;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Meta
 {
     [ChaosTimedEffect("increase_effect_duration", TimedEffectType.UntilStageEnd, ConfigName = "Increase Effect Duration", DefaultSelectionWeight = 0.7f, IgnoreDurationModifiers = true)]
-    public sealed class IncreaseEffectDuration : TimedEffect, IEffectModificationProvider
+    [RequiredComponents(typeof(EffectDurationMultiplierEffect))]
+    public sealed class IncreaseEffectDuration : NetworkBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _durationMultiplier =
             ConfigFactory<float>.CreateConfig("Effect Duration Multiplier", 2f)
                                 .AcceptableValues(new AcceptableValueMin<float>(1f))
                                 .OptionConfig(new FloatFieldConfig { Min = 1f, FormatString = "{0}x" })
-                                .OnValueChanged(() =>
-                                {
-                                    if (!NetworkServer.active || !ChaosEffectTracker.Instance)
-                                        return;
-
-                                    ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<IncreaseEffectDuration>(e => e.OnValueDirty);
-                                })
                                 .FormatsEffectName()
                                 .Build();
-
-        [EffectCanActivate]
-        static bool CanActivate()
-        {
-            return EffectModificationManager.Instance;
-        }
 
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
@@ -43,35 +28,30 @@ namespace RiskOfChaos.EffectDefinitions.Meta
             return new EffectNameFormatter_GenericFloat(_durationMultiplier.Value);
         }
 
-        public event Action OnValueDirty;
+        EffectDurationMultiplierEffect _effectDurationMultiplierEffect;
 
-        public override void OnStart()
+        void Awake()
         {
-            EffectModificationManager.Instance.RegisterModificationProvider(this);
-
-            if (ChaosEffectTracker.Instance)
-            {
-                foreach (TimedEffect effect in ChaosEffectTracker.Instance.OLD_GetAllActiveEffects())
-                {
-                    if (effect.EffectInfo.IgnoreDurationModifiers)
-                        continue;
-
-                    effect.MaxStocks *= _durationMultiplier.Value;
-                }
-            }
+            _effectDurationMultiplierEffect = GetComponent<EffectDurationMultiplierEffect>();
         }
 
-        public void ModifyValue(ref EffectModificationInfo value)
+        public override void OnStartServer()
         {
-            value.DurationMultiplier *= _durationMultiplier.Value;
+            base.OnStartServer();
+
+            _effectDurationMultiplierEffect.DurationMultiplier = _durationMultiplier.Value;
+            _durationMultiplier.SettingChanged += onDurationMultiplierChanged;
         }
 
-        public override void OnEnd()
+        void OnDestroy()
         {
-            if (EffectModificationManager.Instance)
-            {
-                EffectModificationManager.Instance.UnregisterModificationProvider(this);
-            }
+            _durationMultiplier.SettingChanged -= onDurationMultiplierChanged;
+        }
+
+        [Server]
+        void onDurationMultiplierChanged(object sender, ConfigChangedArgs<float> e)
+        {
+            _effectDurationMultiplierEffect.DurationMultiplier = _durationMultiplier.Value;
         }
     }
 }

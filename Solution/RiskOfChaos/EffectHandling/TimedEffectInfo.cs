@@ -5,7 +5,7 @@ using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.EffectHandling.Formatting;
-using RiskOfChaos.OLD_ModifierController.Effect;
+using RiskOfChaos.ModificationController.Effect;
 using RiskOfChaos.SaveHandling;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
