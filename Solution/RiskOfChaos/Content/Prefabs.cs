@@ -118,6 +118,22 @@ namespace RiskOfChaos.Content
             return createPrefab(name, componentTypes, true);
         }
 
+        public static GameObject CreateValueModificatinProviderPrefab(Type providerComponentType, string name, Type[] additionalComponents = null)
+        {
+            List<Type> componentTypes = [
+                typeof(SetDontDestroyOnLoad),
+                typeof(DestroyOnRunEnd),
+                providerComponentType
+            ];
+
+            if (additionalComponents != null)
+            {
+                componentTypes.AddRange(additionalComponents);
+            }
+
+            return CreateNetworkedPrefab(name, [.. componentTypes]);
+        }
+
         public static GameObject InstantiateNetworkedPrefab(this GameObject original, string name)
         {
             return instantiatePrefab(original, name, true);

@@ -1,7 +1,5 @@
-﻿using RiskOfChaos.Components;
-using RiskOfChaos.Content;
+﻿using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
-using RoR2;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -17,11 +15,7 @@ namespace RiskOfChaos.ModificationController.AttackDelay
         {
             // AttackDelayModificationProvider
             {
-                GameObject prefab = Prefabs.CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.AttackDelayModificationProvider), [
-                    typeof(SetDontDestroyOnLoad),
-                    typeof(DestroyOnRunEnd),
-                    typeof(AttackDelayModificationProvider)
-                ]);
+                GameObject prefab = Prefabs.CreateValueModificatinProviderPrefab(typeof(AttackDelayModificationProvider), nameof(RoCContent.NetworkedPrefabs.AttackDelayModificationProvider));
 
                 networkPrefabs.Add(prefab);
             }

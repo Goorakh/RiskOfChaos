@@ -1,5 +1,4 @@
-﻿using RiskOfChaos.Components;
-using RiskOfChaos.Components.CostProviders;
+﻿using RiskOfChaos.Components.CostProviders;
 using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.Utilities;
@@ -17,22 +16,14 @@ namespace RiskOfChaos.ModificationController.Cost
         {
             // CostModificationProvider
             {
-                GameObject prefab = Prefabs.CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.CostModificationProvider), [
-                    typeof(SetDontDestroyOnLoad),
-                    typeof(DestroyOnRunEnd),
-                    typeof(CostModificationProvider)
-                ]);
+                GameObject prefab = Prefabs.CreateValueModificatinProviderPrefab(typeof(CostModificationProvider), nameof(RoCContent.NetworkedPrefabs.CostModificationProvider));
 
                 networkPrefabs.Add(prefab);
             }
 
             // CostConversionProvider
             {
-                GameObject prefab = Prefabs.CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.CostConversionProvider), [
-                    typeof(SetDontDestroyOnLoad),
-                    typeof(DestroyOnRunEnd),
-                    typeof(CostConversionProvider)
-                ]);
+                GameObject prefab = Prefabs.CreateValueModificatinProviderPrefab(typeof(CostConversionProvider), nameof(RoCContent.NetworkedPrefabs.CostConversionProvider));
 
                 networkPrefabs.Add(prefab);
             }

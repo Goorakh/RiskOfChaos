@@ -1,8 +1,6 @@
-﻿using RiskOfChaos.Components;
-using RiskOfChaos.Content;
+﻿using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.Patches;
-using RoR2;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -19,11 +17,7 @@ namespace RiskOfChaos.ModificationController.Gravity
         {
             // EffectModificationProvider
             {
-                GameObject prefab = Prefabs.CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.GravityModificationProvider), [
-                    typeof(SetDontDestroyOnLoad),
-                    typeof(DestroyOnRunEnd),
-                    typeof(GravityModificationProvider)
-                ]);
+                GameObject prefab = Prefabs.CreateValueModificatinProviderPrefab(typeof(GravityModificationProvider), nameof(RoCContent.NetworkedPrefabs.GravityModificationProvider));
 
                 networkedPrefabs.Add(prefab);
             }

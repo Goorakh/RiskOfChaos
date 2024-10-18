@@ -1,8 +1,6 @@
-﻿using RiskOfChaos.Components;
-using RiskOfChaos.Content;
+﻿using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling;
-using RoR2;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -18,11 +16,7 @@ namespace RiskOfChaos.ModificationController.Effect
         {
             // EffectModificationProvider
             {
-                GameObject prefab = Prefabs.CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.EffectModificationProvider), [
-                    typeof(SetDontDestroyOnLoad),
-                    typeof(DestroyOnRunEnd),
-                    typeof(EffectModificationProvider)
-                ]);
+                GameObject prefab = Prefabs.CreateValueModificatinProviderPrefab(typeof(EffectModificationProvider), nameof(RoCContent.NetworkedPrefabs.EffectModificationProvider));
 
                 networkedPrefabs.Add(prefab);
             }

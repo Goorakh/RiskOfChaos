@@ -1,7 +1,5 @@
-﻿using RiskOfChaos.Components;
-using RiskOfChaos.Content;
+﻿using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
-using RoR2;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -17,11 +15,7 @@ namespace RiskOfChaos.ModificationController.Camera
         {
             // CameraModificationProvider
             {
-                GameObject prefab = Prefabs.CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.CameraModificationProvider), [
-                    typeof(SetDontDestroyOnLoad),
-                    typeof(DestroyOnRunEnd),
-                    typeof(CameraModificationProvider)
-                ]);
+                GameObject prefab = Prefabs.CreateValueModificatinProviderPrefab(typeof(CameraModificationProvider), nameof(RoCContent.NetworkedPrefabs.CameraModificationProvider));
 
                 networkPrefabs.Add(prefab);
             }
