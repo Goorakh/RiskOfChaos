@@ -25,7 +25,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
             if (NetworkServer.active)
             {
                 _cameraModificationController = Instantiate(RoCContent.NetworkedPrefabs.CameraModificationProvider).GetComponent<ValueModificationController>();
-                _cameraModificationController.SetInterpolationParameters(new InterpolationParameters(1f));
+                _cameraModificationController.SetInterpolationParameters(new InterpolationParameters(1.5f));
 
                 CameraModificationProvider cameraModificationProvider = _cameraModificationController.GetComponent<CameraModificationProvider>();
                 cameraModificationProvider.RotationOffset = Quaternion.Euler(0f, 0f, 180f);

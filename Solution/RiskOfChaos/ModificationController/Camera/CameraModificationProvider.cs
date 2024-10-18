@@ -44,7 +44,7 @@ namespace RiskOfChaos.ModificationController.Camera
                 
                 if (_modificationController && _modificationController.IsInterpolating)
                 {
-                    rotationOffset = Quaternion.Slerp(Quaternion.identity, rotationOffset, _modificationController.CurrentInterpolationFraction);
+                    rotationOffset = Quaternion.Slerp(Quaternion.identity, rotationOffset, Ease.InOutQuad(_modificationController.CurrentInterpolationFraction));
                 }
 
                 return rotationOffset;
