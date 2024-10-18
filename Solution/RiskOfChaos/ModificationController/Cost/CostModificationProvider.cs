@@ -1,5 +1,4 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
-using RoR2;
+﻿using RiskOfChaos.Content;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModificationController.Cost

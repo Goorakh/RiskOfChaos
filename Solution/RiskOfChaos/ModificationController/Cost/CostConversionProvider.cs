@@ -1,6 +1,6 @@
 ﻿using HG;
 using RiskOfChaos.Components.CostProviders;
-using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.Content;
 using RiskOfChaos.Utilities;
 using RoR2;
 using UnityEngine.Networking;

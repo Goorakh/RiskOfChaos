@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.Content;
 using RiskOfChaos.SaveHandling.DataContainers;
 using RiskOfChaos.Utilities.Extensions;
 using System;

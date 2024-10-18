@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-namespace RiskOfChaos.EffectHandling.EffectClassAttributes
+namespace RiskOfChaos.Content
 {
     // Unity for some reason doesn't respect [RequireComponent] where the required component type is not in the base assemblies, or something, idk.
     // Point is, fuck you Unity, there is no reason I should have to do this.

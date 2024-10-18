@@ -1,4 +1,4 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.Content;
 using RiskOfChaos.Utilities;
 using UnityEngine;
 using UnityEngine.Networking;

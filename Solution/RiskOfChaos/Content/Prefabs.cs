@@ -3,7 +3,6 @@ using HG;
 using RiskOfChaos.Components;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectDefinitions.Character;
-using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Networking.Components;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;

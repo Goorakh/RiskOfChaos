@@ -1,4 +1,4 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.Content;
 using RiskOfChaos.SaveHandling;
 using RoR2;
 using System;

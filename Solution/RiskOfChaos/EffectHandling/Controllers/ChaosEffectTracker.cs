@@ -1,6 +1,6 @@
 ﻿using HG;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectDefinitions;
-using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RoR2;

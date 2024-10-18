@@ -1,4 +1,4 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.Content;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.ModificationController.AttackDelay

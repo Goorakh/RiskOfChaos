@@ -1,5 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
-using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities.Extensions;

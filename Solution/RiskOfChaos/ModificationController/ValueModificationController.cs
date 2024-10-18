@@ -1,5 +1,5 @@
 ﻿using RiskOfChaos.Components;
-using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.Content;
 using RiskOfChaos.Utilities.Interpolation;
 using System;
 using System.Collections.Generic;

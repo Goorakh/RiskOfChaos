@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.Collections.CatalogIndex;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -9,7 +10,6 @@ using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Linq;
-using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Buff
