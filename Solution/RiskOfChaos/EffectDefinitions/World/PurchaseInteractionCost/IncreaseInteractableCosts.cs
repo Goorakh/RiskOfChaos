@@ -9,12 +9,13 @@ using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.ModificationController;
 using RiskOfChaos.ModificationController.Cost;
 using RiskOfOptions.OptionConfigs;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
 {
     [ChaosTimedEffect("increase_interactable_costs", TimedEffectType.UntilStageEnd, DefaultSelectionWeight = 0.8f, ConfigName = "Increase Chest Prices")]
-    public sealed class IncreaseInteractableCosts : NetworkBehaviour
+    public sealed class IncreaseInteractableCosts : MonoBehaviour
     {
         const float INCREASE_AMOUNT_MIN_VALUE = 0.05f;
 
@@ -40,7 +41,6 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
         }
 
         ValueModificationController _costModificationController;
-        CostModificationProvider _costModificationProvider;
 
         void Start()
         {
@@ -48,10 +48,8 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
             {
                 _costModificationController = Instantiate(RoCContent.NetworkedPrefabs.CostModificationProvider).GetComponent<ValueModificationController>();
 
-                _costModificationProvider = _costModificationController.GetComponent<CostModificationProvider>();
-                refreshCostMultiplier();
-
-                _increaseAmount.SettingChanged += onIncreaseAmountChanged;
+                CostModificationProvider costModificationProvider = _costModificationController.GetComponent<CostModificationProvider>();
+                costModificationProvider.CostMultiplierConfigBinding.BindToConfig(_increaseAmount, v => 1f + v);
 
                 NetworkServer.Spawn(_costModificationController.gameObject);
             }
@@ -63,22 +61,6 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
             {
                 _costModificationController.Retire();
                 _costModificationController = null;
-                _costModificationProvider = null;
-            }
-
-            _increaseAmount.SettingChanged -= onIncreaseAmountChanged;
-        }
-
-        void onIncreaseAmountChanged(object sender, ConfigChangedArgs<float> e)
-        {
-            refreshCostMultiplier();
-        }
-
-        void refreshCostMultiplier()
-        {
-            if (_costModificationProvider)
-            {
-                _costModificationProvider.CostMultiplier = 1f + _increaseAmount.Value;
             }
         }
     }

@@ -38,7 +38,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
         }
 
         ValueModificationController _gravityModificationController;
-        GravityModificationProvider _gravityModificationProvider;
 
         void Start()
         {
@@ -46,12 +45,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
             {
                 _gravityModificationController = Instantiate(RoCContent.NetworkedPrefabs.GravityModificationProvider).GetComponent<ValueModificationController>();
 
-                _gravityModificationProvider = _gravityModificationController.GetComponent<GravityModificationProvider>();
-                refreshGravityModifications();
+                GravityModificationProvider gravityModificationProvider = _gravityModificationController.GetComponent<GravityModificationProvider>();
+                gravityModificationProvider.GravityMultiplierConfigBinding.BindToConfig(_gravityDecrease, v => 1f - v);
 
                 NetworkServer.Spawn(_gravityModificationController.gameObject);
-
-                _gravityDecrease.SettingChanged += onGravityDecreaseChanged;
             }
         }
 
@@ -61,23 +58,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
             {
                 _gravityModificationController.Retire();
                 _gravityModificationController = null;
-                _gravityModificationProvider = null;
-            }
-
-            _gravityDecrease.SettingChanged -= onGravityDecreaseChanged;
-        }
-
-        void onGravityDecreaseChanged(object sender, ConfigChangedArgs<float> e)
-        {
-            refreshGravityModifications();
-        }
-
-        [Server]
-        void refreshGravityModifications()
-        {
-            if (_gravityModificationProvider)
-            {
-                _gravityModificationProvider.GravityMultiplier = 1f - _gravityDecrease.Value;
             }
         }
     }

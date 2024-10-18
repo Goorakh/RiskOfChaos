@@ -9,6 +9,8 @@ namespace RiskOfChaos.ModificationController.Knockback
     {
         ValueModificationController _modificationController;
 
+        public ValueModificationConfigBinding<float> KnockbackMultiplierConfigBinding { get; private set; }
+
         [SyncVar(hook = nameof(setKnockbackMultiplier))]
         float _knockbackMultiplier = 1f;
         public float KnockbackMultiplier
@@ -33,6 +35,19 @@ namespace RiskOfChaos.ModificationController.Knockback
         void Awake()
         {
             _modificationController = GetComponent<ValueModificationController>();
+            _modificationController.OnRetire += onRetire;
+
+            KnockbackMultiplierConfigBinding = new ValueModificationConfigBinding<float>(setKnockbackMultiplierFromConfig);
+        }
+
+        void OnDestroy()
+        {
+            _modificationController.OnRetire -= onRetire;
+        }
+
+        void onRetire()
+        {
+            KnockbackMultiplierConfigBinding?.Dispose();
         }
 
         void onValueChanged()
@@ -41,6 +56,12 @@ namespace RiskOfChaos.ModificationController.Knockback
             {
                 _modificationController.InvokeOnValuesDirty();
             }
+        }
+
+        [Server]
+        void setKnockbackMultiplierFromConfig(float knockbackMultiplier)
+        {
+            KnockbackMultiplier = knockbackMultiplier;
         }
 
         void setKnockbackMultiplier(float knockbackMultiplier)

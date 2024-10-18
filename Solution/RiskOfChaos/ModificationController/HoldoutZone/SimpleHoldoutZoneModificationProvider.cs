@@ -9,8 +9,12 @@ namespace RiskOfChaos.ModificationController.HoldoutZone
     {
         ValueModificationController _modificationController;
 
+        public ValueModificationConfigBinding<float> RadiusMultiplierConfigBinding { get; private set; }
+
         [SyncVar(hook = nameof(setRadiusMultiplier))]
         public float RadiusMultiplier = 1f;
+
+        public ValueModificationConfigBinding<float> ChargeRateMultiplierConfigBinding { get; private set; }
 
         [SyncVar(hook = nameof(setChargeRateMultiplier))]
         public float ChargeRateMultiplier = 1f;
@@ -18,6 +22,21 @@ namespace RiskOfChaos.ModificationController.HoldoutZone
         void Awake()
         {
             _modificationController = GetComponent<ValueModificationController>();
+            _modificationController.OnRetire += onRetire;
+
+            RadiusMultiplierConfigBinding = new ValueModificationConfigBinding<float>(setRadiusMultiplierFromConfig);
+            ChargeRateMultiplierConfigBinding = new ValueModificationConfigBinding<float>(setChargeRateMultiplierFromConfig);
+        }
+
+        void OnDestroy()
+        {
+            _modificationController.OnRetire -= onRetire;
+        }
+
+        void onRetire()
+        {
+            RadiusMultiplierConfigBinding?.Dispose();
+            ChargeRateMultiplierConfigBinding?.Dispose();
         }
 
         void onValueChanged()
@@ -28,10 +47,22 @@ namespace RiskOfChaos.ModificationController.HoldoutZone
             }
         }
 
+        [Server]
+        void setRadiusMultiplierFromConfig(float radiusMultiplier)
+        {
+            RadiusMultiplier = radiusMultiplier;
+        }
+
         void setRadiusMultiplier(float radiusMultiplier)
         {
             RadiusMultiplier = radiusMultiplier;
             onValueChanged();
+        }
+
+        [Server]
+        void setChargeRateMultiplierFromConfig(float chargeRateMultiplier)
+        {
+            ChargeRateMultiplier = chargeRateMultiplier;
         }
 
         void setChargeRateMultiplier(float chargeRateMultiplier)

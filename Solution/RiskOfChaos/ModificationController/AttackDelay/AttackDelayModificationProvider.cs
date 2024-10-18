@@ -8,12 +8,27 @@ namespace RiskOfChaos.ModificationController.AttackDelay
     {
         ValueModificationController _modificationController;
 
+        public ValueModificationConfigBinding<float> DelayConfigBinding { get; private set; }
+
         [SyncVar(hook = nameof(setDelay))]
         public float Delay;
 
         void Awake()
         {
             _modificationController = GetComponent<ValueModificationController>();
+            _modificationController.OnRetire += onRetire;
+
+            DelayConfigBinding = new ValueModificationConfigBinding<float>(setDelayFromConfig);
+        }
+
+        void OnDestroy()
+        {
+            _modificationController.OnRetire -= onRetire;
+        }
+
+        void onRetire()
+        {
+            DelayConfigBinding?.Dispose();
         }
 
         void onValueChanged()
@@ -22,6 +37,12 @@ namespace RiskOfChaos.ModificationController.AttackDelay
             {
                 _modificationController.InvokeOnValuesDirty();
             }
+        }
+
+        [Server]
+        void setDelayFromConfig(float delay)
+        {
+            Delay = delay;
         }
 
         void setDelay(float delay)

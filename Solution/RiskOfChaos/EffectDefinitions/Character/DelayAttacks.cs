@@ -30,7 +30,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
         }
 
         ValueModificationController _attackDelayModificationController;
-        AttackDelayModificationProvider _attackDelayModificationProvider;
 
         void Start()
         {
@@ -38,12 +37,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 _attackDelayModificationController = GameObject.Instantiate(RoCContent.NetworkedPrefabs.AttackDelayModificationProvider).GetComponent<ValueModificationController>();
 
-                _attackDelayModificationProvider = _attackDelayModificationController.GetComponent<AttackDelayModificationProvider>();
-                updateAttackDelay();
+                AttackDelayModificationProvider attackDelayModificationProvider = _attackDelayModificationController.GetComponent<AttackDelayModificationProvider>();
+                attackDelayModificationProvider.DelayConfigBinding.BindToConfig(_attackDelay);
 
                 NetworkServer.Spawn(_attackDelayModificationController.gameObject);
-
-                _attackDelay.SettingChanged += onAttackDelayChanged;
             }
         }
 
@@ -53,23 +50,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 _attackDelayModificationController.Retire();
                 _attackDelayModificationController = null;
-                _attackDelayModificationProvider = null;
-            }
-
-            _attackDelay.SettingChanged -= onAttackDelayChanged;
-        }
-
-        void onAttackDelayChanged(object sender, ConfigChangedArgs<float> e)
-        {
-            updateAttackDelay();
-        }
-
-        [Server]
-        void updateAttackDelay()
-        {
-            if (_attackDelayModificationProvider)
-            {
-                _attackDelayModificationProvider.Delay = _attackDelay.Value;
             }
         }
     }

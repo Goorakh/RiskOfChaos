@@ -55,6 +55,8 @@ namespace RiskOfChaos.ModificationController.Camera
             }
         }
 
+        public ValueModificationConfigBinding<float> DistanceMultiplierConfigBinding { get; private set; }
+
         [SyncVar(hook = nameof(setDistanceMultiplier))]
         float _distanceMultiplier = 1f;
         public float DistanceMultiplier
@@ -79,6 +81,19 @@ namespace RiskOfChaos.ModificationController.Camera
         void Awake()
         {
             _modificationController = GetComponent<ValueModificationController>();
+            _modificationController.OnRetire += onRetire;
+
+            DistanceMultiplierConfigBinding = new ValueModificationConfigBinding<float>(setDistanceMultiplierFromConfig);
+        }
+
+        void OnDestroy()
+        {
+            _modificationController.OnRetire -= onRetire;
+        }
+
+        void onRetire()
+        {
+            DistanceMultiplierConfigBinding?.Dispose();
         }
 
         void onValueChanged()
@@ -105,6 +120,12 @@ namespace RiskOfChaos.ModificationController.Camera
         {
             RotationOffset = rotationOffset;
             onValueChanged();
+        }
+
+        [Server]
+        void setDistanceMultiplierFromConfig(float distanceMultiplier)
+        {
+            DistanceMultiplier = distanceMultiplier;
         }
 
         void setDistanceMultiplier(float distanceMultiplier)

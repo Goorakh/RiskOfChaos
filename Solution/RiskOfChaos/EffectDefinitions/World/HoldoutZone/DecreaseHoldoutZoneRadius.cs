@@ -44,7 +44,6 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
         }
 
         ValueModificationController _holdoutZoneModificationController;
-        SimpleHoldoutZoneModificationProvider _holdoutZoneModificationProvider;
 
         void Start()
         {
@@ -52,12 +51,10 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
             {
                 _holdoutZoneModificationController = Instantiate(RoCContent.NetworkedPrefabs.SimpleHoldoutZoneModificationProvider).GetComponent<ValueModificationController>();
 
-                _holdoutZoneModificationProvider = _holdoutZoneModificationController.GetComponent<SimpleHoldoutZoneModificationProvider>();
-                refreshRadiusModification();
+                SimpleHoldoutZoneModificationProvider holdoutZoneModificationProvider = _holdoutZoneModificationController.GetComponent<SimpleHoldoutZoneModificationProvider>();
+                holdoutZoneModificationProvider.RadiusMultiplierConfigBinding.BindToConfig(_radiusDecrease, v => 1f - v);
 
                 NetworkServer.Spawn(_holdoutZoneModificationController.gameObject);
-
-                _radiusDecrease.SettingChanged += onRadiusDecreaseChanged;
             }
         }
 
@@ -67,23 +64,6 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
             {
                 _holdoutZoneModificationController.Retire();
                 _holdoutZoneModificationController = null;
-                _holdoutZoneModificationProvider = null;
-            }
-
-            _radiusDecrease.SettingChanged -= onRadiusDecreaseChanged;
-        }
-
-        void onRadiusDecreaseChanged(object sender, ConfigChangedArgs<float> e)
-        {
-            refreshRadiusModification();
-        }
-
-        [Server]
-        void refreshRadiusModification()
-        {
-            if (_holdoutZoneModificationProvider)
-            {
-                _holdoutZoneModificationProvider.RadiusMultiplier = 1f - _radiusDecrease.Value;
             }
         }
     }

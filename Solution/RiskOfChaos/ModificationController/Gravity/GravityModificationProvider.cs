@@ -9,6 +9,8 @@ namespace RiskOfChaos.ModificationController.Gravity
     {
         ValueModificationController _modificationController;
 
+        public ValueModificationConfigBinding<float> GravityMultiplierConfigBinding { get; private set; }
+
         [SyncVar(hook = nameof(setGravityMultiplier))]
         float _gravityMultiplier = 1f;
         public float GravityMultiplier
@@ -54,6 +56,19 @@ namespace RiskOfChaos.ModificationController.Gravity
         void Awake()
         {
             _modificationController = GetComponent<ValueModificationController>();
+            _modificationController.OnRetire += onRetire;
+
+            GravityMultiplierConfigBinding = new ValueModificationConfigBinding<float>(setGravityMultiplierFromConfig);
+        }
+
+        void OnDestroy()
+        {
+            _modificationController.OnRetire -= onRetire;
+        }
+
+        void onRetire()
+        {
+            GravityMultiplierConfigBinding?.Dispose();
         }
 
         void onValueChanged()
@@ -62,6 +77,12 @@ namespace RiskOfChaos.ModificationController.Gravity
             {
                 _modificationController.InvokeOnValuesDirty();
             }
+        }
+
+        [Server]
+        void setGravityMultiplierFromConfig(float gravityMultiplier)
+        {
+            GravityMultiplier = gravityMultiplier;
         }
 
         void setGravityMultiplier(float gravityMultiplier)

@@ -8,6 +8,8 @@ namespace RiskOfChaos.ModificationController.Cost
     {
         ValueModificationController _modificationController;
 
+        public ValueModificationConfigBinding<float> CostMultiplierConfigBinding { get; private set; }
+
         [SyncVar(hook = nameof(setCostMultiplier))]
         float _costMultiplier = 1f;
         public float CostMultiplier
@@ -35,6 +37,14 @@ namespace RiskOfChaos.ModificationController.Cost
         void Awake()
         {
             _modificationController = GetComponent<ValueModificationController>();
+            _modificationController.OnRetire += onRetire;
+
+            CostMultiplierConfigBinding = new ValueModificationConfigBinding<float>(setCostMultiplierFromConfig);
+        }
+
+        void OnDestroy()
+        {
+            _modificationController.OnRetire -= onRetire;
         }
 
         void Update()
@@ -50,9 +60,20 @@ namespace RiskOfChaos.ModificationController.Cost
             }
         }
 
+        void onRetire()
+        {
+            CostMultiplierConfigBinding?.Dispose();
+        }
+
         void onValueChanged()
         {
             _valuesDirty = true;
+        }
+
+        [Server]
+        void setCostMultiplierFromConfig(float costMultiplier)
+        {
+            CostMultiplier = costMultiplier;
         }
 
         void setCostMultiplier(float costMultiplier)

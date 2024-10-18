@@ -44,7 +44,6 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
         }
 
         ValueModificationController _holdoutZoneModificationController;
-        SimpleHoldoutZoneModificationProvider _holdoutZoneModificationProvider;
 
         void Start()
         {
@@ -52,12 +51,10 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
             {
                 _holdoutZoneModificationController = Instantiate(RoCContent.NetworkedPrefabs.SimpleHoldoutZoneModificationProvider).GetComponent<ValueModificationController>();
 
-                _holdoutZoneModificationProvider = _holdoutZoneModificationController.GetComponent<SimpleHoldoutZoneModificationProvider>();
-                refreshChargeRateModification();
+                SimpleHoldoutZoneModificationProvider holdoutZoneModificationProvider = _holdoutZoneModificationController.GetComponent<SimpleHoldoutZoneModificationProvider>();
+                holdoutZoneModificationProvider.ChargeRateMultiplierConfigBinding.BindToConfig(_chargeRateDecrease, v => 1f - v);
 
                 NetworkServer.Spawn(_holdoutZoneModificationController.gameObject);
-
-                _chargeRateDecrease.SettingChanged += onChargeRateDecreaseChanged;
             }
         }
 
@@ -67,23 +64,6 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
             {
                 _holdoutZoneModificationController.Retire();
                 _holdoutZoneModificationController = null;
-                _holdoutZoneModificationProvider = null;
-            }
-
-            _chargeRateDecrease.SettingChanged -= onChargeRateDecreaseChanged;
-        }
-
-        void onChargeRateDecreaseChanged(object sender, ConfigChangedArgs<float> e)
-        {
-            refreshChargeRateModification();
-        }
-
-        [Server]
-        void refreshChargeRateModification()
-        {
-            if (_holdoutZoneModificationProvider)
-            {
-                _holdoutZoneModificationProvider.ChargeRateMultiplier = 1f - _chargeRateDecrease.Value;
             }
         }
     }

@@ -39,7 +39,6 @@ namespace RiskOfChaos.EffectDefinitions.World
         }
 
         ValueModificationController _knockbackModificationController;
-        KnockbackModificationProvider _knockbackModificationProvider;
 
         void Start()
         {
@@ -47,12 +46,10 @@ namespace RiskOfChaos.EffectDefinitions.World
             {
                 _knockbackModificationController = Instantiate(RoCContent.NetworkedPrefabs.KnockbackModificationProvider).GetComponent<ValueModificationController>();
 
-                _knockbackModificationProvider = _knockbackModificationController.GetComponent<KnockbackModificationProvider>();
-                refreshKnockbackMultiplier();
+                KnockbackModificationProvider knockbackModificationProvider = _knockbackModificationController.GetComponent<KnockbackModificationProvider>();
+                knockbackModificationProvider.KnockbackMultiplierConfigBinding.BindToConfig(_knockbackMultiplier);
 
                 NetworkServer.Spawn(_knockbackModificationController.gameObject);
-
-                _knockbackMultiplier.SettingChanged += onKnockbackMultiplierChanged;
             }
         }
 
@@ -62,23 +59,6 @@ namespace RiskOfChaos.EffectDefinitions.World
             {
                 _knockbackModificationController.Retire();
                 _knockbackModificationController = null;
-                _knockbackModificationProvider = null;
-            }
-
-            _knockbackMultiplier.SettingChanged -= onKnockbackMultiplierChanged;
-        }
-
-        void onKnockbackMultiplierChanged(object sender, ConfigChangedArgs<float> e)
-        {
-            refreshKnockbackMultiplier();
-        }
-
-        [Server]
-        void refreshKnockbackMultiplier()
-        {
-            if (_knockbackModificationProvider)
-            {
-                _knockbackModificationProvider.KnockbackMultiplier = _knockbackMultiplier.Value;
             }
         }
     }

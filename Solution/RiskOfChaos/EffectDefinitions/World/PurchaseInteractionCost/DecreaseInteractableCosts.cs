@@ -9,12 +9,13 @@ using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.ModificationController;
 using RiskOfChaos.ModificationController.Cost;
 using RiskOfOptions.OptionConfigs;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
 {
     [ChaosTimedEffect("decrease_interactable_costs", TimedEffectType.UntilStageEnd, DefaultSelectionWeight = 0.8f, ConfigName = "Decrease Chest Prices")]
-    public sealed class DecreaseInteractableCosts : NetworkBehaviour
+    public sealed class DecreaseInteractableCosts : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _decreaseAmount =
@@ -44,7 +45,6 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
         }
 
         ValueModificationController _costModificationController;
-        CostModificationProvider _costModificationProvider;
 
         void Start()
         {
@@ -52,10 +52,8 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
             {
                 _costModificationController = Instantiate(RoCContent.NetworkedPrefabs.CostModificationProvider).GetComponent<ValueModificationController>();
 
-                _costModificationProvider = _costModificationController.GetComponent<CostModificationProvider>();
-                refreshCostMultiplier();
-
-                _decreaseAmount.SettingChanged += onDecreaseAmountChanged;
+                CostModificationProvider costModificationProvider = _costModificationController.GetComponent<CostModificationProvider>();
+                costModificationProvider.CostMultiplierConfigBinding.BindToConfig(_decreaseAmount, v => 1f - v);
 
                 NetworkServer.Spawn(_costModificationController.gameObject);
             }
@@ -67,23 +65,6 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
             {
                 _costModificationController.Retire();
                 _costModificationController = null;
-                _costModificationProvider = null;
-            }
-
-            _decreaseAmount.SettingChanged -= onDecreaseAmountChanged;
-        }
-
-        void onDecreaseAmountChanged(object sender, ConfigChangedArgs<float> e)
-        {
-            refreshCostMultiplier();
-        }
-
-        [Server]
-        void refreshCostMultiplier()
-        {
-            if (_costModificationProvider)
-            {
-                _costModificationProvider.CostMultiplier = 1f - _decreaseAmount.Value;
             }
         }
     }
