@@ -1,20 +1,20 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.ConfigHandling;
-using RiskOfChaos.ConfigHandling.AcceptableValues;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.Gravity;
 using RiskOfOptions.OptionConfigs;
-using System;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Gravity
 {
     [ChaosTimedEffect("decrease_gravity", TimedEffectType.UntilStageEnd, ConfigName = "Decrease Gravity")]
-    public sealed class DecreaseGravity : GenericMultiplyGravityEffect
+    public sealed class DecreaseGravity : NetworkBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _gravityDecrease =
@@ -28,24 +28,57 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
                                     increment = 0.01f,
                                     FormatString = "-{0:P0}"
                                 })
-                                .OnValueChanged(() =>
-                                {
-                                    if (!NetworkServer.active || !ChaosEffectTracker.Instance)
-                                        return;
-
-                                    ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<DecreaseGravity>(e => e.OnValueDirty);
-                                })
                                 .FormatsEffectName()
                                 .Build();
-
-        public override event Action OnValueDirty;
-
-        protected override float multiplier => 1f - _gravityDecrease.Value;
 
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
         {
             return new EffectNameFormatter_GenericFloat(_gravityDecrease.Value) { ValueFormat = "P0" };
+        }
+
+        ValueModificationController _gravityModificationController;
+        GravityModificationProvider _gravityModificationProvider;
+
+        void Start()
+        {
+            if (NetworkServer.active)
+            {
+                _gravityModificationController = Instantiate(RoCContent.NetworkedPrefabs.GravityModificationProvider).GetComponent<ValueModificationController>();
+
+                _gravityModificationProvider = _gravityModificationController.GetComponent<GravityModificationProvider>();
+                refreshGravityModifications();
+
+                NetworkServer.Spawn(_gravityModificationController.gameObject);
+
+                _gravityDecrease.SettingChanged += onGravityDecreaseChanged;
+            }
+        }
+
+        void OnDestroy()
+        {
+            if (_gravityModificationController)
+            {
+                _gravityModificationController.Retire();
+                _gravityModificationController = null;
+                _gravityModificationProvider = null;
+            }
+
+            _gravityDecrease.SettingChanged -= onGravityDecreaseChanged;
+        }
+
+        void onGravityDecreaseChanged(object sender, ConfigChangedArgs<float> e)
+        {
+            refreshGravityModifications();
+        }
+
+        [Server]
+        void refreshGravityModifications()
+        {
+            if (_gravityModificationProvider)
+            {
+                _gravityModificationProvider.GravityMultiplier = 1f - _gravityDecrease.Value;
+            }
         }
     }
 }

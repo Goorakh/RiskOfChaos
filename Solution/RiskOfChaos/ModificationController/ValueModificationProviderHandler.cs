@@ -103,14 +103,14 @@ namespace RiskOfChaos.ModificationController
             bool anyProviderAdded = false;
             foreach (TProviderComponent providerComponent in _sharedGetComponentsBuffer)
             {
-                modificationController.OnValuesDirty += markValueModificationsDirty;
+                modificationController.OnValuesDirty += MarkValueModificationsDirty;
                 _activeProviders.Add(providerComponent);
                 anyProviderAdded = true;
             }
 
             if (anyProviderAdded)
             {
-                markValueModificationsDirty();
+                MarkValueModificationsDirty();
             }
         }
 
@@ -125,7 +125,7 @@ namespace RiskOfChaos.ModificationController
             bool anyProviderRemoved = false;
             foreach (TProviderComponent providerComponent in _sharedGetComponentsBuffer)
             {
-                modificationController.OnValuesDirty -= markValueModificationsDirty;
+                modificationController.OnValuesDirty -= MarkValueModificationsDirty;
 
                 if (_activeProviders.Remove(providerComponent))
                 {
@@ -135,11 +135,11 @@ namespace RiskOfChaos.ModificationController
 
             if (anyProviderRemoved)
             {
-                markValueModificationsDirty();
+                MarkValueModificationsDirty();
             }
         }
 
-        void markValueModificationsDirty()
+        public void MarkValueModificationsDirty()
         {
             _valueModificationsDirty = true;
         }

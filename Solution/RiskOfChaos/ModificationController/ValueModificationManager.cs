@@ -5,6 +5,7 @@ using RiskOfChaos.ModificationController.AttackDelay;
 using RiskOfChaos.ModificationController.Camera;
 using RiskOfChaos.ModificationController.Cost;
 using RiskOfChaos.ModificationController.Effect;
+using RiskOfChaos.ModificationController.Gravity;
 using RoR2;
 using UnityEngine;
 
@@ -26,7 +27,8 @@ namespace RiskOfChaos.ModificationController
                 typeof(AttackDelayModificationManager),
                 typeof(CameraModificationManager),
                 typeof(CostModificationManager),
-                typeof(EffectModificationManager)
+                typeof(EffectModificationManager),
+                typeof(GravityModificationManager)
             ]);
 
             networkPrefabs.Add(prefab);
