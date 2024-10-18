@@ -1,20 +1,20 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
-using RiskOfChaos.OLD_ModifierController.HoldoutZone;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.HoldoutZone;
 using RiskOfOptions.OptionConfigs;
-using System;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
 {
     [ChaosTimedEffect("decrease_holdout_zone_charge_rate", TimedEffectType.UntilStageEnd, ConfigName = "Decrease Teleporter Charge Rate")]
-    public sealed class DecreaseHoldoutZoneChargeRate : TimedEffect, IHoldoutZoneModificationProvider
+    public sealed class DecreaseHoldoutZoneChargeRate : NetworkBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _chargeRateDecrease =
@@ -28,22 +28,13 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
                                     min = 0f,
                                     max = 1f
                                 })
-                                .OnValueChanged(() =>
-                                {
-                                    if (!NetworkServer.active || !ChaosEffectTracker.Instance)
-                                        return;
-
-                                    ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<DecreaseHoldoutZoneChargeRate>(e => e.OnValueDirty);
-                                })
                                 .FormatsEffectName()
                                 .Build();
-
-        public event Action OnValueDirty;
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return HoldoutZoneModificationManager.Instance;
+            return RoCContent.NetworkedPrefabs.SimpleHoldoutZoneModificationProvider;
         }
 
         [GetEffectNameFormatter]
@@ -52,21 +43,47 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
             return new EffectNameFormatter_GenericFloat(_chargeRateDecrease.Value) { ValueFormat = "P0" };
         }
 
-        public void ModifyValue(ref HoldoutZoneModificationInfo value)
-        {
-            value.ChargeRateMultiplier *= 1f - _chargeRateDecrease.Value;
-        }
+        ValueModificationController _holdoutZoneModificationController;
+        SimpleHoldoutZoneModificationProvider _holdoutZoneModificationProvider;
 
-        public override void OnStart()
+        void Start()
         {
-            HoldoutZoneModificationManager.Instance.RegisterModificationProvider(this);
-        }
-
-        public override void OnEnd()
-        {
-            if (HoldoutZoneModificationManager.Instance)
+            if (NetworkServer.active)
             {
-                HoldoutZoneModificationManager.Instance.UnregisterModificationProvider(this);
+                _holdoutZoneModificationController = Instantiate(RoCContent.NetworkedPrefabs.SimpleHoldoutZoneModificationProvider).GetComponent<ValueModificationController>();
+
+                _holdoutZoneModificationProvider = _holdoutZoneModificationController.GetComponent<SimpleHoldoutZoneModificationProvider>();
+                refreshChargeRateModification();
+
+                NetworkServer.Spawn(_holdoutZoneModificationController.gameObject);
+
+                _chargeRateDecrease.SettingChanged += onChargeRateDecreaseChanged;
+            }
+        }
+
+        void OnDestroy()
+        {
+            if (_holdoutZoneModificationController)
+            {
+                _holdoutZoneModificationController.Retire();
+                _holdoutZoneModificationController = null;
+                _holdoutZoneModificationProvider = null;
+            }
+
+            _chargeRateDecrease.SettingChanged -= onChargeRateDecreaseChanged;
+        }
+
+        void onChargeRateDecreaseChanged(object sender, ConfigChangedArgs<float> e)
+        {
+            refreshChargeRateModification();
+        }
+
+        [Server]
+        void refreshChargeRateModification()
+        {
+            if (_holdoutZoneModificationProvider)
+            {
+                _holdoutZoneModificationProvider.ChargeRateMultiplier = 1f - _chargeRateDecrease.Value;
             }
         }
     }

@@ -1,55 +1,85 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
-using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.OLD_ModifierController.HoldoutZone;
+using RiskOfChaos.Trackers;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
 {
     [ChaosTimedEffect("shrinking_holdout_zones", TimedEffectType.UntilStageEnd, AllowDuplicates = false)]
-    public sealed class ShrinkingHoldoutZones : TimedEffect, IHoldoutZoneModificationProvider
+    public sealed class ShrinkingHoldoutZones : MonoBehaviour
     {
-        static readonly AnimationCurve _radiusInterpolateCurve = new AnimationCurve([
-            new Keyframe(0f, 0f, 1f, 1f),
-            new Keyframe(0.5f, 0.75f, 1f, 1f),
-            new Keyframe(1f, 1f)
-        ]);
+        readonly List<ShrinkingHoldoutZoneController> _addedShrinkComponents = [];
 
-        [EffectCanActivate]
-        static bool CanActivate()
+        void Start()
         {
-            return HoldoutZoneModificationManager.Instance;
-        }
+            List<HoldoutZoneTracker> holdoutZoneTrackers = InstanceTracker.GetInstancesList<HoldoutZoneTracker>();
+            _addedShrinkComponents.EnsureCapacity(holdoutZoneTrackers.Count);
 
-        public event Action OnValueDirty;
-
-        public override void OnStart()
-        {
-            HoldoutZoneModificationManager.Instance.RegisterModificationProvider(this);
-
-            RoR2Application.onFixedUpdate += onFixedUpdate;
-        }
-
-        void onFixedUpdate()
-        {
-            OnValueDirty?.Invoke();
-        }
-
-        public override void OnEnd()
-        {
-            if (HoldoutZoneModificationManager.Instance)
+            foreach (HoldoutZoneTracker holdoutZoneTracker in holdoutZoneTrackers)
             {
-                HoldoutZoneModificationManager.Instance.UnregisterModificationProvider(this);
+                registerHoldoutZone(holdoutZoneTracker);
             }
 
-            RoR2Application.onFixedUpdate -= onFixedUpdate;
+            HoldoutZoneTracker.OnHoldoutZoneStartGlobal += registerHoldoutZone;
         }
 
-        public void ModifyValue(ref HoldoutZoneModificationInfo value)
+        void OnDestroy()
         {
-            value.RadiusMultiplier *= Mathf.Lerp(1f, 1f / 4f, _radiusInterpolateCurve.Evaluate(value.ZoneController.charge));
+            HoldoutZoneTracker.OnHoldoutZoneStartGlobal -= registerHoldoutZone;
+
+            foreach (ShrinkingHoldoutZoneController shrinkComponent in _addedShrinkComponents)
+            {
+                if (shrinkComponent)
+                {
+                    Destroy(shrinkComponent);
+                }
+            }
+
+            _addedShrinkComponents.Clear();
+        }
+
+        void registerHoldoutZone(HoldoutZoneTracker holdoutZoneTracker)
+        {
+            HoldoutZoneController holdoutZoneController = holdoutZoneTracker.HoldoutZoneController;
+            if (!holdoutZoneController || holdoutZoneController.GetComponent<ShrinkingHoldoutZoneController>())
+                return;
+
+            ShrinkingHoldoutZoneController shrinkComponent = holdoutZoneController.gameObject.AddComponent<ShrinkingHoldoutZoneController>();
+            _addedShrinkComponents.Add(shrinkComponent);
+        }
+
+        class ShrinkingHoldoutZoneController : MonoBehaviour
+        {
+            static readonly AnimationCurve _radiusMultiplierCurve = new AnimationCurve([
+                new Keyframe(0f, 0f, 1f, 1f),
+                new Keyframe(0.5f, 0.75f, 1f, 1f),
+                new Keyframe(1f, 1f)
+            ]);
+
+            HoldoutZoneController _holdoutZone;
+
+            void Awake()
+            {
+                _holdoutZone = GetComponent<HoldoutZoneController>();
+            }
+
+            void OnEnable()
+            {
+                _holdoutZone.calcRadius += calcRadius;
+            }
+
+            void OnDisable()
+            {
+                _holdoutZone.calcRadius -= calcRadius;
+            }
+
+            void calcRadius(ref float radius)
+            {
+                radius *= Mathf.Lerp(1f, 1f / 4f, _radiusMultiplierCurve.Evaluate(_holdoutZone.charge));
+            }
         }
     }
 }

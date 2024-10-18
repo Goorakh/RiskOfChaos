@@ -6,6 +6,7 @@ using RiskOfChaos.ModificationController.Camera;
 using RiskOfChaos.ModificationController.Cost;
 using RiskOfChaos.ModificationController.Effect;
 using RiskOfChaos.ModificationController.Gravity;
+using RiskOfChaos.ModificationController.HoldoutZone;
 using RoR2;
 using UnityEngine;
 
@@ -28,7 +29,8 @@ namespace RiskOfChaos.ModificationController
                 typeof(CameraModificationManager),
                 typeof(CostModificationManager),
                 typeof(EffectModificationManager),
-                typeof(GravityModificationManager)
+                typeof(GravityModificationManager),
+                typeof(HoldoutZoneModificationManager)
             ]);
 
             networkPrefabs.Add(prefab);

@@ -298,6 +298,8 @@ namespace RiskOfChaos.Content
             public static GameObject EffectModificationProvider;
 
             public static GameObject GravityModificationProvider;
+
+            public static GameObject SimpleHoldoutZoneModificationProvider;
         }
 
         public static class LocalPrefabs

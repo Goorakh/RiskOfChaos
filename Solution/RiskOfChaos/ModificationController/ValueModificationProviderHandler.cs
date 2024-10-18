@@ -3,11 +3,10 @@ using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using UnityEngine;
 
 namespace RiskOfChaos.ModificationController
 {
-    public sealed class ValueModificationProviderHandler<TProviderComponent> : IDisposable where TProviderComponent : MonoBehaviour
+    public sealed class ValueModificationProviderHandler<TProviderComponent> : IDisposable
     {
         static readonly List<TProviderComponent> _sharedGetComponentsBuffer = new List<TProviderComponent>(1);
 
