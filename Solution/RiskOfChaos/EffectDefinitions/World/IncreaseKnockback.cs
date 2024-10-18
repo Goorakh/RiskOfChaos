@@ -1,21 +1,21 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
-using RiskOfChaos.OLD_ModifierController.Knockback;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.Knockback;
 using RiskOfOptions.OptionConfigs;
-using System;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosTimedEffect("increase_knockback", TimedEffectType.UntilStageEnd, ConfigName = "Increase Knockback")]
     [IncompatibleEffects(typeof(DisableKnockback))]
-    public sealed class IncreaseKnockback : TimedEffect, IKnockbackModificationProvider
+    public sealed class IncreaseKnockback : NetworkBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _knockbackMultiplier =
@@ -23,20 +23,13 @@ namespace RiskOfChaos.EffectDefinitions.World
                                 .Description("The multiplier used to increase knockback while the effect is active")
                                 .AcceptableValues(new AcceptableValueMin<float>(1f))
                                 .OptionConfig(new FloatFieldConfig { Min = 1f, FormatString = "{0}x" })
-                                .OnValueChanged(() =>
-                                {
-                                    if (!NetworkServer.active || !ChaosEffectTracker.Instance)
-                                        return;
-
-                                    ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<IncreaseKnockback>(e => e.OnValueDirty);
-                                })
                                 .FormatsEffectName()
                                 .Build();
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return KnockbackModificationManager.Instance;
+            return RoCContent.NetworkedPrefabs.KnockbackModificationProvider;
         }
 
         [GetEffectNameFormatter]
@@ -45,23 +38,47 @@ namespace RiskOfChaos.EffectDefinitions.World
             return new EffectNameFormatter_GenericFloat(_knockbackMultiplier.Value);
         }
 
-        public event Action OnValueDirty;
+        ValueModificationController _knockbackModificationController;
+        KnockbackModificationProvider _knockbackModificationProvider;
 
-        public void ModifyValue(ref float value)
+        void Start()
         {
-            value *= _knockbackMultiplier.Value;
-        }
-
-        public override void OnStart()
-        {
-            KnockbackModificationManager.Instance.RegisterModificationProvider(this);
-        }
-
-        public override void OnEnd()
-        {
-            if (KnockbackModificationManager.Instance)
+            if (NetworkServer.active)
             {
-                KnockbackModificationManager.Instance.UnregisterModificationProvider(this);
+                _knockbackModificationController = Instantiate(RoCContent.NetworkedPrefabs.KnockbackModificationProvider).GetComponent<ValueModificationController>();
+
+                _knockbackModificationProvider = _knockbackModificationController.GetComponent<KnockbackModificationProvider>();
+                refreshKnockbackMultiplier();
+
+                NetworkServer.Spawn(_knockbackModificationController.gameObject);
+
+                _knockbackMultiplier.SettingChanged += onKnockbackMultiplierChanged;
+            }
+        }
+
+        void OnDestroy()
+        {
+            if (_knockbackModificationController)
+            {
+                _knockbackModificationController.Retire();
+                _knockbackModificationController = null;
+                _knockbackModificationProvider = null;
+            }
+
+            _knockbackMultiplier.SettingChanged -= onKnockbackMultiplierChanged;
+        }
+
+        void onKnockbackMultiplierChanged(object sender, ConfigChangedArgs<float> e)
+        {
+            refreshKnockbackMultiplier();
+        }
+
+        [Server]
+        void refreshKnockbackMultiplier()
+        {
+            if (_knockbackModificationProvider)
+            {
+                _knockbackModificationProvider.KnockbackMultiplier = _knockbackMultiplier.Value;
             }
         }
     }

@@ -1,38 +1,44 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.OLD_ModifierController.Knockback;
-using System;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.Knockback;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosTimedEffect("reverse_knockback", TimedEffectType.UntilStageEnd)]
     [IncompatibleEffects(typeof(DisableKnockback))]
-    public sealed class ReverseKnockback : TimedEffect, IKnockbackModificationProvider
+    public sealed class ReverseKnockback : NetworkBehaviour
     {
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return KnockbackModificationManager.Instance;
+            return RoCContent.NetworkedPrefabs.KnockbackModificationProvider;
         }
 
-        public override void OnStart()
-        {
-            KnockbackModificationManager.Instance.RegisterModificationProvider(this);
-        }
+        ValueModificationController _knockbackModificationController;
 
-        public event Action OnValueDirty;
-
-        public void ModifyValue(ref float value)
+        void Start()
         {
-            value *= -1f;
-        }
-
-        public override void OnEnd()
-        {
-            if (KnockbackModificationManager.Instance)
+            if (NetworkServer.active)
             {
-                KnockbackModificationManager.Instance.UnregisterModificationProvider(this);
+                _knockbackModificationController = Instantiate(RoCContent.NetworkedPrefabs.KnockbackModificationProvider).GetComponent<ValueModificationController>();
+
+                KnockbackModificationProvider knockbackModificationProvider = _knockbackModificationController.GetComponent<KnockbackModificationProvider>();
+                knockbackModificationProvider.KnockbackMultiplier = -1f;
+
+                NetworkServer.Spawn(_knockbackModificationController.gameObject);
+            }
+        }
+
+        void OnDisable()
+        {
+            if (_knockbackModificationController)
+            {
+                _knockbackModificationController.Retire();
+                _knockbackModificationController = null;
             }
         }
     }
