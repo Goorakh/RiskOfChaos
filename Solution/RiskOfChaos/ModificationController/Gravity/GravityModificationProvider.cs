@@ -64,9 +64,15 @@ namespace RiskOfChaos.ModificationController.Gravity
         void OnDestroy()
         {
             _modificationController.OnRetire -= onRetire;
+            disposeConfigBindings();
         }
 
         void onRetire()
+        {
+            disposeConfigBindings();
+        }
+
+        void disposeConfigBindings()
         {
             GravityMultiplierConfigBinding?.Dispose();
         }

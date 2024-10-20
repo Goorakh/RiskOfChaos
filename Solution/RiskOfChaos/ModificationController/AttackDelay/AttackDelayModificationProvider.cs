@@ -24,9 +24,15 @@ namespace RiskOfChaos.ModificationController.AttackDelay
         void OnDestroy()
         {
             _modificationController.OnRetire -= onRetire;
+            disposeConfigBindings();
         }
 
         void onRetire()
+        {
+            disposeConfigBindings();
+        }
+
+        void disposeConfigBindings()
         {
             DelayConfigBinding?.Dispose();
         }

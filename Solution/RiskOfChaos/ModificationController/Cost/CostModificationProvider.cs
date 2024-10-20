@@ -45,6 +45,17 @@ namespace RiskOfChaos.ModificationController.Cost
         void OnDestroy()
         {
             _modificationController.OnRetire -= onRetire;
+            disposeConfigBindings();
+        }
+
+        void onRetire()
+        {
+            disposeConfigBindings();
+        }
+
+        void disposeConfigBindings()
+        {
+            CostMultiplierConfigBinding?.Dispose();
         }
 
         void Update()
@@ -58,11 +69,6 @@ namespace RiskOfChaos.ModificationController.Cost
                     _modificationController.InvokeOnValuesDirty();
                 }
             }
-        }
-
-        void onRetire()
-        {
-            CostMultiplierConfigBinding?.Dispose();
         }
 
         void onValueChanged()

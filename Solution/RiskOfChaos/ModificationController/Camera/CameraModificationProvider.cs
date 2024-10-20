@@ -89,9 +89,15 @@ namespace RiskOfChaos.ModificationController.Camera
         void OnDestroy()
         {
             _modificationController.OnRetire -= onRetire;
+            disposeConfigBindings();
         }
 
         void onRetire()
+        {
+            disposeConfigBindings();
+        }
+
+        void disposeConfigBindings()
         {
             DistanceMultiplierConfigBinding?.Dispose();
         }

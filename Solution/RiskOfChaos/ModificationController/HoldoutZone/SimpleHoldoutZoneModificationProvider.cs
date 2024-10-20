@@ -31,9 +31,15 @@ namespace RiskOfChaos.ModificationController.HoldoutZone
         void OnDestroy()
         {
             _modificationController.OnRetire -= onRetire;
+            disposeConfigBindings();
         }
 
         void onRetire()
+        {
+            disposeConfigBindings();
+        }
+
+        void disposeConfigBindings()
         {
             RadiusMultiplierConfigBinding?.Dispose();
             ChargeRateMultiplierConfigBinding?.Dispose();

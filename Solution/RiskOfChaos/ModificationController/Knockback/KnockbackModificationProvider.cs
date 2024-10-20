@@ -43,9 +43,15 @@ namespace RiskOfChaos.ModificationController.Knockback
         void OnDestroy()
         {
             _modificationController.OnRetire -= onRetire;
+            disposeConfigBindings();
         }
 
         void onRetire()
+        {
+            disposeConfigBindings();
+        }
+
+        void disposeConfigBindings()
         {
             KnockbackMultiplierConfigBinding?.Dispose();
         }
