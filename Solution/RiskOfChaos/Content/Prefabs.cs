@@ -117,7 +117,7 @@ namespace RiskOfChaos.Content
             return createPrefab(name, componentTypes, true);
         }
 
-        public static GameObject CreateValueModificatinProviderPrefab(Type providerComponentType, string name, Type[] additionalComponents = null)
+        public static GameObject CreateValueModificationProviderPrefab(Type providerComponentType, string name, Type[] additionalComponents = null)
         {
             List<Type> componentTypes = [
                 typeof(SetDontDestroyOnLoad),

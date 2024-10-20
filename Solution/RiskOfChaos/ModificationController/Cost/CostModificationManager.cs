@@ -16,14 +16,14 @@ namespace RiskOfChaos.ModificationController.Cost
         {
             // CostModificationProvider
             {
-                GameObject prefab = Prefabs.CreateValueModificatinProviderPrefab(typeof(CostModificationProvider), nameof(RoCContent.NetworkedPrefabs.CostModificationProvider));
+                GameObject prefab = Prefabs.CreateValueModificationProviderPrefab(typeof(CostModificationProvider), nameof(RoCContent.NetworkedPrefabs.CostModificationProvider));
 
                 networkPrefabs.Add(prefab);
             }
 
             // CostConversionProvider
             {
-                GameObject prefab = Prefabs.CreateValueModificatinProviderPrefab(typeof(CostConversionProvider), nameof(RoCContent.NetworkedPrefabs.CostConversionProvider));
+                GameObject prefab = Prefabs.CreateValueModificationProviderPrefab(typeof(CostConversionProvider), nameof(RoCContent.NetworkedPrefabs.CostConversionProvider));
 
                 networkPrefabs.Add(prefab);
             }

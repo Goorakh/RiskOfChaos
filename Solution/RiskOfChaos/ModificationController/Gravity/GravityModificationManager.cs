@@ -17,7 +17,7 @@ namespace RiskOfChaos.ModificationController.Gravity
         {
             // EffectModificationProvider
             {
-                GameObject prefab = Prefabs.CreateValueModificatinProviderPrefab(typeof(GravityModificationProvider), nameof(RoCContent.NetworkedPrefabs.GravityModificationProvider));
+                GameObject prefab = Prefabs.CreateValueModificationProviderPrefab(typeof(GravityModificationProvider), nameof(RoCContent.NetworkedPrefabs.GravityModificationProvider));
 
                 networkedPrefabs.Add(prefab);
             }

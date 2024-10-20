@@ -15,7 +15,7 @@ namespace RiskOfChaos.ModificationController.Camera
         {
             // CameraModificationProvider
             {
-                GameObject prefab = Prefabs.CreateValueModificatinProviderPrefab(typeof(CameraModificationProvider), nameof(RoCContent.NetworkedPrefabs.CameraModificationProvider));
+                GameObject prefab = Prefabs.CreateValueModificationProviderPrefab(typeof(CameraModificationProvider), nameof(RoCContent.NetworkedPrefabs.CameraModificationProvider));
 
                 networkPrefabs.Add(prefab);
             }

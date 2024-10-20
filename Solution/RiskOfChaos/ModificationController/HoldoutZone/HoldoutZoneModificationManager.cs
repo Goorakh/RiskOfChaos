@@ -17,7 +17,7 @@ namespace RiskOfChaos.ModificationController.HoldoutZone
         {
             // SimpleHoldoutZoneModificationProvider
             {
-                GameObject prefab = Prefabs.CreateValueModificatinProviderPrefab(typeof(SimpleHoldoutZoneModificationProvider), nameof(RoCContent.NetworkedPrefabs.SimpleHoldoutZoneModificationProvider));
+                GameObject prefab = Prefabs.CreateValueModificationProviderPrefab(typeof(SimpleHoldoutZoneModificationProvider), nameof(RoCContent.NetworkedPrefabs.SimpleHoldoutZoneModificationProvider));
 
                 networkPrefabs.Add(prefab);
             }

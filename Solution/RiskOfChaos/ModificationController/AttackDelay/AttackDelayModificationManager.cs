@@ -15,7 +15,7 @@ namespace RiskOfChaos.ModificationController.AttackDelay
         {
             // AttackDelayModificationProvider
             {
-                GameObject prefab = Prefabs.CreateValueModificatinProviderPrefab(typeof(AttackDelayModificationProvider), nameof(RoCContent.NetworkedPrefabs.AttackDelayModificationProvider));
+                GameObject prefab = Prefabs.CreateValueModificationProviderPrefab(typeof(AttackDelayModificationProvider), nameof(RoCContent.NetworkedPrefabs.AttackDelayModificationProvider));
 
                 networkPrefabs.Add(prefab);
             }
