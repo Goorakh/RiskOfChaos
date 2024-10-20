@@ -43,31 +43,5 @@ namespace RiskOfChaos.Utilities.Interpolation
         {
             return (int)Mathf.Round(type.Interpolate(a, (float)b, t));
         }
-
-        [Obsolete]
-        public static Vector3 Interpolate(this ValueInterpolationFunctionType type, in Vector3 a, in Vector3 b, float t)
-        {
-            return type switch
-            {
-                ValueInterpolationFunctionType.Snap => b,
-                ValueInterpolationFunctionType.Linear => Vector3.Lerp(a, b, t),
-                ValueInterpolationFunctionType.EaseInOut => Vector3.Slerp(a, b, t),
-                _ => throw new NotImplementedException($"Blend type {type} not implemented"),
-            };
-        }
-
-        [Obsolete]
-        public static Color Interpolate(this ValueInterpolationFunctionType type, in Color a, in Color b, float t)
-        {
-            return type switch
-            {
-                ValueInterpolationFunctionType.Snap => b,
-                ValueInterpolationFunctionType.Linear => Color.Lerp(a, b, t),
-                _ => new Color(type.Interpolate(a.r, b.r, t),
-                               type.Interpolate(a.g, b.g, t),
-                               type.Interpolate(a.b, b.b, t),
-                               type.Interpolate(a.a, b.a, t)),
-            };
-        }
     }
 }

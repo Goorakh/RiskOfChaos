@@ -227,11 +227,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
             return false;
         }
 
-        [Obsolete]
-        public void EndEffectServer(TimedEffect effect)
-        {
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsTimedEffectActive(TimedEffectInfo effectInfo)
         {
@@ -262,16 +257,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
             return activeEffectComponents;
         }
 
-        [Obsolete]
-        public TimedEffect[] OLD_GetAllActiveEffects()
-        {
-            return [];
-        }
-
         public TEffectComponent[] GetActiveTimedEffectComponents<TEffectComponent>() where TEffectComponent : MonoBehaviour
         {
             List<TEffectComponent> componentsBuffer = new List<TEffectComponent>(8);
-            List<TEffectComponent> componentsList = new List<TEffectComponent>(8);
+            List<TEffectComponent> componentsList = new List<TEffectComponent>(_allActiveTimedEffects.Count * 2);
 
             for (ChaosEffectIndex effectIndex = 0; (int)effectIndex < _timedEffectActivity.Length; effectIndex++)
             {
@@ -281,6 +270,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     ChaosEffectComponent effectComponent = effectActivity.Instances[i].EffectComponent;
                     if (effectComponent)
                     {
+                        componentsBuffer.Clear();
                         effectComponent.GetComponents(componentsBuffer);
                         if (componentsBuffer.Count > 0)
                         {

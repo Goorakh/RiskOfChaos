@@ -37,9 +37,6 @@ namespace RiskOfChaos.EffectDefinitions
         }
 
         [Obsolete]
-        public float StocksRemaining => MaxStocks - SpentStocks;
-
-        [Obsolete]
         public float DurationSeconds { get; internal set; } = -1f;
 
         [Obsolete]
