@@ -60,8 +60,8 @@ namespace RiskOfChaos.Utilities
             if (value > uint.MaxValue)
                 return uint.MaxValue;
 
-            if (value < uint.MinValue)
-                return uint.MinValue;
+            // if (value < uint.MinValue)
+            //     return uint.MinValue;
 
             return (uint)value;
         }
