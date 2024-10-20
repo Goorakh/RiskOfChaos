@@ -9,7 +9,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
     [ChaosTimedEffect("disable_recoil", 90f, AllowDuplicates = false)]
-    public sealed class DisableRecoil : NetworkBehaviour
+    public sealed class DisableRecoil : MonoBehaviour
     {
         [EffectCanActivate]
         static bool CanActivate()

@@ -4,25 +4,26 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Equipment
 {
     [ChaosTimedEffect("no_equipment_cooldown", 60f, AllowDuplicates = false)]
     [IncompatibleEffects(typeof(DisableEquipmentActivation))]
-    public sealed class NoEquipmentCooldown : NetworkBehaviour
+    public sealed class NoEquipmentCooldown : MonoBehaviour
     {
         [InitEffectInfo]
         public static readonly TimedEffectInfo EffectInfo;
 
-        public override void OnStartServer()
+        void Start()
         {
-            base.OnStartServer();
-
-            CharacterBody.readOnlyInstancesList.TryDo(skipActiveEquipmentCooldowns, FormatUtils.GetBestBodyName);
+            if (NetworkServer.active)
+            {
+                CharacterBody.readOnlyInstancesList.TryDo(skipActiveEquipmentCooldowns, FormatUtils.GetBestBodyName);
+            }
         }
 
-        [Server]
         static void skipActiveEquipmentCooldowns(CharacterBody body)
         {
             Inventory inventory = body.inventory;

@@ -13,7 +13,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 namespace RiskOfChaos.EffectDefinitions.Character.Equipment
 {
     [ChaosTimedEffect("disable_equipment_activation", 60f, AllowDuplicates = false)]
-    public sealed class DisableEquipmentActivation : NetworkBehaviour
+    public sealed class DisableEquipmentActivation : MonoBehaviour
     {
         [InitEffectInfo]
         public static readonly TimedEffectInfo EffectInfo;
@@ -46,7 +46,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
 
         void Start()
         {
-            OverrideEquipmentIconHook.OverrideEquipmentIcon += overrideEquipmentIcon;
+            if (NetworkClient.active && _lockedIconTexture)
+            {
+                OverrideEquipmentIconHook.OverrideEquipmentIcon += overrideEquipmentIcon;
+            }
         }
 
         void OnDestroy()

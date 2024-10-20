@@ -8,12 +8,13 @@ using RiskOfChaos.ModificationController;
 using RiskOfChaos.ModificationController.Camera;
 using RiskOfChaos.Utilities.Interpolation;
 using RiskOfOptions.OptionConfigs;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
     [ChaosTimedEffect("increase_camera_distance", 90f, ConfigName = "Increase Camera Distance")]
-    public sealed class IncreaseCameraDistance : NetworkBehaviour
+    public sealed class IncreaseCameraDistance : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _distanceMultiplier =

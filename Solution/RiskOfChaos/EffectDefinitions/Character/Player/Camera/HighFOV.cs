@@ -4,12 +4,13 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.ModificationController;
 using RiskOfChaos.ModificationController.Camera;
 using RiskOfChaos.Utilities.Interpolation;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
     [ChaosTimedEffect("high_fov", 90f)]
-    public sealed class HighFOV : NetworkBehaviour
+    public sealed class HighFOV : MonoBehaviour
     {
         [EffectCanActivate]
         static bool CanActivate()

@@ -3,12 +3,12 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Collections.Generic;
-using UnityEngine.Networking;
+using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
     [ChaosTimedEffect("delay_camera_position", 45f, AllowDuplicates = false)]
-    public sealed class DelayCameraPosition : NetworkBehaviour
+    public sealed class DelayCameraPosition : MonoBehaviour
     {
         readonly Dictionary<CameraRigController, DelayedCameraPositionController> _createdDelayedPositionControllers = [];
 

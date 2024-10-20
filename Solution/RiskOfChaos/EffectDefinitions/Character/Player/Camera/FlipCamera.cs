@@ -10,7 +10,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
     [ChaosTimedEffect("flip_camera", 30f, AllowDuplicates = false)]
-    public sealed class FlipCamera : NetworkBehaviour
+    public sealed class FlipCamera : MonoBehaviour
     {
         [EffectCanActivate]
         static bool CanActivate()

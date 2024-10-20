@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
     [ChaosTimedEffect("render_colliders_only", 90f, AllowDuplicates = false)]
-    public sealed class RenderCollidersOnly : NetworkBehaviour
+    public sealed class RenderCollidersOnly : MonoBehaviour
     {
         class ColliderRendererController : MonoBehaviour
         {
@@ -295,9 +295,11 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
             setupModel(model);
         }
 
-        [Client]
         void setupModel(CharacterModel model)
         {
+            if (!NetworkClient.active)
+                return;
+
             ColliderRendererController rendererData = model.gameObject.AddComponent<ColliderRendererController>();
 
             _colliderRenderers.Add(rendererData);
