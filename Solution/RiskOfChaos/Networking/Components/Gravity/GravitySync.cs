@@ -11,7 +11,7 @@ namespace RiskOfChaos.Networking.Components.Gravity
     public class GravitySync : NetworkBehaviour
     {
         [ContentInitializer]
-        static void Init(NetworkedPrefabAssetCollection networkPrefabs)
+        static void LoadContent(NetworkedPrefabAssetCollection networkPrefabs)
         {
             // GravityNetworker
             {
