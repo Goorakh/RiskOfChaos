@@ -6,14 +6,16 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.SkillSlots;
 using RiskOfOptions.OptionConfigs;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
 {
     [ChaosTimedEffect("increase_skill_cooldown", TimedEffectType.UntilStageEnd, ConfigName = "Increase Skill Cooldowns")]
-    [RequiredComponents(typeof(CooldownScaleMultiplierEffect))]
-    public sealed class IncreaseSkillCooldowns : NetworkBehaviour
+    public sealed class IncreaseSkillCooldowns : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _cooldownIncrease =
@@ -28,41 +30,40 @@ namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
                                 .FormatsEffectName()
                                 .Build();
 
+        [EffectCanActivate]
+        static bool CanActivate()
+        {
+            return RoCContent.NetworkedPrefabs.SkillSlotModificationProvider;
+        }
+
         [GetEffectNameFormatter]
         static EffectNameFormatter GetEffectNameFormatter()
         {
             return new EffectNameFormatter_GenericFloat(_cooldownIncrease.Value) { ValueFormat = "P0" };
         }
 
-        CooldownScaleMultiplierEffect _cooldownMultiplierEffect;
+        ValueModificationController _skillSlotModificationController;
 
-        void Awake()
+        void Start()
         {
-            _cooldownMultiplierEffect = GetComponent<CooldownScaleMultiplierEffect>();
-        }
+            if (NetworkServer.active)
+            {
+                _skillSlotModificationController = Instantiate(RoCContent.NetworkedPrefabs.SkillSlotModificationProvider).GetComponent<ValueModificationController>();
 
-        public override void OnStartServer()
-        {
-            base.OnStartServer();
+                SkillSlotModificationProvider skillSlotModificationProvider = _skillSlotModificationController.GetComponent<SkillSlotModificationProvider>();
+                skillSlotModificationProvider.CooldownMultiplierConfigBinding.BindToConfig(_cooldownIncrease, v => 1f + v);
 
-            _cooldownIncrease.SettingChanged += onCooldownIncreaseChanged;
-            updateMultiplier();
-        }
-
-        void onCooldownIncreaseChanged(object sender, ConfigChangedArgs<float> e)
-        {
-            updateMultiplier();
-        }
-
-        [Server]
-        void updateMultiplier()
-        {
-            _cooldownMultiplierEffect.Multiplier = 1f + _cooldownIncrease.Value;
+                NetworkServer.Spawn(_skillSlotModificationController.gameObject);
+            }
         }
 
         void OnDestroy()
         {
-            _cooldownIncrease.SettingChanged -= onCooldownIncreaseChanged;
+            if (_skillSlotModificationController)
+            {
+                _skillSlotModificationController.Retire();
+                _skillSlotModificationController = null;
+            }
         }
     }
 }

@@ -1,10 +1,10 @@
 ﻿using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using RiskOfChaos.OLD_ModifierController.SkillSlots;
+using RiskOfChaos.ModificationController.SkillSlots;
 using RoR2;
 using RoR2.Skills;
-using System;
+using UnityEngine;
 
 namespace RiskOfChaos.Patches
 {
@@ -24,7 +24,12 @@ namespace RiskOfChaos.Patches
                     c.EmitDelegate(modifyMaxStock);
                     static int modifyMaxStock(int maxStock, GenericSkill instance)
                     {
-                        return Math.Max(1, maxStock + getStockAdds(instance));
+                        if (SkillSlotModificationManager.Instance)
+                        {
+                            maxStock = Mathf.Max(1, maxStock + SkillSlotModificationManager.Instance.StockAdd);
+                        }
+
+                        return maxStock;
                     }
                 }
                 else
@@ -53,32 +58,6 @@ namespace RiskOfChaos.Patches
                     Log.Error("Failed to find ReloadSkillDef stock fix patch location");
                 }
             };
-        }
-
-        static int getStockAdds(SkillSlot skillSlot)
-        {
-            if (!SkillSlotModificationManager.Instance)
-                return 0;
-
-            return SkillSlotModificationManager.Instance.GetStockAdd(skillSlot);
-        }
-
-        static int getStockAdds(GenericSkill skill)
-        {
-            if (skill)
-            {
-                CharacterBody body = skill.characterBody;
-                if (body)
-                {
-                    SkillLocator skillLocator = body.skillLocator;
-                    if (skillLocator)
-                    {
-                        return getStockAdds(skillLocator.FindSkillSlot(skill));
-                    }
-                }
-            }
-
-            return 0;
         }
     }
 }

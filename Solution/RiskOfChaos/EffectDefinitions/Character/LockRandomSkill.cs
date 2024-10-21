@@ -1,20 +1,23 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.OLD_ModifierController.SkillSlots;
+using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.SkillSlots;
+using RiskOfChaos.SaveHandling;
+using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("lock_random_skill", 90f, DefaultSelectionWeight = 0.5f)]
     [EffectConfigBackwardsCompatibility("Effect: Disable Random Skill (Lasts 1 stage)")]
-    public sealed class LockRandomSkill : TimedEffect, ISkillSlotModificationProvider
+    public sealed class LockRandomSkill : NetworkBehaviour
     {
         static ConfigHolder<bool> createSkillAllowedConfig(SkillSlot slot)
         {
@@ -41,68 +44,87 @@ namespace RiskOfChaos.EffectDefinitions.Character
             };
         }
 
-        static IEnumerable<SkillSlot> getAllLockableSkillSlots()
-        {
-            uint nonLockedSlotsMask = ~SkillSlotModificationManager.Instance.LockedSkillSlotsMask;
-
-            for (SkillSlot i = 0; i < (SkillSlot)SkillSlotModificationManager.SKILL_SLOT_COUNT; i++)
-            {
-                if (SkillSlotModificationManager.IsSkillSlotBitSet(nonLockedSlotsMask, i) && canLockSkill(i))
-                {
-                    yield return i;
-                }
-            }
-        }
-
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return SkillSlotModificationManager.Instance && getAllLockableSkillSlots().Any();
+            if (!RoCContent.NetworkedPrefabs.SkillSlotModificationProvider)
+                return false;
+
+            SkillSlotModificationManager skillSlotModificationManager = SkillSlotModificationManager.Instance;
+            if (!skillSlotModificationManager)
+                return false;
+
+            SkillSlotMask nonLockedSlotsMask = ~skillSlotModificationManager.LockedSlots;
+
+            return nonLockedSlotsMask.ContainedSlotCount > 0;
         }
 
+        static List<SkillSlot> getAllLockableSkillSlots()
+        {
+            SkillSlotMask nonLockedSlots = ~SkillSlotModificationManager.Instance.LockedSlots;
+
+            List<SkillSlot> lockableSkillSlots = new List<SkillSlot>(SkillSlotUtils.SkillSlotCount);
+
+            foreach (SkillSlot nonLockedSlot in nonLockedSlots)
+            {
+                if (canLockSkill(nonLockedSlot))
+                {
+                    lockableSkillSlots.Add(nonLockedSlot);
+                }
+            }
+
+            return lockableSkillSlots;
+        }
+
+        ChaosEffectComponent _effectComponent;
+
+        [SerializedMember("s")]
         SkillSlot _lockedSkillSlot = SkillSlot.None;
 
-        public event Action OnValueDirty;
+        ValueModificationController _skillSlotModificationController;
 
-        public void ModifyValue(ref SkillSlotModificationData modification)
+        void Awake()
         {
-            if (modification.SlotIndex == _lockedSkillSlot)
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+
+            List<SkillSlot> lockableSkillSlots = getAllLockableSkillSlots();
+            if (lockableSkillSlots.Count > 0)
             {
-                modification.ForceIsLocked = true;
+                _lockedSkillSlot = rng.NextElementUniform(lockableSkillSlots);
+            }
+            else
+            {
+                Log.Error("No available skill slots");
+                _lockedSkillSlot = SkillSlot.None;
             }
         }
 
-        public override void OnPreStartServer()
+        void Start()
         {
-            base.OnPreStartServer();
-
-            _lockedSkillSlot = RNG.NextElementUniform(getAllLockableSkillSlots().ToList());
-        }
-
-        public override void Serialize(NetworkWriter writer)
-        {
-            base.Serialize(writer);
-
-            writer.Write((sbyte)_lockedSkillSlot);
-        }
-
-        public override void Deserialize(NetworkReader reader)
-        {
-            base.Deserialize(reader);
-
-            _lockedSkillSlot = (SkillSlot)reader.ReadSByte();
-        }
-
-        public override void OnStart()
-        {
-            SkillSlotModificationManager.Instance.RegisterModificationProvider(this);
-        }
-
-        public override void OnEnd()
-        {
-            if (SkillSlotModificationManager.Instance)
+            if (NetworkServer.active)
             {
-                SkillSlotModificationManager.Instance.UnregisterModificationProvider(this);
+                _skillSlotModificationController = Instantiate(RoCContent.NetworkedPrefabs.SkillSlotModificationProvider).GetComponent<ValueModificationController>();
+
+                SkillSlotModificationProvider skillSlotModificationProvider = _skillSlotModificationController.GetComponent<SkillSlotModificationProvider>();
+                skillSlotModificationProvider.LockedSlots = _lockedSkillSlot;
+
+                NetworkServer.Spawn(_skillSlotModificationController.gameObject);
+            }
+        }
+
+        void OnDestroy()
+        {
+            if (_skillSlotModificationController)
+            {
+                _skillSlotModificationController.Retire();
+                _skillSlotModificationController = null;
             }
         }
     }

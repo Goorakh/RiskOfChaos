@@ -2,7 +2,7 @@
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.Utils;
-using RiskOfChaos.OLD_ModifierController.SkillSlots;
+using RiskOfChaos.ModificationController.SkillSlots;
 using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.CharacterAI;
@@ -85,7 +85,8 @@ namespace RiskOfChaos.Patches
                     cursor.EmitDelegate(overrideButtonState);
                     static bool overrideButtonState(bool origButtonState, SkillSlot skillSlot, MonoBehaviour instance)
                     {
-                        if (SkillSlotModificationManager.Instance && SkillSlotModificationManager.Instance.IsSkillSlotForceActivated(skillSlot))
+                        SkillSlotModificationManager skillSlotModificationManager = SkillSlotModificationManager.Instance;
+                        if (skillSlotModificationManager && skillSlotModificationManager.ForceActivatedSlots.Contains(skillSlot))
                         {
                             CharacterBody body;
                             switch (instance)

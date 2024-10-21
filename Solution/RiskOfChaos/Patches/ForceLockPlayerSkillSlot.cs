@@ -1,6 +1,6 @@
 ﻿using HarmonyLib;
 using MonoMod.RuntimeDetour;
-using RiskOfChaos.OLD_ModifierController.SkillSlots;
+using RiskOfChaos.ModificationController.SkillSlots;
 using RoR2;
 using RoR2.Skills;
 using RoR2.UI;
@@ -39,7 +39,8 @@ namespace RiskOfChaos.Patches
             if (!body)
                 return false;
 
-            return SkillSlotModificationManager.Instance && SkillSlotModificationManager.Instance.IsSkillSlotLocked(body.skillLocator.FindSkillSlot(skill));
+            SkillSlotModificationManager skillSlotModificationManager = SkillSlotModificationManager.Instance;
+            return skillSlotModificationManager && skillSlotModificationManager.LockedSlots.Contains(body.skillLocator.FindSkillSlot(skill));
         }
 
         static bool GenericSkill_IsReady(On.RoR2.GenericSkill.orig_IsReady orig, GenericSkill self)

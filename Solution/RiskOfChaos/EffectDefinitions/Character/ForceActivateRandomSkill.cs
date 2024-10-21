@@ -1,11 +1,15 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.OLD_ModifierController.SkillSlots;
+using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.SkillSlots;
+using RiskOfChaos.SaveHandling;
+using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Networking;
@@ -14,7 +18,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("force_activate_random_skill", 90f, DefaultSelectionWeight = 0.6f)]
     [EffectConfigBackwardsCompatibility("Effect: Force Activate Random Skill (Lasts 1 stage)")]
-    public sealed class ForceActivateRandomSkill : TimedEffect, ISkillSlotModificationProvider
+    public sealed class ForceActivateRandomSkill : NetworkBehaviour
     {
         static ConfigHolder<bool> createSkillAllowedConfig(SkillSlot slot)
         {
@@ -41,71 +45,92 @@ namespace RiskOfChaos.EffectDefinitions.Character
             };
         }
 
-        static IEnumerable<SkillSlot> getAllForcableSkillSlots()
+        static List<SkillSlot> getAllForcableSkillSlots()
         {
-            uint lockedSlotsMask = SkillSlotModificationManager.Instance.LockedSkillSlotsMask;
-            uint forceActivatesSlotsMask = SkillSlotModificationManager.Instance.ForceActivateSkillSlotsMask;
+            SkillSlotMask lockedSlotsMask = SkillSlotModificationManager.Instance.LockedSlots;
+            SkillSlotMask forceActivatesSlotsMask = SkillSlotModificationManager.Instance.ForceActivatedSlots;
 
-            uint nonLockedNonForceActivatedSlotsMask = ~(lockedSlotsMask | forceActivatesSlotsMask);
+            SkillSlotMask nonLockedNonForceActivatedSlotsMask = ~(lockedSlotsMask | forceActivatesSlotsMask);
 
-            for (SkillSlot i = 0; i < (SkillSlot)SkillSlotModificationManager.SKILL_SLOT_COUNT; i++)
+            List<SkillSlot> forcableSkillSlots = new List<SkillSlot>(SkillSlotUtils.SkillSlotCount);
+            foreach (SkillSlot availableSlot in nonLockedNonForceActivatedSlotsMask)
             {
-                if (SkillSlotModificationManager.IsSkillSlotBitSet(nonLockedNonForceActivatedSlotsMask, i) && canForceSkill(i))
+                if (canForceSkill(availableSlot))
                 {
-                    yield return i;
+                    forcableSkillSlots.Add(availableSlot);
                 }
             }
+
+            return forcableSkillSlots;
         }
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return SkillSlotModificationManager.Instance && getAllForcableSkillSlots().Any();
+            if (!RoCContent.NetworkedPrefabs.SkillSlotModificationProvider)
+                return false;
+
+            SkillSlotModificationManager skillSlotModificationManager = SkillSlotModificationManager.Instance;
+            if (!skillSlotModificationManager)
+                return false;
+
+            SkillSlotMask lockedSlotsMask = skillSlotModificationManager.LockedSlots;
+            SkillSlotMask forceActivatesSlotsMask = skillSlotModificationManager.ForceActivatedSlots;
+
+            SkillSlotMask nonLockedNonForceActivatedSlotsMask = ~(lockedSlotsMask | forceActivatesSlotsMask);
+
+            return nonLockedNonForceActivatedSlotsMask.ContainedSlotCount > 0;
         }
 
+        ChaosEffectComponent _effectComponent;
+
+        [SerializedMember("s")]
         SkillSlot _forcedSkillSlot = SkillSlot.None;
 
-        public event Action OnValueDirty;
+        ValueModificationController _skillSlotModificationController;
 
-        public void ModifyValue(ref SkillSlotModificationData modification)
+        void Awake()
         {
-            if (modification.SlotIndex == _forcedSkillSlot)
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+
+            List<SkillSlot> allForcableSkillSlots = getAllForcableSkillSlots();
+            if (allForcableSkillSlots.Count > 0)
             {
-                modification.ForceActivate = true;
+                _forcedSkillSlot = rng.NextElementUniform(allForcableSkillSlots);
+            }
+            else
+            {
+                _forcedSkillSlot = SkillSlot.None;
+                Log.Error("No available skill slots");
             }
         }
 
-        public override void OnPreStartServer()
+        void Start()
         {
-            base.OnPreStartServer();
-
-            _forcedSkillSlot = RNG.NextElementUniform(getAllForcableSkillSlots().ToArray());
-        }
-
-        public override void Serialize(NetworkWriter writer)
-        {
-            base.Serialize(writer);
-
-            writer.Write((sbyte)_forcedSkillSlot);
-        }
-
-        public override void Deserialize(NetworkReader reader)
-        {
-            base.Deserialize(reader);
-
-            _forcedSkillSlot = (SkillSlot)reader.ReadSByte();
-        }
-
-        public override void OnStart()
-        {
-            SkillSlotModificationManager.Instance.RegisterModificationProvider(this);
-        }
-
-        public override void OnEnd()
-        {
-            if (SkillSlotModificationManager.Instance)
+            if (NetworkServer.active)
             {
-                SkillSlotModificationManager.Instance.UnregisterModificationProvider(this);
+                _skillSlotModificationController = Instantiate(RoCContent.NetworkedPrefabs.SkillSlotModificationProvider).GetComponent<ValueModificationController>();
+
+                SkillSlotModificationProvider skillSlotModificationProvider = _skillSlotModificationController.GetComponent<SkillSlotModificationProvider>();
+                skillSlotModificationProvider.ForceActivatedSlots = _forcedSkillSlot;
+
+                NetworkServer.Spawn(_skillSlotModificationController.gameObject);
+            }
+        }
+
+        void OnDestroy()
+        {
+            if (_skillSlotModificationController)
+            {
+                _skillSlotModificationController.Retire();
+                _skillSlotModificationController = null;
             }
         }
     }
