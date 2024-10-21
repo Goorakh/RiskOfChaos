@@ -117,13 +117,18 @@ namespace RiskOfChaos.Content
             return createPrefab(name, componentTypes, true);
         }
 
-        public static GameObject CreateValueModificationProviderPrefab(Type providerComponentType, string name, Type[] additionalComponents = null)
+        public static GameObject CreateValueModificationProviderPrefab(Type providerComponentType, string name, bool canInterpolate, Type[] additionalComponents = null)
         {
             List<Type> componentTypes = [
                 typeof(SetDontDestroyOnLoad),
                 typeof(DestroyOnRunEnd),
                 providerComponentType
             ];
+
+            if (canInterpolate)
+            {
+                componentTypes.Add(typeof(GenericInterpolationComponent));
+            }
 
             if (additionalComponents != null)
             {

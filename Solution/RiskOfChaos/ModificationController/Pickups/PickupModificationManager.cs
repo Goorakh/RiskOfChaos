@@ -15,7 +15,7 @@ namespace RiskOfChaos.ModificationController.Pickups
         {
             // PickupModificationProvider
             {
-                GameObject prefab = Prefabs.CreateValueModificationProviderPrefab(typeof(PickupModificationProvider), nameof(RoCContent.NetworkedPrefabs.PickupModificationProvider));
+                GameObject prefab = Prefabs.CreateValueModificationProviderPrefab(typeof(PickupModificationProvider), nameof(RoCContent.NetworkedPrefabs.PickupModificationProvider), false);
 
                 networkPrefabs.Add(prefab);
             }

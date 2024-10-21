@@ -15,7 +15,7 @@ namespace RiskOfChaos.ModificationController.Knockback
         {
             // KnockbackModificationProvider
             {
-                GameObject prefab = Prefabs.CreateValueModificationProviderPrefab(typeof(KnockbackModificationProvider), nameof(RoCContent.NetworkedPrefabs.KnockbackModificationProvider));
+                GameObject prefab = Prefabs.CreateValueModificationProviderPrefab(typeof(KnockbackModificationProvider), nameof(RoCContent.NetworkedPrefabs.KnockbackModificationProvider), true);
 
                 networkPrefabs.Add(prefab);
             }

@@ -1,15 +1,13 @@
 ﻿using RiskOfChaos.Components;
-using RiskOfChaos.Content;
 using RiskOfChaos.Utilities.Interpolation;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using UnityEngine.Networking;
+using UnityEngine;
 
 namespace RiskOfChaos.ModificationController
 {
-    [RequiredComponents(typeof(GenericInterpolationComponent))]
-    public sealed class ValueModificationController : NetworkBehaviour
+    public sealed class ValueModificationController : MonoBehaviour
     {
         static readonly List<ValueModificationController> _instances = [];
         public static readonly ReadOnlyCollection<ValueModificationController> Instances = new ReadOnlyCollection<ValueModificationController>(_instances);
@@ -31,7 +29,11 @@ namespace RiskOfChaos.ModificationController
         void Awake()
         {
             _interpolation = GetComponent<GenericInterpolationComponent>();
-            _interpolation.OnInterpolationChanged += InvokeOnValuesDirty;
+
+            if (_interpolation)
+            {
+                _interpolation.OnInterpolationChanged += InvokeOnValuesDirty;
+            }
         }
 
         void Start()
@@ -56,17 +58,29 @@ namespace RiskOfChaos.ModificationController
             OnValuesDirty?.Invoke();
         }
 
-        [Server]
         public void SetInterpolationParameters(InterpolationParameters parameters)
         {
+            if (!_interpolation)
+            {
+                Log.Warning($"Cannot set interpolation parameters of {name}, missing interpolation component");
+                return;
+            }
+
             _interpolation.SetInterpolationParameters(parameters);
         }
 
-        [Server]
         public void Retire()
         {
             OnRetire?.Invoke();
-            _interpolation.InterpolateOutOrDestroy();
+
+            if (_interpolation)
+            {
+                _interpolation.InterpolateOutOrDestroy();
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
         }
     }
 }
