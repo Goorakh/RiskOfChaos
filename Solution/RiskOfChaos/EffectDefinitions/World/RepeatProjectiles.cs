@@ -1,18 +1,19 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.ConfigHandling;
-using RiskOfChaos.EffectHandling.Controllers;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
-using RiskOfChaos.OLD_ModifierController.Projectile;
-using RiskOfChaos.Utilities;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.Projectile;
 using RiskOfOptions.OptionConfigs;
-using System;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosTimedEffect("repeat_projectiles", 90f)]
-    public sealed class RepeatProjectiles : TimedEffect, IProjectileModificationProvider
+    public sealed class RepeatProjectiles : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<int> _extraSpawnCountConfig =
@@ -20,33 +21,36 @@ namespace RiskOfChaos.EffectDefinitions.World
                               .Description("How many additional projectiles should be spawned per projectile")
                               .AcceptableValues(new AcceptableValueRange<int>(1, byte.MaxValue))
                               .OptionConfig(new IntFieldConfig { Min = 1, Max = byte.MaxValue })
-                              .OnValueChanged(() =>
-                              {
-                                  if (!NetworkServer.active || !ChaosEffectTracker.Instance)
-                                      return;
-                              
-                                  ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<RepeatProjectiles>(e => e.OnValueDirty);
-                              })
                               .Build();
 
-        public event Action OnValueDirty;
-
-        public override void OnStart()
+        [EffectCanActivate]
+        static bool CanActivate()
         {
-            ProjectileModificationManager.Instance.RegisterModificationProvider(this);
+            return RoCContent.NetworkedPrefabs.ProjectileModificationProvider;
         }
 
-        public override void OnEnd()
+        ValueModificationController _projectileModificationController;
+
+        void Start()
         {
-            if (ProjectileModificationManager.Instance)
+            if (NetworkServer.active)
             {
-                ProjectileModificationManager.Instance.UnregisterModificationProvider(this);
+                _projectileModificationController = Instantiate(RoCContent.NetworkedPrefabs.ProjectileModificationProvider).GetComponent<ValueModificationController>();
+
+                ProjectileModificationProvider projectileModificationProvider = _projectileModificationController.GetComponent<ProjectileModificationProvider>();
+                projectileModificationProvider.AdditionalSpawnCountConfigBinding.BindToConfig(_extraSpawnCountConfig);
+
+                NetworkServer.Spawn(_projectileModificationController.gameObject);
             }
         }
 
-        public void ModifyValue(ref ProjectileModificationData value)
+        void OnDestroy()
         {
-            value.ExtraSpawnCount = ClampedConversion.UInt8(value.ExtraSpawnCount + _extraSpawnCountConfig.Value);
+            if (_projectileModificationController)
+            {
+                _projectileModificationController.Retire();
+                _projectileModificationController = null;
+            }
         }
     }
 }

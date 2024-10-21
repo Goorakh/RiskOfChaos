@@ -1,6 +1,6 @@
 ﻿using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using RiskOfChaos.OLD_ModifierController.Projectile;
+using RiskOfChaos.ModificationController.Projectile;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -69,7 +69,7 @@ namespace RiskOfChaos.Patches
             {
                 if (ProjectileModificationManager.Instance)
                 {
-                    return ClampedConversion.Int32(ProjectileModificationManager.Instance.OrbBounceCount);
+                    return ProjectileModificationManager.Instance.OrbBounceCount;
                 }
                 else
                 {
@@ -352,7 +352,7 @@ namespace RiskOfChaos.Patches
             }
 
             WeightedSelection<HurtBox> targetSelection = new WeightedSelection<HurtBox>();
-            targetCandidates.EnsureCapacity(targetCandidates.Count);
+            targetSelection.EnsureCapacity(targetCandidates.Count);
             foreach (OrbTargetCandidate candidate in targetCandidates)
             {
                 float normalizedSqrDistance = Mathf.Clamp01(candidate.SqrDistance / sqrTargetSearchDistance);

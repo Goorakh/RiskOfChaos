@@ -1,6 +1,6 @@
 ﻿using HarmonyLib;
 using MonoMod.RuntimeDetour;
-using RiskOfChaos.OLD_ModifierController.Projectile;
+using RiskOfChaos.ModificationController.Projectile;
 using RoR2;
 using RoR2.Orbs;
 using RoR2.Projectile;
@@ -112,7 +112,7 @@ namespace RiskOfChaos.Patches
                 return false;
             }
 
-            totalMultiplier = ProjectileModificationManager.Instance.TotalProjectileSpeedMultiplier;
+            totalMultiplier = ProjectileModificationManager.Instance.SpeedMultiplier;
 
             const float MULTIPLIER_ACTIVE_MIN_DIFF = 0.01f;
             return Mathf.Abs(totalMultiplier - 1f) >= MULTIPLIER_ACTIVE_MIN_DIFF;

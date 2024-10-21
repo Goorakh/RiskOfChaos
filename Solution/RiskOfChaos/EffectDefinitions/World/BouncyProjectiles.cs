@@ -1,19 +1,20 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.OLD_ModifierController.Projectile;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.Projectile;
 using RiskOfOptions.OptionConfigs;
-using System;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosTimedEffect("bouncy_projectiles", TimedEffectType.UntilStageEnd)]
-    public sealed class BouncyProjectiles : TimedEffect, IProjectileModificationProvider
+    public sealed class BouncyProjectiles : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<int> _maxBulletBounceCount =
@@ -21,7 +22,6 @@ namespace RiskOfChaos.EffectDefinitions.World
                               .Description("The maximum amount of times bullets can be bounced")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntFieldConfig { Min = 1 })
-                              .OnValueChanged(bounceCountConfigChanged)
                               .Build();
 
         [EffectConfig]
@@ -30,42 +30,38 @@ namespace RiskOfChaos.EffectDefinitions.World
                               .Description("The maximum amount of times projectiles can be bounced")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntFieldConfig { Min = 1 })
-                              .OnValueChanged(bounceCountConfigChanged)
                               .Build();
-
-        static void bounceCountConfigChanged()
-        {
-            if (!NetworkServer.active || !ChaosEffectTracker.Instance)
-                return;
-
-            ChaosEffectTracker.Instance.OLD_InvokeEventOnAllInstancesOfEffect<BouncyProjectiles>(e => e.OnValueDirty);
-        }
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return ProjectileModificationManager.Instance;
+            return RoCContent.NetworkedPrefabs.ProjectileModificationProvider;
         }
 
-        public override void OnStart()
-        {
-            ProjectileModificationManager.Instance.RegisterModificationProvider(this);
-        }
+        ValueModificationController _projectileModificationController;
 
-        public event Action OnValueDirty;
-
-        public void ModifyValue(ref ProjectileModificationData value)
+        void Start()
         {
-            value.BulletBounceCount += (uint)_maxBulletBounceCount.Value;
-            value.ProjectileBounceCount += (uint)_maxProjectileBounceCount.Value;
-            value.OrbBounceCount += (uint)_maxProjectileBounceCount.Value;
-        }
-
-        public override void OnEnd()
-        {
-            if (ProjectileModificationManager.Instance)
+            if (NetworkServer.active)
             {
-                ProjectileModificationManager.Instance.UnregisterModificationProvider(this);
+                _projectileModificationController = Instantiate(RoCContent.NetworkedPrefabs.ProjectileModificationProvider).GetComponent<ValueModificationController>();
+
+                ProjectileModificationProvider projectileModificationProvider = _projectileModificationController.GetComponent<ProjectileModificationProvider>();
+
+                projectileModificationProvider.BulletBounceCountConfigBinding.BindToConfig(_maxBulletBounceCount);
+                projectileModificationProvider.ProjectileBounceCountConfigBinding.BindToConfig(_maxProjectileBounceCount);
+                projectileModificationProvider.OrbBounceCountConfigBinding.BindToConfig(_maxProjectileBounceCount);
+
+                NetworkServer.Spawn(_projectileModificationController.gameObject);
+            }
+        }
+
+        void OnDestroy()
+        {
+            if (_projectileModificationController)
+            {
+                _projectileModificationController.Retire();
+                _projectileModificationController = null;
             }
         }
     }

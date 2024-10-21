@@ -1,4 +1,4 @@
-﻿using RiskOfChaos.OLD_ModifierController.Projectile;
+﻿using RiskOfChaos.ModificationController.Projectile;
 using RoR2;
 using System.Collections;
 using UnityEngine;
@@ -24,28 +24,33 @@ namespace RiskOfChaos.Patches
             if (_isFiringRepeat)
                 return;
 
-            if (!ProjectileModificationManager.Instance || ProjectileModificationManager.Instance.ExtraSpawnCount <= 0)
+            ProjectileModificationManager projectileModificationManager = ProjectileModificationManager.Instance;
+            if (!projectileModificationManager)
+                return;
+
+            int additionalBulletSpawnCount = projectileModificationManager.AdditionalSpawnCount;
+            if (additionalBulletSpawnCount <= 0)
                 return;
 
             // Don't allow procs to repeat
             if (!self.procChainMask.Equals(default))
                 return;
 
-            IEnumerator spawnExtraBullets()
+            static IEnumerator spawnExtraBullets(BulletAttack bulletAttack, Vector3 direction, int muzzleIndex, int spawnCount)
             {
                 Stage startingStage = Stage.instance;
 
-                for (byte i = 0; i < ProjectileModificationManager.Instance.ExtraSpawnCount; i++)
+                for (int i = 0; i < spawnCount; i++)
                 {
                     yield return new WaitForSeconds(0.15f);
 
-                    if (!ProjectileModificationManager.Instance || startingStage != Stage.instance)
+                    if (startingStage != Stage.instance)
                         break;
 
                     _isFiringRepeat = true;
                     try
                     {
-                        self.FireSingle(normal, muzzleIndex);
+                        bulletAttack.FireSingle(direction, muzzleIndex);
                     }
                     finally
                     {
@@ -54,7 +59,7 @@ namespace RiskOfChaos.Patches
                 }
             }
 
-            ProjectileModificationManager.Instance.StartCoroutine(spawnExtraBullets());
+            projectileModificationManager.StartCoroutine(spawnExtraBullets(self, normal, muzzleIndex, additionalBulletSpawnCount));
         }
     }
 }

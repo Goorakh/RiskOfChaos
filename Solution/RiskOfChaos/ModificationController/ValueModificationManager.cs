@@ -9,6 +9,7 @@ using RiskOfChaos.ModificationController.Gravity;
 using RiskOfChaos.ModificationController.HoldoutZone;
 using RiskOfChaos.ModificationController.Knockback;
 using RiskOfChaos.ModificationController.Pickups;
+using RiskOfChaos.ModificationController.Projectile;
 using RoR2;
 using UnityEngine;
 
@@ -35,6 +36,7 @@ namespace RiskOfChaos.ModificationController
                 typeof(HoldoutZoneModificationManager),
                 typeof(KnockbackModificationManager),
                 typeof(PickupModificationManager),
+                typeof(ProjectileModificationManager),
             ]);
 
             networkPrefabs.Add(prefab);

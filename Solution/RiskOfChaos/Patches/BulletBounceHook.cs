@@ -2,7 +2,7 @@
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.Utils;
-using RiskOfChaos.OLD_ModifierController.Projectile;
+using RiskOfChaos.ModificationController.Projectile;
 using RiskOfChaos.Utilities;
 using RoR2;
 using System;
@@ -21,11 +21,11 @@ namespace RiskOfChaos.Patches
             public Vector3 CurrentBulletDirection;
             public int MuzzleIndex;
             public BulletAttack.BulletHit CurrentBounceHit;
-            public uint BounceDepth;
+            public int BounceDepth;
 
-            public uint BouncesRemaining => ClampedConversion.UInt32((long)bounceCount - BounceDepth);
+            public int BouncesRemaining => bounceCount - BounceDepth;
 
-            public BulletBounceInfo(BulletAttack bulletAttack, Vector3 currentBulletDirection, int muzzleIndex, BulletAttack.BulletHit currentBounceHit, uint bounceDepth)
+            public BulletBounceInfo(BulletAttack bulletAttack, Vector3 currentBulletDirection, int muzzleIndex, BulletAttack.BulletHit currentBounceHit, int bounceDepth)
             {
                 BulletAttack = bulletAttack;
                 CurrentBulletDirection = currentBulletDirection;
@@ -37,7 +37,7 @@ namespace RiskOfChaos.Patches
 
         static bool isEnabled => bounceCount > 0;
 
-        static uint bounceCount
+        static int bounceCount
         {
             get
             {

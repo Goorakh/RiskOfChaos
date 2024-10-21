@@ -304,6 +304,8 @@ namespace RiskOfChaos.Content
             public static GameObject KnockbackModificationProvider;
 
             public static GameObject PickupModificationProvider;
+
+            public static GameObject ProjectileModificationProvider;
         }
 
         public static class LocalPrefabs

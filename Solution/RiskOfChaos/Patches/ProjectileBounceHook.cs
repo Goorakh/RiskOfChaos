@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using RiskOfChaos.OLD_ModifierController.Projectile;
+using RiskOfChaos.ModificationController.Projectile;
 using RoR2;
 using RoR2.Projectile;
 using System.Collections.Generic;
@@ -24,7 +24,7 @@ namespace RiskOfChaos.Patches
 
         static bool isBouncingEnabled => maxBounces > 0;
 
-        static uint maxBounces => ProjectileModificationManager.Instance ? ProjectileModificationManager.Instance.ProjectileBounceCount : 0;
+        static int maxBounces => ProjectileModificationManager.Instance ? ProjectileModificationManager.Instance.ProjectileBounceCount : 0;
 
         static void ProjectileManager_InitializeProjectile(On.RoR2.Projectile.ProjectileManager.orig_InitializeProjectile orig, ProjectileController projectileController, FireProjectileInfo fireProjectileInfo)
         {
@@ -102,7 +102,7 @@ namespace RiskOfChaos.Patches
 
             readonly record struct OriginalColliderMaterialPair(Collider Collider, PhysicMaterial Material);
 
-            uint _bouncesRemaining;
+            int _bouncesRemaining;
 
             ProjectileController _projectileController;
             ProjectileSimple _projectileSimple;
