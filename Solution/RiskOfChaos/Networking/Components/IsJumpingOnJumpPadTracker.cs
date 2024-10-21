@@ -30,13 +30,13 @@ namespace RiskOfChaos.Networking.Components
 
         void onHitGroundAuthority(ref CharacterMotor.HitGroundInfo hitGroundInfo)
         {
-            if (!IsJumping)
-                return;
-
             CmdSetIsJumping(false);
 
 #if DEBUG
-            Log.Debug($"{FormatUtils.GetBestBodyName(_motor.body)} has landed from jump pad");
+            if (IsJumping)
+            {
+                Log.Debug($"{FormatUtils.GetBestBodyName(_motor.body)} has landed from jump pad");
+            }
 #endif
         }
 

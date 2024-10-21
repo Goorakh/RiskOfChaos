@@ -15,7 +15,7 @@ namespace RiskOfChaos.Networking.Components.Gravity
         {
             // GravityNetworker
             {
-                GameObject prefab = Prefabs.CreateNetworkedPrefab("GravityNetworked", [
+                GameObject prefab = Prefabs.CreateNetworkedPrefab("GravityNetworker", [
                     typeof(SetDontDestroyOnLoad),
                     typeof(DestroyOnRunEnd),
                     typeof(AutoCreateOnRunStart),
