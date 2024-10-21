@@ -26,5 +26,10 @@ namespace RiskOfChaos.Utilities.Extensions
             if (list.Capacity < capacity)
                 list.Capacity = capacity;
         }
+
+        public static void EnsureAdditionalCapacity<T>(this List<T> list, int additionalCapacity)
+        {
+            list.EnsureCapacity(list.Count + additionalCapacity);
+        }
     }
 }

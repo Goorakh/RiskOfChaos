@@ -6,7 +6,6 @@ using RoR2;
 using RoR2.Navigation;
 using RoR2.Projectile;
 using System.Collections;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -30,7 +29,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return _diabloStrikePrefab && _orbitalProbePrefab && DirectorCore.instance && ProjectileManager.instance && SpawnUtils.GetNodes(_strikePositionSelectorRules).Any();
+            return _diabloStrikePrefab && _orbitalProbePrefab && DirectorCore.instance && ProjectileManager.instance && SpawnUtils.GetNodes(_strikePositionSelectorRules).Count > 0;
         }
 
         public override void OnStart()

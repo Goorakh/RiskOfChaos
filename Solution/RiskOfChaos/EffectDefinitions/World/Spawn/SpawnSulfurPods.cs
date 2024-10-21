@@ -5,7 +5,6 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Navigation;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -28,7 +27,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return ExpansionUtils.DLC1Enabled && _sulfurPodPrefab && SpawnUtils.GetNodes(_placementSelectionRules).Any();
+            return ExpansionUtils.DLC1Enabled && _sulfurPodPrefab && SpawnUtils.GetNodes(_placementSelectionRules).Count > 0;
         }
 
         public override void OnStart()
