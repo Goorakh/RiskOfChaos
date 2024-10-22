@@ -308,6 +308,8 @@ namespace RiskOfChaos.Content
             public static GameObject ProjectileModificationProvider;
 
             public static GameObject SkillSlotModificationProvider;
+
+            public static GameObject GenericTimeScaleModificationProvider;
         }
 
         public static class LocalPrefabs

@@ -22,6 +22,8 @@ namespace RiskOfChaos.ModificationController
 
         public float CurrentInterpolationFraction => _interpolation ? _interpolation.CurrentInterpolationFraction : 1f;
 
+        public bool IsRetired { get; private set; }
+
         public event Action OnRetire;
 
         public event Action OnValuesDirty;
@@ -71,6 +73,8 @@ namespace RiskOfChaos.ModificationController
 
         public void Retire()
         {
+            IsRetired = true;
+
             OnRetire?.Invoke();
 
             if (_interpolation)

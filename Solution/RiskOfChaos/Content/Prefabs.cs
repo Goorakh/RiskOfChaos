@@ -249,23 +249,6 @@ namespace RiskOfChaos.Content
                 networkedPrefabs.Add(prefab);
             }
 
-            // SuperhotController
-            {
-                GameObject prefab = CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.SuperhotController), [
-                    typeof(NetworkedBodyAttachment),
-                    typeof(SuperhotPlayerController)
-                ]);
-
-                NetworkIdentity networkIdentity = prefab.GetComponent<NetworkIdentity>();
-                networkIdentity.localPlayerAuthority = true;
-
-                NetworkedBodyAttachment networkedBodyAttachment = prefab.GetComponent<NetworkedBodyAttachment>();
-                networkedBodyAttachment.shouldParentToAttachedBody = true;
-                networkedBodyAttachment.forceHostAuthority = false;
-
-                networkedPrefabs.Add(prefab);
-            }
-
             // NewtStatueFixedOrigin
             {
                 AsyncOperationHandle<GameObject> newtStatueLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/NewtStatue/NewtStatue.prefab");

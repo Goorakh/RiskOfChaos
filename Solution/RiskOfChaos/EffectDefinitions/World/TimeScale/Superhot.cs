@@ -1,6 +1,9 @@
-﻿using RiskOfChaos.Content;
+﻿using RiskOfChaos.Components;
+using RiskOfChaos.Content;
+using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Networking.Components;
+using RiskOfChaos.Utilities.Interpolation;
 using RoR2;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,44 +12,70 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 {
     [ChaosTimedEffect("superhot", 45f, AllowDuplicates = false)]
-    public sealed class Superhot : TimedEffect
+    public sealed class Superhot : MonoBehaviour
     {
-        readonly HashSet<SuperhotPlayerController> _superhotControllers = [];
-
-        public override void OnStart()
+        [ContentInitializer]
+        static void LoadContent(NetworkedPrefabAssetCollection networkedPrefabs)
         {
-            foreach (PlayerCharacterMasterController playerMasterController in PlayerCharacterMasterController.instances)
+            // SuperhotController
             {
-                CharacterMaster master = playerMasterController.master;
-                if (!master)
-                    continue;
+                GameObject prefab = Prefabs.CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.SuperhotController), [
+                    typeof(NetworkedBodyAttachment),
+                    typeof(GenericInterpolationComponent),
+                    typeof(SuperhotPlayerController)
+                ]);
 
-                CharacterBody body = master.GetBody();
-                if (!body)
-                    continue;
+                NetworkIdentity networkIdentity = prefab.GetComponent<NetworkIdentity>();
+                networkIdentity.localPlayerAuthority = true;
 
-                createSuperhotController(body);
+                NetworkedBodyAttachment networkedBodyAttachment = prefab.GetComponent<NetworkedBodyAttachment>();
+                networkedBodyAttachment.shouldParentToAttachedBody = true;
+                networkedBodyAttachment.forceHostAuthority = false;
+
+                networkedPrefabs.Add(prefab);
             }
-
-            CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
         }
 
-        public override void OnEnd()
+        readonly HashSet<SuperhotPlayerController> _superhotControllers = [];
+
+        void Start()
+        {
+            if (NetworkServer.active)
+            {
+                _superhotControllers.EnsureCapacity(PlayerCharacterMasterController.instances.Count);
+                foreach (PlayerCharacterMasterController playerMasterController in PlayerCharacterMasterController.instances)
+                {
+                    CharacterMaster master = playerMasterController.master;
+                    if (!master)
+                        continue;
+
+                    CharacterBody body = master.GetBody();
+                    if (!body)
+                        continue;
+
+                    createSuperhotController(body);
+                }
+
+                CharacterBody.onBodyStartGlobal += onBodyStartGlobal;
+            }
+        }
+
+        void OnDestroy()
         {
             foreach (SuperhotPlayerController superhotController in _superhotControllers)
             {
                 if (superhotController)
                 {
-                    NetworkServer.Destroy(superhotController.gameObject);
+                    superhotController.Retire();
                 }
             }
 
             _superhotControllers.Clear();
 
-            CharacterBody.onBodyStartGlobal -= CharacterBody_onBodyStartGlobal;
+            CharacterBody.onBodyStartGlobal -= onBodyStartGlobal;
         }
 
-        void CharacterBody_onBodyStartGlobal(CharacterBody body)
+        void onBodyStartGlobal(CharacterBody body)
         {
             if (body.isPlayerControlled)
             {
@@ -59,6 +88,12 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
             GameObject superhotControllerObj = GameObject.Instantiate(RoCContent.NetworkedPrefabs.SuperhotController);
 
             SuperhotPlayerController superhotController = superhotControllerObj.GetComponent<SuperhotPlayerController>();
+
+            if (superhotController.TryGetComponent(out GenericInterpolationComponent interpolationComponent))
+            {
+                interpolationComponent.SetInterpolationParameters(new InterpolationParameters(0.5f));
+            }
+
             _superhotControllers.Add(superhotController);
 
             NetworkedBodyAttachment networkedBodyAttachment = superhotControllerObj.GetComponent<NetworkedBodyAttachment>();
