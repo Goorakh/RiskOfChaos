@@ -15,7 +15,7 @@ namespace RiskOfChaos.ModificationController.Projectile
         {
             // ProjectileModificationProvider
             {
-                GameObject prefab = Prefabs.CreateValueModificationProviderPrefab(typeof(ProjectileModificationProvider), nameof(RoCContent.NetworkedPrefabs.ProjectileModificationProvider), false);
+                GameObject prefab = Prefabs.CreateNetworkedValueModificationProviderPrefab(typeof(ProjectileModificationProvider), nameof(RoCContent.NetworkedPrefabs.ProjectileModificationProvider), false);
 
                 networkPrefabs.Add(prefab);
             }

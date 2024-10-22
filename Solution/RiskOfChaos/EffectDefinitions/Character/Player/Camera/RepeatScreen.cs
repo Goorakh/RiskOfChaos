@@ -5,7 +5,8 @@ using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.OLD_ModifierController.UI;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.UI;
 using RiskOfChaos.ScreenEffect;
 using RiskOfChaos.Utilities.Interpolation;
 using RiskOfOptions.OptionConfigs;
@@ -17,7 +18,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
     [ChaosTimedEffect("repeat_screen", 90f)]
-    public sealed class RepeatScreen : NetworkBehaviour, IUIModificationProvider
+    public sealed class RepeatScreen : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<bool> _increaseHUDScale =
@@ -34,6 +35,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
         static void Init()
         {
             _screenEffectIndex = ScreenEffectCatalog.FindScreenEffectIndex("RepeatScreen");
+            if (_screenEffectIndex == ScreenEffectIndex.Invalid)
+            {
+                Log.Error("Failed to find screen effect index");
+            }
         }
 
         [EffectCanActivate]
@@ -44,10 +49,15 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 
         ScreenEffectComponent _screenEffect;
 
+        ValueModificationController _uiModificationController;
+
         public event Action OnValueDirty;
 
         void Start()
         {
+            InterpolationParameters interpolationIn = new InterpolationParameters(2f);
+            InterpolationParameters interpolationOut = new InterpolationParameters(1f);
+
             if (NetworkServer.active)
             {
                 _screenEffect = Instantiate(RoCContent.NetworkedPrefabs.InterpolatedScreenEffect).GetComponent<ScreenEffectComponent>();
@@ -56,63 +66,42 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
                 screenEffectPropertyInterpolators.PropertyInterpolations.Add(new MaterialPropertyInterpolationData("_CenterOffset", _centerOffset));
                 screenEffectPropertyInterpolators.PropertyInterpolations.Add(new MaterialPropertyInterpolationData("_RepeatCount", 1f, 3f));
 
-                GenericInterpolationComponent screenEffectInterpolation = _screenEffect.GetComponent<GenericInterpolationComponent>();
-                screenEffectInterpolation.InterpolationIn = new InterpolationParameters(2f);
-                screenEffectInterpolation.InterpolationOut = new InterpolationParameters(1f);
+                IInterpolationProvider screenEffectInterpolation = _screenEffect.GetComponent<IInterpolationProvider>();
+                screenEffectInterpolation.InterpolationIn = interpolationIn;
+                screenEffectInterpolation.InterpolationOut = interpolationOut;
 
                 _screenEffect.ScreenEffectIndex = _screenEffectIndex;
 
                 NetworkServer.Spawn(_screenEffect.gameObject);
             }
 
-            if (UIModificationManager.Instance)
-            {
-                UIModificationManager.Instance.RegisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 2f);
-            }
-
             if (NetworkClient.active)
             {
-                _increaseHUDScale.SettingChanged += onIncreaseHUDScaleChanged;
-            }
-        }
+                _uiModificationController = Instantiate(RoCContent.LocalPrefabs.UIModificationProvider).GetComponent<ValueModificationController>();
 
-        public override void OnStartClient()
-        {
-            base.OnStartClient();
-            refreshHudScalingEnabled();
+                UIModificationProvider uiModificationProvider = _uiModificationController.GetComponent<UIModificationProvider>();
+                uiModificationProvider.HudScaleMultiplierConfigBinding.BindToConfigConverted(_increaseHUDScale, v => v ? 1.5f : 1f);
+
+                if (_uiModificationController.TryGetComponent(out IInterpolationProvider interpolationProvider))
+                {
+                    interpolationProvider.InterpolationIn = interpolationIn;
+                    interpolationProvider.InterpolationOut = interpolationOut;
+                }
+            }
         }
 
         void OnDestroy()
         {
-            _increaseHUDScale.SettingChanged -= onIncreaseHUDScaleChanged;
-
             if (_screenEffect)
             {
                 _screenEffect.Remove();
+                _screenEffect = null;
             }
 
-            if (UIModificationManager.Instance)
+            if (_uiModificationController)
             {
-                UIModificationManager.Instance.UnregisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
-            }
-        }
-
-        void onIncreaseHUDScaleChanged(object sender, ConfigChangedArgs<bool> e)
-        {
-            refreshHudScalingEnabled();
-        }
-
-        [Client]
-        void refreshHudScalingEnabled()
-        {
-
-        }
-
-        public void ModifyValue(ref UIModificationData value)
-        {
-            if (_increaseHUDScale.Value)
-            {
-                value.ScaleMultiplier *= 1.5f;
+                _uiModificationController.Retire();
+                _uiModificationController = null;
             }
         }
     }

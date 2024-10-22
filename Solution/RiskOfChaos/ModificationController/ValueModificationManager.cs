@@ -12,6 +12,7 @@ using RiskOfChaos.ModificationController.Pickups;
 using RiskOfChaos.ModificationController.Projectile;
 using RiskOfChaos.ModificationController.SkillSlots;
 using RiskOfChaos.ModificationController.TimeScale;
+using RiskOfChaos.ModificationController.UI;
 using RoR2;
 using UnityEngine;
 
@@ -41,6 +42,7 @@ namespace RiskOfChaos.ModificationController
                 typeof(ProjectileModificationManager),
                 typeof(SkillSlotModificationManager),
                 typeof(TimeScaleModificationManager),
+                typeof(UIModificationManager),
             ]);
 
             networkPrefabs.Add(prefab);

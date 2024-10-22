@@ -18,7 +18,7 @@ namespace RiskOfChaos.ModificationController.TimeScale
         {
             // GenericTimeScaleModificationProvider
             {
-                GameObject prefab = Prefabs.CreateValueModificationProviderPrefab(typeof(GenericTimeScaleModificationProvider), nameof(RoCContent.NetworkedPrefabs.GenericTimeScaleModificationProvider), true);
+                GameObject prefab = Prefabs.CreateNetworkedValueModificationProviderPrefab(typeof(GenericTimeScaleModificationProvider), nameof(RoCContent.NetworkedPrefabs.GenericTimeScaleModificationProvider), true);
 
                 networkPrefabs.Add(prefab);
             }

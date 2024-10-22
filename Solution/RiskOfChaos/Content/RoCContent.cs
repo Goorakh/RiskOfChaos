@@ -327,6 +327,8 @@ namespace RiskOfChaos.Content
             public static GameObject ChaosEffectUIVoteItem;
 
             public static GameObject ChaosNextEffectDisplay;
+
+            public static GameObject UIModificationProvider;
         }
     }
 }

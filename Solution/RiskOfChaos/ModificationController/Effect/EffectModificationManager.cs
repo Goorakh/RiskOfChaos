@@ -16,7 +16,7 @@ namespace RiskOfChaos.ModificationController.Effect
         {
             // EffectModificationProvider
             {
-                GameObject prefab = Prefabs.CreateValueModificationProviderPrefab(typeof(EffectModificationProvider), nameof(RoCContent.NetworkedPrefabs.EffectModificationProvider), false);
+                GameObject prefab = Prefabs.CreateNetworkedValueModificationProviderPrefab(typeof(EffectModificationProvider), nameof(RoCContent.NetworkedPrefabs.EffectModificationProvider), false);
 
                 networkedPrefabs.Add(prefab);
             }

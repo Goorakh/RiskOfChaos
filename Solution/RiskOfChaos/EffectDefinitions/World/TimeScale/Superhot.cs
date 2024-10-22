@@ -21,7 +21,7 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
             {
                 GameObject prefab = Prefabs.CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.SuperhotController), [
                     typeof(NetworkedBodyAttachment),
-                    typeof(GenericInterpolationComponent),
+                    typeof(NetworkedInterpolationComponent),
                     typeof(SuperhotPlayerController)
                 ]);
 
@@ -89,7 +89,7 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 
             SuperhotPlayerController superhotController = superhotControllerObj.GetComponent<SuperhotPlayerController>();
 
-            if (superhotController.TryGetComponent(out GenericInterpolationComponent interpolationComponent))
+            if (superhotController.TryGetComponent(out IInterpolationProvider interpolationComponent))
             {
                 interpolationComponent.SetInterpolationParameters(new InterpolationParameters(0.5f));
             }

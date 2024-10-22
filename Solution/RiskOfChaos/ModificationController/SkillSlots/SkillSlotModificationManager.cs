@@ -18,7 +18,7 @@ namespace RiskOfChaos.ModificationController.SkillSlots
         {
             // SkillSlotModificationProvider
             {
-                GameObject prefab = Prefabs.CreateValueModificationProviderPrefab(typeof(SkillSlotModificationProvider), nameof(RoCContent.NetworkedPrefabs.SkillSlotModificationProvider), false);
+                GameObject prefab = Prefabs.CreateNetworkedValueModificationProviderPrefab(typeof(SkillSlotModificationProvider), nameof(RoCContent.NetworkedPrefabs.SkillSlotModificationProvider), false);
 
                 networkPrefabs.Add(prefab);
             }

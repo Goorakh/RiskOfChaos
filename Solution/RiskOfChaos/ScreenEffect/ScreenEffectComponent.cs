@@ -22,7 +22,7 @@ namespace RiskOfChaos.ScreenEffect
 
         IMaterialProvider _materialProvider;
 
-        GenericInterpolationComponent _interpolationComponent;
+        IInterpolationProvider _interpolationComponent;
 
         public Material ScreenEffectMaterial => _materialProvider?.Material;
 
@@ -40,7 +40,7 @@ namespace RiskOfChaos.ScreenEffect
 
         void Awake()
         {
-            _interpolationComponent = GetComponent<GenericInterpolationComponent>();
+            _interpolationComponent = GetComponent<IInterpolationProvider>();
 
             _materialProvider = GetComponent<IMaterialProvider>();
 
@@ -102,7 +102,7 @@ namespace RiskOfChaos.ScreenEffect
         [Server]
         public void Remove()
         {
-            if (_interpolationComponent)
+            if (_interpolationComponent != null)
             {
                 _interpolationComponent.InterpolateOutOrDestroy();
             }

@@ -16,11 +16,11 @@ namespace RiskOfChaos.ModificationController
         public static event ValueModificationControllerEventHandler OnModificationControllerStartGlobal;
         public static event ValueModificationControllerEventHandler OnModificationControllerEndGlobal;
 
-        GenericInterpolationComponent _interpolation;
+        IInterpolationProvider _interpolation;
 
-        public bool IsInterpolating => _interpolation && _interpolation.IsInterpolating;
+        public bool IsInterpolating => _interpolation != null && _interpolation.IsInterpolating;
 
-        public float CurrentInterpolationFraction => _interpolation ? _interpolation.CurrentInterpolationFraction : 1f;
+        public float CurrentInterpolationFraction => _interpolation != null ? _interpolation.CurrentInterpolationFraction : 1f;
 
         public bool IsRetired { get; private set; }
 
@@ -30,9 +30,9 @@ namespace RiskOfChaos.ModificationController
 
         void Awake()
         {
-            _interpolation = GetComponent<GenericInterpolationComponent>();
+            _interpolation = GetComponent<IInterpolationProvider>();
 
-            if (_interpolation)
+            if (_interpolation != null)
             {
                 _interpolation.OnInterpolationChanged += InvokeOnValuesDirty;
             }
@@ -49,7 +49,7 @@ namespace RiskOfChaos.ModificationController
             _instances.Remove(this);
             OnModificationControllerEndGlobal?.Invoke(this);
 
-            if (_interpolation)
+            if (_interpolation != null)
             {
                 _interpolation.OnInterpolationChanged -= InvokeOnValuesDirty;
             }
@@ -62,7 +62,7 @@ namespace RiskOfChaos.ModificationController
 
         public void SetInterpolationParameters(InterpolationParameters parameters)
         {
-            if (!_interpolation)
+            if (_interpolation == null)
             {
                 Log.Warning($"Cannot set interpolation parameters of {name}, missing interpolation component");
                 return;
@@ -77,7 +77,7 @@ namespace RiskOfChaos.ModificationController
 
             OnRetire?.Invoke();
 
-            if (_interpolation)
+            if (_interpolation != null)
             {
                 _interpolation.InterpolateOutOrDestroy();
             }

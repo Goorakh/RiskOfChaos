@@ -1,16 +1,45 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using MonoMod.Utils;
+using RiskOfChaos.ConfigHandling;
 using System;
 
 namespace RiskOfChaos.ModificationController
 {
     public sealed class ValueModificationConfigBinding<T> : IDisposable
     {
+        static readonly bool _isTypeNullable = typeof(T).IsClass || (typeof(T).IsGenericType && typeof(T).GetGenericTypeDefinition() == typeof(Nullable<>));
+
         public delegate void ValueSetterDelegate(T value);
-        public delegate T ValueConverterDelegate(T inValue);
+        public delegate T ValueConverterDelegate(object inValue);
 
         readonly ValueSetterDelegate _valueSetterFunc;
 
-        ConfigHolder<T> _boundToConfig;
+        ConfigHolderBase _boundToConfig;
+        public ConfigHolderBase BoundToConfig
+        {
+            get
+            {
+                return _boundToConfig;
+            }
+            private set
+            {
+                if (_boundToConfig == value)
+                    return;
+
+                if (_boundToConfig != null)
+                {
+                    _boundToConfig.SettingChanged -= onBoundConfigChanged;
+                }
+
+                _boundToConfig = value;
+
+                if (_boundToConfig != null)
+                {
+                    _boundToConfig.SettingChanged += onBoundConfigChanged;
+                    refreshValue();
+                }
+            }
+        }
+
         ValueConverterDelegate _configValueConverter;
 
         bool _isDisposed;
@@ -46,50 +75,56 @@ namespace RiskOfChaos.ModificationController
             }
         }
 
-        public void BindToConfig(ConfigHolder<T> configHolder, ValueConverterDelegate valueConverter = null)
+        public void BindToConfig(ConfigHolder<T> configHolder, Func<T, T> valueConverter = null)
         {
             if (_isDisposed)
                 return;
 
-            _configValueConverter = valueConverter;
+            _configValueConverter = valueConverter.CastDelegate<ValueConverterDelegate>();
 
-            if (_boundToConfig != configHolder)
-            {
-                if (_boundToConfig != null)
-                {
-                    _boundToConfig.SettingChanged -= onBoundConfigChanged;
-                }
+            BoundToConfig = configHolder;
+        }
 
-                _boundToConfig = configHolder;
+        public void BindToConfigConverted<TConfig>(ConfigHolder<TConfig> configHolder, Func<TConfig, T> converter)
+        {
+            if (_isDisposed)
+                return;
 
-                if (_boundToConfig != null)
-                {
-                    _boundToConfig.SettingChanged += onBoundConfigChanged;
-                    refreshValue();
-                }
-            }
+            _configValueConverter = converter.CastDelegate<ValueConverterDelegate>();
+
+            BoundToConfig = configHolder;
         }
 
         public void UnbindFromConfig()
         {
-            BindToConfig(null);
+            BindToConfig(null, null);
         }
 
-        void onBoundConfigChanged(object sender, ConfigChangedArgs<T> e)
+        void onBoundConfigChanged(object sender, ConfigChangedArgs e)
         {
             refreshValue();
         }
 
         void refreshValue()
         {
-            T value = _boundToConfig.Value;
+            object value = BoundToConfig.BoxedValue;
 
+            T convertedValue;
             if (_configValueConverter != null)
             {
-                value = _configValueConverter(value);
+                convertedValue = _configValueConverter(value);
+            }
+            else if (value is T || (value is null && _isTypeNullable))
+            {
+                convertedValue = (T)value;
+            }
+            else
+            {
+                Log.Error($"Cannot convert config value {BoundToConfig.Entry.SettingType} to {typeof(T)}");
+                return;
             }
 
-            _valueSetterFunc(value);
+            _valueSetterFunc(convertedValue);
         }
     }
 }

@@ -83,9 +83,9 @@ namespace RiskOfChaos.Content
                 prefab.EnsureComponent(componentType);
             }
 
+            NetworkIdentity networkIdentity = prefab.GetComponent<NetworkIdentity>();
             if (isNetworked)
             {
-                NetworkIdentity networkIdentity = prefab.GetComponent<NetworkIdentity>();
                 if (!networkIdentity)
                 {
                     Log.Error($"Prefab {name} is networked, but missing NetworkIdentity");
@@ -93,6 +93,13 @@ namespace RiskOfChaos.Content
                 }
 
                 networkIdentity.m_AssetId = assetId;
+            }
+            else
+            {
+                if (networkIdentity)
+                {
+                    Log.Error($"Non-networked prefab '{name}' has NetworkIdentity component");
+                }
             }
 
             return prefab;
@@ -117,7 +124,7 @@ namespace RiskOfChaos.Content
             return createPrefab(name, componentTypes, true);
         }
 
-        public static GameObject CreateValueModificationProviderPrefab(Type providerComponentType, string name, bool canInterpolate, Type[] additionalComponents = null)
+        public static GameObject CreateNetworkedValueModificationProviderPrefab(Type providerComponentType, string name, bool canInterpolate, Type[] additionalComponents = null)
         {
             List<Type> componentTypes = [
                 typeof(SetDontDestroyOnLoad),
@@ -127,7 +134,7 @@ namespace RiskOfChaos.Content
 
             if (canInterpolate)
             {
-                componentTypes.Add(typeof(GenericInterpolationComponent));
+                componentTypes.Add(typeof(NetworkedInterpolationComponent));
             }
 
             if (additionalComponents != null)
@@ -146,6 +153,27 @@ namespace RiskOfChaos.Content
         public static GameObject CreatePrefab(string name, Type[] componentTypes)
         {
             return createPrefab(name, componentTypes, false);
+        }
+
+        public static GameObject CreateLocalValueModificationProviderPrefab(Type providerComponentType, string name, bool canInterpolate, Type[] additionalComponents = null)
+        {
+            List<Type> componentTypes = [
+                typeof(SetDontDestroyOnLoad),
+                typeof(DestroyOnRunEnd),
+                providerComponentType
+            ];
+
+            if (canInterpolate)
+            {
+                componentTypes.Add(typeof(GenericInterpolationComponent));
+            }
+
+            if (additionalComponents != null)
+            {
+                componentTypes.AddRange(additionalComponents);
+            }
+
+            return CreatePrefab(name, [.. componentTypes]);
         }
 
         public static GameObject InstantiatePrefab(this GameObject original, string name)

@@ -1,21 +1,56 @@
-﻿using RiskOfChaos.Utilities.Interpolation;
+﻿using RiskOfChaos.Components;
+using RiskOfChaos.Networking.Wrappers;
+using RiskOfChaos.Utilities.Interpolation;
 using RoR2;
 using System;
+using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.Networking;
 
-namespace RiskOfChaos.Components
+namespace RiskOfChaos.Networking.Components
 {
-    public sealed class GenericInterpolationComponent : MonoBehaviour, IInterpolationProvider
+    [DefaultExecutionOrder(-1)]
+    public sealed class NetworkedInterpolationComponent : NetworkBehaviour, IInterpolationProvider
     {
-        public bool DestroyOnCompleteOut = true;
+        [SyncVar]
+        Net_RunFixedTimeStampWrapper _interpolationInStartTimeWrapper = Run.FixedTimeStamp.positiveInfinity;
 
-        public InterpolationParameters InterpolationIn { get; set; } = InterpolationParameters.None;
+        [SyncVar]
+        public InterpolationParameters InterpolationIn = InterpolationParameters.None;
 
-        public InterpolationParameters InterpolationOut { get; set; } = InterpolationParameters.None;
+        InterpolationParameters IInterpolationProvider.InterpolationIn
+        {
+            get => InterpolationIn;
+            set => InterpolationIn = value;
+        }
 
-        public Run.FixedTimeStamp InterpolationInStartTime = Run.FixedTimeStamp.positiveInfinity;
+        [SyncVar]
+        Net_RunFixedTimeStampWrapper _interpolationOutStartTimeWrapper = Run.FixedTimeStamp.positiveInfinity;
 
-        public Run.FixedTimeStamp InterpolationOutStartTime = Run.FixedTimeStamp.positiveInfinity;
+        [SyncVar]
+        public InterpolationParameters InterpolationOut = InterpolationParameters.None;
+
+        InterpolationParameters IInterpolationProvider.InterpolationOut
+        {
+            get => InterpolationOut;
+            set => InterpolationOut = value;
+        }
+
+        public Run.FixedTimeStamp InterpolationInStartTime
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _interpolationInStartTimeWrapper;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set => _interpolationInStartTimeWrapper = value;
+        }
+
+        public Run.FixedTimeStamp InterpolationOutStartTime
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _interpolationOutStartTimeWrapper;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set => _interpolationOutStartTimeWrapper = value;
+        }
 
         public bool IsInterpolating { get; private set; }
 
@@ -27,12 +62,17 @@ namespace RiskOfChaos.Components
 
         void Start()
         {
+            updateInterpolation();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
             if (InterpolationInStartTime.isInfinity)
             {
                 InterpolationInStartTime = Run.FixedTimeStamp.now;
             }
-
-            updateInterpolation();
         }
 
         void Update()
@@ -106,19 +146,21 @@ namespace RiskOfChaos.Components
             }
         }
 
+        [Server]
         public void SetInterpolationParameters(InterpolationParameters parameters)
         {
             InterpolationIn = parameters;
             InterpolationOut = parameters;
         }
 
+        [Server]
         public void InterpolateOutOrDestroy()
         {
             if (InterpolationOut.Duration > 0f)
             {
                 OnInterpolationOutComplete += () =>
                 {
-                    Destroy(gameObject);
+                    NetworkServer.Destroy(gameObject);
                 };
 
                 if (InterpolationOutStartTime.isInfinity)
@@ -128,7 +170,7 @@ namespace RiskOfChaos.Components
             }
             else
             {
-                Destroy(gameObject);
+                NetworkServer.Destroy(gameObject);
             }
         }
     }

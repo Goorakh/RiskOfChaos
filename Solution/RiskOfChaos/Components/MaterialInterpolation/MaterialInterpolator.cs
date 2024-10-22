@@ -1,13 +1,11 @@
-﻿using RiskOfChaos.Content;
-using System;
+﻿using System;
 using UnityEngine;
 
 namespace RiskOfChaos.Components.MaterialInterpolation
 {
-    [RequiredComponents(typeof(GenericInterpolationComponent))]
     public sealed class MaterialInterpolator : MonoBehaviour, IMaterialProvider
     {
-        GenericInterpolationComponent _interpolation;
+        IInterpolationProvider _interpolation;
 
         IMaterialPropertyInterpolator[] _propertyInterpolators;
 
@@ -33,7 +31,15 @@ namespace RiskOfChaos.Components.MaterialInterpolation
         {
             _propertyInterpolators = GetComponents<IMaterialPropertyInterpolator>();
 
-            _interpolation = GetComponent<GenericInterpolationComponent>();
+            _interpolation = GetComponent<IInterpolationProvider>();
+
+            if (_interpolation == null)
+            {
+                Log.Error("Missing interpolation provider");
+                enabled = false;
+                return;
+            }
+
             _interpolation.OnInterpolationChanged += updateMaterialProperties;
         }
 

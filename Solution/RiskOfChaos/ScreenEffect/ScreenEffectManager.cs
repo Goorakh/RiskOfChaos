@@ -1,9 +1,9 @@
 ﻿using HG;
-using RiskOfChaos.Collections;
 using RiskOfChaos.Components;
 using RiskOfChaos.Components.MaterialInterpolation;
 using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
+using RiskOfChaos.Networking.Components;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
@@ -34,7 +34,7 @@ namespace RiskOfChaos.ScreenEffect
                 GameObject prefab = Prefabs.CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.InterpolatedScreenEffect), [
                     typeof(SetDontDestroyOnLoad),
                     typeof(DestroyOnRunEnd),
-                    typeof(GenericInterpolationComponent),
+                    typeof(NetworkedInterpolationComponent),
                     typeof(NetworkedMaterialPropertyInterpolators),
                     typeof(MaterialInterpolator),
                     typeof(ScreenEffectComponent)
