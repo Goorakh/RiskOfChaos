@@ -13,30 +13,6 @@ namespace RiskOfChaos.EffectDefinitions
         public TimedEffectType TimedType { get; internal set; }
 
         [Obsolete]
-        public float MaxStocks
-        {
-            get
-            {
-                return 0;
-            }
-            set
-            {
-            }
-        }
-
-        [Obsolete]
-        public uint SpentStocks
-        {
-            get
-            {
-                return 0;
-            }
-            set
-            {
-            }
-        }
-
-        [Obsolete]
         public float DurationSeconds { get; internal set; } = -1f;
 
         [Obsolete]

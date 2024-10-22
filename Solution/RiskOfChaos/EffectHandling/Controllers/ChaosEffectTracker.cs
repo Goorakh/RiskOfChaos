@@ -212,13 +212,15 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         public bool IsAnyInstanceOfTimedEffectRelevantForContext(TimedEffectInfo effectInfo, in EffectCanActivateContext context)
         {
+            float timeUntilContext = context.ActivationTime.TimeUntilClamped;
+
             ref TimedEffectActivityInfo effectActivity = ref _timedEffectActivity[(int)effectInfo.EffectIndex];
             for (int i = 0; i < effectActivity.InstancesCount; i++)
             {
                 ChaosEffectDurationComponent durationComponent = effectActivity.Instances[i].DurationComponent;
                 if (!durationComponent ||
                     durationComponent.TimedType != TimedEffectType.FixedDuration ||
-                    durationComponent.Remaining >= context.ActivationTime.TimeUntilClamped)
+                    durationComponent.Remaining >= timeUntilContext)
                 {
                     return true;
                 }
@@ -287,11 +289,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
         public IEnumerable<TEffect> OLD_GetActiveEffectInstancesOfType<TEffect>() where TEffect : TimedEffect
         {
             return [];
-        }
-
-        [Obsolete]
-        public void OLD_InvokeEventOnAllInstancesOfEffect<TEffect>(Func<TEffect, Action> eventGetter) where TEffect : TimedEffect
-        {
         }
 
         [ConCommand(commandName = "roc_end_all_effects", flags = ConVarFlagUtil.SERVER, helpText = "Ends all active timed effects")]
