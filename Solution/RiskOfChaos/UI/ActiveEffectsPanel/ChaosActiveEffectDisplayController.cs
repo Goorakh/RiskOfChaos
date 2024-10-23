@@ -159,8 +159,8 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
                 displayName = effectInfo.GetDisplayName(effectNameFormatter, EffectNameFormatFlags.RuntimeFormatArgs);
             }
 
-            string token = "CHAOS_ACTIVE_EFFECT_FALLBACK_FORMAT";
-            object[] formatArgs = [displayName];
+            string token;
+            object[] formatArgs;
             switch (_displayingEffectDurationComponent.TimedType)
             {
                 case TimedEffectType.UntilStageEnd:
@@ -187,6 +187,10 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
                         displayName,
                         FormatUtils.FormatTimeSeconds(timeRemaining)
                     ];
+                    break;
+                default:
+                    token = "CHAOS_ACTIVE_EFFECT_FALLBACK_FORMAT";
+                    formatArgs = [displayName];
                     break;
             }
 
