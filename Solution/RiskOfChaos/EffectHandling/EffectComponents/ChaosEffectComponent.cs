@@ -35,6 +35,9 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         [SyncVar]
         Net_RunFixedTimeStampWrapper _timeStarted;
 
+        [SyncVar]
+        bool _isRetired;
+
         IEffectHUDVisibilityProvider[] _hudVisibilityProviders;
 
         [SerializedMember("rng")]
@@ -50,6 +53,16 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => _timeStarted = (Run.FixedTimeStamp)value;
+        }
+
+        public bool IsRetired
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _isRetired;
+
+            [Server]
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private set => _isRetired = value;
         }
 
         public Xoroshiro128Plus Rng
@@ -168,6 +181,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         [Server]
         public void RetireEffect()
         {
+            IsRetired = true;
             NetworkServer.Destroy(gameObject);
         }
     }

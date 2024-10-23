@@ -25,12 +25,12 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
             _effectComponent = GetComponent<ChaosEffectComponent>();
         }
 
-        void Update()
+        void FixedUpdate()
         {
-            if (Time.deltaTime == 0f || _effectComponent.EffectDestructionHandledByComponent)
+            if (Time.deltaTime == 0f || _effectComponent.EffectDestructionHandledByComponent || _effectComponent.IsRetired)
                 return;
 
-            _age += Time.unscaledDeltaTime;
+            _age += Time.fixedUnscaledDeltaTime;
             if (_age > TIMEOUT_DURATION)
             {
                 _effectComponent.RetireEffect();

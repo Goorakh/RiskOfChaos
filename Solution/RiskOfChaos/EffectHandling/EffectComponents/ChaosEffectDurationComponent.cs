@@ -87,6 +87,9 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
 
         void FixedUpdate()
         {
+            if (!_effectComponent || _effectComponent.IsRetired)
+                return;
+
             if (NetworkServer.active)
             {
                 fixedUpdateServer();
