@@ -14,7 +14,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
     [DisallowMultipleComponent]
     [RequiredComponents(typeof(ChaosEffectComponent))]
-    public sealed class ApplyBuffEffect : NetworkBehaviour
+    public sealed class ApplyBuffEffect : MonoBehaviour
     {
         static readonly List<ApplyBuffEffect> _instancesList = [];
 
@@ -156,10 +156,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             }
         }
 
-        [Server]
         void tryAddBuff(CharacterBody body)
         {
-            if (!isActiveAndEnabled || BuffIndex == BuffIndex.None || BuffStackCount <= 0)
+            if (!NetworkServer.active || !isActiveAndEnabled || BuffIndex == BuffIndex.None || BuffStackCount <= 0)
                 return;
 
             KeepBuff keepBuff = body.gameObject.AddComponent<KeepBuff>();
@@ -170,9 +169,11 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             OnBuffAppliedServer?.Invoke(body);
         }
 
-        [Server]
         void updateAllBuffComponents()
         {
+            if (!NetworkServer.active)
+                return;
+
             foreach (KeepBuff keepBuff in _keepBuffComponents)
             {
                 if (keepBuff)
@@ -182,7 +183,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             }
         }
 
-        [Server]
         void updateBuffComponent(KeepBuff keepBuff)
         {
             keepBuff.BuffIndex = BuffIndex;
