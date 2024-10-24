@@ -36,7 +36,7 @@ namespace RiskOfChaos.ChatMessages
                     pickupColor = pickupDef.baseColor;
                 }
 
-                _sharedStringBuilder.AppendFormat("<color=#")
+                _sharedStringBuilder.Append("<color=#")
                                     .AppendColor32RGBHexValues(pickupColor)
                                     .Append('>')
                                     .Append(Language.GetString(pickupNameToken))
