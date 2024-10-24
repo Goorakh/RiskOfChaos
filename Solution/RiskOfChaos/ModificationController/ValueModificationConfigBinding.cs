@@ -1,5 +1,4 @@
-﻿using MonoMod.Utils;
-using RiskOfChaos.ConfigHandling;
+﻿using RiskOfChaos.ConfigHandling;
 using System;
 
 namespace RiskOfChaos.ModificationController
@@ -80,7 +79,7 @@ namespace RiskOfChaos.ModificationController
             if (_isDisposed)
                 return;
 
-            _configValueConverter = valueConverter.CastDelegate<ValueConverterDelegate>();
+            _configValueConverter = valueConverter != null ? v => valueConverter((T)v) : null;
 
             BoundToConfig = configHolder;
         }
@@ -90,7 +89,7 @@ namespace RiskOfChaos.ModificationController
             if (_isDisposed)
                 return;
 
-            _configValueConverter = converter.CastDelegate<ValueConverterDelegate>();
+            _configValueConverter = converter != null ? v => converter((TConfig)v) : null;
 
             BoundToConfig = configHolder;
         }
