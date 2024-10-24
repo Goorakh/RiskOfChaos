@@ -5,22 +5,24 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Comparers;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.Utilities.Pickup;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
     [ChaosEffect("cleanse_random_item", DefaultSelectionWeight = 0.5f)]
-    public sealed class CleanseRandomItem : BaseEffect
+    public sealed class CleanseRandomItem : NetworkBehaviour
     {
-        static PickupDropTable _pearlDropTable;
-
         [EffectConfig]
         static readonly ConfigHolder<int> _cleanseCount =
             ConfigFactory<int>.CreateConfig("Cleanse Count", 1)
@@ -45,18 +47,24 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             ConfigHolder = _itemBlacklistConfig
         };
 
+        static PickupDropTable _pearlDropTable;
+
         [SystemInitializer]
         static void Init()
         {
-            _pearlDropTable = Addressables.LoadAssetAsync<ExplicitPickupDropTable>("RoR2/Base/ShrineCleanse/dtPearls.asset").WaitForCompletion();
-
-            if (!_pearlDropTable)
+            AsyncOperationHandle<ExplicitPickupDropTable> pearlDropTableLoad = Addressables.LoadAssetAsync<ExplicitPickupDropTable>("RoR2/Base/ShrineCleanse/dtPearls.asset");
+            pearlDropTableLoad.Completed += handle =>
             {
-                Log.Error("Failed to load pearl drop table");
-            }
+                _pearlDropTable = handle.Result;
+
+                if (!_pearlDropTable)
+                {
+                    Log.Error("Failed to load pearl drop table");
+                }
+            };
         }
 
-        static IEnumerable<PickupDef> getAllCleansableItems()
+        static IEnumerable<PickupDef> getAllCleansablePickups()
         {
             foreach (PickupDef pickup in PickupCatalog.allPickups)
             {
@@ -93,45 +101,38 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             }
         }
 
-        static bool isPrimaryCleansable(PickupDef pickup)
-        {
-            if (pickup.itemIndex != ItemIndex.None)
-            {
-                ItemDef item = ItemCatalog.GetItemDef(pickup.itemIndex);
-                return item.tier == ItemTier.Lunar;
-            }
-            else if (pickup.equipmentIndex != EquipmentIndex.None)
-            {
-                EquipmentDef equipment = EquipmentCatalog.GetEquipmentDef(pickup.equipmentIndex);
-                return equipment.isLunar;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
         [EffectCanActivate]
         static bool CanActivate(in EffectCanActivateContext context)
         {
-            return _pearlDropTable && (!context.IsNow || PlayerUtils.GetAllPlayerMasters(false).Any(m => getAllCleansableItems().Any(pickup => m.inventory.GetPickupCount(pickup) > 0)));
+            return _pearlDropTable && (!context.IsNow || PlayerUtils.GetAllPlayerMasters(false).Any(m => getAllCleansablePickups().Any(pickup => m.inventory.GetPickupCount(pickup) > 0)));
         }
+
+        ChaosEffectComponent _effectComponent;
 
         ulong _cleanseRNGSeed;
         PickupIndex[,] _cleanseOrder;
 
-        public override void OnPreStartServer()
+        void Awake()
         {
-            base.OnPreStartServer();
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
 
-            _cleanseRNGSeed = RNG.nextUlong;
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
 
-            List<PickupIndex> primaryCleansables = [];
-            List<PickupIndex> secondaryCleansables = [];
+            Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
-            foreach (PickupDef cleansablePickup in getAllCleansableItems())
+            _cleanseRNGSeed = rng.nextUlong;
+
+            List<PickupDef> allCleansablePickups = [.. getAllCleansablePickups()];
+
+            List<PickupIndex> primaryCleansables = new List<PickupIndex>(allCleansablePickups.Count);
+            List<PickupIndex> secondaryCleansables = new List<PickupIndex>(allCleansablePickups.Count);
+
+            foreach (PickupDef cleansablePickup in allCleansablePickups)
             {
-                if (isPrimaryCleansable(cleansablePickup))
+                if (cleansablePickup.isLunar)
                 {
                     primaryCleansables.Add(cleansablePickup.pickupIndex);
                 }
@@ -146,27 +147,34 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             _cleanseOrder = new PickupIndex[cleanseCount, primaryCleansables.Count + secondaryCleansables.Count];
             for (int i = 0; i < cleanseCount; i++)
             {
-                Util.ShuffleList(primaryCleansables, RNG.Branch());
-                Util.ShuffleList(secondaryCleansables, RNG.Branch());
+                Util.ShuffleList(primaryCleansables, rng.Branch());
+                Util.ShuffleList(secondaryCleansables, rng.Branch());
+
+                int addedCleansables = 0;
 
                 for (int j = 0; j < primaryCleansables.Count; j++)
                 {
-                    _cleanseOrder[i, j] = primaryCleansables[j];
+                    _cleanseOrder[i, addedCleansables + j] = primaryCleansables[j];
                 }
+
+                addedCleansables += primaryCleansables.Count;
 
                 for (int j = 0; j < secondaryCleansables.Count; j++)
                 {
-                    _cleanseOrder[i, primaryCleansables.Count + j] = secondaryCleansables[j];
+                    _cleanseOrder[i, addedCleansables + j] = secondaryCleansables[j];
                 }
             }
         }
 
-        public override void OnStart()
+        void Start()
         {
-            PlayerUtils.GetAllPlayerMasters(false).TryDo(m =>
+            if (NetworkServer.active)
             {
-                tryCleanseRandomItem(m, new Xoroshiro128Plus(_cleanseRNGSeed));
-            }, Util.GetBestMasterName);
+                PlayerUtils.GetAllPlayerMasters(false).TryDo(m =>
+                {
+                    tryCleanseRandomItem(m, new Xoroshiro128Plus(_cleanseRNGSeed));
+                }, Util.GetBestMasterName);
+            }
         }
 
         void tryCleanseRandomItem(CharacterMaster master, Xoroshiro128Plus rng)
@@ -178,7 +186,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             int cleanseCount = _cleanseOrder.GetLength(0);
             int cleansablesCount = _cleanseOrder.GetLength(1);
 
-            HashSet<PickupIndex> givenPearlItems = [];
+            HashSet<PickupIndex> grantedPickups = new HashSet<PickupIndex>(2);
 
             for (int i = 0; i < cleanseCount; i++)
             {
@@ -200,32 +208,24 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 if (inventory.TryRemove(pickupToCleanse))
                 {
                     PickupIndex pearlPickupIndex = _pearlDropTable.GenerateDrop(rng.Branch());
-                    givenPearlItems.Add(pearlPickupIndex);
 
                     PickupDef pearlPickup = PickupCatalog.GetPickupDef(pearlPickupIndex);
 
-                    inventory.TryGrant(pearlPickup, false);
+                    if (inventory.TryGrant(pearlPickup, InventoryExtensions.ItemReplacementRule.DropExisting))
+                    {
+                        CharacterMasterNotificationQueueUtils.SendPickupTransformNotification(master, pickupToCleanse.pickupIndex, pearlPickupIndex, CharacterMasterNotificationQueue.TransformationType.Default);
 
-                    CharacterMasterNotificationQueueUtils.SendPickupTransformNotification(master, pickupToCleanse.pickupIndex, pearlPickupIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                        grantedPickups.Add(pearlPickupIndex);
+                    }
                 }
             }
 
-            if (givenPearlItems.Count > 0)
+            if (grantedPickups.Count > 0)
             {
-                RoR2Application.onNextUpdate += () =>
+                foreach (PickupIndex grantedPickup in grantedPickups)
                 {
-                    if (!master || !inventory)
-                        return;
-
-                    foreach (PickupIndex pearlPickupIndex in givenPearlItems)
-                    {
-                        PickupDef pearlPickup = PickupCatalog.GetPickupDef(pearlPickupIndex);
-                        if (pearlPickup == null)
-                            continue;
-
-                        Chat.AddPickupMessage(master.GetBody(), pearlPickup.nameToken, pearlPickup.baseColor, (uint)inventory.GetPickupCount(pearlPickup));
-                    }
-                };
+                    PickupUtils.QueuePickupMessage(master, grantedPickup, false, false);
+                }
             }
         }
     }

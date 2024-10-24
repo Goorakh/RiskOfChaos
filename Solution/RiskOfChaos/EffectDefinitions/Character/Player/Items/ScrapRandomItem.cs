@@ -6,19 +6,22 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Comparers;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.Utilities.Pickup;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
     [ChaosEffect("scrap_random_item", DefaultSelectionWeight = 0.8f)]
-    public sealed class ScrapRandomItem : BaseEffect
+    public sealed class ScrapRandomItem : NetworkBehaviour
     {
         static PickupIndex[] _scrapPickupByItemTier;
 
@@ -116,23 +119,35 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             return _scrapPickupByItemTier != null && (!context.IsNow || PlayerUtils.GetAllPlayerMasters(false).Any(cm => getAllScrappableItems(cm.inventory).Any()));
         }
 
+        ChaosEffectComponent _effectComponent;
+
         ItemIndex[] _itemScrapOrder;
 
-        public override void OnPreStartServer()
+        void Awake()
         {
-            base.OnPreStartServer();
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
             _itemScrapOrder = getAllScrappableItems().ToArray();
-            Util.ShuffleArray(_itemScrapOrder, RNG.Branch());
+            Util.ShuffleArray(_itemScrapOrder, rng);
 
 #if DEBUG
             Log.Debug($"Scrap order: [{string.Join(", ", _itemScrapOrder.Select(FormatUtils.GetBestItemDisplayName))}]");
 #endif
         }
 
-        public override void OnStart()
+        void Start()
         {
-            PlayerUtils.GetAllPlayerMasters(false).TryDo(tryScrapRandomItem, Util.GetBestMasterName);
+            if (NetworkServer.active)
+            {
+                PlayerUtils.GetAllPlayerMasters(false).TryDo(tryScrapRandomItem, Util.GetBestMasterName);
+            }
         }
 
         void tryScrapRandomItem(CharacterMaster characterMaster)
@@ -141,7 +156,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             if (!inventory)
                 return;
 
-            HashSet<ItemIndex> notifiedScrapItems = [];
+            HashSet<PickupIndex> notifiedScrapPickups = [];
+            notifiedScrapPickups.EnsureCapacity(_scrapPickupByItemTier.Length);
 
             for (int i = _scrapCount.Value - 1; i >= 0; i--)
             {
@@ -150,23 +166,16 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     break;
 
                 ItemDef itemToScrap = ItemCatalog.GetItemDef(_itemScrapOrder[itemToScrapIndex]);
-                scrapItem(characterMaster, inventory, itemToScrap, notifiedScrapItems);
+                scrapItem(characterMaster, inventory, itemToScrap, notifiedScrapPickups);
             }
 
-            RoR2Application.onNextUpdate += () =>
+            foreach (PickupIndex scrapPickupIndex in notifiedScrapPickups)
             {
-                foreach (ItemIndex scrapItemIndex in notifiedScrapItems)
-                {
-                    PickupDef scrapPickup = PickupCatalog.GetPickupDef(PickupCatalog.FindPickupIndex(scrapItemIndex));
-                    if (scrapPickup == null)
-                        continue;
-
-                    Chat.AddPickupMessage(characterMaster.GetBody(), scrapPickup.nameToken, scrapPickup.baseColor, (uint)inventory.GetItemCount(scrapItemIndex));
-                }
-            };
+                PickupUtils.QueuePickupMessage(characterMaster, scrapPickupIndex, false, false);
+            }
         }
 
-        static void scrapItem(CharacterMaster characterMaster, Inventory inventory, ItemDef itemToScrap, HashSet<ItemIndex> notifiedScrapItems)
+        static void scrapItem(CharacterMaster characterMaster, Inventory inventory, ItemDef itemToScrap, HashSet<PickupIndex> notifiedScrapPickups)
         {
             PickupDef scrapPickup = getScrapPickupForItemTier(itemToScrap.tier);
             if (scrapPickup == null)
@@ -187,7 +196,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             CharacterMasterNotificationQueue.SendTransformNotification(characterMaster, itemToScrap.itemIndex, scrapPickup.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
 
-            notifiedScrapItems?.Add(scrapPickup.itemIndex);
+            notifiedScrapPickups?.Add(scrapPickup.pickupIndex);
         }
 
         static PickupDef getScrapPickupForItemTier(ItemTier tier)

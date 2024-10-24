@@ -2,6 +2,7 @@
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.DropTables;
 using RiskOfChaos.Utilities.Extensions;
@@ -10,11 +11,12 @@ using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
     [ChaosEffect("give_random_item")]
-    public sealed class GiveRandomItem : BaseEffect
+    public sealed class GiveRandomItem : NetworkBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<int> _itemCount =
@@ -58,26 +60,57 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                 drops.Add(new ExplicitDrop(DLC1Content.Equipment.BossHunterConsumed.equipmentIndex, DropType.Equipment, ExpansionUtils.DLC1));
                 drops.Add(new ExplicitDrop(DLC1Content.Equipment.LunarPortalOnUse.equipmentIndex, DropType.Equipment, ExpansionUtils.DLC1));
+
+                drops.Add(new ExplicitDrop(DLC2Content.Equipment.HealAndReviveConsumed.equipmentIndex, DropType.Equipment, ExpansionUtils.DLC2));
             };
         }
 
-        public override void OnStart()
+        ChaosEffectComponent _effectComponent;
+
+        PickupDef[] _pickupsToGive;
+
+        void Awake()
         {
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+            
             _dropTable.RegenerateIfNeeded();
 
-            PickupDef[] pickups = new PickupDef[_itemCount.Value];
-            for (int i = 0; i < pickups.Length; i++)
+            _pickupsToGive = new PickupDef[_itemCount.Value];
+            for (int i = 0; i < _pickupsToGive.Length; i++)
             {
-                pickups[i] = PickupCatalog.GetPickupDef(_dropTable.GenerateDrop(RNG));
+                _pickupsToGive[i] = PickupCatalog.GetPickupDef(_dropTable.GenerateDrop(rng));
             }
+        }
 
-            PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
+        void Start()
+        {
+            if (NetworkServer.active)
             {
-                foreach (PickupDef pickupDef in pickups)
+                PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
                 {
-                    PickupUtils.GrantOrDropPickupAt(pickupDef, playerMaster);
-                }
-            }, Util.GetBestMasterName);
+                    HashSet<PickupIndex> givenPickups = new HashSet<PickupIndex>(_pickupsToGive.Length);
+
+                    foreach (PickupDef pickupDef in _pickupsToGive)
+                    {
+                        if (playerMaster.inventory.TryGrant(pickupDef, InventoryExtensions.ItemReplacementRule.DropExisting))
+                        {
+                            givenPickups.Add(pickupDef.pickupIndex);
+                        }
+                    }
+
+                    foreach (PickupIndex givenPickupIndex in givenPickups)
+                    {
+                        PickupUtils.QueuePickupMessage(playerMaster, givenPickupIndex, true, true);
+                    }
+                }, Util.GetBestMasterName);
+            }
         }
     }
 }

@@ -64,7 +64,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             _dropTable.OnPreGenerate += () =>
             {
-                List<ItemTag> bannedItemTags = new List<ItemTag>(_dropTable.bannedItemTags);
+                List<ItemTag> bannedItemTags = [];
                 if (_applyAIBlacklist.Value)
                 {
                     bannedItemTags.AddRange([
@@ -207,7 +207,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             foreach (PickupDef pickupDef in _grantedPickupDefs)
             {
-                _monsterInventory.TryGrant(pickupDef, true);
+                _monsterInventory.TryGrant(pickupDef, InventoryExtensions.ItemReplacementRule.DeleteExisting);
 
                 uint pickupCount;
                 if (pickupDef.itemIndex != ItemIndex.None)
@@ -239,7 +239,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 {
                     foreach (PickupDef pickupDef in _grantedPickupDefs)
                     {
-                        master.inventory.TryGrant(pickupDef, true);
+                        master.inventory.TryGrant(pickupDef, InventoryExtensions.ItemReplacementRule.DeleteExisting);
                     }
                 }
             }, Util.GetBestMasterName);

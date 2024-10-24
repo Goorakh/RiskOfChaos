@@ -1,9 +1,17 @@
 ﻿using RoR2;
+using UnityEngine;
 
 namespace RiskOfChaos.Utilities.Extensions
 {
     public static class InventoryExtensions
     {
+        public enum ItemReplacementRule
+        {
+            KeepExisting,
+            DeleteExisting,
+            DropExisting
+        }
+
         public static bool TryGetFreeEquipmentSlot(this Inventory inventory, out uint slotIndex)
         {
             if (!inventory)
@@ -31,47 +39,67 @@ namespace RiskOfChaos.Utilities.Extensions
             return false;
         }
 
-        public static PickupTryGrantResult TryGrant(this Inventory inventory, PickupDef pickup, bool replaceExisting)
+        public static bool TryGrant(this Inventory inventory, PickupDef pickup, ItemReplacementRule replacementRule)
         {
             if (!inventory)
-                return PickupTryGrantResult.Failed;
+                return false;
 
             if (pickup.itemIndex != ItemIndex.None)
             {
-                inventory.GiveItem(pickup.itemIndex, 1);
-                return PickupTryGrantResult.CompleteSuccess;
+                inventory.GiveItem(pickup.itemIndex);
+                return true;
             }
             else if (pickup.equipmentIndex != EquipmentIndex.None)
             {
                 if (inventory.TryGetFreeEquipmentSlot(out uint freeSlot))
                 {
                     inventory.SetEquipmentIndexForSlot(pickup.equipmentIndex, freeSlot);
-                    return PickupTryGrantResult.CompleteSuccess;
+                    return true;
                 }
-                else if (replaceExisting)
-                {
-                    EquipmentIndex previousEquipmentIndex = inventory.currentEquipmentIndex;
-                    inventory.SetEquipmentIndex(pickup.equipmentIndex);
 
-                    if (previousEquipmentIndex != EquipmentIndex.None)
-                    {
-                        return PickupTryGrantResult.PartialSuccess(PickupCatalog.FindPickupIndex(previousEquipmentIndex));
-                    }
-                    else
-                    {
-                        Log.Warning($"{nameof(TryGetFreeEquipmentSlot)} failed, but current equipment index is None, this should never be able to happen");
-                        return PickupTryGrantResult.CompleteSuccess; // Success because the current equipment was set
-                    }
-                }
-                else
+                byte currentEquipmentSlot = inventory.activeEquipmentSlot;
+                EquipmentState currentEquipmentState = inventory.GetEquipment(currentEquipmentSlot);
+
+                if (currentEquipmentState.equipmentIndex != EquipmentIndex.None)
                 {
-                    return PickupTryGrantResult.Failed;
+                    if (replacementRule == ItemReplacementRule.KeepExisting)
+                        return false;
+
+                    if (replacementRule == ItemReplacementRule.DropExisting)
+                    {
+                        Vector3? pickupSpawnPosition = null;
+
+                        if (inventory.TryGetComponent(out CharacterMaster characterMaster))
+                        {
+                            CharacterBody body = characterMaster.GetBody();
+                            if (body)
+                            {
+                                pickupSpawnPosition = body.footPosition;
+                            }
+                        }
+
+                        if (pickupSpawnPosition.HasValue)
+                        {
+                            GenericPickupController.CreatePickup(new GenericPickupController.CreatePickupInfo
+                            {
+                                pickupIndex = PickupCatalog.FindPickupIndex(currentEquipmentState.equipmentIndex),
+                                position = pickupSpawnPosition.Value
+                            });
+                        }
+                        else
+                        {
+                            Log.Warning($"No position could be determined for dropping existing equipment ({currentEquipmentState.equipmentDef}) for {inventory}");
+                        }
+                    }
                 }
+
+                inventory.SetEquipmentIndexForSlot(pickup.equipmentIndex, currentEquipmentSlot);
+                return true;
             }
             else
             {
-                Log.Warning($"unhandled pickup index {pickup.pickupIndex}");
-                return PickupTryGrantResult.Failed;
+                Log.Error($"Invalid pickup type: {pickup.internalName}");
+                return false;
             }
         }
 

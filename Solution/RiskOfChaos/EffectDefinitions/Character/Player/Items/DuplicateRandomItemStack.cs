@@ -4,19 +4,22 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Comparers;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.Utilities.Pickup;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
     [ChaosEffect("duplicate_random_item_stack")]
-    public sealed class DuplicateRandomItemStack : BaseEffect
+    public sealed class DuplicateRandomItemStack : NetworkBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<int> _maxItemStacksConfig =
@@ -80,14 +83,23 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             }
         }
 
+        ChaosEffectComponent _effectComponent;
+
         ItemIndex[] _itemDuplicationOrder;
 
-        public override void OnPreStartServer()
+        void Awake()
         {
-            base.OnPreStartServer();
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
 
-            _itemDuplicationOrder = ItemCatalog.allItems.ToArray();
-            Util.ShuffleArray(_itemDuplicationOrder, RNG.Branch());
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+
+            _itemDuplicationOrder = [.. ItemCatalog.allItems];
+            Util.ShuffleArray(_itemDuplicationOrder, rng.Branch());
 
 #if DEBUG
             Log.Debug($"Duplication order: [{string.Join(", ", _itemDuplicationOrder.Select(FormatUtils.GetBestItemDisplayName))}]");
@@ -110,25 +122,28 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             return false;
         }
 
-        public override void OnStart()
+        void Start()
         {
-            PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
+            if (NetworkServer.active)
             {
-                Inventory inventory = playerMaster.inventory;
-                if (!inventory)
-                    return;
-
-                ItemStack[] duplicatableItemStacks = getAllDuplicatableItemStacks(inventory).ToArray();
-                if (duplicatableItemStacks.Length <= 0)
-                    return;
-
-                if (tryGetStackToDuplicate(duplicatableItemStacks, out ItemStack itemStack))
+                PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
                 {
-                    inventory.GiveItem(itemStack.ItemIndex, itemStack.ItemCount);
+                    Inventory inventory = playerMaster.inventory;
+                    if (!inventory)
+                        return;
 
-                    GenericPickupController.SendPickupMessage(playerMaster, PickupCatalog.FindPickupIndex(itemStack.ItemIndex));
-                }
-            }, Util.GetBestMasterName);
+                    ItemStack[] duplicatableItemStacks = getAllDuplicatableItemStacks(inventory).ToArray();
+                    if (duplicatableItemStacks.Length <= 0)
+                        return;
+
+                    if (tryGetStackToDuplicate(duplicatableItemStacks, out ItemStack itemStack))
+                    {
+                        inventory.GiveItem(itemStack.ItemIndex, itemStack.ItemCount);
+
+                        PickupUtils.QueuePickupMessage(playerMaster, PickupCatalog.FindPickupIndex(itemStack.ItemIndex), true, true);
+                    }
+                }, Util.GetBestMasterName);
+            }
         }
     }
 }

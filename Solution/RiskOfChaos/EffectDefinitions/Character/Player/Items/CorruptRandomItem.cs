@@ -3,6 +3,7 @@ using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Comparers;
 using RiskOfChaos.Utilities.Extensions;
@@ -12,11 +13,13 @@ using RoR2.Items;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
     [ChaosEffect("corrupt_random_item", DefaultSelectionWeight = 0.6f)]
-    public sealed class CorruptRandomItem : BaseEffect
+    public sealed class CorruptRandomItem : NetworkBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<string> _itemBlacklistConfig =
@@ -72,34 +75,46 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             return getAllCorruptableItems().Where(i => inventory.GetItemCount(i) > 0);
         }
 
+        ChaosEffectComponent _effectComponent;
+
         ItemIndex[] _itemCorruptOrder;
 
-        public override void OnPreStartServer()
+        void Awake()
         {
-            base.OnPreStartServer();
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
             _itemCorruptOrder = getAllCorruptableItems().ToArray();
-            Util.ShuffleArray(_itemCorruptOrder, RNG.Branch());
+            Util.ShuffleArray(_itemCorruptOrder, rng.Branch());
 
 #if DEBUG
             Log.Debug($"Corrupt order: [{string.Join(", ", _itemCorruptOrder.Select(FormatUtils.GetBestItemDisplayName))}]");
 #endif
         }
 
-        public override void OnStart()
+        void Start()
         {
-            PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
+            if (NetworkServer.active)
             {
-                Inventory inventory = playerMaster.inventory;
-                if (!inventory)
-                    return;
+                PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
+                {
+                    Inventory inventory = playerMaster.inventory;
+                    if (!inventory)
+                        return;
 
-                int itemToCorruptIndex = Array.FindIndex(_itemCorruptOrder, i => inventory.GetItemCount(i) > 0);
-                if (itemToCorruptIndex == -1) // This inventory has none of the corruptable items
-                    return;
+                    int itemToCorruptIndex = Array.FindIndex(_itemCorruptOrder, i => inventory.GetItemCount(i) > 0);
+                    if (itemToCorruptIndex == -1) // This inventory has none of the corruptable items
+                        return;
 
-                ContagiousItemManager.TryForceReplacement(inventory, _itemCorruptOrder[itemToCorruptIndex]);
-            }, Util.GetBestMasterName);
+                    ContagiousItemManager.TryForceReplacement(inventory, _itemCorruptOrder[itemToCorruptIndex]);
+                }, Util.GetBestMasterName);
+            }
         }
     }
 }

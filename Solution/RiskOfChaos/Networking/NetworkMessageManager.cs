@@ -9,6 +9,7 @@ namespace RiskOfChaos.Networking
             NetworkingAPI.RegisterMessageType<TeleportBodyMessage>();
             NetworkingAPI.RegisterMessageType<SetObjectDontDestroyOnLoadMessage>();
 
+            NetworkingAPI.RegisterMessageType<PickupNotificationMessage>();
             NetworkingAPI.RegisterMessageType<PickupTransformationNotificationMessage>();
         }
     }

@@ -7,6 +7,7 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Comparers;
 using RiskOfChaos.Utilities.Extensions;
@@ -16,12 +17,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
     [ChaosEffect("monster_item_steal", DefaultSelectionWeight = 0.6f)]
     [EffectConfigBackwardsCompatibility("Effect: Steal All Player Items")]
-    public sealed class MonsterItemSteal : BaseEffect, ICoroutineEffect
+    public sealed class MonsterItemSteal : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _maxInventoryStealFraction =
@@ -97,13 +99,82 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             return stealer && stealer.hasBody && victim && victim.hasBody && stealer != victim && stealer.teamIndex != victim.teamIndex && !stealer.IsDeadAndOutOfLivesServer();
         }
 
+        ChaosEffectComponent _effectComponent;
+
         readonly List<SteppedStealController> _activeStealControllers = [];
 
-        public override void OnStart()
+        void Awake()
         {
-            _activeStealControllers.EnsureCapacity(CharacterMaster.readOnlyInstancesList.Count);
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+            _effectComponent.EffectDestructionHandledByComponent = true;
+        }
 
-            CharacterMaster.onStartGlobal += initializeMasterForStealing;
+        IEnumerator Start()
+        {
+            if (NetworkServer.active)
+            {
+                _activeStealControllers.EnsureCapacity(CharacterMaster.readOnlyInstancesList.Count);
+                CharacterMaster.readOnlyInstancesList.TryDo(initializeMasterForStealing, Util.GetBestMasterName);
+
+                CharacterMaster.onStartGlobal += initializeMasterForStealing;
+
+                int stealIterations = 0;
+                float currentStealInterval = 0.3f;
+
+                Dictionary<Inventory, int> stolenItemStacksByInventory = [];
+                stolenItemStacksByInventory.EnsureCapacity(_activeStealControllers.Count);
+
+                while (_activeStealControllers.Count > 0)
+                {
+                    Util.ShuffleList(_activeStealControllers);
+
+                    for (int i = _activeStealControllers.Count - 1; i >= 0; i--)
+                    {
+                        SteppedStealController stealController = _activeStealControllers[i];
+                        if (!stealController.IsValid())
+                        {
+                            _activeStealControllers.RemoveAt(i);
+                            continue;
+                        }
+
+                        if (!stolenItemStacksByInventory.TryGetValue(stealController.VictimInventory, out int stolenStacks))
+                        {
+                            stolenStacks = 0;
+                        }
+
+                        float stealStackFraction = (stolenStacks + 1) / (float)stealController.StartingVictimItemStacks;
+
+                        if (stealStackFraction > _maxInventoryStealFraction.Value || !stealController.ItemStealController.inItemSteal)
+                        {
+                            _activeStealControllers.RemoveAt(i);
+
+                            stealController.OnLastItemStolen();
+                        }
+                        else
+                        {
+                            stealController.ItemStealController.StepSteal();
+                            stealController.NumSteps++;
+
+                            stolenItemStacksByInventory[stealController.VictimInventory] = stolenStacks + 1;
+
+                            yield return new WaitForSeconds(currentStealInterval);
+                        }
+
+                        stealIterations++;
+                        if (stealIterations % 3 == 0)
+                        {
+                            currentStealInterval = Mathf.Max(0.1f, currentStealInterval * 0.925f);
+                        }
+                    }
+                }
+
+                _effectComponent.RetireEffect();
+            }
+        }
+
+        void OnDestroy()
+        {
+            CharacterMaster.onStartGlobal -= initializeMasterForStealing;
         }
 
         void initializeMasterForStealing(CharacterMaster master)
@@ -124,72 +195,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 stealInitializer.StartStealingFrom(playerMaster.inventory);
                 _activeStealControllers.Add(new SteppedStealController(stealInitializer));
             }, Util.GetBestMasterName);
-        }
-
-        public IEnumerator OnStartCoroutine()
-        {
-            CharacterMaster.readOnlyInstancesList.TryDo(initializeMasterForStealing, Util.GetBestMasterName);
-
-            int stealIterations = 0;
-            float currentStealInterval = 0.3f;
-
-            Dictionary<Inventory, int> stolenItemStacksByInventory = [];
-
-            while (_activeStealControllers.Count > 0)
-            {
-                Util.ShuffleList(_activeStealControllers);
-
-                for (int i = _activeStealControllers.Count - 1; i >= 0; i--)
-                {
-                    SteppedStealController stealController = _activeStealControllers[i];
-                    if (!stealController.IsValid())
-                    {
-                        _activeStealControllers.RemoveAt(i);
-                        continue;
-                    }
-
-                    if (!stolenItemStacksByInventory.TryGetValue(stealController.VictimInventory, out int stolenStacks))
-                    {
-                        stolenStacks = 0;
-                    }
-
-                    float stealStackFraction = (stolenStacks + 1) / (float)stealController.StartingVictimItemStacks;
-
-                    if (stealStackFraction > _maxInventoryStealFraction.Value || !stealController.ItemStealController.inItemSteal)
-                    {
-                        _activeStealControllers.RemoveAt(i);
-
-                        stealController.OnLastItemStolen();
-                    }
-                    else
-                    {
-                        stealController.ItemStealController.StepSteal();
-                        stealController.NumSteps++;
-
-                        stolenItemStacksByInventory[stealController.VictimInventory] = stolenStacks + 1;
-
-                        yield return new WaitForSeconds(currentStealInterval);
-                    }
-
-                    stealIterations++;
-                    if (stealIterations % 3 == 0)
-                    {
-                        currentStealInterval = Mathf.Max(0.1f, currentStealInterval * 0.925f);
-                    }
-                }
-            }
-
-            onEnd();
-        }
-
-        public void OnForceStopped()
-        {
-            onEnd();
-        }
-
-        void onEnd()
-        {
-            CharacterMaster.onStartGlobal -= initializeMasterForStealing;
         }
 
         class SteppedStealController

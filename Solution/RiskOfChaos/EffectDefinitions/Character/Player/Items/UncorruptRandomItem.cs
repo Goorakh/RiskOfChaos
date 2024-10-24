@@ -4,20 +4,23 @@ using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Comparers;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.Utilities.Pickup;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.Items;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
     [ChaosEffect("uncorrupt_random_item", DefaultSelectionWeight = 0.6f)]
-    public sealed class UncorruptRandomItem : BaseEffect
+    public sealed class UncorruptRandomItem : NetworkBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<int> _uncorruptItemCount =
@@ -91,24 +94,38 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         readonly record struct ItemUncorruptionInfo(ItemIndex CorruptedItem, ItemIndex[] UncorruptedItemOptions);
         ItemUncorruptionInfo[] _itemUncorruptionOrder;
 
-        public override void OnPreStartServer()
+        ChaosEffectComponent _effectComponent;
+
+        Xoroshiro128Plus _rng;
+
+        void Awake()
         {
-            base.OnPreStartServer();
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
             _itemUncorruptionOrder = getReverseItemCorruptionMap().Select(kvp => new ItemUncorruptionInfo(kvp.Key, kvp.Value.ToArray())).ToArray();
-            Util.ShuffleArray(_itemUncorruptionOrder, RNG.Branch());
+            Util.ShuffleArray(_itemUncorruptionOrder, _rng.Branch());
 
 #if DEBUG
             Log.Debug($"Uncorruption order: [{string.Join(", ", _itemUncorruptionOrder.Select(u => FormatUtils.GetBestItemDisplayName(u.CorruptedItem)))}]");
 #endif
         }
 
-        public override void OnStart()
+        void Start()
         {
-            PlayerUtils.GetAllPlayerMasters(false).TryDo(master =>
+            if (NetworkServer.active)
             {
-                uncorruptRandomItem(master, RNG.Branch());
-            }, Util.GetBestMasterName);
+                PlayerUtils.GetAllPlayerMasters(false).TryDo(master =>
+                {
+                    uncorruptRandomItem(master, _rng.Branch());
+                }, Util.GetBestMasterName);
+            }
         }
 
         void uncorruptRandomItem(CharacterMaster master, Xoroshiro128Plus rng)
@@ -117,23 +134,32 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             if (!inventory)
                 return;
 
+            HashSet<ItemIndex> uncorruptedItems = [];
+
             for (int i = _uncorruptItemCount.Value - 1; i >= 0; i--)
             {
                 int itemUncorruptIndex = Array.FindIndex(_itemUncorruptionOrder, u => inventory.GetItemCount(u.CorruptedItem) > 0);
                 if (itemUncorruptIndex == -1)
                     break;
 
-                uncorruptItem(master, rng.Branch(), _itemUncorruptionOrder[itemUncorruptIndex]);
+                uncorruptItem(master, rng.Branch(), _itemUncorruptionOrder[itemUncorruptIndex], uncorruptedItems);
+            }
+
+            foreach (ItemIndex uncorruptedItem in uncorruptedItems)
+            {
+                PickupUtils.QueuePickupMessage(master, PickupCatalog.FindPickupIndex(uncorruptedItem), false, false);
             }
         }
 
-        static void uncorruptItem(CharacterMaster master, Xoroshiro128Plus rng, ItemUncorruptionInfo uncorruptionInfo)
+        static void uncorruptItem(CharacterMaster master, Xoroshiro128Plus rng, ItemUncorruptionInfo uncorruptionInfo, HashSet<ItemIndex> uncorruptedItems)
         {
             Inventory inventory = master.inventory;
             if (!inventory)
                 return;
 
             int corruptItemCount = inventory.GetItemCount(uncorruptionInfo.CorruptedItem);
+
+            uncorruptedItems?.EnsureCapacity(uncorruptedItems.Count + corruptItemCount);
 
             inventory.RemoveItem(uncorruptionInfo.CorruptedItem, corruptItemCount);
 
@@ -153,12 +179,15 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 if (uncorruptItemCount <= 0)
                     continue;
 
-                inventory.GiveItem(uncorruptionInfo.UncorruptedItemOptions[i], uncorruptItemCount);
+                ItemIndex uncorruptItemIndex = uncorruptionInfo.UncorruptedItemOptions[i];
+                inventory.GiveItem(uncorruptItemIndex, uncorruptItemCount);
 
                 if (master.playerCharacterMasterController)
                 {
-                    CharacterMasterNotificationQueue.SendTransformNotification(master, uncorruptionInfo.CorruptedItem, uncorruptionInfo.UncorruptedItemOptions[i], CharacterMasterNotificationQueue.TransformationType.ContagiousVoid);
+                    CharacterMasterNotificationQueue.SendTransformNotification(master, uncorruptionInfo.CorruptedItem, uncorruptItemIndex, CharacterMasterNotificationQueue.TransformationType.ContagiousVoid);
                 }
+
+                uncorruptedItems?.Add(uncorruptItemIndex);
             }
         }
     }
