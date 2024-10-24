@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.Components;
 using RiskOfChaos.Content.AssetCollections;
+using RiskOfChaos.Patches;
 using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -22,8 +23,7 @@ namespace RiskOfChaos.Content
                         typeof(HealthComponent),
                         typeof(ModelLocator),
                         typeof(Interactor),
-                        typeof(ChaosInteractor),
-                        typeof(ExcludeFromBodyInstancesList)
+                        typeof(ChaosInteractor)
                     ]);
 
                     CharacterBody body = bodyPrefab.GetComponent<CharacterBody>();
@@ -45,6 +45,8 @@ namespace RiskOfChaos.Content
                     teamComponent._teamIndex = TeamIndex.None;
 
                     bodyPrefabs.Add(bodyPrefab);
+
+                    HiddenCharacterBodiesPatch.HideBody(bodyPrefab);
                 }
             }
 
