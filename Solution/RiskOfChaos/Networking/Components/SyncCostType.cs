@@ -2,7 +2,10 @@
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Runtime.CompilerServices;
+using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Networking.Components
 {
@@ -22,8 +25,32 @@ namespace RiskOfChaos.Networking.Components
             {
                 orig(self);
 
-                self.gameObject.EnsureComponent<SyncCostType>();
+                if (!self.gameObject.GetComponent<SyncCostType>())
+                {
+                    Log.Warning($"MultiShopController {self} is missing SyncCostType component, cost type will not be synchronized over the network");
+                }
             };
+
+            static void addComponentToPrefab(string prefabAssetPath)
+            {
+                AsyncOperationHandle<GameObject> prefabLoad = Addressables.LoadAssetAsync<GameObject>(prefabAssetPath);
+                prefabLoad.Completed += handle =>
+                {
+                    if (!handle.Result)
+                    {
+                        Log.Error($"Failed to load prefab '{prefabAssetPath}'");
+                        return;
+                    }    
+
+                    handle.Result.EnsureComponent<SyncCostType>();
+                };
+            }
+
+            addComponentToPrefab("RoR2/Base/TripleShop/TripleShop.prefab");
+            addComponentToPrefab("RoR2/Base/TripleShopEquipment/TripleShopEquipment");
+            addComponentToPrefab("RoR2/Base/TripleShopLarge/TripleShopLarge.prefab");
+            addComponentToPrefab("RoR2/DLC1/FreeChestMultiShop/FreeChestMultiShop.prefab");
+            addComponentToPrefab("RoR2/Junk/SingleLunarShop.prefab");
         }
 
         ICostProvider _costProvider;
