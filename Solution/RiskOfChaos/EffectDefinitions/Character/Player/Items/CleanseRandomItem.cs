@@ -222,10 +222,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             if (grantedPickups.Count > 0)
             {
-                foreach (PickupIndex grantedPickup in grantedPickups)
-                {
-                    PickupUtils.QueuePickupMessage(master, grantedPickup, false, false);
-                }
+                PickupUtils.QueuePickupsMessage(master, [.. grantedPickups], false, false);
             }
         }
     }

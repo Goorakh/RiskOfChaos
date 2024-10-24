@@ -105,9 +105,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                         }
                     }
 
-                    foreach (PickupIndex givenPickupIndex in givenPickups)
+                    if (givenPickups.Count > 0)
                     {
-                        PickupUtils.QueuePickupMessage(playerMaster, givenPickupIndex, true, true);
+                        PickupUtils.QueuePickupsMessage(playerMaster, [.. givenPickups], true, true);
                     }
                 }, Util.GetBestMasterName);
             }

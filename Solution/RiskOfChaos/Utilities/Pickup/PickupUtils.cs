@@ -8,7 +8,17 @@ namespace RiskOfChaos.Utilities.Pickup
     {
         public static void QueuePickupMessage(CharacterMaster characterMaster, PickupIndex pickupIndex, bool pushNotification, bool playPickupSound)
         {
-            PickupNotificationMessage pickupMessage = new PickupNotificationMessage(characterMaster, pickupIndex, pushNotification, playPickupSound);
+            PickupsNotificationMessage pickupMessage = new PickupsNotificationMessage(characterMaster, [pickupIndex], pushNotification, playPickupSound);
+
+            NetworkMessageQueue.EnqueueMessage(pickupMessage, NetworkDestination.Clients);
+        }
+
+        public static void QueuePickupsMessage(CharacterMaster characterMaster, PickupIndex[] pickupIndices, bool pushNotification, bool playPickupSound)
+        {
+            if (pickupIndices.Length == 0)
+                return;
+
+            PickupsNotificationMessage pickupMessage = new PickupsNotificationMessage(characterMaster, pickupIndices, pushNotification, playPickupSound);
 
             NetworkMessageQueue.EnqueueMessage(pickupMessage, NetworkDestination.Clients);
         }

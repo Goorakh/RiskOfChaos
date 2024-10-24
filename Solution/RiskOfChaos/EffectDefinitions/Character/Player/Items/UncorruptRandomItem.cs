@@ -134,7 +134,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             if (!inventory)
                 return;
 
-            HashSet<ItemIndex> uncorruptedItems = [];
+            HashSet<PickupIndex> uncorruptedItems = new HashSet<PickupIndex>(_uncorruptItemCount.Value);
 
             for (int i = _uncorruptItemCount.Value - 1; i >= 0; i--)
             {
@@ -145,13 +145,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 uncorruptItem(master, rng.Branch(), _itemUncorruptionOrder[itemUncorruptIndex], uncorruptedItems);
             }
 
-            foreach (ItemIndex uncorruptedItem in uncorruptedItems)
+            if (uncorruptedItems.Count > 0)
             {
-                PickupUtils.QueuePickupMessage(master, PickupCatalog.FindPickupIndex(uncorruptedItem), false, false);
+                PickupUtils.QueuePickupsMessage(master, [.. uncorruptedItems], false, false);
             }
         }
 
-        static void uncorruptItem(CharacterMaster master, Xoroshiro128Plus rng, ItemUncorruptionInfo uncorruptionInfo, HashSet<ItemIndex> uncorruptedItems)
+        static void uncorruptItem(CharacterMaster master, Xoroshiro128Plus rng, ItemUncorruptionInfo uncorruptionInfo, HashSet<PickupIndex> uncorruptedItems)
         {
             Inventory inventory = master.inventory;
             if (!inventory)
@@ -187,7 +187,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     CharacterMasterNotificationQueue.SendTransformNotification(master, uncorruptionInfo.CorruptedItem, uncorruptItemIndex, CharacterMasterNotificationQueue.TransformationType.ContagiousVoid);
                 }
 
-                uncorruptedItems?.Add(uncorruptItemIndex);
+                uncorruptedItems?.Add(PickupCatalog.FindPickupIndex(uncorruptItemIndex));
             }
         }
     }

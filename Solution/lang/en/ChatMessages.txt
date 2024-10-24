@@ -31,5 +31,8 @@
 		"RECRUIT_BOSS_MESSAGE": "<style=cWorldEvent><color=#FF2C2C>{0}</color> has been brought to your side</style>",
 
 		"INVINCIBLE_LEMURIAN_KILL_FAIL_MESSAGE" : "<color=#E9848D><size=110%>\"It would be far too easy, wouldn't it?\"</size></color>",
+		
+		"PLAYER_MULTI_PICKUP": "<style=cEvent>{0} picked up {1}</color>",
+		"PLAYER_MULTI_PICKUP_2P": "<style=cEvent>You picked up {1}</color>",
 	}
 }

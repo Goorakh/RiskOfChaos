@@ -178,7 +178,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             if (!inventory)
                 return;
 
-            HashSet<ItemIndex> givenItemIndices = new HashSet<ItemIndex>(_unscrapItemCount.Value);
+            HashSet<PickupIndex> unscrappedItems = new HashSet<PickupIndex>(_unscrapItemCount.Value);
 
             for (int i = _unscrapItemCount.Value - 1; i >= 0; i--)
             {
@@ -194,7 +194,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 ItemIndex newItem = rng.NextElementUniform(unscrapInfo.PrintableItems);
                 inventory.GiveItem(newItem, scrapCount);
 
-                givenItemIndices.Add(newItem);
+                unscrappedItems.Add(PickupCatalog.FindPickupIndex(newItem));
 
                 CharacterMasterNotificationQueue.SendTransformNotification(master, unscrapInfo.ScrapItemIndex, newItem, CharacterMasterNotificationQueue.TransformationType.Default);
 
@@ -205,9 +205,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 }
             }
 
-            foreach (ItemIndex givenItemIndex in givenItemIndices)
+            if (unscrappedItems.Count > 0)
             {
-                PickupUtils.QueuePickupMessage(master, PickupCatalog.FindPickupIndex(givenItemIndex), false, false);
+                PickupUtils.QueuePickupsMessage(master, [.. unscrappedItems], false, false);
             }
         }
     }

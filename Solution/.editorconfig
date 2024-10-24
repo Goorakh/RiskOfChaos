@@ -20,3 +20,6 @@ csharp_style_prefer_primary_constructors = false
 
 # IDE0066: Convert switch statement to expression
 csharp_style_prefer_switch_expression = false
+
+# IDE0016: Use 'throw' expression
+csharp_style_throw_expression = false

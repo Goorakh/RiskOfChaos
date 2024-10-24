@@ -156,8 +156,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             if (!inventory)
                 return;
 
-            HashSet<PickupIndex> notifiedScrapPickups = [];
-            notifiedScrapPickups.EnsureCapacity(_scrapPickupByItemTier.Length);
+            HashSet<PickupIndex> notifiedScrapPickups = new HashSet<PickupIndex>(_scrapPickupByItemTier.Length);
 
             for (int i = _scrapCount.Value - 1; i >= 0; i--)
             {
@@ -169,9 +168,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 scrapItem(characterMaster, inventory, itemToScrap, notifiedScrapPickups);
             }
 
-            foreach (PickupIndex scrapPickupIndex in notifiedScrapPickups)
+            if (notifiedScrapPickups.Count > 0)
             {
-                PickupUtils.QueuePickupMessage(characterMaster, scrapPickupIndex, false, false);
+                PickupUtils.QueuePickupsMessage(characterMaster, [.. notifiedScrapPickups], false, false);
             }
         }
 
