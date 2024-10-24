@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.Formatting;
-using RiskOfChaos.Networking.Wrappers;
 using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities;
 using RoR2;
@@ -33,7 +32,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         ObjectSerializationComponent _serializationComponent;
 
         [SyncVar]
-        Net_RunFixedTimeStampWrapper _timeStarted;
+        RunTimeStamp _timeStarted;
 
         [SyncVar]
         bool _isRetired;
@@ -49,10 +48,11 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         public RunTimeStamp TimeStarted
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Run.FixedTimeStamp)_timeStarted;
+            get => _timeStarted;
 
+            [Server]
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => _timeStarted = (Run.FixedTimeStamp)value;
+            set => _timeStarted = value.ConvertTo(RunTimerType.Realtime);
         }
 
         public bool IsRetired

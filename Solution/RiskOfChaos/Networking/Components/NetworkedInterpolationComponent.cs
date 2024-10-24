@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.Components;
-using RiskOfChaos.Networking.Wrappers;
+using RiskOfChaos.EffectHandling;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Interpolation;
 using RoR2;
 using System;
@@ -13,7 +14,7 @@ namespace RiskOfChaos.Networking.Components
     public sealed class NetworkedInterpolationComponent : NetworkBehaviour, IInterpolationProvider
     {
         [SyncVar]
-        Net_RunFixedTimeStampWrapper _interpolationInStartTimeWrapper = Run.FixedTimeStamp.positiveInfinity;
+        RunTimeStamp _interpolationInStartTimeWrapper = Run.FixedTimeStamp.positiveInfinity;
 
         [SyncVar]
         public InterpolationParameters InterpolationIn = InterpolationParameters.None;
@@ -25,7 +26,7 @@ namespace RiskOfChaos.Networking.Components
         }
 
         [SyncVar]
-        Net_RunFixedTimeStampWrapper _interpolationOutStartTimeWrapper = Run.FixedTimeStamp.positiveInfinity;
+        RunTimeStamp _interpolationOutStartTimeWrapper = Run.FixedTimeStamp.positiveInfinity;
 
         [SyncVar]
         public InterpolationParameters InterpolationOut = InterpolationParameters.None;
@@ -36,20 +37,20 @@ namespace RiskOfChaos.Networking.Components
             set => InterpolationOut = value;
         }
 
-        public Run.FixedTimeStamp InterpolationInStartTime
+        public RunTimeStamp InterpolationInStartTime
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _interpolationInStartTimeWrapper;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => _interpolationInStartTimeWrapper = value;
+            set => _interpolationInStartTimeWrapper = value.ConvertTo(RunTimerType.Realtime);
         }
 
-        public Run.FixedTimeStamp InterpolationOutStartTime
+        public RunTimeStamp InterpolationOutStartTime
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _interpolationOutStartTimeWrapper;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => _interpolationOutStartTimeWrapper = value;
+            set => _interpolationOutStartTimeWrapper = value.ConvertTo(RunTimerType.Realtime);
         }
 
         public bool IsInterpolating { get; private set; }
@@ -69,7 +70,7 @@ namespace RiskOfChaos.Networking.Components
         {
             base.OnStartServer();
 
-            if (InterpolationInStartTime.isInfinity)
+            if (InterpolationInStartTime.IsInfinity)
             {
                 InterpolationInStartTime = Run.FixedTimeStamp.now;
             }
@@ -86,15 +87,15 @@ namespace RiskOfChaos.Networking.Components
 
             float interpolatingInFraction = 1f;
             bool isInterpolatingIn = false;
-            if (!InterpolationInStartTime.isInfinity)
+            if (!InterpolationInStartTime.IsInfinity)
             {
                 if (InterpolationIn.Duration > 0f)
                 {
-                    isInterpolatingIn = InterpolationInStartTime.timeSinceClamped <= InterpolationIn.Duration;
+                    isInterpolatingIn = InterpolationInStartTime.TimeSinceClamped <= InterpolationIn.Duration;
 
                     if (isInterpolatingIn)
                     {
-                        interpolatingInFraction = Mathf.Clamp01(InterpolationInStartTime.timeSinceClamped / InterpolationIn.Duration);
+                        interpolatingInFraction = Mathf.Clamp01(InterpolationInStartTime.TimeSinceClamped / InterpolationIn.Duration);
                     }
                 }
             }
@@ -102,19 +103,19 @@ namespace RiskOfChaos.Networking.Components
             float interpolatingOutFraction = 1f;
             bool isInterpolatingOut = false;
             bool isInterpolationOutComplete = false;
-            if (!InterpolationOutStartTime.isInfinity)
+            if (!InterpolationOutStartTime.IsInfinity)
             {
                 if (InterpolationOut.Duration > 0f)
                 {
-                    isInterpolatingOut = InterpolationOutStartTime.hasPassed;
+                    isInterpolatingOut = InterpolationOutStartTime.HasPassed;
 
                     if (isInterpolatingOut)
                     {
-                        interpolatingOutFraction = 1f - Mathf.Clamp01(InterpolationOutStartTime.timeSinceClamped / InterpolationOut.Duration);
+                        interpolatingOutFraction = 1f - Mathf.Clamp01(InterpolationOutStartTime.TimeSinceClamped / InterpolationOut.Duration);
                     }
                 }
 
-                isInterpolationOutComplete = InterpolationOutStartTime.timeSince > Mathf.Max(0f, InterpolationOut.Duration);
+                isInterpolationOutComplete = InterpolationOutStartTime.TimeSince > Mathf.Max(0f, InterpolationOut.Duration);
             }
 
             IsInterpolating = isInterpolatingIn || isInterpolatingOut;
@@ -163,7 +164,7 @@ namespace RiskOfChaos.Networking.Components
                     NetworkServer.Destroy(gameObject);
                 };
 
-                if (InterpolationOutStartTime.isInfinity)
+                if (InterpolationOutStartTime.IsInfinity)
                 {
                     InterpolationOutStartTime = Run.FixedTimeStamp.now;
                 }
