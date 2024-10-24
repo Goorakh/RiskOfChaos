@@ -133,7 +133,7 @@ namespace RiskOfChaos.SaveHandling
                         if (!serializationComponent)
                         {
                             Log.Error($"Serializable object {gameObject} is missing serialization component");
-                            return;
+                            continue;
                         }
                     }
 
