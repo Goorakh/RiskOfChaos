@@ -1,20 +1,22 @@
 ﻿using RiskOfChaos.Content.Orbs;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Orbs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
     [ChaosEffect("swap_player_inventories")]
-    public sealed class SwapPlayerInventories : BaseEffect
+    public sealed class SwapPlayerInventories : NetworkBehaviour
     {
         [RequireComponent(typeof(CharacterBody))]
         class GiveInventoryTo : MonoBehaviour
@@ -144,74 +146,118 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             }
         }
 
-        static IEnumerable<CharacterBody> getAllEligiblePlayers()
+        static List<CharacterBody> getEligiblePlayerBodies()
         {
-            return PlayerUtils.GetAllPlayerBodies(true).Where(b => b.inventory && (b.inventory.itemAcquisitionOrder.Any(GiveInventoryTo.ItemTransferFilter) || b.inventory.GetEquipmentIndex() != EquipmentIndex.None));
+            List<CharacterBody> playerBodies = new List<CharacterBody>(PlayerCharacterMasterController.instances.Count);
+            foreach (PlayerCharacterMasterController playerMasterController in PlayerCharacterMasterController.instances)
+            {
+                if (playerMasterController.isConnected)
+                {
+                    CharacterMaster master = playerMasterController.master;
+                    CharacterBody body = master ? master.GetBody() : null;
+                    HealthComponent healthComponent = body ? body.healthComponent : null;
+                    if (healthComponent && healthComponent.alive)
+                    {
+                        playerBodies.Add(body);
+                    }
+                }
+            }
+
+            return playerBodies;
         }
 
         [EffectCanActivate]
-        static bool CanActivate()
+        static bool CanActivate(in EffectCanActivateContext context)
         {
-            return getAllEligiblePlayers().CountGreaterThanOrEqualTo(2);
+            List<CharacterBody> playerBodies = getEligiblePlayerBodies();
+            if (playerBodies.Count < 2)
+                return false;
+
+            return !context.IsNow || playerBodies.Any(b => b.inventory && (b.inventory.GetEquipmentIndex() != EquipmentIndex.None || b.inventory.itemAcquisitionOrder.Any(GiveInventoryTo.ItemTransferFilter)));
         }
 
-        public override void OnStart()
+        ChaosEffectComponent _effectComponent;
+
+        Xoroshiro128Plus _rng;
+
+        void Awake()
         {
-            CharacterBody[] playerBodies = getAllEligiblePlayers().ToArray();
-            Util.ShuffleArray(playerBodies, RNG);
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
 
-            GiveInventoryTo[] inventoryGiverControllers = new GiveInventoryTo[playerBodies.Length];
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
 
-            for (int i = 0; i < playerBodies.Length; i++)
+            _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+        }
+
+        void Start()
+        {
+            if (NetworkServer.active)
             {
-                GiveInventoryTo giveInventoryTo = playerBodies[i].gameObject.AddComponent<GiveInventoryTo>();
-                CharacterBody targetBody = playerBodies[(i + 1) % playerBodies.Length];
-                giveInventoryTo.Target = targetBody;
+                List<CharacterBody> playerBodies = getEligiblePlayerBodies();
+                if (playerBodies.Count < 2)
+                    return;
 
-                inventoryGiverControllers[i] = giveInventoryTo;
-            }
+                Util.ShuffleList(playerBodies, _rng);
 
-            EventWaiter allItemsTransferredWaiter = new EventWaiter();
+                GiveInventoryTo[] inventoryGiverControllers = new GiveInventoryTo[playerBodies.Count];
 
-            foreach (GiveInventoryTo inventoryGiver in inventoryGiverControllers)
-            {
-                inventoryGiver.OnFinishGivingInventory += allItemsTransferredWaiter.GetListener();
-
-                Inventory inventory = inventoryGiver.OwnerInventory;
-                if (inventory)
+                for (int i = 0; i < playerBodies.Count; i++)
                 {
-                    EventWaiter allItemsGivenAndReceivedWaiter = new EventWaiter();
+                    GiveInventoryTo giveInventoryTo = playerBodies[i].gameObject.AddComponent<GiveInventoryTo>();
+                    CharacterBody targetBody = playerBodies[(i + 1) % playerBodies.Count];
+                    giveInventoryTo.Target = targetBody;
 
-                    inventoryGiver.OnFinishGivingInventory += allItemsGivenAndReceivedWaiter.GetListener();
+                    inventoryGiverControllers[i] = giveInventoryTo;
+                }
 
-                    foreach (GiveInventoryTo givingInventoryToUs in inventoryGiverControllers.Where(g => g.Target == inventoryGiver.OwnerBody))
+                EventWaiter allItemsTransferredWaiter = new EventWaiter();
+
+                foreach (GiveInventoryTo inventoryGiver in inventoryGiverControllers)
+                {
+                    inventoryGiver.OnFinishGivingInventory += allItemsTransferredWaiter.GetListener();
+
+                    Inventory inventory = inventoryGiver.OwnerInventory;
+                    if (inventory)
                     {
-                        givingInventoryToUs.OnFinishGivingInventory += allItemsGivenAndReceivedWaiter.GetListener();
+                        EventWaiter allItemsGivenAndReceivedWaiter = new EventWaiter();
+
+                        inventoryGiver.OnFinishGivingInventory += allItemsGivenAndReceivedWaiter.GetListener();
+
+                        foreach (GiveInventoryTo inventoryGiveController in inventoryGiverControllers)
+                        {
+                            if (inventoryGiveController.Target == inventoryGiver.OwnerBody)
+                            {
+                                inventoryGiveController.OnFinishGivingInventory += allItemsGivenAndReceivedWaiter.GetListener();
+                            }
+                        }
+
+                        IgnoreItemTransformations.IgnoreTransformationsFor(inventory);
+                        allItemsGivenAndReceivedWaiter.OnAllEventsInvoked += () =>
+                        {
+                            IgnoreItemTransformations.ResumeTransformationsFor(inventory);
+                        };
+                    }
+                }
+
+                allItemsTransferredWaiter.OnAllEventsInvoked += () =>
+                {
+                    foreach (GiveInventoryTo giveInventoryTo in inventoryGiverControllers)
+                    {
+                        if (giveInventoryTo)
+                        {
+                            giveInventoryTo.TransferEquipment();
+                        }
                     }
 
-                    IgnoreItemTransformations.IgnoreTransformationsFor(inventory);
-                    allItemsGivenAndReceivedWaiter.OnAllEventsInvoked += () =>
+                    foreach (GiveInventoryTo giveInventoryTo in inventoryGiverControllers)
                     {
-                        IgnoreItemTransformations.ResumeTransformationsFor(inventory);
-                    };
-                }
-            }
-
-            allItemsTransferredWaiter.OnAllEventsInvoked += () =>
-            {
-                foreach (GiveInventoryTo giveInventoryTo in inventoryGiverControllers)
-                {
-                    if (giveInventoryTo)
-                    {
-                        giveInventoryTo.TransferEquipment();
+                        GameObject.Destroy(giveInventoryTo);
                     }
-                }
-
-                foreach (GiveInventoryTo giveInventoryTo in inventoryGiverControllers)
-                {
-                    GameObject.Destroy(giveInventoryTo);
-                }
-            };
+                };
+            }
         }
     }
 }
