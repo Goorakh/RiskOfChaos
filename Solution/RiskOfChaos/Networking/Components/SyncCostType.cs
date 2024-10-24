@@ -47,7 +47,7 @@ namespace RiskOfChaos.Networking.Components
             }
 
             addComponentToPrefab("RoR2/Base/TripleShop/TripleShop.prefab");
-            addComponentToPrefab("RoR2/Base/TripleShopEquipment/TripleShopEquipment");
+            addComponentToPrefab("RoR2/Base/TripleShopEquipment/TripleShopEquipment.prefab");
             addComponentToPrefab("RoR2/Base/TripleShopLarge/TripleShopLarge.prefab");
             addComponentToPrefab("RoR2/DLC1/FreeChestMultiShop/FreeChestMultiShop.prefab");
             addComponentToPrefab("RoR2/Junk/SingleLunarShop.prefab");
