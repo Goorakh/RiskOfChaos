@@ -26,6 +26,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 enabled = false;
                 return;
             }
+
+            _alwaysActiveEffects.EnsureCapacity(ChaosEffectCatalog.AllTimedEffects.Length);
         }
 
         void OnEnable()
@@ -139,7 +141,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     for (int i = activeEffectInstances.Count; i < targetAlwaysActiveCount; i++)
                     {
                         Xoroshiro128Plus effectRNG = new Xoroshiro128Plus((ulong)HashCode.Combine(Run.instance.seed, timedEffectInfo.Identifier, i));
-                        
+
                         ChaosEffectDispatchArgs dispatchArgs = new ChaosEffectDispatchArgs
                         {
                             DispatchFlags = EffectDispatchFlags.DontPlaySound | EffectDispatchFlags.DontSendChatMessage,
@@ -150,9 +152,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
                         ChaosEffectComponent effectComponent = ChaosEffectDispatcher.Instance.DispatchEffectServer(timedEffectInfo, dispatchArgs);
 
-                        if (effectComponent.TryGetComponent(out ObjectSerializationComponent serializationComponent))
+                        if (effectComponent)
                         {
-                            serializationComponent.enabled = false;
+                            if (effectComponent.TryGetComponent(out ObjectSerializationComponent serializationComponent))
+                            {
+                                serializationComponent.enabled = false;
+                            }
                         }
 
                         activeEffectInstances.Add(effectComponent);
