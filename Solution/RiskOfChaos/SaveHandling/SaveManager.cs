@@ -37,9 +37,6 @@ namespace RiskOfChaos.SaveHandling
         [Obsolete]
         public static bool UseSaveData => ProperSaveCompat.Active;
 
-        [Obsolete]
-        public static bool IsCollectingSaveData { get; private set; }
-
         public static JsonSerializerSettings GetSerializerSettings()
         {
             return new JsonSerializerSettings

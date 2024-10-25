@@ -4,6 +4,7 @@ using System.Runtime.Serialization;
 namespace RiskOfChaos.SaveHandling.DataContainers.Effects
 {
     [Serializable]
+    [Obsolete]
     public class SuppressRandomItem_Data
     {
         [DataMember(Name = "si")]

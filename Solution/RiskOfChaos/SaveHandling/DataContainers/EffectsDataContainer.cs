@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 namespace RiskOfChaos.SaveHandling.DataContainers
 {
     [Serializable]
+    [Obsolete]
     public class EffectsDataContainer
     {
         [DataMember(Name = ForceAllItemsIntoRandomItem.EFFECT_IDENTIFIER)]

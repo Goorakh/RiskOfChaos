@@ -4,6 +4,7 @@ using System.Runtime.Serialization;
 namespace RiskOfChaos.SaveHandling.DataContainers
 {
     [Serializable]
+    [Obsolete]
     public class SerializableRng
     {
         [DataMember(Name = "s0")]

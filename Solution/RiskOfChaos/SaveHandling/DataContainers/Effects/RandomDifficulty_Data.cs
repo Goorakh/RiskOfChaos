@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 namespace RiskOfChaos.SaveHandling.DataContainers.Effects
 {
     [Serializable]
+    [Obsolete]
     public class RandomDifficulty_Data
     {
         [DataMember(Name = "pd")]
