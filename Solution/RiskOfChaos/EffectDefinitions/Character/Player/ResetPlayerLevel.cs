@@ -2,11 +2,12 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RoR2;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
     [ChaosEffect("reset_player_level")]
-    public sealed class ResetPlayerLevel : BaseEffect
+    public sealed class ResetPlayerLevel : MonoBehaviour
     {
         [EffectCanActivate]
         static bool CanActivate()
@@ -26,9 +27,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             return Mathf.Clamp((teamManager.GetTeamLevel(TeamIndex.Player) - 1f) / (MIN_LEVEL - 1), 0.15f, 1f);
         }
 
-        public override void OnStart()
+        void Start()
         {
-            TeamManager.instance.SetTeamLevel(TeamIndex.Player, 0);
+            if (NetworkServer.active)
+            {
+                TeamManager.instance.SetTeamLevel(TeamIndex.Player, 0);
+            }
         }
     }
 }

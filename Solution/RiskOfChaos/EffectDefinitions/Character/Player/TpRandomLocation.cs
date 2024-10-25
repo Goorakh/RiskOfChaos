@@ -1,17 +1,19 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Navigation;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
     [ChaosEffect("tp_random_location")]
-    public sealed class TpRandomLocation : BaseEffect
+    public sealed class TpRandomLocation : NetworkBehaviour
     {
         [EffectCanActivate]
         static bool CanSelect(in EffectCanActivateContext context)
@@ -19,14 +21,33 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             return !context.IsNow || (DirectorCore.instance && PlayerUtils.GetAllPlayerBodies(true).Any());
         }
 
-        public override void OnStart()
-        {
-            DirectorPlacementRule positionSelectorPlacementRule = SpawnUtils.GetBestValidRandomPlacementRule();
+        ChaosEffectComponent _effectComponent;
 
-            PlayerUtils.GetAllPlayerBodies(true).TryDo(playerBody =>
+        Xoroshiro128Plus _rng;
+
+        void Awake()
+        {
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+        }
+
+        void Start()
+        {
+            if (NetworkServer.active)
             {
-                teleportToRandomLocation(playerBody, positionSelectorPlacementRule);
-            }, FormatUtils.GetBestBodyName);
+                DirectorPlacementRule positionSelectorPlacementRule = SpawnUtils.GetBestValidRandomPlacementRule();
+
+                PlayerUtils.GetAllPlayerBodies(true).TryDo(playerBody =>
+                {
+                    teleportToRandomLocation(playerBody, positionSelectorPlacementRule);
+                }, FormatUtils.GetBestBodyName);
+            }
         }
 
         void teleportToRandomLocation(CharacterBody playerBody, DirectorPlacementRule positionSelectorPlacementRule)
@@ -43,7 +64,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             graphTypeSelection.AddChoice(MapNodeGroup.GraphType.Air, isFlying ? 1f : OPPOSITE_GRAPH_TYPE_WEIGHT);
             graphTypeSelection.AddChoice(MapNodeGroup.GraphType.Ground, !isFlying ? 1f : OPPOSITE_GRAPH_TYPE_WEIGHT);
 
-            return positionSelectorPlacementRule.EvaluateToPosition(RNG, playerBody.hullClassification, graphTypeSelection.Evaluate(RNG.nextNormalizedFloat));
+            return positionSelectorPlacementRule.EvaluateToPosition(_rng.Branch(), playerBody.hullClassification, graphTypeSelection.Evaluate(_rng.nextNormalizedFloat));
         }
 
         static void teleportToPosition(CharacterBody playerBody, Vector3 targetPosition)

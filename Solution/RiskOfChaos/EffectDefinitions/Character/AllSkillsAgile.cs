@@ -1,23 +1,20 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
-using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectUtils.Character.AllSkillsAgile;
+using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosTimedEffect("all_skills_agile", TimedEffectType.UntilStageEnd, AllowDuplicates = false, IsNetworked = true)]
+    [ChaosTimedEffect("all_skills_agile", TimedEffectType.UntilStageEnd, AllowDuplicates = false)]
     [EffectConfigBackwardsCompatibility("Effect: All Skills are Agile (Lasts 1 stage)")]
-    public sealed class AllSkillsAgile : TimedEffect
+    public sealed class AllSkillsAgile : MonoBehaviour
     {
-        [InitEffectInfo]
-        public static readonly new TimedEffectInfo EffectInfo;
-
-        public override void OnStart()
+        void Start()
         {
             OverrideSkillsAgile.AllSkillsAgileCount++;
         }
 
-        public override void OnEnd()
+        void OnDestroy()
         {
             OverrideSkillsAgile.AllSkillsAgileCount--;
         }

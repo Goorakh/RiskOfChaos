@@ -2,6 +2,11 @@
 
 **?.?.? Changes:**
 
+* Almost full rewrite:
+  * Better multiplayer support
+  * Minor performance improvements
+  * Probably lots of new bugs, please report if you find any
+
 * Added 3 effects:
   * Distant Camera: Moves the camera further away from the player, lasts 90 seconds
   * Unlimited Proc Chains: Disables proc chain restrictions, lasts 60 seconds
@@ -18,6 +23,13 @@
 
 * Trigger Random Family Event:
   * Added visual variant events for Beetles and Golems
+
+* Enable Weak Points for All Damage:
+  * Fixed Mercenary Eviscerate not being able to deal weak point damage
+  * Fixed certain projectiles not being able to deal weak point damage
+
+* Randomize Loadout:
+  * Fixed skills and skins not updating for non-host players in multiplayer
 
 * Sluggish Camera
   * Added smooth transition back to normal after the effect ends instead of just snapping back
