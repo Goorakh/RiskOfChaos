@@ -3,6 +3,7 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.Utils;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
 using System.Collections.Generic;
@@ -27,7 +28,7 @@ namespace RiskOfChaos.Patches
             if (bodyIndex == BodyIndex.None)
                 return;
 
-            if (!_hiddenBodyIndices.Contains(bodyIndex))
+            if (!IsHiddenBody(bodyIndex))
             {
                 _hiddenBodyIndices.Add(bodyIndex);
                 _hiddenBodyIndices.Sort();
@@ -94,26 +95,8 @@ namespace RiskOfChaos.Patches
             MethodDefinition invokeMethod = null;
             while (c.TryGotoNext(MoveType.Before, x => matchInvokeCharacterEvent(x, out invokeMethod)))
             {
-                int invokeMethodParameterCount = invokeMethod.Parameters.Count + (!invokeMethod.IsStatic ? 1 : 0);
-
-                ILLabel skipInvokeLabel = c.DefineLabel();
-
                 emitGetIsHidden(c);
-                c.Emit(OpCodes.Brtrue, skipInvokeLabel);
-
-                c.Index++;
-
-                ILLabel afterPatchLabel = c.DefineLabel();
-                c.Emit(OpCodes.Br, afterPatchLabel);
-
-                c.MarkLabel(skipInvokeLabel);
-
-                for (int i = 0; i < invokeMethodParameterCount; i++)
-                {
-                    c.Emit(OpCodes.Pop);
-                }
-
-                c.MarkLabel(afterPatchLabel);
+                c.EmitSkipMethodCall(OpCodes.Brtrue, invokeMethod);
 
                 c.SearchTarget = SearchTarget.Next;
             }

@@ -1,8 +1,8 @@
 ﻿using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using MonoMod.Utils;
 using RiskOfChaos.ModificationController.Camera;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.CameraModes;
 using UnityEngine;
@@ -53,30 +53,18 @@ namespace RiskOfChaos.Patches
         {
             ILCursor c = new ILCursor(il);
 
-            ParameterDefinition cameraStateArg = null;
-
-            foreach (ParameterDefinition parameter in il.Method.Parameters)
+            if (!il.Method.TryFindParameter<CameraState>(out ParameterDefinition cameraStateParameter))
             {
-                if (parameter.ParameterType.Is(typeof(CameraState)))
-                {
-                    cameraStateArg = parameter;
-                    break;
-                }
-            }
-
-            if (cameraStateArg == null)
-            {
-                Log.Error("Failed to find cameraState argument");
+                Log.Error("Failed to find cameraState parameter");
                 return;
             }
 
-            VariableDefinition unmodifiedCameraStateVar = new VariableDefinition(il.Import(typeof(CameraState)));
-            il.Method.Body.Variables.Add(unmodifiedCameraStateVar);
+            VariableDefinition unmodifiedCameraStateVar = il.AddVariable<CameraState>();
 
-            c.Emit(OpCodes.Ldarg, cameraStateArg);
+            c.Emit(OpCodes.Ldarg, cameraStateParameter);
             c.Emit(OpCodes.Stloc, unmodifiedCameraStateVar);
 
-            c.Emit(OpCodes.Ldarga, cameraStateArg);
+            c.Emit(OpCodes.Ldarga, cameraStateParameter);
             c.EmitDelegate(overrideCameraState);
             static void overrideCameraState(ref CameraState cameraState)
             {

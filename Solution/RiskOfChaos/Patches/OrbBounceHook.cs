@@ -113,7 +113,7 @@ namespace RiskOfChaos.Patches
                 c.Emit(OpCodes.Dup);
                 c.EmitDelegate(tryBounceOrb);
 
-                c.Index++;
+                c.SearchTarget = SearchTarget.Next;
                 patchCount++;
             }
 

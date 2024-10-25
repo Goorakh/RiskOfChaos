@@ -114,7 +114,8 @@ namespace RiskOfChaos.Patches
                     }
                 }
 
-                c.Index = foundCursors.Last().Index + 1;
+                c.Index = foundCursors[foundCursors.Length - 1].Index;
+                c.SearchTarget = SearchTarget.Next;
 
                 patchCount++;
             }

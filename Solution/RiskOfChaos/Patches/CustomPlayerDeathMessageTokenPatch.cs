@@ -1,5 +1,7 @@
-﻿using Mono.Cecil.Cil;
+﻿using Mono.Cecil;
+using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 
 namespace RiskOfChaos.Patches
@@ -19,6 +21,12 @@ namespace RiskOfChaos.Patches
         {
             ILCursor c = new ILCursor(il);
 
+            if (!il.Method.TryFindParameter<DamageReport>(out ParameterDefinition damageReportParameter))
+            {
+                Log.Error("Failed to find DamageReport parameter");
+                return;
+            }
+
             if (c.TryGotoNext(x => x.MatchLdstr("PLAYER_DEATH_QUOTE_VOIDDEATH")))
             {
                 int deathMessageTokenLocalIndex = -1;
@@ -33,7 +41,7 @@ namespace RiskOfChaos.Patches
                     {
                         c.GotoLabel(messageTokenDecidedLabel);
                         c.Emit(OpCodes.Ldloca, deathMessageTokenLocalIndex);
-                        c.Emit(OpCodes.Ldarg_1); // DamageReport damageReport
+                        c.Emit(OpCodes.Ldarg, damageReportParameter);
                         c.EmitDelegate(overrideMessageToken);
                         static void overrideMessageToken(ref string messageToken, DamageReport damageReport)
                         {

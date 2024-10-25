@@ -1,11 +1,9 @@
-﻿using HarmonyLib;
-using Mono.Cecil;
+﻿using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using MonoMod.Utils;
 using R2API;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using System;
 
 namespace RiskOfChaos.Content
 {
@@ -29,31 +27,7 @@ namespace RiskOfChaos.Content
             {
                 ILCursor c = new ILCursor(il);
 
-                bool tryFindParameterIndex(Type parameterType, string name, out int parameterIndex)
-                {
-                    for (int i = 0; i < il.Method.Parameters.Count; i++)
-                    {
-                        ParameterDefinition parameter = il.Method.Parameters[i];
-                        if (string.Equals(parameter.Name, name) && parameter.ParameterType.Is(parameterType))
-                        {
-                            if (il.Method.IsStatic)
-                            {
-                                parameterIndex = i;
-                            }
-                            else
-                            {
-                                parameterIndex = i + 1;
-                            }
-
-                            return true;
-                        }
-                    }
-
-                    parameterIndex = -1;
-                    return false;
-                }
-
-                if (!tryFindParameterIndex(typeof(float), "damageMultiplier", out int damageMultiplierParameterIndex))
+                if (!il.Method.TryFindParameter<float>("damageMultiplier", out ParameterDefinition damageMultiplierParameter))
                 {
                     Log.Error("Unable to find damageMultiplier argument");
                     return;
@@ -68,7 +42,7 @@ namespace RiskOfChaos.Content
                                       x => x.MatchSwitch(out _)))
                     {
                         c.Emit(OpCodes.Ldarg_0);
-                        c.Emit(OpCodes.Ldarg, damageMultiplierParameterIndex);
+                        c.Emit(OpCodes.Ldarg, damageMultiplierParameter);
                         c.Emit(OpCodes.Ldloc, dotStackLocalIndex);
 
                         c.EmitDelegate(handleCustomDOTs);
