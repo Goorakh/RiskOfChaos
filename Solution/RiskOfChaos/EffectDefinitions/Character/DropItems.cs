@@ -7,12 +7,14 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.Pickup;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("drop_items", 10f, AllowDuplicates = false)]
-    public sealed class DropItems : TimedEffect
+    public sealed class DropItems : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _itemDropFrequency =
@@ -48,18 +50,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             void Awake()
             {
-                InstanceTracker.Add(this);
-
                 _body = GetComponent<CharacterBody>();
                 _inventory = _body.inventory;
 
                 scheduleNextDrop();
                 _dropItemTimer *= RoR2Application.rng.nextNormalizedFloat;
-            }
-
-            void OnDestroy()
-            {
-                InstanceTracker.Remove(this);
             }
 
             void FixedUpdate()
@@ -128,22 +123,34 @@ namespace RiskOfChaos.EffectDefinitions.Character
             }
         }
 
-        static void addComponentTo(CharacterBody body)
+        readonly List<DropItemsOnTimer> _dropComponents = [];
+
+        void Start()
         {
-            body.gameObject.AddComponent<DropItemsOnTimer>();
+            if (NetworkServer.active)
+            {
+                _dropComponents.EnsureCapacity(CharacterBody.readOnlyInstancesList.Count);
+
+                CharacterBody.readOnlyInstancesList.TryDo(addComponentTo, FormatUtils.GetBestBodyName);
+                CharacterBody.onBodyStartGlobal += addComponentTo;
+            }
         }
 
-        public override void OnStart()
-        {
-            CharacterBody.readOnlyInstancesList.TryDo(addComponentTo, FormatUtils.GetBestBodyName);
-            CharacterBody.onBodyStartGlobal += addComponentTo;
-        }
-
-        public override void OnEnd()
+        void OnDestroy()
         {
             CharacterBody.onBodyStartGlobal -= addComponentTo;
 
-            InstanceUtils.DestroyAllTrackedInstances<DropItemsOnTimer>();
+            foreach (DropItemsOnTimer dropComponent in _dropComponents)
+            {
+                Destroy(dropComponent);
+            }
+        }
+
+        void addComponentTo(CharacterBody body)
+        {
+            DropItemsOnTimer dropComponent = body.gameObject.AddComponent<DropItemsOnTimer>();
+
+            _dropComponents.Add(dropComponent);
         }
     }
 }

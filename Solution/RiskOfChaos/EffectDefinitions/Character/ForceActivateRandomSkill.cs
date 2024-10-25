@@ -11,7 +11,6 @@ using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character

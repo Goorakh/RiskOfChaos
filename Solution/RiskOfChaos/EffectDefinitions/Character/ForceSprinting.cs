@@ -1,28 +1,17 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
-using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectUtils.Character.AllSkillsAgile;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosTimedEffect("force_sprinting", 60f, AllowDuplicates = false, IsNetworked = true)]
+    [ChaosTimedEffect("force_sprinting", 60f, AllowDuplicates = false)]
     [IncompatibleEffects(typeof(DisableSprinting))]
-    public sealed class ForceSprinting : TimedEffect
+    public sealed class ForceSprinting : MonoBehaviour
     {
-        [EffectCanActivate]
-        static bool CanActivate()
-        {
-            return SetIsSprintingOverride.PatchSuccessful;
-        }
-
-        static bool shouldForceSprint(CharacterBody body)
-        {
-            return body.hasEffectiveAuthority && (!body.inputBank || body.inputBank.moveVector.sqrMagnitude > 0f);
-        }
-
-        public override void OnStart()
+        void Start()
         {
             OverrideSkillsAgile.AllSkillsAgileCount++;
 
@@ -34,17 +23,22 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 }
             });
 
-            SetIsSprintingOverride.OverrideCharacterSprinting += SetIsSprintingOverride_OverrideCharacterSprinting;
+            SetIsSprintingOverride.OverrideCharacterSprinting += overrideSprint;
         }
 
-        public override void OnEnd()
+        void OnDestroy()
         {
             OverrideSkillsAgile.AllSkillsAgileCount--;
 
-            SetIsSprintingOverride.OverrideCharacterSprinting -= SetIsSprintingOverride_OverrideCharacterSprinting;
+            SetIsSprintingOverride.OverrideCharacterSprinting -= overrideSprint;
         }
 
-        static void SetIsSprintingOverride_OverrideCharacterSprinting(CharacterBody body, ref bool isSprinting)
+        static bool shouldForceSprint(CharacterBody body)
+        {
+            return body.hasEffectiveAuthority && (!body.inputBank || body.inputBank.moveVector.sqrMagnitude > 0f);
+        }
+
+        static void overrideSprint(CharacterBody body, ref bool isSprinting)
         {
             isSprinting = isSprinting || shouldForceSprint(body);
         }

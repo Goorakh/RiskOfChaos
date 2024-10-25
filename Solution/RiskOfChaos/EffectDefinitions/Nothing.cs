@@ -1,17 +1,14 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions
 {
     [ChaosEffect("nothing", DefaultSelectionWeight = 0.5f)]
-    public sealed class Nothing : BaseEffect
+    public sealed class Nothing : MonoBehaviour
     {
         [InitEffectInfo]
-        public static readonly new ChaosEffectInfo EffectInfo;
-
-        public override void OnStart()
-        {
-        }
+        public static readonly ChaosEffectInfo EffectInfo;
     }
 }

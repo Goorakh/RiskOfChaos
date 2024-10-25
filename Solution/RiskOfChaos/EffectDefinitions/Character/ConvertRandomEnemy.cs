@@ -3,6 +3,7 @@ using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -14,8 +15,8 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("convert_random_enemy", IsNetworked = true)]
-    public sealed class ConvertRandomEnemy : BaseEffect
+    [ChaosEffect("convert_random_enemy")]
+    public sealed class ConvertRandomEnemy : NetworkBehaviour
     {
         static IEnumerable<CharacterBody> getAllConvertableEnemies()
         {
@@ -42,17 +43,27 @@ namespace RiskOfChaos.EffectDefinitions.Character
             return !context.IsNow || getAllConvertableEnemies().Any();
         }
 
-        CharacterBody _enemyToConvert;
+        ChaosEffectComponent _effectComponent;
 
-        public override void OnPreStartServer()
+        [SyncVar]
+        GameObject _enemyToConvert;
+
+        void Awake()
         {
-            base.OnPreStartServer();
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
             BodyIndex[] convertOrder = Enumerable.Range(0, BodyCatalog.bodyCount)
                                                  .Cast<BodyIndex>()
                                                  .ToArray();
 
-            Util.ShuffleArray(convertOrder, RNG.Branch());
+            Util.ShuffleArray(convertOrder, rng);
 
 #if DEBUG
             Log.Debug($"Convert order: [{string.Join(", ", convertOrder.Select(BodyCatalog.GetBodyName))}]");
@@ -64,39 +75,28 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 CharacterBody[] availableBodies = allConvertableEnemies.Where(b => b.bodyIndex == bodyIndex).ToArray();
                 if (availableBodies.Length > 0)
                 {
-                    _enemyToConvert = RNG.NextElementUniform(availableBodies);
-                    return;
+                    _enemyToConvert = rng.NextElementUniform(availableBodies).gameObject;
+                    break;
                 }
             }
 
-            Log.Error("No available enemy to convert");
+            if (!_enemyToConvert)
+            {
+                Log.Error("No available enemy to convert");
+            }
         }
 
-        public override void Serialize(NetworkWriter writer)
-        {
-            base.Serialize(writer);
-
-            writer.Write(_enemyToConvert && !SaveManager.IsCollectingSaveData ? _enemyToConvert.networkIdentity : null);
-        }
-
-        public override void Deserialize(NetworkReader reader)
-        {
-            base.Deserialize(reader);
-
-            NetworkIdentity enemyToConvertNetId = reader.ReadNetworkIdentity();
-            _enemyToConvert = enemyToConvertNetId ? enemyToConvertNetId.GetComponent<CharacterBody>() : null;
-
-#if DEBUG
-            Log.Debug($"Deserialized target object: {_enemyToConvert}");
-#endif
-        }
-
-        public override void OnStart()
+        void Start()
         {
             if (!_enemyToConvert)
+            {
+                Log.Warning("No enemy object reference, nothing to do");
                 return;
+            }
 
-            GameObject positionIndicator = _enemyToConvert.teamComponent.indicator;
+            CharacterBody enemyToConvertBody = _enemyToConvert.GetComponent<CharacterBody>();
+
+            GameObject positionIndicator = enemyToConvertBody.teamComponent.indicator;
 
             if (positionIndicator)
             {
@@ -109,11 +109,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             if (NetworkServer.active)
             {
-                bool isBoss = _enemyToConvert.isBoss;
+                bool isBoss = enemyToConvertBody.isBoss;
 
-                _enemyToConvert.teamComponent.teamIndex = TeamIndex.Player;
+                enemyToConvertBody.teamComponent.teamIndex = TeamIndex.Player;
 
-                CharacterMaster master = _enemyToConvert.master;
+                CharacterMaster master = enemyToConvertBody.master;
                 if (master)
                 {
                     master.teamIndex = TeamIndex.Player;
@@ -150,7 +150,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     Chat.SendBroadcastChat(new BestNameSubjectChatMessage
                     {
                         BaseToken = isBoss ? "RECRUIT_BOSS_MESSAGE" : "RECRUIT_ENEMY_MESSAGE",
-                        SubjectAsCharacterBody = _enemyToConvert
+                        SubjectAsCharacterBody = enemyToConvertBody
                     });
                 }
             }

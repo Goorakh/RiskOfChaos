@@ -3,155 +3,53 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using RoR2.Orbs;
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosTimedEffect("attack_knockback", 90f, IsNetworked = true)]
+    [ChaosTimedEffect("attack_knockback", 90f)]
     [IncompatibleEffects(typeof(DisableKnockback))]
     [EffectConfigBackwardsCompatibility("Effect: Extreme Recoil")]
-    public sealed class AttackKnockback : TimedEffect
+    public sealed class AttackKnockback : MonoBehaviour
     {
         [InitEffectInfo]
-        public static new readonly TimedEffectInfo EffectInfo;
+        public static readonly TimedEffectInfo EffectInfo;
 
-        static bool _appliedPatches;
-
-        static void tryApplyPatches()
+        public static void TryKnockbackBody(CharacterBody body, Vector3 knockbackDirection, float damage)
         {
-            if (_appliedPatches)
-                return;
-
-            On.RoR2.BulletAttack.Fire += (orig, self) =>
+            if (NetworkServer.active || body.hasEffectiveAuthority)
             {
-                orig(self);
-
-                if (!ChaosEffectTracker.Instance || !ChaosEffectTracker.Instance.IsTimedEffectActive(EffectInfo))
+                if (!body || knockbackDirection.sqrMagnitude == 0f || damage <= 0f)
                     return;
 
-                if (!self.owner || self.procChainMask.mask != 0)
+                int effectStackCount = ChaosEffectTracker.Instance.GetTimedEffectStackCount(EffectInfo);
+                if (effectStackCount <= 0)
                     return;
 
-                CharacterBody ownerBody = self.owner.GetComponent<CharacterBody>();
-                if (!ownerBody)
-                    return;
+                float baseForce = body.isPlayerControlled ? 8.5f : 30f;
 
-                tryKnockbackBody(ownerBody, -self.aimVector.normalized, self.damage);
-            };
+                float damageCoefficient = damage / body.damage;
+                float damageForceMultiplier = Mathf.Pow(damageCoefficient, damageCoefficient > 1f ? 1f / 1.5f : 2f);
 
-            On.RoR2.Orbs.OrbManager.AddOrb += (orig, self, orb) =>
-            {
-                orig(self, orb);
+                Vector3 force = knockbackDirection.normalized * (baseForce * damageForceMultiplier * effectStackCount);
 
-                if (!ChaosEffectTracker.Instance || !ChaosEffectTracker.Instance.IsTimedEffectActive(EffectInfo))
-                    return;
-
-                if (orb is null || !orb.target)
-                    return;
-
-                if (orb.TryGetProcChainMask(out ProcChainMask orbProcChainMask) && orbProcChainMask.mask != 0)
-                    return;
-
-                CharacterBody attacker = orb.GetAttacker();
-                if (!attacker)
-                    return;
-
-                float damage;
-                switch (orb)
+                if (body.TryGetComponent(out IPhysMotor motor))
                 {
-                    case LunarDetonatorOrb lunarDetonatorOrb:
-                        damage = lunarDetonatorOrb.baseDamage;
-                        break;
-                    default:
-                        FieldInfo damageValueField = orb.GetType().GetField("damageValue", BindingFlags.Public | BindingFlags.Instance);
-                        if (damageValueField is null || damageValueField.FieldType != typeof(float))
-                            return;
+                    PhysForceInfo physForceInfo = PhysForceInfo.Create();
+                    physForceInfo.force = force;
+                    physForceInfo.disableAirControlUntilCollision = false;
+                    physForceInfo.ignoreGroundStick = true;
+                    physForceInfo.massIsOne = true;
 
-                        damage = (float)damageValueField.GetValue(orb);
-                        break;
+                    motor.ApplyForceImpulse(physForceInfo);
                 }
-
-                tryKnockbackBody(attacker, -(orb.target.transform.position - orb.origin).normalized, damage);
-            };
-
-            On.RoR2.Projectile.ProjectileManager.FireProjectile_FireProjectileInfo += (orig, self, fireProjectileInfo) =>
-            {
-                orig(self, fireProjectileInfo);
-
-                if (!ChaosEffectTracker.Instance || !ChaosEffectTracker.Instance.IsTimedEffectActive(EffectInfo))
-                    return;
-
-                if (!fireProjectileInfo.owner || fireProjectileInfo.procChainMask.mask != 0)
-                    return;
-
-                CharacterBody ownerBody = fireProjectileInfo.owner.GetComponent<CharacterBody>();
-                if (!ownerBody)
-                    return;
-
-                Vector3 fireDirection = (fireProjectileInfo.rotation * Vector3.forward).normalized;
-
-                tryKnockbackBody(ownerBody, -fireDirection, fireProjectileInfo.damage);
-            };
-
-            On.EntityStates.GolemMonster.FireLaser.OnEnter += (orig, self) =>
-            {
-                orig(self);
-
-                if (!self.isAuthority)
-                    return;
-
-                if (!ChaosEffectTracker.Instance || !ChaosEffectTracker.Instance.IsTimedEffectActive(EffectInfo))
-                    return;
-
-                CharacterBody body = self.characterBody;
-
-                tryKnockbackBody(body, -self.laserDirection.normalized, EntityStates.GolemMonster.FireLaser.damageCoefficient * body.damage);
-            };
-
-            _appliedPatches = true;
-        }
-
-        static void tryKnockbackBody(CharacterBody body, Vector3 knockbackDirection, float damage)
-        {
-            if (!NetworkServer.active && !body.hasEffectiveAuthority)
-                return;
-
-            float baseForce = body.isPlayerControlled ? 8.5f : 30f;
-
-            float damageCoefficient = damage / body.damage;
-            float damageForceMultiplier = Mathf.Pow(damageCoefficient, damageCoefficient > 1f ? 1f / 1.5f : 2f);
-            float effectStackMultiplier = ChaosEffectTracker.Instance.GetTimedEffectStackCount(EffectInfo);
-
-            Vector3 force = knockbackDirection * (baseForce * damageForceMultiplier * effectStackMultiplier);
-
-            if (body.TryGetComponent(out IPhysMotor motor))
-            {
-                PhysForceInfo physForceInfo = PhysForceInfo.Create();
-                physForceInfo.force = force;
-                physForceInfo.disableAirControlUntilCollision = false;
-                physForceInfo.ignoreGroundStick = true;
-                physForceInfo.massIsOne = true;
-
-                motor.ApplyForceImpulse(physForceInfo);
+                else if (body.TryGetComponent(out Rigidbody rigidbody))
+                {
+                    rigidbody.AddForce(force, ForceMode.VelocityChange);
+                }
             }
-            else if (body.TryGetComponent(out Rigidbody rigidbody))
-            {
-                rigidbody.AddForce(force, ForceMode.VelocityChange);
-            }
-        }
-
-        public override void OnStart()
-        {
-            tryApplyPatches();
-        }
-
-        public override void OnEnd()
-        {
         }
     }
 }

@@ -1,8 +1,6 @@
-﻿using EntityStates;
-using HG;
+﻿using HG;
 using RiskOfChaos.Components;
 using RiskOfChaos.Content.AssetCollections;
-using RiskOfChaos.EffectDefinitions.Character;
 using RiskOfChaos.Networking.Components;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -294,25 +292,6 @@ namespace RiskOfChaos.Content
                 };
 
                 asyncOperations.Add(newtStatueLoad);
-            }
-
-            // ExplodeAtLowHealthBodyAttachment
-            {
-                AsyncOperationHandle<GameObject> fuelArrayAttachmentLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/QuestVolatileBattery/QuestVolatileBatteryAttachment.prefab");
-                fuelArrayAttachmentLoad.Completed += handle =>
-                {
-                    GameObject prefab = handle.Result.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.ExplodeAtLowHealthBodyAttachment));
-
-                    EntityStateMachine stateMachine = prefab.GetComponent<EntityStateMachine>();
-                    stateMachine.initialStateType = new SerializableEntityStateType(typeof(ExplodeAtLowHealth.MonitorState));
-                    stateMachine.mainStateType = new SerializableEntityStateType(typeof(ExplodeAtLowHealth.MonitorState));
-
-                    prefab.EnsureComponent<GenericOwnership>();
-
-                    networkedPrefabs.Add(prefab);
-                };
-
-                asyncOperations.Add(fuelArrayAttachmentLoad);
             }
 
             yield return asyncOperations.WaitForAllLoaded();

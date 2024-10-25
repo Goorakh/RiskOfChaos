@@ -13,7 +13,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("delay_attacks", 90f)]
-    public sealed class DelayAttacks : NetworkBehaviour
+    public sealed class DelayAttacks : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _attackDelay =

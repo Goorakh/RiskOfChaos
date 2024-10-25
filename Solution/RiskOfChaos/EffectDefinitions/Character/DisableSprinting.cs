@@ -1,22 +1,16 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
-using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosTimedEffect("disable_sprinting", 30f, AllowDuplicates = false, DefaultSelectionWeight = 0.8f, IsNetworked = true)]
+    [ChaosTimedEffect("disable_sprinting", 30f, AllowDuplicates = false, DefaultSelectionWeight = 0.8f)]
     [IncompatibleEffects(typeof(ForceSprinting))]
-    public sealed class DisableSprinting : TimedEffect
+    public sealed class DisableSprinting : MonoBehaviour
     {
-        [EffectCanActivate]
-        static bool CanActivate()
-        {
-            return SetIsSprintingOverride.PatchSuccessful;
-        }
-
-        public override void OnStart()
+        void Start()
         {
             CharacterBody.readOnlyInstancesList.TryDo(body =>
             {
@@ -26,20 +20,17 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 }
             });
 
-            SetIsSprintingOverride.OverrideCharacterSprinting += SetIsSprintingOverride_OverrideCharacterSprinting;
+            SetIsSprintingOverride.OverrideCharacterSprinting += overrideSprint;
         }
 
-        public override void OnEnd()
+        void OnDestroy()
         {
-            SetIsSprintingOverride.OverrideCharacterSprinting -= SetIsSprintingOverride_OverrideCharacterSprinting;
+            SetIsSprintingOverride.OverrideCharacterSprinting -= overrideSprint;
         }
 
-        static void SetIsSprintingOverride_OverrideCharacterSprinting(CharacterBody body, ref bool isSprinting)
+        static void overrideSprint(CharacterBody body, ref bool isSprinting)
         {
-            if (body.hasEffectiveAuthority)
-            {
-                isSprinting = false;
-            }
+            isSprinting = false;
         }
     }
 }

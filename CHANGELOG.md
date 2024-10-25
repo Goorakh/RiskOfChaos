@@ -31,6 +31,9 @@
 * Randomize Loadout:
   * Fixed skills and skins not updating for non-host players in multiplayer
 
+* Freeze!:
+  * Now ignores vanilla restrictions on when and what can be frozen so everything is always frozen during the effect
+
 * Sluggish Camera
   * Added smooth transition back to normal after the effect ends instead of just snapping back
 
