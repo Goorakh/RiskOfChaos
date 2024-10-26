@@ -9,6 +9,8 @@ namespace RiskOfChaos.Content.AssetCollections
     {
         readonly List<T> _assets = [];
 
+        bool _flushed;
+
         public T this[int index]
         {
             get => _assets[index];
@@ -25,17 +27,29 @@ namespace RiskOfChaos.Content.AssetCollections
 
         public bool IsReadOnly => false;
 
+        void checkFlushedBeforeAdd(T item)
+        {
+            if (_flushed)
+            {
+                Log.Error($"Attempting to add asset '{item}' to {this}, but asset collection has already been flushed! The asset will not be included in the content pack!");
+            }
+        }
+
         public void Add(T item)
         {
+            checkFlushedBeforeAdd(item);
             _assets.Add(item);
         }
 
-        public void AddTo(NamedAssetCollection<T> namedAssetCollection)
+        public void FlushAssets(NamedAssetCollection<T> destination)
         {
             if (Count > 0)
             {
-                namedAssetCollection.Add(ToArray());
+                destination.Add(ToArray());
+                _assets.Clear();
             }
+
+            _flushed = true;
         }
 
         void ICollection<T>.Clear()
@@ -78,6 +92,7 @@ namespace RiskOfChaos.Content.AssetCollections
 
         public void Insert(int index, T item)
         {
+            checkFlushedBeforeAdd(item);
             _assets.Insert(index, item);
         }
 

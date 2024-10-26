@@ -110,19 +110,19 @@ namespace RiskOfChaos.Content
                 yield return 0;
             }
 
-            itemDefs.AddTo(_contentPack.itemDefs);
-            buffDefs.AddTo(_contentPack.buffDefs);
-            effectDefs.AddTo(_contentPack.effectDefs);
-            unlockableDefs.AddTo(_contentPack.unlockableDefs);
-            bodyPrefabs.AddTo(_contentPack.bodyPrefabs);
-            entityStates.AddTo(_contentPack.entityStateTypes);
-            networkedPrefabs.AddTo(_contentPack.networkedObjectPrefabs);
+            itemDefs.FlushAssets(_contentPack.itemDefs);
+            buffDefs.FlushAssets(_contentPack.buffDefs);
+            effectDefs.FlushAssets(_contentPack.effectDefs);
+            unlockableDefs.FlushAssets(_contentPack.unlockableDefs);
+            bodyPrefabs.FlushAssets(_contentPack.bodyPrefabs);
+            entityStates.FlushAssets(_contentPack.entityStateTypes);
+            networkedPrefabs.FlushAssets(_contentPack.networkedObjectPrefabs);
 
             NamedAssetCollection<GameObject> localPrefabAssetCollection = new NamedAssetCollection<GameObject>(ContentPack.getGameObjectName);
-            localPrefabs.AddTo(localPrefabAssetCollection);
+            localPrefabs.FlushAssets(localPrefabAssetCollection);
 
             NamedAssetCollection<ScreenEffectDef> screenEffectsAssetCollection = new NamedAssetCollection<ScreenEffectDef>(ScreenEffectDef.NameProvider);
-            screenEffects.AddTo(screenEffectsAssetCollection);
+            screenEffects.FlushAssets(screenEffectsAssetCollection);
 
             populateTypeFields(typeof(Items), _contentPack.itemDefs);
 
