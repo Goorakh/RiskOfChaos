@@ -20,30 +20,12 @@ namespace RiskOfChaos.SaveHandling
         static readonly List<ObjectSerializationComponent> _instances = [];
         public static readonly ReadOnlyCollection<ObjectSerializationComponent> Instances = new ReadOnlyCollection<ObjectSerializationComponent>(_instances);
 
-        public bool IsSingleton;
-
-        public bool IsDeserialized { get; private set; }
-
-        NetworkIdentity _networkIdentity;
-
-        readonly Dictionary<Type, ComponentSerializationInfo> _serializationInfoByComponentType = [];
-
-        public NetworkHash128 AssetId => _networkIdentity.assetId;
-
-        void Awake()
+        static readonly Dictionary<Type, SerializableMemberInfo[]> _cachedSerializableMembersByType = [];
+        static SerializableMemberInfo[] getSerializableMembers(Type componentType)
         {
-            _networkIdentity = GetComponent<NetworkIdentity>();
-
-            foreach (MonoBehaviour component in GetComponents<MonoBehaviour>())
+            if (!_cachedSerializableMembersByType.TryGetValue(componentType, out SerializableMemberInfo[] serializableMembers))
             {
-                Type componentType = component.GetType();
-                if (_serializationInfoByComponentType.ContainsKey(componentType))
-                {
-                    Log.Error($"Duplicate component types ({componentType.FullName}) for serialization on object {name}, this is not supported");
-                    continue;
-                }
-
-                List<SerializableMemberInfo> serializableMembers = [];
+                List<SerializableMemberInfo> serializableMembersList = [];
 
                 const BindingFlags FLAGS = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
@@ -88,12 +70,44 @@ namespace RiskOfChaos.SaveHandling
                             continue;
                     }
 
-                    serializableMembers.Add(new SerializableMemberInfo(member, serializedMemberAttribute));
+                    serializableMembersList.Add(new SerializableMemberInfo(member, serializedMemberAttribute));
                 }
 
-                if (serializableMembers.Count > 0)
+                serializableMembers = serializableMembersList.ToArray();
+                _cachedSerializableMembersByType.Add(componentType, serializableMembers);
+            }
+
+            return serializableMembers;
+        }
+
+        public bool IsSingleton;
+
+        public bool IsDeserialized { get; private set; }
+
+        NetworkIdentity _networkIdentity;
+
+        readonly Dictionary<Type, ComponentSerializationInfo> _serializationInfoByComponentType = [];
+
+        public NetworkHash128 AssetId => _networkIdentity.assetId;
+
+        void Awake()
+        {
+            _networkIdentity = GetComponent<NetworkIdentity>();
+
+            foreach (MonoBehaviour component in GetComponents<MonoBehaviour>())
+            {
+                Type componentType = component.GetType();
+                if (_serializationInfoByComponentType.ContainsKey(componentType))
                 {
-                    _serializationInfoByComponentType.Add(componentType, new ComponentSerializationInfo(component, new ReadOnlyCollection<SerializableMemberInfo>(serializableMembers)));
+                    Log.Error($"Duplicate component types ({componentType.FullName}) for serialization on object {name}, this is not supported");
+                    continue;
+                }
+
+                SerializableMemberInfo[] serializableMembers = getSerializableMembers(componentType);
+
+                if (serializableMembers.Length > 0)
+                {
+                    _serializationInfoByComponentType.Add(componentType, new ComponentSerializationInfo(component, serializableMembers));
                 }
             }
         }
@@ -119,7 +133,7 @@ namespace RiskOfChaos.SaveHandling
                 Type componentType = kvp.Key;
                 ComponentSerializationInfo serializationInfo = kvp.Value;
 
-                List<SerializableObjectField> fields = new List<SerializableObjectField>(serializationInfo.SerializableMembers.Count);
+                List<SerializableObjectField> fields = new List<SerializableObjectField>(serializationInfo.SerializableMembers.Length);
 
                 foreach (SerializableMemberInfo serializableMember in serializationInfo.SerializableMembers)
                 {
@@ -199,7 +213,7 @@ namespace RiskOfChaos.SaveHandling
             }
         }
 
-        record ComponentSerializationInfo(MonoBehaviour ComponentInstance, ReadOnlyCollection<SerializableMemberInfo> SerializableMembers);
+        record ComponentSerializationInfo(MonoBehaviour ComponentInstance, SerializableMemberInfo[] SerializableMembers);
 
         record SerializableMemberInfo(MemberInfo Member, SerializedMemberAttribute SerializationAttribute)
         {

@@ -8,6 +8,8 @@ using RiskOfChaos.Serialization.Converters;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
+using System.IO;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -84,7 +86,17 @@ namespace RiskOfChaos.SaveHandling
 
             container.Objects = serializedObjects.ToArray();
 
-            return JsonConvert.SerializeObject(container, serializerSettings);
+            using StringWriter stringWriter = new StringWriter(CultureInfo.InvariantCulture);
+            using (JsonTextWriter jsonWriter = new JsonTextWriter(stringWriter))
+            {
+                jsonWriter.Formatting = jsonSerializer.Formatting;
+                jsonWriter.QuoteChar = '\'';
+                jsonWriter.QuoteName = false;
+
+                jsonSerializer.Serialize(jsonWriter, container, null);
+            }
+
+            return stringWriter.ToString();
         }
 
         internal static void OnSaveDataLoaded(string saveDataJson)
@@ -143,13 +155,13 @@ namespace RiskOfChaos.SaveHandling
                     }
                     catch (Exception e)
                     {
-                        Log.Error_NoCallerPrefix($"Failed to deserialize object {serializationComponent.name}: {e}"); ;
+                        Log.Error_NoCallerPrefix($"Failed to deserialize object {serializationComponent.name}: {e}");
                     }
                 }
             }
         }
 
-        static void onSerializerError(object sender, ErrorEventArgs eventArgs)
+        static void onSerializerError(object sender, Newtonsoft.Json.Serialization.ErrorEventArgs eventArgs)
         {
             bool handled = false;
             if (eventArgs.ErrorContext.Handled)
