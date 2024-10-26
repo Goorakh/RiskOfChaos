@@ -11,12 +11,13 @@ using RoR2.CharacterAI;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("void_infest_all", DefaultSelectionWeight = 0.6f)]
     [EffectConfigBackwardsCompatibility("Effect: Touch Void")]
-    public sealed class VoidInfestAll : BaseEffect
+    public sealed class VoidInfestAll : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<bool> _excludeAllAllies =
@@ -80,8 +81,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
             return ExpansionUtils.DLC1Enabled && (!context.IsNow || getAllInfestableBodies().Any());
         }
 
-        public override void OnStart()
+        void Start()
         {
+            if (!NetworkServer.active)
+                return;
+
             List<BaseAI> aiToReset = [];
 
             getAllInfestableBodies().TryDo(body =>

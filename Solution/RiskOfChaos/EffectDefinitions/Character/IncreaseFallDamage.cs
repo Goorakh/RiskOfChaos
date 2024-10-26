@@ -8,13 +8,14 @@ using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.Patches;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("increase_fall_damage", TimedEffectType.UntilStageEnd, ConfigName = "Increase Fall Damage")]
     [IncompatibleEffects(typeof(DisableFallDamage))]
-    public sealed class IncreaseFallDamage : NetworkBehaviour
+    public sealed class IncreaseFallDamage : MonoBehaviour
     {
         [InitEffectInfo]
         public static readonly TimedEffectInfo EffectInfo;
@@ -40,8 +41,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
             return new EffectNameFormatter_GenericFloat(_damageIncreaseAmount.Value) { ValueFormat = "P0" };
         }
 
-        static float damageMultiplier => 1f + _damageIncreaseAmount.Value;
-
         void Start()
         {
             if (NetworkServer.active)
@@ -60,7 +59,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             if ((damageInfo.damageType & DamageType.FallDamage) != DamageType.FallDamage)
                 return;
 
-            damageInfo.damage *= damageMultiplier;
+            damageInfo.damage *= 1f + _damageIncreaseAmount.Value;
 
             damageInfo.damageType &= ~(DamageTypeCombo)DamageType.NonLethal;
             damageInfo.damageType |= (DamageTypeCombo)DamageType.BypassOneShotProtection;

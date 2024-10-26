@@ -5,9 +5,12 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.DropTables;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.Utilities.Pickup;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Collections.Generic;
@@ -18,7 +21,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("monster_inventory_give_random_item", TimedEffectType.Permanent, HideFromEffectsListWhenPermanent = true)]
-    public sealed class MonsterInventoryGiveRandomItem : TimedEffect
+    public sealed class MonsterInventoryGiveRandomItem : NetworkBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<int> _itemCount =
@@ -164,94 +167,82 @@ namespace RiskOfChaos.EffectDefinitions.Character
             return _monsterInventory;
         }
 
-        PickupDef[] _grantedPickupDefs;
+        ChaosEffectComponent _effectComponent;
 
-        public override void OnPreStartServer()
+        [SerializedMember("p")]
+        PickupIndex[] _pickupIndicesToGrant = [];
+
+        void Awake()
         {
-            base.OnPreStartServer();
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
             _dropTable.RegenerateIfNeeded();
 
-            _grantedPickupDefs = new PickupDef[_itemCount.Value];
-            for (int i = 0; i < _grantedPickupDefs.Length; i++)
+            _pickupIndicesToGrant = new PickupIndex[_itemCount.Value];
+            for (int i = 0; i < _pickupIndicesToGrant.Length; i++)
             {
-                _grantedPickupDefs[i] = PickupCatalog.GetPickupDef(_dropTable.GenerateDrop(RNG));
+                _pickupIndicesToGrant[i] = _dropTable.GenerateDrop(rng);
             }
         }
 
-        public override void Serialize(NetworkWriter writer)
+        void Start()
         {
-            base.Serialize(writer);
+            if (!NetworkServer.active)
+                return;
 
-            writer.WritePackedUInt32((uint)_grantedPickupDefs.Length);
-            foreach (PickupDef pickup in _grantedPickupDefs)
+            HashSet<PickupIndex> grantedPickups = new HashSet<PickupIndex>(_pickupIndicesToGrant.Length);
+
+            foreach (PickupIndex pickupIndex in _pickupIndicesToGrant)
             {
-                writer.Write(pickup.pickupIndex);
-            }
-        }
+                PickupDef pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
+                if (pickupDef == null)
+                    continue;
 
-        public override void Deserialize(NetworkReader reader)
-        {
-            base.Deserialize(reader);
-
-            _grantedPickupDefs = new PickupDef[reader.ReadPackedUInt32()];
-            for (int i = 0; i < _grantedPickupDefs.Length; i++)
-            {
-                _grantedPickupDefs[i] = PickupCatalog.GetPickupDef(reader.ReadPickupIndex());
-            }
-        }
-
-        public override void OnStart()
-        {
-            Dictionary<PickupDef, uint> pickupCounts = [];
-
-            foreach (PickupDef pickupDef in _grantedPickupDefs)
-            {
-                _monsterInventory.TryGrant(pickupDef, InventoryExtensions.ItemReplacementRule.DeleteExisting);
-
-                uint pickupCount;
-                if (pickupDef.itemIndex != ItemIndex.None)
+                if (_monsterInventory.TryGrant(pickupDef, InventoryExtensions.ItemReplacementRule.DeleteExisting))
                 {
-                    pickupCount = (uint)_monsterInventory.GetItemCount(pickupDef.itemIndex);
+                    grantedPickups.Add(pickupIndex);
                 }
-                else
+            }
+
+            if (grantedPickups.Count > 0)
+            {
+                PickupIndex[] pickupIndices = [.. grantedPickups];
+                uint[] pickupQuantities = new uint[pickupIndices.Length];
+
+                for (int i = 0; i < pickupIndices.Length; i++)
                 {
-                    pickupCount = 1;
+                    pickupQuantities[i] = (uint)_monsterInventory.GetPickupCount(PickupCatalog.GetPickupDef(pickupIndices[i]));
                 }
 
-                pickupCounts[pickupDef] = pickupCount;
-            }
+                PickupUtils.QueuePickupsMessage("MONSTER_INVENTORY_ADD_ITEM", pickupIndices, pickupQuantities, false, false);
 
-            foreach (KeyValuePair<PickupDef, uint> pickupCountPair in pickupCounts)
-            {
-                Chat.SendBroadcastChat(new Chat.PlayerPickupChatMessage
+                CharacterMaster.readOnlyInstancesList.TryDo(master =>
                 {
-                    baseToken = "MONSTER_INVENTORY_ADD_ITEM",
-                    pickupToken = pickupCountPair.Key.nameToken,
-                    pickupColor = pickupCountPair.Key.baseColor,
-                    pickupQuantity = pickupCountPair.Value
-                });
-            }
-
-            CharacterMaster.readOnlyInstancesList.TryDo(master =>
-            {
-                if (canGiveItems(master))
-                {
-                    foreach (PickupDef pickupDef in _grantedPickupDefs)
+                    if (canGiveItems(master))
                     {
-                        master.inventory.TryGrant(pickupDef, InventoryExtensions.ItemReplacementRule.DeleteExisting);
+                        foreach (PickupIndex pickupIndex in grantedPickups)
+                        {
+                            master.inventory.TryGrant(PickupCatalog.GetPickupDef(pickupIndex), InventoryExtensions.ItemReplacementRule.DeleteExisting);
+                        }
                     }
-                }
-            }, Util.GetBestMasterName);
+                }, Util.GetBestMasterName);
+            }
         }
 
-        public override void OnEnd()
+        void OnDestroy()
         {
             if (_monsterInventory)
             {
-                foreach (PickupDef pickupDef in _grantedPickupDefs)
+                foreach (PickupIndex pickupIndex in _pickupIndicesToGrant)
                 {
-                    _monsterInventory.TryRemove(pickupDef);
+                    _monsterInventory.TryRemove(PickupCatalog.GetPickupDef(pickupIndex));
                 }
             }
 
@@ -259,9 +250,9 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 if (canGiveItems(master))
                 {
-                    foreach (PickupDef pickupDef in _grantedPickupDefs)
+                    foreach (PickupIndex pickupIndex in _pickupIndicesToGrant)
                     {
-                        master.inventory.TryRemove(pickupDef);
+                        master.inventory.TryRemove(PickupCatalog.GetPickupDef(pickupIndex));
                     }
                 }
             }, Util.GetBestMasterName);

@@ -41,7 +41,7 @@ namespace RiskOfChaos.Utilities.Extensions
 
         public static bool TryGrant(this Inventory inventory, PickupDef pickup, ItemReplacementRule replacementRule)
         {
-            if (!inventory)
+            if (!inventory || pickup == null)
                 return false;
 
             if (pickup.itemIndex != ItemIndex.None)

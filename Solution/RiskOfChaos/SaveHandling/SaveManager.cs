@@ -44,7 +44,9 @@ namespace RiskOfChaos.SaveHandling
                 Converters = [
                     new XoroshiroRngConverter(),
                     new NetworkHash128Converter(),
+                    new BodyIndexConverter(),
                     new BuffIndexConverter(),
+                    new PickupIndexConverter(),
                     new EquipmentIndexConverter(),
                     new ChaosEffectIndexConverter(),
                     new StringEnumConverter(new DefaultNamingStrategy(), false),

@@ -1,63 +1,65 @@
 ﻿using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RoR2;
-using System;
+using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("kill_all", DefaultSelectionWeight = 0.7f)]
-    public sealed class KillAll : BaseEffect
+    public sealed class KillAll : MonoBehaviour
     {
-        public override void OnStart()
+        void Start()
         {
-            bool sentInvincibleLemurianMessage = false;
+            if (!NetworkServer.active)
+                return;
+            
+            bool sendInvincibleLemurianMessage = false;
 
-            for (int i = CharacterMaster.readOnlyInstancesList.Count - 1; i >= 0; i--)
+            for (int i = CharacterBody.readOnlyInstancesList.Count - 1; i >= 0; i--)
             {
-                CharacterMaster master = CharacterMaster.readOnlyInstancesList[i];
-                if (!master || master.isBoss || master.playerCharacterMasterController)
-                    continue;
-
-                if (master.inventory && master.inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
+                CharacterBody body = CharacterBody.readOnlyInstancesList[i];
+                HealthComponent healthComponent = body.healthComponent;
+                CharacterMaster master = body.master;
+                if (!healthComponent ||
+                    body.isPlayerControlled ||
+                    body.teamComponent.teamIndex == TeamIndex.Player ||
+                    body.teamComponent.teamIndex == TeamIndex.None ||
+                    (master && master.isBoss))
                 {
-                    if (!sentInvincibleLemurianMessage)
-                    {
-                        Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-                        {
-                            baseToken = "INVINCIBLE_LEMURIAN_KILL_FAIL_MESSAGE"
-                        });
-
-                        sentInvincibleLemurianMessage = true;
-                    }
-
                     continue;
                 }
 
-                CharacterBody body = master.GetBody();
-                if (!body)
-                    continue;
-
-                try
+                Inventory inventory = body.inventory;
+                if (inventory)
                 {
-                    switch (body.teamComponent.teamIndex)
+                    if (inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
                     {
-                        case TeamIndex.Neutral:
-                        case TeamIndex.Monster:
-                        case TeamIndex.Lunar:
-                        case TeamIndex.Void:
-                            HealthComponent healthComponent = body.healthComponent;
-                            if (healthComponent)
-                            {
-                                healthComponent.Suicide();
-                            }
-
-                            break;
+                        sendInvincibleLemurianMessage = true;
+                        continue;
                     }
                 }
-                catch (Exception ex)
+
+                if (master)
                 {
-                    Log.Error_NoCallerPrefix($"Failed to kill {Util.GetBestMasterName(master)}: {ex}");
+                    MinionOwnership minionOwnership = master.minionOwnership;
+                    if (minionOwnership)
+                    {
+                        CharacterMaster ownerMaster = minionOwnership.ownerMaster;
+                        if (ownerMaster && ownerMaster.playerCharacterMasterController)
+                            continue;
+                    }
                 }
+
+                healthComponent.Suicide();
+            }
+
+            if (sendInvincibleLemurianMessage)
+            {
+                Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                {
+                    baseToken = "INVINCIBLE_LEMURIAN_KILL_FAIL_MESSAGE"
+                });
             }
         }
     }

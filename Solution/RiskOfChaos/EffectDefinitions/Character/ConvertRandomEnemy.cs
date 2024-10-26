@@ -4,7 +4,6 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
-using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.CharacterAI;

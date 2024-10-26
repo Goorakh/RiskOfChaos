@@ -8,12 +8,13 @@ using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.Patches;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("increase_proc_coefficients", TimedEffectType.UntilStageEnd, ConfigName = "Increase Proc Coefficients")]
-    public sealed class IncreaseProcCoefficients : NetworkBehaviour
+    public sealed class IncreaseProcCoefficients : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _multiplierPerActivation =

@@ -6,19 +6,20 @@ using RiskOfChaos.EffectDefinitions.World;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using System.Linq;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("launch_everyone")]
     [IncompatibleEffects(typeof(DisableKnockback))]
-    public sealed class LaunchEveryone : BaseEffect
+    public sealed class LaunchEveryone : NetworkBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _knockbackScale =
@@ -28,69 +29,53 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                 .OptionConfig(new FloatFieldConfig { Min = 0f, FormatString = "{0}x" })
                                 .Build();
 
-        public override void OnStart()
+        ChaosEffectComponent _effectComponent;
+
+        [SyncVar]
+        ulong _rngSeed;
+
+        void Awake()
         {
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            _rngSeed = _effectComponent.Rng.nextUlong;
+        }
+
+        void Start()
+        {
+            Xoroshiro128Plus rng = new Xoroshiro128Plus(_rngSeed);
+
             // Launch all the players first so the effect is as consistent as possible with the same seed
-            PlayerUtils.GetAllPlayerBodies(true).TryDo(b =>
+            PlayerUtils.GetAllPlayerBodies(true).TryDo(body =>
             {
-                launchInRandomDirection(b, RNG.Branch());
+                tryLaunchInRandomDirection(body, rng.Branch());
 
-                // Give players a chance to avoid fall damage
-                // Most relevant on characters without movement abilities (engi, captain)
-
-                CharacterMotor characterMotor = b.characterMotor;
-                Inventory inventory = b.inventory;
-                if (characterMotor && inventory)
+                if (NetworkServer.active)
                 {
-                    // Ensure feather doesn't get turned into a void item if a mod adds that
-                    IgnoreItemTransformations.IgnoreTransformationsFor(inventory);
+                    // Give players a chance to avoid fall damage
+                    // Most relevant on characters without movement abilities (engi, captain)
 
-                    inventory.GiveItem(RoR2Content.Items.Feather);
-
-                    void onHitGroundServer(CharacterBody characterBody, in CharacterMotor.HitGroundInfo hitGroundInfo)
-                    {
-                        if (characterBody != b)
-                            return;
-
-                        if (inventory)
-                        {
-                            inventory.RemoveItem(RoR2Content.Items.Feather);
-                            IgnoreItemTransformations.ResumeTransformationsFor(inventory);
-                        }
-
-                        OnCharacterHitGroundServerHook.OnCharacterHitGround -= onHitGroundServer;
-                    }
-
-                    OnCharacterHitGroundServerHook.OnCharacterHitGround += onHitGroundServer;
+                    giveAirborneTemporaryItem(body, RoR2Content.Items.Feather);
                 }
             }, FormatUtils.GetBestBodyName);
 
-            CharacterBody.readOnlyInstancesList.Where(b => !b.isPlayerControlled).TryDo(b =>
+            CharacterBody.readOnlyInstancesList.TryDo(body =>
             {
-                launchInRandomDirection(b, RNG);
+                if (body.isPlayerControlled)
+                    return;
 
-                CharacterMotor characterMotor = b.characterMotor;
-                Inventory inventory = b.inventory;
-                if (characterMotor && inventory)
+                tryLaunchInRandomDirection(body, rng);
+
+                if (NetworkServer.active)
                 {
-                    if (inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
+                    if (body.inventory && body.inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
                     {
-                        inventory.GiveItem(RoR2Content.Items.TeleportWhenOob);
-
-                        void onHitGroundServer(CharacterBody characterBody, in CharacterMotor.HitGroundInfo hitGroundInfo)
-                        {
-                            if (characterBody != b)
-                                return;
-
-                            if (inventory)
-                            {
-                                inventory.RemoveItem(RoR2Content.Items.TeleportWhenOob);
-                            }
-
-                            OnCharacterHitGroundServerHook.OnCharacterHitGround -= onHitGroundServer;
-                        }
-
-                        OnCharacterHitGroundServerHook.OnCharacterHitGround += onHitGroundServer;
+                        giveAirborneTemporaryItem(body, RoR2Content.Items.TeleportWhenOob);
                     }
                 }
             }, FormatUtils.GetBestBodyName);
@@ -101,7 +86,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             if (body.teamComponent.teamIndex == TeamIndex.Player)
             {
                 if ((Run.instance && Run.instance.selectedDifficulty >= DifficultyIndex.Eclipse3) ||
-                    (RunArtifactManager.instance && RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.weakAssKneesArtifactDef)) ||
+                    (RunArtifactManager.instance && RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.WeakAssKnees)) ||
                     (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(IncreaseFallDamage.EffectInfo)))
                 {
                     return false;
@@ -126,8 +111,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
             }
         }
 
-        static void launchInRandomDirection(CharacterBody body, Xoroshiro128Plus rng)
+        static void tryLaunchInRandomDirection(CharacterBody body, Xoroshiro128Plus rng)
         {
+            if (!body.hasEffectiveAuthority)
+                return;
+
             Vector3 direction = getLaunchDirection(body, rng.Branch());
             applyForceToBody(body, direction * (rng.RangeFloat(50f, 150f) * _knockbackScale.Value));
         }
@@ -148,6 +136,34 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 rigidbody.AddForce(force, ForceMode.VelocityChange);
             }
+        }
+
+        static void giveAirborneTemporaryItem(CharacterBody body, ItemDef item)
+        {
+            Inventory inventory = body.inventory;
+            if (!inventory)
+                return;
+            
+            // Ensure item doesn't get turned into a void item if a mod adds that
+            IgnoreItemTransformations.IgnoreTransformationsFor(inventory);
+
+            inventory.GiveItem(item);
+
+            void onHitGroundServer(CharacterBody characterBody, in CharacterMotor.HitGroundInfo hitGroundInfo)
+            {
+                if (characterBody != body)
+                    return;
+
+                if (inventory)
+                {
+                    inventory.RemoveItem(item);
+                    IgnoreItemTransformations.ResumeTransformationsFor(inventory);
+                }
+
+                OnCharacterHitGroundServerHook.OnCharacterHitGround -= onHitGroundServer;
+            }
+
+            OnCharacterHitGroundServerHook.OnCharacterHitGround += onHitGroundServer;
         }
     }
 }

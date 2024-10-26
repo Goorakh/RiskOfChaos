@@ -12,7 +12,7 @@ namespace RiskOfChaos.Utilities.Extensions
 
             while (operationHandles.Count > 0)
             {
-                yield return 0;
+                yield return null;
 
                 for (int i = operationHandles.Count - 1; i >= 0; i--)
                 {

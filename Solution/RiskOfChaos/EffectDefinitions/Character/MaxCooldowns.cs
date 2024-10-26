@@ -2,13 +2,13 @@
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using System;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("max_cooldowns", IsNetworked = true)]
-    public sealed class MaxCooldowns : BaseEffect
+    [ChaosEffect("max_cooldowns")]
+    public sealed class MaxCooldowns : MonoBehaviour
     {
         static BodySkillPair[] _ignoreSkillSlots = [];
 
@@ -34,11 +34,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
             return true;
         }
 
-        public override void OnStart()
+        void Start()
         {
             CharacterBody.readOnlyInstancesList.TryDo(body =>
             {
-                if (body.hasAuthority)
+                if (body.hasEffectiveAuthority)
                 {
                     SkillLocator skillLocator = body.skillLocator;
 

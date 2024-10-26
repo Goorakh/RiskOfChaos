@@ -1,67 +1,41 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("kill_all_allies", DefaultSelectionWeight = 0.5f)]
-    public sealed class KillAllPlayerAllies : BaseEffect
+    public sealed class KillAllPlayerAllies : MonoBehaviour
     {
         static IEnumerable<HealthComponent> getCharactersToKill()
         {
-            for (int i = CharacterMaster.readOnlyInstancesList.Count - 1; i >= 0; i--)
+            for (int i = CharacterBody.readOnlyInstancesList.Count - 1; i >= 0; i--)
             {
-                CharacterMaster master = CharacterMaster.readOnlyInstancesList[i];
-                if (!master || master.isBoss || master.playerCharacterMasterController)
+                CharacterBody body = CharacterBody.readOnlyInstancesList[i];
+                CharacterMaster master = body.master;
+                HealthComponent healthComponent = body.healthComponent;
+                if ((master && master.isBoss) || body.isPlayerControlled || !healthComponent)
                     continue;
 
-                CharacterBody body = master.GetBody();
-                if (!body)
-                    continue;
-
-                switch (body.teamComponent.teamIndex)
+                CharacterMaster ownerMaster = null;
+                if (master)
                 {
-                    case TeamIndex.Player:
-                        HealthComponent healthComponent = body.healthComponent;
-                        if (healthComponent)
-                        {
-                            yield return healthComponent;
-                        }
-
-                        break;
+                    MinionOwnership minionOwnership = master.minionOwnership;
+                    if (minionOwnership)
+                    {
+                        ownerMaster = minionOwnership.ownerMaster;
+                    }
                 }
-            }
 
-            foreach (CharacterMaster player in PlayerUtils.GetAllPlayerMasters(false))
-            {
-                MinionOwnership minionOwnership = player.minionOwnership;
-                if (!minionOwnership)
-                    continue;
-
-                MinionOwnership.MinionGroup minionGroup = minionOwnership.group;
-                if (minionGroup == null)
-                    continue;
-
-                for (int i = 0; i < minionGroup.memberCount; i++)
+                if (body.teamComponent.teamIndex == TeamIndex.Player || (ownerMaster && ownerMaster.playerCharacterMasterController))
                 {
-                    MinionOwnership minion = minionGroup.members[i];
-                    if (!minion)
-                        continue;
-
-                    CharacterMaster minionMaster = minion.GetComponent<CharacterMaster>();
-                    if (!minionMaster || minionMaster.teamIndex == TeamIndex.Player || minionMaster.playerCharacterMasterController)
-                        continue;
-
-                    CharacterBody minionBody = minionMaster.GetBody();
-                    if (!minionBody)
-                        continue;
-
-                    yield return minionBody.healthComponent;
+                    yield return healthComponent;
                 }
             }
         }
@@ -72,9 +46,12 @@ namespace RiskOfChaos.EffectDefinitions.Character
             return !context.IsNow || getCharactersToKill().Any();
         }
 
-        public override void OnStart()
+        void Start()
         {
-            getCharactersToKill().TryDo(healthComponent => healthComponent.Suicide());
+            if (NetworkServer.active)
+            {
+                getCharactersToKill().TryDo(healthComponent => healthComponent.Suicide());
+            }
         }
     }
 }

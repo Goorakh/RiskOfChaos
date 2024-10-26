@@ -9,6 +9,8 @@ namespace RiskOfChaos.Networking
 {
     public sealed class PickupsNotificationMessage : INetMessage
     {
+        public string MessageToken;
+
         public CharacterMaster CharacterMaster;
 
         public PickupIndex[] PickupIndices;
@@ -23,32 +25,33 @@ namespace RiskOfChaos.Networking
         {
         }
 
-        public PickupsNotificationMessage(CharacterMaster characterMaster, PickupIndex[] pickupIndices, bool displayPushNotification, bool playSound)
+        public PickupsNotificationMessage(CharacterMaster characterMaster, PickupIndex[] pickupIndices)
         {
+            if (!characterMaster)
+                throw new ArgumentNullException(nameof(characterMaster));
+
             if (pickupIndices == null)
                 throw new ArgumentNullException(nameof(pickupIndices));
 
+            MessageToken = "PLAYER_MULTI_PICKUP";
+
             CharacterMaster = characterMaster;
             PickupIndices = pickupIndices;
-            DisplayPushNotification = displayPushNotification;
-            PlaySound = playSound;
+
+            Inventory inventory = CharacterMaster.inventory;
 
             _pickupQuantities = new uint[PickupIndices.Length];
             for (int i = 0; i < PickupIndices.Length; i++)
             {
                 uint pickupQuantity = 1;
-                if (CharacterMaster)
+                if (inventory)
                 {
-                    Inventory inventory = CharacterMaster.inventory;
-                    if (inventory)
+                    PickupDef pickupDef = PickupCatalog.GetPickupDef(PickupIndices[i]);
+                    if (pickupDef != null)
                     {
-                        PickupDef pickupDef = PickupCatalog.GetPickupDef(PickupIndices[i]);
-                        if (pickupDef != null)
+                        if (pickupDef.itemIndex != ItemIndex.None)
                         {
-                            if (pickupDef.itemIndex != ItemIndex.None)
-                            {
-                                pickupQuantity = (uint)inventory.GetItemCount(pickupDef.itemIndex);
-                            }
+                            pickupQuantity = (uint)inventory.GetItemCount(pickupDef.itemIndex);
                         }
                     }
                 }
@@ -57,8 +60,29 @@ namespace RiskOfChaos.Networking
             }
         }
 
+        public PickupsNotificationMessage(string messageToken, PickupIndex[] pickupIndices, uint[] pickupQuantities)
+        {
+            if (string.IsNullOrWhiteSpace(messageToken))
+                throw new ArgumentException($"'{nameof(messageToken)}' cannot be null or whitespace.", nameof(messageToken));
+
+            if (pickupIndices is null)
+                throw new ArgumentNullException(nameof(pickupIndices));
+
+            if (pickupQuantities is null)
+                throw new ArgumentNullException(nameof(pickupQuantities));
+
+            if (pickupIndices.Length != pickupQuantities.Length)
+                throw new ArgumentException("Pickup indices and quantities count must match");
+
+            MessageToken = messageToken;
+            PickupIndices = pickupIndices;
+            _pickupQuantities = pickupQuantities;
+        }
+
         void ISerializableObject.Serialize(NetworkWriter writer)
         {
+            writer.Write(MessageToken);
+
             writer.Write(CharacterMaster ? CharacterMaster.gameObject : null);
 
             writer.WritePackedUInt32((uint)PickupIndices.Length);
@@ -74,6 +98,8 @@ namespace RiskOfChaos.Networking
 
         void ISerializableObject.Deserialize(NetworkReader reader)
         {
+            MessageToken = reader.ReadString();
+
             GameObject masterObject = reader.ReadGameObject();
             CharacterMaster = masterObject ? masterObject.GetComponent<CharacterMaster>() : null;
 
@@ -126,7 +152,7 @@ namespace RiskOfChaos.Networking
 
             PlayerPickupListChatMessage pickupMessage = new PlayerPickupListChatMessage
             {
-                baseToken = "PLAYER_MULTI_PICKUP",
+                baseToken = MessageToken,
                 PickupIndices = PickupIndices,
                 PickupQuantities = _pickupQuantities
             };
@@ -135,7 +161,7 @@ namespace RiskOfChaos.Networking
             {
                 pickupMessage.subjectAsNetworkUser = networkUser;
             }
-            else
+            else if (body)
             {
                 pickupMessage.subjectAsCharacterBody = body;
             }

@@ -13,7 +13,6 @@ using RoR2.Items;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items

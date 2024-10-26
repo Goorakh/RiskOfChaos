@@ -8,7 +8,22 @@ namespace RiskOfChaos.Utilities.Pickup
     {
         public static void QueuePickupMessage(CharacterMaster characterMaster, PickupIndex pickupIndex, bool pushNotification, bool playPickupSound)
         {
-            PickupsNotificationMessage pickupMessage = new PickupsNotificationMessage(characterMaster, [pickupIndex], pushNotification, playPickupSound);
+            PickupsNotificationMessage pickupMessage = new PickupsNotificationMessage(characterMaster, [pickupIndex])
+            {
+                DisplayPushNotification = pushNotification,
+                PlaySound = playPickupSound
+            };
+
+            NetworkMessageQueue.EnqueueMessage(pickupMessage, NetworkDestination.Clients);
+        }
+
+        public static void QueuePickupMessage(string messageToken, PickupIndex pickupIndex, uint pickupQuantity, bool pushNotification, bool playPickupSound)
+        {
+            PickupsNotificationMessage pickupMessage = new PickupsNotificationMessage(messageToken, [pickupIndex], [pickupQuantity])
+            {
+                DisplayPushNotification = pushNotification,
+                PlaySound = playPickupSound
+            };
 
             NetworkMessageQueue.EnqueueMessage(pickupMessage, NetworkDestination.Clients);
         }
@@ -18,7 +33,25 @@ namespace RiskOfChaos.Utilities.Pickup
             if (pickupIndices.Length == 0)
                 return;
 
-            PickupsNotificationMessage pickupMessage = new PickupsNotificationMessage(characterMaster, pickupIndices, pushNotification, playPickupSound);
+            PickupsNotificationMessage pickupMessage = new PickupsNotificationMessage(characterMaster, pickupIndices)
+            {
+                DisplayPushNotification = pushNotification,
+                PlaySound = playPickupSound
+            };
+
+            NetworkMessageQueue.EnqueueMessage(pickupMessage, NetworkDestination.Clients);
+        }
+
+        public static void QueuePickupsMessage(string messageToken, PickupIndex[] pickupIndices, uint[] pickupQuantities, bool pushNotification, bool playPickupSound)
+        {
+            if (pickupIndices.Length == 0)
+                return;
+
+            PickupsNotificationMessage pickupMessage = new PickupsNotificationMessage(messageToken, pickupIndices, pickupQuantities)
+            {
+                DisplayPushNotification = pushNotification,
+                PlaySound = playPickupSound
+            };
 
             NetworkMessageQueue.EnqueueMessage(pickupMessage, NetworkDestination.Clients);
         }
