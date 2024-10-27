@@ -35,8 +35,15 @@ namespace RiskOfChaos.EffectDefinitions.Meta
             }
         }
 
+        ChaosEffectComponent _effectComponent;
+
         ValueModificationController _effectModificationController;
         EffectModificationProvider _effectModificationProvider;
+
+        void Awake()
+        {
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
 
         void Start()
         {
@@ -53,7 +60,7 @@ namespace RiskOfChaos.EffectDefinitions.Meta
                 {
                     foreach (ChaosEffectComponent effectComponent in ChaosEffectTracker.Instance.AllActiveTimedEffects)
                     {
-                        if (effectComponent.TryGetComponent(out ChaosEffectDurationComponent durationComponent))
+                        if (effectComponent != _effectComponent && effectComponent.TryGetComponent(out ChaosEffectDurationComponent durationComponent))
                         {
                             TimedEffectInfo effectInfo = durationComponent.TimedEffectInfo;
                             if (effectInfo != null && !effectInfo.IgnoreDurationModifiers)

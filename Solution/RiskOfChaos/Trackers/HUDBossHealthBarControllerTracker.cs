@@ -21,6 +21,9 @@ namespace RiskOfChaos.Trackers
             tracker.HUDBossHealthBarController = self;
         }
 
+        public delegate void HUDBossHealthBarControllerEventDelegate(HUDBossHealthBarControllerTracker bossHealthBarControllerTracker);
+        public static event HUDBossHealthBarControllerEventDelegate OnHUDBossHealthBarControllerAwakeGlobal;
+
         bool _isTracked;
 
         HUDBossHealthBarController _hudBossHealthBarController;
@@ -73,6 +76,7 @@ namespace RiskOfChaos.Trackers
             if (_isTracked)
             {
                 InstanceTracker.Add(this);
+                OnHUDBossHealthBarControllerAwakeGlobal?.Invoke(this);
             }
             else
             {

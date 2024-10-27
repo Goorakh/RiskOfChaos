@@ -1,6 +1,6 @@
 ﻿using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
-using RoR2;
+using RoR2.Projectile;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -30,35 +30,31 @@ namespace RiskOfChaos.Components
         void Awake()
         {
             _rigidbody = GetComponent<Rigidbody>();
-
-            InstanceTracker.Add(this);
-
             _collider = GetComponent<Collider>();
+        }
+
+        void Start()
+        {
             if (_collider)
             {
-                if (DynamicFrictionOverride.HasValue || StaticFrictionOverride.HasValue)
+                _originalMaterial = _collider.material;
+                if (_originalMaterial)
                 {
-                    _originalMaterial = _collider.material;
-                    if (_originalMaterial)
-                    {
-                        _overrideMaterial = Instantiate(_originalMaterial);
+                    _overrideMaterial = Instantiate(_originalMaterial);
 
-                        if (DynamicFrictionOverride.HasValue)
-                            _overrideMaterial.dynamicFriction = DynamicFrictionOverride.Value;
+                    if (DynamicFrictionOverride.HasValue)
+                        _overrideMaterial.dynamicFriction = DynamicFrictionOverride.Value;
 
-                        if (StaticFrictionOverride.HasValue)
-                            _overrideMaterial.staticFriction = StaticFrictionOverride.Value;
+                    if (StaticFrictionOverride.HasValue)
+                        _overrideMaterial.staticFriction = StaticFrictionOverride.Value;
 
-                        _collider.material = _overrideMaterial;
-                    }
+                    _collider.material = _overrideMaterial;
                 }
             }
         }
 
         void OnDestroy()
         {
-            InstanceTracker.Remove(this);
-
             if (_collider && _originalMaterial)
             {
                 _collider.material = _originalMaterial;
@@ -69,7 +65,7 @@ namespace RiskOfChaos.Components
         {
             float angle = Mathf.Abs(Vector3.SignedAngle(_currentVelocity, _targetVelocity, Vector3.up));
             if (angle > 45f ||
-                (_targetVelocity.sqrMagnitude <= 0f && _currentVelocity.sqrMagnitude > 0f)) // Should be stopped, but still moving
+                (_targetVelocity.sqrMagnitude < 0.01f && _currentVelocity.sqrMagnitude > 0f)) // Should be stopped, but still moving
             {
                 return OppositeDirectionFrictionMultiplier;
             }
@@ -116,40 +112,53 @@ namespace RiskOfChaos.Components
             }
         }
 
-        public static AttractToPlayers TryAddComponent(MonoBehaviour self)
+        public static bool CanAddComponent(GameObject targetObject)
         {
-            if (!NetworkServer.active)
-                return null;
-
-            if (!self.TryGetComponent(out Rigidbody rb))
+            if (!targetObject.TryGetComponent(out Rigidbody rb))
             {
 #if DEBUG
-                Log.Debug($"Cannot add component to {self}: missing Rigidbody component");
+                Log.Debug($"Cannot add component to {targetObject}: missing Rigidbody component");
 #endif
-                return null;
+                return false;
             }
 
             if (rb.isKinematic)
             {
 #if DEBUG
-                Log.Debug($"Cannot add component to {self}: object is kinematic");
+                Log.Debug($"Cannot add component to {targetObject}: object is kinematic");
 #endif
-                return null;
+                return false;
             }
 
             if (!rb.GetComponent<Collider>())
             {
 #if DEBUG
-                Log.Debug($"Cannot add component to {self}: missing collider");
+                Log.Debug($"Cannot add component to {targetObject}: missing collider");
 #endif
-                return null;
+                return false;
             }
 
+            return true;
+        }
+
+        public static AttractToPlayers TryAddComponent(GameObject targetObject)
+        {
+            if (!NetworkServer.active)
+                return null;
+
+            if (!CanAddComponent(targetObject))
+                return null;
+
 #if DEBUG
-            Log.Debug($"Adding component to {self}");
+            Log.Debug($"Adding component to {targetObject}");
 #endif
 
-            return self.gameObject.AddComponent<AttractToPlayers>();
+            if (!targetObject.GetComponent<NetworkTransform>() && !targetObject.GetComponent<ProjectileNetworkTransform>())
+            {
+                Log.Warning($"{targetObject} is missing network transform: Position will not be matched for clients!");
+            }
+
+            return targetObject.AddComponent<AttractToPlayers>();
         }
     }
 }

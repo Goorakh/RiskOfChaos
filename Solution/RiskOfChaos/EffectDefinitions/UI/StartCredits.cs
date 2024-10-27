@@ -1,22 +1,21 @@
-﻿using RiskOfChaos.Components;
-using RiskOfChaos.Content;
+﻿using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.UI;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UI;
 
 namespace RiskOfChaos.EffectDefinitions.UI
 {
-    [ChaosTimedEffect("start_credits", 120f, AllowDuplicates = false, IsNetworked = true)]
-    public sealed class StartCredits : TimedEffect
+    [ChaosTimedEffect("start_credits", 120f, AllowDuplicates = false)]
+    public sealed class StartCredits : MonoBehaviour
     {
         [ContentInitializer]
         static IEnumerator LoadContent(LocalPrefabAssetCollection localPrefabs)
@@ -47,7 +46,7 @@ namespace RiskOfChaos.EffectDefinitions.UI
                 {
                     if (viewport.TryGetComponent(out Image backgroundImage))
                     {
-                        UnityEngine.Object.Destroy(backgroundImage);
+                        Destroy(backgroundImage);
                     }
 
                     Transform creditsContent = viewport.Find("CreditsContent");
@@ -55,14 +54,7 @@ namespace RiskOfChaos.EffectDefinitions.UI
                     {
                         if (creditsContent.TryGetComponent(out Image moreBackgroundImage))
                         {
-                            UnityEngine.Object.Destroy(moreBackgroundImage);
-                        }
-
-                        Transform backgroundStamps = creditsContent.Find("BackgroundStamps");
-                        if (backgroundStamps)
-                        {
-                            HideUIWhileOffScreen hideUIWhileOffScreen = backgroundStamps.gameObject.AddComponent<HideUIWhileOffScreen>();
-                            hideUIWhileOffScreen.TransformsToConsider = Array.ConvertAll(backgroundStamps.GetComponentsInChildren<Image>(), i => i.rectTransform);
+                            Destroy(moreBackgroundImage);
                         }
                     }
                 }
@@ -70,13 +62,13 @@ namespace RiskOfChaos.EffectDefinitions.UI
                 Transform fadePanel = transform.Find("FadePanel");
                 if (fadePanel)
                 {
-                    fadePanel.gameObject.SetActive(false);
+                    Destroy(fadePanel.gameObject);
                 }
 
                 Transform musicOverride = transform.Find("MusicOverride");
                 if (musicOverride)
                 {
-                    UnityEngine.Object.Destroy(musicOverride.gameObject);
+                    Destroy(musicOverride.gameObject);
                 }
 
                 CreditsPanelController creditsPanelController = prefab.GetComponent<CreditsPanelController>();
@@ -87,70 +79,27 @@ namespace RiskOfChaos.EffectDefinitions.UI
                 localPrefabs.Add(prefab);
             };
 
+            asyncOperations.Add(creditsPanelLoad);
+
             yield return asyncOperations.WaitForAllLoaded();
         }
 
-        GameObject _creditsPanel;
+        GameObject _creditsPanelObject;
 
-        public override void OnStart()
+        void FixedUpdate()
         {
-            RoR2Application.onFixedUpdate += fixedUpdate;
-        }
+            if (!NetworkClient.active)
+                return;
 
-        void fixedUpdate()
-        {
-            if (!_creditsPanel)
+            if (!_creditsPanelObject)
             {
-                _creditsPanel = UnityEngine.Object.Instantiate(RoCContent.LocalPrefabs.CreditsPanelNoBackground, RoR2Application.instance.mainCanvas.transform);
-
-                CreditsPanelController creditsPanelController = _creditsPanel.GetComponent<CreditsPanelController>();
-                EntityStateMachine stateMachine = _creditsPanel.GetComponent<EntityStateMachine>();
-                if (creditsPanelController && stateMachine)
-                {
-                    float totalCreditsDuration = creditsPanelController.introDuration + creditsPanelController.scrollDuration + creditsPanelController.outroDuration;
-                    float age = TimeElapsed % totalCreditsDuration;
-
-                    bool trySkipToState<T>(float duration) where T : CreditsPanelController.BaseCreditsPanelState, new()
-                    {
-                        if (age > duration)
-                        {
-                            if (stateMachine.state is not T state)
-                            {
-                                state = new T();
-                                stateMachine.SetState(state);
-                            }
-
-                            state.age = age - duration;
-                            state.fixedAge = age - duration;
-
-                            return true;
-                        }
-
-                        return false;
-                    }
-
-                    if (age > 0)
-                    {
-                        if (!trySkipToState<CreditsPanelController.OutroState>(creditsPanelController.introDuration + creditsPanelController.scrollDuration))
-                        {
-                            if (!trySkipToState<CreditsPanelController.MainScrollState>(creditsPanelController.introDuration))
-                            {
-                                if (!trySkipToState<CreditsPanelController.IntroState>(0f))
-                                {
-                                    Log.Warning($"Credits state {stateMachine.state} at age {age} not accounted for");
-                                }
-                            }
-                        }
-                    }
-                }
+                _creditsPanelObject = Instantiate(RoCContent.LocalPrefabs.CreditsPanelNoBackground, RoR2Application.instance.mainCanvas.transform);
             }
         }
 
-        public override void OnEnd()
+        void OnDestroy()
         {
-            RoR2Application.onFixedUpdate -= fixedUpdate;
-
-            UnityEngine.Object.Destroy(_creditsPanel);
+            Destroy(_creditsPanelObject);
         }
     }
 }

@@ -1,13 +1,79 @@
 ﻿using HG;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using System;
+using System.Collections.Generic;
 
 namespace RiskOfChaos.Utilities
 {
-    public static class ItemTierPickupRulesOverride
+    public class ItemTierPickupRulesOverride : IDisposable
     {
-        static ItemTierDef.PickupRules? _overrideRules;
-        public static ItemTierDef.PickupRules? OverrideRules
+        static ItemTierDef.PickupRules[] _originalPickupRules = [];
+
+        [SystemInitializer(typeof(ItemTierCatalog))]
+        static void Init()
+        {
+            ReadOnlyArray<ItemTierDef> itemTierDefs = ItemTierCatalog.allItemTierDefs;
+            _originalPickupRules = new ItemTierDef.PickupRules[itemTierDefs.Length];
+
+            for (int i = 0; i < itemTierDefs.Length; i++)
+            {
+                _originalPickupRules[i] = itemTierDefs[i].pickupRules;
+            }
+        }
+
+        static readonly List<ItemTierPickupRulesOverride> _activeRuleOverrides = [];
+
+        static void refreshPickupRules()
+        {
+            if (_activeRuleOverrides.Count > 0)
+            {
+                setOverridePickupRules(_activeRuleOverrides[^1].OverrideRules);
+            }
+            else
+            {
+                restorePickupRules();
+            }
+        }
+
+        static void setOverridePickupRules(ItemTierDef.PickupRules overridePickupRules)
+        {
+            for (int i = 0; i < ItemTierCatalog.allItemTierDefs.Length; i++)
+            {
+                ItemTierCatalog.allItemTierDefs[i].pickupRules = overridePickupRules;
+            }
+
+#if DEBUG
+            Log.Debug($"Set item pickup rules override: {overridePickupRules}");
+#endif
+        }
+
+        static void restorePickupRules()
+        {
+            if (_originalPickupRules.Length == 0)
+            {
+                Log.Error("Original rules not initialized, cannot restore pickup rules");
+                return;
+            }
+
+            for (int i = 0; i < ItemTierCatalog.allItemTierDefs.Length; i++)
+            {
+                if (i >= _originalPickupRules.Length)
+                {
+                    Log.Error($"Missing original pickup rules for {ItemTierCatalog.GetItemTierDef((ItemTier)i).name}");
+                    continue;
+                }
+
+                ItemTierCatalog.allItemTierDefs[i].pickupRules = _originalPickupRules[i];
+            }
+
+#if DEBUG
+            Log.Debug("Restored item pickup rules");
+#endif
+        }
+
+        ItemTierDef.PickupRules _overrideRules;
+
+        public ItemTierDef.PickupRules OverrideRules
         {
             get
             {
@@ -15,76 +81,27 @@ namespace RiskOfChaos.Utilities
             }
             set
             {
-                bool hadOverride = _overrideRules.HasValue;
+                if (_overrideRules == value)
+                    return;
+
                 _overrideRules = value;
-
-                if (_overrideRules.HasValue)
-                {
-                    applyOverrides();
-                }
-                else
-                {
-                    if (hadOverride)
-                    {
-                        restoreOverrides();
-                    }
-                }
+                refreshPickupRules();
             }
         }
 
-        record class ItemTierPickupRulesOverrideInfo(ItemTierDef TierDef, ItemTierDef.PickupRules OriginalPickupRules)
+        public ItemTierPickupRulesOverride(ItemTierDef.PickupRules pickupRulesOverride)
         {
-            public void RestorePickupRules()
-            {
-                TierDef.pickupRules = OriginalPickupRules;
-            }
-
-            public void SetOverrideRules(ItemTierDef.PickupRules overrideRules)
-            {
-                TierDef.pickupRules = overrideRules;
-            }
-        }
-        static ItemTierPickupRulesOverrideInfo[] _activeOverrides = [];
-
-        [SystemInitializer(typeof(ItemTierCatalog))]
-        static void Init()
-        {
-            int itemTierCount = ItemTierCatalog.itemCount;
-            _activeOverrides = new ItemTierPickupRulesOverrideInfo[itemTierCount];
-
-            ReadOnlyArray<ItemTierDef> tierDefs = ItemTierCatalog.allItemTierDefs;
-            for (int i = 0; i < itemTierCount; i++)
-            {
-                ItemTierDef tierDef = tierDefs[i];
-                _activeOverrides[i] = new ItemTierPickupRulesOverrideInfo(tierDef, tierDef.pickupRules);
-            }
+            _overrideRules = pickupRulesOverride;
+            _activeRuleOverrides.Add(this);
+            refreshPickupRules();
         }
 
-        static void applyOverrides()
+        public void Dispose()
         {
-            if (!_overrideRules.HasValue)
+            if (_activeRuleOverrides.Remove(this))
             {
-                Log.Error("Cannot apply overrides. No override rules specified");
-                return;
+                refreshPickupRules();
             }
-
-            for (int i = 0; i < _activeOverrides.Length; i++)
-            {
-                _activeOverrides[i].SetOverrideRules(_overrideRules.Value);
-            }
-
-#if DEBUG
-            Log.Debug($"Set item pickup rule override: {_overrideRules.Value}");
-#endif
-        }
-
-        static void restoreOverrides()
-        {
-            _activeOverrides.TryDo(overrideInfo => overrideInfo.RestorePickupRules());
-
-#if DEBUG
-            Log.Debug($"Restored item pickup rule override");
-#endif
         }
     }
 }

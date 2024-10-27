@@ -4,11 +4,14 @@ using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Patches;
+using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.UI;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -17,11 +20,11 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.UI
 {
-    [ChaosTimedEffect("scramble_text", 120f, AllowDuplicates = false, IsNetworked = true)]
-    public sealed class ScrambleText : TimedEffect
+    [ChaosTimedEffect("scramble_text", 120f, AllowDuplicates = false)]
+    public sealed class ScrambleText : NetworkBehaviour
     {
         [InitEffectInfo]
-        public static new readonly TimedEffectInfo EffectInfo;
+        public static readonly TimedEffectInfo EffectInfo;
 
         [EffectConfig]
         static readonly ConfigHolder<bool> _excludeEffectNames =
@@ -50,46 +53,47 @@ namespace RiskOfChaos.EffectDefinitions.UI
 
         readonly HashSet<TMP_Text> _processedTextLabels = [];
 
+        ChaosEffectComponent _effectComponent;
+
+        [SyncVar]
+        [SerializedMember("s")]
         ulong _baseScrambleSeed;
 
-        public override void OnPreStartServer()
+        void Awake()
         {
-            base.OnPreStartServer();
-            _baseScrambleSeed = RNG.nextUlong;
+            _effectComponent = GetComponent<ChaosEffectComponent>();
         }
 
-        public override void Serialize(NetworkWriter writer)
+        public override void OnStartServer()
         {
-            base.Serialize(writer);
-            writer.WritePackedUInt64(_baseScrambleSeed);
+            base.OnStartServer();
+
+            _baseScrambleSeed = _effectComponent.Rng.nextUlong;
         }
 
-        public override void Deserialize(NetworkReader reader)
-        {
-            base.Deserialize(reader);
-            _baseScrambleSeed = reader.ReadPackedUInt64();
-        }
-
-        public override void OnStart()
+        void Start()
         {
             LocalizedStringOverridePatch.OverrideLanguageString += overrideLanguageString;
             Language.onCurrentLanguageChanged += onCurrentLanguageChanged;
 
-            On.RoR2.UI.CreditsPanelController.OnEnable += CreditsPanelController_OnEnable;
             InstanceTracker.GetInstancesList<CreditsPanelController>().TryDo(scrambleCredits);
+            CreditsPanelControllerHooks.OnCreditsPanelControllerEnableGlobal += scrambleCredits;
         }
 
-        public override void OnEnd()
+        void OnDestroy()
         {
             Language.onCurrentLanguageChanged -= onCurrentLanguageChanged;
             LocalizedStringOverridePatch.OverrideLanguageString -= overrideLanguageString;
 
-            On.RoR2.UI.CreditsPanelController.OnEnable -= CreditsPanelController_OnEnable;
+            CreditsPanelControllerHooks.OnCreditsPanelControllerEnableGlobal -= scrambleCredits;
 
             foreach (TMP_Text label in _processedTextLabels)
             {
-                label.textPreprocessor = null;
-                label.ForceMeshUpdate();
+                if (label.textPreprocessor is ScramblePreprocessor)
+                {
+                    label.textPreprocessor = null;
+                    label.ForceMeshUpdate();
+                }
             }
 
             _processedTextLabels.Clear();
@@ -100,24 +104,25 @@ namespace RiskOfChaos.EffectDefinitions.UI
             _tokenOverrideCache.Clear();
         }
 
-        void CreditsPanelController_OnEnable(On.RoR2.UI.CreditsPanelController.orig_OnEnable orig, CreditsPanelController self)
-        {
-            orig(self);
-
-            scrambleCredits(self);
-        }
-
         void scrambleCredits(CreditsPanelController creditsController)
         {
             HGTextMeshProUGUI[] labels = creditsController.GetComponentsInChildren<HGTextMeshProUGUI>(true);
+            _processedTextLabels.EnsureCapacity(_processedTextLabels.Count + labels.Length);
+
             for (int i = 0; i < labels.Length; i++)
             {
-                if (!labels[i] || labels[i].GetComponent<LanguageTextMeshController>())
-                    continue;
+                HGTextMeshProUGUI label = labels[i];
+                if (label && !label.GetComponent<LanguageTextMeshController>())
+                {
+                    if (label.textPreprocessor != null)
+                    {
+                        Log.Warning($"Overriding text preprocessor {label.textPreprocessor} for {label} (in {creditsController})");
+                    }
 
-                labels[i].textPreprocessor = new ScramblePreprocessor(_baseScrambleSeed ^ (ulong)i);
-                labels[i].ForceMeshUpdate();
-                _processedTextLabels.Add(labels[i]);
+                    label.textPreprocessor = new ScramblePreprocessor(_baseScrambleSeed ^ (ulong)i);
+                    label.ForceMeshUpdate();
+                    _processedTextLabels.Add(label);
+                }
             }
         }
 
@@ -164,7 +169,7 @@ namespace RiskOfChaos.EffectDefinitions.UI
                 return;
             }
 
-            str = scrambleString(str, _baseScrambleSeed ^ (ulong)token.GetHashCode());
+            str = scrambleString(str, _baseScrambleSeed + (ulong)StringComparer.OrdinalIgnoreCase.GetHashCode(str));
 
             _tokenOverrideCache.Add(token, str);
         }
@@ -182,6 +187,9 @@ namespace RiskOfChaos.EffectDefinitions.UI
             _sharedResultBuilder.Clear();
             _sharedWordBuilder.Clear();
 
+            _sharedResultBuilder.EnsureCapacity(str.Length);
+            _sharedWordBuilder.EnsureCapacity(str.Length);
+
             void endCurrentWord()
             {
                 if (_sharedWordBuilder.Length == 0)
@@ -190,7 +198,7 @@ namespace RiskOfChaos.EffectDefinitions.UI
                 char[] wordLetters = _sharedWordBuilder.ToString().ToCharArray();
                 Util.ShuffleArray(wordLetters, rng);
 
-                _sharedResultBuilder.Append(new string(wordLetters));
+                _sharedResultBuilder.Append(wordLetters);
                 _sharedWordBuilder.Clear();
             }
 

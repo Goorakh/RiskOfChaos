@@ -4,20 +4,20 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
-using RoR2;
 using System.Collections.Generic;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Meta
 {
     [ChaosEffect("activate_several_effects", DefaultSelectionWeight = 0.5f)]
-    public sealed class ActivateSeveralEffects : BaseEffect
+    public sealed class ActivateSeveralEffects : NetworkBehaviour
     {
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;
-
-        static readonly HashSet<ChaosEffectInfo> _excludeEffects = [];
 
         [EffectConfig]
         static readonly ConfigHolder<int> _numEffectsToActivate =
@@ -34,23 +34,44 @@ namespace RiskOfChaos.EffectDefinitions.Meta
                                .OptionConfig(new CheckBoxConfig())
                                .Build();
 
-        [SystemInitializer(typeof(ChaosEffectCatalog))]
-        static void InitConfig()
+        ChaosEffectComponent _effectComponent;
+
+        Xoroshiro128Plus _rng;
+
+        void Awake()
         {
-            _excludeEffects.Add(_effectInfo);
+            _effectComponent = GetComponent<ChaosEffectComponent>();
         }
 
-        public override void OnStart()
+        public override void OnStartServer()
         {
+            base.OnStartServer();
+
+            _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+        }
+
+        void Start()
+        {
+            if (!NetworkServer.active)
+                return;
+
+            RunTimeStamp effectStartTime = _effectComponent.TimeStarted;
+
             bool allowDuplicateEffects = _allowDuplicateEffects.Value;
 
-            HashSet<ChaosEffectInfo> excludeEffects = !allowDuplicateEffects ? new HashSet<ChaosEffectInfo>(_excludeEffects) : _excludeEffects;
+            HashSet<ChaosEffectInfo> excludeEffects = [_effectInfo];
 
-            for (int i = _numEffectsToActivate.Value - 1; i >= 0; i--)
+            if (!allowDuplicateEffects)
             {
-                ChaosEffectInfo effect = ChaosEffectActivationSignaler.PickEffect(RNG.Branch(), excludeEffects, out ChaosEffectDispatchArgs dispatchArgs);
+                excludeEffects.EnsureCapacity(excludeEffects.Count + _numEffectsToActivate.Value);
+            }
+
+            for (int i = 0; i < _numEffectsToActivate.Value; i++)
+            {
+                ChaosEffectInfo effect = ChaosEffectActivationSignaler.PickEffect(_rng.Branch(), excludeEffects, out ChaosEffectDispatchArgs dispatchArgs);
+                dispatchArgs.OverrideStartTime = effectStartTime;
                 dispatchArgs.DispatchFlags |= EffectDispatchFlags.DontPlaySound;
-                dispatchArgs.RNGSeed = RNG.nextUlong;
+                dispatchArgs.RNGSeed = _rng.nextUlong;
                 ChaosEffectDispatcher.Instance.DispatchEffectServer(effect, dispatchArgs);
 
                 if (!allowDuplicateEffects)

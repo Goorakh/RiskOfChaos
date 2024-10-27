@@ -16,6 +16,13 @@
   * Fixed issues with ProperSave save/load
   * Fixed changing Permanently Active config settings requiring a run restart to take effect
 
+* Adaptive Recycling:
+  * Now more closely resembles adaptive chests:
+    * All dropped items will start recycling at an accelerated rate, before eventually settling on an item
+
+* Item Magnet & Item Repulsor:
+  * Fixed non-host players in multiplayer not seeing the correct position of item drops
+
 * Activate All Interactables:
   * Added interactables to effect
     * Captain beacons
