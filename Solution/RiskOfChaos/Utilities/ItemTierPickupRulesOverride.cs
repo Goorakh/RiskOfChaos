@@ -1,7 +1,6 @@
 ﻿using HG;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using System;
 
 namespace RiskOfChaos.Utilities
 {

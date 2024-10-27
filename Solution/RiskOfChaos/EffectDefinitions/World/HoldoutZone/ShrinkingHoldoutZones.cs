@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Trackers;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Collections.Generic;
@@ -11,12 +12,18 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
     [ChaosTimedEffect("shrinking_holdout_zones", TimedEffectType.UntilStageEnd, AllowDuplicates = false)]
     public sealed class ShrinkingHoldoutZones : MonoBehaviour
     {
-        readonly List<ShrinkingHoldoutZoneController> _addedShrinkComponents = [];
+        readonly List<ShrinkingHoldoutZoneController> _holdoutZoneShrinkControllers = [];
+
+        readonly List<OnDestroyCallback> _destroyCallbacks = [];
+
+        bool _trackedObjectDestroyed;
 
         void Start()
         {
             List<HoldoutZoneTracker> holdoutZoneTrackers = InstanceTracker.GetInstancesList<HoldoutZoneTracker>();
-            _addedShrinkComponents.EnsureCapacity(holdoutZoneTrackers.Count);
+
+            _holdoutZoneShrinkControllers.EnsureCapacity(holdoutZoneTrackers.Count);
+            _destroyCallbacks.EnsureCapacity(holdoutZoneTrackers.Count);
 
             foreach (HoldoutZoneTracker holdoutZoneTracker in holdoutZoneTrackers)
             {
@@ -30,7 +37,17 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
         {
             HoldoutZoneTracker.OnHoldoutZoneStartGlobal -= registerHoldoutZone;
 
-            foreach (ShrinkingHoldoutZoneController shrinkComponent in _addedShrinkComponents)
+            foreach (OnDestroyCallback destroyCallback in _destroyCallbacks)
+            {
+                if (destroyCallback)
+                {
+                    OnDestroyCallback.RemoveCallback(destroyCallback);
+                }
+            }
+
+            _destroyCallbacks.Clear();
+
+            foreach (ShrinkingHoldoutZoneController shrinkComponent in _holdoutZoneShrinkControllers)
             {
                 if (shrinkComponent)
                 {
@@ -38,7 +55,22 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
                 }
             }
 
-            _addedShrinkComponents.Clear();
+            _holdoutZoneShrinkControllers.Clear();
+        }
+
+        void FixedUpdate()
+        {
+            if (_trackedObjectDestroyed)
+            {
+                _trackedObjectDestroyed = false;
+
+                UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
+
+                int removedShrinkControllers = UnityObjectUtils.RemoveAllDestroyed(_holdoutZoneShrinkControllers);
+#if DEBUG
+                Log.Debug($"Cleared {removedShrinkControllers} destroyed shrink controller(s)");
+#endif
+            }
         }
 
         void registerHoldoutZone(HoldoutZoneTracker holdoutZoneTracker)
@@ -47,8 +79,15 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
             if (!holdoutZoneController || holdoutZoneController.GetComponent<ShrinkingHoldoutZoneController>())
                 return;
 
-            ShrinkingHoldoutZoneController shrinkComponent = holdoutZoneController.gameObject.AddComponent<ShrinkingHoldoutZoneController>();
-            _addedShrinkComponents.Add(shrinkComponent);
+            ShrinkingHoldoutZoneController shrinkController = holdoutZoneController.gameObject.AddComponent<ShrinkingHoldoutZoneController>();
+            _holdoutZoneShrinkControllers.Add(shrinkController);
+
+            OnDestroyCallback destroyCallback = OnDestroyCallback.AddCallback(shrinkController.gameObject, _ =>
+            {
+                _trackedObjectDestroyed = true;
+            });
+
+            _destroyCallbacks.Add(destroyCallback);
         }
 
         class ShrinkingHoldoutZoneController : MonoBehaviour

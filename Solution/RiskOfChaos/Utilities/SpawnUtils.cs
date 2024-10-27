@@ -388,7 +388,7 @@ namespace RiskOfChaos.Utilities
                 sharedNodesBuffer.EnsureCapacity(nodeGraph.GetNodeCount());
                 nodeGraph.GetActiveNodesForHullMaskWithFlagConditions(nodeSelectionRules.HullMask, nodeSelectionRules.RequiredFlags, nodeSelectionRules.ForbiddenFlags, sharedNodesBuffer);
 
-                dest.EnsureAdditionalCapacity(sharedNodesBuffer.Count);
+                dest.EnsureCapacity(dest.Count + sharedNodesBuffer.Count);
 
                 foreach (NodeGraph.NodeIndex nodeIndex in sharedNodesBuffer)
                 {

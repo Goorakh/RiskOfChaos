@@ -91,31 +91,16 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             }
         }
 
+        readonly List<KeepBuff> _keepBuffComponents = [];
+        readonly List<OnDestroyCallback> _destroyCallbacks = [];
+
         bool _buffComponentsDirty;
 
-        readonly List<KeepBuff> _keepBuffComponents = [];
+        bool _trackedObjectDestroyed;
 
-        void OnEnable()
+        void Awake()
         {
             _instancesList.Add(this);
-
-            if (NetworkServer.active)
-            {
-                updateAllBuffComponents();
-            }
-        }
-
-        void OnDisable()
-        {
-            _instancesList.Remove(this);
-
-            foreach (KeepBuff keepBuff in _keepBuffComponents)
-            {
-                if (keepBuff)
-                {
-                    keepBuff.enabled = false;
-                }
-            }
         }
 
         void Start()
@@ -131,7 +116,19 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 
         void OnDestroy()
         {
+            _instancesList.Remove(this);
+
             CharacterBody.onBodyStartGlobal -= tryAddBuff;
+
+            foreach (OnDestroyCallback destroyCallback in _destroyCallbacks)
+            {
+                if (destroyCallback)
+                {
+                    OnDestroyCallback.RemoveCallback(destroyCallback);
+                }
+            }
+
+            _destroyCallbacks.Clear();
 
             foreach (KeepBuff keepBuff in _keepBuffComponents)
             {
@@ -146,6 +143,18 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 
         void FixedUpdate()
         {
+            if (_trackedObjectDestroyed)
+            {
+                _trackedObjectDestroyed = false;
+                UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
+
+                int removedBuffComponents = UnityObjectUtils.RemoveAllDestroyed(_keepBuffComponents);
+
+#if DEBUG
+                Log.Debug($"Cleared {removedBuffComponents} destroyed buff component(s)");
+#endif
+            }
+
             if (NetworkServer.active)
             {
                 if (_buffComponentsDirty)
@@ -165,6 +174,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             updateBuffComponent(keepBuff);
 
             _keepBuffComponents.Add(keepBuff);
+
+            OnDestroyCallback destroyCallback = OnDestroyCallback.AddCallback(keepBuff.gameObject, _ =>
+            {
+                _trackedObjectDestroyed = true;
+            });
+
+            _destroyCallbacks.Add(destroyCallback);
 
             OnBuffAppliedServer?.Invoke(body);
         }

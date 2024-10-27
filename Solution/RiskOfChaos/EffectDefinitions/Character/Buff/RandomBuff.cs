@@ -1,7 +1,4 @@
-﻿using HarmonyLib;
-using Mono.Cecil.Cil;
-using MonoMod.Cil;
-using RiskOfChaos.Collections.CatalogIndex;
+﻿using RiskOfChaos.Collections.CatalogIndex;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.Content;
@@ -12,7 +9,6 @@ using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using System;
 using System.Linq;
 using UnityEngine.Networking;
 
