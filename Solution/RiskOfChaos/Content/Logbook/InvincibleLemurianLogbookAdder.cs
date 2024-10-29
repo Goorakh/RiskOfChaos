@@ -12,7 +12,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Content.Logbook
@@ -31,9 +30,18 @@ namespace RiskOfChaos.Content.Logbook
 
         static LemurianStatCollection _elderLemurianStats;
 
-        public static LemurianStatCollection GetStatCollection(bool isElder)
+        public static LemurianStatCollection GetStatCollection(BodyIndex bodyIndex)
         {
-            return isElder ? _elderLemurianStats : _lemurianStats;
+            if (bodyIndex == BodyIndex.None)
+                return null;
+
+            if (bodyIndex == BodyCatalog.FindBodyIndex("InvincibleLemurianBody"))
+                return _lemurianStats;
+
+            if (bodyIndex == BodyCatalog.FindBodyIndex("InvincibleLemurianBruiserBody"))
+                return _elderLemurianStats;
+
+            return null;
         }
 
         [ConCommand(commandName = "roc_debug_reset_leonard_stats")]
@@ -77,7 +85,7 @@ namespace RiskOfChaos.Content.Logbook
         [ContentInitializer]
         static IEnumerator LoadContent(LocalPrefabAssetCollection localPrefabs)
         {
-            List<AsyncOperationHandle> asyncOperations = [];
+            List<AsyncOperationHandle> asyncOperations = new List<AsyncOperationHandle>(2);
 
             static GameObject createGlowModel(CharacterBody bodyPrefab)
             {
@@ -141,57 +149,6 @@ namespace RiskOfChaos.Content.Logbook
                 StatDef.Register("invincibleElderLemuriansKilledBy", StatRecordType.Sum, StatDataType.ULong, 0),
                 StatDef.Register("invincibleElderLemuriansKilled", StatRecordType.Sum, StatDataType.ULong, 0));
 
-            GlobalEventManager.onCharacterDeathGlobal += report =>
-            {
-                if (!NetworkServer.active)
-                    return;
-
-                StatSheet victimStatSheet = PlayerStatsComponent.FindMasterStatSheet(report.victimMaster);
-                if (victimStatSheet != null)
-                {
-                    if (report.attackerMaster)
-                    {
-                        Inventory attackerInventory = report.attackerMaster.inventory;
-                        if (attackerInventory && attackerInventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
-                        {
-                            bool isElder = report.attackerBodyIndex == BodyCatalog.FindBodyIndex("LemurianBruiserBody");
-
-                            LemurianStatCollection lemurianStatCollection = GetStatCollection(isElder);
-
-                            victimStatSheet.PushStatValue(lemurianStatCollection.KilledByStat, 1);
-
-                            victimStatSheet.AddUnlockable(lemurianStatCollection.LogUnlockableDef);
-
-#if DEBUG
-                            Log.Debug($"Recorded Leonard player kill. victim={Util.GetBestMasterName(report.victimMaster)}, isElder={isElder}");
-#endif
-                        }
-                    }
-                }
-
-                if (report.victimMaster)
-                {
-                    Inventory victimInventory = report.victimMaster.inventory;
-                    if (victimInventory && victimInventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
-                    {
-                        bool isElder = report.victimBodyIndex == BodyCatalog.FindBodyIndex("LemurianBruiserBody");
-
-                        LemurianStatCollection lemurianStatCollection = GetStatCollection(isElder);
-
-                        foreach (PlayerStatsComponent statsComponent in PlayerStatsComponent.instancesList)
-                        {
-                            statsComponent.currentStats.PushStatValue(lemurianStatCollection.KilledStat, 1);
-
-                            statsComponent.currentStats.AddUnlockable(lemurianStatCollection.LogUnlockableDef);
-                        }
-
-#if DEBUG
-                        Log.Debug($"Recorded Leonard death. attacker={Util.GetBestMasterName(report.attackerMaster)}, isElder={isElder}");
-#endif
-                    }
-                }
-            };
-
             On.RoR2.UI.LogBook.LogBookController.BuildMonsterEntries += LogBookController_BuildMonsterEntries;
         }
 
@@ -199,7 +156,7 @@ namespace RiskOfChaos.Content.Logbook
         {
             Entry[] entries = orig(expansionAvailability);
 
-            static EntryStatus getLeonardEntryStatus(UserProfile viewerProfile, in LemurianStatCollection statCollection)
+            static EntryStatus getLeonardEntryStatus(UserProfile viewerProfile, LemurianStatCollection statCollection)
             {
                 StatSheet statSheet = viewerProfile.statSheet;
 
@@ -224,7 +181,7 @@ namespace RiskOfChaos.Content.Logbook
                 ]);
             }
 
-            static void addLeonardUserStats(PageBuilder builder, CharacterBody body, in LemurianStatCollection statCollection)
+            static void addLeonardUserStats(PageBuilder builder, CharacterBody body, LemurianStatCollection statCollection)
             {
                 StatSheet statSheet = builder.statSheet;
 
@@ -244,7 +201,7 @@ namespace RiskOfChaos.Content.Logbook
                 builder.AddNotesPanel(Language.GetString(loreToken));
             }
 
-            TooltipContent getLeonardTooltipContent(in Entry entry, UserProfile userProfile, EntryStatus status)
+            static TooltipContent getLeonardTooltipContent(in Entry entry, UserProfile userProfile, EntryStatus status)
             {
                 if (status >= EntryStatus.Available)
                 {
@@ -266,76 +223,101 @@ namespace RiskOfChaos.Content.Logbook
                 }
             }
 
-            if (_lemurianBodyPrefab)
+            Entry insertInvincibleLemurianEntry(CharacterBody lemurianPrefab, CharacterBody invincibleLemurianPrefab, GameObject modelPrefab, Entry.GetStatusDelegate getStatus, Action<PageBuilder> pageBuilder, Entry.GetTooltipContentDelegate getTooltipContent)
             {
-                int lemurianIndex = Array.FindIndex(entries, e => ReferenceEquals(e.extraData, _lemurianBodyPrefab));
-                if (lemurianIndex != -1)
+                int invincibleLemurianInsertIndex;
+
+                // Gearbox fucked up and put devoted lemurians in the logbook, so the instance we have is actually not in the entries array at all
+                // So hacky name token comparison it is!
+                int lemurianIndex = Array.FindIndex(entries, e => e.extraData is CharacterBody body && body.baseNameToken == lemurianPrefab.baseNameToken);
+                if (lemurianIndex == -1)
                 {
-                    Entry lemurianEntry = entries[lemurianIndex];
+                    invincibleLemurianInsertIndex = -1;
 
-                    static EntryStatus getEntryStatus(in Entry entry, UserProfile viewerProfile)
+                    for (int i = 0; i < entries.Length; i++)
                     {
-                        return getLeonardEntryStatus(viewerProfile, _lemurianStats);
+                        if (entries[i].extraData is CharacterBody body)
+                        {
+                            if (body.baseMaxHealth > invincibleLemurianPrefab.baseMaxHealth)
+                            {
+                                invincibleLemurianInsertIndex = i;
+                                break;
+                            }
+                        }
                     }
 
-                    static void pageBuilder(PageBuilder builder)
-                    {
-                        CharacterBody body = (CharacterBody)builder.entry.extraData;
-
-                        addLeonardBodyStats(builder, body);
-                        addLeonardUserStats(builder, body, _lemurianStats);
-                        addLeonardLore(builder, "INVINCIBLE_LEMURIAN_BODY_LORE");
-                    }
-
-                    ArrayUtils.ArrayInsert(ref entries, lemurianIndex + 1, new Entry
-                    {
-                        nameToken = "INVINCIBLE_LEMURIAN_BODY_NAME",
-                        color = ColorCatalog.GetColor(ColorCatalog.ColorIndex.Interactable),
-                        iconTexture = lemurianEntry.iconTexture,
-                        extraData = lemurianEntry.extraData,
-                        modelPrefab = _lemurianGlowModelPrefab ? _lemurianGlowModelPrefab : lemurianEntry.modelPrefab,
-                        getStatusImplementation = getEntryStatus,
-                        pageBuilderMethod = pageBuilder,
-                        getTooltipContentImplementation = getLeonardTooltipContent,
-                        bgTexture = Addressables.LoadAssetAsync<Texture2D>("RoR2/Base/Common/texBossBGIcon.png").WaitForCompletion()
-                    });
+                    if (invincibleLemurianInsertIndex < 0)
+                        invincibleLemurianInsertIndex = entries.Length;
                 }
+                else
+                {
+                    invincibleLemurianInsertIndex = lemurianIndex + 1;
+                }
+
+                if (!modelPrefab)
+                {
+                    if (invincibleLemurianPrefab.TryGetComponent(out ModelLocator modelLocator) && modelLocator.modelTransform)
+                    {
+                        modelPrefab = modelLocator.modelTransform.gameObject;
+                    }
+                }
+
+                Entry entry = new Entry
+                {
+                    nameToken = invincibleLemurianPrefab.baseNameToken,
+                    color = ColorCatalog.GetColor(ColorCatalog.ColorIndex.Interactable),
+                    iconTexture = invincibleLemurianPrefab.portraitIcon,
+                    extraData = invincibleLemurianPrefab,
+                    modelPrefab = modelPrefab,
+                    getStatusImplementation = getStatus,
+                    pageBuilderMethod = pageBuilder,
+                    getTooltipContentImplementation = getTooltipContent,
+                    bgTexture = Addressables.LoadAssetAsync<Texture2D>("RoR2/Base/Common/texBossBGIcon.png").WaitForCompletion()
+                };
+
+                ArrayUtils.ArrayInsert(ref entries, invincibleLemurianInsertIndex, entry);
+
+                return entry;
             }
 
-            if (_lemurianBruiserBodyPrefab)
+            GameObject invincibleLemurianBodyPrefabObj = BodyCatalog.FindBodyPrefab("InvincibleLemurianBody");
+            if (_lemurianBodyPrefab && invincibleLemurianBodyPrefabObj && invincibleLemurianBodyPrefabObj.TryGetComponent(out CharacterBody invincibleLemurianBody))
             {
-                int elderLemurianIndex = Array.FindIndex(entries, e => ReferenceEquals(e.extraData, _lemurianBruiserBodyPrefab));
-                if (elderLemurianIndex != -1)
+                static EntryStatus getEntryStatus(in Entry entry, UserProfile viewerProfile)
                 {
-                    Entry elderLemurianEntry = entries[elderLemurianIndex];
-
-                    static EntryStatus getEntryStatus(in Entry entry, UserProfile viewerProfile)
-                    {
-                        return getLeonardEntryStatus(viewerProfile, _elderLemurianStats);
-                    }
-
-                    static void pageBuilder(PageBuilder builder)
-                    {
-                        CharacterBody body = (CharacterBody)builder.entry.extraData;
-
-                        addLeonardBodyStats(builder, body);
-                        addLeonardUserStats(builder, body, _elderLemurianStats);
-                        addLeonardLore(builder, "INVINCIBLE_LEMURIAN_ELDER_BODY_LORE");
-                    }
-
-                    ArrayUtils.ArrayInsert(ref entries, elderLemurianIndex + 1, new Entry
-                    {
-                        nameToken = "INVINCIBLE_LEMURIAN_ELDER_BODY_NAME",
-                        color = ColorCatalog.GetColor(ColorCatalog.ColorIndex.Interactable),
-                        iconTexture = elderLemurianEntry.iconTexture,
-                        extraData = elderLemurianEntry.extraData,
-                        modelPrefab = _lemurianBruiserGlowModelPrefab ? _lemurianBruiserGlowModelPrefab : elderLemurianEntry.modelPrefab,
-                        getStatusImplementation = getEntryStatus,
-                        pageBuilderMethod = pageBuilder,
-                        getTooltipContentImplementation = getLeonardTooltipContent,
-                        bgTexture = Addressables.LoadAssetAsync<Texture2D>("RoR2/Base/Common/texBossBGIcon.png").WaitForCompletion()
-                    });
+                    return getLeonardEntryStatus(viewerProfile, _lemurianStats);
                 }
+
+                static void pageBuilder(PageBuilder builder)
+                {
+                    CharacterBody body = (CharacterBody)builder.entry.extraData;
+
+                    addLeonardBodyStats(builder, body);
+                    addLeonardUserStats(builder, body, _lemurianStats);
+                    addLeonardLore(builder, "INVINCIBLE_LEMURIAN_BODY_LORE");
+                }
+
+                insertInvincibleLemurianEntry(_lemurianBodyPrefab, invincibleLemurianBody, _lemurianGlowModelPrefab, getEntryStatus, pageBuilder, getLeonardTooltipContent);
+            }
+
+            GameObject invincibleLemurianBruiserBodyPrefabObj = BodyCatalog.FindBodyPrefab("InvincibleLemurianBruiserBody");
+            if (_lemurianBruiserBodyPrefab && invincibleLemurianBruiserBodyPrefabObj && invincibleLemurianBruiserBodyPrefabObj.TryGetComponent(out CharacterBody invincibleLemurianBruiserBody))
+            {
+                static EntryStatus getEntryStatus(in Entry entry, UserProfile viewerProfile)
+                {
+                    return getLeonardEntryStatus(viewerProfile, _elderLemurianStats);
+                }
+
+                static void pageBuilder(PageBuilder builder)
+                {
+                    CharacterBody body = (CharacterBody)builder.entry.extraData;
+
+                    addLeonardBodyStats(builder, body);
+                    addLeonardUserStats(builder, body, _elderLemurianStats);
+                    addLeonardLore(builder, "INVINCIBLE_LEMURIAN_ELDER_BODY_LORE");
+                }
+
+                insertInvincibleLemurianEntry(_lemurianBruiserBodyPrefab, invincibleLemurianBruiserBody, _lemurianBruiserGlowModelPrefab, getEntryStatus, pageBuilder, getLeonardTooltipContent);
             }
 
             return entries;

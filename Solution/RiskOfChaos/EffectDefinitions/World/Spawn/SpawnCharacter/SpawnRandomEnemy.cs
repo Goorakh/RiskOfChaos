@@ -3,41 +3,67 @@ using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.EffectUtils.World.Spawn;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using System.Linq;
+using RoR2.Navigation;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 {
     [ChaosEffect("spawn_random_enemy")]
-    public sealed class SpawnRandomEnemy : GenericSpawnCombatCharacterEffect
+    public sealed class SpawnRandomEnemy : NetworkBehaviour
     {
-        static CharacterSpawnEntry[] _spawnEntries;
+        static readonly SpawnPool<CharacterSpawnCard> _spawnPool = new SpawnPool<CharacterSpawnCard>
+        {
+            RequiredExpansionsProvider = SpawnPoolUtils.CharacterSpawnCardExpansionsProvider
+        };
 
         [SystemInitializer(typeof(MasterCatalog))]
         static void Init()
         {
-            _spawnEntries = getAllValidMasterPrefabs(false).Where(master =>
+            List<CharacterMaster> validCombatCharacters = [];
+            CombatCharacterSpawnHelper.GetAllValidCombatCharacters(validCombatCharacters);
+
+            _spawnPool.EnsureCapacity(validCombatCharacters.Count);
+
+            foreach (CharacterMaster master in validCombatCharacters)
             {
                 CharacterBody bodyPrefab = master.bodyPrefab.GetComponent<CharacterBody>();
-
-                // Exclude bosses from being spawned, there is already an effect for that after all
                 if (bodyPrefab.isChampion)
+                    continue;
+
+                float weight = 1f;
+
+                SurvivorIndex survivorIndex = SurvivorCatalog.GetSurvivorIndexFromBodyIndex(bodyPrefab.bodyIndex);
+                if (survivorIndex != SurvivorIndex.None)
                 {
-#if DEBUG
-                    Log.Debug($"Excluding master {master}: boss");
-#endif
-                    return false;
+                    weight *= 0.75f;
                 }
 
-                return true;
-            }).Select(master =>
-            {
-                return new CharacterSpawnEntry(master, 1f);
-            }).ToArray();
+                if ((bodyPrefab.bodyFlags & CharacterBody.BodyFlags.Mechanical) != 0)
+                {
+                    weight *= 0.6f;
+                }
+
+                CharacterSpawnCard spawnCard = ScriptableObject.CreateInstance<CharacterSpawnCard>();
+                spawnCard.name = $"cscEnemy{master.name}";
+                spawnCard.prefab = master.gameObject;
+                spawnCard.sendOverNetwork = true;
+                spawnCard.hullSize = bodyPrefab.hullClassification;
+                spawnCard.nodeGraphType = CombatCharacterSpawnHelper.GetSpawnGraphType(master);
+                spawnCard.requiredFlags = NodeFlags.None;
+                spawnCard.forbiddenFlags = NodeFlags.NoCharacterSpawn;
+
+                _spawnPool.AddEntry(spawnCard, weight);
+            }
+
+            _spawnPool.TrimExcess();
         }
 
         [EffectConfig]
@@ -61,41 +87,81 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                                .OptionConfig(new CheckBoxConfig())
                                .Build();
 
-        protected override float eliteChance => _eliteChance.Value;
-
-        protected override bool allowDirectorUnavailableElites => _allowDirectorUnavailableElites.Value;
-
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return areAnyAvailable(_spawnEntries);
+            return _spawnPool.AnyAvailable;
         }
 
-        public override void OnStart()
-        {
-            CharacterMaster enemySpawnPrefab = getItemToSpawn(_spawnEntries, RNG);
-            setupPrefab(enemySpawnPrefab);
+        ChaosEffectComponent _effectComponent;
 
-            foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
+        Xoroshiro128Plus _rng;
+
+        CharacterSpawnCard _enemySpawnCard;
+
+        void Awake()
+        {
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+
+            _enemySpawnCard = _spawnPool.PickRandomEntry(_rng);
+        }
+
+        void Start()
+        {
+            if (!NetworkServer.active)
+                return;
+
+            foreach (PlayerCharacterMasterController playerMaster in PlayerCharacterMasterController.instances)
             {
-                new MasterSummon()
+                if (!playerMaster.isConnected)
+                    continue;
+
+                CharacterMaster master = playerMaster.master;
+                if (!master || master.IsDeadAndOutOfLivesServer())
+                    continue;
+
+                if (!master.TryGetBodyPosition(out Vector3 bodyPosition))
+                    continue;
+
+                DirectorPlacementRule placementRule = new DirectorPlacementRule
                 {
-                    masterPrefab = enemySpawnPrefab.gameObject,
-                    position = getProperSpawnPosition(playerBody.footPosition, enemySpawnPrefab, RNG),
-                    rotation = Quaternion.identity,
-                    teamIndexOverride = TeamIndex.Monster,
+                    placementMode = DirectorPlacementRule.PlacementMode.Approximate,
+                    position = bodyPosition,
+                    preventOverhead = true,
+                    minDistance = 10f,
+                    maxDistance = 50f
+                };
+
+                DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_enemySpawnCard, placementRule, _rng)
+                {
                     ignoreTeamMemberLimit = true,
-                    useAmbientLevel = true,
-                    preSpawnSetupCallback = onSpawned,
-                }.Perform();
+                    teamIndexOverride = TeamIndex.Monster,
+                    onSpawnedServer = onEnemySpawnedServer
+                };
+
+                spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());
             }
         }
 
-        protected override void onSpawned(CharacterMaster master)
+        void onEnemySpawnedServer(SpawnCard.SpawnResult result)
         {
-            base.onSpawned(master);
+            if (!result.success)
+                return;
 
-            master.gameObject.SetDontDestroyOnLoad(false);
+            if (result.spawnedInstance.TryGetComponent(out CharacterMaster master))
+            {
+                CombatCharacterSpawnHelper.SetupSpawnedCombatCharacter(master, _rng);
+                CombatCharacterSpawnHelper.TryGrantEliteAspect(master, _rng, _eliteChance.Value, _allowDirectorUnavailableElites.Value);
+
+                master.gameObject.SetDontDestroyOnLoad(false);
+            }
         }
     }
 }

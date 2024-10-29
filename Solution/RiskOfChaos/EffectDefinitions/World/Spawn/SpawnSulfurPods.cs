@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -8,11 +9,12 @@ using RoR2.Navigation;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("spawn_sulfur_pods")]
-    public sealed class SpawnSulfurPods : BaseEffect
+    public sealed class SpawnSulfurPods : NetworkBehaviour
     {
         static readonly SpawnUtils.NodeSelectionRules _placementSelectionRules = new SpawnUtils.NodeSelectionRules(SpawnUtils.NodeGraphFlags.Ground, true, HullMask.Human | HullMask.Golem, NodeFlags.None, NodeFlags.NoCharacterSpawn);
 
@@ -21,7 +23,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [SystemInitializer]
         static void Init()
         {
-            _sulfurPodPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/SulfurPod/SulfurPodBody.prefab").WaitForCompletion();
+            AsyncOperationHandle<GameObject> sulfurPodLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/SulfurPod/SulfurPodBody.prefab");
+            sulfurPodLoad.OnSuccess(sulfurPodPrefab => _sulfurPodPrefab = sulfurPodPrefab);
         }
 
         [EffectCanActivate]
@@ -30,25 +33,44 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             return ExpansionUtils.DLC1Enabled && _sulfurPodPrefab && SpawnUtils.GetNodes(_placementSelectionRules).Count > 0;
         }
 
-        public override void OnStart()
+        ChaosEffectComponent _effectComponent;
+
+        Xoroshiro128Plus _rng;
+
+        void Awake()
         {
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+        }
+
+        void Start()
+        {
+            if (!NetworkServer.active)
+                return;
+
             foreach (Vector3 position in SpawnUtils.GenerateDistributedSpawnPositions(_placementSelectionRules,
                                                                                       0.1f,
-                                                                                      RNG.Branch()))
+                                                                                      _rng))
             {
                 Vector3 normal = SpawnUtils.GetEnvironmentNormalAtPoint(position);
 
-                Quaternion rotation = Quaternion.AngleAxis(RNG.RangeFloat(0f, 360f), normal)
-                                    * QuaternionUtils.RandomDeviation(15f, RNG.Branch())
+                Quaternion rotation = Quaternion.AngleAxis(_rng.RangeFloat(0f, 360f), normal)
+                                    * QuaternionUtils.RandomDeviation(15f, _rng)
                                     * QuaternionUtils.PointLocalDirectionAt(Vector3.up, normal);
 
                 if (RoCContent.NetworkedPrefabs.NetworkedSulfurPodBase)
                 {
-                    GameObject sulfurPodBase = GameObject.Instantiate(RoCContent.NetworkedPrefabs.NetworkedSulfurPodBase, position, rotation);
+                    GameObject sulfurPodBase = Instantiate(RoCContent.NetworkedPrefabs.NetworkedSulfurPodBase, position, rotation);
                     NetworkServer.Spawn(sulfurPodBase);
                 }
 
-                GameObject sulfurPod = GameObject.Instantiate(_sulfurPodPrefab, position, rotation * Quaternion.Euler(270f, 0f, 0f));
+                GameObject sulfurPod = Instantiate(_sulfurPodPrefab, position, rotation * Quaternion.Euler(270f, 0f, 0f));
                 NetworkServer.Spawn(sulfurPod);
             }
         }

@@ -1,6 +1,7 @@
 ﻿using EntityStates.Captain.Weapon;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.Projectile;
@@ -10,47 +11,81 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("spawn_random_beacon")]
-    public sealed class SpawnRandomBeacon : GenericSpawnEffect<GameObject>
+    public sealed class SpawnRandomBeacon : NetworkBehaviour
     {
-        static SpawnEntry[] _beaconSpawnEntries;
+        static readonly SpawnPool<GameObject> _beaconPool = new SpawnPool<GameObject>();
 
         [SystemInitializer]
         static void Init()
         {
-            _beaconSpawnEntries = [
-                loadBasicSpawnEntry("RoR2/Base/Captain/CaptainSupplyDrop, EquipmentRestock.prefab"),
-                loadBasicSpawnEntry("RoR2/Base/Captain/CaptainSupplyDrop, Hacking.prefab"),
-                loadBasicSpawnEntry("RoR2/Base/Captain/CaptainSupplyDrop, Healing.prefab"),
-                loadBasicSpawnEntry("RoR2/Base/Captain/CaptainSupplyDrop, Plating.prefab"),
-                loadBasicSpawnEntry("RoR2/Base/Captain/CaptainSupplyDrop, Shocking.prefab")
-            ];
+            _beaconPool.EnsureCapacity(5);
+
+            _beaconPool.AddAssetEntry("RoR2/Base/Captain/CaptainSupplyDrop, EquipmentRestock.prefab", 1f);
+            _beaconPool.AddAssetEntry("RoR2/Base/Captain/CaptainSupplyDrop, Hacking.prefab", 1f);
+            _beaconPool.AddAssetEntry("RoR2/Base/Captain/CaptainSupplyDrop, Healing.prefab", 1f);
+            _beaconPool.AddAssetEntry("RoR2/Base/Captain/CaptainSupplyDrop, Plating.prefab", 1f);
+            _beaconPool.AddAssetEntry("RoR2/Base/Captain/CaptainSupplyDrop, Shocking.prefab", 1f);
         }
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return areAnyAvailable(_beaconSpawnEntries);
+            return _beaconPool.AnyAvailable;
         }
 
-        public override void OnStart()
-        {
-            GameObject beaconPrefab = getItemToSpawn(_beaconSpawnEntries, RNG);
+        ChaosEffectComponent _effectComponent;
 
-            foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
+        Xoroshiro128Plus _rng;
+
+        GameObject _selectedBeaconPrefab;
+
+        void Awake()
+        {
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+
+            _selectedBeaconPrefab = _beaconPool.PickRandomEntry(_rng);
+        }
+
+        void Start()
+        {
+            if (!NetworkServer.active)
+                return;
+
+            foreach (PlayerCharacterMasterController playerMaster in PlayerCharacterMasterController.instances)
             {
-                Vector3 spawnPosition = playerBody.footPosition;
+                if (!playerMaster.isConnected)
+                    continue;
+
+                CharacterMaster master = playerMaster.master;
+                if (!master || master.IsDeadAndOutOfLivesServer())
+                    continue;
+
+                CharacterBody body = master.GetBody();
+                if (!body)
+                    continue;
+
+                Vector3 spawnPosition = body.footPosition;
 
                 Quaternion rotation = QuaternionUtils.PointLocalDirectionAt(Vector3.up, SpawnUtils.GetEnvironmentNormalAtPoint(spawnPosition))
-                                    * QuaternionUtils.RandomDeviation(5f, RNG);
+                                    * QuaternionUtils.RandomDeviation(5f, _rng);
 
-                GameObject beacon = GameObject.Instantiate(beaconPrefab, spawnPosition, rotation);
+                GameObject beacon = Instantiate(_selectedBeaconPrefab, spawnPosition, rotation);
 
-                beacon.GetComponent<TeamFilter>().teamIndex = playerBody.teamComponent.teamIndex;
-                beacon.GetComponent<GenericOwnership>().ownerObject = playerBody.gameObject;
+                TeamFilter teamFilter = beacon.GetComponent<TeamFilter>();
+                teamFilter.teamIndex = body.teamComponent.teamIndex;
+
+                GenericOwnership genericOwnership = beacon.GetComponent<GenericOwnership>();
+                genericOwnership.ownerObject = body.gameObject;
 
                 ProjectileDamage damage = beacon.GetComponent<ProjectileDamage>();
-                damage.crit = playerBody.RollCrit();
-                damage.damage = playerBody.damage * CallSupplyDropBase.impactDamageCoefficient;
+                damage.damage = body.damage * CallSupplyDropBase.impactDamageCoefficient;
                 damage.damageColorIndex = DamageColorIndex.Default;
                 damage.force = CallSupplyDropBase.impactDamageForce;
                 damage.damageType = DamageType.Generic;

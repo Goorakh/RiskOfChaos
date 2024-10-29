@@ -1,8 +1,8 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities.Extensions;
+using RoR2;
 using RoR2.ExpansionManagement;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -51,29 +51,51 @@ namespace RiskOfChaos.Utilities
             return expansionDef && Run.instance && Run.instance.IsExpansionEnabled(expansionDef);
         }
 
-        public static bool IsObjectExpansionAvailable(GameObject obj)
+        public static bool AllExpansionsEnabled(IEnumerable<ExpansionDef> expansions)
         {
-            if (!obj || !Run.instance)
-                return false;
-
-            return obj.GetComponents<ExpansionRequirementComponent>().All(requirement =>
+            foreach (ExpansionDef expansion in expansions)
             {
-                return !requirement.requiredExpansion || Run.instance.IsExpansionEnabled(requirement.requiredExpansion);
-            });
-        }
-
-        public static bool IsCharacterMasterExpansionAvailable(GameObject masterPrefabObj)
-        {
-            if (!IsObjectExpansionAvailable(masterPrefabObj))
-                return false;
-
-            if (!masterPrefabObj.TryGetComponent(out CharacterMaster masterPrefab))
-            {
-                Log.Warning($"Object {masterPrefabObj} has no CharacterMaster component");
-                return false;
+                if (!IsExpansionEnabled(expansion))
+                {
+                    return false;
+                }
             }
 
-            return IsObjectExpansionAvailable(masterPrefab.bodyPrefab);
+            return true;
+        }
+
+        public static ExpansionDef[] GetObjectRequiredExpansions(GameObject obj)
+        {
+            if (!obj)
+                return [];
+
+            ExpansionRequirementComponent[] expansionRequirements = obj.GetComponents<ExpansionRequirementComponent>();
+            if (expansionRequirements.Length == 0)
+                return [];
+
+            List<ExpansionDef> requiredExpansions = new List<ExpansionDef>(expansionRequirements.Length);
+
+            foreach (ExpansionRequirementComponent expansionRequirement in expansionRequirements)
+            {
+                if (expansionRequirement.requiredExpansion)
+                {
+                    requiredExpansions.Add(expansionRequirement.requiredExpansion);
+                }
+            }
+
+            if (obj.TryGetComponent(out CharacterMaster master) && master.bodyPrefab)
+            {
+                requiredExpansions.AddRange(GetObjectRequiredExpansions(master.bodyPrefab));
+            }
+
+            requiredExpansions.TrimExcess();
+
+            return [.. requiredExpansions];
+        }
+
+        public static bool IsObjectExpansionAvailable(GameObject obj)
+        {
+            return AllExpansionsEnabled(GetObjectRequiredExpansions(obj));
         }
     }
 }

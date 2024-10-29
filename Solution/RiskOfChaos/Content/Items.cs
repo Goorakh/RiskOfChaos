@@ -70,8 +70,6 @@ namespace RiskOfChaos.Content
 
                 On.RoR2.Projectile.ProjectileController.Start += ProjectileController_Start;
 
-                CharacterTokenOverridePatch.OverrideNameToken += CharacterTokenOverridePatch_OverrideNameToken;
-
                 GlobalEventManager.onCharacterDeathGlobal += GlobalEventManager_onCharacterDeathGlobal;
 
                 CustomPlayerDeathMessageTokenPatch.OverridePlayerDeathMessageToken += CustomPlayerDeathMessageTokenPatch_OverridePlayerDeathMessageToken;
@@ -159,11 +157,11 @@ namespace RiskOfChaos.Content
 
             static HurtBox On_BaseAI_FindEnemyHurtBox(On.RoR2.CharacterAI.BaseAI.orig_FindEnemyHurtBox orig, BaseAI self, float maxDistance, bool full360Vision, bool filterByLoS)
             {
-                if (self && self.master.inventory.GetItemCount(InvincibleLemurianMarker) > 0)
+                if (self.master && self.master.inventory.GetItemCount(InvincibleLemurianMarker) > 0)
                 {
                     maxDistance = float.PositiveInfinity;
-                    filterByLoS = false;
                     full360Vision = true;
+                    filterByLoS = false;
                 }
 
                 return orig(self, maxDistance, full360Vision, filterByLoS);
@@ -218,28 +216,6 @@ namespace RiskOfChaos.Content
                 if (ownerInventory.GetItemCount(InvincibleLemurianMarker) > 0)
                 {
                     self.cannotBeDeleted = true;
-                }
-            }
-
-            static void CharacterTokenOverridePatch_OverrideNameToken(CharacterBody body, ref string nameToken)
-            {
-                if (!body)
-                    return;
-
-                Inventory inventory = body.inventory;
-                if (!inventory)
-                    return;
-
-                if (inventory.GetItemCount(InvincibleLemurianMarker) > 0)
-                {
-                    if (body.bodyIndex == BodyCatalog.FindBodyIndex("LemurianBruiserBody"))
-                    {
-                        nameToken = "INVINCIBLE_LEMURIAN_ELDER_BODY_NAME";
-                    }
-                    else
-                    {
-                        nameToken = "INVINCIBLE_LEMURIAN_BODY_NAME";
-                    }
                 }
             }
 

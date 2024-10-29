@@ -2,6 +2,7 @@
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Networking.Components;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
@@ -11,14 +12,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("spawn_geyser")]
-    public sealed class SpawnGeyser : GenericDirectorSpawnEffect<InteractableSpawnCard>
+    public sealed class SpawnGeyser : NetworkBehaviour
     {
-        static SpawnCardEntry[] _spawnEntries = [];
+        static readonly SpawnPool<SpawnCard> _spawnPool = new SpawnPool<SpawnCard>();
 
         [ContentInitializer]
         static IEnumerator LoadContent(NetworkedPrefabAssetCollection prefabs)
@@ -39,16 +41,17 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             ];
 
             int geyserCount = geyserPrefabPaths.Length;
+
+            asyncOperations.EnsureCapacity(asyncOperations.Count + geyserCount);
+
             GameObject[] geyserPrefabs = new GameObject[geyserCount];
             for (int i = 0; i < geyserCount; i++)
             {
                 int prefabIndex = i;
 
                 AsyncOperationHandle<GameObject> geyserLoad = Addressables.LoadAssetAsync<GameObject>(geyserPrefabPaths[i]);
-                geyserLoad.Completed += handle =>
+                geyserLoad.OnSuccess(geyserPrefab =>
                 {
-                    GameObject geyserPrefab = handle.Result;
-
                     GameObject geyserHolder = Prefabs.CreateNetworkedPrefab("Networked" + geyserPrefab.name, [
                         typeof(SyncJumpVolumeVelocity)
                     ]);
@@ -59,63 +62,87 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     geyserPrefabs[prefabIndex] = geyserHolder;
 
                     prefabs.Add(geyserHolder);
-                };
+                });
 
                 asyncOperations.Add(geyserLoad);
             }
 
             yield return asyncOperations.WaitForAllLoaded();
 
-            List<GameObject> filteredGeyserPrefabs = new List<GameObject>(geyserPrefabs.Length);
-            foreach (GameObject prefab in geyserPrefabs)
+            _spawnPool.EnsureCapacity(geyserPrefabs.Length);
+
+            foreach (GameObject geyserPrefab in geyserPrefabs)
             {
-                if (prefab)
-                {
-                    filteredGeyserPrefabs.Add(prefab);
-                }
-            }
+                if (!geyserPrefab)
+                    continue;
 
-            _spawnEntries = new SpawnCardEntry[filteredGeyserPrefabs.Count];
-            for (int i = 0; i < _spawnEntries.Length; i++)
-            {
-                GameObject prefab = filteredGeyserPrefabs[i];
+                SpawnCard spawnCard = ScriptableObject.CreateInstance<SpawnCard>();
 
-                InteractableSpawnCard spawnCard = ScriptableObject.CreateInstance<InteractableSpawnCard>();
-
-                spawnCard.name = $"sc{prefab.name}";
-                spawnCard.prefab = prefab;
+                spawnCard.name = $"sc{geyserPrefab.name}";
+                spawnCard.prefab = geyserPrefab;
                 spawnCard.sendOverNetwork = true;
                 spawnCard.hullSize = HullClassification.Human;
                 spawnCard.nodeGraphType = MapNodeGroup.GraphType.Ground;
                 spawnCard.occupyPosition = true;
 
-                _spawnEntries[i] = new SpawnCardEntry(spawnCard, 1f);
+                _spawnPool.AddEntry(spawnCard, 1f);
             }
+
+            _spawnPool.TrimExcess();
         }
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return areAnyAvailable(_spawnEntries);
+            return _spawnPool.AnyAvailable;
         }
 
-        public override void OnStart()
-        {
-            InteractableSpawnCard geyserSpawnCard = getItemToSpawn(_spawnEntries, RNG);
+        ChaosEffectComponent _effectComponent;
 
-            foreach (CharacterBody body in PlayerUtils.GetAllPlayerBodies(true))
+        Xoroshiro128Plus _rng;
+
+        void Awake()
+        {
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+        }
+
+        void Start()
+        {
+            if (!NetworkServer.active)
+                return;
+
+            SpawnCard geyserSpawnCard = _spawnPool.PickRandomEntry(_rng);
+
+            foreach (PlayerCharacterMasterController playerMaster in PlayerCharacterMasterController.instances)
             {
+                if (!playerMaster.isConnected)
+                    continue;
+
+                CharacterMaster master = playerMaster.master;
+                if (!master || master.IsDeadAndOutOfLivesServer())
+                    continue;
+
+                if (!master.TryGetBodyPosition(out Vector3 spawnPosition))
+                    continue;
+
                 DirectorPlacementRule placementRule = new DirectorPlacementRule
                 {
-                    position = body.footPosition,
+                    position = spawnPosition,
                     minDistance = 2f,
                     maxDistance = float.PositiveInfinity,
                     placementMode = SpawnUtils.ExtraPlacementModes.NearestNodeWithConditions
                 };
 
-                DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(geyserSpawnCard, placementRule, RNG.Branch());
+                DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(geyserSpawnCard, placementRule, _rng);
 
-                Xoroshiro128Plus geyserRNG = RNG.Branch();
+                Xoroshiro128Plus geyserRNG = _rng.Branch();
                 spawnRequest.onSpawnedServer = result =>
                 {
                     if (!result.success || !result.spawnedInstance)
@@ -135,7 +162,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
                 spawnRequest.SpawnWithFallbackPlacement(new DirectorPlacementRule
                 {
-                    position = body.footPosition,
+                    position = spawnPosition,
                     placementMode = DirectorPlacementRule.PlacementMode.Direct
                 });
             }

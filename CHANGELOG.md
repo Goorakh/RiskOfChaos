@@ -20,6 +20,9 @@
   * Now more closely resembles adaptive chests:
     * All dropped items will start recycling at an accelerated rate, before eventually settling on an item
 
+* Spawn Random Enemy:
+  * Survivors and Drones are now less likely to be spawned as enemies
+
 * Item Magnet & Item Repulsor:
   * Fixed non-host players in multiplayer not seeing the correct position of item drops
 

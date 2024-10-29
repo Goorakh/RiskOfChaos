@@ -59,6 +59,7 @@ namespace RiskOfChaos.Content
             EffectDefAssetCollection effectDefs = getAssetCollection<EffectDefAssetCollection>();
             UnlockableDefAssetCollection unlockableDefs = getAssetCollection<UnlockableDefAssetCollection>();
             BodyPrefabAssetCollection bodyPrefabs = getAssetCollection<BodyPrefabAssetCollection>();
+            MasterPrefabAssetCollection masterPrefabs = getAssetCollection<MasterPrefabAssetCollection>();
             EntityStateAssetCollection entityStates = getAssetCollection<EntityStateAssetCollection>();
             NetworkedPrefabAssetCollection networkedPrefabs = getAssetCollection<NetworkedPrefabAssetCollection>();
             LocalPrefabAssetCollection localPrefabs = getAssetCollection<LocalPrefabAssetCollection>();
@@ -115,6 +116,7 @@ namespace RiskOfChaos.Content
             effectDefs.FlushAssets(_contentPack.effectDefs);
             unlockableDefs.FlushAssets(_contentPack.unlockableDefs);
             bodyPrefabs.FlushAssets(_contentPack.bodyPrefabs);
+            masterPrefabs.FlushAssets(_contentPack.masterPrefabs);
             entityStates.FlushAssets(_contentPack.entityStateTypes);
             networkedPrefabs.FlushAssets(_contentPack.networkedObjectPrefabs);
 

@@ -1,9 +1,9 @@
-﻿using RiskOfChaos.Utilities.Extensions;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Navigation;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
@@ -99,23 +99,17 @@ namespace RiskOfChaos.Utilities
         {
             _positionHelperSpawnCard = ScriptableObject.CreateInstance<SpawnCard>();
 
-            const string HELPER_PREFAB_PATH = "SpawnCards/HelperPrefab";
-            _positionHelperSpawnCard.prefab = LegacyResourcesAPI.Load<GameObject>(HELPER_PREFAB_PATH);
+            _positionHelperSpawnCard.prefab = Prefabs.CreatePrefab("PositionHelper", []);
             _positionHelperSpawnCard.sendOverNetwork = false;
             _positionHelperSpawnCard.hullSize = HullClassification.Human;
             _positionHelperSpawnCard.nodeGraphType = MapNodeGroup.GraphType.Ground;
-
-            if (!_positionHelperSpawnCard.prefab)
-            {
-                Log.Error($"{HELPER_PREFAB_PATH} is null");
-            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static DirectorPlacementRule.PlacementMode GetBestValidRandomPlacementType()
         {
             SceneInfo sceneInfo = SceneInfo.instance;
-            return sceneInfo && sceneInfo.approximateMapBoundMesh != null ? DirectorPlacementRule.PlacementMode.RandomNormalized : DirectorPlacementRule.PlacementMode.Random;
+            return sceneInfo && sceneInfo.approximateMapBoundMesh ? DirectorPlacementRule.PlacementMode.RandomNormalized : DirectorPlacementRule.PlacementMode.Random;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -184,17 +178,42 @@ namespace RiskOfChaos.Utilities
             }
         }
 
+        public static Vector3 EvaluateToPosition(this DirectorPlacementRule placementRule, SpawnCard spawnCard, Xoroshiro128Plus rng)
+        {
+            return EvaluateToPosition(placementRule, rng, spawnCard.hullSize, spawnCard.nodeGraphType, spawnCard.requiredFlags, spawnCard.forbiddenFlags);
+        }
+
+        public static List<Vector3> GetValidPlayerAchoredSpawnPositions()
+        {
+            List<Vector3> playerPositions = new List<Vector3>(PlayerCharacterMasterController.instances.Count);
+            foreach (PlayerCharacterMasterController playerMaster in PlayerCharacterMasterController.instances)
+            {
+                if (!playerMaster.isConnected)
+                    continue;
+
+                CharacterMaster master = playerMaster.master;
+                if (!master || master.IsDeadAndOutOfLivesServer())
+                    continue;
+
+                if (!master.TryGetBodyPosition(out Vector3 bodyPosition))
+                    continue;
+
+                playerPositions.Add(bodyPosition);
+            }
+
+            playerPositions.TrimExcess();
+            return playerPositions;
+        }
+
         public static DirectorPlacementRule GetPlacementRule_AtRandomPlayerDirect(Xoroshiro128Plus rng)
         {
-            CharacterBody[] playerBodies = PlayerUtils.GetAllPlayerBodies(true).ToArray();
-            if (playerBodies.Length > 0)
+            List<Vector3> playerPositions = GetValidPlayerAchoredSpawnPositions();
+            if (playerPositions.Count > 0)
             {
-                CharacterBody selectedPlayer = rng.NextElementUniform(playerBodies);
-
                 return new DirectorPlacementRule
                 {
                     placementMode = DirectorPlacementRule.PlacementMode.Direct,
-                    position = selectedPlayer.footPosition
+                    position = rng.NextElementUniform(playerPositions)
                 };
             }
             else
@@ -205,15 +224,13 @@ namespace RiskOfChaos.Utilities
 
         public static DirectorPlacementRule GetPlacementRule_AtRandomPlayerNearestNode(Xoroshiro128Plus rng)
         {
-            CharacterBody[] playerBodies = PlayerUtils.GetAllPlayerBodies(true).ToArray();
-            if (playerBodies.Length > 0)
+            List<Vector3> playerPositions = GetValidPlayerAchoredSpawnPositions();
+            if (playerPositions.Count > 0)
             {
-                CharacterBody selectedPlayer = rng.NextElementUniform(playerBodies);
-
                 return new DirectorPlacementRule
                 {
                     placementMode = DirectorPlacementRule.PlacementMode.NearestNode,
-                    position = selectedPlayer.footPosition
+                    position = rng.NextElementUniform(playerPositions)
                 };
             }
             else
@@ -224,15 +241,13 @@ namespace RiskOfChaos.Utilities
 
         public static DirectorPlacementRule GetPlacementRule_AtRandomPlayerApproximate(Xoroshiro128Plus rng, float minPlayerDistance, float maxPlayerDistance)
         {
-            CharacterBody[] playerBodies = PlayerUtils.GetAllPlayerBodies(true).ToArray();
-            if (playerBodies.Length > 0)
+            List<Vector3> playerPositions = GetValidPlayerAchoredSpawnPositions();
+            if (playerPositions.Count > 0)
             {
-                CharacterBody selectedPlayer = rng.NextElementUniform(playerBodies);
-
                 return new DirectorPlacementRule
                 {
                     placementMode = DirectorPlacementRule.PlacementMode.Approximate,
-                    position = selectedPlayer.footPosition,
+                    position = rng.NextElementUniform(playerPositions),
                     minDistance = minPlayerDistance,
                     maxDistance = maxPlayerDistance
                 };
@@ -245,15 +260,13 @@ namespace RiskOfChaos.Utilities
 
         public static DirectorPlacementRule GetPlacementRule_AtRandomPlayerNearestNode(Xoroshiro128Plus rng, float minPlayerDistance, float maxPlayerDistance)
         {
-            CharacterBody[] playerBodies = PlayerUtils.GetAllPlayerBodies(true).ToArray();
-            if (playerBodies.Length > 0)
+            List<Vector3> playerPositions = GetValidPlayerAchoredSpawnPositions();
+            if (playerPositions.Count > 0)
             {
-                CharacterBody selectedPlayer = rng.NextElementUniform(playerBodies);
-
                 return new DirectorPlacementRule
                 {
                     placementMode = ExtraPlacementModes.NearestNodeWithConditions,
-                    position = selectedPlayer.footPosition,
+                    position = rng.NextElementUniform(playerPositions),
                     minDistance = minPlayerDistance,
                     maxDistance = maxPlayerDistance
                 };

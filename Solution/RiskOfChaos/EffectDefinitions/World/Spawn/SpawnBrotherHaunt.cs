@@ -1,9 +1,11 @@
 ﻿using RiskOfChaos.ConfigHandling;
-using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Trackers;
+using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.UI;
@@ -12,12 +14,27 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
-    [ChaosTimedEffect("spawn_brother_haunt", 45f, DefaultSelectionWeight = 0.7f, IsNetworked = true, AllowDuplicates = false)]
-    public sealed class SpawnBrotherHaunt : TimedEffect
+    [ChaosTimedEffect("spawn_brother_haunt", 45f, DefaultSelectionWeight = 0.7f, AllowDuplicates = false)]
+    public sealed class SpawnBrotherHaunt : MonoBehaviour
     {
+        static GameObject _brotherHauntPrefab;
+
+        static GameObject _countdownTimerPrefab;
+
+        [SystemInitializer]
+        static void Init()
+        {
+            AsyncOperationHandle<GameObject> brotherHauntMasterLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/BrotherHaunt/BrotherHauntMaster.prefab");
+            brotherHauntMasterLoad.OnSuccess(brotherHauntMasterPrefab => _brotherHauntPrefab = brotherHauntMasterPrefab);
+
+            AsyncOperationHandle<GameObject> hudCountdownPanelLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/HudCountdownPanel.prefab");
+            hudCountdownPanelLoad.OnSuccess(hudCountdownPanelPrefab => _countdownTimerPrefab = hudCountdownPanelPrefab);
+        }
+
         [EffectConfig]
         static readonly ConfigHolder<bool> _showCountdownTimer =
             ConfigFactory<bool>.CreateConfig("Display Countdown Timer", true)
@@ -25,33 +42,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                                .OptionConfig(new CheckBoxConfig())
                                .Build();
 
-        static readonly GameObject _brotherHauntPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/BrotherHaunt/BrotherHauntMaster.prefab").WaitForCompletion();
-
-        static readonly GameObject _countdownTimerPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/HudCountdownPanel.prefab").WaitForCompletion();
-
-        static readonly MasterSummon _brotherHauntSummon = new MasterSummon
-        {
-            masterPrefab = _brotherHauntPrefab,
-            ignoreTeamMemberLimit = true,
-            teamIndexOverride = TeamIndex.Lunar
-        };
-
         [EffectCanActivate]
         static bool CanActivate()
         {
             return _brotherHauntPrefab;
-        }
-
-        CharacterMaster _spawnedMaster;
-
-        bool _canShowCountdownTimer;
-        readonly List<TimerText> _countdownTimers = [];
-
-        public override void OnStart()
-        {
-            RoR2Application.onFixedUpdate += fixedUpdate;
-
-            _canShowCountdownTimer = TimedType == TimedEffectType.FixedDuration && _countdownTimerPrefab;
         }
 
         static bool isValidScene()
@@ -70,38 +64,118 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             return true;
         }
 
-        void fixedUpdate()
-        {
-            if (NetworkServer.active)
-            {
-                if ((!_spawnedMaster || _spawnedMaster.IsDeadAndOutOfLivesServer()) && isValidScene())
-                {
-#if DEBUG
-                    Log.Debug("Spawned master is null or dead, respawning...");
-#endif
+        ChaosEffectDurationComponent _durationComponent;
 
-                    _spawnedMaster = _brotherHauntSummon.Perform();
+        float _masterRespawnTimer;
+        CharacterMaster _spawnedMaster;
+
+        readonly List<TimerText> _countdownTimers = [];
+        readonly List<OnDestroyCallback> _destroyCallbacks = [];
+
+        bool _trackedObjectDestroyed;
+
+        void Awake()
+        {
+            _durationComponent = GetComponent<ChaosEffectDurationComponent>();
+        }
+
+        void OnDestroy()
+        {
+            foreach (OnDestroyCallback destroyCallback in _destroyCallbacks)
+            {
+                if (destroyCallback)
+                {
+                    OnDestroyCallback.RemoveCallback(destroyCallback);
                 }
             }
 
-            if (_canShowCountdownTimer && _showCountdownTimer.Value && isValidScene())
-            {
-                float timeRemaining = TimeRemaining;
+            _destroyCallbacks.Clear();
 
-                for (int i = _countdownTimers.Count - 1; i >= 0; i--)
+            foreach (TimerText countdownTimer in _countdownTimers)
+            {
+                if (countdownTimer)
                 {
-                    if (_countdownTimers[i])
+                    Destroy(countdownTimer.gameObject);
+                }
+            }
+
+            _countdownTimers.Clear();
+
+            if (_spawnedMaster)
+            {
+                _spawnedMaster.TrueKill();
+            }
+        }
+
+        void FixedUpdate()
+        {
+            if (_trackedObjectDestroyed)
+            {
+                _trackedObjectDestroyed = false;
+
+                UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
+
+                int countdownTimersRemoved = UnityObjectUtils.RemoveAllDestroyed(_countdownTimers);
+#if DEBUG
+                Log.Debug($"Cleared {countdownTimersRemoved} destroyed countdown timer(s)");
+#endif
+            }
+
+            if (NetworkServer.active)
+            {
+                updateServer();
+            }
+
+            if (NetworkClient.active)
+            {
+                updateClient();
+            }
+        }
+
+        void updateServer()
+        {
+            if (isValidScene())
+            {
+                if (!_spawnedMaster || _spawnedMaster.IsDeadAndOutOfLivesServer())
+                {
+                    _masterRespawnTimer -= Time.fixedDeltaTime;
+                    if (_masterRespawnTimer <= 0f && Stage.instance && Stage.instance.entryTime.timeSinceClamped > 1f)
                     {
-                        _countdownTimers[i].seconds = timeRemaining;
-                    }
-                    else
-                    {
-                        _countdownTimers.RemoveAt(i);
+#if DEBUG
+                        Log.Debug("Spawned master is null or dead, respawning...");
+#endif
+
+                        _spawnedMaster = new MasterSummon
+                        {
+                            masterPrefab = _brotherHauntPrefab,
+                            ignoreTeamMemberLimit = true,
+                            teamIndexOverride = TeamIndex.Lunar
+                        }.Perform();
                     }
                 }
+                else
+                {
+                    _masterRespawnTimer = 2.5f;
+                }
+            }
+        }
 
+        void updateClient()
+        {
+            bool canShowCountdownTimer = false;
+            float timeRemaining = 0f;
+
+            if (_durationComponent && _durationComponent.TimedType == EffectHandling.TimedEffectType.FixedDuration)
+            {
+                canShowCountdownTimer = true;
+                timeRemaining = _durationComponent.Remaining;
+            }
+
+            if (canShowCountdownTimer && _showCountdownTimer.Value && isValidScene())
+            {
                 if (_countdownTimers.Count < HUD.readOnlyInstanceList.Count)
                 {
+                    _countdownTimers.EnsureCapacity(HUD.readOnlyInstanceList.Count);
                     foreach (HUD hud in HUD.readOnlyInstanceList)
                     {
                         if (InstanceTracker.GetInstancesList<HudCountdownPanelTracker>().Any(p => p.HUD == hud))
@@ -116,53 +190,38 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
                         GameObject countdownPanel = GameObject.Instantiate(_countdownTimerPrefab, topCenterCluster);
                         TimerText timerText = countdownPanel.GetComponent<TimerText>();
-                        timerText.seconds = timeRemaining;
 
                         _countdownTimers.Add(timerText);
+
+                        OnDestroyCallback destroyCallback = OnDestroyCallback.AddCallback(countdownPanel, _ =>
+                        {
+                            _trackedObjectDestroyed = true;
+                        });
+
+                        _destroyCallbacks.Add(destroyCallback);
 
 #if DEBUG
                         Log.Debug($"Created countdown timer for local user {hud.localUserViewer?.id}");
 #endif
                     }
                 }
+
+                foreach (TimerText timerText in _countdownTimers)
+                {
+                    if (timerText)
+                    {
+                        timerText.seconds = timeRemaining;
+                    }
+                }
             }
             else
             {
-                if (_countdownTimers.Count > 0)
+                foreach (TimerText countdownTimer in _countdownTimers)
                 {
-                    destroyAllCountdownTimers();
-                }
-            }
-        }
-
-        void destroyAllCountdownTimers()
-        {
-            foreach (TimerText countdownTimer in _countdownTimers)
-            {
-                if (countdownTimer)
-                {
-                    GameObject.Destroy(countdownTimer.gameObject);
-                }
-            }
-
-            _countdownTimers.Clear();
-
-#if DEBUG
-            Log.Debug("Removed local countdown timer(s)");
-#endif
-        }
-
-        public override void OnEnd()
-        {
-            RoR2Application.onFixedUpdate -= fixedUpdate;
-
-            destroyAllCountdownTimers();
-
-            if (NetworkServer.active)
-            {
-                if (_spawnedMaster)
-                {
-                    _spawnedMaster.TrueKill();
+                    if (countdownTimer)
+                    {
+                        Destroy(countdownTimer.gameObject);
+                    }
                 }
             }
         }
