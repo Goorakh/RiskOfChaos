@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using RiskOfChaos.Components;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.Controllers;
@@ -208,6 +209,8 @@ namespace RiskOfChaos.EffectHandling
         {
             base.modifyPrefabComponents(componentTypes);
             componentTypes.AddRange([
+                typeof(SetDontDestroyOnLoad),
+                typeof(DestroyOnRunEnd),
                 typeof(ChaosEffectDurationComponent),
                 typeof(ObjectSerializationComponent)
             ]);

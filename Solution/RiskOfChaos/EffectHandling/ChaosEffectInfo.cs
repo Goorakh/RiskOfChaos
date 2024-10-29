@@ -268,8 +268,6 @@ namespace RiskOfChaos.EffectHandling
         {
             List<Type> componentTypes = [
                 typeof(NetworkIdentity),
-                typeof(SetDontDestroyOnLoad),
-                typeof(DestroyOnRunEnd),
                 typeof(ChaosEffectTimeoutController),
                 typeof(ChaosEffectComponent),
                 EffectComponentType
