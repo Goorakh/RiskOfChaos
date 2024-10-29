@@ -43,10 +43,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         static void Init()
         {
             AsyncOperationHandle<GameObject> bossCombatSquadLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Core/BossCombatSquad.prefab");
-            bossCombatSquadLoad.Completed += handle =>
-            {
-                _bossCombatSquadPrefab = handle.Result;
-            };
+            bossCombatSquadLoad.OnSuccess(bossCombatSquadPrefab => _bossCombatSquadPrefab = bossCombatSquadPrefab);
 
             GlobalEventManager.onCharacterDeathGlobal += damageReport =>
             {
