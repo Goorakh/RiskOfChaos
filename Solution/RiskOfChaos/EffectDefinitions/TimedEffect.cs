@@ -1,5 +1,4 @@
-﻿using RiskOfChaos.EffectHandling;
-using System;
+﻿using System;
 
 namespace RiskOfChaos.EffectDefinitions
 {
@@ -7,19 +6,7 @@ namespace RiskOfChaos.EffectDefinitions
     public abstract class TimedEffect : BaseEffect
     {
         [Obsolete]
-        public TimedEffectType TimedType { get; internal set; }
-
-        [Obsolete]
         public float TimeElapsed
-        {
-            get
-            {
-                return 0;
-            }
-        }
-
-        [Obsolete]
-        public float TimeRemaining
         {
             get
             {
