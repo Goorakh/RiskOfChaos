@@ -293,10 +293,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
             static void Init()
             {
                 AsyncOperationHandle<GameObject> recycleEffectLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Recycle/OmniRecycleEffect.prefab");
-                recycleEffectLoad.Completed += handle =>
-                {
-                    _recycleEffectPrefab = handle.Result;
-                };
+                recycleEffectLoad.OnSuccess(recycleEffectPrefab => _recycleEffectPrefab = recycleEffectPrefab);
             }
 
             public RepeatedlyRecycleItems EffectInstance;

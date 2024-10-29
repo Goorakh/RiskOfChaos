@@ -182,7 +182,7 @@ namespace RiskOfChaos.Content
         [ContentInitializer]
         static IEnumerator InitContent(NetworkedPrefabAssetCollection networkedPrefabs, LocalPrefabAssetCollection localPrefabs)
         {
-            List<AsyncOperationHandle> asyncOperations = [];
+            List<AsyncOperationHandle> asyncOperations = new List<AsyncOperationHandle>(5);
 
             // GenericTeamInventory
             {
@@ -200,9 +200,9 @@ namespace RiskOfChaos.Content
             // MonsterItemStealController
             {
                 AsyncOperationHandle<GameObject> itemStealControllerLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Brother/ItemStealController.prefab");
-                itemStealControllerLoad.Completed += handle =>
+                itemStealControllerLoad.OnSuccess(itemStealControllerPrefab =>
                 {
-                    GameObject prefab = handle.Result.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.MonsterItemStealController));
+                    GameObject prefab = itemStealControllerPrefab.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.MonsterItemStealController));
 
                     NetworkedBodyAttachment networkedBodyAttachment = prefab.GetComponent<NetworkedBodyAttachment>();
                     networkedBodyAttachment.shouldParentToAttachedBody = true;
@@ -215,7 +215,7 @@ namespace RiskOfChaos.Content
                     prefab.AddComponent<ShowStolenItemsPositionIndicator>();
 
                     networkedPrefabs.Add(prefab);
-                };
+                });
 
                 asyncOperations.Add(itemStealControllerLoad);
             }
@@ -223,9 +223,9 @@ namespace RiskOfChaos.Content
             // ItemStealerPositionIndicator
             {
                 AsyncOperationHandle<GameObject> positionIndicatorLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Common/BossPositionIndicator.prefab");
-                positionIndicatorLoad.Completed += handle =>
+                positionIndicatorLoad.OnSuccess(positionIndicatorPrefab =>
                 {
-                    GameObject prefab = handle.Result.InstantiatePrefab(nameof(RoCContent.LocalPrefabs.ItemStealerPositionIndicator));
+                    GameObject prefab = positionIndicatorPrefab.InstantiatePrefab(nameof(RoCContent.LocalPrefabs.ItemStealerPositionIndicator));
 
                     PositionIndicator positionIndicator = prefab.GetComponent<PositionIndicator>();
 
@@ -246,7 +246,7 @@ namespace RiskOfChaos.Content
                     }
 
                     localPrefabs.Add(prefab);
-                };
+                });
 
                 asyncOperations.Add(positionIndicatorLoad);
             }
@@ -254,12 +254,12 @@ namespace RiskOfChaos.Content
             // NetworkedSulfurPodBase
             {
                 AsyncOperationHandle<GameObject> sulfurPodBaseLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/sulfurpools/SPSulfurPodBase.prefab");
-                sulfurPodBaseLoad.Completed += handle =>
+                sulfurPodBaseLoad.OnSuccess(sulfurPodBasePrefab =>
                 {
-                    GameObject prefab = handle.Result.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.NetworkedSulfurPodBase));
+                    GameObject prefab = sulfurPodBasePrefab.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.NetworkedSulfurPodBase));
 
                     networkedPrefabs.Add(prefab);
-                };
+                });
 
                 asyncOperations.Add(sulfurPodBaseLoad);
             }
@@ -278,9 +278,9 @@ namespace RiskOfChaos.Content
             // NewtStatueFixedOrigin
             {
                 AsyncOperationHandle<GameObject> newtStatueLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/NewtStatue/NewtStatue.prefab");
-                newtStatueLoad.Completed += handle =>
+                newtStatueLoad.OnSuccess(newtStatuePrefab =>
                 {
-                    GameObject prefab = handle.Result.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.NewtStatueFixedOrigin));
+                    GameObject prefab = newtStatuePrefab.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.NewtStatueFixedOrigin));
                     Transform transform = prefab.transform;
 
                     for (int i = 0; i < transform.childCount; i++)
@@ -289,7 +289,7 @@ namespace RiskOfChaos.Content
                     }
 
                     networkedPrefabs.Add(prefab);
-                };
+                });
 
                 asyncOperations.Add(newtStatueLoad);
             }

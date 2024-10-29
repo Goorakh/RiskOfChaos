@@ -1,29 +1,50 @@
 ﻿using RoR2;
 using RoR2.ExpansionManagement;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Utilities
 {
     public static class ExpansionUtils
     {
+        public static ExpansionDef DLC1 { get; private set; }
+
+        public static ExpansionDef DLC2 { get; private set; }
+
+        [SystemInitializer]
+        static IEnumerator Init()
+        {
+            List<AsyncOperationHandle> asyncOperations = new List<AsyncOperationHandle>(2);
+
+            AsyncOperationHandle<ExpansionDef> dlc1Load = Addressables.LoadAssetAsync<ExpansionDef>("RoR2/DLC1/Common/DLC1.asset");
+            dlc1Load.OnSuccess(dlc1 => DLC1 = dlc1);
+
+            asyncOperations.Add(dlc1Load);
+
+            AsyncOperationHandle<ExpansionDef> dlc2Load = Addressables.LoadAssetAsync<ExpansionDef>("RoR2/DLC2/Common/DLC2.asset");
+            dlc2Load.OnSuccess(dlc2 => DLC2 = dlc2);
+
+            asyncOperations.Add(dlc2Load);
+
+            yield return asyncOperations.WaitForAllLoaded();
+        }
+
         public static bool DLC1Enabled
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => IsExpansionEnabled(DLC1);
         }
 
-        public static readonly ExpansionDef DLC1 = Addressables.LoadAssetAsync<ExpansionDef>("RoR2/DLC1/Common/DLC1.asset").WaitForCompletion();
-
         public static bool DLC2Enabled
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => IsExpansionEnabled(DLC2);
         }
-
-        public static readonly ExpansionDef DLC2 = Addressables.LoadAssetAsync<ExpansionDef>("RoR2/DLC2/Common/DLC2.asset").WaitForCompletion();
 
         public static bool IsExpansionEnabled(ExpansionDef expansionDef)
         {

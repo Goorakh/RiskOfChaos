@@ -34,16 +34,7 @@ namespace RiskOfChaos.Networking.Components
             static void addComponentToPrefab(string prefabAssetPath)
             {
                 AsyncOperationHandle<GameObject> prefabLoad = Addressables.LoadAssetAsync<GameObject>(prefabAssetPath);
-                prefabLoad.Completed += handle =>
-                {
-                    if (!handle.Result)
-                    {
-                        Log.Error($"Failed to load prefab '{prefabAssetPath}'");
-                        return;
-                    }    
-
-                    handle.Result.EnsureComponent<SyncCostType>();
-                };
+                prefabLoad.OnSuccess(prefab => prefab.EnsureComponent<SyncCostType>());
             }
 
             addComponentToPrefab("RoR2/Base/TripleShop/TripleShop.prefab");

@@ -23,9 +23,9 @@ namespace RiskOfChaos.EffectDefinitions.UI
             List<AsyncOperationHandle> asyncOperations = [];
 
             AsyncOperationHandle<GameObject> creditsPanelLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/CreditsPanel.prefab");
-            creditsPanelLoad.Completed += handle =>
+            creditsPanelLoad.OnSuccess(creditsPanelPrefab =>
             {
-                GameObject prefab = handle.Result.InstantiatePrefab(nameof(RoCContent.LocalPrefabs.CreditsPanelNoBackground));
+                GameObject prefab = creditsPanelPrefab.InstantiatePrefab(nameof(RoCContent.LocalPrefabs.CreditsPanelNoBackground));
 
                 Transform transform = prefab.transform;
 
@@ -77,7 +77,7 @@ namespace RiskOfChaos.EffectDefinitions.UI
                 creditsPanelController.outroDuration = 5f;
 
                 localPrefabs.Add(prefab);
-            };
+            });
 
             asyncOperations.Add(creditsPanelLoad);
 

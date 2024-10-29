@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Utilities.Extensions
@@ -42,6 +44,29 @@ namespace RiskOfChaos.Utilities.Extensions
                     }
                 }
             }
+        }
+
+        public static void OnSuccess<T>(this in AsyncOperationHandle<T> handle, Action<T> onSuccess)
+        {
+#if DEBUG
+            StackTrace stackTrace = new StackTrace();
+#endif
+            handle.WaitForCompletion();
+            handle.Completed += handle =>
+            {
+                if (handle.Status == AsyncOperationStatus.Failed)
+                {
+                    Log.Error($"Failed to load asset '{handle.LocationName}'"
+#if DEBUG
+                        + $". at {stackTrace}"
+#endif
+                        );
+
+                    return;
+                }
+
+                onSuccess(handle.Result);
+            };
         }
     }
 }

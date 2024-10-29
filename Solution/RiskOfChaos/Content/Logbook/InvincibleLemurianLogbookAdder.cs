@@ -100,26 +100,26 @@ namespace RiskOfChaos.Content.Logbook
             }
 
             AsyncOperationHandle<GameObject> lemurianBodyLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Lemurian/LemurianBody.prefab");
-            lemurianBodyLoad.Completed += handle =>
+            lemurianBodyLoad.OnSuccess(lemurianBody =>
             {
-                _lemurianBodyPrefab = handle.Result.GetComponent<CharacterBody>();
+                _lemurianBodyPrefab = lemurianBody.GetComponent<CharacterBody>();
 
                 _lemurianGlowModelPrefab = createGlowModel(_lemurianBodyPrefab);
 
                 localPrefabs.Add(_lemurianGlowModelPrefab);
-            };
+            });
 
             asyncOperations.Add(lemurianBodyLoad);
 
             AsyncOperationHandle<GameObject> elderLemurianBodyLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/LemurianBruiser/LemurianBruiserBody.prefab");
-            elderLemurianBodyLoad.Completed += handle =>
+            elderLemurianBodyLoad.OnSuccess(elderLemurianBody =>
             {
-                _lemurianBruiserBodyPrefab = handle.Result.GetComponent<CharacterBody>();
+                _lemurianBruiserBodyPrefab = elderLemurianBody.GetComponent<CharacterBody>();
 
                 _lemurianBruiserGlowModelPrefab = createGlowModel(_lemurianBruiserBodyPrefab);
 
                 localPrefabs.Add(_lemurianBruiserGlowModelPrefab);
-            };
+            });
 
             asyncOperations.Add(elderLemurianBodyLoad);
 

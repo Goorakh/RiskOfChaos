@@ -23,9 +23,9 @@ namespace RiskOfChaos.Content
                 // EquipmentTransferOrb
                 {
                     AsyncOperationHandle<GameObject> transferOrbEffectLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Common/VFX/ItemTransferOrbEffect.prefab");
-                    transferOrbEffectLoad.Completed += handle =>
+                    transferOrbEffectLoad.OnSuccess(itemTransferOrbEffectPrefab =>
                     {
-                        GameObject prefab = handle.Result.InstantiatePrefab(nameof(EquipmentTransferOrbEffect));
+                        GameObject prefab = itemTransferOrbEffectPrefab.InstantiatePrefab(nameof(EquipmentTransferOrbEffect));
 
                         ItemTakenOrbEffect itemTakenEffect = prefab.GetComponent<ItemTakenOrbEffect>();
 
@@ -39,7 +39,7 @@ namespace RiskOfChaos.Content
                         GameObject.Destroy(itemTakenEffect);
 
                         effectDefs.Add(new EffectDef(prefab));
-                    };
+                    });
 
                     asyncOperations.Add(transferOrbEffectLoad);
                 }

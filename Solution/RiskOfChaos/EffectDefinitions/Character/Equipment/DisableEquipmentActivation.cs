@@ -2,6 +2,7 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Patches;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Skills;
 using RoR2.UI;
@@ -24,15 +25,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
         static void Init()
         {
             AsyncOperationHandle<CaptainSupplyDropSkillDef> prepSupplyDropLoad = Addressables.LoadAssetAsync<CaptainSupplyDropSkillDef>("RoR2/Base/Captain/PrepSupplyDrop.asset");
-            prepSupplyDropLoad.Completed += handle =>
+            prepSupplyDropLoad.OnSuccess(supplyDropSkillDef =>
             {
-                CaptainSupplyDropSkillDef supplyDropSkillDef = handle.Result;
-                if (!supplyDropSkillDef)
-                {
-                    Log.Error("Failed to load captain supply drop SkillDef");
-                    return;
-                }
-
                 Sprite exhaustedIcon = supplyDropSkillDef.exhaustedIcon;
                 if (!exhaustedIcon)
                 {
@@ -41,7 +35,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
                 }
 
                 _lockedIconTexture = exhaustedIcon.texture;
-            };
+            });
         }
 
         void Start()

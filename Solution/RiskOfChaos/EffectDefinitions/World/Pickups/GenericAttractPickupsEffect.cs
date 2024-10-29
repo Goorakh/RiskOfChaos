@@ -25,15 +25,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
             static void addNetworkTransform(string prefabAssetPath)
             {
                 AsyncOperationHandle<GameObject> prefabAssetLoad = Addressables.LoadAssetAsync<GameObject>(prefabAssetPath);
-                prefabAssetLoad.Completed += handle =>
+                prefabAssetLoad.OnSuccess(prefab =>
                 {
-                    GameObject prefab = handle.Result;
-                    if (!prefab)
-                    {
-                        Log.Error($"Failed to load asset '{prefabAssetPath}'");
-                        return;
-                    }
-
                     ProjectileNetworkTransform networkTransform = prefab.GetComponent<ProjectileNetworkTransform>();
                     if (networkTransform || prefab.GetComponent<NetworkTransform>())
                     {
@@ -60,7 +53,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
 #if DEBUG
                     Log.Debug($"Added network transform component to {prefab.name} ({prefabAssetPath})");
 #endif
-                };
+                });
             }
 
             addNetworkTransform("RoR2/Base/Common/GenericPickup.prefab");

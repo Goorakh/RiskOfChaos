@@ -26,16 +26,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
         static void Init()
         {
             AsyncOperationHandle<GameObject> explosionVfxLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/QuestVolatileBattery/VolatileBatteryExplosion.prefab");
-            explosionVfxLoad.Completed += handle =>
-            {
-                _explosionVFXPrefab = handle.Result;
-            };
+            explosionVfxLoad.OnSuccess(vfx => _explosionVFXPrefab = vfx);
 
             AsyncOperationHandle<GameObject> countdownVfxLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/QuestVolatileBattery/VolatileBatteryPreDetonation.prefab");
-            countdownVfxLoad.Completed += handle =>
-            {
-                _countDownVFXPrefab = handle.Result;
-            };
+            countdownVfxLoad.OnSuccess(vfx => _countDownVFXPrefab = vfx);
         }
 
         [ContentInitializer]

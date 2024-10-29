@@ -21,13 +21,13 @@ namespace RiskOfChaos.UI.NextEffectDisplay
         [ContentInitializer]
         static IEnumerator LoadContent(LocalPrefabAssetCollection localPrefabs)
         {
-            List<AsyncOperationHandle> asyncOperations = [];
+            List<AsyncOperationHandle> asyncOperations = new List<AsyncOperationHandle>(1);
 
             AsyncOperationHandle<GameObject> notificationPanelLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/NotificationPanel2.prefab");
-            notificationPanelLoad.Completed += handle =>
+            notificationPanelLoad.OnSuccess(notificationPanelPrefab =>
             {
                 // TODO: Construct panel prefab instead of Frankensteining existing prefabs
-                GameObject prefab = handle.Result.InstantiatePrefab(nameof(RoCContent.LocalPrefabs.ChaosNextEffectDisplay));
+                GameObject prefab = notificationPanelPrefab.InstantiatePrefab(nameof(RoCContent.LocalPrefabs.ChaosNextEffectDisplay));
 
                 Transform effectDisplayCanvasGroupTransform = prefab.transform.Find("CanvasGroup");
                 if (!effectDisplayCanvasGroupTransform)
@@ -56,6 +56,7 @@ namespace RiskOfChaos.UI.NextEffectDisplay
                 }
 
                 GameObject effectText = new GameObject("EffectText");
+                effectText.transform.SetParent(effectDisplayCanvasGroup.transform);
                 RectTransform effectTextTransform = effectText.AddComponent<RectTransform>();
                 effectTextTransform.anchorMin = Vector2.zero;
                 effectTextTransform.anchorMax = Vector2.one;
@@ -67,8 +68,6 @@ namespace RiskOfChaos.UI.NextEffectDisplay
                 effectTextLabel.enableWordWrapping = false;
                 effectTextLabel.fontSize = 30;
                 effectTextLabel.text = string.Empty;
-
-                effectText.transform.SetParent(effectDisplayCanvasGroup.transform);
 
                 NextEffectDisplayController displayController = prefab.AddComponent<NextEffectDisplayController>();
                 displayController.EffectText = effectText.AddComponent<LanguageTextMeshController>();
@@ -86,7 +85,7 @@ namespace RiskOfChaos.UI.NextEffectDisplay
                 }
 
                 localPrefabs.Add(prefab);
-            };
+            });
 
             asyncOperations.Add(notificationPanelLoad);
 

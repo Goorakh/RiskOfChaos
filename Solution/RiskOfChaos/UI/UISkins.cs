@@ -26,10 +26,8 @@ namespace RiskOfChaos.UI
             List<AsyncOperationHandle> asyncOperations = [];
 
             AsyncOperationHandle<Sprite> texUICutOffCornerLoad = Addressables.LoadAssetAsync<Sprite>("RoR2/Base/UI/texUICutOffCorner.png");
-            texUICutOffCornerLoad.Completed += handle =>
+            texUICutOffCornerLoad.OnSuccess(texUICutOffCorner =>
             {
-                Sprite texUICutOffCorner = texUICutOffCornerLoad.Result;
-
                 ActiveEffectsPanel.mainPanelStyle = new UISkinData.PanelStyle
                 {
                     material = null,
@@ -63,7 +61,7 @@ namespace RiskOfChaos.UI
                     color = Color.white,
                     alignment = TextAlignmentOptions.Center
                 };
-            };
+            });
 
             asyncOperations.Add(texUICutOffCornerLoad);
 

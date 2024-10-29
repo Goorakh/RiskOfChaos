@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using MonoMod.RuntimeDetour;
 using RiskOfChaos.ModificationController.SkillSlots;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Skills;
 using RoR2.UI;
@@ -18,10 +19,7 @@ namespace RiskOfChaos.Patches
         static void Init()
         {
             AsyncOperationHandle<CaptainSupplyDropSkillDef> loadPrepSupplyDropHandle = Addressables.LoadAssetAsync<CaptainSupplyDropSkillDef>("RoR2/Base/Captain/PrepSupplyDrop.asset");
-            loadPrepSupplyDropHandle.Completed += handle =>
-            {
-                _lockedSkillIcon = handle.Result.exhaustedIcon;
-            };
+            loadPrepSupplyDropHandle.OnSuccess(s => _lockedSkillIcon = s.exhaustedIcon);
 
             On.RoR2.GenericSkill.CanExecute += GenericSkill_CanExecute;
             On.RoR2.GenericSkill.IsReady += GenericSkill_IsReady;

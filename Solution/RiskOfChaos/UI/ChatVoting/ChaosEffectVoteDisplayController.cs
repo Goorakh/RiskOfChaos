@@ -23,10 +23,10 @@ namespace RiskOfChaos.UI.ChatVoting
             List<AsyncOperationHandle> asyncOperations = [];
 
             AsyncOperationHandle<GameObject> notificationPanelLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/NotificationPanel2.prefab");
-            notificationPanelLoad.Completed += handle =>
+            notificationPanelLoad.OnSuccess(notificationPanel =>
             {
                 // TODO: Construct panel prefab instead of Frankensteining existing prefabs
-                GameObject prefab = handle.Result.InstantiatePrefab(nameof(RoCContent.LocalPrefabs.ChaosEffectUIVoteItem));
+                GameObject prefab = notificationPanel.InstantiatePrefab(nameof(RoCContent.LocalPrefabs.ChaosEffectUIVoteItem));
 
                 Transform voteItemCanvasGroupTransform = prefab.transform.Find("CanvasGroup");
                 if (!voteItemCanvasGroupTransform)
@@ -55,6 +55,7 @@ namespace RiskOfChaos.UI.ChatVoting
                 }
 
                 GameObject effectText = new GameObject("EffectText");
+                effectText.transform.SetParent(voteItemCanvasGroup.transform);
                 RectTransform effectTextTransform = effectText.AddComponent<RectTransform>();
                 effectTextTransform.anchorMin = Vector2.zero;
                 effectTextTransform.anchorMax = Vector2.one;
@@ -66,8 +67,6 @@ namespace RiskOfChaos.UI.ChatVoting
                 effectTextLabel.enableWordWrapping = false;
                 effectTextLabel.fontSize = 30;
                 effectTextLabel.text = string.Empty;
-
-                effectText.transform.SetParent(voteItemCanvasGroup.transform);
 
                 LayoutElement layoutElement = voteItemCanvasGroup.AddComponent<LayoutElement>();
                 layoutElement.preferredHeight = 50f;
@@ -85,7 +84,7 @@ namespace RiskOfChaos.UI.ChatVoting
                 }
 
                 localPrefabs.Add(prefab);
-            };
+            });
 
             yield return asyncOperations.WaitForAllLoaded();
         }

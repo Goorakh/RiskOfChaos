@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.ExpansionManagement;
 using System.Collections.Generic;
@@ -17,7 +18,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         static DccsPool _allFamilyEventsPool;
 
-        [SystemInitializer(typeof(ExpansionCatalog))]
+        [SystemInitializer(typeof(ExpansionUtils))]
         static void Init()
         {
             _allFamilyEventsPool = ScriptableObject.CreateInstance<DccsPool>();
@@ -29,13 +30,10 @@ namespace RiskOfChaos.EffectDefinitions.World
             static void loadAndSetPoolEntryDccs(DccsPool.PoolEntry poolEntry, string assetKey)
             {
                 AsyncOperationHandle<FamilyDirectorCardCategorySelection> loadAssetHandle = Addressables.LoadAssetAsync<FamilyDirectorCardCategorySelection>(assetKey);
-                loadAssetHandle.Completed += handle =>
+                loadAssetHandle.OnSuccess(familyDccs =>
                 {
-                    FamilyDirectorCardCategorySelection familyDccs = handle.Result;
-                    string name = handle.Result.name;
-
                     familyDccs = ScriptableObject.Instantiate(familyDccs);
-                    familyDccs.name = name + "Forced";
+                    familyDccs.name = familyDccs.name + "Forced";
 
                     familyDccs.minimumStageCompletion = 0;
                     familyDccs.maximumStageCompletion = int.MaxValue;
@@ -43,7 +41,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                     poolEntry.dccs = familyDccs;
 
                     _forcedFamilyCardSelections.Add(familyDccs);
-                };
+                });
             }
 
             static DccsPool.PoolEntry getPoolEntry(string assetKey, float weight = 1f)
