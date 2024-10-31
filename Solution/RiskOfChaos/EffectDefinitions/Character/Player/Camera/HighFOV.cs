@@ -1,37 +1,45 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController.Camera;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.Camera;
 using RiskOfChaos.Utilities.Interpolation;
-using System;
+using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
     [ChaosTimedEffect("high_fov", 90f)]
-    public sealed class HighFOV : TimedEffect, ICameraModificationProvider
+    public sealed class HighFOV : MonoBehaviour
     {
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return CameraModificationManager.Instance;
+            return RoCContent.NetworkedPrefabs.CameraModificationProvider;
         }
 
-        public event Action OnValueDirty;
+        ValueModificationController _cameraModificationController;
 
-        public void ModifyValue(ref CameraModificationData value)
+        void Start()
         {
-            value.FOVMultiplier *= 1.75f;
-        }
-
-        public override void OnStart()
-        {
-            CameraModificationManager.Instance.RegisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
-        }
-
-        public override void OnEnd()
-        {
-            if (CameraModificationManager.Instance)
+            if (NetworkServer.active)
             {
-                CameraModificationManager.Instance.UnregisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
+                _cameraModificationController = Instantiate(RoCContent.NetworkedPrefabs.CameraModificationProvider).GetComponent<ValueModificationController>();
+                _cameraModificationController.SetInterpolationParameters(new InterpolationParameters(1f));
+
+                CameraModificationProvider cameraModificationProvider = _cameraModificationController.GetComponent<CameraModificationProvider>();
+                cameraModificationProvider.FOVMultiplier = 1.75f;
+
+                NetworkServer.Spawn(_cameraModificationController.gameObject);
+            }
+        }
+
+        void OnDestroy()
+        {
+            if (_cameraModificationController)
+            {
+                _cameraModificationController.Retire();
+                _cameraModificationController = null;
             }
         }
     }

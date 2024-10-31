@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using UnityEngine;
 
@@ -14,10 +15,7 @@ namespace RiskOfChaos.Trackers
             {
                 orig(self);
 
-                if (!self.GetComponent<HealthComponentTracker>())
-                {
-                    self.gameObject.AddComponent<HealthComponentTracker>();
-                }
+                self.gameObject.EnsureComponent<HealthComponentTracker>();
             };
         }
 

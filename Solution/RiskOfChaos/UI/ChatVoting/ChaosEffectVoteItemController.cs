@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers.ChatVoting;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.UI;
 using TMPro;
@@ -116,15 +117,13 @@ namespace RiskOfChaos.UI.ChatVoting
         {
             if (_voteOption == null)
             {
-                EffectTextController.token = string.Empty;
-                EffectTextController.formatArgs = [];
+                EffectTextController.SetTokenAndFormatArgs(string.Empty, []);
 
                 _displayedVersion = 0;
             }
             else
             {
-                EffectTextController.token = "CHAOS_EFFECT_VOTING_OPTION_FORMAT";
-                EffectTextController.formatArgs = _voteOption.GetArgs();
+                EffectTextController.SetTokenAndFormatArgs("CHAOS_EFFECT_VOTING_OPTION_FORMAT", _voteOption.GetArgs());
 
                 _displayedVersion = _voteOption.Version;
             }

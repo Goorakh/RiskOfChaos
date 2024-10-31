@@ -1,47 +1,92 @@
 ﻿using HG;
+using RiskOfChaos.Components;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using RoR2.CameraModes;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
-    [ChaosTimedEffect("delay_camera_position", 45f, AllowDuplicates = false, IsNetworked = true)]
-    public sealed class DelayCameraPosition : TimedEffect
+    [ChaosTimedEffect("delay_camera_position", 45f, AllowDuplicates = false)]
+    public sealed class DelayCameraPosition : MonoBehaviour
     {
-        readonly Dictionary<UnityObjectWrapperKey<CameraRigController>, Vector3> _cameraMoveVelocities = [];
+        readonly Dictionary<UnityObjectWrapperKey<CameraRigController>, DelayedCameraPositionController> _delayedPositionControllers = [];
 
-        public override void OnStart()
+        readonly List<OnDestroyCallback> _destroyCallbacks = [];
+
+        bool _trackedObjectDestroyed;
+
+        void Start()
         {
-            On.RoR2.CameraModes.CameraModeBase.Update += CameraModeBase_Update;
+            ReadOnlyCollection<CameraRigController> cameraRigInstances = CameraRigController.readOnlyInstancesList;
+
+            _delayedPositionControllers.EnsureCapacity(cameraRigInstances.Count);
+            _destroyCallbacks.EnsureCapacity(cameraRigInstances.Count);
+
+            cameraRigInstances.TryDo(tryAddDelayCameraComponent);
+            CameraRigController.onCameraEnableGlobal += tryAddDelayCameraComponent;
         }
 
-        public override void OnEnd()
+        void FixedUpdate()
         {
-            On.RoR2.CameraModes.CameraModeBase.Update -= CameraModeBase_Update;
-            _cameraMoveVelocities.Clear();
-        }
-
-        void CameraModeBase_Update(On.RoR2.CameraModes.CameraModeBase.orig_Update orig, CameraModeBase self, ref CameraModeBase.CameraModeContext context, out CameraModeBase.UpdateResult result)
-        {
-            orig(self, ref context, out result);
-
-            if (context.viewerInfo.localUser is null)
-                return;
-
-            CameraRigController cameraRig = context.cameraInfo.cameraRigController;
-            if (!cameraRig || !context.targetInfo.target)
-                return;
-
-            if (!_cameraMoveVelocities.TryGetValue(cameraRig, out Vector3 velocity))
+            if (_trackedObjectDestroyed)
             {
-                velocity = Vector3.zero;
+                _trackedObjectDestroyed = false;
+
+                UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
+
+                int removedPositionControllers = UnityObjectUtils.RemoveAllDestroyed(_delayedPositionControllers);
+#if DEBUG
+                Log.Debug($"Cleared {removedPositionControllers} destroyed position controller(s)");
+#endif
+            }
+        }
+
+        void OnDestroy()
+        {
+            CameraRigController.onCameraEnableGlobal -= tryAddDelayCameraComponent;
+
+            foreach (OnDestroyCallback destroyCallback in _destroyCallbacks)
+            {
+                if (destroyCallback)
+                {
+                    OnDestroyCallback.RemoveCallback(destroyCallback);
+                }
             }
 
-            result.cameraState.position = Vector3.SmoothDamp(context.cameraInfo.previousCameraState.position, result.cameraState.position, ref velocity, 0.25f, float.PositiveInfinity, Time.deltaTime);
+            _destroyCallbacks.Clear();
 
-            _cameraMoveVelocities[cameraRig] = velocity;
+            foreach (DelayedCameraPositionController delayedPositionController in _delayedPositionControllers.Values)
+            {
+                if (delayedPositionController)
+                {
+                    delayedPositionController.EaseOutAndDestroy(1f);
+                }
+            }
+
+            _delayedPositionControllers.Clear();
+        }
+
+        void tryAddDelayCameraComponent(CameraRigController cameraRigController)
+        {
+            if (_delayedPositionControllers.ContainsKey(cameraRigController))
+                return;
+
+            DelayedCameraPositionController delayedPositionController = cameraRigController.gameObject.AddComponent<DelayedCameraPositionController>();
+            delayedPositionController.SmoothTime = 0.25f;
+            delayedPositionController.MaxSpeed = float.PositiveInfinity;
+
+            _delayedPositionControllers.Add(cameraRigController, delayedPositionController);
+
+            OnDestroyCallback destroyCallback = OnDestroyCallback.AddCallback(cameraRigController.gameObject, _ =>
+            {
+                _trackedObjectDestroyed = true;
+            });
+
+            _destroyCallbacks.Add(destroyCallback);
         }
     }
 }

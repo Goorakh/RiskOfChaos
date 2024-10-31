@@ -44,7 +44,10 @@ namespace RiskOfChaos
 
             public static readonly ConfigHolder<bool> DisplayNextEffect =
                 ConfigFactory<bool>.CreateConfig("Display Next Effect", true)
-                                   .Description("Displays the next effect that will happen.\nOnly works if chat voting is disabled and seeded mode is enabled")
+                                   .Description("""
+                                    Displays the next effect that will happen.
+                                    Only works if chat voting is disabled and seeded mode is enabled
+                                    """)
                                    .OptionConfig(new CheckBoxConfig())
                                    .Build();
 
@@ -57,9 +60,14 @@ namespace RiskOfChaos
 
             public static readonly ConfigHolder<NextEffectTimerDisplayType> NextEffectTimerDisplayMode =
                 ConfigFactory<NextEffectTimerDisplayType>.CreateConfig("Next Effect Timer Display Mode", NextEffectTimerDisplayType.WhenRunTimerUnavailable)
-                                                         .Description($"Displays how much time is left until the next effect.\n\n{nameof(NextEffectTimerDisplayType.Never)}: The time remaining is never displayed.\n{nameof(NextEffectTimerDisplayType.WhenRunTimerUnavailable)}: Displays time remaining only when the regular run timer is paused or otherwise not visible.\n{nameof(NextEffectTimerDisplayType.Always)}: Time remaining is always displayed")
+                                                         .Description($"""
+                                                          Displays how much time is left until the next effect.
+                                                          
+                                                          {nameof(NextEffectTimerDisplayType.Never)}: The time remaining is never displayed.
+                                                          {nameof(NextEffectTimerDisplayType.WhenRunTimerUnavailable)}: Displays time remaining only when the regular run timer is paused or otherwise not visible.
+                                                          {nameof(NextEffectTimerDisplayType.Always)}: Time remaining is always displayed
+                                                          """)
                                                          .OptionConfig(new ChoiceConfig())
-                                                         .ValueValidator(CommonValueValidators.DefinedEnumValue<NextEffectTimerDisplayType>())
                                                          .Build();
 
             public static bool ShouldShowNextEffectTimer(HUD hud)

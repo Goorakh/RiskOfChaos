@@ -1,18 +1,20 @@
 ﻿using RiskOfChaos.Components;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
-using RiskOfChaos.EffectHandling.Controllers;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Pickups
 {
     [ChaosTimedEffect("repulse_pickups", 90f, AllowDuplicates = false)]
-    public sealed class RepulsePickups : GenericAttractPickupsEffect
+    [RequiredComponents(typeof(GenericAttractPickupsEffect))]
+    public sealed class RepulsePickups : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _speedMultiplier =
@@ -20,46 +22,57 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                                 .Description("Multiplies the strength of the effect")
                                 .AcceptableValues(new AcceptableValueMin<float>(0f))
                                 .OptionConfig(new FloatFieldConfig { Min = 0f, FormatString = "{0}x" })
-                                .OnValueChanged(() =>
-                                {
-                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
-                                        return;
-
-                                    foreach (RepulsePickups effectInstance in TimedChaosEffectHandler.Instance.GetActiveEffectInstancesOfType<RepulsePickups>())
-                                    {
-                                        effectInstance?.updateAllAttractorComponents();
-                                    }
-                                })
                                 .Build();
 
-        public override void OnStart()
-        {
-            base.OnStart();
+        GenericAttractPickupsEffect _attractPickupsEffect;
 
-            ItemTierPickupRulesOverride.OverrideRules = ItemTierDef.PickupRules.ConfirmAll;
+        ItemTierPickupRulesOverride _itemPickupRulesOverride;
+
+        void Awake()
+        {
+            _attractPickupsEffect = GetComponent<GenericAttractPickupsEffect>();
+            _attractPickupsEffect.SetupAttractComponent += updateAttractComponent;
         }
 
-        public override void OnEnd()
+        void Start()
         {
-            base.OnEnd();
+            if (NetworkServer.active)
+            {
+                _speedMultiplier.SettingChanged += onSpeedMultiplierChanged;
+            }
 
-            ItemTierPickupRulesOverride.OverrideRules = null;
+            _itemPickupRulesOverride = new ItemTierPickupRulesOverride(ItemTierDef.PickupRules.ConfirmAll);
         }
 
-        protected override void onAttractorComponentAdded(AttractToPlayers attractToPlayers)
+        void OnDestroy()
         {
-            base.onAttractorComponentAdded(attractToPlayers);
+            _attractPickupsEffect.SetupAttractComponent -= updateAttractComponent;
 
-            attractToPlayers.MaxDistance = 10f;
-            attractToPlayers.MinVelocityTreshold = 0f;
+            _speedMultiplier.SettingChanged -= onSpeedMultiplierChanged;
+
+            _itemPickupRulesOverride?.Dispose();
         }
 
-        protected override void updateAttractorComponent(AttractToPlayers attractToPlayers)
+        static void updateAttractComponent(AttractToPlayers attractComponent)
         {
-            base.updateAttractorComponent(attractToPlayers);
+            attractComponent.MaxDistance = 10f;
+            attractComponent.MinVelocityTreshold = 0f;
 
-            attractToPlayers.MaxSpeed = -0.5f * _speedMultiplier.Value;
-            attractToPlayers.Acceleration = 1f * (((_speedMultiplier.Value - 1) / 2f) + 1);
+            attractComponent.MaxSpeed = -0.5f * _speedMultiplier.Value;
+            attractComponent.Acceleration = 1f * (((_speedMultiplier.Value - 1) / 2f) + 1);
+        }
+
+        void updateAllAttractComponents()
+        {
+            foreach (AttractToPlayers attractComponent in _attractPickupsEffect.AttractComponents)
+            {
+                updateAttractComponent(attractComponent);
+            }
+        }
+
+        void onSpeedMultiplierChanged(object sender, ConfigChangedArgs<float> e)
+        {
+            updateAllAttractComponents();
         }
     }
 }

@@ -1,6 +1,4 @@
-﻿using RiskOfChaos.Utilities;
-using RoR2;
-using System.Linq;
+﻿using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -9,127 +7,122 @@ namespace RiskOfChaos.Components
     [RequireComponent(typeof(CharacterBody))]
     public sealed class KeepBuff : MonoBehaviour
     {
-        CharacterBody _body;
-
-        public BuffIndex BuffIndex = BuffIndex.None;
-
-        uint _buffStackCount = 0;
-        public uint BuffStackCount
+        [SerializeField]
+        BuffIndex _buffIndex = BuffIndex.None;
+        public BuffIndex BuffIndex
         {
             get
             {
-                return _buffStackCount;
+                return _buffIndex;
             }
             set
             {
-                if (_body)
-                {
-                    int currentBuffCount = _body.GetBuffCount(BuffIndex);
+                if (_buffIndex == value)
+                    return;
 
-                    int newBuffCount;
-                    if (value > _buffStackCount)
-                    {
-                        newBuffCount = ClampedConversion.Int32(currentBuffCount + (value - _buffStackCount));
-                    }
-                    else if (value < _buffStackCount)
-                    {
-                        newBuffCount = ClampedConversion.Int32(currentBuffCount - (_buffStackCount - value));
-                    }
-                    else
-                    {
-                        return;
-                    }
+                _buffIndex = value;
 
-                    _body.SetBuffCount(BuffIndex, newBuffCount);
-
-                    onAppliedBuffStacksChanged();
-                }
-
-                _buffStackCount = value;
+                markBuffsDirty();
             }
         }
 
+        [SerializeField]
+        int _minBuffCount = -1;
+        public int MinBuffCount
+        {
+            get
+            {
+                return _minBuffCount;
+            }
+            set
+            {
+                if (_minBuffCount == value)
+                    return;
+
+                _minBuffCount = value;
+                markBuffsDirty();
+            }
+        }
+
+        CharacterBody _body;
+
+        BuffIndex _appliedBuffIndex = BuffIndex.None;
+        int _appliedBuffCount;
+
+        bool _buffsDirty;
+
         void Awake()
         {
+            if (!NetworkServer.active)
+            {
+                Log.Warning("Activated on client");
+                enabled = false;
+                return;
+            }
+
             _body = GetComponent<CharacterBody>();
         }
 
         void OnEnable()
         {
-            InstanceTracker.Add(this);
+            refreshBuffs();
         }
 
         void OnDisable()
         {
-            InstanceTracker.Remove(this);
+            removeAppliedBuffs();
         }
 
-        void FixedUpdate()
+        void markBuffsDirty()
         {
-            if (BuffIndex == BuffIndex.None || !NetworkServer.active)
-                return;
-
-            if (BuffStackCount <= 0)
+            if (!NetworkServer.active)
             {
-                Destroy(this);
+                Log.Warning("Called on client");
                 return;
             }
 
-            int currentBuffCount = _body.GetBuffCount(BuffIndex);
-            if (currentBuffCount < BuffStackCount)
-            {
-                _body.SetBuffCount(BuffIndex, ClampedConversion.Int32(BuffStackCount));
-
-                onAppliedBuffStacksChanged();
-            }
-        }
-
-        void onAppliedBuffStacksChanged()
-        {
-            // Refresh some of the elite buffs
-            if (_body.inventory)
-            {
-                _body.inventory.HandleInventoryChanged();
-            }
-            else
-            {
-                // Make sure boss title is refreshed even if this body has no inventory
-                BossUtils.TryRefreshBossTitleFor(_body);
-            }
-        }
-
-        public override string ToString()
-        {
-            if (!_body)
-            {
-                return base.ToString();
-            }
-            else
-            {
-                return string.Format($"{nameof(KeepBuff)} ({{0}})", FormatUtils.GetBestBodyName(_body));
-            }
-        }
-
-        public static void AddTo(CharacterBody body, BuffIndex buff, uint buffCount = 1)
-        {
-            BuffDef buffDef = BuffCatalog.GetBuffDef(buff);
-            if (!buffDef)
+            if (_buffsDirty)
                 return;
 
-            KeepBuff existingComponent = body.GetComponents<KeepBuff>().FirstOrDefault(kb => kb.BuffIndex == buff);
-            if (existingComponent)
-            {
-                if (buffDef.canStack)
-                {
-                    existingComponent.BuffStackCount += buffCount;
-                }
+            _buffsDirty = true;
 
+            RoR2Application.onNextUpdate += refreshBuffs;
+        }
+
+        void refreshBuffs()
+        {
+            _buffsDirty = false;
+
+            if (!NetworkServer.active)
+            {
+                Log.Warning("Called on client");
                 return;
             }
 
-            KeepBuff keepBuff = body.gameObject.AddComponent<KeepBuff>();
-            keepBuff.BuffIndex = buff;
-            keepBuff.BuffStackCount = buffCount;
+            removeAppliedBuffs();
+
+            _appliedBuffIndex = _buffIndex;
+            _appliedBuffCount = 0;
+
+            if (_appliedBuffIndex != BuffIndex.None)
+            {
+                // Kinda ugly, but it does work, all that's needed is a call to SetBuffCount for the right buff
+                int oldBuffCount = _body.GetBuffCount(_appliedBuffIndex);
+
+                _body.SetBuffCount(_appliedBuffIndex, oldBuffCount);
+                _appliedBuffCount = _body.GetBuffCount(_appliedBuffIndex) - oldBuffCount;
+            }
+        }
+
+        void removeAppliedBuffs()
+        {
+            if (_appliedBuffIndex != BuffIndex.None && _appliedBuffCount != 0)
+            {
+                _body.SetBuffCount(_appliedBuffIndex, _body.GetBuffCount(_appliedBuffIndex) - _appliedBuffCount);
+            }
+
+            _appliedBuffIndex = BuffIndex.None;
+            _appliedBuffCount = 0;
         }
     }
 }

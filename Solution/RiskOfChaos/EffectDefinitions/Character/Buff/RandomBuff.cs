@@ -1,23 +1,23 @@
-﻿using HarmonyLib;
-using Mono.Cecil.Cil;
-using MonoMod.Cil;
-using RiskOfChaos.Collections.CatalogIndex;
+﻿using RiskOfChaos.Collections.CatalogIndex;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using System;
 using System.Linq;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
     [ChaosTimedEffect("random_buff", 90f)]
     [EffectConfigBackwardsCompatibility("Effect: Give Everyone a Random Buff (Lasts 1 stage)")]
-    public sealed class RandomBuff : ApplyBuffEffect
+    [RequiredComponents(typeof(ApplyBuffEffect))]
+    public sealed class RandomBuff : NetworkBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<int> _stackableBuffCount =
@@ -26,67 +26,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                               .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntFieldConfig { Min = 1 })
                               .Build();
-
-        static uint configStackCount => ClampedConversion.UInt32(_stackableBuffCount.Value);
-
-        static bool _hasAppliedPatches = false;
-        static void tryApplyPatches()
-        {
-            if (_hasAppliedPatches)
-                return;
-
-            // Buffs that spawn another character on death should be added here to prevent infinite respawning of that character type
-            IL.RoR2.GlobalEventManager.OnCharacterDeath += il =>
-            {
-                ILCursor c = new ILCursor(il);
-
-                bool tryPatchOnDeathSpawn(ILCursor c, Type buffDeclaringType, string buffFieldName, string spawnedBodyName)
-                {
-                    ILLabel afterSpawnLabel = null;
-                    int victimBodyLocalIndex = -1;
-
-                    if (c.TryGotoNext(MoveType.After,
-                                  x => x.MatchLdloc(out victimBodyLocalIndex),
-                                  x => x.MatchLdsfld(buffDeclaringType, buffFieldName),
-                                  x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<CharacterBody>(_ => _.HasBuff(default(BuffDef)))),
-                                  x => x.MatchBrfalse(out afterSpawnLabel)))
-                    {
-                        c.Emit(OpCodes.Ldloc, victimBodyLocalIndex);
-                        c.Emit(OpCodes.Ldstr, spawnedBodyName);
-                        c.EmitDelegate(checkCanSpawn);
-                        static bool checkCanSpawn(CharacterBody victimBody, string spawnedBodyName)
-                        {
-                            return victimBody && victimBody.bodyIndex != BodyCatalog.FindBodyIndex(spawnedBodyName);
-                        }
-
-                        c.Emit(OpCodes.Brfalse, afterSpawnLabel);
-
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-
-                if (!tryPatchOnDeathSpawn(new ILCursor(il), typeof(RoR2Content.Buffs), nameof(RoR2Content.Buffs.AffixPoison), "UrchinTurretBody"))
-                {
-                    Log.Error("Failed to find malachite urchin patch location");
-                }
-
-                if (!tryPatchOnDeathSpawn(new ILCursor(il), typeof(DLC1Content.Buffs), nameof(DLC1Content.Buffs.EliteEarth), "AffixEarthHealerBody"))
-                {
-                    Log.Error("Failed to find healing core patch location");
-                }
-
-                if (!tryPatchOnDeathSpawn(new ILCursor(il), typeof(DLC1Content.Buffs), nameof(DLC1Content.Buffs.EliteVoid), "VoidInfestorBody"))
-                {
-                    Log.Error("Failed to find void infestor patch location");
-                }
-            };
-
-            _hasAppliedPatches = true;
-        }
 
         static readonly BuffIndexCollection _buffBlacklist = new BuffIndexCollection([
             "bdAurelioniteBlessing", // Nullref spam
@@ -203,7 +142,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 	        #endregion
         ]);
 
-        static BuffIndex[] _availableBuffIndices;
+        static BuffIndex[] _availableBuffIndices = [];
 
         [SystemInitializer(typeof(BuffCatalog), typeof(DotController))]
         static void InitAvailableBuffs()
@@ -214,7 +153,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                     return false;
 
                 BuffDef buffDef = BuffCatalog.GetBuffDef(bi);
-                if (!buffDef || buffDef.isHidden || isDebuff(buffDef) || isCooldown(buffDef))
+                if (!buffDef || buffDef.isHidden || BuffUtils.IsDebuff(buffDef) || BuffUtils.IsCooldown(buffDef))
                 {
 #if DEBUG
                     Log.Debug($"Excluding hidden/debuff/cooldown buff {buffDef.name}");
@@ -222,7 +161,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                     return false;
                 }
 
-                if (isDOT(buffDef))
+                if (BuffUtils.IsDOT(buffDef))
                 {
 #if DEBUG
                     Log.Debug($"Excluding DOT buff: {buffDef.name}");
@@ -249,16 +188,29 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return _availableBuffIndices != null && filterSelectableBuffs(_availableBuffIndices).Any();
+            return _availableBuffIndices.Length > 0 && ApplyBuffEffect.FilterSelectableBuffs(_availableBuffIndices).Any();
         }
 
-        public override void OnPreStartServer()
-        {
-            base.OnPreStartServer();
-            tryApplyPatches();
+        ChaosEffectComponent _chaosEffect;
+        ApplyBuffEffect _applyBuffEffect;
 
-            BuffDef buffDef = BuffCatalog.GetBuffDef(_buffIndex);
-            _buffCount = buffDef && buffDef.canStack ? configStackCount : 1;
+        void Awake()
+        {
+            _chaosEffect = GetComponent<ChaosEffectComponent>();
+            _applyBuffEffect = GetComponent<ApplyBuffEffect>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            Xoroshiro128Plus rng = new Xoroshiro128Plus(_chaosEffect.Rng.nextUlong);
+
+            BuffIndex buffIndex = getBuffIndexToApply(rng);
+            _applyBuffEffect.BuffIndex = buffIndex;
+
+            BuffDef buffDef = BuffCatalog.GetBuffDef(buffIndex);
+            _applyBuffEffect.BuffStackCount = buffDef && buffDef.canStack ? _stackableBuffCount.Value : 1;
         }
 
 #if DEBUG
@@ -266,7 +218,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         static bool _enableDebugIndex = false;
 #endif
 
-        protected override BuffIndex getBuffIndexToApply()
+        static BuffIndex getBuffIndexToApply(Xoroshiro128Plus rng)
         {
             BuffIndex selectedBuff;
 
@@ -278,7 +230,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             else
 #endif
             {
-                selectedBuff = RNG.NextElementUniform(filterSelectableBuffs(_availableBuffIndices).ToList());
+                selectedBuff = rng.NextElementUniform(ApplyBuffEffect.FilterSelectableBuffs(_availableBuffIndices).ToList());
             }
 
 #if DEBUG

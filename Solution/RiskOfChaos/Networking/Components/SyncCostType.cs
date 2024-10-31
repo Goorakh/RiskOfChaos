@@ -1,30 +1,68 @@
 ﻿using RiskOfChaos.Components.CostProviders;
-using RiskOfChaos.Networking.Wrappers;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Networking.Components
 {
     public sealed class SyncCostType : NetworkBehaviour
     {
+        [SystemInitializer]
+        static void Init()
+        {
+            On.RoR2.PurchaseInteraction.Awake += (orig, self) =>
+            {
+                orig(self);
+
+                self.gameObject.EnsureComponent<SyncCostType>();
+            };
+
+            On.RoR2.MultiShopController.Start += (orig, self) =>
+            {
+                orig(self);
+
+                if (!self.gameObject.GetComponent<SyncCostType>())
+                {
+                    Log.Warning($"MultiShopController {self} is missing SyncCostType component, cost type will not be synchronized over the network");
+                }
+            };
+
+            static void addComponentToPrefab(string prefabAssetPath)
+            {
+                AsyncOperationHandle<GameObject> prefabLoad = Addressables.LoadAssetAsync<GameObject>(prefabAssetPath);
+                prefabLoad.OnSuccess(prefab => prefab.EnsureComponent<SyncCostType>());
+            }
+
+            addComponentToPrefab("RoR2/Base/TripleShop/TripleShop.prefab");
+            addComponentToPrefab("RoR2/Base/TripleShopEquipment/TripleShopEquipment.prefab");
+            addComponentToPrefab("RoR2/Base/TripleShopLarge/TripleShopLarge.prefab");
+            addComponentToPrefab("RoR2/DLC1/FreeChestMultiShop/FreeChestMultiShop.prefab");
+            addComponentToPrefab("RoR2/Junk/SingleLunarShop.prefab");
+        }
+
         ICostProvider _costProvider;
 
         [SyncVar(hook = nameof(syncCostType))]
-        CostTypeIndexWrapper _costType;
+        int _costTypeInternal;
+
+        public CostTypeIndex CostType
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => (CostTypeIndex)_costTypeInternal;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private set => _costTypeInternal = (int)value;
+        }
 
         void Awake()
         {
-            if (TryGetComponent(out PurchaseInteraction purchaseInteraction))
-            {
-                _costProvider = new PurchaseInteractionCostProvider(purchaseInteraction);
-            }
-            else if (TryGetComponent(out MultiShopController multiShopController))
-            {
-                _costProvider = new MultiShopControllerCostProvider(multiShopController);
-            }
-            else
+            _costProvider = ICostProvider.GetFromObject(gameObject);
+
+            if (_costProvider == null)
             {
                 Log.Error($"No valid component found for {this}");
                 enabled = false;
@@ -36,70 +74,36 @@ namespace RiskOfChaos.Networking.Components
         {
             base.OnStartServer();
 
-            _costType = _costProvider.CostType;
+            CostType = _costProvider.CostType;
         }
 
         public override void OnStartClient()
         {
             base.OnStartClient();
 
-            syncCostType(_costType);
+            syncCostType(_costTypeInternal);
         }
 
         void FixedUpdate()
         {
             if (NetworkServer.active)
             {
-                _costType = _costProvider.CostType;
+                CostType = _costProvider.CostType;
             }
         }
 
-        void syncCostType(CostTypeIndexWrapper newCostType)
+        void syncCostType(int newCostType)
         {
-            _costType = newCostType;
+            _costTypeInternal = newCostType;
 
-            if (_costProvider.CostType == newCostType)
+            if (_costProvider.CostType == CostType)
                 return;
 
 #if DEBUG
-            Log.Debug($"{name} ({netId}): Cost type changed ({_costProvider.CostType}->{newCostType})");
+            Log.Debug($"{name} ({netId}): Cost type changed ({_costProvider.CostType}->{CostType})");
 #endif
 
-            _costProvider.CostType = newCostType;
-        }
-
-        [SystemInitializer]
-        static void Init()
-        {
-            On.RoR2.PurchaseInteraction.Awake += (orig, self) =>
-            {
-                orig(self);
-
-                if (!self.GetComponent<SyncCostType>())
-                {
-                    SyncCostType syncCostType = self.gameObject.AddComponent<SyncCostType>();
-                }
-            };
-
-            static void addToPrefab(string assetPath)
-            {
-                GameObject prefab = Addressables.LoadAssetAsync<GameObject>(assetPath).WaitForCompletion();
-
-                if (!prefab)
-                {
-                    Log.Warning($"Null prefab at path {assetPath}");
-                    return;
-                }
-
-                if (!prefab.GetComponent<SyncCostType>())
-                {
-                    prefab.AddComponent<SyncCostType>();
-                }
-            }
-
-            addToPrefab("RoR2/Base/TripleShop/TripleShop.prefab");
-            addToPrefab("RoR2/Base/TripleShopEquipment/TripleShopEquipment.prefab");
-            addToPrefab("RoR2/Base/TripleShopLarge/TripleShopLarge.prefab");
+            _costProvider.CostType = CostType;
         }
     }
 }

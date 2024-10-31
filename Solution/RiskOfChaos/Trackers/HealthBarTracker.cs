@@ -20,6 +20,9 @@ namespace RiskOfChaos.Trackers
             tracker.HealthBar = self;
         }
 
+        public delegate void HealthBarEventDelegate(HealthBarTracker healthBarTracker);
+        public static event HealthBarEventDelegate OnHealthBarAwakeGlobal;
+
         bool _isTracked;
 
         HealthBar _healthBar;
@@ -56,6 +59,7 @@ namespace RiskOfChaos.Trackers
             if (_isTracked)
             {
                 InstanceTracker.Add(this);
+                OnHealthBarAwakeGlobal?.Invoke(this);
             }
             else
             {

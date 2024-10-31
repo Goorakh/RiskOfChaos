@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
-using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -8,11 +7,13 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("advance_run_timer", ConfigName = "Advance Run Timer")]
-    public sealed class AdvanceRunTimer : BaseEffect
+    public sealed class AdvanceRunTimer : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<int> _numMinutesToAdd =
@@ -29,12 +30,18 @@ namespace RiskOfChaos.EffectDefinitions.World
             return new EffectNameFormatter_PluralizedCount(_numMinutesToAdd.Value);
         }
 
-        public override void OnStart()
+        void Start()
         {
+            if (!NetworkServer.active)
+                return;
+
             Run run = Run.instance;
             run.SetRunStopwatch(run.GetRunStopwatch() + (_numMinutesToAdd.Value * 60));
 
-            ChaosEffectDispatcher.Instance?.SkipAllScheduledEffects();
+            foreach (ChaosEffectActivationSignaler effectActivationSignaler in ChaosEffectActivationSignaler.InstancesList)
+            {
+                effectActivationSignaler.SkipAllScheduledEffects();
+            }
         }
     }
 }

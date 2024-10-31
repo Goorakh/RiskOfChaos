@@ -17,17 +17,9 @@ namespace RiskOfChaos.EffectHandling
             if (canActivateDelegate != null)
             {
                 _canActivate = canActivateDelegate as EffectCanActivateDelegate;
-
-#if DEBUG
-                Log.Debug($"Direct delegate bind available for {_methodDescription}: {_canActivate}");
-#endif
             }
             else
             {
-#if DEBUG
-                Log.Debug($"Using indirect delegate for {_methodDescription}");
-#endif
-
                 ParameterInfo[] methodParameters = method.GetParameters();
                 switch (methodParameters.Length)
                 {

@@ -1,39 +1,31 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
-using RiskOfChaos.ModifierController.SkillSlots;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.SkillSlots;
 using RiskOfOptions.OptionConfigs;
-using System;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
 {
     [ChaosTimedEffect("increase_skill_cooldown", TimedEffectType.UntilStageEnd, ConfigName = "Increase Skill Cooldowns")]
-    public sealed class IncreaseSkillCooldowns : TimedEffect, ISkillSlotModificationProvider
+    public sealed class IncreaseSkillCooldowns : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _cooldownIncrease =
             ConfigFactory<float>.CreateConfig("Cooldown Increase", 0.5f)
                                 .Description("How much to increase skill cooldowns by")
                                 .AcceptableValues(new AcceptableValueMin<float>(0f))
-                                .OptionConfig(new StepSliderConfig
+                                .OptionConfig(new FloatFieldConfig
                                 {
                                     FormatString = "+{0:P0}",
-                                    min = 0f,
-                                    max = 2f,
-                                    increment = 0.01f
-                                })
-                                .OnValueChanged(() =>
-                                {
-                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
-                                        return;
-
-                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseSkillCooldowns>(e => e.OnValueDirty);
+                                    Min = 0f
                                 })
                                 .FormatsEffectName()
                                 .Build();
@@ -41,7 +33,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return SkillSlotModificationManager.Instance;
+            return RoCContent.NetworkedPrefabs.SkillSlotModificationProvider;
         }
 
         [GetEffectNameFormatter]
@@ -50,24 +42,28 @@ namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
             return new EffectNameFormatter_GenericFloat(_cooldownIncrease.Value) { ValueFormat = "P0" };
         }
 
-        public override void OnStart()
-        {
-            SkillSlotModificationManager.Instance.RegisterModificationProvider(this);
-        }
+        ValueModificationController _skillSlotModificationController;
 
-        public override void OnEnd()
+        void Start()
         {
-            if (SkillSlotModificationManager.Instance)
+            if (NetworkServer.active)
             {
-                SkillSlotModificationManager.Instance.UnregisterModificationProvider(this);
+                _skillSlotModificationController = Instantiate(RoCContent.NetworkedPrefabs.SkillSlotModificationProvider).GetComponent<ValueModificationController>();
+
+                SkillSlotModificationProvider skillSlotModificationProvider = _skillSlotModificationController.GetComponent<SkillSlotModificationProvider>();
+                skillSlotModificationProvider.CooldownMultiplierConfigBinding.BindToConfig(_cooldownIncrease, v => 1f + v);
+
+                NetworkServer.Spawn(_skillSlotModificationController.gameObject);
             }
         }
 
-        public event Action OnValueDirty;
-
-        public void ModifyValue(ref SkillSlotModificationData value)
+        void OnDestroy()
         {
-            value.CooldownScale *= 1f + _cooldownIncrease.Value;
+            if (_skillSlotModificationController)
+            {
+                _skillSlotModificationController.Retire();
+                _skillSlotModificationController = null;
+            }
         }
     }
 }

@@ -1,37 +1,43 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController.Camera;
-using System;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.Camera;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
     [ChaosTimedEffect("disable_recoil", 90f, AllowDuplicates = false)]
-    public sealed class DisableRecoil : TimedEffect, ICameraModificationProvider
+    public sealed class DisableRecoil : MonoBehaviour
     {
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return CameraModificationManager.Instance;
+            return RoCContent.NetworkedPrefabs.CameraModificationProvider;
         }
 
-        public event Action OnValueDirty;
+        ValueModificationController _cameraModificationController;
 
-        public void ModifyValue(ref CameraModificationData value)
+        void Start()
         {
-            value.RecoilMultiplier = Vector2.zero;
-        }
-
-        public override void OnStart()
-        {
-            CameraModificationManager.Instance.RegisterModificationProvider(this);
-        }
-
-        public override void OnEnd()
-        {
-            if (CameraModificationManager.Instance)
+            if (NetworkServer.active)
             {
-                CameraModificationManager.Instance.UnregisterModificationProvider(this);
+                _cameraModificationController = Instantiate(RoCContent.NetworkedPrefabs.CameraModificationProvider).GetComponent<ValueModificationController>();
+
+                CameraModificationProvider cameraModificationProvider = _cameraModificationController.GetComponent<CameraModificationProvider>();
+                cameraModificationProvider.RecoilMultiplier = Vector2.zero;
+
+                NetworkServer.Spawn(_cameraModificationController.gameObject);
+            }
+        }
+
+        void OnDestroy()
+        {
+            if (_cameraModificationController)
+            {
+                _cameraModificationController.Retire();
+                _cameraModificationController = null;
             }
         }
     }

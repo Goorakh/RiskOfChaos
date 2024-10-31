@@ -1,116 +1,76 @@
 ﻿using EntityStates;
-using RiskOfChaos.ModifierController.TimeScale;
+using RiskOfChaos.Content;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.TimeScale;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
-using RiskOfChaos.Utilities.Interpolation;
 using RoR2;
-using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.Networking.Components
 {
-    public class SuperhotPlayerController : NetworkBehaviour
+    [RequiredComponents(typeof(ValueModificationController))]
+    public class SuperhotPlayerController : NetworkBehaviour, ITimeScaleModificationProvider
     {
-        class TimeScaleModificationProvider : ITimeScaleModificationProvider, IDisposable
-        {
-            static int _activeProviderCount = 0;
+        static readonly List<SuperhotPlayerController> _instances = [];
 
-            public event Action OnValueDirty;
+        NetworkIdentity _networkIdentity;
 
-            readonly SuperhotPlayerController _playerController;
-
-            float _currentMultiplier = 1f;
-            public float CurrentMultiplier
-            {
-                get => _currentMultiplier;
-                private set
-                {
-                    if (_currentMultiplier == value)
-                        return;
-
-                    _currentMultiplier = value;
-                    OnValueDirty?.Invoke();
-                }
-            }
-
-            public float TargetMultiplier = 1f;
-
-            bool _disposed;
-
-            public TimeScaleModificationProvider(SuperhotPlayerController playerController)
-            {
-                _playerController = playerController;
-                _activeProviderCount++;
-
-                TimeScaleModificationManager.Instance.RegisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 0.5f);
-
-                RoR2Application.onUpdate += update;
-            }
-
-            void update()
-            {
-                if (PauseStopController.instance && PauseStopController.instance.isPaused)
-                    return;
-
-                const float TIME_SCALE_CHANGE_UP_MAX_DELTA = 1f;
-                const float TIME_SCALE_CHANGE_DOWN_MAX_DELTA = 2f;
-                float maxDelta = CurrentMultiplier > TargetMultiplier ? TIME_SCALE_CHANGE_DOWN_MAX_DELTA : TIME_SCALE_CHANGE_UP_MAX_DELTA;
-
-                CurrentMultiplier = Mathf.MoveTowards(CurrentMultiplier, TargetMultiplier, maxDelta * Time.unscaledDeltaTime);
-            }
-
-            public void ModifyValue(ref float value)
-            {
-                if (_activeProviderCount <= 0)
-                    return;
-
-                // Splits influence semi-fairly between all active instances, allowing over/under values proportional to active instance count
-                value *= Mathf.Pow(_currentMultiplier, (1f + ((_activeProviderCount - 1) / 5f)) / _activeProviderCount);
-            }
-
-            public void Dispose()
-            {
-                if (_disposed)
-                    return;
-
-                _disposed = true;
-
-                _activeProviderCount--;
-
-                if (TimeScaleModificationManager.Instance)
-                {
-                    TimeScaleModificationManager.Instance.UnregisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 0.5f);
-                }
-
-                RoR2Application.onUpdate -= update;
-            }
-        }
+        ValueModificationController _modificationController;
 
         NetworkedBodyAttachment _networkedBodyAttachment;
+
+        bool _hasEffectiveAuthority;
 
         Vector3 _lastBodyPosition;
         CharacterBody _body;
 
-        TimeScaleModificationProvider _timeScaleModificationProviderServer;
+        [SyncVar(hook = nameof(setCurrentMultiplier))]
+        float _currentMultiplier = 1f;
+        float _targetMultiplier = 1f;
 
         float _lastSetTargetMultiplier = 1f;
 
         void Awake()
         {
+            _networkIdentity = GetComponent<NetworkIdentity>();
+
+            _modificationController = GetComponent<ValueModificationController>();
+
             _networkedBodyAttachment = GetComponent<NetworkedBodyAttachment>();
-        }
 
-        public override void OnStartServer()
-        {
-            base.OnStartServer();
-
-            _timeScaleModificationProviderServer = new TimeScaleModificationProvider(this);
+            _instances.Add(this);
         }
 
         void OnDestroy()
         {
-            _timeScaleModificationProviderServer?.Dispose();
-            _timeScaleModificationProviderServer = null;
+            _instances.Remove(this);
+        }
+
+        void Start()
+        {
+            updateHasAuthority();
+        }
+
+        public override void OnStartAuthority()
+        {
+            base.OnStartAuthority();
+
+            updateHasAuthority();
+        }
+
+        public override void OnStopAuthority()
+        {
+            base.OnStopAuthority();
+
+            updateHasAuthority();
+        }
+
+        void updateHasAuthority()
+        {
+            _hasEffectiveAuthority = Util.HasEffectiveAuthority(_networkIdentity);
         }
 
         void Update()
@@ -118,34 +78,67 @@ namespace RiskOfChaos.Networking.Components
             if (PauseStopController.instance && PauseStopController.instance.isPaused)
                 return;
 
+            bool hasAuthority = false;
+
             CharacterBody body = _networkedBodyAttachment.attachedBody;
             if (body)
             {
-                if (!body.hasEffectiveAuthority)
-                    return;
-
-                if (_body != body)
-                {
-                    _lastBodyPosition = body.footPosition;
-                }
+                hasAuthority = body.hasEffectiveAuthority;
             }
             else
             {
-                if (!Util.HasEffectiveAuthority(gameObject))
-                    return;
+                hasAuthority = _hasEffectiveAuthority;
             }
 
-            _body = body;
-
             float deltaTime = Time.unscaledDeltaTime;
+
+            if (hasAuthority)
+            {
+                updateAuthority(body, deltaTime);
+            }
+
+            if (NetworkServer.active)
+            {
+                updateServer(deltaTime);
+            }
+        }
+
+        void updateAuthority(CharacterBody currentBody, float deltaTime)
+        {
+            if (_body != currentBody)
+            {
+                _lastBodyPosition = currentBody.footPosition;
+            }
+
+            _body = currentBody;
+
+            if (deltaTime > 0f)
+            {
+                float targetTimeScaleMultiplier = getTargetTimeScaleMultiplier(deltaTime);
+                if (targetTimeScaleMultiplier != _lastSetTargetMultiplier)
+                {
+                    _lastSetTargetMultiplier = targetTimeScaleMultiplier;
+                    CmdSetTargetTimeScaleMultiplier(targetTimeScaleMultiplier);
+                }
+            }
+        }
+
+        [Server]
+        void updateServer(float deltaTime)
+        {
             if (deltaTime <= 0f)
                 return;
 
-            float targetTimeScaleMultiplier = getTargetTimeScaleMultiplier(deltaTime);
-            if (targetTimeScaleMultiplier != _lastSetTargetMultiplier)
+            if (_currentMultiplier != _targetMultiplier)
             {
-                _lastSetTargetMultiplier = targetTimeScaleMultiplier;
-                CmdSetTargetTimeScaleMultiplier(targetTimeScaleMultiplier);
+                if (_modificationController && !_modificationController.IsRetired)
+                {
+                    const float TIME_SCALE_CHANGE_UP_MAX_DELTA = 1f;
+                    const float TIME_SCALE_CHANGE_DOWN_MAX_DELTA = 2f;
+                    float maxDelta = _currentMultiplier > _targetMultiplier ? TIME_SCALE_CHANGE_DOWN_MAX_DELTA : TIME_SCALE_CHANGE_UP_MAX_DELTA;
+
+                    _currentMultiplier = Mathf.MoveTowards(_currentMultiplier, _targetMultiplier, maxDelta * deltaTime);
+                }
             }
         }
 
@@ -190,7 +183,65 @@ namespace RiskOfChaos.Networking.Components
         [Command]
         void CmdSetTargetTimeScaleMultiplier(float targetMultiplier)
         {
-            _timeScaleModificationProviderServer.TargetMultiplier = targetMultiplier;
+            _targetMultiplier = targetMultiplier;
+        }
+
+        float getCurrentMultiplier()
+        {
+            float currentMultiplier = _currentMultiplier;
+
+            if (_modificationController && _modificationController.IsInterpolating)
+            {
+                currentMultiplier = Mathf.Lerp(1f, currentMultiplier, Ease.InOutQuad(_modificationController.CurrentInterpolationFraction));
+            }
+
+            return currentMultiplier;
+        }
+
+        public bool TryGetTimeScaleModification(out TimeScaleModificationInfo modificationInfo)
+        {
+            int activeInstancesCount = _instances.Count;
+            if (activeInstancesCount <= 0)
+            {
+                Log.Error("Attempting to modify time scale with 0 active instances");
+                modificationInfo = default;
+                return false;
+            }
+
+            modificationInfo = new TimeScaleModificationInfo
+            {
+                TimeScaleMultiplier = Mathf.Pow(getCurrentMultiplier(), (1f + ((activeInstancesCount - 1) / 5f)) / activeInstancesCount),
+                CompensatePlayerSpeed = false
+            };
+
+            return true;
+        }
+
+        [Server]
+        public void Retire()
+        {
+            if (_modificationController)
+            {
+                _modificationController.Retire();
+            }
+            else
+            {
+                NetworkServer.Destroy(gameObject);
+            }
+        }
+
+        void markModificationsDirty()
+        {
+            if (_modificationController)
+            {
+                _modificationController.InvokeOnValuesDirty();
+            }
+        }
+
+        void setCurrentMultiplier(float currentMultiplier)
+        {
+            _currentMultiplier = currentMultiplier;
+            markModificationsDirty();
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Networking.Components;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.Networking.Components;
 using RoR2;
 using UnityEngine;
 
@@ -70,7 +71,7 @@ namespace RiskOfChaos.Components
                 {
                     if (_bodyAttachment.attachedBody)
                     {
-                        _positionIndicatorObject = Instantiate(NetPrefabs.ItemStealerPositionIndicatorPrefab);
+                        _positionIndicatorObject = Instantiate(RoCContent.LocalPrefabs.ItemStealerPositionIndicator);
 
                         _positionIndicator = _positionIndicatorObject.GetComponent<PositionIndicator>();
                         _positionIndicator.targetTransform = _bodyAttachment.attachedBody.coreTransform;

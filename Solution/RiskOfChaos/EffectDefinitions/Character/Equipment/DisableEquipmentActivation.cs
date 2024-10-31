@@ -1,126 +1,52 @@
-﻿using EntityStates.GoldGat;
-using HarmonyLib;
-using Mono.Cecil.Cil;
-using MonoMod.Cil;
-using MonoMod.RuntimeDetour;
-using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
+﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Patches;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Skills;
 using RoR2.UI;
-using System;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Equipment
 {
-    [ChaosTimedEffect("disable_equipment_activation", 60f, AllowDuplicates = false, IsNetworked = true)]
-    public sealed class DisableEquipmentActivation : TimedEffect
+    [ChaosTimedEffect("disable_equipment_activation", 60f, AllowDuplicates = false)]
+    public sealed class DisableEquipmentActivation : MonoBehaviour
     {
         [InitEffectInfo]
-        public static new readonly TimedEffectInfo EffectInfo;
+        public static readonly TimedEffectInfo EffectInfo;
 
         static Texture _lockedIconTexture;
 
         [SystemInitializer]
         static void Init()
         {
-            CaptainSupplyDropSkillDef supplyDropSkillDef = Addressables.LoadAssetAsync<CaptainSupplyDropSkillDef>("RoR2/Base/Captain/PrepSupplyDrop.asset").WaitForCompletion();
-            if (supplyDropSkillDef)
+            AsyncOperationHandle<CaptainSupplyDropSkillDef> prepSupplyDropLoad = Addressables.LoadAssetAsync<CaptainSupplyDropSkillDef>("RoR2/Base/Captain/PrepSupplyDrop.asset");
+            prepSupplyDropLoad.OnSuccess(supplyDropSkillDef =>
             {
                 Sprite exhaustedIcon = supplyDropSkillDef.exhaustedIcon;
-                if (exhaustedIcon)
+                if (!exhaustedIcon)
                 {
-                    _lockedIconTexture = exhaustedIcon.texture;
+                    Log.Error("Missing exhausted icon");
+                    return;
                 }
-            }
+
+                _lockedIconTexture = exhaustedIcon.texture;
+            });
         }
 
-        static bool _appliedPatches;
-        static void tryApplyPatches()
+        void Start()
         {
-            if (_appliedPatches)
-                return;
-
-            _appliedPatches = true;
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            static bool isEffectActive()
+            if (NetworkClient.active && _lockedIconTexture)
             {
-                return TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo);
+                OverrideEquipmentIconHook.OverrideEquipmentIcon += overrideEquipmentIcon;
             }
-
-            MethodInfo equipmentSlotStockGetter = AccessTools.DeclaredPropertyGetter(typeof(EquipmentSlot), nameof(EquipmentSlot.stock));
-            if (equipmentSlotStockGetter != null)
-            {
-                new Hook(equipmentSlotStockGetter, (Func<EquipmentSlot, int> orig, EquipmentSlot self) =>
-                {
-                    int stock = orig(self);
-                    if (isEffectActive())
-                        stock = 0;
-
-                    return stock;
-                });
-            }
-            else
-            {
-                Log.Error("Failed to find EquipmentSlot stock getter method");
-            }
-
-            IL.EntityStates.GoldGat.BaseGoldGatState.CheckReturnToIdle += il =>
-            {
-                ILCursor c = new ILCursor(il);
-
-                if (c.TryGotoNext(x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertyGetter(typeof(CharacterMaster), nameof(CharacterMaster.money)))))
-                {
-                    ILLabel afterIfLabel = null;
-                    if (c.TryGotoNext(MoveType.After,
-                                      x => x.MatchBleUn(out afterIfLabel)))
-                    {
-                        c.MoveAfterLabels();
-
-                        c.Emit(OpCodes.Ldarg_0);
-                        c.EmitDelegate(isOutOfEquipmentStocks);
-                        static bool isOutOfEquipmentStocks(BaseGoldGatState state)
-                        {
-                            return state.bodyEquipmentSlot && state.bodyEquipmentSlot.stock <= 0;
-                        }
-
-                        c.Emit(OpCodes.Brtrue, afterIfLabel);
-                    }
-                    else
-                    {
-                        Log.Error("[GoldGat equipment stock] Failed to find patch location");
-                    }
-                }
-                else
-                {
-                    Log.Error("[GoldGat equipment stock] Failed to find get_money call");
-                }
-            };
-
-            On.RoR2.EquipmentSlot.PerformEquipmentAction += (orig, self, equipmentDef) =>
-            {
-                if (isEffectActive())
-                    return false;
-
-                return orig(self, equipmentDef);
-            };
         }
 
-        public override void OnStart()
-        {
-            tryApplyPatches();
-
-            OverrideEquipmentIconHook.OverrideEquipmentIcon += overrideEquipmentIcon;
-        }
-
-        public override void OnEnd()
+        void OnDestroy()
         {
             OverrideEquipmentIconHook.OverrideEquipmentIcon -= overrideEquipmentIcon;
         }

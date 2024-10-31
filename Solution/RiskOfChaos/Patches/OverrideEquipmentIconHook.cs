@@ -1,6 +1,8 @@
 ﻿using HarmonyLib;
 using MonoMod.RuntimeDetour;
+using RoR2;
 using RoR2.UI;
+using System.Collections;
 using System.Reflection;
 using UnityEngine;
 
@@ -16,27 +18,11 @@ namespace RiskOfChaos.Patches
         }
 
         public delegate void OverrideEquipmentIconDelegate(in EquipmentIcon.DisplayData displayData, ref IconOverrideInfo info);
+        public static event OverrideEquipmentIconDelegate OverrideEquipmentIcon;
 
-        static event OverrideEquipmentIconDelegate _overrideEquipmentIcon;
-        public static event OverrideEquipmentIconDelegate OverrideEquipmentIcon
+        [SystemInitializer]
+        static IEnumerator Init()
         {
-            add
-            {
-                _overrideEquipmentIcon += value;
-                tryApplyPatches();
-            }
-            remove
-            {
-                _overrideEquipmentIcon -= value;
-            }
-        }
-
-        static bool _hasAppliedPatches;
-        static void tryApplyPatches()
-        {
-            if (_hasAppliedPatches)
-                return;
-
             MethodInfo EquipmentIcon_SetDisplayData_MI = SymbolExtensions.GetMethodInfo<EquipmentIcon>(_ => _.SetDisplayData(default));
 
             if (EquipmentIcon_SetDisplayData_MI != null)
@@ -48,7 +34,7 @@ namespace RiskOfChaos.Patches
                 Log.Error("Could not find EquipmentIcon.SetDisplayData MethodInfo");
             }
 
-            _hasAppliedPatches = true;
+            yield return null;
         }
 
         static Rect? _defaultEquipmentIconRect;
@@ -71,7 +57,7 @@ namespace RiskOfChaos.Patches
                 iconOverride.IconRectOverride = _defaultEquipmentIconRect.Value;
                 iconOverride.IconColorOverride = self.iconImage.color;
 
-                _overrideEquipmentIcon?.Invoke(displayData, ref iconOverride);
+                OverrideEquipmentIcon?.Invoke(displayData, ref iconOverride);
 
                 self.iconImage.texture = iconOverride.IconOverride;
                 self.iconImage.uvRect = iconOverride.IconRectOverride;

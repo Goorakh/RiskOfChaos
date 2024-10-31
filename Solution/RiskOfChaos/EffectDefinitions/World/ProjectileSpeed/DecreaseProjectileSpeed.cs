@@ -1,19 +1,21 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.Projectile;
 using RiskOfOptions.OptionConfigs;
-using System;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.ProjectileSpeed
 {
     [ChaosTimedEffect("decrease_projectile_speed", TimedEffectType.UntilStageEnd, ConfigName = "Decrease Projectile Speed")]
-    public sealed class DecreaseProjectileSpeed : GenericProjectileSpeedEffect
+    public sealed class DecreaseProjectileSpeed : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _projectileSpeedDecrease =
@@ -26,17 +28,14 @@ namespace RiskOfChaos.EffectDefinitions.World.ProjectileSpeed
                                     max = 1f,
                                     increment = 0.01f
                                 })
-                                .OnValueChanged(() =>
-                                {
-                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
-                                        return;
-
-                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<DecreaseProjectileSpeed>(e => e.OnValueDirty);
-                                })
                                 .FormatsEffectName()
                                 .Build();
 
-        public override event Action OnValueDirty;
+        [EffectCanActivate]
+        static bool CanActivate()
+        {
+            return RoCContent.NetworkedPrefabs.ProjectileModificationProvider;
+        }
 
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
@@ -44,6 +43,28 @@ namespace RiskOfChaos.EffectDefinitions.World.ProjectileSpeed
             return new EffectNameFormatter_GenericFloat(_projectileSpeedDecrease.Value) { ValueFormat = "P0" };
         }
 
-        protected override float speedMultiplier => 1f - _projectileSpeedDecrease.Value;
+        ValueModificationController _projectileModificationController;
+
+        void Start()
+        {
+            if (NetworkServer.active)
+            {
+                _projectileModificationController = Instantiate(RoCContent.NetworkedPrefabs.ProjectileModificationProvider).GetComponent<ValueModificationController>();
+
+                ProjectileModificationProvider projectileModificationProvider = _projectileModificationController.GetComponent<ProjectileModificationProvider>();
+                projectileModificationProvider.SpeedMultiplierConfigBinding.BindToConfig(_projectileSpeedDecrease, v => 1f - v);
+
+                NetworkServer.Spawn(_projectileModificationController.gameObject);
+            }
+        }
+
+        void OnDestroy()
+        {
+            if (_projectileModificationController)
+            {
+                _projectileModificationController.Retire();
+                _projectileModificationController = null;
+            }
+        }
     }
 }

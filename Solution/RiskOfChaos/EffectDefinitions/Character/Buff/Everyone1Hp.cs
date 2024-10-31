@@ -1,46 +1,33 @@
 ﻿using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.Utilities;
-using RoR2;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
     [ChaosTimedEffect("everyone_1hp", 30f, AllowDuplicates = false)]
-    public sealed class Everyone1Hp : ApplyBuffEffect
+    [RequiredComponents(typeof(ApplyBuffEffect))]
+    public sealed class Everyone1Hp : NetworkBehaviour
     {
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return canSelectBuff(Buffs.SetTo1Hp.buffIndex);
+            return ApplyBuffEffect.CanSelectBuff(RoCContent.Buffs.SetTo1Hp.buffIndex);
         }
 
-        protected override BuffIndex getBuffIndexToApply()
+        ApplyBuffEffect _applyBuffEffect;
+
+        void Awake()
         {
-            return Buffs.SetTo1Hp.buffIndex;
+            _applyBuffEffect = GetComponent<ApplyBuffEffect>();
         }
 
-        public override void OnStart()
+        public override void OnStartServer()
         {
-            foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
-            {
-                playerBody.AddTimedBuff(RoR2Content.Buffs.HiddenInvincibility, 1f);
+            base.OnStartServer();
 
-                Util.CleanseBody(playerBody, false, false, false, true, false, false);
-            }
-
-            base.OnStart();
-        }
-
-        protected override void onBuffApplied(CharacterBody body)
-        {
-            base.onBuffApplied(body);
-
-            HealthComponent healthComponent = body.healthComponent;
-            if (healthComponent)
-            {
-                healthComponent.Networkbarrier = 0f;
-            }
+            _applyBuffEffect.BuffIndex = RoCContent.Buffs.SetTo1Hp.buffIndex;
+            _applyBuffEffect.BuffStackCount = 1;
         }
     }
 }

@@ -1,11 +1,14 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.Gravity;
 using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
-using System;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -13,7 +16,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
 {
     [ChaosTimedEffect("rotate_gravity", TimedEffectType.UntilStageEnd, DefaultSelectionWeight = 0.8f)]
     [EffectConfigBackwardsCompatibility("Effect: Random Gravity Direction (Lasts 1 stage)")]
-    public sealed class RotateGravity : GenericGravityEffect
+    public sealed class RotateGravity : NetworkBehaviour
     {
         const float MAX_DEVITATION_MIN_VALUE = 0f;
         const float MAX_DEVITATION_MAX_VALUE = 90f;
@@ -32,33 +35,47 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
                                 })
                                 .Build();
 
-        public override event Action OnValueDirty;
+        ChaosEffectComponent _effectComponent;
 
         Quaternion _gravityRotation;
 
-        public override void OnPreStartServer()
+        ValueModificationController _gravityModificationController;
+
+        void Awake()
         {
-            base.OnPreStartServer();
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
             float maxDeviation = _maxDeviation.Value;
-            _gravityRotation = QuaternionUtils.RandomDeviation(Mathf.Clamp(maxDeviation - 10f, 0f, 10f), maxDeviation, RNG);
+            _gravityRotation = QuaternionUtils.RandomDeviation(Mathf.Clamp(maxDeviation - 10f, 0f, 10f), maxDeviation, rng);
         }
 
-        public override void Serialize(NetworkWriter writer)
+        void Start()
         {
-            base.Serialize(writer);
-            writer.Write(_gravityRotation);
+            if (NetworkServer.active)
+            {
+                _gravityModificationController = Instantiate(RoCContent.NetworkedPrefabs.GravityModificationProvider).GetComponent<ValueModificationController>();
+
+                GravityModificationProvider gravityModificationProvider = _gravityModificationController.GetComponent<GravityModificationProvider>();
+                gravityModificationProvider.GravityRotation = _gravityRotation;
+
+                NetworkServer.Spawn(_gravityModificationController.gameObject);
+            }
         }
 
-        public override void Deserialize(NetworkReader reader)
+        void OnDestroy()
         {
-            base.Deserialize(reader);
-            _gravityRotation = reader.ReadQuaternion();
-        }
-
-        public override void ModifyValue(ref Vector3 gravity)
-        {
-            gravity = _gravityRotation * gravity;
+            if (_gravityModificationController)
+            {
+                _gravityModificationController.Retire();
+                _gravityModificationController = null;
+            }
         }
     }
 }

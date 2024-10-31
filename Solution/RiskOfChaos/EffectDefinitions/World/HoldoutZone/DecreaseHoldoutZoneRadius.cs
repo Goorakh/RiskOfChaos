@@ -1,20 +1,20 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
-using RiskOfChaos.ModifierController.HoldoutZone;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.HoldoutZone;
 using RiskOfOptions.OptionConfigs;
-using System;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
 {
     [ChaosTimedEffect("decrease_holdout_zone_radius", TimedEffectType.UntilStageEnd, ConfigName = "Decrease Teleporter Zone Radius")]
-    public sealed class DecreaseHoldoutZoneRadius : TimedEffect, IHoldoutZoneModificationProvider
+    public sealed class DecreaseHoldoutZoneRadius : NetworkBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _radiusDecrease =
@@ -28,22 +28,13 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
                                     min = 0f,
                                     max = 1f
                                 })
-                                .OnValueChanged(() =>
-                                {
-                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
-                                        return;
-
-                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<DecreaseHoldoutZoneRadius>(e => e.OnValueDirty);
-                                })
                                 .FormatsEffectName()
                                 .Build();
-
-        public event Action OnValueDirty;
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return HoldoutZoneModificationManager.Instance;
+            return RoCContent.NetworkedPrefabs.SimpleHoldoutZoneModificationProvider;
         }
 
         [GetEffectNameFormatter]
@@ -52,22 +43,28 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
             return new EffectNameFormatter_GenericFloat(_radiusDecrease.Value) { ValueFormat = "P0" };
         }
 
-        public override void OnStart()
-        {
-            HoldoutZoneModificationManager.Instance.RegisterModificationProvider(this);
-        }
+        ValueModificationController _holdoutZoneModificationController;
 
-        public override void OnEnd()
+        void Start()
         {
-            if (HoldoutZoneModificationManager.Instance)
+            if (NetworkServer.active)
             {
-                HoldoutZoneModificationManager.Instance.UnregisterModificationProvider(this);
+                _holdoutZoneModificationController = Instantiate(RoCContent.NetworkedPrefabs.SimpleHoldoutZoneModificationProvider).GetComponent<ValueModificationController>();
+
+                SimpleHoldoutZoneModificationProvider holdoutZoneModificationProvider = _holdoutZoneModificationController.GetComponent<SimpleHoldoutZoneModificationProvider>();
+                holdoutZoneModificationProvider.RadiusMultiplierConfigBinding.BindToConfig(_radiusDecrease, v => 1f - v);
+
+                NetworkServer.Spawn(_holdoutZoneModificationController.gameObject);
             }
         }
 
-        public void ModifyValue(ref HoldoutZoneModificationInfo value)
+        void OnDestroy()
         {
-            value.RadiusMultiplier *= 1f - _radiusDecrease.Value;
+            if (_holdoutZoneModificationController)
+            {
+                _holdoutZoneModificationController.Retire();
+                _holdoutZoneModificationController = null;
+            }
         }
     }
 }

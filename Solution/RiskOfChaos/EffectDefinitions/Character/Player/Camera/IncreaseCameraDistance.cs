@@ -1,57 +1,56 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
-using RiskOfChaos.EffectHandling.Controllers;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController.Camera;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.Camera;
 using RiskOfChaos.Utilities.Interpolation;
 using RiskOfOptions.OptionConfigs;
-using System;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
     [ChaosTimedEffect("increase_camera_distance", 90f, ConfigName = "Increase Camera Distance")]
-    public sealed class IncreaseCameraDistance : TimedEffect, ICameraModificationProvider
+    public sealed class IncreaseCameraDistance : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _distanceMultiplier =
             ConfigFactory<float>.CreateConfig("Camera Distance Multiplier", 5f)
                                 .AcceptableValues(new AcceptableValueMin<float>(1f))
                                 .OptionConfig(new FloatFieldConfig { Min = 1f, FormatString = "{0}x" })
-                                .OnValueChanged(() =>
-                                {
-                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
-                                        return;
-
-                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseCameraDistance>(e => e.OnValueDirty);
-                                })
                                 .Build();
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return CameraModificationManager.Instance;
+            return RoCContent.NetworkedPrefabs.CameraModificationProvider;
         }
 
-        public event Action OnValueDirty;
-
-        public void ModifyValue(ref CameraModificationData value)
-        {
-            value.CameraDistanceMultiplier += _distanceMultiplier.Value - 1f;
-        }
+        ValueModificationController _cameraModificationController;
         
-        public override void OnStart()
+        void Start()
         {
-            CameraModificationManager.Instance.RegisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
+            if (NetworkServer.active)
+            {
+                _cameraModificationController = Instantiate(RoCContent.NetworkedPrefabs.CameraModificationProvider).GetComponent<ValueModificationController>();
+                _cameraModificationController.SetInterpolationParameters(new InterpolationParameters(1f));
+
+                CameraModificationProvider cameraModificationProvider = _cameraModificationController.GetComponent<CameraModificationProvider>();
+                cameraModificationProvider.DistanceMultiplierConfigBinding.BindToConfig(_distanceMultiplier);
+
+                NetworkServer.Spawn(_cameraModificationController.gameObject);
+            }
         }
 
-        public override void OnEnd()
+        void OnDestroy()
         {
-            if (CameraModificationManager.Instance)
+            if (_cameraModificationController)
             {
-                CameraModificationManager.Instance.UnregisterModificationProvider(this, ValueInterpolationFunctionType.EaseInOut, 1f);
+                _cameraModificationController.Retire();
+                _cameraModificationController = null;
             }
         }
     }

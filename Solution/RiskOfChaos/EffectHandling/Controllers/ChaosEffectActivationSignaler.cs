@@ -1,6 +1,9 @@
 ﻿using RiskOfChaos.EffectDefinitions;
+using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -9,10 +12,18 @@ namespace RiskOfChaos.EffectHandling.Controllers
 {
     public abstract class ChaosEffectActivationSignaler : MonoBehaviour
     {
+        static readonly List<ChaosEffectActivationSignaler> _instancesList = [];
+        public static readonly ReadOnlyCollection<ChaosEffectActivationSignaler> InstancesList = new ReadOnlyCollection<ChaosEffectActivationSignaler>(_instancesList);
+
         public const float MIN_STAGE_TIME_REQUIRED_TO_DISPATCH = 2f;
 
-        public delegate void SignalShouldDispatchEffectDelegate(ChaosEffectInfo effect, in ChaosEffectDispatchArgs args = default);
-        public abstract event SignalShouldDispatchEffectDelegate SignalShouldDispatchEffect;
+        public delegate void SignalShouldDispatchEffectDelegate(ChaosEffectActivationSignaler signaler, ChaosEffectInfo effect, in ChaosEffectDispatchArgs args = default);
+        public static event SignalShouldDispatchEffectDelegate SignalShouldDispatchEffect;
+
+        protected void signalEffectDispatch(ChaosEffectInfo effect, in ChaosEffectDispatchArgs args = default)
+        {
+            SignalShouldDispatchEffect?.Invoke(this, effect, args);
+        }
 
         public delegate bool CanDispatchEffectsOverrideDelegate();
         public static event CanDispatchEffectsOverrideDelegate CanDispatchEffectsOverride;
@@ -100,6 +111,16 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
+        protected virtual void OnEnable()
+        {
+            _instancesList.Add(this);
+        }
+
+        protected virtual void OnDisable()
+        {
+            _instancesList.Remove(this);
+        }
+
         public abstract void SkipAllScheduledEffects();
         public abstract void RewindEffectScheduling(float numSeconds);
 
@@ -114,8 +135,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 dispatchArgs = new ChaosEffectDispatchArgs
                 {
-                    DispatchFlags = EffectDispatchFlags.CheckCanActivate,
-                    OverrideRNGSeed = rng.nextUlong
+                    DispatchFlags = EffectDispatchFlags.CheckCanActivate
                 };
 
                 return ChaosEffectCatalog.PickEnabledEffect(rng, excludeEffects);
@@ -133,8 +153,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 dispatchArgs = new ChaosEffectDispatchArgs
                 {
-                    DispatchFlags = EffectDispatchFlags.CheckCanActivate,
-                    OverrideRNGSeed = rng.nextUlong
+                    DispatchFlags = EffectDispatchFlags.CheckCanActivate
                 };
             }
             else
@@ -144,10 +163,13 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 pickableEffects = pickableEffects.Where(e => e.CanActivate(EffectCanActivateContext.Now));
             }
 
-            if (pickableEffects.Any())
+            List<ChaosEffectInfo> pickableEffectsList = pickableEffects.ToList();
+
+            if (pickableEffectsList.Count > 0)
             {
                 WeightedSelection<ChaosEffectInfo> effectSelector = new WeightedSelection<ChaosEffectInfo>();
-                foreach (ChaosEffectInfo effect in pickableEffects)
+                effectSelector.EnsureCapacity(pickableEffectsList.Count);
+                foreach (ChaosEffectInfo effect in pickableEffectsList)
                 {
                     effectSelector.AddChoice(effect, effect.TotalSelectionWeight);
                 }
@@ -167,8 +189,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             {
                 dispatchArgs = new ChaosEffectDispatchArgs
                 {
-                    DispatchFlags = EffectDispatchFlags.CheckCanActivate,
-                    OverrideRNGSeed = rng.nextUlong
+                    DispatchFlags = EffectDispatchFlags.CheckCanActivate
                 };
             }
             else
@@ -178,10 +199,13 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 overrideEffects = overrideEffects.Where(e => e.Effect.CanActivate(EffectCanActivateContext.Now));
             }
 
-            if (overrideEffects.Any())
+            List<OverrideEffect> overrideEffectsList = overrideEffects.ToList();
+
+            if (overrideEffectsList.Count > 0)
             {
                 WeightedSelection<ChaosEffectInfo> effectSelector = new WeightedSelection<ChaosEffectInfo>();
-                foreach (OverrideEffect overrideEffect in overrideEffects)
+                effectSelector.EnsureCapacity(overrideEffectsList.Count);
+                foreach (OverrideEffect overrideEffect in overrideEffectsList)
                 {
                     effectSelector.AddChoice(overrideEffect.Effect, overrideEffect.GetWeight());
                 }
@@ -197,7 +221,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         protected virtual bool canDispatchEffects => !EffectDispatchingDisabled;
 
-        public abstract float GetTimeUntilNextEffect();
+        public abstract RunTimeStamp GetNextEffectActivationTime();
 
         public virtual ChaosEffectIndex GetUpcomingEffect()
         {

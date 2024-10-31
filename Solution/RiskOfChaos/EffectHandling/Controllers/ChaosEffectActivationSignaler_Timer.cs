@@ -1,8 +1,7 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.SaveHandling;
-using RiskOfChaos.SaveHandling.DataContainers;
-using RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Linq;
@@ -11,13 +10,54 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling.Controllers
 {
-    [ChaosEffectActivationSignaler(Configs.ChatVoting.ChatVotingMode.Disabled)]
     public class ChaosEffectActivationSignaler_Timer : ChaosEffectActivationSignaler
     {
-        public override event SignalShouldDispatchEffectDelegate SignalShouldDispatchEffect;
-
         CompletePeriodicRunTimer _effectDispatchTimer;
+
         Xoroshiro128Plus _nextEffectRNG;
+
+        [SerializedMember("rng")]
+        Xoroshiro128Plus serialized_nextEffectRng
+        {
+            get => _nextEffectRNG;
+            set
+            {
+                _nextEffectRNG = value;
+                updateNextEffect();
+            }
+        }
+
+        [SerializedMember("leat")]
+        float serialized_lastEffectActivationTimeStopwatch
+        {
+            get
+            {
+                if (!enabled)
+                    return 0f;
+
+                if (_effectDispatchTimer == null)
+                    return 0f;
+
+                return _effectDispatchTimer.GetLastActivationTimeStopwatch().Time;
+            }
+            set
+            {
+                if (!enabled)
+                    return;
+
+                if (_effectDispatchTimer == null)
+                {
+                    Log.Error("Failed to set last activation time, no timer instance");
+                    return;
+                }
+
+                _effectDispatchTimer.SetLastActivationTimeStopwatch(value);
+
+#if DEBUG
+                Log.Debug($"Loaded timer data, remaining={_effectDispatchTimer.GetNextActivationTime().TimeUntil}");
+#endif
+            }
+        }
 
         OverrideEffect[] _overrideAvailableEffects;
 
@@ -33,8 +73,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
             _effectDispatchTimer?.RewindScheduledActivations(numSeconds);
         }
 
-        void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             Configs.General.TimeBetweenEffects.SettingChanged += onTimeBetweenEffectsConfigChanged;
             Configs.EffectSelection.SeededEffectSelection.SettingChanged += onSeededEffectSelectionConfigChanged;
 
@@ -58,19 +100,15 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 _nextEffectRNG = new Xoroshiro128Plus(Run.instance.stageRng);
             }
 
-            if (SaveManager.UseSaveData)
-            {
-                SaveManager.CollectSaveData += SaveManager_CollectSaveData;
-                SaveManager.LoadSaveData += SaveManager_LoadSaveData;
-            }
-
             Stage.onStageStartGlobal += onStageStart;
 
             updateNextEffect();
         }
 
-        void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
+
             Configs.General.TimeBetweenEffects.SettingChanged -= onTimeBetweenEffectsConfigChanged;
             Configs.EffectSelection.SeededEffectSelection.SettingChanged -= onSeededEffectSelectionConfigChanged;
 
@@ -81,9 +119,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
 
             _nextEffectRNG = null;
-
-            SaveManager.CollectSaveData -= SaveManager_CollectSaveData;
-            SaveManager.LoadSaveData -= SaveManager_LoadSaveData;
 
             Stage.onStageStartGlobal -= onStageStart;
         }
@@ -148,32 +183,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
 #endif
         }
 
-        void SaveManager_LoadSaveData(in SaveContainer container)
-        {
-            EffectActivationSignalerData data = container.ActivationSignalerData;
-            if (data is null || data.ChatVoteData is not null)
-                return;
-
-            _nextEffectRNG = data.NextEffectRng;
-            _effectDispatchTimer.SetLastActivationTimeStopwatch(data.LastEffectActivationTime);
-
-#if DEBUG
-            Log.Debug($"Loaded timer data, remaining={_effectDispatchTimer.GetTimeRemaining()}");
-#endif
-        }
-
-        void SaveManager_CollectSaveData(ref SaveContainer container)
-        {
-            if (container.ActivationSignalerData is not null)
-                return;
-
-            container.ActivationSignalerData = new EffectActivationSignalerData
-            {
-                NextEffectRng = new SerializableRng(_nextEffectRNG),
-                LastEffectActivationTime = _effectDispatchTimer.GetLastActivationTimeStopwatch()
-            };
-        }
-
         void onSeededEffectSelectionConfigChanged(object sender, ConfigChangedArgs<bool> e)
         {
             updateNextEffect();
@@ -204,7 +213,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        void dispatchRandomEffect()
+        void dispatchRandomEffect(RunTimeStamp activationTime)
         {
             if (!NetworkServer.active)
             {
@@ -213,7 +222,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
 
             ChaosEffectInfo effect = pickNextEffect(_nextEffectRNG.Branch(), out ChaosEffectDispatchArgs args);
-            SignalShouldDispatchEffect?.Invoke(effect, args);
+            args.OverrideStartTime = activationTime + Mathf.Round(activationTime.TimeSinceClamped);
+            signalEffectDispatch(effect, args);
 
             updateNextEffect();
         }
@@ -240,9 +250,9 @@ namespace RiskOfChaos.EffectHandling.Controllers
             _nextEffectIndex = getNextEffect();
         }
 
-        public override float GetTimeUntilNextEffect()
+        public override RunTimeStamp GetNextEffectActivationTime()
         {
-            return Mathf.Max(0f, _effectDispatchTimer.GetTimeRemaining());
+            return _effectDispatchTimer.GetNextActivationTime();
         }
 
         public override ChaosEffectIndex GetUpcomingEffect()
@@ -274,24 +284,27 @@ namespace RiskOfChaos.EffectHandling.Controllers
             Debug.Log($"{ChaosEffectCatalog.GetEffectInfo(effectIndex).GetLocalDisplayName(EffectNameFormatFlags.RuntimeFormatArgs)} is not in available stage effects");
         }
 
-        [ConCommand(commandName = "roc_remove_stage_effect", flags = ConVarFlags.SenderMustBeServer, helpText = "Removes an effect from the current stage effect pool")]
+        [ConCommand(commandName = "roc_remove_stage_effect", flags = ConVarFlagUtil.SERVER, helpText = "Removes an effect from the current stage effect pool")]
         static void CCRemoveStageEffect(ConCommandArgs args)
         {
             ChaosEffectDispatcher dispatcher = ChaosEffectDispatcher.Instance;
             if (!dispatcher)
                 return;
 
-            ChaosEffectActivationSignaler effectSignaler = dispatcher.GetCurrentEffectSignaler();
-            if (!effectSignaler)
-                return;
-
             ChaosEffectIndex effectIndex = args.GetArgChaosEffectIndex(0);
 
-            if (effectSignaler is ChaosEffectActivationSignaler_Timer timerEffectSignaler)
+            bool removed = false;
+
+            foreach (ChaosEffectActivationSignaler effectActivationSignaler in InstancesList)
             {
-                timerEffectSignaler.tryRemoveStageEffect(effectIndex);
+                if (effectActivationSignaler is ChaosEffectActivationSignaler_Timer timerEffectSignaler)
+                {
+                    timerEffectSignaler.tryRemoveStageEffect(effectIndex);
+                    removed = true;
+                }
             }
-            else
+
+            if (!removed)
             {
                 Debug.Log("Current effect mode does not support stage effects");
             }

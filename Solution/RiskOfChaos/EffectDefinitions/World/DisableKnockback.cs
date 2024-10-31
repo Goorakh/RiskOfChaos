@@ -1,38 +1,45 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController.Knockback;
-using System;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.Knockback;
+using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosTimedEffect("disable_knockback", TimedEffectType.UntilStageEnd, AllowDuplicates = false, DefaultSelectionWeight = 0.8f)]
-    public sealed class DisableKnockback : TimedEffect, IKnockbackModificationProvider
+    public sealed class DisableKnockback : MonoBehaviour
     {
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return KnockbackModificationManager.Instance;
+            return RoCContent.NetworkedPrefabs.KnockbackModificationProvider;
         }
 
-        public override void OnStart()
-        {
-            KnockbackModificationManager.Instance.RegisterModificationProvider(this);
-        }
+        ValueModificationController _knockbackModificationController;
 
-        public override void OnEnd()
+        void Start()
         {
-            if (KnockbackModificationManager.Instance)
+            if (NetworkServer.active)
             {
-                KnockbackModificationManager.Instance.UnregisterModificationProvider(this);
+                _knockbackModificationController = Instantiate(RoCContent.NetworkedPrefabs.KnockbackModificationProvider).GetComponent<ValueModificationController>();
+
+                KnockbackModificationProvider knockbackModificationProvider = _knockbackModificationController.GetComponent<KnockbackModificationProvider>();
+                knockbackModificationProvider.KnockbackMultiplier = 0f;
+
+                NetworkServer.Spawn(_knockbackModificationController.gameObject);
             }
         }
 
-        public event Action OnValueDirty;
-
-        public void ModifyValue(ref float value)
+        void OnDestroy()
         {
-            value = 0f;
+            if (_knockbackModificationController)
+            {
+                _knockbackModificationController.Retire();
+                _knockbackModificationController = null;
+            }
         }
     }
 }

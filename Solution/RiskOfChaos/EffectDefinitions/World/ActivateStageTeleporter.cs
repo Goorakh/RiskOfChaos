@@ -4,11 +4,12 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RoR2;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("activate_stage_teleporter")]
-    public sealed class ActivateStageTeleporter : BaseEffect
+    public sealed class ActivateStageTeleporter : MonoBehaviour
     {
         [EffectCanActivate]
         static bool CanActivate(in EffectCanActivateContext context)
@@ -30,12 +31,15 @@ namespace RiskOfChaos.EffectDefinitions.World
                 return 0f;
 
             float timeOnStage = stage.entryTime.timeSince;
-            return Mathf.Min(1f, timeOnStage / (60f * 7.5f * (tpInteraction.activationState >= TeleporterInteraction.ActivationState.Charged ? 1.5f : 1f)));
+            return Mathf.Min(1f, timeOnStage / (60f * 5f * (tpInteraction.activationState >= TeleporterInteraction.ActivationState.Charged ? 1.5f : 1f)));
         }
 
-        public override void OnStart()
+        void Start()
         {
-            TeleporterInteraction.instance.OnInteractionBegin(ChaosInteractor.GetInteractor());
+            if (NetworkServer.active)
+            {
+                TeleporterInteraction.instance.OnInteractionBegin(ChaosInteractor.GetInteractor());
+            }
         }
     }
 }

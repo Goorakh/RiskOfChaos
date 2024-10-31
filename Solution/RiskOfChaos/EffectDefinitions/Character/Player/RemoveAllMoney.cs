@@ -2,18 +2,23 @@
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
     [ChaosEffect("remove_all_money", DefaultSelectionWeight = 0.6f)]
-    public sealed class RemoveAllMoney : BaseEffect
+    public sealed class RemoveAllMoney : MonoBehaviour
     {
-        public override void OnStart()
+        void Start()
         {
-            PlayerUtils.GetAllPlayerMasters(false).TryDo(master =>
+            if (NetworkServer.active)
             {
-                master.money = 0;
-            }, Util.GetBestMasterName);
+                PlayerUtils.GetAllPlayerMasters(false).TryDo(master =>
+                {
+                    master.money = 0;
+                }, Util.GetBestMasterName);
+            }
         }
     }
 }

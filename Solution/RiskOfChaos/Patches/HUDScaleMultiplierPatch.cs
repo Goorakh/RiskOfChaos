@@ -1,9 +1,8 @@
 ﻿using HarmonyLib;
-using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.Utils;
-using RiskOfChaos.ModifierController.UI;
+using RiskOfChaos.ModificationController.UI;
 using RoR2;
 using RoR2.UI;
 using UnityEngine;
@@ -41,7 +40,7 @@ namespace RiskOfChaos.Patches
                     c.EmitDelegate(modifyScale);
                     static void modifyScale(ref Vector3 scale)
                     {
-                        if (UIModificationManager.Instance && UIModificationManager.Instance.AnyModificationActive)
+                        if (UIModificationManager.Instance)
                         {
                             scale *= UIModificationManager.Instance.HudScaleMultiplier;
                         }

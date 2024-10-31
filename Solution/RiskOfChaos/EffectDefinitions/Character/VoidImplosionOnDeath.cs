@@ -1,13 +1,19 @@
 ﻿using HG;
+using Newtonsoft.Json;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.SaveHandling;
+using RiskOfChaos.Serialization.Converters;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Projectile;
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
@@ -15,110 +21,68 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [EffectConfigBackwardsCompatibility([
         "Effect: Void Implosion on Death"
     ])]
-    public sealed class VoidImplosionOnDeath : TimedEffect
+    public sealed class VoidImplosionOnDeath : NetworkBehaviour
     {
-        readonly record struct SerializableProjectilePrefab(string AssetPath)
+        readonly record struct VoidImplosionProjectileInfo(GameObject ProjectilePrefab);
+
+        static readonly WeightedSelection<VoidImplosionProjectileInfo> _projectileSelection = new WeightedSelection<VoidImplosionProjectileInfo>();
+
+        [SystemInitializer]
+        static IEnumerator Init()
         {
-            public readonly GameObject GetPrefab()
+            AsyncOperationHandle<GameObject> nullifierImplosionLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Nullifier/NullifierDeathBombProjectile.prefab");
+            AsyncOperationHandle<GameObject> jailerImplosionLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/VoidJailer/VoidJailerDeathBombProjectile.prefab");
+            AsyncOperationHandle<GameObject> devastatorImplosionLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/VoidMegaCrab/VoidMegaCrabDeathBombProjectile.prefab");
+
+            yield return AsyncOperationExtensions.WaitForAllLoaded([nullifierImplosionLoad, jailerImplosionLoad, devastatorImplosionLoad]);
+            
+            static void addChoice(AsyncOperationHandle<GameObject> prefabLoad, float weight)
             {
-                return Addressables.LoadAssetAsync<GameObject>(AssetPath).WaitForCompletion();
-            }
-        }
-
-        static readonly WeightedSelection<SerializableProjectilePrefab> _prefabSelection;
-
-        static VoidImplosionOnDeath()
-        {
-            _prefabSelection = new WeightedSelection<SerializableProjectilePrefab>();
-            _prefabSelection.AddChoice(new SerializableProjectilePrefab("RoR2/Base/Nullifier/NullifierDeathBombProjectile.prefab"), 1f);
-            _prefabSelection.AddChoice(new SerializableProjectilePrefab("RoR2/DLC1/VoidJailer/VoidJailerDeathBombProjectile.prefab"), 0.3f);
-            _prefabSelection.AddChoice(new SerializableProjectilePrefab("RoR2/DLC1/VoidMegaCrab/VoidMegaCrabDeathBombProjectile.prefab"), 0.7f);
-        }
-
-        readonly SerializableProjectilePrefab[] _projectilePrefabByBodyIndex = new SerializableProjectilePrefab[BodyCatalog.bodyCount];
-
-        public override void OnPreStartServer()
-        {
-            base.OnPreStartServer();
-
-            for (int i = 0; i < _projectilePrefabByBodyIndex.Length; i++)
-            {
-                _projectilePrefabByBodyIndex[i] = _prefabSelection.Evaluate(RNG.nextNormalizedFloat);
-            }
-        }
-
-        public override void Serialize(NetworkWriter writer)
-        {
-            base.Serialize(writer);
-
-            Dictionary<string, uint> prefabPathToIndex = [];
-
-            string[] prefabPaths = _projectilePrefabByBodyIndex.Select(p => p.AssetPath).Distinct().ToArray();
-
-            writer.WritePackedUInt32((uint)prefabPaths.Length);
-            for (uint i = 0; i < prefabPaths.Length; i++)
-            {
-                writer.Write(prefabPaths[i]);
-                prefabPathToIndex.Add(prefabPaths[i], i);
-            }
-
-            writer.WritePackedUInt32((uint)_projectilePrefabByBodyIndex.Length);
-            foreach (SerializableProjectilePrefab prefab in _projectilePrefabByBodyIndex)
-            {
-                writer.WritePackedUInt32(prefabPathToIndex[prefab.AssetPath]);
-            }
-        }
-
-        public override void Deserialize(NetworkReader reader)
-        {
-            base.Deserialize(reader);
-
-            Dictionary<uint, string> indexToPrefabPath = [];
-
-            uint prefabPathsLength = reader.ReadPackedUInt32();
-            for (uint i = 0; i < prefabPathsLength; i++)
-            {
-                indexToPrefabPath.Add(i, reader.ReadString());
-            }
-
-            uint serializedProjectilesCount = reader.ReadPackedUInt32();
-            if (serializedProjectilesCount != _projectilePrefabByBodyIndex.Length)
-            {
-                Log.Warning($"Unmatching body counts! Expected: {_projectilePrefabByBodyIndex.Length}, Read: {serializedProjectilesCount}");
-            }
-
-            long projectileCountToRead = Math.Min(serializedProjectilesCount, _projectilePrefabByBodyIndex.Length);
-            for (int i = 0; i < projectileCountToRead; i++)
-            {
-                _projectilePrefabByBodyIndex[i] = new SerializableProjectilePrefab(indexToPrefabPath[reader.ReadPackedUInt32()]);
-            }
-
-            if (serializedProjectilesCount < _projectilePrefabByBodyIndex.Length)
-            {
-                Log.Warning($"Missing {_projectilePrefabByBodyIndex.Length - serializedProjectilesCount} entries, generating fallbacks");
-
-                for (uint i = serializedProjectilesCount; i < _projectilePrefabByBodyIndex.Length; i++)
+                if (!prefabLoad.Result)
                 {
-                    _projectilePrefabByBodyIndex[i] = _prefabSelection.GetChoice(0).value;
+                    Log.Error($"Failed to load prefab {prefabLoad.LocationName}");
+                    return;
                 }
-            }
-            else if (serializedProjectilesCount > _projectilePrefabByBodyIndex.Length)
-            {
-                Log.Warning($"{serializedProjectilesCount - _projectilePrefabByBodyIndex.Length} unexpected entries in serialized data, ignoring");
 
-                for (long i = serializedProjectilesCount - _projectilePrefabByBodyIndex.Length - 1; i >= 0; i--)
-                {
-                    reader.ReadPackedUInt32();
-                }
+                _projectileSelection.AddChoice(new VoidImplosionProjectileInfo(prefabLoad.Result), weight);
             }
+
+            addChoice(nullifierImplosionLoad, 1f);
+            addChoice(jailerImplosionLoad, 0.3f);
+            addChoice(devastatorImplosionLoad, 0.7f);
         }
 
-        public override void OnStart()
+        ChaosEffectComponent _effectComponent;
+
+        GameObject[] _voidProjectilePrefabByBodyIndex = [];
+
+        void Awake()
         {
-            GlobalEventManager.onCharacterDeathGlobal += GlobalEventManager_onCharacterDeathGlobal;
+            _effectComponent = GetComponent<ChaosEffectComponent>();
         }
 
-        public override void OnEnd()
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+
+            _voidProjectilePrefabByBodyIndex = new GameObject[BodyCatalog.bodyCount];
+            for (int i = 0; i < _voidProjectilePrefabByBodyIndex.Length; i++)
+            {
+                _voidProjectilePrefabByBodyIndex[i] = _projectileSelection.Evaluate(rng.nextNormalizedFloat).ProjectilePrefab;
+            }
+        }
+
+        void Start()
+        {
+            if (NetworkServer.active)
+            {
+                GlobalEventManager.onCharacterDeathGlobal += GlobalEventManager_onCharacterDeathGlobal;
+            }
+        }
+
+        void OnDestroy()
         {
             GlobalEventManager.onCharacterDeathGlobal -= GlobalEventManager_onCharacterDeathGlobal;
         }
@@ -132,17 +96,87 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 return;
 
             int index = (int)report.victimBodyIndex;
-            if (!ArrayUtils.IsInBounds(_projectilePrefabByBodyIndex, index))
+            if (!ArrayUtils.IsInBounds(_voidProjectilePrefabByBodyIndex, index))
                 return;
-
-            SerializableProjectilePrefab projectile = _projectilePrefabByBodyIndex[index];
 
             ProjectileManager.instance.FireProjectile(new FireProjectileInfo
             {
-                projectilePrefab = projectile.GetPrefab(),
+                projectilePrefab = _voidProjectilePrefabByBodyIndex[index],
                 position = report.victimBody.corePosition,
                 rotation = Quaternion.identity
             });
+        }
+
+        [SerializedMember("p")]
+        SerializedProjectileBodyPairing[] serializedProjectileBodyPairings
+        {
+            get
+            {
+                Dictionary<GameObject, List<BodyIndex>> bodyIndicesByProjectilePrefab = new Dictionary<GameObject, List<BodyIndex>>(_projectileSelection.Count);
+
+                for (int i = 0; i < _voidProjectilePrefabByBodyIndex.Length; i++)
+                {
+                    GameObject projectilePrefab = _voidProjectilePrefabByBodyIndex[i];
+                    BodyIndex bodyIndex = (BodyIndex)i;
+
+                    if (!bodyIndicesByProjectilePrefab.TryGetValue(projectilePrefab, out List<BodyIndex> bodyIndices))
+                    {
+                        bodyIndices = new List<BodyIndex>(_voidProjectilePrefabByBodyIndex.Length - i);
+                        bodyIndicesByProjectilePrefab.Add(projectilePrefab, bodyIndices);
+                    }
+
+                    bodyIndices.Add(bodyIndex);
+                }
+
+                SerializedProjectileBodyPairing[] pairings = new SerializedProjectileBodyPairing[bodyIndicesByProjectilePrefab.Count];
+                int currentIndex = 0;
+                foreach (KeyValuePair<GameObject, List<BodyIndex>> kvp in bodyIndicesByProjectilePrefab)
+                {
+                    GameObject projectilePrefab = kvp.Key;
+                    List<BodyIndex> bodyIndices = kvp.Value;
+
+                    pairings[currentIndex] = new SerializedProjectileBodyPairing
+                    {
+                        ProjectileCatalogIndex = ProjectileCatalog.GetProjectileIndex(projectilePrefab),
+                        BodyIncides = [.. bodyIndices]
+                    };
+
+                    currentIndex++;
+                }
+
+                return pairings;
+            }
+            set
+            {
+                foreach (SerializedProjectileBodyPairing pairing in value)
+                {
+                    GameObject projectilePrefab = ProjectileCatalog.GetProjectilePrefab(pairing.ProjectileCatalogIndex);
+                    foreach (BodyIndex bodyIndex in pairing.BodyIncides)
+                    {
+                        if (bodyIndex == BodyIndex.None)
+                            continue;
+
+                        if (!ArrayUtils.IsInBounds(_voidProjectilePrefabByBodyIndex, (int)bodyIndex))
+                        {
+                            Log.Error($"Body index out of bounds: {bodyIndex} (0-{_voidProjectilePrefabByBodyIndex.Length})");
+                            continue;
+                        }
+
+                        _voidProjectilePrefabByBodyIndex[(int)bodyIndex] = projectilePrefab;
+                    }
+                }
+            }
+        }
+
+        [Serializable]
+        class SerializedProjectileBodyPairing
+        {
+            [JsonConverter(typeof(ProjectileIndexConverter))]
+            [JsonProperty("p")]
+            public int ProjectileCatalogIndex;
+
+            [JsonProperty("b")]
+            public BodyIndex[] BodyIncides;
         }
     }
 }

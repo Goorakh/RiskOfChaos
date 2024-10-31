@@ -1,6 +1,5 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.Utilities;
 using RiskOfOptions;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
@@ -13,7 +12,6 @@ namespace RiskOfChaos.ConfigHandling
     {
         public readonly T DefaultValue;
         public readonly IEqualityComparer<T> EqualityComparer;
-        public readonly ValueValidator<T> ValueValidator;
 
         public new ConfigEntry<T> Entry
         {
@@ -45,11 +43,7 @@ namespace RiskOfChaos.ConfigHandling
 
                 if (Entry != null)
                 {
-                    T value = Entry.Value;
-                    if (ValueValidator(value))
-                    {
-                        return value;
-                    }
+                    return Entry.Value;
                 }
 
                 return DefaultValue;
@@ -67,7 +61,6 @@ namespace RiskOfChaos.ConfigHandling
                             T defaultValue,
                             ConfigDescription description,
                             IEqualityComparer<T> equalityComparer,
-                            ValueValidator<T> valueValidator,
                             BaseOptionConfig optionConfig,
                             string[] previousKeys,
                             string[] previousSections,
@@ -75,7 +68,6 @@ namespace RiskOfChaos.ConfigHandling
         {
             DefaultValue = defaultValue;
             EqualityComparer = equalityComparer ?? throw new ArgumentNullException(nameof(equalityComparer));
-            ValueValidator = valueValidator ?? throw new ArgumentNullException(nameof(valueValidator));
             _optionConfig = optionConfig;
             _previousConfigSectionNames = previousSections ?? throw new ArgumentNullException(nameof(previousSections));
         }
@@ -109,6 +101,12 @@ namespace RiskOfChaos.ConfigHandling
 
         public override void Bind(ChaosEffectInfo ownerEffect)
         {
+            if (ownerEffect == null)
+            {
+                Log.Error($"Null effect owner given to config '{Key}'");
+                return;
+            }
+
             if (_optionConfig != null)
             {
                 ConfigHolder<bool> isEffectEnabledConfig = ownerEffect.IsEnabledConfig;
@@ -131,7 +129,7 @@ namespace RiskOfChaos.ConfigHandling
                 }
             }
 
-            ArrayUtil.AppendRange(ref _previousConfigSectionNames, ownerEffect.PreviousConfigSectionNames);
+            _previousConfigSectionNames = [.. _previousConfigSectionNames, .. ownerEffect.PreviousConfigSectionNames];
 
             if ((Flags & ConfigFlags.FormatsEffectName) == ConfigFlags.FormatsEffectName)
             {

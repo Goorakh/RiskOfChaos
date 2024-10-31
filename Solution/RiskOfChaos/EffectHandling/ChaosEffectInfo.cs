@@ -2,13 +2,15 @@
 using HG;
 using MonoMod.Utils;
 using RiskOfChaos.Collections;
+using RiskOfChaos.Components;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
-using RiskOfChaos.EffectDefinitions;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
@@ -31,9 +33,13 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly string NameToken;
 
-        public readonly Type EffectType;
+        public readonly Type EffectComponentType;
 
         public readonly string ConfigSectionName;
+
+        public readonly GameObject ControllerPrefab;
+
+        public readonly ReadOnlyCollection<Type> ControllerComponentTypes;
 
         readonly ChaosEffectCanActivateMethod[] _canActivateMethods = [];
 
@@ -53,12 +59,12 @@ namespace RiskOfChaos.EffectHandling
                 float weight = _selectionWeightConfig.Value;
 
                 // For seeded selection to be deterministic, effect weights have to stay constant, so no variable weights allowed in this mode
-                if (Configs.EffectSelection.SeededEffectSelection.Value)
-                    return weight;
-
-                foreach (EffectWeightMultiplierDelegate getEffectWeightMultiplier in _effectWeightMultipliers)
+                if (!Configs.EffectSelection.SeededEffectSelection.Value)
                 {
-                    weight *= getEffectWeightMultiplier();
+                    foreach (EffectWeightMultiplierDelegate getEffectWeightMultiplier in _effectWeightMultipliers)
+                    {
+                        weight *= getEffectWeightMultiplier();
+                    }
                 }
 
                 return weight;
@@ -113,8 +119,6 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
-        public readonly bool IsNetworked;
-
         public readonly string[] PreviousConfigSectionNames = [];
 
         public readonly ConfigFile ConfigFile;
@@ -126,50 +130,92 @@ namespace RiskOfChaos.EffectHandling
 
             NameToken = $"EFFECT_{Identifier.ToUpper()}_NAME";
 
-            EffectType = attribute.target;
+            EffectComponentType = attribute.target;
 
-            EffectConfigBackwardsCompatibilityAttribute configBackwardsCompatibilityAttribute = EffectType.GetCustomAttribute<EffectConfigBackwardsCompatibilityAttribute>();
+            EffectConfigBackwardsCompatibilityAttribute configBackwardsCompatibilityAttribute = EffectComponentType.GetCustomAttribute<EffectConfigBackwardsCompatibilityAttribute>();
             if (configBackwardsCompatibilityAttribute != null)
             {
                 PreviousConfigSectionNames = configBackwardsCompatibilityAttribute.ConfigSectionNames;
             }
 
-            MethodInfo[] allMethods = EffectType.GetAllMethodsRecursive(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public).ToArray();
+            ControllerPrefab = createPrefab();
 
-            _canActivateMethods = allMethods.WithAttribute<MethodInfo, EffectCanActivateAttribute>()
-                                            .Select(m => new ChaosEffectCanActivateMethod(m))
-                                            .ToArray();
-
-            _effectWeightMultipliers = allMethods.WithAttribute<MethodInfo, EffectWeightMultiplierSelectorAttribute>()
-                                                 .Select(m => m.CreateDelegate<EffectWeightMultiplierDelegate>())
-                                                 .ToArray();
-
-            MethodInfo getEffectNameFormatArgsMethod = allMethods.WithAttribute<MethodInfo, GetEffectNameFormatterAttribute>().FirstOrDefault();
-            _getEffectNameFormatter = getEffectNameFormatArgsMethod?.CreateDelegate<GetEffectNameFormatterDelegate>();
-
-            Type[] incompatibleEffectTypes = EffectType.GetCustomAttributes<IncompatibleEffectsAttribute>(true)
-                                                       .SelectMany(a => a.IncompatibleEffectTypes)
-                                                       .Distinct()
-                                                       .ToArray();
-
-            if (incompatibleEffectTypes.Length > 0)
+            MonoBehaviour[] controllerComponents = ControllerPrefab.GetComponents<MonoBehaviour>();
+            HashSet<Type> controllerComponentTypes = new HashSet<Type>(controllerComponents.Length);
+            foreach (MonoBehaviour controllerComponent in controllerComponents)
             {
-                List<TimedEffectInfo> incompatibleEffects = new List<TimedEffectInfo>(incompatibleEffectTypes.Length);
+                controllerComponentTypes.Add(controllerComponent.GetType());
+            }
+
+            ControllerComponentTypes = new ReadOnlyCollection<Type>(controllerComponentTypes.ToList());
+
+            HashSet<MethodInfo> processedMethods = [];
+
+            List<ChaosEffectCanActivateMethod> canActivateMethodsList = [];
+            List<EffectWeightMultiplierDelegate> effectWeightMultipliersList = [];
+            GetEffectNameFormatterDelegate getEffectNameFormatterDelegate = null;
+            HashSet<Type> incompatibleEffectTypes = [];
+
+            foreach (Type type in ControllerComponentTypes)
+            {
+                foreach (IncompatibleEffectsAttribute incompatibleEffectsAttribute in type.GetCustomAttributes<IncompatibleEffectsAttribute>(true))
+                {
+                    incompatibleEffectTypes.UnionWith(incompatibleEffectsAttribute.IncompatibleEffectTypes);
+                }
+
+                foreach (MethodInfo method in type.GetAllMethodsRecursive(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public))
+                {
+                    if (!processedMethods.Add(method))
+                        continue;
+
+                    if (method.GetCustomAttribute<EffectCanActivateAttribute>() != null)
+                    {
+                        canActivateMethodsList.Add(new ChaosEffectCanActivateMethod(method));
+                    }
+                    else if (method.GetCustomAttribute<EffectWeightMultiplierSelectorAttribute>() != null)
+                    {
+                        effectWeightMultipliersList.Add(method.CreateDelegate<EffectWeightMultiplierDelegate>());
+                    }
+                    else if (getEffectNameFormatterDelegate == null && method.GetCustomAttribute<GetEffectNameFormatterAttribute>() != null)
+                    {
+                        getEffectNameFormatterDelegate = method.CreateDelegate<GetEffectNameFormatterDelegate>();
+                    }
+                }
+            }
+
+            _canActivateMethods = canActivateMethodsList.ToArray();
+            _effectWeightMultipliers = effectWeightMultipliersList.ToArray();
+            _getEffectNameFormatter = getEffectNameFormatterDelegate;
+
+            if (incompatibleEffectTypes.Count > 0)
+            {
+                List<TimedEffectInfo> incompatibleEffects = new List<TimedEffectInfo>(incompatibleEffectTypes.Count);
                 IncompatibleEffects = new ReadOnlyCollection<TimedEffectInfo>(incompatibleEffects);
 
                 ChaosEffectCatalog.Availability.CallWhenAvailable(() =>
                 {
-                    incompatibleEffects.AddRange(ChaosEffectCatalog.AllTimedEffects.Where(e => e != this && incompatibleEffectTypes.Any(t => t.IsAssignableFrom(e.EffectType))));
+                    foreach (TimedEffectInfo timedEffect in ChaosEffectCatalog.AllTimedEffects)
+                    {
+                        if (timedEffect == this)
+                            continue;
+
+                        foreach (Type componentType in timedEffect.ControllerComponentTypes)
+                        {
+                            if (incompatibleEffectTypes.Any(t => t.IsAssignableFrom(componentType)))
+                            {
+                                incompatibleEffects.Add(timedEffect);
+                                break;
+                            }
+                        }
+                    }
 
 #if DEBUG
-                    Log.Debug($"Initialized incompatibility list for {ChaosEffectCatalog.GetEffectInfo(effectIndex)}: [{string.Join(", ", incompatibleEffects)}]");
+                    Log.Debug($"Initialized incompatibility list for {this}: [{string.Join(", ", incompatibleEffects)}]");
 #endif
                 });
             }
 
-            IsNetworked = attribute.IsNetworked;
-
-            ConfigSectionName = "Effect: " + (attribute.ConfigName ?? Language.GetString(NameToken, "en")).FilterConfigKey();
+            ConfigSectionName = "Effect: " + (attribute.ConfigName ?? Language.GetString(NameToken, "en").FilterConfigKey());
 
             if (PreviousConfigSectionNames != null && PreviousConfigSectionNames.Length > 0)
             {
@@ -182,16 +228,18 @@ namespace RiskOfChaos.EffectHandling
 
             ConfigFile = configFile;
 
-            IsEnabledConfig = ConfigFactory<bool>.CreateConfig("Effect Enabled", true)
-                                                 .Description("If the effect should be able to be picked")
-                                                 .OptionConfig(new CheckBoxConfig())
-                                                 .Build();
+            IsEnabledConfig = 
+                ConfigFactory<bool>.CreateConfig("Effect Enabled", true)
+                                   .Description("If the effect should be able to be picked")
+                                   .OptionConfig(new CheckBoxConfig())
+                                   .Build();
 
-            _selectionWeightConfig = ConfigFactory<float>.CreateConfig("Effect Weight", attribute.DefaultSelectionWeight)
-                                                         .Description("How likely the effect is to be picked, higher value means more likely, lower value means less likely")
-                                                         .AcceptableValues(new AcceptableValueMin<float>(0f))
-                                                         .OptionConfig(new FloatFieldConfig { Min = 0f })
-                                                         .Build();
+            _selectionWeightConfig = 
+                ConfigFactory<float>.CreateConfig("Effect Weight", attribute.DefaultSelectionWeight)
+                                    .Description("How likely the effect is to be picked, higher value means more likely, lower value means less likely")
+                                    .AcceptableValues(new AcceptableValueMin<float>(0f))
+                                    .OptionConfig(new FloatFieldConfig { Min = 0f })
+                                    .Build();
 
             _activationShortcut =
                 ConfigFactory<KeyboardShortcut>.CreateConfig("Activation Shortcut", KeyboardShortcut.Empty)
@@ -199,7 +247,7 @@ namespace RiskOfChaos.EffectHandling
                                                .OptionConfig(new KeyBindConfig())
                                                .Build();
 
-            foreach (MemberInfo member in EffectType.GetMembers(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly)
+            foreach (MemberInfo member in EffectComponentType.GetMembers(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly)
                                                     .WithAttribute<MemberInfo, InitEffectMemberAttribute>())
             {
                 foreach (InitEffectMemberAttribute initEffectMember in member.GetCustomAttributes<InitEffectMemberAttribute>())
@@ -210,6 +258,31 @@ namespace RiskOfChaos.EffectHandling
                     }
                 }
             }
+        }
+
+        protected virtual void modifyPrefabComponents(List<Type> componentTypes)
+        {
+        }
+
+        protected virtual GameObject createPrefab()
+        {
+            List<Type> componentTypes = [
+                typeof(NetworkIdentity),
+                typeof(ChaosEffectTimeoutController),
+                typeof(ChaosEffectComponent),
+                EffectComponentType
+            ];
+
+            modifyPrefabComponents(componentTypes);
+
+            GameObject prefab = Prefabs.CreateNetworkedPrefab($"{Identifier}_EffectController", componentTypes.ToArray());
+
+            if (prefab.TryGetComponent(out ChaosEffectComponent effectComponent))
+            {
+                effectComponent.ChaosEffectIndex = EffectIndex;
+            }
+
+            return prefab;
         }
 
         internal virtual void Validate()
@@ -238,13 +311,6 @@ namespace RiskOfChaos.EffectHandling
             _selectionWeightConfig?.Bind(this);
 
             _activationShortcut?.Bind(this);
-        }
-
-        public virtual BaseEffect CreateInstance(in CreateEffectInstanceArgs args)
-        {
-            BaseEffect effectInstance = (BaseEffect)Activator.CreateInstance(EffectType);
-            effectInstance.Initialize(args);
-            return effectInstance;
         }
 
         public virtual bool IsEnabled()
@@ -288,11 +354,11 @@ namespace RiskOfChaos.EffectHandling
                 }
             }
 
-            if (!Configs.EffectSelection.SeededEffectSelection.Value && TimedChaosEffectHandler.Instance)
+            if (!Configs.EffectSelection.SeededEffectSelection.Value && ChaosEffectTracker.Instance)
             {
                 foreach (TimedEffectInfo incompatibleEffect in IncompatibleEffects)
                 {
-                    if (TimedChaosEffectHandler.Instance.AnyInstanceOfEffectActive(incompatibleEffect, context))
+                    if (ChaosEffectTracker.Instance.IsAnyInstanceOfTimedEffectRelevantForContext(incompatibleEffect, context))
                     {
 #if DEBUG
                         Log.Debug($"Effect {this} cannot activate: incompatible effect {incompatibleEffect} is active");
@@ -350,8 +416,8 @@ namespace RiskOfChaos.EffectHandling
 
         public static bool operator ==(ChaosEffectInfo left, ChaosEffectInfo right)
         {
-            if (left is null || right is null)
-                return left is null && right is null;
+            if (left is null)
+                return right is null;
 
             return left.Equals(right);
         }

@@ -15,13 +15,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("revive_dead_characters")]
-    public sealed class ReviveDeadCharacters : BaseEffect
+    public sealed class ReviveDeadCharacters : MonoBehaviour
     {
-        static readonly GameObject _bossCombatSquadPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Core/BossCombatSquad.prefab").WaitForCompletion();
+        static GameObject _bossCombatSquadPrefab;
 
         [EffectConfig]
         static readonly ConfigHolder<int> _maxTrackedCharactersCount =
@@ -39,8 +40,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
         static readonly List<DeadCharacterInfo> _trackedDeadPlayers = [];
 
         [SystemInitializer]
-        static void InitListeners()
+        static void Init()
         {
+            AsyncOperationHandle<GameObject> bossCombatSquadLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Core/BossCombatSquad.prefab");
+            bossCombatSquadLoad.OnSuccess(bossCombatSquadPrefab => _bossCombatSquadPrefab = bossCombatSquadPrefab);
+
             GlobalEventManager.onCharacterDeathGlobal += damageReport =>
             {
                 if (!NetworkServer.active)
@@ -114,13 +118,16 @@ namespace RiskOfChaos.EffectDefinitions.Character
             return !context.IsNow || _trackedDeadCharacters.Count > 0 || _trackedDeadPlayers.Count > 0;
         }
 
-        public override void OnStart()
+        void Start()
         {
-            _trackedDeadPlayers.TryDo(player => player.Respawn());
-            _trackedDeadPlayers.Clear();
+            if (NetworkServer.active)
+            {
+                _trackedDeadPlayers.TryDo(player => player.Respawn());
+                _trackedDeadPlayers.Clear();
 
-            _trackedDeadCharacters.TryDo(character => character.Respawn());
-            _trackedDeadCharacters.Clear();
+                _trackedDeadCharacters.TryDo(character => character.Respawn());
+                _trackedDeadCharacters.Clear();
+            }
         }
 
         readonly record struct DeathRewardsData(uint GoldReward, uint ExpReward, int SpawnValue)
@@ -341,7 +348,14 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             public override readonly string ToString()
             {
-                return $"{BodyCatalog.GetBodyName(_bodyIndex)}";
+                if (_master)
+                {
+                    return Util.GetBestMasterName(_master);
+                }
+                else
+                {
+                    return BodyCatalog.GetBodyName(_bodyIndex);
+                }
             }
         }
     }

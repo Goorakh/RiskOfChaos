@@ -7,52 +7,54 @@ using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
 using System.Collections.ObjectModel;
+using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("duplicate_all_characters")]
-    public sealed class DuplicateAllCharacters : BaseEffect
+    public sealed class DuplicateAllCharacters : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<bool> _allowDontDestroyOnLoad =
             ConfigFactory<bool>.CreateConfig("Keep duplicated allies between stages", false)
-                               .Description("Allows duplicated allies to come with you to the next stage.\nThis is disabled by default to prevent lag by repeatedly duplicating your drones.")
+                               .Description("""
+                                Allows duplicated allies to come with you to the next stage.
+                                This is disabled by default to prevent lag by repeatedly duplicating your drones.
+                                """)
                                .OptionConfig(new CheckBoxConfig())
                                .Build();
 
-        public override void OnStart()
+        void Start()
         {
-            ReadOnlyCollection<CharacterBody> allCharacterBodies = CharacterBody.readOnlyInstancesList;
-            for (int i = allCharacterBodies.Count - 1; i >= 0; i--)
+            if (NetworkServer.active)
             {
-                CharacterBody body = allCharacterBodies[i];
-                if (!body)
-                    continue;
-
-                if ((body.bodyFlags & CharacterBody.BodyFlags.Masterless) != 0)
-                    continue;
-
-                CharacterMaster master = body.master;
-                if (!master)
-                    continue;
-
-                try
+                ReadOnlyCollection<CharacterBody> allCharacterBodies = CharacterBody.readOnlyInstancesList;
+                for (int i = allCharacterBodies.Count - 1; i >= 0; i--)
                 {
-                    duplicateMaster(master);
-                }
-                catch (Exception ex)
-                {
-                    Log.Error_NoCallerPrefix($"Failed to duplicate body {FormatUtils.GetBestBodyName(body)}: {ex}");
+                    CharacterBody body = allCharacterBodies[i];
+
+                    try
+                    {
+                        duplicateCharacter(body);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error_NoCallerPrefix($"Failed to duplicate body {FormatUtils.GetBestBodyName(body)}: {ex}");
+                    }
                 }
             }
         }
 
-        void duplicateMaster(CharacterMaster master)
+        static void duplicateCharacter(CharacterBody body)
         {
-            CharacterBody body = master.GetBody();
             if (!body)
                 return;
 
+            CharacterMaster master = body.master;
+            if (!master)
+                return;
+            
             MasterCopySpawnCard copySpawnCard = MasterCopySpawnCard.FromMaster(master, true, true);
 
             DirectorPlacementRule placementRule = new DirectorPlacementRule
@@ -63,7 +65,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 maxDistance = float.PositiveInfinity
             };
 
-            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(copySpawnCard, placementRule, RNG.Branch())
+            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(copySpawnCard, placementRule, RoR2Application.rng)
             {
                 summonerBodyObject = body.gameObject,
                 teamIndexOverride = master.teamIndex,
@@ -95,7 +97,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 position = body.footPosition
             });
 
-            UnityEngine.Object.Destroy(copySpawnCard);
+            Destroy(copySpawnCard);
         }
     }
 }

@@ -1,20 +1,19 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
-using RiskOfChaos.ModifierController.Effect;
 using RiskOfOptions.OptionConfigs;
-using System;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Meta
 {
     [ChaosTimedEffect("decrease_effect_duration", TimedEffectType.UntilStageEnd, ConfigName = "Decrease Effect Duration", IgnoreDurationModifiers = true)]
-    public sealed class DecreaseEffectDuration : TimedEffect, IEffectModificationProvider
+    [RequiredComponents(typeof(EffectDurationMultiplierEffect))]
+    public sealed class DecreaseEffectDuration : NetworkBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _durationMultiplier =
@@ -27,21 +26,8 @@ namespace RiskOfChaos.EffectDefinitions.Meta
                                     max = 1f,
                                     increment = 0.1f
                                 })
-                                .OnValueChanged(() =>
-                                {
-                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
-                                        return;
-
-                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<DecreaseEffectDuration>(e => e.OnValueDirty);
-                                })
                                 .FormatsEffectName()
                                 .Build();
-
-        [EffectCanActivate]
-        static bool CanActivate()
-        {
-            return EffectModificationManager.Instance;
-        }
 
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
@@ -49,40 +35,30 @@ namespace RiskOfChaos.EffectDefinitions.Meta
             return new EffectNameFormatter_GenericFloat(_durationMultiplier.Value);
         }
 
-        public event Action OnValueDirty;
+        EffectDurationMultiplierEffect _effectDurationMultiplierEffect;
 
-        public override void OnStart()
+        void Awake()
         {
-            EffectModificationManager.Instance.RegisterModificationProvider(this);
-
-            if (TimedChaosEffectHandler.Instance)
-            {
-                foreach (TimedEffect effect in TimedChaosEffectHandler.Instance.GetAllActiveEffects())
-                {
-                    if (effect.EffectInfo.IgnoreDurationModifiers)
-                        continue;
-
-                    effect.MaxStocks *= _durationMultiplier.Value;
-
-                    if (effect.TimedType != TimedEffectType.FixedDuration && effect.StocksRemaining <= 0)
-                    {
-                        TimedChaosEffectHandler.Instance.EndEffectServer(effect);
-                    }
-                }
-            }
+            _effectDurationMultiplierEffect = GetComponent<EffectDurationMultiplierEffect>();
         }
 
-        public void ModifyValue(ref EffectModificationInfo value)
+        public override void OnStartServer()
         {
-            value.DurationMultiplier *= _durationMultiplier.Value;
+            base.OnStartServer();
+
+            _effectDurationMultiplierEffect.DurationMultiplier = _durationMultiplier.Value;
+            _durationMultiplier.SettingChanged += onDurationMultiplierChanged;
         }
 
-        public override void OnEnd()
+        void OnDestroy()
         {
-            if (EffectModificationManager.Instance)
-            {
-                EffectModificationManager.Instance.UnregisterModificationProvider(this);
-            }
+            _durationMultiplier.SettingChanged -= onDurationMultiplierChanged;
+        }
+
+        [Server]
+        void onDurationMultiplierChanged(object sender, ConfigChangedArgs<float> e)
+        {
+            _effectDurationMultiplierEffect.DurationMultiplier = _durationMultiplier.Value;
         }
     }
 }

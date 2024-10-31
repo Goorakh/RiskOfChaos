@@ -6,11 +6,13 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
     [ChaosEffect("give_money")]
-    public sealed class GiveMoney : BaseEffect
+    public sealed class GiveMoney : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<int> _amountToGive =
@@ -37,20 +39,23 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                     amount = Run.instance.GetDifficultyScaledCost(amount);
                 }
 
-                return (uint)amount;
+                return ClampedConversion.UInt32(amount);
             }
         }
 
-        public override void OnStart()
+        void Start()
         {
-            uint amount = scaledAmountToGive;
-            if (amount == 0)
-                return;
-
-            PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
+            if (NetworkServer.active)
             {
-                playerMaster.GiveMoney(amount);
-            }, Util.GetBestMasterName);
+                uint amount = scaledAmountToGive;
+                if (amount == 0)
+                    return;
+
+                PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
+                {
+                    playerMaster.GiveMoney(amount);
+                }, Util.GetBestMasterName);
+            }
         }
     }
 }

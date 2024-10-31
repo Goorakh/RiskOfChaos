@@ -1,55 +1,60 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
-using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.Navigation;
-using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("spawn_ahoy_drones")]
-    public sealed class SpawnAhoyDrones : BaseEffect
+    public sealed class SpawnAhoyDrones : NetworkBehaviour
     {
-        static readonly CharacterSpawnCard _equipmentDroneSpawnCard;
+        static CharacterSpawnCard _equipmentDroneSpawnCard;
 
-        static SpawnAhoyDrones()
+        [SystemInitializer]
+        static void Init()
         {
-            _equipmentDroneSpawnCard = ScriptableObject.CreateInstance<CharacterSpawnCard>();
-            _equipmentDroneSpawnCard.name = "cscEquipmentDrone";
-            _equipmentDroneSpawnCard.sendOverNetwork = true;
-            _equipmentDroneSpawnCard.nodeGraphType = MapNodeGroup.GraphType.Air;
-            _equipmentDroneSpawnCard.forbiddenFlags = NodeFlags.NoCharacterSpawn;
-            _equipmentDroneSpawnCard.eliteRules = SpawnCard.EliteRules.ArtifactOnly;
-
-            _equipmentDroneSpawnCard.noElites = true;
-            _equipmentDroneSpawnCard.forbiddenAsBoss = true;
-
-            _equipmentDroneSpawnCard.prefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Drones/EquipmentDroneMaster.prefab").WaitForCompletion();
-
-            if (_equipmentDroneSpawnCard.prefab &&
-                _equipmentDroneSpawnCard.prefab.TryGetComponent(out CharacterMaster masterPrefab) &&
-                masterPrefab.bodyPrefab &&
-                masterPrefab.bodyPrefab.TryGetComponent(out CharacterBody bodyPrefab))
+            AsyncOperationHandle<GameObject> equipmentDroneMasterLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Drones/EquipmentDroneMaster.prefab");
+            equipmentDroneMasterLoad.OnSuccess(equipmentDroneMasterPrefab =>
             {
-                _equipmentDroneSpawnCard.hullSize = bodyPrefab.hullClassification;
+                _equipmentDroneSpawnCard = ScriptableObject.CreateInstance<CharacterSpawnCard>();
+                _equipmentDroneSpawnCard.name = "cscEquipmentDrone";
+                _equipmentDroneSpawnCard.prefab = equipmentDroneMasterPrefab;
+                _equipmentDroneSpawnCard.sendOverNetwork = true;
+                _equipmentDroneSpawnCard.nodeGraphType = MapNodeGroup.GraphType.Air;
+                _equipmentDroneSpawnCard.forbiddenFlags = NodeFlags.NoCharacterSpawn;
+
+                _equipmentDroneSpawnCard.equipmentToGrant = [
+                    DLC1Content.Equipment.BossHunterConsumed
+                ];
+
+                if (_equipmentDroneSpawnCard.prefab.TryGetComponent(out CharacterMaster masterPrefab) &&
+                    masterPrefab.bodyPrefab &&
+                    masterPrefab.bodyPrefab.TryGetComponent(out CharacterBody bodyPrefab))
+                {
+                    _equipmentDroneSpawnCard.hullSize = bodyPrefab.hullClassification;
 
 #if DEBUG
-                Log.Debug($"Set SpawnCard hull size to: {_equipmentDroneSpawnCard.hullSize}");
+                    Log.Debug($"Set SpawnCard hull size to: {_equipmentDroneSpawnCard.hullSize}");
 #endif
-            }
-            else
-            {
-                Log.Error("Failed to get equipment drone hull size");
-                _equipmentDroneSpawnCard.hullSize = HullClassification.Human;
-            }
+                }
+                else
+                {
+                    Log.Error("Failed to get equipment drone hull size");
+                    _equipmentDroneSpawnCard.hullSize = HullClassification.Human;
+                }
+            });
         }
 
         [EffectConfig]
@@ -61,62 +66,82 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                               .Build();
 
         [EffectCanActivate]
-        static bool CanActivate(in EffectCanActivateContext context)
+        static bool CanActivate()
         {
-            return ExpansionUtils.DLC1Enabled && DirectorCore.instance && _equipmentDroneSpawnCard.HasValidSpawnLocation() && (!context.IsNow || PlayerUtils.GetAllPlayerBodies(true).Any());
+            return ExpansionUtils.DLC1Enabled && DirectorCore.instance && _equipmentDroneSpawnCard.HasValidSpawnLocation();
         }
 
-        public override void OnStart()
+        ChaosEffectComponent _effectComponent;
+
+        Xoroshiro128Plus _rng;
+
+        void Awake()
         {
-            CharacterBody[] playerBodies = PlayerUtils.GetAllPlayerBodies(true).ToArray();
-            Util.ShuffleArray(playerBodies, RNG.Branch());
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+        }
+
+        void Start()
+        {
+            if (!NetworkServer.active)
+                return;
+
+            List<CharacterMaster> playerMasters = new List<CharacterMaster>(PlayerCharacterMasterController.instances.Count);
+            foreach (PlayerCharacterMasterController playerMaster in PlayerCharacterMasterController.instances)
+            {
+                if (!playerMaster.isConnected)
+                    continue;
+
+                CharacterMaster master = playerMaster.master;
+                if (!master || master.IsDeadAndOutOfLivesServer() || !master.GetBody())
+                    continue;
+
+                playerMasters.Add(master);
+            }
+
+            Util.ShuffleList(playerMasters, _rng);
 
             int spawnsRemaining = _droneSpawnCount.Value;
-            foreach (CharacterBody playerBody in playerBodies)
+            foreach (CharacterMaster playerMaster in playerMasters)
             {
-                spawnDroneAt(playerBody, RNG.Branch());
+                spawnDroneAt(playerMaster, _rng);
 
-                if (--spawnsRemaining <= 0)
-                    return;
+                spawnsRemaining--;
+                if (spawnsRemaining <= 0)
+                    break;
             }
 
             for (int i = 0; i < spawnsRemaining; i++)
             {
-                spawnDroneAt(RNG.NextElementUniform(playerBodies), RNG.Branch());
+                spawnDroneAt(_rng.NextElementUniform(playerMasters), _rng);
             }
         }
 
-        static void spawnDroneAt(CharacterBody ownerBody, Xoroshiro128Plus rng)
+        static void spawnDroneAt(CharacterMaster ownerMaster, Xoroshiro128Plus rng)
         {
+            GameObject bodyObject = ownerMaster.GetBodyObject();
+            CharacterBody body = ownerMaster.GetBody();
+
             DirectorPlacementRule placementRule = new DirectorPlacementRule
             {
-                position = ownerBody.footPosition,
+                position = body.corePosition,
                 placementMode = DirectorPlacementRule.PlacementMode.NearestNode
             };
 
             DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_equipmentDroneSpawnCard, placementRule, rng)
             {
-                summonerBodyObject = ownerBody.gameObject,
-                teamIndexOverride = ownerBody.teamComponent.teamIndex,
                 ignoreTeamMemberLimit = true,
-                onSpawnedServer = onDroneSpawnedServer
+                summonerBodyObject = bodyObject,
+                teamIndexOverride = ownerMaster.teamIndex,
             };
 
-            DirectorCore.instance.TrySpawnObject(spawnRequest);
-        }
-
-        static void onDroneSpawnedServer(SpawnCard.SpawnResult result)
-        {
-            if (!result.success || !result.spawnedInstance)
-                return;
-
-            if (result.spawnedInstance.TryGetComponent(out Inventory inventory))
-            {
-                if (inventory.GetEquipmentIndex() == EquipmentIndex.None)
-                {
-                    inventory.SetEquipmentIndex(DLC1Content.Equipment.BossHunterConsumed.equipmentIndex);
-                }
-            }
+            spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());
         }
     }
 }

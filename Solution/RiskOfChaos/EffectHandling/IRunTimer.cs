@@ -1,4 +1,6 @@
-﻿namespace RiskOfChaos.EffectHandling
+﻿using RiskOfChaos.Utilities;
+
+namespace RiskOfChaos.EffectHandling
 {
     public interface IRunTimer
     {
@@ -10,6 +12,6 @@
 
         void SkipActivations(int numActivationsToSkip);
 
-        float GetTimeRemaining();
+        RunTimeStamp GetNextActivationTime();
     }
 }

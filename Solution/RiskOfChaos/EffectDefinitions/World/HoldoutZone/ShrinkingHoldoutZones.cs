@@ -1,55 +1,124 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
-using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController.HoldoutZone;
+using RiskOfChaos.Trackers;
+using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
 {
     [ChaosTimedEffect("shrinking_holdout_zones", TimedEffectType.UntilStageEnd, AllowDuplicates = false)]
-    public sealed class ShrinkingHoldoutZones : TimedEffect, IHoldoutZoneModificationProvider
+    public sealed class ShrinkingHoldoutZones : MonoBehaviour
     {
-        static readonly AnimationCurve _radiusInterpolateCurve = new AnimationCurve([
-            new Keyframe(0f, 0f, 1f, 1f),
-            new Keyframe(0.5f, 0.75f, 1f, 1f),
-            new Keyframe(1f, 1f)
-        ]);
+        readonly List<ShrinkingHoldoutZoneController> _holdoutZoneShrinkControllers = [];
 
-        [EffectCanActivate]
-        static bool CanActivate()
+        readonly List<OnDestroyCallback> _destroyCallbacks = [];
+
+        bool _trackedObjectDestroyed;
+
+        void Start()
         {
-            return HoldoutZoneModificationManager.Instance;
-        }
+            List<HoldoutZoneTracker> holdoutZoneTrackers = InstanceTracker.GetInstancesList<HoldoutZoneTracker>();
 
-        public event Action OnValueDirty;
+            _holdoutZoneShrinkControllers.EnsureCapacity(holdoutZoneTrackers.Count);
+            _destroyCallbacks.EnsureCapacity(holdoutZoneTrackers.Count);
 
-        public override void OnStart()
-        {
-            HoldoutZoneModificationManager.Instance.RegisterModificationProvider(this);
-
-            RoR2Application.onFixedUpdate += onFixedUpdate;
-        }
-
-        void onFixedUpdate()
-        {
-            OnValueDirty?.Invoke();
-        }
-
-        public override void OnEnd()
-        {
-            if (HoldoutZoneModificationManager.Instance)
+            foreach (HoldoutZoneTracker holdoutZoneTracker in holdoutZoneTrackers)
             {
-                HoldoutZoneModificationManager.Instance.UnregisterModificationProvider(this);
+                registerHoldoutZone(holdoutZoneTracker);
             }
 
-            RoR2Application.onFixedUpdate -= onFixedUpdate;
+            HoldoutZoneTracker.OnHoldoutZoneStartGlobal += registerHoldoutZone;
         }
 
-        public void ModifyValue(ref HoldoutZoneModificationInfo value)
+        void OnDestroy()
         {
-            value.RadiusMultiplier *= Mathf.Lerp(1f, 1f / 4f, _radiusInterpolateCurve.Evaluate(value.ZoneController.charge));
+            HoldoutZoneTracker.OnHoldoutZoneStartGlobal -= registerHoldoutZone;
+
+            foreach (OnDestroyCallback destroyCallback in _destroyCallbacks)
+            {
+                if (destroyCallback)
+                {
+                    OnDestroyCallback.RemoveCallback(destroyCallback);
+                }
+            }
+
+            _destroyCallbacks.Clear();
+
+            foreach (ShrinkingHoldoutZoneController shrinkComponent in _holdoutZoneShrinkControllers)
+            {
+                if (shrinkComponent)
+                {
+                    Destroy(shrinkComponent);
+                }
+            }
+
+            _holdoutZoneShrinkControllers.Clear();
+        }
+
+        void FixedUpdate()
+        {
+            if (_trackedObjectDestroyed)
+            {
+                _trackedObjectDestroyed = false;
+
+                UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
+
+                int removedShrinkControllers = UnityObjectUtils.RemoveAllDestroyed(_holdoutZoneShrinkControllers);
+#if DEBUG
+                Log.Debug($"Cleared {removedShrinkControllers} destroyed shrink controller(s)");
+#endif
+            }
+        }
+
+        void registerHoldoutZone(HoldoutZoneTracker holdoutZoneTracker)
+        {
+            HoldoutZoneController holdoutZoneController = holdoutZoneTracker.HoldoutZoneController;
+            if (!holdoutZoneController || holdoutZoneController.GetComponent<ShrinkingHoldoutZoneController>())
+                return;
+
+            ShrinkingHoldoutZoneController shrinkController = holdoutZoneController.gameObject.AddComponent<ShrinkingHoldoutZoneController>();
+            _holdoutZoneShrinkControllers.Add(shrinkController);
+
+            OnDestroyCallback destroyCallback = OnDestroyCallback.AddCallback(shrinkController.gameObject, _ =>
+            {
+                _trackedObjectDestroyed = true;
+            });
+
+            _destroyCallbacks.Add(destroyCallback);
+        }
+
+        class ShrinkingHoldoutZoneController : MonoBehaviour
+        {
+            static readonly AnimationCurve _radiusMultiplierCurve = new AnimationCurve([
+                new Keyframe(0f, 0f, 1f, 1f),
+                new Keyframe(0.5f, 0.75f, 1f, 1f),
+                new Keyframe(1f, 1f)
+            ]);
+
+            HoldoutZoneController _holdoutZone;
+
+            void Awake()
+            {
+                _holdoutZone = GetComponent<HoldoutZoneController>();
+            }
+
+            void OnEnable()
+            {
+                _holdoutZone.calcRadius += calcRadius;
+            }
+
+            void OnDisable()
+            {
+                _holdoutZone.calcRadius -= calcRadius;
+            }
+
+            void calcRadius(ref float radius)
+            {
+                radius *= Mathf.Lerp(1f, 1f / 4f, _radiusMultiplierCurve.Evaluate(_holdoutZone.charge));
+            }
         }
     }
 }

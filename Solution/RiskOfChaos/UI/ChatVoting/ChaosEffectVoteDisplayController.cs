@@ -1,89 +1,92 @@
-﻿using R2API;
-using RiskOfChaos.ConfigHandling;
+﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.Content;
+using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.Controllers.ChatVoting;
-using RoR2;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2.UI;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UI;
 
 namespace RiskOfChaos.UI.ChatVoting
 {
     public class ChaosEffectVoteDisplayController : MonoBehaviour
     {
-        static GameObject _voteItemPrefab;
-
-        [SystemInitializer]
-        static void Init()
+        [ContentInitializer]
+        static IEnumerator LoadContent(LocalPrefabAssetCollection localPrefabs)
         {
-            GameObject voteItemPrefab = Instantiate(Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/NotificationPanel2.prefab").WaitForCompletion());
+            List<AsyncOperationHandle> asyncOperations = [];
 
-            // Prevent added components from running while we're setting up the prefab
-            voteItemPrefab.SetActive(false);
-
-            Transform voteItemCanvasGroupTransform = voteItemPrefab.transform.Find("CanvasGroup");
-            if (!voteItemCanvasGroupTransform)
+            AsyncOperationHandle<GameObject> notificationPanelLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/NotificationPanel2.prefab");
+            notificationPanelLoad.OnSuccess(notificationPanel =>
             {
-                Log.Error("Unable to find child CanvasGroup");
-                return;
-            }
+                // TODO: Construct panel prefab instead of Frankensteining existing prefabs
+                GameObject prefab = notificationPanel.InstantiatePrefab(nameof(RoCContent.LocalPrefabs.ChaosEffectUIVoteItem));
 
-            DestroyImmediate(voteItemPrefab.GetComponent<GenericNotification>());
+                Transform voteItemCanvasGroupTransform = prefab.transform.Find("CanvasGroup");
+                if (!voteItemCanvasGroupTransform)
+                {
+                    Log.Error("Unable to find child CanvasGroup");
+                    return;
+                }
 
-            GameObject voteItemCanvasGroup = voteItemCanvasGroupTransform.gameObject;
+                Destroy(prefab.GetComponent<GenericNotification>());
 
-            DestroyImmediate(voteItemCanvasGroup.GetComponent<HorizontalLayoutGroup>());
-            DestroyImmediate(voteItemCanvasGroup.GetComponent<ContentSizeFitter>());
+                GameObject voteItemCanvasGroup = voteItemCanvasGroupTransform.gameObject;
 
-            Transform iconArea = voteItemCanvasGroup.transform.Find("IconArea");
-            if (iconArea)
-            {
-                DestroyImmediate(iconArea.gameObject);
-            }
+                Destroy(voteItemCanvasGroup.GetComponent<HorizontalLayoutGroup>());
+                Destroy(voteItemCanvasGroup.GetComponent<ContentSizeFitter>());
 
-            Transform textArea = voteItemCanvasGroup.transform.Find("TextArea");
-            if (textArea)
-            {
-                DestroyImmediate(textArea.gameObject);
-            }
+                Transform iconArea = voteItemCanvasGroup.transform.Find("IconArea");
+                if (iconArea)
+                {
+                    Destroy(iconArea.gameObject);
+                }
 
-            GameObject effectText = new GameObject("EffectText");
-            RectTransform effectTextTransform = effectText.AddComponent<RectTransform>();
-            effectTextTransform.anchorMin = Vector2.zero;
-            effectTextTransform.anchorMax = Vector2.one;
-            effectTextTransform.sizeDelta = Vector2.zero;
-            effectTextTransform.anchoredPosition = Vector2.zero;
+                Transform textArea = voteItemCanvasGroup.transform.Find("TextArea");
+                if (textArea)
+                {
+                    Destroy(textArea.gameObject);
+                }
 
-            HGTextMeshProUGUI effectTextLabel = effectText.AddComponent<HGTextMeshProUGUI>();
-            effectTextLabel.alignment = TextAlignmentOptions.Left;
-            effectTextLabel.enableWordWrapping = false;
-            effectTextLabel.fontSize = 30;
-            effectTextLabel.text = string.Empty;
+                GameObject effectText = new GameObject("EffectText");
+                effectText.transform.SetParent(voteItemCanvasGroup.transform);
+                RectTransform effectTextTransform = effectText.AddComponent<RectTransform>();
+                effectTextTransform.anchorMin = Vector2.zero;
+                effectTextTransform.anchorMax = Vector2.one;
+                effectTextTransform.sizeDelta = Vector2.zero;
+                effectTextTransform.anchoredPosition = Vector2.zero;
 
-            effectText.transform.SetParent(voteItemCanvasGroup.transform);
+                HGTextMeshProUGUI effectTextLabel = effectText.AddComponent<HGTextMeshProUGUI>();
+                effectTextLabel.alignment = TextAlignmentOptions.Left;
+                effectTextLabel.enableWordWrapping = false;
+                effectTextLabel.fontSize = 30;
+                effectTextLabel.text = string.Empty;
 
-            LayoutElement layoutElement = voteItemCanvasGroup.AddComponent<LayoutElement>();
-            layoutElement.preferredHeight = 50f;
-            layoutElement.preferredWidth = 500f;
+                LayoutElement layoutElement = voteItemCanvasGroup.AddComponent<LayoutElement>();
+                layoutElement.preferredHeight = 50f;
+                layoutElement.preferredWidth = 500f;
 
-            ChaosEffectVoteItemController chaosEffectVoteItem = voteItemPrefab.AddComponent<ChaosEffectVoteItemController>();
-            chaosEffectVoteItem.EffectTextLabel = effectTextLabel;
-            chaosEffectVoteItem.EffectTextController = effectText.AddComponent<LanguageTextMeshController>();
-            chaosEffectVoteItem.CanvasGroup = voteItemCanvasGroup.GetComponent<CanvasGroup>();
+                ChaosEffectVoteItemController chaosEffectVoteItem = prefab.AddComponent<ChaosEffectVoteItemController>();
+                chaosEffectVoteItem.EffectTextLabel = effectTextLabel;
+                chaosEffectVoteItem.EffectTextController = effectText.AddComponent<LanguageTextMeshController>();
+                chaosEffectVoteItem.CanvasGroup = voteItemCanvasGroup.GetComponent<CanvasGroup>();
 
-            Transform backdropTransform = voteItemCanvasGroup.transform.Find("Backdrop");
-            if (backdropTransform)
-            {
-                chaosEffectVoteItem.BackdropImage = backdropTransform.GetComponent<Image>();
-            }
+                Transform backdropTransform = voteItemCanvasGroup.transform.Find("Backdrop");
+                if (backdropTransform)
+                {
+                    chaosEffectVoteItem.BackdropImage = backdropTransform.GetComponent<Image>();
+                }
 
-            _voteItemPrefab = voteItemPrefab.InstantiateClone("ChaosEffectVoteItem", false);
-            Destroy(voteItemPrefab);
+                localPrefabs.Add(prefab);
+            });
 
-            // Make sure it's actually active when instantiating :|
-            _voteItemPrefab.SetActive(true);
+            yield return asyncOperations.WaitForAllLoaded();
         }
 
         internal static ChaosEffectVoteDisplayController Create(ChaosUIController chaosUIController)
@@ -186,7 +189,7 @@ namespace RiskOfChaos.UI.ChatVoting
 
         ChaosEffectVoteItemController createVoteItemControllerForVote(EffectVoteInfo voteOption)
         {
-            ChaosEffectVoteItemController voteItemController = Instantiate(_voteItemPrefab, transform).GetComponent<ChaosEffectVoteItemController>();
+            ChaosEffectVoteItemController voteItemController = Instantiate(RoCContent.LocalPrefabs.ChaosEffectUIVoteItem, transform).GetComponent<ChaosEffectVoteItemController>();
             voteItemController.SetVote(voteOption);
             return voteItemController;
         }

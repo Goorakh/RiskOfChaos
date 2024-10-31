@@ -1,4 +1,5 @@
-﻿using UnityEngine.Networking;
+﻿using RoR2;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling.Formatting
 {
@@ -19,13 +20,13 @@ namespace RiskOfChaos.EffectHandling.Formatting
 
         public override void Serialize(NetworkWriter writer)
         {
-            writer.Write(Value);
+            writer.WritePackedIndex32(Value);
             writer.Write(ValueFormat);
         }
 
         public override void Deserialize(NetworkReader reader)
         {
-            Value = reader.ReadInt32();
+            Value = reader.ReadPackedIndex32();
             ValueFormat = reader.ReadString();
         }
 

@@ -50,7 +50,11 @@ namespace RiskOfChaos.Utilities.DropTables
 
             ConfigHolder<float> config =
                 ConfigFactory<float>.CreateConfig($"Weight: {name}", defaultWeight)
-                                    .Description($"Controls how likely {name} are to be given\n\nA value of 0 means items from this tier will never be given")
+                                    .Description($"""
+                                     Controls how likely {name} are to be given
+                                     
+                                     A value of 0 means items from this tier will never be given
+                                     """)
                                     .AcceptableValues(new AcceptableValueMin<float>(0f))
                                     .OptionConfig(new FloatFieldConfig { Min = 0f })
                                     .OnValueChanged(MarkDirty)

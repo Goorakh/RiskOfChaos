@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using RiskOfChaos.Content;
 using RiskOfChaos.Networking.Components;
 using RoR2;
 using System;
@@ -32,7 +33,7 @@ namespace RiskOfChaos.ConfigHandling
 
                     foreach (ConfigHolderBase networkedConfigHolder in _networkedConfigHolders.Values)
                     {
-                        GameObject configNetworker = GameObject.Instantiate(NetPrefabs.ConfigNetworkerPrefab);
+                        GameObject configNetworker = GameObject.Instantiate(RoCContent.NetworkedPrefabs.ConfigNetworker);
 
                         SyncConfigValue syncConfigValue = configNetworker.GetComponent<SyncConfigValue>();
                         syncConfigValue.Config = networkedConfigHolder;

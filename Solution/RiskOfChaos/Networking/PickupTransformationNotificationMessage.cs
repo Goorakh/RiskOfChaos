@@ -24,15 +24,15 @@ namespace RiskOfChaos.Networking
             _transformationType = transformationType;
         }
 
-        public void Serialize(NetworkWriter writer)
+        void ISerializableObject.Serialize(NetworkWriter writer)
         {
             writer.Write(_master.gameObject);
             PickupIndex.WriteToNetworkWriter(writer, _fromPickupIndex);
             PickupIndex.WriteToNetworkWriter(writer, _toPickupIndex);
-            writer.Write((int)_transformationType);
+            writer.WritePackedUInt32((uint)_transformationType);
         }
 
-        public void Deserialize(NetworkReader reader)
+        void ISerializableObject.Deserialize(NetworkReader reader)
         {
             GameObject masterObject = reader.ReadGameObject();
             _master = masterObject ? masterObject.GetComponent<CharacterMaster>() : null;
@@ -40,10 +40,10 @@ namespace RiskOfChaos.Networking
             _fromPickupIndex = PickupIndex.ReadFromNetworkReader(reader);
             _toPickupIndex = PickupIndex.ReadFromNetworkReader(reader);
 
-            _transformationType = (CharacterMasterNotificationQueue.TransformationType)reader.ReadInt32();
+            _transformationType = (CharacterMasterNotificationQueue.TransformationType)reader.ReadPackedUInt32();
         }
 
-        public void OnReceived()
+        void INetMessage.OnReceived()
         {
             if (!_master || !_master.hasAuthority)
                 return;
@@ -59,7 +59,7 @@ namespace RiskOfChaos.Networking
 
             CharacterMasterNotificationQueue.NotificationInfo notificationInfo = new CharacterMasterNotificationQueue.NotificationInfo(PickupCatalog.GetPickupDef(_toPickupIndex), transformationInfo);
 
-            notificationQueue.PushNotification(notificationInfo, 6f);
+            notificationQueue.PushNotification(notificationInfo, CharacterMasterNotificationQueue.firstNotificationLengthSeconds);
         }
     }
 }

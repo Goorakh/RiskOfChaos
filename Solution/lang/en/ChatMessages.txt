@@ -15,7 +15,7 @@
 		"TWITCH_EFFECT_VOTING_LOGIN_SUCCESS": "<style=cWorldEvent>[Risk of Chaos]: Successfully connected to Twitch channel: {0}</style>",
 		"TWITCH_EFFECT_VOTING_LOGIN_SUCCESS_CHANNEL_FALLBACK": "<style=cWorldEvent>[Risk of Chaos]: Invalid override channel '{0}', using authenticated account's channel instead</style>",
 
-		"MONSTER_INVENTORY_ADD_ITEM": "<style=cWorldEvent><b>{1}</b> was added to monster inventory</style> {2}",
+		"MONSTER_INVENTORY_ADD_ITEM": "<style=cEvent><b>{1}</b></color> <style=cWorldEvent>was added to monster inventory</style>",
 
 		"CHAOS_EFFECT_UNHANDLED_EXCEPTION_MESSAGE": "<color=#FF0000>Unhandled error in effect, it will very likely not work as intended. Please report this, thank you :)</color>",
 
@@ -31,5 +31,8 @@
 		"RECRUIT_BOSS_MESSAGE": "<style=cWorldEvent><color=#FF2C2C>{0}</color> has been brought to your side</style>",
 
 		"INVINCIBLE_LEMURIAN_KILL_FAIL_MESSAGE" : "<color=#E9848D><size=110%>\"It would be far too easy, wouldn't it?\"</size></color>",
+		
+		"PLAYER_MULTI_PICKUP": "<style=cEvent>{0} picked up {1}</color>",
+		"PLAYER_MULTI_PICKUP_2P": "<style=cEvent>You picked up {1}</color>",
 	}
 }

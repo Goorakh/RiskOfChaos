@@ -1,9 +1,29 @@
-﻿using UnityEngine;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.Content.AssetCollections;
+using RoR2;
+using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.Components
 {
     public class DummyDamageInflictor : MonoBehaviour
     {
+        [ContentInitializer]
+        static void InitContent(NetworkedPrefabAssetCollection networkedPrefabs)
+        {
+            // DummyDamageInflictor
+            {
+                GameObject prefab = Prefabs.CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.DummyDamageInflictor), [
+                    typeof(SetDontDestroyOnLoad),
+                    typeof(AutoCreateOnRunStart),
+                    typeof(DestroyOnRunEnd),
+                    typeof(DummyDamageInflictor)
+                ]);
+
+                networkedPrefabs.Add(prefab);
+            }
+        }
+
         public static DummyDamageInflictor Instance => _instance;
         static DummyDamageInflictor _instance;
 

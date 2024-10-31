@@ -7,8 +7,6 @@ namespace RiskOfChaos.Content.Orbs
 {
     public class EquipmentTransferOrb : Orb
     {
-        static readonly GameObject _orbEffectPrefab = Effects.EquipmentTransferOrbEffect.prefab;
-
         public EquipmentIndex EquipmentIndex;
 
         public Inventory TargetInventory;
@@ -33,7 +31,7 @@ namespace RiskOfChaos.Content.Orbs
 
                 effectData.SetHurtBoxReference(target);
 
-                EffectManager.SpawnEffect(_orbEffectPrefab, effectData, true);
+                EffectManager.SpawnEffect(RoCContent.Effects.EquipmentTransferOrbEffect.index, effectData, true);
             }
         }
 

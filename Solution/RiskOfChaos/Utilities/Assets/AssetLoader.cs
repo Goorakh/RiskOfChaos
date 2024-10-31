@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using RiskOfChaos.Content;
+using System.Collections;
 using System.IO;
 using UnityEngine;
 
@@ -6,65 +7,37 @@ namespace RiskOfChaos.Utilities.Assets
 {
     public static class AssetLoader
     {
-        class AssetBundleInfo
+        const string ASSET_BUNDLE_NAME = "riskofchaos";
+
+        static AssetBundle _assetBundle;
+
+        [ContentInitializer]
+        static IEnumerator LoadContent()
         {
-            public readonly AssetBundle AssetBundle;
+            string assetBundlePath = Path.Combine(Main.ModDirectory, ASSET_BUNDLE_NAME);
+            AssetBundleCreateRequest assetBundleLoad = AssetBundle.LoadFromFileAsync(assetBundlePath);
+            yield return assetBundleLoad;
 
-            readonly Dictionary<string, UnityEngine.Object> _cachedAssets = [];
-
-            public AssetBundleInfo(AssetBundle assetBundle)
+            AssetBundle assetBundle = assetBundleLoad.assetBundle;
+            if (assetBundle)
             {
-                AssetBundle = assetBundle;
+                _assetBundle = assetBundle;
+#if DEBUG
+                Log.Debug("Loaded asset bundle");
+#endif
             }
-
-            public T LoadAssetCached<T>(string assetName) where T : UnityEngine.Object
+            else
             {
-                if (!_cachedAssets.TryGetValue(assetName, out UnityEngine.Object asset))
-                {
-                    asset = AssetBundle.LoadAsset(assetName);
-                    _cachedAssets.Add(assetName, asset);
-                }
-
-                if (asset is T tAsset)
-                {
-                    return tAsset;
-                }
-                else
-                {
-                    Log.Error($"Asset type mismatch: {assetName} is of type {asset.GetType().FullName} but {typeof(T).FullName} was requested");
-                    return null;
-                }
+                Log.Error($"Failed to load asset bundle");
             }
         }
 
-        static readonly Dictionary<string, AssetBundleInfo> _cachedAssetBundles = [];
-
-        static AssetBundleInfo getAssetBundleInfoCached(string bundlePath)
+        public static AssetLoadOperation<T> LoadAssetAsync<T>(string name) where T : UnityEngine.Object
         {
-            if (_cachedAssetBundles.TryGetValue(bundlePath, out AssetBundleInfo cachedBundleInfo))
-                return cachedBundleInfo;
-
-            string fullPath = Path.Combine(Main.ModDirectory, bundlePath);
-            AssetBundle assetBundle = AssetBundle.LoadFromFile(fullPath);
-            if (!assetBundle)
-            {
-                Log.Error($"Failed to load asset bundle file '{bundlePath}' ({fullPath})");
+            if (!_assetBundle)
                 return null;
-            }
 
-            AssetBundleInfo assetBundleInfo = new AssetBundleInfo(assetBundle);
-            _cachedAssetBundles.Add(bundlePath, assetBundleInfo);
-            return assetBundleInfo;
-        }
-
-        public static AssetBundle GetAssetBundleCached(string bundlePath)
-        {
-            return getAssetBundleInfoCached(bundlePath)?.AssetBundle;
-        }
-
-        public static T LoadAssetCached<T>(string bundlePath, string assetName) where T : UnityEngine.Object
-        {
-            return getAssetBundleInfoCached(bundlePath)?.LoadAssetCached<T>(assetName);
+            return new AssetLoadOperation<T>(_assetBundle.LoadAssetAsync<T>(name));
         }
     }
 }

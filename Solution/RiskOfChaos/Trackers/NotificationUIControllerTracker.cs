@@ -1,10 +1,11 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities.Extensions;
+using RoR2;
 using RoR2.UI;
-using System.Linq;
 using UnityEngine;
 
 namespace RiskOfChaos.Trackers
 {
+    [DisallowMultipleComponent]
     public class NotificationUIControllerTracker : MonoBehaviour
     {
         [SystemInitializer]
@@ -14,7 +15,7 @@ namespace RiskOfChaos.Trackers
             {
                 orig(self);
 
-                NotificationUIControllerTracker tracker = self.gameObject.AddComponent<NotificationUIControllerTracker>();
+                NotificationUIControllerTracker tracker = self.gameObject.EnsureComponent<NotificationUIControllerTracker>();
                 tracker.NotificationUIController = self;
             };
         }
@@ -33,9 +34,16 @@ namespace RiskOfChaos.Trackers
 
         public static NotificationUIController GetNotificationUIControllerForHUD(HUD hud)
         {
-            return InstanceTracker.GetInstancesList<NotificationUIControllerTracker>()
-                                  .Select(t => t.NotificationUIController)
-                                  .FirstOrDefault(c => c.hud == hud);
+            foreach (NotificationUIControllerTracker tracker in InstanceTracker.GetInstancesList<NotificationUIControllerTracker>())
+            {
+                NotificationUIController notificationUIController = tracker.NotificationUIController;
+                if (notificationUIController && notificationUIController.hud == hud)
+                {
+                    return notificationUIController;
+                }
+            }
+
+            return null;
         }
     }
 }

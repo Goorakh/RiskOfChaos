@@ -1,39 +1,33 @@
 ﻿using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
-using RiskOfChaos.ModifierController.SkillSlots;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.SkillSlots;
 using RiskOfOptions.OptionConfigs;
-using System;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.SkillStocks
 {
     [ChaosTimedEffect("decrease_skill_stocks", TimedEffectType.UntilStageEnd, ConfigName = "Decrease Skill Charges")]
-    public sealed class DecreaseSkillStocks : TimedEffect, ISkillSlotModificationProvider
+    public sealed class DecreaseSkillStocks : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<int> _stocksToRemove =
             ConfigFactory<int>.CreateConfig("Charges", 1)
                               .Description("The amount of charges to remove from each skill")
                               .OptionConfig(new IntFieldConfig { Min = 1 })
-                              .OnValueChanged(() =>
-                              {
-                                  if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
-                                      return;
-
-                                  TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<DecreaseSkillStocks>(e => e.OnValueDirty);
-                              })
                               .FormatsEffectName()
                               .Build();
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return SkillSlotModificationManager.Instance;
+            return RoCContent.NetworkedPrefabs.SkillSlotModificationProvider;
         }
 
         [GetEffectNameFormatter]
@@ -42,24 +36,28 @@ namespace RiskOfChaos.EffectDefinitions.Character.SkillStocks
             return new EffectNameFormatter_PluralizedCount(_stocksToRemove.Value);
         }
 
-        public override void OnStart()
-        {
-            SkillSlotModificationManager.Instance.RegisterModificationProvider(this);
-        }
+        ValueModificationController _skillSlotModificationController;
 
-        public override void OnEnd()
+        void Start()
         {
-            if (SkillSlotModificationManager.Instance)
+            if (NetworkServer.active)
             {
-                SkillSlotModificationManager.Instance.UnregisterModificationProvider(this);
+                _skillSlotModificationController = Instantiate(RoCContent.NetworkedPrefabs.SkillSlotModificationProvider).GetComponent<ValueModificationController>();
+
+                SkillSlotModificationProvider skillSlotModificationProvider = _skillSlotModificationController.GetComponent<SkillSlotModificationProvider>();
+                skillSlotModificationProvider.StockAddConfigBinding.BindToConfig(_stocksToRemove, v => -v);
+
+                NetworkServer.Spawn(_skillSlotModificationController.gameObject);
             }
         }
 
-        public event Action OnValueDirty;
-
-        public void ModifyValue(ref SkillSlotModificationData value)
+        void OnDestroy()
         {
-            value.StockAdds -= _stocksToRemove.Value;
+            if (_skillSlotModificationController)
+            {
+                _skillSlotModificationController.Retire();
+                _skillSlotModificationController = null;
+            }
         }
     }
 }

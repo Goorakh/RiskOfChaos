@@ -13,11 +13,14 @@ namespace RiskOfChaos
             const string SECTION_NAME = "META";
 
             public const uint CONFIG_FILE_VERSION_LEGACY = 0;
-            public const uint CURRENT_CONFIG_FILE_VERSION = 6;
+            public const uint CURRENT_CONFIG_FILE_VERSION = 7;
 
             public static ConfigHolder<uint> ConfigFileVersion =
                 ConfigFactory<uint>.CreateConfig("VERSION", CONFIG_FILE_VERSION_LEGACY)
-                                   .Description("Used internally by the mod\nDO NOT MODIFY MANUALLY")
+                                   .Description("""
+                                    Used internally by the mod
+                                    DO NOT MODIFY MANUALLY
+                                    """)
                                    .Build();
 
             internal static void Bind(ConfigFile file)

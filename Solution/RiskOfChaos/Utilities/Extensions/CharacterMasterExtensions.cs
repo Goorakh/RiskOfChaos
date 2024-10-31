@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.Utilities.BodySnapshots;
 using RoR2;
 using System;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.Utilities.Extensions
@@ -101,6 +102,31 @@ namespace RiskOfChaos.Utilities.Extensions
             }
 
             return body;
+        }
+
+        public static bool TryGetBodyPosition(this CharacterMaster master, out Vector3 position)
+        {
+            if (!master)
+            {
+                position = default;
+                return false;
+            }
+
+            if (master.lostBodyToDeath)
+            {
+                position = master.deathFootPosition;
+                return true;
+            }
+
+            CharacterBody body = master.GetBody();
+            if (body)
+            {
+                position = body.corePosition;
+                return true;
+            }
+
+            position = default;
+            return false;
         }
     }
 }

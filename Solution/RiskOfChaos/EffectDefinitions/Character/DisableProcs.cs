@@ -1,93 +1,39 @@
-﻿using Mono.Cecil.Cil;
-using MonoMod.Cil;
-using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
+﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
-using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController.Damage;
+using RiskOfChaos.Patches;
 using RoR2;
-using System;
-using System.Runtime.CompilerServices;
+using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("disable_procs", 45f, AllowDuplicates = false)]
-    public sealed class DisableProcs : TimedEffect, IDamageInfoModificationProvider
+    public sealed class DisableProcs : MonoBehaviour
     {
         [InitEffectInfo]
-        public static new readonly TimedEffectInfo EffectInfo;
+        public static readonly TimedEffectInfo EffectInfo;
 
-        static bool _appliedPatches;
-        static void tryApplyPatches()
+        void Start()
         {
-            if (_appliedPatches)
-                return;
-
-            IL.RoR2.HealthComponent.TakeDamageProcess += il =>
+            if (NetworkServer.active)
             {
-                ILCursor c = new ILCursor(il);
-
-                if (c.TryGotoNext(x => x.MatchLdsfld(typeof(RoR2Content.Buffs), nameof(RoR2Content.Buffs.Cripple))))
-                {
-                    ILLabel afterIfLabel = null;
-                    if (c.TryGotoPrev(MoveType.After,
-                                      x => x.MatchBrfalse(out afterIfLabel)))
-                    {
-                        c.MoveAfterLabels();
-                        c.EmitDelegate(isEffectActive);
-
-                        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                        static bool isEffectActive()
-                        {
-                            return TimedChaosEffectHandler.Instance && TimedChaosEffectHandler.Instance.IsTimedEffectActive(EffectInfo);
-                        }
-
-                        c.Emit(OpCodes.Brtrue, afterIfLabel);
-                    }
-                    else
-                    {
-                        Log.Error("Failed to find Cripple patch location");
-                    }
-                }
-                else
-                {
-                    Log.Error("Failed to find Cripple apply location");
-                }
-            };
-
-            _appliedPatches = true;
-        }
-
-        [EffectCanActivate]
-        static bool CanActivate()
-        {
-            return DamageInfoModificationManager.Instance;
-        }
-
-        public event Action OnValueDirty;
-
-        public void ModifyValue(ref DamageInfo value)
-        {
-            value.procCoefficient = 0f;
-
-            if (value.attacker)
-            {
-                value.damageType.damageType &= ~(DamageType.SlowOnHit | DamageType.ClayGoo | DamageType.Nullify | DamageType.CrippleOnHit | DamageType.ApplyMercExpose);
+                DamageModificationHooks.ModifyDamageInfo += modifyDamage;
             }
         }
 
-        public override void OnStart()
+        void OnDestroy()
         {
-            tryApplyPatches();
-            DamageInfoModificationManager.Instance.RegisterModificationProvider(this);
+            DamageModificationHooks.ModifyDamageInfo -= modifyDamage;
         }
 
-        public override void OnEnd()
+        static void modifyDamage(DamageInfo damageInfo)
         {
-            if (DamageInfoModificationManager.Instance)
+            damageInfo.procCoefficient = 0f;
+
+            if (damageInfo.attacker)
             {
-                DamageInfoModificationManager.Instance.UnregisterModificationProvider(this);
+                damageInfo.damageType &= ~(DamageTypeCombo)(DamageType.SlowOnHit | DamageType.ClayGoo | DamageType.Nullify | DamageType.CrippleOnHit | DamageType.ApplyMercExpose);
             }
         }
     }

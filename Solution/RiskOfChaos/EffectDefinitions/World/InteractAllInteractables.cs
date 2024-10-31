@@ -2,6 +2,7 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
@@ -9,11 +10,12 @@ using RoR2;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("interact_all_interactables", DefaultSelectionWeight = 0.4f)]
-    public sealed class InteractAllInteractables : BaseEffect
+    public sealed class InteractAllInteractables : NetworkBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<bool> _allowOrderShrineActivation =
@@ -79,25 +81,39 @@ namespace RiskOfChaos.EffectDefinitions.World
             return getInteractors().Any() && getAllValidInteractables().Any();
         }
 
+        ChaosEffectComponent _effectComponent;
+
+        Xoroshiro128Plus _rng;
+
         EquipmentIndex _fallbackEquipment = EquipmentIndex.None;
 
-        public override void OnPreStartServer()
+        void Awake()
         {
-            base.OnPreStartServer();
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
             List<PickupIndex> availableEquipmentDropList = Run.instance.availableEquipmentDropList;
             if (availableEquipmentDropList != null && availableEquipmentDropList.Count > 0)
             {
-                _fallbackEquipment = PickupCatalog.GetPickupDef(RNG.NextElementUniform(availableEquipmentDropList)).equipmentIndex;
+                _fallbackEquipment = PickupCatalog.GetPickupDef(_rng.NextElementUniform(availableEquipmentDropList)).equipmentIndex;
             }
             else
             {
-                _fallbackEquipment = EquipmentCatalog.FindEquipmentIndex("BossHunterConsumed");
+                _fallbackEquipment = RoR2Content.Equipment.Scanner.equipmentIndex;
             }
         }
 
-        public override void OnStart()
+        void Start()
         {
+            if (!NetworkServer.active)
+                return;
+
             Interactor[] interactors = getInteractors().ToArray();
 
             On.RoR2.CostTypeDef.IsAffordable += CostTypeDef_IsAffordable;
@@ -121,7 +137,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                     }
                 }
 
-                Interactor interactor = RNG.NextElementUniform(interactors);
+                Interactor interactor = _rng.NextElementUniform(interactors);
 
                 interactable.OnInteractionBegin(interactor);
             });

@@ -1,6 +1,6 @@
 ﻿using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using RiskOfChaos.ModifierController.Projectile;
+using RiskOfChaos.ModificationController.Projectile;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -69,7 +69,7 @@ namespace RiskOfChaos.Patches
             {
                 if (ProjectileModificationManager.Instance)
                 {
-                    return ClampedConversion.Int32(ProjectileModificationManager.Instance.OrbBounceCount);
+                    return ProjectileModificationManager.Instance.OrbBounceCount;
                 }
                 else
                 {
@@ -113,7 +113,7 @@ namespace RiskOfChaos.Patches
                 c.Emit(OpCodes.Dup);
                 c.EmitDelegate(tryBounceOrb);
 
-                c.Index++;
+                c.SearchTarget = SearchTarget.Next;
                 patchCount++;
             }
 
@@ -351,7 +351,8 @@ namespace RiskOfChaos.Patches
                 bounceChain.CurrentDeadBacktrackCount = 0;
             }
 
-            WeightedSelection<HurtBox> targetSelection = new WeightedSelection<HurtBox>(Mathf.Max(8, targetCandidates.Count));
+            WeightedSelection<HurtBox> targetSelection = new WeightedSelection<HurtBox>();
+            targetSelection.EnsureCapacity(targetCandidates.Count);
             foreach (OrbTargetCandidate candidate in targetCandidates)
             {
                 float normalizedSqrDistance = Mathf.Clamp01(candidate.SqrDistance / sqrTargetSearchDistance);

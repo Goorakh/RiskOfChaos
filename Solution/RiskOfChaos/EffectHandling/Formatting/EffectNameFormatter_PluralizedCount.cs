@@ -1,10 +1,11 @@
-﻿using UnityEngine.Networking;
+﻿using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling.Formatting
 {
     public class EffectNameFormatter_PluralizedCount : EffectNameFormatter
     {
-        public int Count { get; private set; }
+        public int Count;
 
         public string CountFormat = string.Empty;
 
@@ -21,14 +22,14 @@ namespace RiskOfChaos.EffectHandling.Formatting
 
         public override void Serialize(NetworkWriter writer)
         {
-            writer.Write(Count);
+            writer.WritePackedUInt32((uint)Count);
             writer.Write(CountFormat);
             writer.Write(PluralString);
         }
 
         public override void Deserialize(NetworkReader reader)
         {
-            Count = reader.ReadInt32();
+            Count = (int)reader.ReadPackedUInt32();
             CountFormat = reader.ReadString();
             PluralString = reader.ReadString();
         }
@@ -37,7 +38,7 @@ namespace RiskOfChaos.EffectHandling.Formatting
         {
             return [
                 Count.ToString(CountFormat),
-                Count > 1 ? PluralString : string.Empty
+                Mathf.Abs(Count) != 1 ? PluralString : string.Empty
             ];
         }
 

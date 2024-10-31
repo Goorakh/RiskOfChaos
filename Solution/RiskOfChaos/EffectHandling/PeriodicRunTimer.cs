@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Utilities.Extensions;
+﻿using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using UnityEngine;
 
@@ -23,8 +24,8 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
-        float _lastActivationTime;
-        float _nextActivationTime;
+        RunTimeStamp _lastActivationTime;
+        RunTimeStamp _nextActivationTime;
 
         float _period;
         public float Period
@@ -37,10 +38,10 @@ namespace RiskOfChaos.EffectHandling
 
                 _period = value;
 
-                if (_lastActivationTime >= 0f)
+                if (_lastActivationTime.Time >= 0f)
                 {
 #if DEBUG
-                    float oldNextActivationTime = _nextActivationTime;
+                    RunTimeStamp oldNextActivationTime = _nextActivationTime;
 #endif
 
                     _nextActivationTime = _lastActivationTime + _period;
@@ -62,14 +63,14 @@ namespace RiskOfChaos.EffectHandling
 
         public void Reset()
         {
-            _lastActivationTime = -1f;
-            _nextActivationTime = 0f;
+            _lastActivationTime = new RunTimeStamp(TimeType, -1f);
+            _nextActivationTime = new RunTimeStamp(TimeType, 0f);
         }
 
         public void SetLastActivationTime(float value)
         {
-            _lastActivationTime = value;
-            _nextActivationTime = value >= 0f ? value + Period : 0f;
+            _lastActivationTime.Time = value;
+            _nextActivationTime.Time = value >= 0f ? value + Period : 0f;
         }
 
         public void ScheduleNextActivation()
@@ -104,7 +105,7 @@ namespace RiskOfChaos.EffectHandling
             if (!ShouldActivate())
                 return 0;
 
-            return Mathf.CeilToInt((currentTime - _nextActivationTime) / Period);
+            return Mathf.CeilToInt(_nextActivationTime.TimeSince / Period);
         }
 
         public void SkipAllScheduledActivations()
@@ -128,15 +129,15 @@ namespace RiskOfChaos.EffectHandling
 
         public readonly bool ShouldActivate()
         {
-            return currentTime >= _nextActivationTime;
+            return _nextActivationTime.HasPassed;
         }
 
-        public readonly float GetTimeRemaining()
+        public readonly RunTimeStamp GetNextActivationTime()
         {
-            return _nextActivationTime - currentTime;
+            return _nextActivationTime;
         }
 
-        public readonly float GetLastActivationTime()
+        public readonly RunTimeStamp GetLastActivationTime()
         {
             return _lastActivationTime;
         }

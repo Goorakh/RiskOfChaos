@@ -1,50 +1,81 @@
 ﻿using HG;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("spawn_gup")]
-    public sealed class SpawnGup : BaseEffect
+    public sealed class SpawnGup : NetworkBehaviour
     {
         static GameObject _gupPrefab;
 
         [SystemInitializer]
         static void Init()
         {
-            _gupPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/Gup/GupMaster.prefab").WaitForCompletion();
+            AsyncOperationHandle<GameObject> gupMasterLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/Gup/GupMaster.prefab");
+            gupMasterLoad.OnSuccess(gupMasterPrefab => _gupPrefab = gupMasterPrefab);
         }
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return _gupPrefab && ExpansionUtils.IsCharacterMasterExpansionAvailable(_gupPrefab) && PlayerUtils.GetAllPlayerBodies(true).Any();
+            return _gupPrefab && ExpansionUtils.IsObjectExpansionAvailable(_gupPrefab);
         }
 
-        public override void OnStart()
+        ChaosEffectComponent _effectComponent;
+
+        Xoroshiro128Plus _rng;
+
+        void Awake()
         {
-            foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+        }
+
+        void Start()
+        {
+            if (!NetworkServer.active)
+                return;
+
+            foreach (PlayerCharacterMasterController playerMaster in PlayerCharacterMasterController.instances)
             {
-                spawnGupOn(playerBody);
+                if (!playerMaster.isConnected)
+                    continue;
+
+                CharacterMaster master = playerMaster.master;
+                if (!master || master.IsDeadAndOutOfLivesServer())
+                    continue;
+
+                if (!master.TryGetBodyPosition(out Vector3 bodyPosition))
+                    continue;
+
+                spawnGupAt(bodyPosition, _rng);
             }
         }
 
-        void spawnGupOn(CharacterBody playerBody)
+        [Server]
+        void spawnGupAt(Vector3 position, Xoroshiro128Plus rng)
         {
-            if (!playerBody)
-                return;
-
             MasterSummon gupSummon = new MasterSummon
             {
                 masterPrefab = _gupPrefab,
                 teamIndexOverride = TeamIndex.Monster,
                 useAmbientLevel = true,
-                position = playerBody.footPosition + new Vector3(0f, 20f, 0f) + (3f * RNG.PointInUnitSphere()),
+                position = position + new Vector3(0f, 20f, 0f) + (3f * rng.PointInUnitSphere()),
                 rotation = Quaternion.identity,
                 ignoreTeamMemberLimit = true
             };

@@ -7,13 +7,15 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.Pickup;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("drop_items", 10f, AllowDuplicates = false)]
-    public sealed class DropItems : TimedEffect
+    public sealed class DropItems : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _itemDropFrequency =
@@ -49,18 +51,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             void Awake()
             {
-                InstanceTracker.Add(this);
-
                 _body = GetComponent<CharacterBody>();
                 _inventory = _body.inventory;
 
                 scheduleNextDrop();
                 _dropItemTimer *= RoR2Application.rng.nextNormalizedFloat;
-            }
-
-            void OnDestroy()
-            {
-                InstanceTracker.Remove(this);
             }
 
             void FixedUpdate()
@@ -85,9 +80,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                 int equipmentSlotCount = _inventory.GetEquipmentSlotCount();
 
-                const int MIN_CAPACITY = WeightedSelection<PickupInfo>.minCapacity;
-
-                WeightedSelection<PickupInfo> droppableItemSelection = new WeightedSelection<PickupInfo>(Math.Max(MIN_CAPACITY, _inventory.itemAcquisitionOrder.Count + equipmentSlotCount));
+                WeightedSelection<PickupInfo> droppableItemSelection = new WeightedSelection<PickupInfo>();
+                droppableItemSelection.EnsureCapacity(_inventory.itemAcquisitionOrder.Count + equipmentSlotCount);
 
                 foreach (ItemIndex item in _inventory.itemAcquisitionOrder)
                 {
@@ -130,22 +124,75 @@ namespace RiskOfChaos.EffectDefinitions.Character
             }
         }
 
-        static void addComponentTo(CharacterBody body)
+        readonly List<DropItemsOnTimer> _itemDropControllers = [];
+
+        readonly List<OnDestroyCallback> _destroyCallbacks = [];
+
+        bool _trackedObjectDestroyed = false;
+
+        void Start()
         {
-            body.gameObject.AddComponent<DropItemsOnTimer>();
+            if (NetworkServer.active)
+            {
+                ReadOnlyCollection<CharacterBody> characterBodies = CharacterBody.readOnlyInstancesList;
+
+                _itemDropControllers.EnsureCapacity(characterBodies.Count);
+                _destroyCallbacks.EnsureCapacity(characterBodies.Count);
+
+                characterBodies.TryDo(addComponentTo, FormatUtils.GetBestBodyName);
+                CharacterBody.onBodyStartGlobal += addComponentTo;
+            }
         }
 
-        public override void OnStart()
-        {
-            CharacterBody.readOnlyInstancesList.TryDo(addComponentTo, FormatUtils.GetBestBodyName);
-            CharacterBody.onBodyStartGlobal += addComponentTo;
-        }
-
-        public override void OnEnd()
+        void OnDestroy()
         {
             CharacterBody.onBodyStartGlobal -= addComponentTo;
 
-            InstanceUtils.DestroyAllTrackedInstances<DropItemsOnTimer>();
+            foreach (OnDestroyCallback destroyCallback in _destroyCallbacks)
+            {
+                if (destroyCallback)
+                {
+                    OnDestroyCallback.RemoveCallback(destroyCallback);
+                }
+            }
+
+            _destroyCallbacks.Clear();
+
+            foreach (DropItemsOnTimer dropComponent in _itemDropControllers)
+            {
+                Destroy(dropComponent);
+            }
+
+            _itemDropControllers.Clear();
+        }
+
+        void FixedUpdate()
+        {
+            if (_trackedObjectDestroyed)
+            {
+                _trackedObjectDestroyed = false;
+
+                UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
+
+                int removedDropControllers = UnityObjectUtils.RemoveAllDestroyed(_itemDropControllers);
+#if DEBUG
+                Log.Debug($"Cleared {removedDropControllers} destroy drop controller(s)");
+#endif
+            }
+        }
+
+        void addComponentTo(CharacterBody body)
+        {
+            DropItemsOnTimer dropComponent = body.gameObject.AddComponent<DropItemsOnTimer>();
+
+            _itemDropControllers.Add(dropComponent);
+
+            OnDestroyCallback destroyCallback = OnDestroyCallback.AddCallback(dropComponent.gameObject, _ =>
+            {
+                _trackedObjectDestroyed = true;
+            });
+
+            _destroyCallbacks.Add(destroyCallback);
         }
     }
 }

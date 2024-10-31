@@ -9,12 +9,15 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosTimedEffect("floor_is_lava", 30f, AllowDuplicates = false)]
-    public sealed class FloorIsLava : TimedEffect
+    public sealed class FloorIsLava : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<int> _percentDamagePerSecond =
@@ -50,7 +53,73 @@ namespace RiskOfChaos.EffectDefinitions.World
             }
         }
 
-        [RequireComponent(typeof(CharacterBody))]
+        readonly List<GroundedDamageController> _damageControllers = [];
+        readonly List<OnDestroyCallback> _destroyCallbacks = [];
+
+        bool _trackedObjectDestroyed;
+
+        void Start()
+        {
+            if (NetworkServer.active)
+            {
+                ReadOnlyCollection<CharacterBody> characterBodies = CharacterBody.readOnlyInstancesList;
+
+                _damageControllers.EnsureCapacity(characterBodies.Count);
+                _destroyCallbacks.EnsureCapacity(characterBodies.Count);
+
+                characterBodies.TryDo(handleBody, FormatUtils.GetBestBodyName);
+                CharacterBody.onBodyStartGlobal += handleBody;
+            }
+        }
+
+        void OnDestroy()
+        {
+            CharacterBody.onBodyStartGlobal -= handleBody;
+
+            foreach (OnDestroyCallback destroyCallback in _destroyCallbacks)
+            {
+                if (destroyCallback)
+                {
+                    OnDestroyCallback.RemoveCallback(destroyCallback);
+                }
+            }
+
+            _destroyCallbacks.Clear();
+
+            foreach (GroundedDamageController damageController in _damageControllers)
+            {
+                Destroy(damageController);
+            }
+        }
+
+        void FixedUpdate()
+        {
+            if (_trackedObjectDestroyed)
+            {
+                _trackedObjectDestroyed = false;
+
+                UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
+
+                int removedDamageControllers = UnityObjectUtils.RemoveAllDestroyed(_damageControllers);
+#if DEBUG
+                Log.Debug($"Cleared {removedDamageControllers} destroyed damage controller(s)");
+#endif
+            }
+        }
+
+        void handleBody(CharacterBody body)
+        {
+            GroundedDamageController groundedDamageController = body.gameObject.AddComponent<GroundedDamageController>();
+            _damageControllers.Add(groundedDamageController);
+
+            OnDestroyCallback destroyCallback = OnDestroyCallback.AddCallback(groundedDamageController.gameObject, _ =>
+            {
+                _trackedObjectDestroyed = true;
+            });
+
+            _destroyCallbacks.Add(destroyCallback);
+        }
+
         sealed class GroundedDamageController : MonoBehaviour
         {
             static readonly MasterIndexCollection _overrideAlwaysGroundedMasters = new MasterIndexCollection([
@@ -86,14 +155,10 @@ namespace RiskOfChaos.EffectDefinitions.World
                 _body = GetComponent<CharacterBody>();
                 _master = _body.master;
                 _motor = _body.characterMotor;
-
-                InstanceTracker.Add(this);
             }
 
             void OnDestroy()
             {
-                InstanceTracker.Remove(this);
-
                 removeDOTStacks(int.MaxValue);
             }
 
@@ -158,24 +223,6 @@ namespace RiskOfChaos.EffectDefinitions.World
                     dotController.RemoveDOTStacks(_dotIndex, stacksToRemove);
                 }
             }
-
-            public static void AddComponentToBody(CharacterBody body)
-            {
-                body.gameObject.AddComponent<GroundedDamageController>();
-            }
-        }
-
-        public override void OnStart()
-        {
-            CharacterBody.readOnlyInstancesList.TryDo(GroundedDamageController.AddComponentToBody, FormatUtils.GetBestBodyName);
-            CharacterBody.onBodyStartGlobal += GroundedDamageController.AddComponentToBody;
-        }
-
-        public override void OnEnd()
-        {
-            CharacterBody.onBodyStartGlobal -= GroundedDamageController.AddComponentToBody;
-
-            InstanceUtils.DestroyAllTrackedInstances<GroundedDamageController>();
         }
     }
 }

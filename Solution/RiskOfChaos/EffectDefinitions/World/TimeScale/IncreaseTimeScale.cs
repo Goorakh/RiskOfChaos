@@ -1,18 +1,21 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
-using RiskOfChaos.EffectHandling.Controllers;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.TimeScale;
+using RiskOfChaos.Utilities.Interpolation;
 using RiskOfOptions.OptionConfigs;
-using System;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 {
     [ChaosTimedEffect("increase_time_scale", 120f, ConfigName = "Increase World Speed")]
-    public sealed class IncreaseTimeScale : GenericMultiplyTimeScaleEffect
+    public sealed class IncreaseTimeScale : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _timeScaleIncrease =
@@ -25,24 +28,46 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
                                     max = 1f,
                                     increment = 0.01f
                                 })
-                                .OnValueChanged(() =>
-                                {
-                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
-                                        return;
-
-                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseTimeScale>(e => e.OnValueDirty);
-                                })
                                 .FormatsEffectName()
                                 .Build();
 
-        public override event Action OnValueDirty;
-
-        protected override float multiplier => 1f + _timeScaleIncrease.Value;
+        [EffectCanActivate]
+        static bool CanActivate()
+        {
+            return RoCContent.NetworkedPrefabs.GenericTimeScaleModificationProvider;
+        }
 
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
         {
             return new EffectNameFormatter_GenericFloat(_timeScaleIncrease.Value) { ValueFormat = "P0" };
+        }
+
+        ValueModificationController _timeScaleModificationController;
+
+        void Start()
+        {
+            if (NetworkServer.active)
+            {
+                _timeScaleModificationController = Instantiate(RoCContent.NetworkedPrefabs.GenericTimeScaleModificationProvider).GetComponent<ValueModificationController>();
+
+                _timeScaleModificationController.SetInterpolationParameters(new InterpolationParameters(1f));
+
+                GenericTimeScaleModificationProvider timeScaleModificationProvider = _timeScaleModificationController.GetComponent<GenericTimeScaleModificationProvider>();
+                timeScaleModificationProvider.TimeScaleMultiplierConfigBinding.BindToConfig(_timeScaleIncrease, v => 1f + v);
+                timeScaleModificationProvider.CompensatePlayerSpeed = true;
+
+                NetworkServer.Spawn(_timeScaleModificationController.gameObject);
+            }
+        }
+
+        void OnDestroy()
+        {
+            if (_timeScaleModificationController)
+            {
+                _timeScaleModificationController.Retire();
+                _timeScaleModificationController = null;
+            }
         }
     }
 }

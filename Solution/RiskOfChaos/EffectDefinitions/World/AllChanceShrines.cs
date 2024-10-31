@@ -5,11 +5,13 @@ using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("all_chance_shrines", DefaultSelectionWeight = 0.7f)]
-    public sealed class AllChanceShrines : BaseEffect
+    public sealed class AllChanceShrines : MonoBehaviour
     {
         static IEnumerable<ShrineReplacementData> getAllReplacementsData()
         {
@@ -22,12 +24,15 @@ namespace RiskOfChaos.EffectDefinitions.World
             return FixedPositionChanceShrine.SpawnCard && getAllReplacementsData().Any();
         }
 
-        public override void OnStart()
+        void Start()
         {
+            if (!NetworkServer.active)
+                return;
+
             // ToList is required here since PerformReplacement will modify the enumerable returned by getAllReplacementsData
             getAllReplacementsData().ToList().TryDo(replacementData =>
             {
-                replacementData.PerformReplacement(RNG.Branch());
+                replacementData.PerformReplacement();
             });
         }
     }

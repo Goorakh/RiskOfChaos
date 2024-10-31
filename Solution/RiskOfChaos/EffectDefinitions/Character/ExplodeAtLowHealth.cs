@@ -2,6 +2,7 @@
 using HG;
 using R2API;
 using RiskOfChaos.Content;
+using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
@@ -10,28 +11,81 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("explode_at_low_health", 90f, AllowDuplicates = false)]
-    public sealed class ExplodeAtLowHealth : TimedEffect
+    public sealed class ExplodeAtLowHealth : MonoBehaviour
     {
         static GameObject _explosionVFXPrefab;
+
+        static GameObject _countDownVFXPrefab;
 
         [SystemInitializer]
         static void Init()
         {
-            _explosionVFXPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/QuestVolatileBattery/VolatileBatteryExplosion.prefab").WaitForCompletion();
+            AsyncOperationHandle<GameObject> explosionVfxLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/QuestVolatileBattery/VolatileBatteryExplosion.prefab");
+            explosionVfxLoad.OnSuccess(vfx => _explosionVFXPrefab = vfx);
+
+            AsyncOperationHandle<GameObject> countdownVfxLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/QuestVolatileBattery/VolatileBatteryPreDetonation.prefab");
+            countdownVfxLoad.OnSuccess(vfx => _countDownVFXPrefab = vfx);
+        }
+
+        [ContentInitializer]
+        static void LoadContent(NetworkedPrefabAssetCollection networkedPrefabs)
+        {
+            // ExplodeAtLowHealthBodyAttachment
+            {
+                GameObject prefab = Prefabs.CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.ExplodeAtLowHealthBodyAttachment), [
+                    typeof(NetworkedBodyAttachment),
+                    typeof(EntityStateMachine),
+                    typeof(NetworkStateMachine),
+                    typeof(GenericOwnership)
+                ]);
+
+                NetworkedBodyAttachment networkedBodyAttachment = prefab.GetComponent<NetworkedBodyAttachment>();
+                networkedBodyAttachment.shouldParentToAttachedBody = true;
+                networkedBodyAttachment.forceHostAuthority = true;
+
+                EntityStateMachine stateMachine = prefab.GetComponent<EntityStateMachine>();
+                stateMachine.initialStateType = new SerializableEntityStateType(typeof(MonitorState));
+                stateMachine.mainStateType = new SerializableEntityStateType(typeof(MonitorState));
+
+                NetworkStateMachine networkStateMachine = prefab.GetComponent<NetworkStateMachine>();
+                networkStateMachine.stateMachines = [stateMachine];
+
+                networkedPrefabs.Add(prefab);
+            }
         }
 
         readonly List<GameObject> _exploderBodyAttachments = [];
 
-        public override void OnStart()
+        void Start()
         {
-            CharacterBody.readOnlyInstancesList.TryDo(attachExploder, FormatUtils.GetBestBodyName);
-            CharacterBody.onBodyStartGlobal += attachExploder;
+            if (NetworkServer.active)
+            {
+                _exploderBodyAttachments.EnsureCapacity(CharacterBody.readOnlyInstancesList.Count);
+                CharacterBody.readOnlyInstancesList.TryDo(attachExploder, FormatUtils.GetBestBodyName);
+                CharacterBody.onBodyStartGlobal += attachExploder;
 
-            GlobalEventManager.onCharacterDeathGlobal += onCharacterDeathGlobal;
+                GlobalEventManager.onCharacterDeathGlobal += onCharacterDeathGlobal;
+            }
+        }
+
+        void OnDestroy()
+        {
+            CharacterBody.onBodyStartGlobal -= attachExploder;
+
+            GlobalEventManager.onCharacterDeathGlobal -= onCharacterDeathGlobal;
+
+            foreach (GameObject bodyAttachment in _exploderBodyAttachments)
+            {
+                if (bodyAttachment)
+                {
+                    Destroy(bodyAttachment);
+                }
+            }
         }
 
         static void onCharacterDeathGlobal(DamageReport damageReport)
@@ -68,27 +122,12 @@ namespace RiskOfChaos.EffectDefinitions.Character
             if (body.isPlayerControlled)
                 return;
 
-            GameObject attachment = GameObject.Instantiate(NetPrefabs.ExplodeAtLowHealthBodyAttachmentPrefab);
+            GameObject attachment = Instantiate(RoCContent.NetworkedPrefabs.ExplodeAtLowHealthBodyAttachment);
 
             NetworkedBodyAttachment exploderAttachment = attachment.GetComponent<NetworkedBodyAttachment>();
             exploderAttachment.AttachToGameObjectAndSpawn(body.gameObject);
 
             _exploderBodyAttachments.Add(attachment);
-        }
-
-        public override void OnEnd()
-        {
-            CharacterBody.onBodyStartGlobal -= attachExploder;
-
-            GlobalEventManager.onCharacterDeathGlobal -= onCharacterDeathGlobal;
-
-            foreach (GameObject bodyAttachment in _exploderBodyAttachments)
-            {
-                if (bodyAttachment)
-                {
-                    NetworkServer.Destroy(bodyAttachment);
-                }
-            }
         }
 
         static void explodeBody(CharacterBody body, GameObject inflictor)
@@ -149,7 +188,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             blastAttack.Fire();
         }
 
-        public class BaseState : EntityState
+        class BaseState : EntityState
         {
             protected CharacterBody attachedBody { get; private set; }
 
@@ -175,7 +214,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         }
 
         [EntityStateType]
-        public class MonitorState : BaseState
+        class MonitorState : BaseState
         {
             const float EXPLODE_HEALTH_FRACTION_PLAYER = 0.15f;
             const float EXPLODE_HEALTH_FRACTION_ENEMY = 0.45f;
@@ -250,10 +289,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
         }
 
         [EntityStateType]
-        public class CountDownState : BaseState
+        class CountDownState : BaseState
         {
-            static readonly GameObject _countDownVFXPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/QuestVolatileBattery/VolatileBatteryPreDetonation.prefab").WaitForCompletion();
-
             float _countDownTime;
 
             bool _hasDetonated;

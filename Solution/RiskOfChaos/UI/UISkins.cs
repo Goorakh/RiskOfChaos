@@ -1,6 +1,8 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities.Extensions;
+using RoR2;
 using RoR2.UI;
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -10,58 +12,60 @@ namespace RiskOfChaos.UI
 {
     public static class UISkins
     {
-        public static UISkinData ActiveEffectsPanel { get; private set; }
+        public static UISkinData ActiveEffectsPanel { get; }
+
+        static UISkins()
+        {
+            ActiveEffectsPanel = ScriptableObject.CreateInstance<UISkinData>();
+            ActiveEffectsPanel.name = "skinActiveEffectsPanel";
+        }
 
         [SystemInitializer]
         static IEnumerator Init()
         {
+            List<AsyncOperationHandle> asyncOperations = [];
+
             AsyncOperationHandle<Sprite> texUICutOffCornerLoad = Addressables.LoadAssetAsync<Sprite>("RoR2/Base/UI/texUICutOffCorner.png");
-
-            while (!texUICutOffCornerLoad.IsDone)
+            texUICutOffCornerLoad.OnSuccess(texUICutOffCorner =>
             {
-                yield return null;
-            }
+                ActiveEffectsPanel.mainPanelStyle = new UISkinData.PanelStyle
+                {
+                    material = null,
+                    sprite = texUICutOffCorner,
+                    color = new Color(0f, 0f, 0f, 0.5451f)
+                };
 
-            Sprite texUICutOffCorner = texUICutOffCornerLoad.Result;
+                ActiveEffectsPanel.headerPanelStyle = ActiveEffectsPanel.mainPanelStyle;
+                ActiveEffectsPanel.detailPanelStyle = ActiveEffectsPanel.mainPanelStyle;
 
-            ActiveEffectsPanel = ScriptableObject.CreateInstance<UISkinData>();
-            ActiveEffectsPanel.name = "skinActiveEffectsPanel";
+                ActiveEffectsPanel.bodyTextStyle = new UISkinData.TextStyle
+                {
+                    font = null,
+                    fontSize = 12f,
+                    color = Color.white,
+                    alignment = TextAlignmentOptions.Center
+                };
 
-            ActiveEffectsPanel.mainPanelStyle = new UISkinData.PanelStyle
-            {
-                material = null,
-                sprite = texUICutOffCorner,
-                color = new Color(0f, 0f, 0f, 0.5451f)
-            };
+                ActiveEffectsPanel.headerTextStyle = new UISkinData.TextStyle
+                {
+                    font = null,
+                    fontSize = 14f,
+                    color = Color.white,
+                    alignment = TextAlignmentOptions.Center
+                };
 
-            ActiveEffectsPanel.headerPanelStyle = ActiveEffectsPanel.mainPanelStyle;
-            ActiveEffectsPanel.detailPanelStyle = ActiveEffectsPanel.mainPanelStyle;
+                ActiveEffectsPanel.detailTextStyle = new UISkinData.TextStyle
+                {
+                    font = null,
+                    fontSize = 10f,
+                    color = Color.white,
+                    alignment = TextAlignmentOptions.Center
+                };
+            });
 
-            ActiveEffectsPanel.bodyTextStyle = new UISkinData.TextStyle
-            {
-                font = null,
-                fontSize = 12f,
-                color = Color.white,
-                alignment = TextAlignmentOptions.Center
-            };
+            asyncOperations.Add(texUICutOffCornerLoad);
 
-            ActiveEffectsPanel.headerTextStyle = new UISkinData.TextStyle
-            {
-                font = null,
-                fontSize = 14f,
-                color = Color.white,
-                alignment = TextAlignmentOptions.Center
-            };
-
-            ActiveEffectsPanel.detailTextStyle = new UISkinData.TextStyle
-            {
-                font = null,
-                fontSize = 10f,
-                color = Color.white,
-                alignment = TextAlignmentOptions.Center
-            };
-
-            yield break;
+            yield return asyncOperations.WaitForAllLoaded();
         }
     }
 }

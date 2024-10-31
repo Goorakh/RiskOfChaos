@@ -1,4 +1,4 @@
-﻿using RiskOfChaos.ModifierController.Pickups;
+﻿using RiskOfChaos.ModificationController.Pickups;
 using RoR2;
 using System.Collections;
 using UnityEngine;
@@ -22,39 +22,43 @@ namespace RiskOfChaos.Patches
                                                                                 Vector3 velocity)
         {
             orig(pickupInfo, position, velocity);
-            
+
             if (!NetworkServer.active || _patchDisabled)
                 return;
 
-            if (PickupModificationManager.Instance && PickupModificationManager.Instance.SpawnCountMultiplier > 1)
+            PickupModificationManager pickupModificationManager = PickupModificationManager.Instance;
+            if (!pickupModificationManager)
+                return;
+
+            int extraSpawnCount = pickupModificationManager.ExtraSpawnCount;
+            if (extraSpawnCount <= 0)
+                return;
+            
+            IEnumerator spawnAdditionalDroplets(GenericPickupController.CreatePickupInfo pickupInfo, Vector3 position, Vector3 velocity, int extraSpawnCount)
             {
-                IEnumerator spawnAdditionalDroplets()
+                Stage stage = Stage.instance;
+
+                for (int i = 0; i < extraSpawnCount; i++)
                 {
-                    Stage stage = Stage.instance;
+                    yield return new WaitForSeconds(Mathf.Max(1f / 30f, 0.2f * Mathf.Pow(0.925f, i)));
 
-                    // NOTE: Do not cache upper bound, we want an up-to-date value every iteration
-                    for (int i = 0; i < PickupModificationManager.Instance.SpawnCountMultiplier - 1; i++)
+                    // Stage switched (or destroyed) since first drop, quit spawning new pickups
+                    if (stage != Stage.instance)
+                        break;
+
+                    _patchDisabled = true;
+                    try
                     {
-                        yield return new WaitForSeconds(Mathf.Max(1f / 30f, 0.2f * Mathf.Pow(0.925f, i)));
-
-                        // Stage switched (or destroyed) since first drop, quit spawning new pickups
-                        if (!PickupModificationManager.Instance || stage != Stage.instance)
-                            break;
-
-                        _patchDisabled = true;
-                        try
-                        {
-                            PickupDropletController.CreatePickupDroplet(pickupInfo, position, velocity);
-                        }
-                        finally
-                        {
-                            _patchDisabled = false;
-                        }
+                        PickupDropletController.CreatePickupDroplet(pickupInfo, position, velocity);
+                    }
+                    finally
+                    {
+                        _patchDisabled = false;
                     }
                 }
-
-                PickupModificationManager.Instance.StartCoroutine(spawnAdditionalDroplets());
             }
+
+            pickupModificationManager.StartCoroutine(spawnAdditionalDroplets(pickupInfo, position, velocity, extraSpawnCount));
         }
     }
 }

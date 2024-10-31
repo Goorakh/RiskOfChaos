@@ -2,10 +2,35 @@
 
 **?.?.? Changes:**
 
-* Added 3 effects:
+* Almost full rewrite:
+  * Better multiplayer support
+  * Minor performance improvements
+  * Probably lots of new bugs, please report if you find any
+
+* Added 2 effects:
   * Distant Camera: Moves the camera further away from the player, lasts 90 seconds
-  * Unlimited Proc Chains: Disables proc chain restrictions, lasts 60 seconds
-  * Hide Health Bar: Hides all health bars, lasts 60 seconds
+  * No Healthbars: Hides all health bars, lasts 60 seconds
+
+* Removed 1 effect:
+  * Spawn Random Portal Orb:
+    * Too similar to Spawn Random Portal
+
+* Permanently Active effects:
+  * Fixed issues with ProperSave save/load
+  * Fixed changing Permanently Active config settings requiring a run restart to take effect
+
+* Adaptive Recycling:
+  * Now more closely resembles adaptive chests:
+    * All dropped items will start recycling at an accelerated rate, before eventually settling on an item
+
+* Spawn Random Enemy:
+  * Survivors and Drones are now less likely to be spawned as enemies
+
+* Camera Effects:
+  * Fixed camera modifications (fov, rotation, distance) not applying if the game camera is "taken over" by something (drop pod, volcanic egg, sojourn, etc)
+
+* Item Magnet & Item Repulsor:
+  * Fixed non-host players in multiplayer not seeing the correct position of item drops
 
 * Activate All Interactables:
   * Added interactables to effect
@@ -13,10 +38,32 @@
     * SotS interactables
 
 * Trigger Random Family Event:
+  * Can now activate multiple times per stage
+  * Changed default weight: 0.4 -> 0.6
   * Added visual variant events for Beetles and Golems
+
+* Enable Weak Points for All Damage:
+  * Fixed Mercenary Eviscerate not being able to deal weak point damage
+  * Fixed certain projectiles not being able to deal weak point damage
+
+* Randomize Loadout:
+  * Fixed skills and skins not updating for non-host players in multiplayer
+
+* Freeze!:
+  * Now ignores vanilla restrictions on when and what can be frozen, so everything is always frozen during the effect
+
+* Sluggish Camera
+  * Added smooth transition back to normal after the effect ends instead of just snapping back
+
+* Activate Random Equipment
+  * "Allow Non-Player Equipment Use" config default value: on -> off
+  * Fixed effect not being able to trigger equipments that aren't in the normal drop pool
 
 * Disable Equipment:
   * Fixed The Crowdfunder still being usable while effect is active.
+
+* No Equipment Cooldowns
+  * This effect and Disable Equipment can no longer both be active at once
 
 * Bouncy Projectiles:
   * Fixed certain projectile types targetting the wrong team after bouncing

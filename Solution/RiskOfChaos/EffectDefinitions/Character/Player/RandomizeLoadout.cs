@@ -1,7 +1,9 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using HG;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
@@ -10,11 +12,12 @@ using RoR2.Skills;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
     [ChaosEffect("randomize_loadout", DefaultSelectionWeight = 0.7f)]
-    public sealed class RandomizeLoadout : BaseEffect
+    public sealed class RandomizeLoadout : NetworkBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<bool> _randomizeSkills =
@@ -36,62 +39,142 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             return _randomizeSkills.Value || _randomizeSkin.Value;
         }
 
-        public override void OnStart()
+        ChaosEffectComponent _effectComponent;
+
+        Xoroshiro128Plus _rng;
+
+        void Awake()
         {
-            PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+        }
+
+        void Start()
+        {
+            if (NetworkServer.active)
             {
-                Xoroshiro128Plus rng = new Xoroshiro128Plus(RNG.nextUlong);
-
-                CharacterBody playerBody = playerMaster.GetBody();
-
-                Loadout loadout = playerMaster.loadout;
-                Loadout.BodyLoadoutManager bodyLoadoutManager = loadout.bodyLoadoutManager;
-
-                bool anyChanges = false;
-                bool changedCurrentBody = false;
-                bool changedCurrentBodySkills = false;
-                bool changedCurrentBodySkin = false;
-
-                for (BodyIndex bodyIndex = 0; bodyIndex < (BodyIndex)BodyCatalog.bodyCount; bodyIndex++)
+                PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
                 {
-                    if (randomizeLoadoutForBodyIndex(playerMaster, loadout, bodyIndex, rng, out bool changedAnySkill, out bool changedSkin))
+                    Xoroshiro128Plus rng = new Xoroshiro128Plus(_rng.nextUlong);
+
+                    CharacterBody playerBody = playerMaster.GetBody();
+
+                    Loadout loadout = playerMaster.loadout;
+                    Loadout.BodyLoadoutManager bodyLoadoutManager = loadout.bodyLoadoutManager;
+
+                    bool anyChanges = false;
+                    bool changedCurrentBody = false;
+                    bool changedCurrentBodySkills = false;
+                    bool changedCurrentBodySkin = false;
+
+                    for (BodyIndex bodyIndex = 0; bodyIndex < (BodyIndex)BodyCatalog.bodyCount; bodyIndex++)
                     {
-                        anyChanges = true;
-
-                        if (playerBody && bodyIndex == playerBody.bodyIndex)
+                        if (randomizeLoadoutForBodyIndex(playerMaster, loadout, bodyIndex, rng, out bool changedAnySkill, out bool changedSkin))
                         {
-                            changedCurrentBody = true;
+                            anyChanges = true;
 
-                            changedCurrentBodySkills = changedAnySkill;
-                            changedCurrentBodySkin = changedSkin;
-                        }
-                    }
-                }
-
-                if (anyChanges)
-                {
-                    // Set dirty bit
-                    playerMaster.SetLoadoutServer(loadout);
-
-                    if (changedCurrentBody && playerBody)
-                    {
-                        playerBody.SetLoadoutServer(loadout);
-
-                        if (changedCurrentBodySkin)
-                        {
-                            ModelLocator modelLocator = playerBody.modelLocator;
-                            if (modelLocator)
+                            if (playerBody && bodyIndex == playerBody.bodyIndex)
                             {
-                                Transform modelTransform = modelLocator.modelTransform;
-                                if (modelTransform && modelTransform.TryGetComponent(out ModelSkinController modelSkinController))
-                                {
-                                    modelSkinController.ApplySkin((int)loadout.bodyLoadoutManager.GetSkinIndex(playerBody.bodyIndex));
-                                }
+                                changedCurrentBody = true;
+
+                                changedCurrentBodySkills = changedAnySkill;
+                                changedCurrentBodySkin = changedSkin;
                             }
                         }
                     }
+
+                    if (anyChanges)
+                    {
+                        // Set dirty bit
+                        playerMaster.SetLoadoutServer(loadout);
+
+                        if (changedCurrentBody && playerBody)
+                        {
+                            playerBody.SetLoadoutServer(loadout);
+
+                            Loadout.BodyLoadoutManager.BodyInfo bodyInfo = Loadout.BodyLoadoutManager.allBodyInfos[(int)playerBody.bodyIndex];
+
+                            uint[] skillVariants = new uint[bodyInfo.skillSlotCount];
+                            for (int i = 0; i < skillVariants.Length; i++)
+                            {
+                                skillVariants[i] = loadout.bodyLoadoutManager.GetSkillVariant(playerBody.bodyIndex, i);
+                            }
+
+                            uint skinIndex = loadout.bodyLoadoutManager.GetSkinIndex(playerBody.bodyIndex);
+
+                            updateLoadout(playerBody, skillVariants, skinIndex);
+                            RpcUpdateLoadout(playerBody.gameObject, skillVariants, skinIndex);
+                        }
+                    }
+                }, Util.GetBestMasterName);
+            }
+        }
+
+        [ClientRpc]
+        void RpcUpdateLoadout(GameObject bodyObject, uint[] skillVariantIndices, uint skinIndex)
+        {
+            if (NetworkServer.active)
+                return;
+
+            if (!bodyObject)
+                return;
+
+            CharacterBody body = bodyObject.GetComponent<CharacterBody>();
+
+            updateLoadout(body, skillVariantIndices, skinIndex);
+        }
+
+        void updateLoadout(CharacterBody body, uint[] skillVariantIndices, uint skinIndex)
+        {
+            if (!body)
+                return;
+
+            // if we don't have authority over the body, the skill replacements will already be handled by SkillLocator.OnDeserialize
+            if (body.hasEffectiveAuthority)
+            {
+                SkillLocator skillLocator = body.skillLocator;
+
+                for (int i = 0; i < skillLocator.allSkills.Length; i++)
+                {
+                    if (i >= skillVariantIndices.Length)
+                    {
+                        Log.Warning($"({Util.GetBestBodyName(body.gameObject)}) Skill locator has more skills than are defined in the network message: defined={skillLocator.allSkills.Length}, received={skillVariantIndices.Length}");
+                        break;
+                    }
+
+                    GenericSkill genericSkill = skillLocator.allSkills[i];
+
+                    SkillFamily.Variant[] skillVariants = genericSkill.skillFamily.variants;
+
+                    uint skillVariantIndex = skillVariantIndices[i];
+                    if (skillVariantIndex >= skillVariants.Length)
+                    {
+                        Log.Warning($"({Util.GetBestBodyName(body.gameObject)}) Skill variant index out of range! expected={skillVariants.Length}, received={skillVariantIndex}");
+                        skillVariantIndex = 0;
+                    }
+
+                    genericSkill.SetBaseSkill(skillVariants[skillVariantIndex].skillDef);
                 }
-            }, Util.GetBestMasterName);
+            }
+
+            ModelLocator modelLocator = body.modelLocator;
+            if (modelLocator)
+            {
+                Transform modelTransform = modelLocator.modelTransform;
+                if (modelTransform && modelTransform.TryGetComponent(out ModelSkinController modelSkinController))
+                {
+                    if (modelSkinController.currentSkinIndex != skinIndex)
+                    {
+                        modelSkinController.ApplySkin((int)skinIndex);
+                    }
+                }
+            }
         }
 
         static bool randomizeLoadoutForBodyIndex(CharacterMaster master, Loadout loadout, BodyIndex bodyIndex, Xoroshiro128Plus rng, out bool changedAnySkill, out bool changedSkin)
@@ -111,11 +194,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             uint currentSkinIndex = loadout.bodyLoadoutManager.GetSkinIndex(bodyIndex);
             List<LoadoutSkinPreset> allSkinPresets = generateSkinPresets(bodyIndex, networkUser, currentSkinIndex);
 
-            WeightedSelection<LoadoutPreset> loadoutSelection = new WeightedSelection<LoadoutPreset>(Math.Max(8, allSkillPresets.Count * allSkinPresets.Count));
+            WeightedSelection<LoadoutPreset> loadoutSelection = new WeightedSelection<LoadoutPreset>();
+            loadoutSelection.EnsureCapacity(allSkillPresets.Count * allSkinPresets.Count);
 
             foreach (LoadoutSkillPreset skillPreset in allSkillPresets)
             {
-                bool isCurrentSkills = ArrayUtil.ElementsEqual(currentSkillVariants, skillPreset.SkillVariants);
+                bool isCurrentSkills = ArrayUtils.SequenceEquals(currentSkillVariants, skillPreset.SkillVariants);
 
                 foreach (LoadoutSkinPreset skinPreset in allSkinPresets)
                 {

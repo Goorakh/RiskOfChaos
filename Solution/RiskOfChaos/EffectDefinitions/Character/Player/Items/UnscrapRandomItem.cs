@@ -5,19 +5,22 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Comparers;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.Utilities.Pickup;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
     [ChaosEffect("unscrap_random_item")]
-    public sealed class UnscrapRandomItem : BaseEffect
+    public sealed class UnscrapRandomItem : NetworkBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<int> _unscrapItemCount =
@@ -116,12 +119,23 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             });
         }
 
+        ChaosEffectComponent _effectComponent;
+
         readonly record struct UnscrapInfo(ItemIndex ScrapItemIndex, ItemIndex[] PrintableItems);
         UnscrapInfo[] _unscrapOrder;
 
-        public override void OnPreStartServer()
+        Xoroshiro128Plus _rng;
+
+        void Awake()
         {
-            base.OnPreStartServer();
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
             _unscrapOrder = _printableItemsByTier.SelectMany(kvp =>
             {
@@ -137,19 +151,22 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 return [];
             }).ToArray();
 
-            Util.ShuffleArray(_unscrapOrder, RNG.Branch());
+            Util.ShuffleArray(_unscrapOrder, _rng.Branch());
 
 #if DEBUG
             Log.Debug($"Unscrap order: [{string.Join(", ", _unscrapOrder.Select(u => $"({FormatUtils.GetBestItemDisplayName(u.ScrapItemIndex)})"))}]");
 #endif
         }
 
-        public override void OnStart()
+        void Start()
         {
-            PlayerUtils.GetAllPlayerMasters(false).TryDo(m =>
+            if (NetworkServer.active)
             {
-                tryUnscrapRandomItem(m, RNG.Branch());
-            }, Util.GetBestMasterName);
+                PlayerUtils.GetAllPlayerMasters(false).TryDo(m =>
+                {
+                    tryUnscrapRandomItem(m, _rng.Branch());
+                }, Util.GetBestMasterName);
+            }
         }
 
         void tryUnscrapRandomItem(CharacterMaster master, Xoroshiro128Plus rng)
@@ -160,6 +177,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             Inventory inventory = master.inventory;
             if (!inventory)
                 return;
+
+            HashSet<PickupIndex> unscrappedItems = new HashSet<PickupIndex>(_unscrapItemCount.Value);
 
             for (int i = _unscrapItemCount.Value - 1; i >= 0; i--)
             {
@@ -175,6 +194,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 ItemIndex newItem = rng.NextElementUniform(unscrapInfo.PrintableItems);
                 inventory.GiveItem(newItem, scrapCount);
 
+                unscrappedItems.Add(PickupCatalog.FindPickupIndex(newItem));
+
                 CharacterMasterNotificationQueue.SendTransformNotification(master, unscrapInfo.ScrapItemIndex, newItem, CharacterMasterNotificationQueue.TransformationType.Default);
 
                 if (unscrapInfo.ScrapItemIndex == DLC1Content.Items.RegeneratingScrap.itemIndex)
@@ -182,6 +203,11 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     inventory.GiveItem(DLC1Content.Items.RegeneratingScrapConsumed, scrapCount);
                     CharacterMasterNotificationQueue.SendTransformNotification(master, DLC1Content.Items.RegeneratingScrap.itemIndex, DLC1Content.Items.RegeneratingScrapConsumed.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                 }
+            }
+
+            if (unscrappedItems.Count > 0)
+            {
+                PickupUtils.QueuePickupsMessage(master, [.. unscrappedItems], false, false);
             }
         }
     }

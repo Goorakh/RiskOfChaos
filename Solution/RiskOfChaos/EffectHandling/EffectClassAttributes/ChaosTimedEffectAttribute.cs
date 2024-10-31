@@ -35,20 +35,6 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes
         {
         }
 
-        internal override bool Validate()
-        {
-            if (!base.Validate())
-                return false;
-
-            if (!typeof(TimedEffect).IsAssignableFrom(target))
-            {
-                Log.Error($"Effect '{Identifier}' type ({target.FullName}) does not derive from {nameof(TimedEffect)}");
-                return false;
-            }
-
-            return true;
-        }
-
         public override ChaosEffectInfo BuildEffectInfo(ChaosEffectIndex index, ConfigFile configFile)
         {
             return new TimedEffectInfo(index, this, configFile);

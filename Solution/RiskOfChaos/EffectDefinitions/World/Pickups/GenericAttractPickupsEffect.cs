@@ -1,89 +1,180 @@
-﻿using HarmonyLib;
-using RiskOfChaos.Components;
+﻿using RiskOfChaos.Components;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.Patches;
+using RiskOfChaos.Trackers;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.Projectile;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Pickups
 {
     [IncompatibleEffects(typeof(GenericAttractPickupsEffect))]
-    public abstract class GenericAttractPickupsEffect : TimedEffect
+    public sealed class GenericAttractPickupsEffect : MonoBehaviour
     {
-        static bool _hasAppliedPatches = false;
-        static void tryApplyPatches()
+        [SystemInitializer]
+        static void Init()
         {
-            if (_hasAppliedPatches)
-                return;
-
-            On.RoR2.PickupDropletController.Start += (orig, self) =>
+            static void addNetworkTransform(string prefabAssetPath)
             {
-                orig(self);
-                _onPickupCreated?.Invoke(self);
-            };
+                AsyncOperationHandle<GameObject> prefabAssetLoad = Addressables.LoadAssetAsync<GameObject>(prefabAssetPath);
+                prefabAssetLoad.OnSuccess(prefab =>
+                {
+                    ProjectileNetworkTransform networkTransform = prefab.GetComponent<ProjectileNetworkTransform>();
+                    if (networkTransform || prefab.GetComponent<NetworkTransform>())
+                    {
+                        Log.Info($"{prefab.name} ({prefabAssetPath}) already has NetworkTransform component, skipping");
+                        return;
+                    }
 
-            On.RoR2.GenericPickupController.Start += (orig, self) =>
-            {
-                orig(self);
-                _onPickupCreated?.Invoke(self);
-            };
+                    if (!prefab.GetComponent<NetworkIdentity>())
+                    {
+                        Log.Error($"{prefab.name} ({prefabAssetPath}) is not a networked object");
+                        return;
+                    }
 
-            On.RoR2.PickupPickerController.Awake += (orig, self) =>
-            {
-                orig(self);
-                _onPickupCreated?.Invoke(self);
-            };
+                    if (!AttractToPlayers.CanAddComponent(prefab))
+                    {
+                        Log.Error($"{prefab.name} ({prefabAssetPath}) is invalid for component");
+                        return;
+                    }
 
-            _hasAppliedPatches = true;
+                    networkTransform = prefab.AddComponent<ProjectileNetworkTransform>();
+                    networkTransform.positionTransmitInterval = 1f / 15f;
+                    networkTransform.allowClientsideCollision = true;
+
+#if DEBUG
+                    Log.Debug($"Added network transform component to {prefab.name} ({prefabAssetPath})");
+#endif
+                });
+            }
+
+            addNetworkTransform("RoR2/Base/Common/GenericPickup.prefab");
+            addNetworkTransform("RoR2/Base/Command/CommandCube.prefab");
+
+            addNetworkTransform("RoR2/DLC1/OptionPickup/OptionPickup.prefab");
+
+            addNetworkTransform("RoR2/DLC2/FragmentPotentialPickup.prefab");
         }
 
-        static event Action<MonoBehaviour> _onPickupCreated;
+        readonly List<AttractToPlayers> _attractComponents = [];
+        public ReadOnlyCollection<AttractToPlayers> AttractComponents { get; private set; }
 
-        readonly HashSet<AttractToPlayers> _createdInstances = [];
+        readonly List<OnDestroyCallback> _destroyCallbacks = [];
 
-        public override void OnStart()
+        public event Action<AttractToPlayers> SetupAttractComponent;
+
+        bool _trackedObjectDestroyed;
+
+        void Awake()
         {
-            tryApplyPatches();
-
-            GameObject.FindObjectsOfType<PickupDropletController>().TryDo(tryAddComponentTo);
-            GameObject.FindObjectsOfType<GenericPickupController>().TryDo(tryAddComponentTo);
-            GameObject.FindObjectsOfType<PickupPickerController>().TryDo(tryAddComponentTo);
-
-            _onPickupCreated += tryAddComponentTo;
+            AttractComponents = _attractComponents.AsReadOnly();
         }
 
-        public override void OnEnd()
+        void Start()
         {
-            _createdInstances.Do(GameObject.Destroy);
-            _createdInstances.Clear();
-
-            _onPickupCreated -= tryAddComponentTo;
-        }
-
-        void tryAddComponentTo(MonoBehaviour self)
-        {
-            AttractToPlayers attractToPlayers = AttractToPlayers.TryAddComponent(self);
-            if (attractToPlayers)
+            if (NetworkServer.active)
             {
-                _createdInstances.Add(attractToPlayers);
-                onAttractorComponentAdded(attractToPlayers);
-                updateAttractorComponent(attractToPlayers);
+                List<MonoBehaviour> pickupControllerComponents = [
+                    .. InstanceTracker.GetInstancesList<PickupDropletControllerTracker>(),
+                    .. InstanceTracker.GetInstancesList<GenericPickupController>(),
+                    .. InstanceTracker.GetInstancesList<PickupPickerController>()
+                ];
+
+                _attractComponents.EnsureCapacity(pickupControllerComponents.Count);
+                _destroyCallbacks.EnsureCapacity(pickupControllerComponents.Count);
+
+                foreach (MonoBehaviour pickupControllerComponent in pickupControllerComponents)
+                {
+                    tryAddComponentTo(pickupControllerComponent.gameObject);
+                }
+
+                PickupDropletControllerTracker.OnPickupDropletControllerStartGlobal += onPickupDropletControllerStartGlobal;
+                GenericPickupControllerHooks.OnGenericPickupControllerStartGlobal += onGenericPickupControllerStartGlobal;
+                PickupPickerControllerHooks.OnPickupPickerControllerAwakeGlobal += onPickupPickerControllerAwakeGlobal;
             }
         }
 
-        protected void updateAllAttractorComponents()
+        void FixedUpdate()
         {
-            _createdInstances.TryDo(updateAttractorComponent);
+            if (_trackedObjectDestroyed)
+            {
+                _trackedObjectDestroyed = false;
+
+                UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
+
+                int removedAttractComponents = UnityObjectUtils.RemoveAllDestroyed(_attractComponents);
+
+#if DEBUG
+                Log.Debug($"Cleared {removedAttractComponents} destroyed attract component(s)");
+#endif
+            }
         }
 
-        protected virtual void onAttractorComponentAdded(AttractToPlayers attractToPlayers)
+        void OnDestroy()
         {
+            PickupDropletControllerTracker.OnPickupDropletControllerStartGlobal -= onPickupDropletControllerStartGlobal;
+            GenericPickupControllerHooks.OnGenericPickupControllerStartGlobal -= onGenericPickupControllerStartGlobal;
+            PickupPickerControllerHooks.OnPickupPickerControllerAwakeGlobal -= onPickupPickerControllerAwakeGlobal;
+
+            foreach (AttractToPlayers attractComponent in _attractComponents)
+            {
+                if (attractComponent)
+                {
+                    Destroy(attractComponent);
+                }
+            }
+
+            _attractComponents.Clear();
+
+            foreach (OnDestroyCallback destroyCallback in _destroyCallbacks)
+            {
+                if (destroyCallback)
+                {
+                    OnDestroyCallback.RemoveCallback(destroyCallback);
+                }
+            }
+
+            _destroyCallbacks.Clear();
         }
 
-        protected virtual void updateAttractorComponent(AttractToPlayers attractToPlayers)
+        void onPickupDropletControllerStartGlobal(PickupDropletController pickupDropletController)
         {
+            tryAddComponentTo(pickupDropletController.gameObject);
+        }
+
+        void onGenericPickupControllerStartGlobal(GenericPickupController genericPickupController)
+        {
+            tryAddComponentTo(genericPickupController.gameObject);
+        }
+
+        void onPickupPickerControllerAwakeGlobal(PickupPickerController pickupPickerController)
+        {
+            tryAddComponentTo(pickupPickerController.gameObject);
+        }
+
+        void tryAddComponentTo(GameObject pickupControllerObj)
+        {
+            AttractToPlayers attractComponent = AttractToPlayers.TryAddComponent(pickupControllerObj);
+            if (attractComponent)
+            {
+                SetupAttractComponent?.Invoke(attractComponent);
+                _attractComponents.Add(attractComponent);
+
+                OnDestroyCallback destroyCallback = OnDestroyCallback.AddCallback(pickupControllerObj, _ =>
+                {
+                    _trackedObjectDestroyed = true;
+                });
+
+                _destroyCallbacks.Add(destroyCallback);
+            }
         }
     }
 }

@@ -1,10 +1,13 @@
 ﻿using HarmonyLib;
 using HG;
+using Newtonsoft.Json;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
@@ -18,7 +21,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("aspect_roulette", 60f, AllowDuplicates = false)]
-    public sealed class AspectRoulette : TimedEffect
+    public sealed class AspectRoulette : NetworkBehaviour
     {
         [InitEffectInfo]
         static readonly TimedEffectInfo _effectInfo;
@@ -30,6 +33,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                .OptionConfig(new CheckBoxConfig())
                                .Build();
 
+
         readonly struct AspectConfig
         {
             public readonly EliteDef EliteDef;
@@ -40,7 +44,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 EliteDef = eliteDef;
 
-                Language language = Language.FindLanguageByName("en");
+                Language language = Language.english;
                 string equipmentName = language.GetLocalizedStringByToken(eliteDef.eliteEquipmentDef.nameToken);
                 string eliteName = language.GetLocalizedFormattedStringByToken(eliteDef.modifierToken, string.Empty).Trim();
 
@@ -61,6 +65,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         }
 
         static AspectConfig[] _aspectConfigs = [];
+
         static float getAspectWeight(EliteIndex eliteIndex)
         {
             if (ArrayUtils.IsInBounds(_aspectConfigs, (int)eliteIndex))
@@ -98,20 +103,28 @@ namespace RiskOfChaos.EffectDefinitions.Character
             }
         }
 
-        bool _isSeeded;
+        [Serializable]
+        class AspectStep
+        {
+            [JsonProperty("a")]
+            public EquipmentIndex AspectEquipmentIndex { get; set; }
 
-        readonly record struct AspectStep(EquipmentIndex AspectEquipmentIndex, float Duration);
-        AspectStep[] _playerAspectSteps;
-        float _totalAspectStepsDuration;
+            [JsonProperty("d")]
+            public float Duration { get; set; }
 
-        const float MIN_ASPECT_DURATION = 1f;
-        const float MAX_ASPECT_DURATION = 7.5f;
+            public AspectStep(EquipmentIndex aspectEquipmentIndex, float duration)
+            {
+                AspectEquipmentIndex = aspectEquipmentIndex;
+                Duration = duration;
+            }
+        }
 
         static AspectStep generateStep(Xoroshiro128Plus rng)
         {
             EliteIndex[] elites = EliteUtils.GetElites(_allowDirectorUnavailableElites.Value);
 
-            WeightedSelection<EquipmentIndex> eliteEquipmentSelector = new WeightedSelection<EquipmentIndex>(elites.Length);
+            WeightedSelection<EquipmentIndex> eliteEquipmentSelector = new WeightedSelection<EquipmentIndex>();
+            eliteEquipmentSelector.EnsureCapacity(elites.Length);
             foreach (EliteIndex eliteIndex in elites)
             {
                 EliteDef eliteDef = EliteCatalog.GetEliteDef(eliteIndex);
@@ -123,11 +136,99 @@ namespace RiskOfChaos.EffectDefinitions.Character
             return new AspectStep(aspectEquipmentIndex, aspectDuration);
         }
 
+        const float MIN_ASPECT_DURATION = 1f;
+        const float MAX_ASPECT_DURATION = 7.5f;
+
+        ChaosEffectComponent _effectComponent;
+
+        AspectStep[] _playerAspectSteps;
+        float _totalAspectStepsDuration;
+
+        readonly List<RandomlySwapAspect> _swapAspectComponents = [];
+
+        [SerializedMember("s")]
+        AspectStep[] serializedPlayerAspectSteps
+        {
+            get => _playerAspectSteps;
+            set
+            {
+                _playerAspectSteps = value;
+
+                _totalAspectStepsDuration = 0f;
+
+                if (_playerAspectSteps != null)
+                {
+                    foreach (AspectStep step in _playerAspectSteps)
+                    {
+                        _totalAspectStepsDuration += step.Duration;
+                    }
+                }
+            }
+        }
+
+        void Awake()
+        {
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+
+            if (Configs.EffectSelection.SeededEffectSelection.Value)
+            {
+                _totalAspectStepsDuration = 0f;
+
+                // Generate as many steps as needed for the fixed duration,
+                // otherwise create a cycle long enough that the looping would hopefully not be noticeable
+                float effectDuration = 120f;
+                if (TryGetComponent(out ChaosEffectDurationComponent durationComponent))
+                {
+                    if (durationComponent.TimedType == TimedEffectType.FixedDuration)
+                    {
+                        effectDuration = durationComponent.Duration;
+                    }
+                }
+
+                List<AspectStep> aspectSteps = new List<AspectStep>(Mathf.CeilToInt(effectDuration / MIN_ASPECT_DURATION));
+
+                while (effectDuration > 0f)
+                {
+                    AspectStep step = generateStep(rng);
+
+                    bool addStep = true;
+
+                    // Save a tiny bit of space by collapsing together neighboring steps with the same aspect
+                    if (aspectSteps.Count > 0)
+                    {
+                        AspectStep lastStep = aspectSteps[aspectSteps.Count - 1];
+                        if (lastStep.AspectEquipmentIndex == step.AspectEquipmentIndex)
+                        {
+                            aspectSteps[aspectSteps.Count - 1] = new AspectStep(lastStep.AspectEquipmentIndex, lastStep.Duration + step.Duration);
+                            addStep = false;
+                        }
+                    }
+
+                    if (addStep)
+                    {
+                        aspectSteps.Add(step);
+                    }
+
+                    effectDuration -= step.Duration;
+                    _totalAspectStepsDuration += step.Duration;
+                }
+
+                _playerAspectSteps = [.. aspectSteps];
+            }
+        }
+
         AspectStep getCurrentAspectStep(CharacterBody body)
         {
-            if (_isSeeded && body && body.isPlayerControlled)
+            if (_playerAspectSteps != null && body && body.isPlayerControlled)
             {
-                float time = TimeElapsed % _totalAspectStepsDuration;
+                float time = _effectComponent.TimeStarted.TimeSinceClamped % _totalAspectStepsDuration;
                 foreach (AspectStep step in _playerAspectSteps)
                 {
                     time -= step.Duration;
@@ -143,88 +244,26 @@ namespace RiskOfChaos.EffectDefinitions.Character
             return generateStep(RoR2Application.rng);
         }
 
-        public override void OnPreStartServer()
+        void Start()
         {
-            base.OnPreStartServer();
-
-            _isSeeded = Configs.EffectSelection.SeededEffectSelection.Value;
-            if (_isSeeded)
+            if (NetworkServer.active)
             {
-                _totalAspectStepsDuration = 0f;
+                _swapAspectComponents.EnsureCapacity(CharacterBody.readOnlyInstancesList.Count);
 
-                // Generate as many steps as needed for the fixed duration, otherwise create a cycle long enough people probably won't notice the looping
-                float time = TimedType == TimedEffectType.FixedDuration ? DurationSeconds : 120f;
+                CharacterBody.readOnlyInstancesList.Do(tryAddComponentToBody);
 
-                const float AVERAGE_ASPECT_DURATION = (MIN_ASPECT_DURATION + MAX_ASPECT_DURATION) / 2f;
-                List<AspectStep> aspectSteps = new List<AspectStep>(Mathf.CeilToInt(time / AVERAGE_ASPECT_DURATION));
-
-                while (time > 0f)
-                {
-                    AspectStep step = generateStep(RNG);
-                    aspectSteps.Add(step);
-                    time -= step.Duration;
-                    _totalAspectStepsDuration += step.Duration;
-                }
-
-                // Save a tiny bit of space by collapsing together neighboring steps with the same aspect
-                for (int i = aspectSteps.Count - 1; i >= 1; i--)
-                {
-                    AspectStep previousStep = aspectSteps[i - 1];
-                    AspectStep currentStep = aspectSteps[i];
-
-                    if (previousStep.AspectEquipmentIndex == currentStep.AspectEquipmentIndex)
-                    {
-                        aspectSteps[i - 1] = new AspectStep(previousStep.AspectEquipmentIndex, previousStep.Duration + currentStep.Duration);
-                        aspectSteps.RemoveAt(i);
-                    }
-                }
-
-                _playerAspectSteps = aspectSteps.ToArray();
+                CharacterBody.onBodyStartGlobal += tryAddComponentToBody;
             }
         }
 
-        public override void Serialize(NetworkWriter writer)
+        void OnDestroy()
         {
-            base.Serialize(writer);
+            CharacterBody.onBodyStartGlobal -= tryAddComponentToBody;
 
-            writer.Write(_isSeeded);
-            if (_isSeeded)
+            foreach (RandomlySwapAspect swapComponent in _swapAspectComponents)
             {
-                writer.WritePackedUInt32((uint)_playerAspectSteps.Length);
-                foreach (AspectStep aspectStep in _playerAspectSteps)
-                {
-                    writer.Write(aspectStep.AspectEquipmentIndex);
-                    writer.Write(aspectStep.Duration);
-                }
+                Destroy(swapComponent);
             }
-        }
-
-        public override void Deserialize(NetworkReader reader)
-        {
-            base.Deserialize(reader);
-
-            _isSeeded = reader.ReadBoolean();
-            if (_isSeeded)
-            {
-                _totalAspectStepsDuration = 0f;
-
-                _playerAspectSteps = new AspectStep[reader.ReadPackedUInt32()];
-                for (int i = 0; i < _playerAspectSteps.Length; i++)
-                {
-                    EquipmentIndex aspectEquipmentIndex = reader.ReadEquipmentIndex();
-                    float duration = reader.ReadSingle();
-
-                    _playerAspectSteps[i] = new AspectStep(aspectEquipmentIndex, duration);
-                    _totalAspectStepsDuration += duration;
-                }
-            }
-        }
-
-        public override void OnStart()
-        {
-            CharacterBody.readOnlyInstancesList.Do(tryAddComponentToBody);
-
-            CharacterBody.onBodyStartGlobal += tryAddComponentToBody;
         }
 
         void tryAddComponentToBody(CharacterBody body)
@@ -233,18 +272,13 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 RandomlySwapAspect randomlySwapAspect = body.gameObject.AddComponent<RandomlySwapAspect>();
                 randomlySwapAspect.EffectInstance = this;
+
+                _swapAspectComponents.Add(randomlySwapAspect);
             }
             catch (Exception ex)
             {
                 Log.Error_NoCallerPrefix($"Failed to add component to {Util.GetBestBodyName(body.gameObject)}: {ex}");
             }
-        }
-
-        public override void OnEnd()
-        {
-            CharacterBody.onBodyStartGlobal -= tryAddComponentToBody;
-
-            InstanceUtils.DestroyAllTrackedInstances<RandomlySwapAspect>();
         }
 
         [RequireComponent(typeof(CharacterBody))]
@@ -258,8 +292,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
             void Awake()
             {
                 _body = GetComponent<CharacterBody>();
-
-                InstanceTracker.Add(this);
             }
 
             void FixedUpdate()
@@ -291,11 +323,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 {
                     inventory.SetEquipmentIndex(aspectEquipment);
                 }
-            }
-
-            void OnDestroy()
-            {
-                InstanceTracker.Remove(this);
             }
         }
     }

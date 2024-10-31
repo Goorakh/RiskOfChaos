@@ -1,4 +1,4 @@
-﻿using RiskOfChaos.ModifierController.Projectile;
+﻿using RiskOfChaos.ModificationController.Projectile;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -24,7 +24,7 @@ namespace RiskOfChaos.Patches
                                          && orb != null
                                          && !OrbUtils.IsTransferOrb(orb)
                                          && ProjectileModificationManager.Instance
-                                         && ProjectileModificationManager.Instance.ExtraSpawnCount > 0
+                                         && ProjectileModificationManager.Instance.AdditionalSpawnCount > 0
                                          // Don't allow procs to repeat
                                          && (!orb.TryGetProcChainMask(out ProcChainMask orbProcChain) || orbProcChain.Equals(default));
 
@@ -35,15 +35,15 @@ namespace RiskOfChaos.Patches
 
             if (shouldSpawnAdditional)
             {
-                IEnumerator spawnExtraOrbs()
+                IEnumerator spawnExtraOrbs(Orb orbTemplate, int spawnCount)
                 {
                     Stage startingStage = Stage.instance;
 
-                    for (byte i = 0; i < ProjectileModificationManager.Instance.ExtraSpawnCount; i++)
+                    for (int i = 0; i < spawnCount; i++)
                     {
                         yield return new WaitForSeconds(0.2f);
 
-                        if (!ProjectileModificationManager.Instance || startingStage != Stage.instance || !self)
+                        if (startingStage != Stage.instance || !OrbManager.instance)
                             break;
 
                         // Orb target no longer exists
@@ -53,7 +53,7 @@ namespace RiskOfChaos.Patches
                         _isAddingRepeat = true;
                         try
                         {
-                            self.AddOrb(OrbUtils.Clone(orbTemplate));
+                            OrbManager.instance.AddOrb(OrbUtils.Clone(orbTemplate));
                         }
                         finally
                         {
@@ -62,7 +62,7 @@ namespace RiskOfChaos.Patches
                     }
                 }
 
-                ProjectileModificationManager.Instance.StartCoroutine(spawnExtraOrbs());
+                ProjectileModificationManager.Instance.StartCoroutine(spawnExtraOrbs(orbTemplate, ProjectileModificationManager.Instance.AdditionalSpawnCount));
             }
         }
     }

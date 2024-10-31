@@ -1,4 +1,8 @@
-﻿using RiskOfChaos.Patches;
+﻿using RiskOfChaos.Components;
+using RiskOfChaos.Content;
+using RiskOfChaos.Content.AssetCollections;
+using RiskOfChaos.Patches;
+using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -6,6 +10,22 @@ namespace RiskOfChaos.Networking.Components.Gravity
 {
     public class GravitySync : NetworkBehaviour
     {
+        [ContentInitializer]
+        static void LoadContent(NetworkedPrefabAssetCollection networkPrefabs)
+        {
+            // GravityNetworker
+            {
+                GameObject prefab = Prefabs.CreateNetworkedPrefab("GravityNetworker", [
+                    typeof(SetDontDestroyOnLoad),
+                    typeof(DestroyOnRunEnd),
+                    typeof(AutoCreateOnRunStart),
+                    typeof(GravitySync)
+                ]);
+
+                networkPrefabs.Add(prefab);
+            }
+        }
+
         [SyncVar(hook = nameof(updateBaseGravity))]
         Vector3 _baseGravity;
 
@@ -24,8 +44,11 @@ namespace RiskOfChaos.Networking.Components.Gravity
         {
             base.OnStartClient();
 
-            updateBaseGravity(_baseGravity);
-            updateCurrentGravity(_currentGravity);
+            if (!GravityTracker.HasGravityAuthority)
+            {
+                updateBaseGravity(_baseGravity);
+                updateCurrentGravity(_currentGravity);
+            }
         }
 
         void FixedUpdate()
@@ -64,7 +87,7 @@ namespace RiskOfChaos.Networking.Components.Gravity
         void updateBaseGravity(Vector3 newBaseGravity)
         {
 #if DEBUG
-            Log.Debug($"Base gravity changed: {GravityTracker.BaseGravity} -> {newBaseGravity}");
+            Log.Debug($"Base gravity changed: {_baseGravity} -> {newBaseGravity}");
 #endif
 
             _baseGravity = newBaseGravity;
@@ -78,7 +101,7 @@ namespace RiskOfChaos.Networking.Components.Gravity
         void updateCurrentGravity(Vector3 newCurrentGravity)
         {
 #if DEBUG
-            Log.Debug($"Current gravity changed: {Physics.gravity} -> {newCurrentGravity}");
+            Log.Debug($"Current gravity changed: {_currentGravity} -> {newCurrentGravity}");
 #endif
 
             _currentGravity = newCurrentGravity;

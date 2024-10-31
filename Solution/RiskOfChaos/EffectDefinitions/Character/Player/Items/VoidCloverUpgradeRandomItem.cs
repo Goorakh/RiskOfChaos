@@ -7,16 +7,18 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Linq;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
     [ChaosEffect("void_clover_upgrade_random_item", DefaultSelectionWeight = 0.5f)]
-    public sealed class VoidCloverUpgradeRandomItem : BaseEffect
+    public sealed class VoidCloverUpgradeRandomItem : NetworkBehaviour
     {
         [HarmonyPatch]
         static class TryCloverVoidUpgradesReversePatch
@@ -90,12 +92,31 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             return ExpansionUtils.DLC1Enabled && (!context.IsNow || PlayerUtils.GetAllPlayerMasters(true).Any(m => m.inventory.HasAtLeastXTotalItemsOfTier(ItemTier.Tier1, 1) || m.inventory.HasAtLeastXTotalItemsOfTier(ItemTier.Tier2, 1)));
         }
 
-        public override void OnStart()
+        ChaosEffectComponent _effectComponent;
+
+        Xoroshiro128Plus _rng;
+
+        void Awake()
         {
-            PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+        }
+
+        void Start()
+        {
+            if (NetworkServer.active)
             {
-                upgradeRandomItem(playerMaster, RNG.Branch());
-            }, Util.GetBestMasterName);
+                PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
+                {
+                    upgradeRandomItem(playerMaster, _rng.Branch());
+                }, Util.GetBestMasterName);
+            }
         }
 
         static void upgradeRandomItem(CharacterMaster playerMaster, Xoroshiro128Plus rng)

@@ -155,5 +155,19 @@ namespace RiskOfChaos.Utilities
 
             return EliteCatalog.eliteList.ToArray();
         }
+
+        public static EliteDef FindEliteDef(EquipmentIndex eliteEquipmentIndex)
+        {
+            foreach (EliteIndex eliteIndex in EliteCatalog.eliteList)
+            {
+                EliteDef eliteDef = EliteCatalog.GetEliteDef(eliteIndex);
+                if (eliteDef && eliteDef.eliteEquipmentDef && eliteDef.eliteEquipmentDef.equipmentIndex == eliteEquipmentIndex)
+                {
+                    return eliteDef;
+                }
+            }
+
+            return null;
+        }
     }
 }

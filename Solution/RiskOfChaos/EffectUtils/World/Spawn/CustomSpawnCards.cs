@@ -1,5 +1,7 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities.Extensions;
+using RoR2;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -13,19 +15,20 @@ namespace RiskOfChaos.EffectUtils.World.Spawn
         [SystemInitializer]
         static IEnumerator Init()
         {
+            List<AsyncOperationHandle> asyncOperations = new List<AsyncOperationHandle>(1);
+
             AsyncOperationHandle<InteractableSpawnCard> iscGeodeLoad = Addressables.LoadAssetAsync<InteractableSpawnCard>("RoR2/DLC2/iscGeode.asset");
-
-            while (!iscGeodeLoad.IsDone)
+            iscGeodeLoad.OnSuccess(iscGeode =>
             {
-                yield return null;
-            }
+                iscGeodeFixed = ScriptableObject.Instantiate(iscGeode);
+                iscGeodeFixed.name = "iscGeodeFixed";
+                iscGeodeFixed.orientToFloor = false; // causes it to have really strange rotation since the raycast to find the floor normal hits itself
+                iscGeodeFixed.occupyPosition = true;
+            });
 
-            iscGeodeFixed = ScriptableObject.Instantiate(iscGeodeLoad.Result);
-            iscGeodeFixed.name = "iscGeodeFixed";
-            iscGeodeFixed.orientToFloor = false; // causes it to have really strange rotation since the raycast to find the floor normal hits itself
-            iscGeodeFixed.occupyPosition = true;
+            asyncOperations.Add(iscGeodeLoad);
 
-            yield break;
+            yield return asyncOperations.WaitForAllLoaded();
         }
     }
 }

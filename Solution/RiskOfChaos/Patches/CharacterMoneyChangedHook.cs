@@ -1,8 +1,8 @@
 ﻿using HarmonyLib;
-using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Reflection;
 
@@ -24,17 +24,11 @@ namespace RiskOfChaos.Patches
         {
             ILCursor c = new ILCursor(il);
 
-            VariableDefinition newMoneyVar = new VariableDefinition(il.Module.ImportReference(typeof(uint)));
-            il.Method.Body.Variables.Add(newMoneyVar);
-
-            VariableDefinition masterInstanceVar = new VariableDefinition(il.Module.ImportReference(typeof(CharacterMaster)));
-            il.Method.Body.Variables.Add(masterInstanceVar);
-
-            VariableDefinition oldMoneyVar = new VariableDefinition(il.Module.ImportReference(typeof(uint)));
-            il.Method.Body.Variables.Add(oldMoneyVar);
+            VariableDefinition newMoneyVar = il.AddVariable<uint>();
+            VariableDefinition masterInstanceVar = il.AddVariable<CharacterMaster>();
+            VariableDefinition oldMoneyVar = il.AddVariable<uint>();
 
             FieldInfo characterMasterMoneyField = AccessTools.DeclaredField(typeof(CharacterMaster), nameof(CharacterMaster._money));
-            FieldReference characterMasterMoneyFieldRef = il.Import(characterMasterMoneyField);
 
             int patchCount = 0;
 
@@ -45,7 +39,7 @@ namespace RiskOfChaos.Patches
                 c.Emit(OpCodes.Stloc, masterInstanceVar);
 
                 c.Emit(OpCodes.Ldloc, masterInstanceVar);
-                c.Emit(OpCodes.Ldfld, characterMasterMoneyFieldRef);
+                c.Emit(OpCodes.Ldfld, characterMasterMoneyField);
                 c.Emit(OpCodes.Stloc, oldMoneyVar);
 
                 c.Emit(OpCodes.Ldloc, masterInstanceVar);
@@ -56,7 +50,7 @@ namespace RiskOfChaos.Patches
                 c.Emit(OpCodes.Ldloc, masterInstanceVar);
                 c.Emit(OpCodes.Ldloc, oldMoneyVar);
                 c.Emit(OpCodes.Ldloc, masterInstanceVar);
-                c.Emit(OpCodes.Ldfld, characterMasterMoneyFieldRef);
+                c.Emit(OpCodes.Ldfld, characterMasterMoneyField);
                 c.EmitDelegate(onSetMoney);
                 static void onSetMoney(CharacterMaster masterInstance, uint oldMoney, uint newMoney)
                 {

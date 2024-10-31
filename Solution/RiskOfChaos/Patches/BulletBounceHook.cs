@@ -1,11 +1,9 @@
 ﻿using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using MonoMod.Utils;
-using RiskOfChaos.ModifierController.Projectile;
-using RiskOfChaos.Utilities;
+using RiskOfChaos.ModificationController.Projectile;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -21,11 +19,11 @@ namespace RiskOfChaos.Patches
             public Vector3 CurrentBulletDirection;
             public int MuzzleIndex;
             public BulletAttack.BulletHit CurrentBounceHit;
-            public uint BounceDepth;
+            public int BounceDepth;
 
-            public uint BouncesRemaining => ClampedConversion.UInt32((long)bounceCount - BounceDepth);
+            public int BouncesRemaining => bounceCount - BounceDepth;
 
-            public BulletBounceInfo(BulletAttack bulletAttack, Vector3 currentBulletDirection, int muzzleIndex, BulletAttack.BulletHit currentBounceHit, uint bounceDepth)
+            public BulletBounceInfo(BulletAttack bulletAttack, Vector3 currentBulletDirection, int muzzleIndex, BulletAttack.BulletHit currentBounceHit, int bounceDepth)
             {
                 BulletAttack = bulletAttack;
                 CurrentBulletDirection = currentBulletDirection;
@@ -37,7 +35,7 @@ namespace RiskOfChaos.Patches
 
         static bool isEnabled => bounceCount > 0;
 
-        static uint bounceCount
+        static int bounceCount
         {
             get
             {
@@ -72,28 +70,13 @@ namespace RiskOfChaos.Patches
         {
             ILCursor c = new ILCursor(il);
 
-            ParameterDefinition normalParameter = null;
-            ParameterDefinition muzzleIndexParameter = null;
-
-            foreach (ParameterDefinition parameter in il.Method.Parameters)
-            {
-                if (parameter.ParameterType.Is(typeof(Vector3)) && string.Equals(parameter.Name, "normal", StringComparison.OrdinalIgnoreCase))
-                {
-                    normalParameter ??= parameter;
-                }
-                else if (parameter.ParameterType.Is(typeof(int)) && string.Equals(parameter.Name, "muzzleIndex", StringComparison.OrdinalIgnoreCase))
-                {
-                    muzzleIndexParameter ??= parameter;
-                }
-            }
-
-            if (normalParameter == null)
+            if (!il.Method.TryFindParameter<Vector3>("normal", out ParameterDefinition normalParameter))
             {
                 Log.Error("Failed to find normal parameter");
                 return;
             }
 
-            if (muzzleIndexParameter == null)
+            if (!il.Method.TryFindParameter<int>("muzzleIndex", out ParameterDefinition muzzleIndexParameter))
             {
                 Log.Error("Failed to find muzzleIndex parameter");
                 return;
@@ -128,8 +111,7 @@ namespace RiskOfChaos.Patches
         {
             ILCursor c = new ILCursor(il);
 
-            VariableDefinition finalHitVar = new VariableDefinition(il.Import(typeof(BulletAttack.BulletHit)));
-            il.Method.Body.Variables.Add(finalHitVar);
+            VariableDefinition finalHitVar = il.AddVariable<BulletAttack.BulletHit>();
 
             c.Emit(OpCodes.Ldnull);
             c.Emit(OpCodes.Stloc, finalHitVar);

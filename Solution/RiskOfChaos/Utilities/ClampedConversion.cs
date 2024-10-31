@@ -55,6 +55,18 @@ namespace RiskOfChaos.Utilities
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint UInt32(ulong value)
+        {
+            if (value > uint.MaxValue)
+                return uint.MaxValue;
+
+            // if (value < uint.MinValue)
+            //     return uint.MinValue;
+
+            return (uint)value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static sbyte Int8(int value)
         {
             if (value > sbyte.MaxValue)

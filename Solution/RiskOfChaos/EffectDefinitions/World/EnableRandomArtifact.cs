@@ -5,6 +5,8 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
@@ -17,7 +19,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosTimedEffect("enable_random_artifact", TimedEffectType.UntilStageEnd)]
     [EffectConfigBackwardsCompatibility("Effect: Enable Random Artifact (Lasts 1 Stage)")]
-    public sealed class EnableRandomArtifact : TimedEffect
+    public sealed class EnableRandomArtifact : NetworkBehaviour
     {
         [InitEffectInfo]
         static readonly ChaosEffectInfo _effectInfo;
@@ -41,7 +43,11 @@ namespace RiskOfChaos.EffectDefinitions.World
 
                 SelectionWeight =
                     ConfigFactory<float>.CreateConfig($"{ArtifactName} Weight", 1f)
-                                        .Description($"How likely the {ArtifactName} is to be picked, higher value means more likely, lower value means less likely.\n\nA value of 0 will exclude it completely")
+                                        .Description($"""
+                                         How likely the {ArtifactName} is to be picked, higher value means more likely, lower value means less likely.
+
+                                         A value of 0 will exclude it completely
+                                         """)
                                         .AcceptableValues(new AcceptableValueMin<float>(0f))
                                         .OptionConfig(new FloatFieldConfig { Min = 0f })
                                         .Build();
@@ -100,45 +106,50 @@ namespace RiskOfChaos.EffectDefinitions.World
             return RunArtifactManager.instance && getAllAvailableArtifactIndices().Any();
         }
 
-        ArtifactDef _enabledArtifact;
+        ChaosEffectComponent _effectComponent;
 
-        public override void OnPreStartServer()
+        [SerializedMember("a")]
+        ArtifactIndex _enabledArtifact = ArtifactIndex.None;
+
+        void Awake()
         {
-            base.OnPreStartServer();
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
 
-            WeightedSelection<ArtifactIndex> artifactIndexSelection = new WeightedSelection<ArtifactIndex>(ArtifactCatalog.artifactCount);
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+
+            WeightedSelection<ArtifactIndex> artifactIndexSelection = new WeightedSelection<ArtifactIndex>();
+            artifactIndexSelection.EnsureCapacity(ArtifactCatalog.artifactCount);
 
             foreach (ArtifactIndex index in getAllAvailableArtifactIndices())
             {
                 artifactIndexSelection.AddChoice(index, getArtifactSelectionWeight(index));
             }
 
-            _enabledArtifact = ArtifactCatalog.GetArtifactDef(artifactIndexSelection.Evaluate(RNG.nextNormalizedFloat));
+            if (artifactIndexSelection.Count > 0)
+            {
+                _enabledArtifact = artifactIndexSelection.Evaluate(rng.nextNormalizedFloat);
+            }
         }
 
-        public override void Serialize(NetworkWriter writer)
+        void Start()
         {
-            base.Serialize(writer);
-            writer.WritePackedIndex32((int)_enabledArtifact.artifactIndex);
+            if (NetworkServer.active && _enabledArtifact != ArtifactIndex.None)
+            {
+                RunArtifactManager.instance.SetArtifactEnabledServer(ArtifactCatalog.GetArtifactDef(_enabledArtifact), true);
+            }
         }
 
-        public override void Deserialize(NetworkReader reader)
+        void OnDestroy()
         {
-            base.Deserialize(reader);
-            _enabledArtifact = ArtifactCatalog.GetArtifactDef((ArtifactIndex)reader.ReadPackedIndex32());
-        }
-
-        public override void OnStart()
-        {
-            RunArtifactManager.instance.SetArtifactEnabledServer(_enabledArtifact, true);
-        }
-
-        public override void OnEnd()
-        {
-            if (!RunArtifactManager.instance)
+            if (!NetworkServer.active || !RunArtifactManager.instance)
                 return;
 
-            RunArtifactManager.instance.SetArtifactEnabledServer(_enabledArtifact, false);
+            RunArtifactManager.instance.SetArtifactEnabledServer(ArtifactCatalog.GetArtifactDef(_enabledArtifact), false);
         }
     }
 }

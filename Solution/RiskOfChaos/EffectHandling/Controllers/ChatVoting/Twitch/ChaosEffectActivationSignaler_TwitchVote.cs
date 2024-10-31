@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 
 namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
 {
-    [ChaosEffectActivationSignaler(Configs.ChatVoting.ChatVotingMode.Twitch)]
     public class ChaosEffectActivationSignaler_TwitchVote : ChaosEffectActivationSignaler_ChatVote
     {
         static ChaosEffectActivationSignaler_TwitchVote _instance;

@@ -1,47 +1,59 @@
-﻿using RiskOfChaos.Utilities.Extensions;
+﻿using R2API.Networking;
+using RiskOfChaos.Networking;
 using RoR2;
 
 namespace RiskOfChaos.Utilities.Pickup
 {
     public static class PickupUtils
     {
-        public static void GrantOrDropPickupAt(PickupDef pickup, CharacterMaster master, bool replaceExisting = true)
+        public static void QueuePickupMessage(CharacterMaster characterMaster, PickupIndex pickupIndex, bool pushNotification, bool playPickupSound)
         {
-            Inventory inventory = master.inventory;
+            PickupsNotificationMessage pickupMessage = new PickupsNotificationMessage(characterMaster, [pickupIndex])
+            {
+                DisplayPushNotification = pushNotification,
+                PlaySound = playPickupSound
+            };
 
-            GenericPickupController createPickup(PickupIndex pickupIndex)
-            {
-                CharacterBody body = master.GetBody();
-                if (body)
-                {
-                    return GenericPickupController.CreatePickup(new GenericPickupController.CreatePickupInfo
-                    {
-                        pickupIndex = pickupIndex,
-                        position = body.footPosition
-                    });
-                }
-                else
-                {
-                    Log.Warning($"unable to spawn pickup {pickupIndex} at {master}: Null body");
-                    return null;
-                }
-            }
+            NetworkMessageQueue.EnqueueMessage(pickupMessage, NetworkDestination.Clients);
+        }
 
-            PickupTryGrantResult tryGrantResult = inventory.TryGrant(pickup, replaceExisting);
-            if (tryGrantResult.State != PickupTryGrantResult.ResultState.Failed)
+        public static void QueuePickupMessage(string messageToken, PickupIndex pickupIndex, uint pickupQuantity, bool pushNotification, bool playPickupSound)
+        {
+            PickupsNotificationMessage pickupMessage = new PickupsNotificationMessage(messageToken, [pickupIndex], [pickupQuantity])
             {
-                GenericPickupController.SendPickupMessage(master, pickup.pickupIndex);
-            }
-            else
-            {
-                createPickup(pickup.pickupIndex);
-            }
+                DisplayPushNotification = pushNotification,
+                PlaySound = playPickupSound
+            };
 
-            PickupIndex pickupToSpawn = tryGrantResult.PickupToSpawn;
-            if (pickupToSpawn.isValid)
+            NetworkMessageQueue.EnqueueMessage(pickupMessage, NetworkDestination.Clients);
+        }
+
+        public static void QueuePickupsMessage(CharacterMaster characterMaster, PickupIndex[] pickupIndices, bool pushNotification, bool playPickupSound)
+        {
+            if (pickupIndices.Length == 0)
+                return;
+
+            PickupsNotificationMessage pickupMessage = new PickupsNotificationMessage(characterMaster, pickupIndices)
             {
-                createPickup(pickupToSpawn);
-            }
+                DisplayPushNotification = pushNotification,
+                PlaySound = playPickupSound
+            };
+
+            NetworkMessageQueue.EnqueueMessage(pickupMessage, NetworkDestination.Clients);
+        }
+
+        public static void QueuePickupsMessage(string messageToken, PickupIndex[] pickupIndices, uint[] pickupQuantities, bool pushNotification, bool playPickupSound)
+        {
+            if (pickupIndices.Length == 0)
+                return;
+
+            PickupsNotificationMessage pickupMessage = new PickupsNotificationMessage(messageToken, pickupIndices, pickupQuantities)
+            {
+                DisplayPushNotification = pushNotification,
+                PlaySound = playPickupSound
+            };
+
+            NetworkMessageQueue.EnqueueMessage(pickupMessage, NetworkDestination.Clients);
         }
     }
 }

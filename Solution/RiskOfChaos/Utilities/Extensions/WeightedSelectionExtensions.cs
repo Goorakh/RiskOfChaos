@@ -70,5 +70,13 @@ namespace RiskOfChaos.Utilities.Extensions
 
             return result;
         }
+
+        public static void EnsureCapacity<T>(this WeightedSelection<T> selection, int capacity)
+        {
+            if (selection.Capacity < capacity)
+            {
+                selection.Capacity = capacity;
+            }
+        }
     }
 }

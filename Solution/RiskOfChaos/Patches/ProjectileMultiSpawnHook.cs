@@ -1,4 +1,4 @@
-﻿using RiskOfChaos.ModifierController.Projectile;
+﻿using RiskOfChaos.ModificationController.Projectile;
 using RoR2;
 using RoR2.Projectile;
 using System.Collections;
@@ -23,28 +23,33 @@ namespace RiskOfChaos.Patches
             if (_patchDisabled)
                 return;
 
-            if (!ProjectileModificationManager.Instance || ProjectileModificationManager.Instance.ExtraSpawnCount <= 0)
+            ProjectileModificationManager projectileModificationManager = ProjectileModificationManager.Instance;
+            if (!projectileModificationManager)
+                return;
+
+            int additionalProjectileSpawnCount = projectileModificationManager.AdditionalSpawnCount;
+            if (additionalProjectileSpawnCount <= 0)
                 return;
 
             // Don't allow procs to repeat
             if (!fireProjectileInfo.procChainMask.Equals(default))
                 return;
 
-            IEnumerator spawnExtraProjectiles()
+            IEnumerator spawnExtraProjectiles(FireProjectileInfo fireProjectileInfo, int spawnCount)
             {
                 Stage startingStage = Stage.instance;
 
-                for (byte i = 0; i < ProjectileModificationManager.Instance.ExtraSpawnCount; i++)
+                for (int i = 0; i < spawnCount; i++)
                 {
                     yield return new WaitForSeconds(0.2f);
 
-                    if (!ProjectileModificationManager.Instance || startingStage != Stage.instance || !self)
+                    if (startingStage != Stage.instance || !ProjectileManager.instance)
                         break;
 
                     _patchDisabled = true;
                     try
                     {
-                        self.FireProjectile(fireProjectileInfo);
+                        ProjectileManager.instance.FireProjectile(fireProjectileInfo);
                     }
                     finally
                     {
@@ -53,7 +58,7 @@ namespace RiskOfChaos.Patches
                 }
             }
 
-            ProjectileModificationManager.Instance.StartCoroutine(spawnExtraProjectiles());
+            projectileModificationManager.StartCoroutine(spawnExtraProjectiles(fireProjectileInfo, additionalProjectileSpawnCount));
         }
     }
 }

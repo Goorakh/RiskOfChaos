@@ -18,9 +18,26 @@ namespace RiskOfChaos.Utilities.Extensions
                 }
             }
 
-            foreach (MethodInfo method in type.GetMethods(flags))
+            foreach (MethodInfo method in type.GetMethods(flags | BindingFlags.DeclaredOnly))
             {
                 yield return method;
+            }
+        }
+
+        public static IEnumerable<MemberInfo> GetAllMembersRecursive(this Type type, BindingFlags flags)
+        {
+            Type baseType = type.BaseType;
+            if (baseType != null)
+            {
+                foreach (MemberInfo baseMember in baseType.GetAllMembersRecursive(flags))
+                {
+                    yield return baseMember;
+                }
+            }
+
+            foreach (MemberInfo member in type.GetMembers(flags | BindingFlags.DeclaredOnly))
+            {
+                yield return member;
             }
         }
 

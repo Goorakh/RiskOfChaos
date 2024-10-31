@@ -1,37 +1,44 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModifierController.Pickups;
-using System;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.Pickups;
+using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Pickups
 {
     [ChaosTimedEffect("double_pickups", 90f)]
-    public sealed class DoublePickups : TimedEffect, IPickupModificationProvider
+    public sealed class DoublePickups : MonoBehaviour
     {
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return PickupModificationManager.Instance;
+            return RoCContent.NetworkedPrefabs.PickupModificationProvider;
         }
 
-        public event Action OnValueDirty;
+        ValueModificationController _pickupModificationController;
 
-        public override void OnStart()
+        void Start()
         {
-            PickupModificationManager.Instance.RegisterModificationProvider(this);
-        }
-
-        public override void OnEnd()
-        {
-            if (PickupModificationManager.Instance)
+            if (NetworkServer.active)
             {
-                PickupModificationManager.Instance.UnregisterModificationProvider(this);
+                _pickupModificationController = Instantiate(RoCContent.NetworkedPrefabs.PickupModificationProvider).GetComponent<ValueModificationController>();
+
+                PickupModificationProvider pickupModificationProvider = _pickupModificationController.GetComponent<PickupModificationProvider>();
+                pickupModificationProvider.SpawnCountMultiplier = 2;
+
+                NetworkServer.Spawn(_pickupModificationController.gameObject);
             }
         }
 
-        public void ModifyValue(ref PickupModificationInfo value)
+        void OnDestroy()
         {
-            value.SpawnCountMultiplier *= 2;
+            if (_pickupModificationController)
+            {
+                _pickupModificationController.Retire();
+                _pickupModificationController = null;
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.UI;
 using UnityEngine;
@@ -47,28 +48,27 @@ namespace RiskOfChaos.UI.NextEffectDisplay
 
         public void DisplayEffect(EffectDisplayData displayData)
         {
-            string timeRemainingString = FormatUtils.FormatTimeSeconds(displayData.TimeRemaining);
+            float timeRemaining = displayData.ActivationTime.TimeUntilClamped;
+            string timeRemainingString = FormatUtils.FormatTimeSeconds(timeRemaining);
 
             if (displayData.EffectIndex != ChaosEffectIndex.Invalid)
             {
                 ChaosEffectInfo effectInfo = ChaosEffectCatalog.GetEffectInfo(displayData.EffectIndex);
                 string effectName = effectInfo?.GetDisplayName(displayData.NameFormatter, EffectNameFormatFlags.RuntimeFormatArgs) ?? "NULL";
-                EffectText.token = "CHAOS_NEXT_EFFECT_DISPLAY_FORMAT";
-                EffectText.formatArgs = [effectName, timeRemainingString];
+                EffectText.SetTokenAndFormatArgs("CHAOS_NEXT_EFFECT_DISPLAY_FORMAT", [effectName, timeRemainingString]);
             }
             else
             {
-                EffectText.token = "CHAOS_NEXT_EFFECT_TIME_REMAINING_DISPLAY_FORMAT";
-                EffectText.formatArgs = [timeRemainingString];
+                EffectText.SetTokenAndFormatArgs("CHAOS_NEXT_EFFECT_TIME_REMAINING_DISPLAY_FORMAT", [timeRemainingString]);
             }
 
-            if (_currentDisplayData.EffectIndex != displayData.EffectIndex || displayData.TimeRemaining - _lastDisplayedTimeRemaining > 1f)
+            if (_currentDisplayData.EffectIndex != displayData.EffectIndex || Mathf.Abs(timeRemaining - _lastDisplayedTimeRemaining) > 2f)
             {
                 beginFlash();
             }
 
             _currentDisplayData = displayData;
-            _lastDisplayedTimeRemaining = displayData.TimeRemaining;
+            _lastDisplayedTimeRemaining = timeRemaining;
         }
 
         void onCurrentLanguageChanged()

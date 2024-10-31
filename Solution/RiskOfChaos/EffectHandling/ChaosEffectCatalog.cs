@@ -1,5 +1,7 @@
 ﻿using BepInEx.Configuration;
 using HG;
+using RiskOfChaos.Content;
+using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -7,6 +9,7 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions;
 using RoR2;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -53,17 +56,35 @@ namespace RiskOfChaos.EffectHandling
             ModSettingsManager.SetModDescription("Effect config options for Risk of Chaos", CONFIG_MOD_GUID, CONFIG_MOD_NAME);
         }
 
-        [SystemInitializer]
-        static void Init()
+        [ContentInitializer]
+        static IEnumerator LoadContent(NetworkedPrefabAssetCollection networkedPrefabs)
         {
-            Stopwatch stopwatch = Stopwatch.StartNew();
-
             _effects = HG.Reflection.SearchableAttribute.GetInstances<ChaosEffectAttribute>()
                                                         .Cast<ChaosEffectAttribute>()
                                                         .Where(attr => attr.Validate())
                                                         .OrderBy(e => e.Identifier, StringComparer.OrdinalIgnoreCase)
                                                         .Select((e, i) => e.BuildEffectInfo((ChaosEffectIndex)i, _effectConfigFile))
                                                         .ToArray();
+
+            for (int i = 0; i < _effects.Length; i++)
+            {
+                ChaosEffectInfo effect = _effects[i];
+                if (!networkedPrefabs.Contains(effect.ControllerPrefab))
+                {
+                    networkedPrefabs.Add(effect.ControllerPrefab);
+                }
+
+                if (i > 0 && i % 25 == 0)
+                {
+                    yield return null;
+                }
+            }
+        }
+
+        [SystemInitializer]
+        static void Init()
+        {
+            Stopwatch stopwatch = Stopwatch.StartNew();
 
             AllEffects = new ReadOnlyArray<ChaosEffectInfo>(_effects);
 
@@ -80,19 +101,19 @@ namespace RiskOfChaos.EffectHandling
                     _effectIndexByNameToken.Add(effect.NameToken, effect.EffectIndex);
                 }
 
-                if (_effectIndexByType.ContainsKey(effect.EffectType))
+                if (_effectIndexByType.ContainsKey(effect.EffectComponentType))
                 {
-                    Log.Error($"Duplicate effect type: {effect.EffectType}");
+                    Log.Error($"Duplicate effect type: {effect.EffectComponentType}");
                 }
                 else
                 {
-                    _effectIndexByType.Add(effect.EffectType, effect.EffectIndex);
+                    _effectIndexByType.Add(effect.EffectComponentType, effect.EffectIndex);
                 }
             }
 
             _effectCount = _effects.Length;
 
-            _pickNextEffectSelection.Capacity = _effectCount;
+            _pickNextEffectSelection.EnsureCapacity(_effectCount);
 
             checkFindEffectIndex();
 
@@ -110,7 +131,7 @@ namespace RiskOfChaos.EffectHandling
 
             foreach (ChaosEffectInfo effectInfo in effectsByConfigName)
             {
-                foreach (MemberInfo member in effectInfo.EffectType.GetMembers(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly).WithAttribute<MemberInfo, InitEffectMemberAttribute>())
+                foreach (MemberInfo member in effectInfo.EffectComponentType.GetMembers(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly).WithAttribute<MemberInfo, InitEffectMemberAttribute>())
                 {
                     foreach (InitEffectMemberAttribute initEffectMember in member.GetCustomAttributes<InitEffectMemberAttribute>())
                     {
@@ -147,12 +168,6 @@ namespace RiskOfChaos.EffectHandling
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T[] PerEffectArray<T>()
-        {
-            return new T[_effectCount];
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ChaosEffectInfo GetEffectInfo(ChaosEffectIndex effectIndex)
         {
             return ArrayUtils.GetSafe(_effects, (int)effectIndex);
@@ -179,7 +194,7 @@ namespace RiskOfChaos.EffectHandling
             return ChaosEffectIndex.Invalid;
         }
 
-        public static ChaosEffectIndex FindEffectIndexByType(Type type)
+        public static ChaosEffectIndex FindEffectIndexByComponentType(Type type)
         {
             if (_effectIndexByType.TryGetValue(type, out ChaosEffectIndex effectIndex))
             {
@@ -192,9 +207,9 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
-        public static ChaosEffectInfo FindEffectInfoByType(Type type)
+        public static ChaosEffectInfo FindEffectInfoByComponentType(Type type)
         {
-            ChaosEffectIndex effectIndex = FindEffectIndexByType(type);
+            ChaosEffectIndex effectIndex = FindEffectIndexByComponentType(type);
             if (effectIndex != ChaosEffectIndex.Invalid)
             {
                 return GetEffectInfo(effectIndex);

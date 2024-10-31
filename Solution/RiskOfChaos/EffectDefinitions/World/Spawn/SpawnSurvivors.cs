@@ -1,44 +1,31 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
-using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using RoR2.EntityLogic;
 using RoR2.Navigation;
 using System.Collections;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("spawn_survivors")]
-    public sealed class SpawnSurvivors : GenericSpawnEffect<SurvivorDef>, ICoroutineEffect
+    public sealed class SpawnSurvivors : NetworkBehaviour
     {
-        static GameObject _podPrefab;
-
-        class SurvivorEntry : SpawnEntry
+        static readonly SpawnPool<SurvivorDef> _spawnPool = new SpawnPool<SurvivorDef>
         {
-            public SurvivorEntry(SurvivorDef[] items, float weight) : base(items, weight)
-            {
-            }
+            RequiredExpansionsProvider = survivorDef => ExpansionUtils.GetObjectRequiredExpansions(survivorDef.bodyPrefab)
+        };
 
-            public SurvivorEntry(SurvivorDef item, float weight) : base(item, weight)
-            {
-            }
-
-            protected override bool isItemAvailable(SurvivorDef item)
-            {
-                return base.isItemAvailable(item) && item.CheckRequiredExpansionEnabled() && (!item.unlockableDef || (Run.instance && Run.instance.IsUnlockableUnlocked(item.unlockableDef)));
-            }
-        }
-        static SurvivorEntry[] _survivorEntries;
+        static GameObject _podPrefab;
 
         [EffectConfig]
         static readonly ConfigHolder<int> _numPodSpawns =
@@ -48,33 +35,64 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                               .OptionConfig(new IntFieldConfig { Min = 1 })
                               .Build();
 
-        [SystemInitializer(typeof(SurvivorCatalog), typeof(MasterCatalog), typeof(ChaosEffectCatalog))]
+        [SystemInitializer(typeof(SurvivorCatalog), typeof(MasterCatalog))]
         static void Init()
         {
-            _podPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/SurvivorPod/SurvivorPod.prefab").WaitForCompletion();
+            AsyncOperationHandle<GameObject> survivorPodLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/SurvivorPod/SurvivorPod.prefab");
+            survivorPodLoad.OnSuccess(survivorPodPrefab => _podPrefab = survivorPodPrefab);
 
-            _survivorEntries = SurvivorCatalog.allSurvivorDefs.Where(s => MasterCatalog.FindAiMasterIndexForBody(BodyCatalog.FindBodyIndex(s.bodyPrefab)).isValid)
-                                                              .Select(s => new SurvivorEntry(s, 1f))
-                                                              .ToArray();
+            _spawnPool.CalcIsEntryAvailable += survivor =>
+            {
+                return !survivor.unlockableDef || (Run.instance && Run.instance.IsUnlockableUnlocked(survivor.unlockableDef));
+            };
+
+            _spawnPool.EnsureCapacity(SurvivorCatalog.survivorCount);
+
+            foreach (SurvivorDef survivorDef in SurvivorCatalog.allSurvivorDefs)
+            {
+                MasterCatalog.MasterIndex aiMasterIndex = MasterCatalog.FindAiMasterIndexForBody(BodyCatalog.FindBodyIndex(survivorDef.bodyPrefab));
+                if (!aiMasterIndex.isValid)
+                    continue;
+
+                _spawnPool.AddEntry(new SpawnPool<SurvivorDef>.Entry(survivorDef, 1f));
+            }
+
+            _spawnPool.TrimExcess();
         }
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return areAnyAvailable(_survivorEntries);
+            return _spawnPool.AnyAvailable;
         }
 
-        public override void OnStart()
+        ChaosEffectComponent _effectComponent;
+
+        Xoroshiro128Plus _rng;
+
+        void Awake()
         {
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+            _effectComponent.EffectDestructionHandledByComponent = true;
         }
 
-        public IEnumerator OnStartCoroutine()
+        public override void OnStartServer()
         {
+            base.OnStartServer();
+
+            _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+        }
+
+        IEnumerator Start()
+        {
+            if (!NetworkServer.active)
+                yield break;
+
             for (int i = _numPodSpawns.Value - 1; i >= 0; i--)
             {
-                spawnSurvivor(getItemToSpawn(_survivorEntries, RNG), RNG.Branch());
+                spawnSurvivor(_spawnPool.PickRandomEntry(_rng), _rng.Branch());
 
-                yield return new WaitForSeconds(RNG.RangeFloat(0.1f, 0.3f));
+                yield return new WaitForSeconds(_rng.RangeFloat(0.1f, 0.3f));
             }
         }
 
@@ -104,11 +122,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 CharacterBody characterBody = master.GetBody();
 
                 DirectorPlacementRule placementRule = SpawnUtils.GetBestValidRandomPlacementRule();
-                Vector3 spawnPosition = placementRule.EvaluateToPosition(rng.Branch(),
-                                                                         characterBody.hullClassification,
-                                                                         MapNodeGroup.GraphType.Ground,
-                                                                         NodeFlags.None,
-                                                                         NodeFlags.NoCharacterSpawn);
+                Vector3 spawnPosition = placementRule.EvaluateToPosition(rng.Branch(), HullClassification.Golem, MapNodeGroup.GraphType.Ground, NodeFlags.None, NodeFlags.NoCharacterSpawn);
 
                 spawnSurvivorPodFor(characterBody, spawnPosition, rng.Branch());
             }
@@ -120,9 +134,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         static void spawnSurvivorPodFor(CharacterBody survivorBody, Vector3 spawnPosition, Xoroshiro128Plus rng)
         {
-            GameObject podObject = GameObject.Instantiate(_podPrefab,
-                                                          spawnPosition + new Vector3(0f, 0.75f, 0f),
-                                                          Quaternion.Euler(0f, rng.RangeFloat(-180f, 180f), 0f));
+            Vector3 podPosition = spawnPosition + new Vector3(0f, 0.75f, 0f);
+
+            Vector3 environmentNormal = SpawnUtils.GetEnvironmentNormalAtPoint(spawnPosition);
+            Quaternion podRotation = Quaternion.AngleAxis(rng.RangeFloat(-180f, 180f), environmentNormal) *
+                                     QuaternionUtils.PointLocalDirectionAt(Vector3.up, environmentNormal);
+
+            GameObject podObject = Instantiate(_podPrefab, podPosition, podRotation);
 
             if (!podObject.TryGetComponent(out VehicleSeat vehicleSeat))
             {
@@ -135,31 +153,45 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
             vehicleSeat.AssignPassenger(survivorBody.gameObject);
 
-            DelayedEvent exitPodEvent = vehicleSeat.gameObject.AddComponent<DelayedEvent>();
-            exitPodEvent.action = new UnityEngine.Events.UnityEvent();
-            exitPodEvent.action.AddListener(() =>
-            {
-                if (vehicleSeat && vehicleSeat.hasPassenger)
-                {
-                    CharacterBody passenger = vehicleSeat.currentPassengerBody;
-                    if (passenger)
-                    {
-                        passenger.GetComponent<Interactor>().AttemptInteraction(vehicleSeat.gameObject);
-                    }
-
-                    if (exitPodEvent)
-                    {
-                        exitPodEvent.CallDelayed(0.2f);
-                    }
-                }
-            });
-            exitPodEvent.CallDelayed(0.2f);
+            podObject.AddComponent<RepeatedPassengerInteraction>();
 
             NetworkServer.Spawn(podObject);
         }
 
-        public void OnForceStopped()
+        class RepeatedPassengerInteraction : MonoBehaviour
         {
+            VehicleSeat _seat;
+
+            float _interactTimer;
+
+            void Awake()
+            {
+                _seat = GetComponent<VehicleSeat>();
+            }
+
+            void FixedUpdate()
+            {
+                if (!_seat || !NetworkServer.active)
+                {
+                    Destroy(this);
+                    return;
+                }
+
+                _interactTimer -= Time.fixedDeltaTime;
+                if (_interactTimer <= 0f)
+                {
+                    _interactTimer = 0.5f;
+
+                    if (_seat.hasPassenger)
+                    {
+                        CharacterBody passenger = _seat.currentPassengerBody;
+                        if (passenger && passenger.TryGetComponent(out Interactor interactor))
+                        {
+                            interactor.AttemptInteraction(gameObject);
+                        }
+                    }
+                }
+            }
         }
     }
 }

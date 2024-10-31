@@ -103,7 +103,7 @@ namespace RiskOfChaos.Twitch
                 {
                     AuthenticationTokenValidationResponse validationResponse = validateTask.Result;
 
-                    TimeStamp tokenExpiryDate = validationResponse.ExpiryDate;
+                    DateTimeStamp tokenExpiryDate = validationResponse.ExpiryDate;
 
                     if (tokenExpiryDate.HasPassed || tokenExpiryDate.TimeUntil.TotalMinutes < 10)
                     {

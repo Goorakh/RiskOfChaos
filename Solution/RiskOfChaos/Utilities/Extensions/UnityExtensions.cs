@@ -2,6 +2,7 @@
 using R2API.Networking.Interfaces;
 using RiskOfChaos.Networking;
 using RoR2;
+using System;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
@@ -14,10 +15,7 @@ namespace RiskOfChaos.Utilities.Extensions
         {
             if (dontDestroyOnLoad)
             {
-                if (!obj.GetComponent<SetDontDestroyOnLoad>())
-                {
-                    obj.AddComponent<SetDontDestroyOnLoad>();
-                }
+                obj.EnsureComponent<SetDontDestroyOnLoad>();
             }
             else
             {
@@ -40,6 +38,26 @@ namespace RiskOfChaos.Utilities.Extensions
 
                 new SetObjectDontDestroyOnLoadMessage(obj, dontDestroyOnLoad).Send(NetworkDestination.Clients);
             }
+        }
+
+        public static T EnsureComponent<T>(this GameObject obj) where T : Component
+        {
+            if (!obj.TryGetComponent(out T component))
+            {
+                component = obj.AddComponent<T>();
+            }
+
+            return component;
+        }
+
+        public static Component EnsureComponent(this GameObject obj, Type componentType)
+        {
+            if (!obj.TryGetComponent(componentType, out Component component))
+            {
+                component = obj.AddComponent(componentType);
+            }
+
+            return component;
         }
     }
 }

@@ -6,16 +6,11 @@ namespace RiskOfChaos.Networking
     {
         public static void RegisterMessages()
         {
-            NetworkingAPI.RegisterMessageType<NetworkedEffectDispatchedMessage>();
-            NetworkingAPI.RegisterMessageType<NetworkedEffectSetSerializedDataMessage>();
-            NetworkingAPI.RegisterMessageType<NetworkedTimedEffectEndMessage>();
-
             NetworkingAPI.RegisterMessageType<TeleportBodyMessage>();
             NetworkingAPI.RegisterMessageType<SetObjectDontDestroyOnLoadMessage>();
 
+            NetworkingAPI.RegisterMessageType<PickupsNotificationMessage>();
             NetworkingAPI.RegisterMessageType<PickupTransformationNotificationMessage>();
-
-            NetworkingAPI.RegisterMessageType<PostAkEventLocalMessage>();
         }
     }
 }

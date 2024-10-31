@@ -82,6 +82,12 @@ namespace RiskOfChaos.Networking.Components
         void OnDestroy()
         {
             NetworkedConfigManager.ClearOverrideValue(_configDefinition);
+            
+            if (_configHolder != null)
+            {
+                _configHolder.SettingChanged -= onSettingChanged;
+                _configHolder.OnBind -= onConfigBind;
+            }
         }
 
         void syncSerializedConfigValue(string serializedConfigValue)

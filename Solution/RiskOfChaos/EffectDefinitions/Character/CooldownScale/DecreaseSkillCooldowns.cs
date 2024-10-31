@@ -1,20 +1,21 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
-using RiskOfChaos.ModifierController.SkillSlots;
+using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.SkillSlots;
 using RiskOfOptions.OptionConfigs;
-using System;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
 {
     [ChaosTimedEffect("decrease_skill_cooldown", TimedEffectType.UntilStageEnd, ConfigName = "Decrease Skill Cooldowns")]
-    public sealed class DecreaseSkillCooldowns : TimedEffect, ISkillSlotModificationProvider
+    public sealed class DecreaseSkillCooldowns : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _cooldownDecrease =
@@ -28,20 +29,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
                                     max = 1f,
                                     increment = 0.01f
                                 })
-                                .OnValueChanged(() =>
-                                {
-                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
-                                        return;
-
-                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<DecreaseSkillCooldowns>(e => e.OnValueDirty);
-                                })
                                 .FormatsEffectName()
                                 .Build();
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return SkillSlotModificationManager.Instance;
+            return RoCContent.NetworkedPrefabs.SkillSlotModificationProvider;
         }
 
         [GetEffectNameFormatter]
@@ -50,24 +44,28 @@ namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
             return new EffectNameFormatter_GenericFloat(_cooldownDecrease.Value) { ValueFormat = "P0" };
         }
 
-        public override void OnStart()
-        {
-            SkillSlotModificationManager.Instance.RegisterModificationProvider(this);
-        }
+        ValueModificationController _skillSlotModificationController;
 
-        public override void OnEnd()
+        void Start()
         {
-            if (SkillSlotModificationManager.Instance)
+            if (NetworkServer.active)
             {
-                SkillSlotModificationManager.Instance.UnregisterModificationProvider(this);
+                _skillSlotModificationController = Instantiate(RoCContent.NetworkedPrefabs.SkillSlotModificationProvider).GetComponent<ValueModificationController>();
+
+                SkillSlotModificationProvider skillSlotModificationProvider = _skillSlotModificationController.GetComponent<SkillSlotModificationProvider>();
+                skillSlotModificationProvider.CooldownMultiplierConfigBinding.BindToConfig(_cooldownDecrease, v => 1f - v);
+
+                NetworkServer.Spawn(_skillSlotModificationController.gameObject);
             }
         }
 
-        public event Action OnValueDirty;
-
-        public void ModifyValue(ref SkillSlotModificationData value)
+        void OnDestroy()
         {
-            value.CooldownScale *= 1f - _cooldownDecrease.Value;
+            if (_skillSlotModificationController)
+            {
+                _skillSlotModificationController.Retire();
+                _skillSlotModificationController = null;
+            }
         }
     }
 }

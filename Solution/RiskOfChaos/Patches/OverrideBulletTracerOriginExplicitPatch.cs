@@ -2,6 +2,7 @@
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.Utils;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 
 namespace RiskOfChaos.Patches
@@ -37,8 +38,7 @@ namespace RiskOfChaos.Patches
         {
             ILCursor c = new ILCursor(il);
 
-            VariableDefinition shouldUseExplicitOriginVar = new VariableDefinition(il.Import(typeof(bool)));
-            il.Method.Body.Variables.Add(shouldUseExplicitOriginVar);
+            VariableDefinition shouldUseExplicitOriginVar = il.AddVariable<bool>();
 
             c.Emit(OpCodes.Ldarg_0);
             c.EmitDelegate(shouldUseExplicitOriginPosition);
@@ -49,33 +49,10 @@ namespace RiskOfChaos.Patches
             while (c.TryGotoNext(MoveType.Before,
                                  x => x.MatchCallOrCallvirt<EffectData>(nameof(EffectData.SetChildLocatorTransformReference))))
             {
-                MethodReference method = (MethodReference)c.Next.Operand;
-
-                ILLabel skipCallLabel = c.DefineLabel();
-                ILLabel afterPatchLabel = c.DefineLabel();
-
                 c.Emit(OpCodes.Ldloc, shouldUseExplicitOriginVar);
-                c.Emit(OpCodes.Brtrue, skipCallLabel);
+                c.EmitSkipMethodCall(OpCodes.Brtrue);
 
-                c.Index++;
-
-                c.Emit(OpCodes.Br, afterPatchLabel);
-
-                c.MarkLabel(skipCallLabel);
-
-                int popCount = method.Parameters.Count + (method.Resolve().IsStatic ? 0 : 1);
-                for (int i = 0; i < popCount; i++)
-                {
-                    c.Emit(OpCodes.Pop);
-                }
-
-                if (!method.ReturnType.Is(typeof(void)))
-                {
-                    Log.Warning("Skipped method is not void, emitting null, this will probably cause issues");
-                    c.Emit(OpCodes.Ldnull);
-                }
-
-                c.MarkLabel(afterPatchLabel);
+                c.SearchTarget = SearchTarget.Next;
 
                 patchCount++;
             }

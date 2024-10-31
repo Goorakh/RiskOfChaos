@@ -5,6 +5,7 @@ using RiskOfChaos.UI.NextEffectDisplay;
 using RoR2;
 using RoR2.UI;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.UI
 {
@@ -16,19 +17,22 @@ namespace RiskOfChaos.UI
             On.RoR2.UI.HUD.Awake += (orig, self) =>
             {
                 orig(self);
-                self.gameObject.AddComponent<ChaosUIController>();
+
+                if (NetworkClient.active)
+                {
+                    self.gameObject.AddComponent<ChaosUIController>();
+                }
             };
         }
 
         static ChaosUIController _instance;
-
         public static ChaosUIController Instance => _instance;
 
         public HUD HUD { get; private set; }
 
         public ChaosEffectVoteDisplayController EffectVoteDisplayController { get; private set; }
 
-        public ChaosActiveEffectsDisplayController ActiveEffectsDisplayController { get; private set; }
+        public ChaosActiveEffectsPanelController ActiveEffectsDisplayController { get; private set; }
 
         public NextEffectDisplayPanelController NextEffectDisplayController { get; private set; }
 
@@ -38,8 +42,7 @@ namespace RiskOfChaos.UI
 
             EffectVoteDisplayController = ChaosEffectVoteDisplayController.Create(this);
 
-            ActiveEffectsDisplayController = ChaosActiveEffectsDisplayController.Create(this);
-            setActiveEffectsDisplayActive(!Configs.UI.HideActiveEffectsPanel.Value);
+            ActiveEffectsDisplayController = ChaosActiveEffectsPanelController.Create(this);
 
             NextEffectDisplayController = NextEffectDisplayPanelController.Create(this);
         }
@@ -48,24 +51,28 @@ namespace RiskOfChaos.UI
         {
             SingletonHelper.Assign(ref _instance, this);
 
+            refreshActiveEffectsDisplayActive();
             Configs.UI.HideActiveEffectsPanel.SettingChanged += HideActiveEffectsPanelConfigChanged;
-        }
-
-        void HideActiveEffectsPanelConfigChanged(object sender, ConfigChangedArgs<bool> e)
-        {
-            setActiveEffectsDisplayActive(!e.NewValue);
-        }
-
-        void setActiveEffectsDisplayActive(bool active)
-        {
-            ActiveEffectsDisplayController.gameObject.SetActive(active);
         }
 
         void OnDisable()
         {
-            SingletonHelper.Unassign(ref _instance, this);
-
             Configs.UI.HideActiveEffectsPanel.SettingChanged -= HideActiveEffectsPanelConfigChanged;
+
+            SingletonHelper.Unassign(ref _instance, this);
+        }
+
+        void HideActiveEffectsPanelConfigChanged(object sender, ConfigChangedArgs<bool> e)
+        {
+            refreshActiveEffectsDisplayActive();
+        }
+
+        void refreshActiveEffectsDisplayActive()
+        {
+            if (ActiveEffectsDisplayController)
+            {
+                ActiveEffectsDisplayController.gameObject.SetActive(!Configs.UI.HideActiveEffectsPanel.Value);
+            }
         }
     }
 }

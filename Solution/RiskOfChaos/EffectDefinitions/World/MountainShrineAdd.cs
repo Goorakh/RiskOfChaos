@@ -6,16 +6,21 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
-using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("mountain_shrine_add", ConfigName = "Add Mountain Shrine")]
-    public sealed class MountainShrineAdd : BaseEffect
+    public sealed class MountainShrineAdd : MonoBehaviour
     {
+        static GameObject _shrineUseEffectPrefab;
+
         [EffectConfig]
         static readonly ConfigHolder<int> _numShrinesPerActivation =
             ConfigFactory<int>.CreateConfig("Shrines per Activation", 2)
@@ -24,6 +29,13 @@ namespace RiskOfChaos.EffectDefinitions.World
                               .OptionConfig(new IntFieldConfig { Min = 1 })
                               .FormatsEffectName()
                               .Build();
+
+        [SystemInitializer]
+        static void Init()
+        {
+            AsyncOperationHandle<GameObject> shrineUseEffectLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Common/VFX/ShrineUseEffect.prefab");
+            shrineUseEffectLoad.OnSuccess(p => _shrineUseEffectPrefab = p);
+        }
 
         [EffectCanActivate]
         static bool CanActivate(in EffectCanActivateContext context)
@@ -38,8 +50,11 @@ namespace RiskOfChaos.EffectDefinitions.World
             return new EffectNameFormatter_GenericInt32(_numShrinesPerActivation.Value);
         }
 
-        public override void OnStart()
+        void Start()
         {
+            if (!NetworkServer.active)
+                return;
+
             TeleporterInteraction tpInteraction = TeleporterInteraction.instance;
 
             for (int i = _numShrinesPerActivation.Value - 1; i >= 0; i--)
@@ -53,15 +68,29 @@ namespace RiskOfChaos.EffectDefinitions.World
                 baseToken = "SHRINE_BOSS_USE_MESSAGE"
             });
 
-            foreach (CharacterBody body in PlayerUtils.GetAllPlayerBodies(true))
+            if (_shrineUseEffectPrefab)
             {
-                EffectManager.SpawnEffect(LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/ShrineUseEffect"), new EffectData
+                foreach (PlayerCharacterMasterController playerMaster in PlayerCharacterMasterController.instances)
                 {
-                    origin = body.corePosition,
-                    rotation = Quaternion.identity,
-                    scale = 1f,
-                    color = new Color(0.7372549f, 0.90588236f, 0.94509804f)
-                }, true);
+                    if (!playerMaster.isConnected)
+                        continue;
+
+                    CharacterMaster master = playerMaster.master;
+                    if (!master || master.IsDeadAndOutOfLivesServer())
+                        continue;
+
+                    CharacterBody body = master.GetBody();
+                    if (!body)
+                        continue;
+
+                    EffectManager.SpawnEffect(_shrineUseEffectPrefab, new EffectData
+                    {
+                        origin = body.corePosition,
+                        rotation = Quaternion.identity,
+                        scale = 1f,
+                        color = new Color(0.7372549f, 0.90588236f, 0.94509804f)
+                    }, true);
+                }
             }
         }
     }

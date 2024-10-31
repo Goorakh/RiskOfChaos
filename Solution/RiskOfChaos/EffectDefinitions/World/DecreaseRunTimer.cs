@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
-using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -10,11 +9,12 @@ using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("decrease_run_timer", ConfigName = "Rewind Run Timer", DefaultSelectionWeight = 0.8f)]
-    public sealed class DecreaseRunTimer : BaseEffect
+    public sealed class DecreaseRunTimer : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<int> _numMinutesToRemove =
@@ -38,8 +38,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 return 0f;
 
             // scale weight up linearly from 0-1 as run time gets closer to the amount of time to remove
-            float currentTime = Run.instance.GetRunStopwatch();
-            return currentTime > numSecondsToRemove ? 1f : currentTime / numSecondsToRemove;
+            return Mathf.Clamp01(Run.instance.GetRunStopwatch() / numSecondsToRemove);
         }
 
         [GetEffectNameFormatter]
@@ -48,14 +47,22 @@ namespace RiskOfChaos.EffectDefinitions.World
             return new EffectNameFormatter_PluralizedCount(_numMinutesToRemove.Value);
         }
 
-        public override void OnStart()
+        void Start()
         {
+            if (!NetworkServer.active)
+                return;
+
             Run run = Run.instance;
-            float oldTime = run.GetRunStopwatch();
+            float prevTime = run.GetRunStopwatch();
 
-            ChaosEffectDispatcher.Instance?.RewindEffectScheduling(Mathf.Min(oldTime, numSecondsToRemove));
+            float newTime = Mathf.Max(0f, prevTime - numSecondsToRemove);
 
-            run.SetRunStopwatch(Mathf.Max(0f, oldTime - numSecondsToRemove));
+            foreach (ChaosEffectActivationSignaler effectActivationSignaler in ChaosEffectActivationSignaler.InstancesList)
+            {
+                effectActivationSignaler.RewindEffectScheduling(prevTime - newTime);
+            }
+
+            run.SetRunStopwatch(newTime);
         }
     }
 }

@@ -3,104 +3,75 @@ using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.EffectUtils.World.Spawn;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("spawn_random_boss", DefaultSelectionWeight = 0.8f)]
-    public sealed class SpawnRandomBoss : GenericDirectorSpawnEffect<CharacterSpawnCard>
+    public sealed class SpawnRandomBoss : NetworkBehaviour
     {
-        class BossSpawnEntry : SpawnCardEntry
-        {
-            public BossSpawnEntry(CharacterSpawnCard[] items, float weight) : base(items, weight)
-            {
-            }
-            public BossSpawnEntry(string[] spawnCardPaths, float weight) : base(spawnCardPaths, weight)
-            {
-            }
-
-            public BossSpawnEntry(CharacterSpawnCard item, float weight) : base(item, weight)
-            {
-            }
-            public BossSpawnEntry(string spawnCardPath, float weight) : base(spawnCardPath, weight)
-            {
-            }
-
-            protected override bool isItemAvailable(CharacterSpawnCard spawnCard)
-            {
-                if (spawnCard is MultiCharacterSpawnCard multiCharacterSpawnCard)
-                {
-                    GameObject[] masterPrefabs = multiCharacterSpawnCard.masterPrefabs;
-                    return masterPrefabs != null && masterPrefabs.Length > 0 && Array.TrueForAll(masterPrefabs, isPrefabAvailable) && multiCharacterSpawnCard.HasValidSpawnLocation();
-                }
-                else
-                {
-                    return base.isItemAvailable(spawnCard);
-                }
-            }
-
-            protected override bool isPrefabAvailable(GameObject prefab)
-            {
-                return base.isPrefabAvailable(prefab) && ExpansionUtils.IsCharacterMasterExpansionAvailable(prefab);
-            }
-        }
-
-        static new BossSpawnEntry loadBasicSpawnEntry(string addressablePath, float weight = 1f)
-        {
-            return new BossSpawnEntry(addressablePath, weight);
-        }
-
-        static new BossSpawnEntry loadBasicSpawnEntry(string[] addressablePaths, float weight = 1f)
-        {
-            return new BossSpawnEntry(addressablePaths, weight);
-        }
-
-        static BossSpawnEntry[] _bossSpawnEntries;
-
-        static readonly GameObject _bossCombatSquadPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Core/BossCombatSquad.prefab").WaitForCompletion();
+        static GameObject _bossCombatSquadPrefab;
 
         static InteractableSpawnCard _geodeSpawnCard;
+
+        static readonly SpawnPool<CharacterSpawnCard> _spawnPool = new SpawnPool<CharacterSpawnCard>
+        {
+            RequiredExpansionsProvider = SpawnPoolUtils.CharacterSpawnCardExpansionsProvider
+        };
 
         [SystemInitializer(typeof(CustomSpawnCards))]
         static void Init()
         {
-            _bossSpawnEntries = [
-                loadBasicSpawnEntry("RoR2/Base/Beetle/cscBeetleQueen.asset", 1f),
-                loadBasicSpawnEntry("RoR2/Base/Brother/cscBrother.asset", 0.7f),
-                loadBasicSpawnEntry("RoR2/Base/Brother/cscBrotherHurt.asset", 0.5f),
-                loadBasicSpawnEntry("RoR2/Base/ClayBoss/cscClayBoss.asset", 1f),
-                loadBasicSpawnEntry("RoR2/Base/ElectricWorm/cscElectricWorm.asset", 0.75f),
-                loadBasicSpawnEntry("RoR2/Base/Grandparent/cscGrandparent.asset", 1f),
-                loadBasicSpawnEntry("RoR2/Base/Gravekeeper/cscGravekeeper.asset", 1f),
-                loadBasicSpawnEntry("RoR2/Base/ImpBoss/cscImpBoss.asset", 1f),
-                loadBasicSpawnEntry("RoR2/Base/MagmaWorm/cscMagmaWorm.asset", 0.85f),
-                loadBasicSpawnEntry("RoR2/Base/RoboBallBoss/cscRoboBallBoss.asset", 1f),
-                loadBasicSpawnEntry("RoR2/Base/RoboBallBoss/cscSuperRoboBallBoss.asset", 1f),
-                loadBasicSpawnEntry("RoR2/Base/Scav/cscScavBoss.asset", 0.9f),
-                loadBasicSpawnEntry("RoR2/Base/ScavLunar/cscScavLunar.asset", 0.7f),
-                loadBasicSpawnEntry("RoR2/Base/Titan/cscTitanBlackBeach.asset", 1f),
-                loadBasicSpawnEntry("RoR2/Base/Titan/cscTitanGold.asset", 0.9f),
-                loadBasicSpawnEntry("RoR2/Base/Vagrant/cscVagrant.asset", 1f),
-                loadBasicSpawnEntry("RoR2/Junk/BrotherGlass/cscBrotherGlass.asset", 0.8f),
-                loadBasicSpawnEntry("RoR2/DLC1/MajorAndMinorConstruct/cscMegaConstruct.asset", 1f),
-                loadBasicSpawnEntry("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase1.asset", 0.4f),
-                loadBasicSpawnEntry("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase2.asset", 0.4f),
-                loadBasicSpawnEntry("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase3.asset", 0.2f),
-                loadBasicSpawnEntry("RoR2/DLC1/VoidMegaCrab/cscVoidMegaCrab.asset", 0.6f),
-                loadBasicSpawnEntry("RoR2/DLC2/FalseSonBoss/cscFalseSonBoss.asset", 0.25f),
-                loadBasicSpawnEntry("RoR2/DLC2/FalseSonBoss/cscFalseSonBossLunarShard.asset", 0.25f),
-                loadBasicSpawnEntry("RoR2/DLC2/FalseSonBoss/cscFalseSonBossBrokenLunarShard.asset", 0.1f),
-            ];
+            AsyncOperationHandle<GameObject> bossCombatSquadLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Core/BossCombatSquad.prefab");
+            bossCombatSquadLoad.OnSuccess(bossCombatSquadPrefab => _bossCombatSquadPrefab = bossCombatSquadPrefab);
 
             _geodeSpawnCard = CustomSpawnCards.iscGeodeFixed;
+
+            _spawnPool.EnsureCapacity(25);
+
+            _spawnPool.AddAssetEntry("RoR2/Base/Beetle/cscBeetleQueen.asset", 1f);
+            _spawnPool.AddAssetEntry("RoR2/Base/Brother/cscBrother.asset", 0.7f);
+            _spawnPool.AddAssetEntry("RoR2/Base/Brother/cscBrotherHurt.asset", 0.5f);
+            _spawnPool.AddAssetEntry("RoR2/Base/ClayBoss/cscClayBoss.asset", 1f);
+            _spawnPool.AddAssetEntry("RoR2/Base/ElectricWorm/cscElectricWorm.asset", 0.75f);
+            _spawnPool.AddAssetEntry("RoR2/Base/Grandparent/cscGrandparent.asset", 1f);
+            _spawnPool.AddAssetEntry("RoR2/Base/Gravekeeper/cscGravekeeper.asset", 1f);
+            _spawnPool.AddAssetEntry("RoR2/Base/ImpBoss/cscImpBoss.asset", 1f);
+            _spawnPool.AddAssetEntry("RoR2/Base/MagmaWorm/cscMagmaWorm.asset", 0.85f);
+            _spawnPool.AddAssetEntry("RoR2/Base/RoboBallBoss/cscRoboBallBoss.asset", 1f);
+            _spawnPool.AddAssetEntry("RoR2/Base/RoboBallBoss/cscSuperRoboBallBoss.asset", 1f);
+            _spawnPool.AddAssetEntry("RoR2/Base/Scav/cscScavBoss.asset", 0.9f);
+            _spawnPool.AddAssetEntry("RoR2/Base/ScavLunar/cscScavLunar.asset", 0.7f);
+            _spawnPool.AddAssetEntry("RoR2/Base/Titan/cscTitanBlackBeach.asset", 1f);
+            _spawnPool.AddAssetEntry("RoR2/Base/Titan/cscTitanGold.asset", 0.9f);
+            _spawnPool.AddAssetEntry("RoR2/Base/Vagrant/cscVagrant.asset", 1f);
+            _spawnPool.AddAssetEntry("RoR2/Junk/BrotherGlass/cscBrotherGlass.asset", 0.8f);
+            _spawnPool.AddAssetEntry("RoR2/DLC1/MajorAndMinorConstruct/cscMegaConstruct.asset", 1f);
+
+            _spawnPool.AddGroupedEntries([
+                _spawnPool.LoadEntry("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase1.asset", 1f),
+                _spawnPool.LoadEntry("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase2.asset", 0.9f),
+                _spawnPool.LoadEntry("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase3.asset", 0.75f),
+            ], 0.85f);
+
+            _spawnPool.AddAssetEntry("RoR2/DLC1/VoidMegaCrab/cscVoidMegaCrab.asset", 0.6f);
+
+            _spawnPool.AddGroupedEntries([
+                _spawnPool.LoadEntry("RoR2/DLC2/FalseSonBoss/cscFalseSonBoss.asset", 1f),
+                _spawnPool.LoadEntry("RoR2/DLC2/FalseSonBoss/cscFalseSonBossLunarShard.asset", 1f),
+                _spawnPool.LoadEntry("RoR2/DLC2/FalseSonBoss/cscFalseSonBossBrokenLunarShard.asset", 0.5f),
+            ], 0.7f);
         }
 
         [EffectConfig]
@@ -127,46 +98,43 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return areAnyAvailable(_bossSpawnEntries);
+            return _spawnPool.AnyAvailable;
         }
+
+        ChaosEffectComponent _effectComponent;
+
+        Xoroshiro128Plus _rng;
 
         CharacterSpawnCard _selectedSpawnCard;
-        Loadout _loadout;
 
-        public override void OnPreStartServer()
+        void Awake()
         {
-            base.OnPreStartServer();
-
-            _selectedSpawnCard = getItemToSpawn(_bossSpawnEntries, RNG);
-            _loadout = LoadoutUtils.GetRandomLoadoutFor(_selectedSpawnCard, RNG);
+            _effectComponent = GetComponent<ChaosEffectComponent>();
         }
 
-        public override void OnStart()
+        public override void OnStartServer()
         {
-            DirectorPlacementRule placementRule = SpawnUtils.GetPlacementRule_AtRandomPlayerNearestNode(RNG, 30f, float.PositiveInfinity);
+            base.OnStartServer();
 
-            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_selectedSpawnCard, placementRule, RNG)
+            _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+
+            _selectedSpawnCard = _spawnPool.PickRandomEntry(_rng);
+        }
+
+        void Start()
+        {
+            if (!NetworkServer.active)
+                return;
+
+            DirectorPlacementRule placementRule = SpawnUtils.GetPlacementRule_AtRandomPlayerNearestNode(_rng, 30f, float.PositiveInfinity);
+
+            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_selectedSpawnCard, placementRule, _rng)
             {
-                teamIndexOverride = TeamIndex.Monster
+                teamIndexOverride = TeamIndex.Monster,
+                ignoreTeamMemberLimit = true
             };
 
-            CombatSquad bossCombatSquad;
-            if (_bossCombatSquadPrefab)
-            {
-                GameObject bossCombatSquadObj = GameObject.Instantiate(_bossCombatSquadPrefab);
-
-                BossGroup bossGroup = bossCombatSquadObj.GetComponent<BossGroup>();
-                bossGroup.dropPosition = null; // Don't drop an item
-
-                bossCombatSquad = bossCombatSquadObj.GetComponent<CombatSquad>();
-
-                NetworkServer.Spawn(bossCombatSquadObj);
-            }
-            else
-            {
-                bossCombatSquad = null;
-            }
-
+            List<CharacterMaster> spawnedMasters = [];
             bool shouldSpawnGeodes = false;
 
             spawnRequest.onSpawnedServer = result =>
@@ -174,58 +142,70 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 if (!result.success)
                     return;
 
-                CharacterMaster master = result.spawnedInstance.GetComponent<CharacterMaster>();
-                if (!master)
-                    return;
-
-                if (_loadout != null)
+                if (result.spawnedInstance.TryGetComponent(out CharacterMaster master))
                 {
-                    master.SetLoadoutServer(_loadout);
-                }
+                    CombatCharacterSpawnHelper.SetupSpawnedCombatCharacter(master, _rng);
+                    CombatCharacterSpawnHelper.TryGrantEliteAspect(master, _rng, _eliteChance.Value, _allowDirectorUnavailableElites.Value, true);
 
-                if (RNG.nextNormalizedFloat <= _eliteChance.Value)
-                {
-                    EquipmentIndex eliteEquipmentIndex = EliteUtils.SelectEliteEquipment(RNG, _allowDirectorUnavailableElites.Value);
+                    spawnedMasters.Add(master);
 
-                    Inventory inventory = master.inventory;
-                    if (inventory && inventory.GetEquipmentIndex() == EquipmentIndex.None)
+                    if (!shouldSpawnGeodes && master.masterIndex == MasterCatalog.FindMasterIndex("FalseSonBossLunarShardBrokenMaster"))
                     {
-                        inventory.SetEquipmentIndex(eliteEquipmentIndex);
+                        shouldSpawnGeodes = true;
                     }
-                }
-
-                if (bossCombatSquad)
-                {
-                    bossCombatSquad.AddMember(master);
-                }
-
-                if (!shouldSpawnGeodes && master.masterIndex == MasterCatalog.FindMasterIndex("FalseSonBossLunarShardBrokenMaster"))
-                {
-                    shouldSpawnGeodes = true;
                 }
             };
 
             spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());
+
+            if (spawnedMasters.Count > 0 && _bossCombatSquadPrefab)
+            {
+                GameObject bossCombatSquadObj = Instantiate(_bossCombatSquadPrefab);
+
+                BossGroup bossGroup = bossCombatSquadObj.GetComponent<BossGroup>();
+                bossGroup.dropPosition = null; // Don't drop an item
+
+                CombatSquad bossCombatSquad = bossCombatSquadObj.GetComponent<CombatSquad>();
+                foreach (CharacterMaster master in spawnedMasters)
+                {
+                    bossCombatSquad.AddMember(master);
+                }
+
+                NetworkServer.Spawn(bossCombatSquadObj);
+            }
 
             if (shouldSpawnGeodes && _geodeSpawnCard)
             {
                 const float GEODE_MIN_SPAWN_DISTANCE = 5f;
                 const float GEODE_MAX_SPAWN_DISTANCE = 100f;
 
+                const float GEODE_CLOSE_MIN_SPAWN_DISTANCE = GEODE_MIN_SPAWN_DISTANCE;
+                const float GEODE_CLOSE_MAX_SPAWN_DISTANCE = GEODE_MAX_SPAWN_DISTANCE / 2f;
+
                 int playerGeodeSpawnsAttempted = 0;
                 int spawnedGeodes = 0;
 
-                foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
+                foreach (PlayerCharacterMasterController playerMaster in PlayerCharacterMasterController.instances)
                 {
+                    if (!playerMaster.isConnected)
+                        continue;
+
+                    CharacterMaster master = playerMaster.master;
+                    if (!master || master.IsDeadAndOutOfLivesServer())
+                        continue;
+
+                    if (!master.TryGetBodyPosition(out Vector3 bodyPosition))
+                        continue;
+
                     DirectorPlacementRule geodePlacementRule = new DirectorPlacementRule
                     {
                         placementMode = DirectorPlacementRule.PlacementMode.Approximate,
-                        position = playerBody.footPosition,
-                        minDistance = GEODE_MIN_SPAWN_DISTANCE,
-                        maxDistance = GEODE_MAX_SPAWN_DISTANCE / 2f
+                        position = bodyPosition,
+                        minDistance = GEODE_CLOSE_MIN_SPAWN_DISTANCE,
+                        maxDistance = GEODE_CLOSE_MAX_SPAWN_DISTANCE
                     };
 
-                    DirectorSpawnRequest geodeSpawnRequest = new DirectorSpawnRequest(_geodeSpawnCard, geodePlacementRule, RNG.Branch());
+                    DirectorSpawnRequest geodeSpawnRequest = new DirectorSpawnRequest(_geodeSpawnCard, geodePlacementRule, _rng);
 
                     playerGeodeSpawnsAttempted++;
                     if (DirectorCore.instance.TrySpawnObject(geodeSpawnRequest))
@@ -241,8 +221,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
                 for (int i = 0; i < additionalGeodeSpawnCount; i++)
                 {
-                    DirectorPlacementRule geodePlacementRule = SpawnUtils.GetPlacementRule_AtRandomPlayerApproximate(RNG, GEODE_MIN_SPAWN_DISTANCE, GEODE_MAX_SPAWN_DISTANCE);
-                    DirectorSpawnRequest geodeSpawnRequest = new DirectorSpawnRequest(_geodeSpawnCard, geodePlacementRule, RNG.Branch());
+                    DirectorPlacementRule geodePlacementRule = SpawnUtils.GetPlacementRule_AtRandomPlayerApproximate(_rng, GEODE_MIN_SPAWN_DISTANCE, GEODE_MAX_SPAWN_DISTANCE);
+                    DirectorSpawnRequest geodeSpawnRequest = new DirectorSpawnRequest(_geodeSpawnCard, geodePlacementRule, _rng);
 
                     if (geodeSpawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule()))
                     {

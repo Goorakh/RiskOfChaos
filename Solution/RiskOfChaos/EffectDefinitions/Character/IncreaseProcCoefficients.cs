@@ -1,34 +1,26 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
-using RiskOfChaos.ModifierController.Damage;
+using RiskOfChaos.Patches;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using System;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("increase_proc_coefficients", TimedEffectType.UntilStageEnd, ConfigName = "Increase Proc Coefficients")]
-    public sealed class IncreaseProcCoefficients : TimedEffect, IDamageInfoModificationProvider
+    public sealed class IncreaseProcCoefficients : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _multiplierPerActivation =
             ConfigFactory<float>.CreateConfig("Proc Multiplier", 2f)
                                 .AcceptableValues(new AcceptableValueMin<float>(1f))
                                 .OptionConfig(new FloatFieldConfig { Min = 1f, FormatString = "{0}x" })
-                                .OnValueChanged(() =>
-                                {
-                                    if (!NetworkServer.active || !TimedChaosEffectHandler.Instance)
-                                        return;
-
-                                    TimedChaosEffectHandler.Instance.InvokeEventOnAllInstancesOfEffect<IncreaseProcCoefficients>(e => e.OnValueDirty);
-                                })
                                 .FormatsEffectName()
                                 .Build();
 
@@ -38,30 +30,22 @@ namespace RiskOfChaos.EffectDefinitions.Character
             return new EffectNameFormatter_GenericFloat(_multiplierPerActivation.Value);
         }
 
-        [EffectCanActivate]
-        static bool CanActivate()
+        void Start()
         {
-            return DamageInfoModificationManager.Instance;
-        }
-
-        public override void OnStart()
-        {
-            DamageInfoModificationManager.Instance.RegisterModificationProvider(this);
-        }
-
-        public event Action OnValueDirty;
-
-        public void ModifyValue(ref DamageInfo value)
-        {
-            value.procCoefficient *= _multiplierPerActivation.Value;
-        }
-
-        public override void OnEnd()
-        {
-            if (DamageInfoModificationManager.Instance)
+            if (NetworkServer.active)
             {
-                DamageInfoModificationManager.Instance.UnregisterModificationProvider(this);
+                DamageModificationHooks.ModifyDamageInfo += modifyDamage;
             }
+        }
+
+        void OnDestroy()
+        {
+            DamageModificationHooks.ModifyDamageInfo -= modifyDamage;
+        }
+
+        static void modifyDamage(DamageInfo damageInfo)
+        {
+            damageInfo.procCoefficient *= _multiplierPerActivation.Value;
         }
     }
 }

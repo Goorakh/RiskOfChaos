@@ -1,4 +1,4 @@
-﻿using RiskOfChaos.ModifierController.Pickups;
+﻿using RiskOfChaos.ModificationController.Pickups;
 using RoR2;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,7 +8,7 @@ namespace RiskOfChaos.Patches
 {
     static class ItemBounceHook
     {
-        static uint bounceCount
+        static int bounceCount
         {
             get
             {
@@ -62,7 +62,7 @@ namespace RiskOfChaos.Patches
 
             readonly record struct OriginalColliderMaterialPair(Collider Collider, PhysicMaterial Material);
 
-            public uint BouncesRemaining;
+            public int BouncesRemaining;
 
             bool _physicMaterialOverrideActive;
 

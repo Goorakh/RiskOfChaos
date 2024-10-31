@@ -22,7 +22,10 @@ namespace RiskOfChaos
 
             public static readonly ConfigHolder<bool> PerStageEffectListEnabled =
                 ConfigFactory<bool>.CreateConfig("Per-Stage Effect List", false)
-                                   .Description("If enabled, a subsection of all effects is generated each stage and only effects from this list are activated.\nNot supported in any chat voting mode")
+                                   .Description("""
+                                    If enabled, a subsection of all effects is generated each stage and only effects from this list are activated.
+                                    Not supported in any chat voting mode
+                                    """)
                                    .OptionConfig(new CheckBoxConfig())
                                    .Build();
 
@@ -43,7 +46,10 @@ namespace RiskOfChaos
                 {
                     PerStageEffectListSize =
                         ConfigFactory<int>.CreateConfig("Effect List Size", 50)
-                                          .Description("The size of the per-stage effect list\nNot supported in any chat voting mode")
+                                          .Description("""
+                                           The size of the per-stage effect list
+                                           Not supported in any chat voting mode
+                                           """)
                                           .AcceptableValues(new AcceptableValueRange<int>(1, ChaosEffectCatalog.EffectCount))
                                           .OptionConfig(new IntSliderConfig
                                           {

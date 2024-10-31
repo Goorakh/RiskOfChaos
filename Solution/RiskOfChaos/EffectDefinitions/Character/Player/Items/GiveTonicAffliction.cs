@@ -4,13 +4,16 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.Utilities.Pickup;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
     [ChaosEffect("give_tonic_affliction", DefaultSelectionWeight = 0.4f)]
-    public sealed class GiveTonicAffliction : BaseEffect
+    public sealed class GiveTonicAffliction : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<int> _itemCount =
@@ -20,13 +23,16 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                               .OptionConfig(new IntFieldConfig { Min = 1 })
                               .Build();
 
-        public override void OnStart()
+        void Start()
         {
-            PlayerUtils.GetAllPlayerMasters(false).TryDo(master =>
+            if (NetworkServer.active)
             {
-                master.inventory.GiveItem(RoR2Content.Items.TonicAffliction, _itemCount.Value);
-                GenericPickupController.SendPickupMessage(master, PickupCatalog.FindPickupIndex(RoR2Content.Items.TonicAffliction.itemIndex));
-            }, Util.GetBestMasterName);
+                PlayerUtils.GetAllPlayerMasters(false).TryDo(master =>
+                {
+                    master.inventory.GiveItem(RoR2Content.Items.TonicAffliction, _itemCount.Value);
+                    PickupUtils.QueuePickupMessage(master, PickupCatalog.FindPickupIndex(RoR2Content.Items.TonicAffliction.itemIndex), true, true);
+                }, Util.GetBestMasterName);
+            }
         }
     }
 }

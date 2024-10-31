@@ -1,7 +1,6 @@
-﻿using RiskOfChaos.Networking.Wrappers;
+﻿using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
-using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.Networking.Components
@@ -15,7 +14,7 @@ namespace RiskOfChaos.Networking.Components
             {
                 orig(self);
 
-                HoldoutZoneModifier zoneModifier = self.gameObject.AddComponent<HoldoutZoneModifier>();
+                HoldoutZoneModifier zoneModifier = self.gameObject.EnsureComponent<HoldoutZoneModifier>();
                 zoneModifier.HoldoutZoneController = self;
 
                 if (self.minimumRadius == 0f)
@@ -56,27 +55,24 @@ namespace RiskOfChaos.Networking.Components
         [SyncVar]
         public float ChargeRateMultiplier;
 
-        [SyncVar]
-        NullableColorWrapper _overrideColor;
-
-        public Color? OverrideColor
-        {
-            get => _overrideColor;
-            set => _overrideColor = value;
-        }
-
         void subscribe(HoldoutZoneController zoneController)
         {
             zoneController.calcRadius += calcRadius;
             zoneController.calcChargeRate += calcChargeRate;
-            zoneController.calcColor += calcColor;
         }
 
         void unsubscribe(HoldoutZoneController zoneController)
         {
             zoneController.calcRadius -= calcRadius;
             zoneController.calcChargeRate -= calcChargeRate;
-            zoneController.calcColor -= calcColor;
+        }
+
+        void Start()
+        {
+            if (HoldoutZoneController)
+            {
+                OnHoldoutZoneEnabled?.Invoke(this);
+            }
         }
 
         void OnEnable()
@@ -87,14 +83,6 @@ namespace RiskOfChaos.Networking.Components
             {
                 subscribe(HoldoutZoneController);
 
-                OnHoldoutZoneEnabled?.Invoke(this);
-            }
-        }
-
-        void Start()
-        {
-            if (HoldoutZoneController)
-            {
                 OnHoldoutZoneEnabled?.Invoke(this);
             }
         }
@@ -117,11 +105,6 @@ namespace RiskOfChaos.Networking.Components
         void calcChargeRate(ref float rate)
         {
             rate *= ChargeRateMultiplier;
-        }
-
-        void calcColor(ref Color color)
-        {
-            color = OverrideColor.GetValueOrDefault(color);
         }
     }
 }

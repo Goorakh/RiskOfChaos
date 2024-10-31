@@ -1,4 +1,5 @@
-﻿using RoR2;
+﻿using RiskOfChaos.ModificationController.SkillSlots;
+using RoR2;
 using UnityEngine;
 
 namespace RiskOfChaos.Trackers
@@ -22,18 +23,40 @@ namespace RiskOfChaos.Trackers
         void OnEnable()
         {
             InstanceTracker.Add(this);
+
+            SkillSlotModificationManager.OnCooldownMultiplierChanged += onGlobalCooldownMultiplierChanged;
+            SkillSlotModificationManager.OnStockAddChanged += onGlobalStockAddChanged;
         }
 
         void OnDisable()
         {
             InstanceTracker.Remove(this);
+
+            SkillSlotModificationManager.OnCooldownMultiplierChanged -= onGlobalCooldownMultiplierChanged;
+            SkillSlotModificationManager.OnStockAddChanged -= onGlobalStockAddChanged;
         }
 
-        void Update()
+        void FixedUpdate()
         {
             if (!Skill)
             {
                 Destroy(this);
+            }
+        }
+
+        void onGlobalCooldownMultiplierChanged()
+        {
+            if (Skill)
+            {
+                Skill.RecalculateFinalRechargeInterval();
+            }
+        }
+
+        void onGlobalStockAddChanged()
+        {
+            if (Skill)
+            {
+                Skill.RecalculateMaxStock();
             }
         }
     }

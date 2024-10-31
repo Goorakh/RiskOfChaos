@@ -1,50 +1,92 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.Components;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Trackers;
+using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using RoR2.UI;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.UI
 {
-    [ChaosTimedEffect("hide_healthbar", 60f, AllowDuplicates = false, IsNetworked = true)]
-    public sealed class HideHealthbar : TimedEffect
+    [ChaosTimedEffect("hide_healthbar", 60f, AllowDuplicates = false)]
+    public sealed class HideHealthbar : MonoBehaviour
     {
-        public override void OnStart()
-        {
-            RoR2Application.onFixedUpdate += onFixedUpdate;
-            setHealthbarsActive(false);
-        }
+        readonly List<KeepDisabled> _healthBarHiderComponents = [];
 
-        public override void OnEnd()
-        {
-            RoR2Application.onFixedUpdate -= onFixedUpdate;
-            setHealthbarsActive(true);
-        }
+        float _healthBarHiderDestroyedCheckTimer = 0f;
 
-        static void onFixedUpdate()
+        void Start()
         {
-            setHealthbarsActive(false);
-        }
+            List<HealthBarTracker> healthBarTrackers = InstanceTracker.GetInstancesList<HealthBarTracker>();
+            List<HUDBossHealthBarControllerTracker> bossHealthBarControllerTrackers = InstanceTracker.GetInstancesList<HUDBossHealthBarControllerTracker>();
 
-        static void setHealthbarsActive(bool active)
-        {
-            foreach (HealthBarTracker healthBarTracker in InstanceTracker.GetInstancesList<HealthBarTracker>())
+            int currentHealthBarsCount = healthBarTrackers.Count + bossHealthBarControllerTrackers.Count;
+
+            _healthBarHiderComponents.EnsureCapacity(currentHealthBarsCount);
+
+            foreach (HealthBarTracker healthBarTracker in healthBarTrackers)
             {
-                HealthBar healthBar = healthBarTracker.HealthBar;
-                if (healthBar)
+                hideHealthBar(healthBarTracker);
+            }
+
+            foreach (HUDBossHealthBarControllerTracker bossHealthBarControllerTracker in bossHealthBarControllerTrackers)
+            {
+                hideBossHealthBar(bossHealthBarControllerTracker);
+            }
+
+            HealthBarTracker.OnHealthBarAwakeGlobal += hideHealthBar;
+            HUDBossHealthBarControllerTracker.OnHUDBossHealthBarControllerAwakeGlobal += hideBossHealthBar;
+        }
+
+        void FixedUpdate()
+        {
+            _healthBarHiderDestroyedCheckTimer -= Time.fixedDeltaTime;
+            if (_healthBarHiderDestroyedCheckTimer <= 0f)
+            {
+                _healthBarHiderDestroyedCheckTimer = 5f;
+
+                int removedHealthBarHiders = UnityObjectUtils.RemoveAllDestroyed(_healthBarHiderComponents);
+#if DEBUG
+                if (removedHealthBarHiders > 0)
                 {
-                    healthBar.gameObject.SetActive(active);
+                    Log.Debug($"Cleared {removedHealthBarHiders} destroyed health bar hider(s)");
+                }
+#endif
+            }
+        }
+
+        void OnDestroy()
+        {
+            HealthBarTracker.OnHealthBarAwakeGlobal -= hideHealthBar;
+            HUDBossHealthBarControllerTracker.OnHUDBossHealthBarControllerAwakeGlobal -= hideBossHealthBar;
+
+            foreach (KeepDisabled healthBarHider in _healthBarHiderComponents)
+            {
+                if (healthBarHider)
+                {
+                    Destroy(healthBarHider);
+                    healthBarHider.gameObject.SetActive(true);
                 }
             }
 
-            foreach (HUDBossHealthBarControllerTracker hudBossHealthBarControllerTracker in InstanceTracker.GetInstancesList<HUDBossHealthBarControllerTracker>())
-            {
-                GameObject bossHealthBarRoot = hudBossHealthBarControllerTracker.HealthBarRoot;
-                if (bossHealthBarRoot)
-                {
-                    bossHealthBarRoot.SetActive(active);
-                }
-            }
+            _healthBarHiderComponents.Clear();
+        }
+
+        void hideHealthBar(HealthBarTracker healthBarTracker)
+        {
+            disableHealthBarObject(healthBarTracker.HealthBar.gameObject);
+        }
+
+        void hideBossHealthBar(HUDBossHealthBarControllerTracker bossHealthBarControllerTracker)
+        {
+            disableHealthBarObject(bossHealthBarControllerTracker.HealthBarRoot);
+        }
+
+        void disableHealthBarObject(GameObject healthBarRoot)
+        {
+            KeepDisabled healthBarHider = healthBarRoot.AddComponent<KeepDisabled>();
+            _healthBarHiderComponents.Add(healthBarHider);
         }
     }
 }
