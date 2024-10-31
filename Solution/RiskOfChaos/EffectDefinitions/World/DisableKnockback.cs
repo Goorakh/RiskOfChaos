@@ -4,12 +4,13 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.ModificationController;
 using RiskOfChaos.ModificationController.Knockback;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosTimedEffect("disable_knockback", TimedEffectType.UntilStageEnd, AllowDuplicates = false, DefaultSelectionWeight = 0.8f)]
-    public sealed class DisableKnockback : NetworkBehaviour
+    public sealed class DisableKnockback : MonoBehaviour
     {
         [EffectCanActivate]
         static bool CanActivate()

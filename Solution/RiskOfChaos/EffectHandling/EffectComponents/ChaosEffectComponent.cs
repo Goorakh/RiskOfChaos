@@ -31,11 +31,11 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
 
         ObjectSerializationComponent _serializationComponent;
 
-        [SyncVar]
         RunTimeStamp _timeStarted;
+        const uint TIME_STARTED_DIRTY_BIT = 1 << 0;
 
-        [SyncVar]
-        bool _isRetired;
+        EffectNameFormatter _instanceNameFormatter;
+        const uint INSTANCE_NAME_FORMATTER_DIRTY_BIT = 1 << 1;
 
         IEffectHUDVisibilityProvider[] _hudVisibilityProviders;
 
@@ -52,17 +52,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
 
             [Server]
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => _timeStarted = value.ConvertTo(RunTimerType.Realtime);
-        }
-
-        public bool IsRetired
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _isRetired;
-
-            [Server]
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private set => _isRetired = value;
+            set => SetSyncVar(value.ConvertTo(RunTimerType.Realtime), ref _timeStarted, TIME_STARTED_DIRTY_BIT);
         }
 
         public Xoroshiro128Plus Rng
@@ -74,7 +64,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
                 {
                     // If we are deserialized from save data, rng may be accessed before it has been properly set from the save data
                     // In this case, this situation is harmless, no need to print an error :)
-                    if (!_serializationComponent || !_serializationComponent.IsDeserialized)
+                    if (!_serializationComponent || !_serializationComponent.IsLoadedFromSave)
                     {
                         Log.Error($"Effect {name} ({netId}) is missing RNG seed, generating random seed.");
                     }
@@ -110,10 +100,19 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         {
             get
             {
+                if (_instanceNameFormatter != null)
+                    return _instanceNameFormatter;
+
                 if (!ChaosEffectNameFormattersNetworker.Instance)
                     return null;
 
                 return ChaosEffectNameFormattersNetworker.Instance.GetNameFormatter(ChaosEffectIndex);
+            }
+            [Server]
+            set
+            {
+                SetSyncVar(value, ref _instanceNameFormatter, INSTANCE_NAME_FORMATTER_DIRTY_BIT);
+                ChaosEffectInfo.MarkNameFormatterDirty();
             }
         }
 
@@ -121,7 +120,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         public void SetRngSeedServer(ulong seed)
         {
 #if DEBUG
-            Log.Debug($"{name} ({netId}): Server RNG seed {seed}");
+            Log.Debug($"{name}: Server RNG seed {seed}");
 #endif
 
             _rng = new Xoroshiro128Plus(seed);
@@ -181,8 +180,52 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         [Server]
         public void RetireEffect()
         {
-            IsRetired = true;
             NetworkServer.Destroy(gameObject);
+
+#if DEBUG
+            Log.Debug($"Retired effect controller {name} (id={netId})");
+#endif
+        }
+
+        public override bool OnSerialize(NetworkWriter writer, bool initialState)
+        {
+            uint dirtyBits = initialState ? ~0b0U : syncVarDirtyBits;
+            if (!initialState)
+            {
+                writer.WritePackedUInt32(dirtyBits);
+            }
+
+            bool anythingWritten = false;
+
+            if ((dirtyBits & TIME_STARTED_DIRTY_BIT) != 0)
+            {
+                writer.Write(_timeStarted.ConvertTo(RunTimerType.Realtime).Time);
+                anythingWritten = true;
+            }
+
+            if ((dirtyBits & INSTANCE_NAME_FORMATTER_DIRTY_BIT) != 0)
+            {
+                writer.Write(_instanceNameFormatter);
+                anythingWritten = true;
+            }
+
+            return anythingWritten || initialState;
+        }
+
+        public override void OnDeserialize(NetworkReader reader, bool initialState)
+        {
+            uint dirtyBits = initialState ? ~0b0U : reader.ReadPackedUInt32();
+
+            if ((dirtyBits & TIME_STARTED_DIRTY_BIT) != 0)
+            {
+                _timeStarted = new RunTimeStamp(RunTimerType.Realtime, reader.ReadSingle());
+            }
+
+            if ((dirtyBits & INSTANCE_NAME_FORMATTER_DIRTY_BIT) != 0)
+            {
+                _instanceNameFormatter = reader.ReadEffectNameFormatter();
+                ChaosEffectInfo.MarkNameFormatterDirty();
+            }
         }
     }
 }

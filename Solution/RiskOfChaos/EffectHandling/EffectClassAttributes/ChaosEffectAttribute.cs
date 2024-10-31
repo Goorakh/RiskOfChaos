@@ -13,9 +13,6 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes
 
         public float DefaultSelectionWeight { get; set; } = 1f;
 
-        [Obsolete]
-        public bool IsNetworked { get; set; } = false;
-
         public new Type target => base.target as Type;
 
         public ChaosEffectAttribute(string identifier)

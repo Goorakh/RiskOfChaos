@@ -6,13 +6,13 @@ namespace RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers
     [Serializable]
     public class EffectActivationSignalerChatVoteData
     {
-        [JsonProperty("vm")]
+        [JsonProperty("m")]
         public Configs.ChatVoting.ChatVotingMode VotingMode;
 
-        [JsonProperty("vsc")]
+        [JsonProperty("c")]
         public int VotesStartedCount;
 
-        [JsonProperty("vs")]
+        [JsonProperty("s")]
         public SerializedEffectVoteInfo[] VoteSelection;
     }
 }

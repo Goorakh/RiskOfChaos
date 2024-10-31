@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectHandling.Formatting;
+﻿using HG;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
@@ -48,7 +49,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void onEffectNameFormatterDirtyServer(ChaosEffectInfo effectInfo)
         {
-            refreshNameFormatters();
+            if (refreshNameFormatter(effectInfo.EffectIndex))
+            {
+                SetDirtyBit(NAME_FORMATTERS_DIRTY_BIT);
+            }
         }
 
         [Server]
@@ -57,30 +61,38 @@ namespace RiskOfChaos.EffectHandling.Controllers
             bool anyNameFormatterChanged = false;
             for (ChaosEffectIndex effectIndex = 0; (int)effectIndex < _effectNameFormatters.Length; effectIndex++)
             {
-                ChaosEffectInfo effectInfo = ChaosEffectCatalog.GetEffectInfo(effectIndex);
-
-                EffectNameFormatter newNameFormatter = null;
-                if (effectInfo != null)
-                {
-                    newNameFormatter = effectInfo.LocalDisplayNameFormatter;
-                }
-
-                if (newNameFormatter is EffectNameFormatter_None)
-                    newNameFormatter = null;
-
-                ref EffectNameFormatter currentNameFormatter = ref _effectNameFormatters[(int)effectIndex];
-
-                if (currentNameFormatter != newNameFormatter)
-                {
-                    currentNameFormatter = newNameFormatter;
-                    anyNameFormatterChanged = true;
-                }
+                anyNameFormatterChanged |= refreshNameFormatter(effectIndex);
             }
 
             if (anyNameFormatterChanged)
             {
                 SetDirtyBit(NAME_FORMATTERS_DIRTY_BIT);
             }
+        }
+
+        [Server]
+        bool refreshNameFormatter(ChaosEffectIndex chaosEffectIndex)
+        {
+            ChaosEffectInfo effectInfo = ChaosEffectCatalog.GetEffectInfo(chaosEffectIndex);
+
+            EffectNameFormatter newNameFormatter = null;
+            if (effectInfo != null)
+            {
+                newNameFormatter = effectInfo.LocalDisplayNameFormatter;
+            }
+
+            if (newNameFormatter is EffectNameFormatter_None)
+                newNameFormatter = null;
+
+            ref EffectNameFormatter currentNameFormatter = ref _effectNameFormatters[(int)chaosEffectIndex];
+
+            if (currentNameFormatter != newNameFormatter)
+            {
+                currentNameFormatter = newNameFormatter;
+                return true;
+            }
+
+            return false;
         }
 
         public EffectNameFormatter GetNameFormatter(ChaosEffectIndex chaosEffectIndex)
@@ -93,14 +105,9 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         public override bool OnSerialize(NetworkWriter writer, bool initialState)
         {
-            uint dirtyBits;
-            if (initialState)
+            uint dirtyBits = initialState ? ~0u : syncVarDirtyBits;
+            if (!initialState)
             {
-                dirtyBits = ~0u;
-            }
-            else
-            {
-                dirtyBits = syncVarDirtyBits;
                 writer.WritePackedUInt32(dirtyBits);
             }
 
@@ -128,7 +135,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 anythingWritten = true;
             }
 
-            return anythingWritten;
+            return anythingWritten || initialState;
         }
 
         public override void OnDeserialize(NetworkReader reader, bool initialState)
@@ -145,9 +152,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     ChaosEffectIndex chaosEffectIndex = reader.ReadChaosEffectIndex();
                     EffectNameFormatter effectNameFormatter = reader.ReadEffectNameFormatter();
 
-                    if (chaosEffectIndex >= 0 && (int)chaosEffectIndex < _effectNameFormatters.Length)
+                    if (ArrayUtils.IsInBounds(_effectNameFormatters, (int)chaosEffectIndex))
                     {
                         _effectNameFormatters[(int)chaosEffectIndex] = effectNameFormatter;
+
+                        ChaosEffectInfo chaosEffectInfo = ChaosEffectCatalog.GetEffectInfo(chaosEffectIndex);
+                        chaosEffectInfo?.MarkNameFormatterDirty();
                     }
                     else
                     {

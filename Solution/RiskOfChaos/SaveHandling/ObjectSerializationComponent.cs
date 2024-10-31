@@ -82,7 +82,7 @@ namespace RiskOfChaos.SaveHandling
 
         public bool IsSingleton;
 
-        public bool IsDeserialized { get; private set; }
+        public bool IsLoadedFromSave { get; private set; }
 
         NetworkIdentity _networkIdentity;
 
@@ -178,7 +178,7 @@ namespace RiskOfChaos.SaveHandling
 
         public void DeserializeFrom(SerializableGameObject serializedObject, JsonSerializer serializer)
         {
-            IsDeserialized = true;
+            SetIsLoadedFromSave();
 
             foreach (SerializableObjectComponent serializedComponent in serializedObject.Components)
             {
@@ -211,6 +211,11 @@ namespace RiskOfChaos.SaveHandling
                     serializableMember.SetValue(serializationInfo.ComponentInstance, fieldValue);
                 }
             }
+        }
+
+        public void SetIsLoadedFromSave()
+        {
+            IsLoadedFromSave = true;
         }
 
         record ComponentSerializationInfo(MonoBehaviour ComponentInstance, SerializableMemberInfo[] SerializableMembers);

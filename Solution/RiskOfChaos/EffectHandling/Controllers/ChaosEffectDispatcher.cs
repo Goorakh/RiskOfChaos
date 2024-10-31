@@ -67,18 +67,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        [Server]
-        [Obsolete]
-        public void SkipAllScheduledEffects()
-        {
-        }
-
-        [Server]
-        [Obsolete]
-        public void RewindEffectScheduling(float numSeconds)
-        {
-        }
-
         [ConCommand(commandName = "roc_startrandom", flags = ConVarFlagUtil.SERVER, helpText = "Dispatches a random effect")]
         static void CCDispatchRandomEffect(ConCommandArgs args)
         {

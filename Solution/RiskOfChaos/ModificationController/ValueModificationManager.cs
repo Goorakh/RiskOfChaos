@@ -4,6 +4,7 @@ using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.ModificationController.AttackDelay;
 using RiskOfChaos.ModificationController.Camera;
 using RiskOfChaos.ModificationController.Cost;
+using RiskOfChaos.ModificationController.Director;
 using RiskOfChaos.ModificationController.Effect;
 using RiskOfChaos.ModificationController.Gravity;
 using RiskOfChaos.ModificationController.HoldoutZone;
@@ -24,9 +25,9 @@ namespace RiskOfChaos.ModificationController
         public static ValueModificationManager Instance => _instance;
 
         [ContentInitializer]
-        static void LoadContent(NetworkedPrefabAssetCollection networkPrefabs)
+        static void LoadContent(LocalPrefabAssetCollection localPrefabs)
         {
-            GameObject prefab = Prefabs.CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.ValueModificationManager), [
+            GameObject prefab = Prefabs.CreatePrefab(nameof(RoCContent.LocalPrefabs.ValueModificationManager), [
                 typeof(SetDontDestroyOnLoad),
                 typeof(AutoCreateOnRunStart),
                 typeof(DestroyOnRunEnd),
@@ -34,6 +35,7 @@ namespace RiskOfChaos.ModificationController
                 typeof(AttackDelayModificationManager),
                 typeof(CameraModificationManager),
                 typeof(CostModificationManager),
+                typeof(DirectorModificationManager),
                 typeof(EffectModificationManager),
                 typeof(GravityModificationManager),
                 typeof(HoldoutZoneModificationManager),
@@ -45,7 +47,7 @@ namespace RiskOfChaos.ModificationController
                 typeof(UIModificationManager),
             ]);
 
-            networkPrefabs.Add(prefab);
+            localPrefabs.Add(prefab);
         }
 
         void OnEnable()

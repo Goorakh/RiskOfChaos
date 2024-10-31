@@ -1,54 +1,27 @@
-﻿using MonoMod.Cil;
-using RiskOfChaos.EffectHandling;
+﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
-using RoR2;
+using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosTimedEffect("pause_run_timer", 60f, AllowDuplicates = false)]
-    public sealed class PauseRunTimer : TimedEffect
+    public sealed class PauseRunTimer : MonoBehaviour
     {
         [InitEffectInfo]
-        public static new readonly TimedEffectInfo EffectInfo;
+        public static readonly TimedEffectInfo EffectInfo;
 
-        static bool _appliedPatches = false;
-        static void tryApplyPatches()
+        void Start()
         {
-            if (_appliedPatches)
+            if (!NetworkServer.active)
                 return;
-
-            IL.RoR2.Run.FixedUpdate += il =>
-            {
-                ILCursor c = new ILCursor(il);
-
-                if (c.TryGotoNext(MoveType.Before,
-                                  x => x.MatchCallOrCallvirt<Run>(nameof(Run.SetRunStopwatchPaused))))
-                {
-                    c.EmitDelegate(modifyIsPaused);
-                    bool modifyIsPaused(bool isPaused)
-                    {
-                        return isPaused || (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(EffectInfo));
-                    }
-                }
-                else
-                {
-                    Log.Error("Failed to find paused override patch location");
-                }
-            };
-
-            _appliedPatches = true;
-        }
-
-        public override void OnStart()
-        {
-            tryApplyPatches();
 
             ChaosEffectActivationSignaler.CanDispatchEffectsOverride += ChaosEffectActivationSignaler_CanDispatchEffectsOverride;
         }
 
-        public override void OnEnd()
+        void OnDestroy()
         {
             ChaosEffectActivationSignaler.CanDispatchEffectsOverride -= ChaosEffectActivationSignaler_CanDispatchEffectsOverride;
         }

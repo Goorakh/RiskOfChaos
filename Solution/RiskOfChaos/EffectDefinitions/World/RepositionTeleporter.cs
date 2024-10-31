@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RoR2;
 using UnityEngine;
@@ -7,8 +8,8 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("reposition_teleporter", IsNetworked = true)]
-    public sealed class RepositionTeleporter : BaseEffect
+    [ChaosEffect("reposition_teleporter")]
+    public sealed class RepositionTeleporter : NetworkBehaviour
     {
         [EffectCanActivate]
         static bool CanActivate()
@@ -16,27 +17,36 @@ namespace RiskOfChaos.EffectDefinitions.World
             return TeleporterInteraction.instance;
         }
 
+        ChaosEffectComponent _effectComponent;
+
+        [SyncVar(hook = nameof(setNewTeleporterPosition))]
         Vector3 _newTeleporterPosition;
 
-        public override void OnPreStartServer()
+        void Awake()
         {
-            base.OnPreStartServer();
-            _newTeleporterPosition = SpawnUtils.GetBestValidRandomPlacementRule().EvaluateToPosition(RNG);
+            _effectComponent = GetComponent<ChaosEffectComponent>();
         }
 
-        public override void Serialize(NetworkWriter writer)
+        public override void OnStartServer()
         {
-            base.Serialize(writer);
-            writer.Write(_newTeleporterPosition);
+            base.OnStartServer();
+
+            Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+            _newTeleporterPosition = SpawnUtils.GetBestValidRandomPlacementRule().EvaluateToPosition(rng);
         }
 
-        public override void Deserialize(NetworkReader reader)
+        void Start()
         {
-            base.Deserialize(reader);
-            _newTeleporterPosition = reader.ReadVector3();
+            updateTeleporterPosition();
         }
 
-        public override void OnStart()
+        void setNewTeleporterPosition(Vector3 newTeleporterPosition)
+        {
+            _newTeleporterPosition = newTeleporterPosition;
+            updateTeleporterPosition();
+        }
+
+        void updateTeleporterPosition()
         {
             if (TeleporterInteraction.instance)
             {

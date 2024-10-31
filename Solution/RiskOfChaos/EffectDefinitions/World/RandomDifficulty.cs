@@ -1,74 +1,39 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.EffectUtils.World;
 using RiskOfChaos.SaveHandling;
-using RiskOfChaos.SaveHandling.DataContainers;
-using RiskOfChaos.SaveHandling.DataContainers.Effects;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosTimedEffect(EFFECT_IDENTIFIER, TimedEffectType.UntilStageEnd, DefaultSelectionWeight = 0.6f, HideFromEffectsListWhenPermanent = true)]
-    public sealed class RandomDifficulty : TimedEffect
+    [ChaosTimedEffect("random_difficulty", TimedEffectType.UntilStageEnd, DefaultSelectionWeight = 0.6f, HideFromEffectsListWhenPermanent = true)]
+    public sealed class RandomDifficulty : NetworkBehaviour
     {
-        public const string EFFECT_IDENTIFIER = "random_difficulty";
+        ChaosEffectComponent _effectComponent;
 
-        static Stack<DifficultyIndex> _previousDifficulties = new Stack<DifficultyIndex>();
+        ObjectSerializationComponent _serializationComponent;
 
-        static void clearPreviousDifficulties()
+        [SerializedMember("i")]
+        int _difficultyModificationId;
+
+        void Awake()
         {
-            _previousDifficulties.Clear();
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+            _serializationComponent = GetComponent<ObjectSerializationComponent>();
         }
 
-        [SystemInitializer]
-        static void Init()
+        public override void OnStartServer()
         {
-            Run.onRunStartGlobal += _ =>
-            {
-                clearPreviousDifficulties();
-            };
+            base.OnStartServer();
 
-            Run.onRunDestroyGlobal += _ =>
-            {
-                clearPreviousDifficulties();
-            };
+            if (_serializationComponent && _serializationComponent.IsLoadedFromSave)
+                return;
 
-            if (SaveManager.UseSaveData)
-            {
-                SaveManager.CollectSaveData += CollectSaveData;
-                SaveManager.LoadSaveData += SaveManager_LoadSaveData;
-            }
-        }
-
-        static void CollectSaveData(ref SaveContainer container)
-        {
-            container.Effects.RandomDifficulty_Data = new RandomDifficulty_Data
-            {
-                PreviousDifficulties = _previousDifficulties.ToArray()
-            };
-        }
-
-        static void SaveManager_LoadSaveData(in SaveContainer container)
-        {
-            RandomDifficulty_Data data = container.Effects?.RandomDifficulty_Data;
-            if (data is null)
-            {
-                _previousDifficulties.Clear();
-            }
-            else
-            {
-                _previousDifficulties = new Stack<DifficultyIndex>(data.PreviousDifficulties);
-            }
-        }
-
-        DifficultyIndex _newDifficultyIndex;
-
-        public override void OnPreStartServer()
-        {
-            base.OnPreStartServer();
+            Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
             DifficultyIndex currentDifficulty = Run.instance.selectedDifficulty;
 
@@ -84,52 +49,21 @@ namespace RiskOfChaos.EffectDefinitions.World
                 newDifficultySelection.AddChoice(i, 1f / Mathf.Abs(i - currentDifficulty));
             }
 
-            _newDifficultyIndex = newDifficultySelection.GetRandom(RNG);
+            DifficultyIndex newDifficultyIndex = newDifficultySelection.GetRandom(rng);
 
 #if DEBUG
-            DifficultyDef selectedDifficultyDef = DifficultyCatalog.GetDifficultyDef(_newDifficultyIndex);
+            DifficultyDef selectedDifficultyDef = DifficultyCatalog.GetDifficultyDef(newDifficultyIndex);
             Log.Debug($"Selected difficulty: {(selectedDifficultyDef != null ? Language.GetString(selectedDifficultyDef.nameToken) : "NULL")}");
 #endif
 
-            _previousDifficulties.Push(currentDifficulty);
+            _difficultyModificationId = DifficultyModificationManager.Instance.PushDifficultyModification(newDifficultyIndex);
         }
 
-        public override void Serialize(NetworkWriter writer)
+        void OnDestroy()
         {
-            base.Serialize(writer);
-            writer.Write((int)_newDifficultyIndex);
-        }
-
-        public override void Deserialize(NetworkReader reader)
-        {
-            base.Deserialize(reader);
-            _newDifficultyIndex = (DifficultyIndex)reader.ReadInt32();
-        }
-
-        public override void OnStart()
-        {
-            Run.instance.selectedDifficulty = _newDifficultyIndex;
-        }
-
-        public override void OnEnd()
-        {
-            if (_previousDifficulties.Count > 0)
+            if (NetworkServer.active && DifficultyModificationManager.Instance)
             {
-                DifficultyIndex restoredDifficultyIndex = _previousDifficulties.Pop();
-
-                if (Run.instance)
-                {
-#if DEBUG
-                    DifficultyDef restoredDifficultyDef = DifficultyCatalog.GetDifficultyDef(restoredDifficultyIndex);
-                    Log.Debug($"Restoring difficulty: {(restoredDifficultyDef != null ? Language.GetString(restoredDifficultyDef.nameToken) : "NULL")}");
-#endif
-
-                    Run.instance.selectedDifficulty = restoredDifficultyIndex;
-                }
-            }
-            else if (Run.instance)
-            {
-                Log.Error("Ending effect, but no difficulty to restore! This should never happen.");
+                DifficultyModificationManager.Instance.PopDifficultyModification(_difficultyModificationId);
             }
         }
     }

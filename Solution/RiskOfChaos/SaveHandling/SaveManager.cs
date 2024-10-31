@@ -2,7 +2,6 @@
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using RiskOfChaos.Content;
-using RiskOfChaos.ModCompatibility;
 using RiskOfChaos.SaveHandling.DataContainers;
 using RiskOfChaos.Serialization.Converters;
 using System;
@@ -18,27 +17,6 @@ namespace RiskOfChaos.SaveHandling
 {
     static class SaveManager
     {
-        [Obsolete]
-        public delegate void CollectSaveDataDelegate(ref SaveContainer container);
-        [Obsolete]
-        public static event CollectSaveDataDelegate CollectSaveData;
-
-        [Obsolete]
-        public delegate void OnSaveDataLoadedDelegate(in SaveContainer container);
-        [Obsolete]
-        public static event OnSaveDataLoadedDelegate LoadSaveData
-        {
-            add
-            {
-            }
-            remove
-            {
-            }
-        }
-
-        [Obsolete]
-        public static bool UseSaveData => ProperSaveCompat.Active;
-
         public static JsonSerializerSettings GetSerializerSettings()
         {
             return new JsonSerializerSettings
@@ -46,9 +24,11 @@ namespace RiskOfChaos.SaveHandling
                 Converters = [
                     new XoroshiroRngConverter(),
                     new NetworkHash128Converter(),
+                    new ArtifactIndexConverter(),
                     new BodyIndexConverter(),
                     new BuffIndexConverter(),
                     new PickupIndexConverter(),
+                    new ItemIndexConverter(),
                     new EquipmentIndexConverter(),
                     new ChaosEffectIndexConverter(),
                     new StringEnumConverter(new DefaultNamingStrategy(), false),
@@ -139,9 +119,15 @@ namespace RiskOfChaos.SaveHandling
                         }
 
                         GameObject gameObject = GameObject.Instantiate(prefab);
-                        NetworkServer.Spawn(gameObject);
 
                         serializationComponent = gameObject.GetComponent<ObjectSerializationComponent>();
+                        if (serializationComponent)
+                        {
+                            serializationComponent.SetIsLoadedFromSave();
+                        }
+
+                        NetworkServer.Spawn(gameObject);
+
                         if (!serializationComponent)
                         {
                             Log.Error($"Serializable object {gameObject} is missing serialization component");

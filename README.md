@@ -4,13 +4,12 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 141 different effects.
+Currently features 139 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
 
 * Nothing: Does absolutely nothing
-* Spawn Random Portal Orb: Spawns a random portal orb on the stage teleporter
 * Enable Random Artifact: Enables a random artifact. Lasts until end of stage.
 * Add Mountain Shrine: Adds a number of mountain shrines to the teleporter event, number of shrines added can be configured (default is 2)
 * Activate Teleporter: Forcefully activates the stage teleporter
@@ -148,8 +147,7 @@ Currently features 141 different effects.
 * Cleanse Random Item: Turns a random item or equipment (lunars prioritized) from every player into a random pearl
 * Splitscreen: Splits the screen into 9 copies of the game view, lasts 90 seconds
 * Distant Camera: Moves the camera further away from the player, lasts 90 seconds
-* Unlimited Proc Chains: Disables proc chain restrictions, lasts 60 seconds
-* Hide Health Bar: Hides all health bars, lasts 60 seconds
+* No Healthbars: Hides all health bars, lasts 60 seconds
 </details>
 
 <hr>

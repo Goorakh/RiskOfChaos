@@ -4,13 +4,14 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.ModificationController;
 using RiskOfChaos.ModificationController.Knockback;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosTimedEffect("reverse_knockback", TimedEffectType.UntilStageEnd)]
     [IncompatibleEffects(typeof(DisableKnockback))]
-    public sealed class ReverseKnockback : NetworkBehaviour
+    public sealed class ReverseKnockback : MonoBehaviour
     {
         [EffectCanActivate]
         static bool CanActivate()

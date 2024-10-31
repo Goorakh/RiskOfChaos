@@ -287,8 +287,6 @@ namespace RiskOfChaos.Content
 
             public static GameObject InterpolatedScreenEffect;
 
-            public static GameObject ValueModificationManager;
-
             public static GameObject CameraModificationProvider;
 
             public static GameObject AttackDelayModificationProvider;
@@ -312,6 +310,8 @@ namespace RiskOfChaos.Content
             public static GameObject SkillSlotModificationProvider;
 
             public static GameObject GenericTimeScaleModificationProvider;
+
+            public static GameObject DirectorModificationProvider;
         }
 
         public static class LocalPrefabs
@@ -329,6 +329,8 @@ namespace RiskOfChaos.Content
             public static GameObject ChaosEffectUIVoteItem;
 
             public static GameObject ChaosNextEffectDisplay;
+
+            public static GameObject ValueModificationManager;
 
             public static GameObject UIModificationProvider;
         }

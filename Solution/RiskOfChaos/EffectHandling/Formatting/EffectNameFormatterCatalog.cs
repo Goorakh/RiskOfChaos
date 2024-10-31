@@ -2,7 +2,6 @@
 using RoR2;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using UnityEngine.Networking;
 
@@ -17,24 +16,25 @@ namespace RiskOfChaos.EffectHandling.Formatting
         [SystemInitializer]
         static void Init()
         {
-            _effectNameFormatterTypes = Assembly.GetExecutingAssembly()
-                                                .GetTypes()
-                                                .Where(t => !t.IsAbstract && typeof(EffectNameFormatter).IsAssignableFrom(t) && t != typeof(EffectNameFormatter_None))
-#if DEBUG
-                                                .Where(t =>
-                                                {
-                                                    if (t.GetConstructor([]) is null)
-                                                    {
-                                                        Log.Error($"Formatter type {t.FullName} is missing parameterless constructor");
-                                                        return false;
-                                                    }
+            List<Type> effectNameFormatterTypes = [];
 
-                                                    return true;
-                                                })
-#endif
-                                                .Distinct()
-                                                .OrderBy(t => t.FullName)
-                                                .ToArray();
+            foreach (Type type in Assembly.GetExecutingAssembly().GetTypes())
+            {
+                if (type.IsAbstract || !typeof(EffectNameFormatter).IsAssignableFrom(type))
+                    continue;
+
+                ConstructorInfo parameterlessConstructor = type.GetConstructor([]);
+                if (parameterlessConstructor == null)
+                {
+                    Log.Error($"Formatter type {type.FullName} is missing parameterless constructor");
+                    continue;
+                }
+
+                effectNameFormatterTypes.Add(type);
+            }
+
+            _effectNameFormatterTypes = effectNameFormatterTypes.ToArray();
+            Array.Sort(_effectNameFormatterTypes, (a, b) => a.FullName.CompareTo(b.FullName));
 
             for (int i = 0; i < _effectNameFormatterTypes.Length; i++)
             {
@@ -71,9 +71,9 @@ namespace RiskOfChaos.EffectHandling.Formatting
 
             Type formatterType = ArrayUtils.GetSafe(_effectNameFormatterTypes, formatterTypeIndex);
             if (formatterType == null)
-                return EffectNameFormatter_None.Instance;
+                return null;
 
-            EffectNameFormatter formatter = (EffectNameFormatter)Activator.CreateInstance(_effectNameFormatterTypes[formatterTypeIndex]);
+            EffectNameFormatter formatter = (EffectNameFormatter)Activator.CreateInstance(formatterType);
             formatter.Deserialize(reader);
             return formatter;
         }

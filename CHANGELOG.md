@@ -7,10 +7,13 @@
   * Minor performance improvements
   * Probably lots of new bugs, please report if you find any
 
-* Added 3 effects:
+* Added 2 effects:
   * Distant Camera: Moves the camera further away from the player, lasts 90 seconds
-  * Unlimited Proc Chains: Disables proc chain restrictions, lasts 60 seconds
-  * Hide Health Bar: Hides all health bars, lasts 60 seconds
+  * No Healthbars: Hides all health bars, lasts 60 seconds
+
+* Removed 1 effect:
+  * Spawn Random Portal Orb:
+    * Too similar to Spawn Random Portal
 
 * Permanently Active effects:
   * Fixed issues with ProperSave save/load
@@ -23,6 +26,9 @@
 * Spawn Random Enemy:
   * Survivors and Drones are now less likely to be spawned as enemies
 
+* Camera Effects:
+  * Fixed camera modifications (fov, rotation, distance) not applying if the game camera is "taken over" by something (drop pod, volcanic egg, sojourn, etc)
+
 * Item Magnet & Item Repulsor:
   * Fixed non-host players in multiplayer not seeing the correct position of item drops
 
@@ -32,6 +38,8 @@
     * SotS interactables
 
 * Trigger Random Family Event:
+  * Can now activate multiple times per stage
+  * Changed default weight: 0.4 -> 0.6
   * Added visual variant events for Beetles and Golems
 
 * Enable Weak Points for All Damage:
@@ -42,14 +50,14 @@
   * Fixed skills and skins not updating for non-host players in multiplayer
 
 * Freeze!:
-  * Now ignores vanilla restrictions on when and what can be frozen so everything is always frozen during the effect
+  * Now ignores vanilla restrictions on when and what can be frozen, so everything is always frozen during the effect
 
 * Sluggish Camera
   * Added smooth transition back to normal after the effect ends instead of just snapping back
 
 * Activate Random Equipment
   * "Allow Non-Player Equipment Use" config default value: on -> off
-  * Fixed effect not being able to trigger equipments that are not in the normal drop pool
+  * Fixed effect not being able to trigger equipments that aren't in the normal drop pool
 
 * Disable Equipment:
   * Fixed The Crowdfunder still being usable while effect is active.

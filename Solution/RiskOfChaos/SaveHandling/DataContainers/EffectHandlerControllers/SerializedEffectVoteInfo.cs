@@ -7,7 +7,7 @@ namespace RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers
     [Serializable]
     public class SerializedEffectVoteInfo
     {
-        [JsonProperty("uv")]
+        [JsonProperty("v")]
         public string[] UserVotes;
 
         [JsonProperty("e")]

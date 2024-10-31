@@ -9,13 +9,14 @@ using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.ModificationController;
 using RiskOfChaos.ModificationController.Knockback;
 using RiskOfOptions.OptionConfigs;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosTimedEffect("increase_knockback", TimedEffectType.UntilStageEnd, ConfigName = "Increase Knockback")]
     [IncompatibleEffects(typeof(DisableKnockback))]
-    public sealed class IncreaseKnockback : NetworkBehaviour
+    public sealed class IncreaseKnockback : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _knockbackMultiplier =

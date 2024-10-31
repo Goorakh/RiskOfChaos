@@ -157,6 +157,6 @@
 		"EFFECT_REPEAT_SCREEN_NAME": "Splitscreen",
 		"EFFECT_INCREASE_CAMERA_DISTANCE_NAME": "Distant Camera",
 		"EFFECT_UNLIMITED_PROC_CHAINS_NAME": "Unlimited Proc Chains",
-		"EFFECT_HIDE_HEALTHBAR_NAME": "Hide Health Bar",
+		"EFFECT_HIDE_HEALTHBAR_NAME": "No Healthbars",
 	}
 }

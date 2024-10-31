@@ -1,5 +1,5 @@
 ﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
-using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -7,12 +7,13 @@ using RoR2.ExpansionManagement;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("random_family_event", DefaultSelectionWeight = 0.4f)]
-    public sealed class RandomFamilyEvent : BaseEffect
+    [ChaosEffect("random_family_event", DefaultSelectionWeight = 0.6f)]
+    public sealed class RandomFamilyEvent : NetworkBehaviour
     {
         static readonly HashSet<FamilyDirectorCardCategorySelection> _forcedFamilyCardSelections = [];
 
@@ -32,8 +33,9 @@ namespace RiskOfChaos.EffectDefinitions.World
                 AsyncOperationHandle<FamilyDirectorCardCategorySelection> loadAssetHandle = Addressables.LoadAssetAsync<FamilyDirectorCardCategorySelection>(assetKey);
                 loadAssetHandle.OnSuccess(familyDccs =>
                 {
-                    familyDccs = ScriptableObject.Instantiate(familyDccs);
-                    familyDccs.name = familyDccs.name + "Forced";
+                    string name = familyDccs.name;
+                    familyDccs = Instantiate(familyDccs);
+                    familyDccs.name = name + "Forced";
 
                     familyDccs.minimumStageCompletion = 0;
                     familyDccs.maximumStageCompletion = int.MaxValue;
@@ -108,38 +110,45 @@ namespace RiskOfChaos.EffectDefinitions.World
             };
 
             _allFamilyEventsPool.poolCategories = [category];
-        }
 
-        static bool _appliedPatches = false;
-
-        static void applyPatchesIfNeeded()
-        {
-            if (_appliedPatches)
-                return;
-
-            On.RoR2.FamilyDirectorCardCategorySelection.IsAvailable += static (orig, self) =>
+            if (_forcedFamilyCardSelections.Count > 0)
             {
-                return orig(self) || _forcedFamilyCardSelections.Contains(self);
-            };
-
-            _appliedPatches = true;
+                On.RoR2.FamilyDirectorCardCategorySelection.IsAvailable += overrideIsSelectionAvailable;
+                static bool overrideIsSelectionAvailable(On.RoR2.FamilyDirectorCardCategorySelection.orig_IsAvailable orig, FamilyDirectorCardCategorySelection self)
+                {
+                    return orig(self) || _forcedFamilyCardSelections.Contains(self);
+                }
+            }
         }
 
-        [EffectCanActivate]
-        static bool CanActivate()
+        ChaosEffectComponent _effectComponent;
+
+        Xoroshiro128Plus _rng;
+
+        void Awake()
         {
-            ClassicStageInfo stageInfo = ClassicStageInfo.instance;
-            return stageInfo && stageInfo.modifiableMonsterCategories is not FamilyDirectorCardCategorySelection;
+            _effectComponent = GetComponent<ChaosEffectComponent>();
         }
 
-        public override void OnStart()
+        public override void OnStartServer()
         {
-            applyPatchesIfNeeded();
+            base.OnStartServer();
 
+            _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+        }
+
+        void Start()
+        {
+            if (!NetworkServer.active)
+                return;
+            
             ClassicStageInfo stageInfo = ClassicStageInfo.instance;
-
-            stageInfo.monsterDccsPool = _allFamilyEventsPool;
-            stageInfo.RebuildCards();
+            if (stageInfo)
+            {
+                stageInfo.seedServer = _rng.nextUlong;
+                stageInfo.monsterDccsPool = _allFamilyEventsPool;
+                stageInfo.RebuildCards();
+            }
         }
     }
 }

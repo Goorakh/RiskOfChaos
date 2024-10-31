@@ -77,7 +77,7 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
             return combinedDropTable;
         }
 
-        public void PerformReplacement(Xoroshiro128Plus rng)
+        public void PerformReplacement()
         {
             if (!ShouldSpawnShrine)
             {
@@ -93,7 +93,7 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
 
             InteractableSpawnCard shrineSpawnCard = FixedPositionChanceShrine.SpawnCard;
 
-            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(shrineSpawnCard, placementRule, rng);
+            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(shrineSpawnCard, placementRule, RoR2Application.rng);
             SpawnCard.SpawnResult spawnResult = shrineSpawnCard.DoSpawn(OriginalObjectTransform.position, OriginalObjectTransform.rotation, spawnRequest);
 
             if (spawnResult.success && spawnResult.spawnedInstance && spawnResult.spawnedInstance.TryGetComponent(out ShrineChanceBehavior shrineChanceBehavior))
@@ -109,7 +109,7 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
                     }
                     else
                     {
-                        // Of the original doesn't have a purchase interaction, default to no cost
+                        // If the original doesn't have a purchase interaction, default to no cost
                         shrinePurchaseInteraction.Networkcost = 0;
                         shrinePurchaseInteraction.costType = CostTypeIndex.None;
                     }
@@ -135,9 +135,6 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
             {
                 if (esm.state is EntityStates.Barrel.Opened)
                 {
-#if DEBUG
-                    Log.Debug($"Skipping opened chest {interactableObject}");
-#endif
                     yield break;
                 }
             }
@@ -168,7 +165,7 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
                 }
                 else if (dropTable)
                 {
-                    Xoroshiro128Plus lootRNG = new Xoroshiro128Plus(0) { state0 = rouletteChestController.rng.state0, state1 = rouletteChestController.rng.state1 };
+                    Xoroshiro128Plus lootRNG = new Xoroshiro128Plus(rouletteChestController.rng);
 
                     rolledPickups = new PickupIndex[rouletteChestController.maxEntries];
 
@@ -188,9 +185,6 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
             {
                 if (!shopTerminalBehavior.NetworkpickupIndex.isValid)
                 {
-#if DEBUG
-                    Log.Debug($"Skipping closed shop terminal {interactableObject}");
-#endif
                     yield break;
                 }
 
@@ -223,9 +217,6 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
             }
             else
             {
-#if DEBUG
-                Log.Debug($"No usable component found on interactable {interactableObject}");
-#endif
                 yield break;
             }
 

@@ -87,7 +87,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
 
         void FixedUpdate()
         {
-            if (!_effectComponent || _effectComponent.IsRetired)
+            if (!_effectComponent)
                 return;
 
             if (NetworkServer.active)
@@ -98,6 +98,12 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
 
         [Server]
         void fixedUpdateServer()
+        {
+            checkElapsed();
+        }
+
+        [Server]
+        void checkElapsed()
         {
             if (Elapsed >= Duration)
             {
@@ -118,6 +124,10 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         void onServerStageComplete(Stage stage)
         {
             NumStagesCompletedWhileActive++;
+
+            // This has to be checked immediately, if we wait for the next FixedUpdate to check instead,
+            // it will for some reason not notify clients of the destruction if we end up destroying the object.
+            checkElapsed();
         }
 
         [Server]

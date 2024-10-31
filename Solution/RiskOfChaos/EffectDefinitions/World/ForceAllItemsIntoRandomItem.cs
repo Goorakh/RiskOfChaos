@@ -1,33 +1,30 @@
 ﻿using HG;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.Controllers;
-using RiskOfChaos.EffectHandling.Controllers.ChatVoting;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.EffectHandling.Formatting;
+using RiskOfChaos.EffectUtils.World;
 using RiskOfChaos.SaveHandling;
-using RiskOfChaos.SaveHandling.DataContainers;
-using RiskOfChaos.SaveHandling.DataContainers.Effects;
+using RiskOfChaos.Trackers;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.DropTables;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosTimedEffect(EFFECT_IDENTIFIER, TimedEffectType.UntilStageEnd, AllowDuplicates = false, ConfigName = "All Items Are A Random Item", DefaultSelectionWeight = 0.8f)]
-    public sealed class ForceAllItemsIntoRandomItem : TimedEffect
+    [ChaosTimedEffect("force_all_items_into_random_item", TimedEffectType.UntilStageEnd, AllowDuplicates = false, ConfigName = "All Items Are A Random Item", DefaultSelectionWeight = 0.8f)]
+    public sealed class ForceAllItemsIntoRandomItem : NetworkBehaviour
     {
-        public const string EFFECT_IDENTIFIER = "force_all_items_into_random_item";
-
         [InitEffectInfo]
-        static readonly TimedEffectInfo _effectInfo;
+        public static readonly TimedEffectInfo EffectInfo;
 
         sealed class NameFormatter : EffectNameFormatter
         {
@@ -117,13 +114,6 @@ namespace RiskOfChaos.EffectDefinitions.World
                 {
                     foreach (EquipmentIndex eliteEquipmentIndex in EliteUtils.RunAvailableEliteEquipments)
                     {
-                        EquipmentDef eliteEquipment = EquipmentCatalog.GetEquipmentDef(eliteEquipmentIndex);
-                        if (!eliteEquipment)
-                            continue;
-
-                        if (eliteEquipment.requiredExpansion && !Run.instance.IsExpansionEnabled(eliteEquipment.requiredExpansion))
-                            continue;
-
                         drops.Add(new ExplicitDrop(eliteEquipmentIndex, DropType.Equipment, null));
                     }
                 }
@@ -131,125 +121,67 @@ namespace RiskOfChaos.EffectDefinitions.World
         }
 
         [SystemInitializer]
-        static void InitHooks()
+        static void Init()
         {
-            ChaosEffectActivationSignaler_ChatVote.OnEffectVotingFinishedServer += (in EffectVoteResult result) =>
-            {
-                if (ChaosEffectTracker.Instance &&
-                    ChaosEffectTracker.Instance.IsTimedEffectActive(_effectInfo))
-                {
-                    return;
-                }
-
-                // If the effect was in this vote, but *didn't* win, reroll for next time
-                EffectVoteInfo[] voteOptions = result.VoteSelection.GetVoteOptions();
-                if (result.WinningOption.EffectInfo != _effectInfo && Array.Exists(voteOptions, v => v.EffectInfo == _effectInfo))
-                {
-                    rerollCurrentOverridePickup();
-                }
-            };
-
-            Run.onRunStartGlobal += run =>
-            {
-                if (NetworkServer.active)
-                {
-                    _pickNextItemRNG = new Xoroshiro128Plus(run.seed);
-                    rerollCurrentOverridePickup();
-                }
-            };
-
-            Stage.onServerStageBegin += _ =>
-            {
-                if (Configs.EffectSelection.PerStageEffectListEnabled.Value &&
-                    Configs.ChatVoting.VotingMode.Value == Configs.ChatVoting.ChatVotingMode.Disabled)
-                {
-                    _pickNextItemRNG = new Xoroshiro128Plus(Run.instance.stageRng);
-                    rerollCurrentOverridePickup();
-                }
-            };
-
-            if (SaveManager.UseSaveData)
-            {
-                SaveManager.CollectSaveData += (ref SaveContainer container) =>
-                {
-                    container.Effects.ForceAllItemsIntoRandomItem_Data = new ForceAllItemsIntoRandomItem_Data
-                    {
-                        PickNextItemRNG = new SerializableRng(_pickNextItemRNG),
-                        CurrentPickupName = CurrentOverridePickupIndex.isValid ? PickupCatalog.GetPickupDef(CurrentOverridePickupIndex).internalName : string.Empty
-                    };
-                };
-
-                SaveManager.LoadSaveData += (in SaveContainer container) =>
-                {
-                    ForceAllItemsIntoRandomItem_Data data = container.Effects?.ForceAllItemsIntoRandomItem_Data;
-                    if (data is null)
-                        return;
-
-                    _pickNextItemRNG = data.PickNextItemRNG;
-                    CurrentOverridePickupIndex = PickupCatalog.FindPickupIndex(data.CurrentPickupName);
-
-                    if (CurrentOverridePickupIndex.isValid)
-                    {
-#if DEBUG
-                        Log.Debug($"Loaded current pickup ({CurrentOverridePickupIndex}) from save data");
-#endif
-                    }
-                    else
-                    {
-                        Log.Warning($"Unable to load pickup from save data. No pickup found with name \"{data.CurrentPickupName}\". Rerolling.");
-                        rerollCurrentOverridePickup();
-                    }
-                };
-            }
+            ForceAllItemsIntoRandomItemManager.OnNextOverridePickupChanged += onNextOverridePickupChanged;
         }
 
-        static Xoroshiro128Plus _pickNextItemRNG;
-
-        static PickupIndex _currentOverridePickupIndex = PickupIndex.none;
-        public static PickupIndex CurrentOverridePickupIndex
+        static void onNextOverridePickupChanged()
         {
-            get
-            {
-                return _currentOverridePickupIndex;
-            }
-            private set
-            {
-                _currentOverridePickupIndex = value;
-                _effectInfo?.MarkNameFormatterDirty();
-            }
+            EffectInfo?.MarkNameFormatterDirty();
         }
 
-        static void rerollCurrentOverridePickup()
+        public static PickupIndex GenerateOverridePickup(Xoroshiro128Plus rng)
         {
-            if (_pickNextItemRNG == null)
-            {
-                Log.Error("Unable to roll pickup, no RNG instance");
-                return;
-            }
-
             _dropTable.RegenerateIfNeeded();
-
-            CurrentOverridePickupIndex = _dropTable.GenerateDrop(_pickNextItemRNG);
-
-#if DEBUG
-            Log.Debug($"Rolled {CurrentOverridePickupIndex}");
-#endif
+            return _dropTable.GenerateDrop(rng);
         }
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return CurrentOverridePickupIndex.isValid;
+            return ForceAllItemsIntoRandomItemManager.Instance && ForceAllItemsIntoRandomItemManager.Instance.NextOverridePickupIndex.isValid;
         }
 
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
         {
-            return new NameFormatter(CurrentOverridePickupIndex);
+            return new NameFormatter(ForceAllItemsIntoRandomItemManager.Instance ? ForceAllItemsIntoRandomItemManager.Instance.NextOverridePickupIndex : PickupIndex.none);
         }
 
-        public override void OnStart()
+        ChaosEffectComponent _effectComponent;
+
+        bool _addedHooks;
+
+        [SyncVar(hook = nameof(hookSetOverridePickupIndex))]
+        int _overridePickupIndexInternal;
+
+        [SerializedMember("p")]
+        PickupIndex overridePickupIndex
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => new PickupIndex(_overridePickupIndexInternal - 1);
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set => _overridePickupIndexInternal = value.value + 1;
+        }
+
+        void Awake()
+        {
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            overridePickupIndex = ForceAllItemsIntoRandomItemManager.Instance.NextOverridePickupIndex;
+        }
+
+        void Start()
+        {
+            if (!NetworkServer.active)
+                return;
+
             On.RoR2.PickupDropTable.GenerateDrop += PickupDropTable_GenerateDrop;
             On.RoR2.PickupDropTable.GenerateUniqueDrops += PickupDropTable_GenerateUniqueDrops;
 
@@ -259,39 +191,70 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             On.RoR2.PickupPickerController.GetOptionsFromPickupIndex += PickupPickerController_GetOptionsFromPickupIndex;
 
+            _addedHooks = true;
+
             rerollAllChests();
         }
 
-        public override void OnEnd()
+        void OnDestroy()
         {
-            On.RoR2.PickupDropTable.GenerateDrop -= PickupDropTable_GenerateDrop;
-            On.RoR2.PickupDropTable.GenerateUniqueDrops -= PickupDropTable_GenerateUniqueDrops;
+            if (_addedHooks)
+            {
+                On.RoR2.PickupDropTable.GenerateDrop -= PickupDropTable_GenerateDrop;
+                On.RoR2.PickupDropTable.GenerateUniqueDrops -= PickupDropTable_GenerateUniqueDrops;
 
-            On.RoR2.ChestBehavior.PickFromList -= ChestBehavior_PickFromList;
+                On.RoR2.ChestBehavior.PickFromList -= ChestBehavior_PickFromList;
 
-            AllVoidPotentials.OverrideAllowChoices -= AllVoidPotentials_OverrideAllowChoices;
+                AllVoidPotentials.OverrideAllowChoices -= AllVoidPotentials_OverrideAllowChoices;
 
-            On.RoR2.PickupPickerController.GetOptionsFromPickupIndex -= PickupPickerController_GetOptionsFromPickupIndex;
+                On.RoR2.PickupPickerController.GetOptionsFromPickupIndex -= PickupPickerController_GetOptionsFromPickupIndex;
 
-            rerollAllChests();
+                _addedHooks = false;
+            }
 
-            rerollCurrentOverridePickup();
+            if (NetworkServer.active)
+            {
+                rerollAllChests();
+
+                if (ForceAllItemsIntoRandomItemManager.Instance)
+                {
+                    ForceAllItemsIntoRandomItemManager.Instance.RollNextOverridePickup();
+                }
+            }
+        }
+
+        void hookSetOverridePickupIndex(int pickupIndexInt)
+        {
+            _overridePickupIndexInternal = pickupIndexInt;
+
+            if (NetworkServer.active)
+            {
+                _effectComponent.EffectNameFormatter = new NameFormatter(overridePickupIndex);
+            }
         }
 
         static void rerollAllChests()
         {
-            foreach (ChestBehavior chestBehavior in GameObject.FindObjectsOfType<ChestBehavior>())
+            foreach (ChestBehavior chestBehavior in InstanceTracker.GetInstancesList<ChestBehavior>())
             {
                 chestBehavior.Roll();
             }
 
-            foreach (OptionChestBehavior optionChestBehavior in GameObject.FindObjectsOfType<OptionChestBehavior>())
+            foreach (OptionChestBehaviorTracker optionChestBehaviorTracker in InstanceTracker.GetInstancesList<OptionChestBehaviorTracker>())
             {
-                optionChestBehavior.Roll();
+                OptionChestBehavior optionChestBehavior = optionChestBehaviorTracker.OptionChestBehavior;
+                if (optionChestBehavior)
+                {
+                    optionChestBehavior.Roll();
+                }
             }
 
-            foreach (ShopTerminalBehavior shopTerminalBehavior in GameObject.FindObjectsOfType<ShopTerminalBehavior>())
+            foreach (ShopTerminalBehaviorTracker shopTerminalBehaviorTracker in InstanceTracker.GetInstancesList<ShopTerminalBehaviorTracker>())
             {
+                ShopTerminalBehavior shopTerminalBehavior = shopTerminalBehaviorTracker.ShopTerminalBehavior;
+                if (!shopTerminalBehavior)
+                    continue;
+
                 if (shopTerminalBehavior.CurrentPickupIndex() == PickupIndex.none)
                 {
 #if DEBUG
@@ -308,50 +271,54 @@ namespace RiskOfChaos.EffectDefinitions.World
                 shopTerminalBehavior.SetHasBeenPurchased(originalHasBeenPurchased);
             }
 
-            foreach (VoidSuppressorBehavior voidSuppressorBehavior in GameObject.FindObjectsOfType<VoidSuppressorBehavior>())
+            foreach (VoidSuppressorBehaviorTracker voidSuppressorBehaviorTracker in InstanceTracker.GetInstancesList<VoidSuppressorBehaviorTracker>())
             {
-                voidSuppressorBehavior.RefreshItems();
+                VoidSuppressorBehavior voidSuppressorBehavior = voidSuppressorBehaviorTracker.VoidSuppressorBehavior;
+                if (voidSuppressorBehavior)
+                {
+                    voidSuppressorBehavior.RefreshItems();
+                }
             }
         }
 
-        static PickupIndex PickupDropTable_GenerateDrop(On.RoR2.PickupDropTable.orig_GenerateDrop orig, PickupDropTable self, Xoroshiro128Plus rng)
+        PickupIndex PickupDropTable_GenerateDrop(On.RoR2.PickupDropTable.orig_GenerateDrop orig, PickupDropTable self, Xoroshiro128Plus rng)
         {
             orig(self, rng);
-            return CurrentOverridePickupIndex;
+            return overridePickupIndex;
         }
 
-        static PickupIndex[] PickupDropTable_GenerateUniqueDrops(On.RoR2.PickupDropTable.orig_GenerateUniqueDrops orig, PickupDropTable self, int maxDrops, Xoroshiro128Plus rng)
+        PickupIndex[] PickupDropTable_GenerateUniqueDrops(On.RoR2.PickupDropTable.orig_GenerateUniqueDrops orig, PickupDropTable self, int maxDrops, Xoroshiro128Plus rng)
         {
             PickupIndex[] result = orig(self, maxDrops, rng);
-            ArrayUtils.SetAll(result, CurrentOverridePickupIndex);
+            ArrayUtils.SetAll(result, overridePickupIndex);
             return result;
         }
 
-        static void ChestBehavior_PickFromList(On.RoR2.ChestBehavior.orig_PickFromList orig, ChestBehavior self, List<PickupIndex> dropList)
+        void ChestBehavior_PickFromList(On.RoR2.ChestBehavior.orig_PickFromList orig, ChestBehavior self, List<PickupIndex> dropList)
         {
             dropList.Clear();
-            dropList.Add(CurrentOverridePickupIndex);
+            dropList.Add(overridePickupIndex);
 
             orig(self, dropList);
         }
 
-        static void AllVoidPotentials_OverrideAllowChoices(PickupIndex originalPickup, ref bool allowChoices)
+        void AllVoidPotentials_OverrideAllowChoices(PickupIndex originalPickup, ref bool allowChoices)
         {
-            if (originalPickup == CurrentOverridePickupIndex)
+            if (originalPickup == overridePickupIndex)
             {
                 allowChoices = false;
             }
         }
 
-        static PickupPickerController.Option[] PickupPickerController_GetOptionsFromPickupIndex(On.RoR2.PickupPickerController.orig_GetOptionsFromPickupIndex orig, PickupIndex pickupIndex)
+        PickupPickerController.Option[] PickupPickerController_GetOptionsFromPickupIndex(On.RoR2.PickupPickerController.orig_GetOptionsFromPickupIndex orig, PickupIndex pickupIndex)
         {
             PickupPickerController.Option[] options = orig(pickupIndex);
 
-            if (pickupIndex == CurrentOverridePickupIndex)
+            if (pickupIndex == overridePickupIndex)
             {
                 ArrayUtils.SetAll(options, new PickupPickerController.Option
                 {
-                    pickupIndex = CurrentOverridePickupIndex,
+                    pickupIndex = overridePickupIndex,
                     available = true
                 });
             }

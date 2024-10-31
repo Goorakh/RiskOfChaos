@@ -27,7 +27,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
 
         void FixedUpdate()
         {
-            if (Time.deltaTime == 0f || _effectComponent.EffectDestructionHandledByComponent || _effectComponent.IsRetired)
+            if (Time.deltaTime == 0f || _effectComponent.EffectDestructionHandledByComponent)
                 return;
 
             _age += Time.fixedUnscaledDeltaTime;
