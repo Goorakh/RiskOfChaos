@@ -17,7 +17,7 @@ namespace RiskOfChaos
     [BepInDependency(R2API.Networking.NetworkingAPI.PluginGUID)]
     [BepInDependency(R2API.DotAPI.PluginGUID)]
     [BepInDependency(R2API.DamageAPI.PluginGUID)]
-    [BepInDependency("com.rune580.riskofoptions")]
+    [BepInDependency(RiskOfOptions.PluginInfo.PLUGIN_GUID)]
     [BepInDependency(ProperSave.ProperSavePlugin.GUID, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     public class Main : BaseUnityPlugin
@@ -25,7 +25,7 @@ namespace RiskOfChaos
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Gorakh";
         public const string PluginName = "RiskOfChaos";
-        public const string PluginVersion = "1.18.0";
+        public const string PluginVersion = "2.0.0";
 
         Harmony _harmonyInstance;
 

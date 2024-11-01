@@ -1,6 +1,8 @@
 ## Changelog
 
-**?.?.? Changes:**
+**2.0.0 Changes:**
+
+* Updated for SotS
 
 * Almost full rewrite:
   * Better multiplayer support
