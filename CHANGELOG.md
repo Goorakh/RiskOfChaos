@@ -1,5 +1,9 @@
 ## Changelog
 
+**2.0.1 Changes:**
+
+* Fixed elite spawns sometimes causing a crash
+
 **2.0.0 Changes:**
 
 * Updated for SotS
