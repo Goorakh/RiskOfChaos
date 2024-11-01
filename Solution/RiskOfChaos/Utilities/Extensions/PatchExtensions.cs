@@ -137,5 +137,36 @@ namespace RiskOfChaos.Utilities.Extensions
         {
             return AddVariable(context, context.Import(typeof(T)));
         }
+
+        /// <summary>
+        /// Stores all values on the stack in the variables represented by the <paramref name="variables"/> parameter
+        /// </summary>
+        /// <param name="cursor"></param>
+        /// <param name="variables">The variables to store the stack's values in, defined in the order the values should be pushed onto the stack</param>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static void EmitStoreStack(this ILCursor cursor, params VariableDefinition[] variables)
+        {
+            if (cursor is null)
+                throw new ArgumentNullException(nameof(cursor));
+
+            if (variables is null)
+                throw new ArgumentNullException(nameof(variables));
+
+            if (variables.Length == 0)
+                return;
+
+            for (int i = variables.Length - 1; i >= 1; i--)
+            {
+                cursor.Emit(OpCodes.Stloc, variables[i]);
+            }
+
+            cursor.Emit(OpCodes.Dup);
+            cursor.Emit(OpCodes.Stloc, variables[0]);
+
+            for (int i = 1; i < variables.Length; i++)
+            {
+                cursor.Emit(OpCodes.Ldloc, variables[i]);
+            }
+        }
     }
 }

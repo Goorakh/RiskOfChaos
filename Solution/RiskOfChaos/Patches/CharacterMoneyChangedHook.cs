@@ -35,15 +35,11 @@ namespace RiskOfChaos.Patches
             while (c.TryGotoNext(MoveType.Before,
                                  x => x.MatchStfld(characterMasterMoneyField)))
             {
-                c.Emit(OpCodes.Stloc, newMoneyVar);
-                c.Emit(OpCodes.Stloc, masterInstanceVar);
+                c.EmitStoreStack(masterInstanceVar, newMoneyVar);
 
                 c.Emit(OpCodes.Ldloc, masterInstanceVar);
                 c.Emit(OpCodes.Ldfld, characterMasterMoneyField);
                 c.Emit(OpCodes.Stloc, oldMoneyVar);
-
-                c.Emit(OpCodes.Ldloc, masterInstanceVar);
-                c.Emit(OpCodes.Ldloc, newMoneyVar);
 
                 c.Index++;
 

@@ -125,8 +125,7 @@ namespace RiskOfChaos.Patches
                 ILCursor getFinalHitCursor = cursors[1];
 
                 getFinalHitCursor.Index++;
-                getFinalHitCursor.Emit(OpCodes.Dup)
-                                 .Emit(OpCodes.Stloc, finalHitVar);
+                getFinalHitCursor.EmitStoreStack(finalHitVar);
             }
             else
             {
