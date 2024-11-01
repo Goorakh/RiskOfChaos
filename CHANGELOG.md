@@ -94,6 +94,9 @@
   * Added mushrooms from Sundered Grove
   * Added void launch pads from Void Locus
 
+* Performance
+  * Fixed opening the effects options panel tanking framerate
+
 * Fixed missing icon for Risk of Options Effects config
 
 <details>
