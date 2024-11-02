@@ -54,10 +54,10 @@ namespace RiskOfChaos.Utilities
             if (from == to)
                 return cost;
 
-            if (to <= CostTypeIndex.None || (int)to >= CostTypeCatalog.costTypeCount)
+            if (to <= CostTypeIndex.None || to >= CostTypeIndex.Count)
                 return 0f;
 
-            if (from <= CostTypeIndex.None || (int)from >= CostTypeCatalog.costTypeCount)
+            if (from <= CostTypeIndex.None || from >= CostTypeIndex.Count)
                 return GetMinCost(to);
 
             int fromCostMin = GetMinCost(from);

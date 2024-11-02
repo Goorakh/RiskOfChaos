@@ -14,13 +14,13 @@ namespace RiskOfChaos.ModificationController.Cost
         public float CurrentCost
         {
             readonly get => _costProvider.Cost * CostMultiplier;
-            set => CostMultiplier = value / _costProvider.Cost;
+            set => CostMultiplier = Mathf.Max(0f, value / _costProvider.Cost);
         }
 
         int ICostProvider.Cost
         {
             readonly get => Mathf.RoundToInt(CurrentCost);
-            set => CurrentCost = value;
+            set => CurrentCost = Mathf.Max(0, value);
         }
 
         CostTypeIndex ICostProvider.CostType

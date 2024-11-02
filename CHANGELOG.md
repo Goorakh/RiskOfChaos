@@ -1,5 +1,9 @@
 ## Changelog
 
+**2.0.2 Changes:**
+
+* Fixed a compatibility issue
+
 **2.0.1 Changes:**
 
 * Fixed elite spawns sometimes causing a crash

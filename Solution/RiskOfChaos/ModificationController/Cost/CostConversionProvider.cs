@@ -54,14 +54,9 @@ namespace RiskOfChaos.ModificationController.Cost
 
         public override bool OnSerialize(NetworkWriter writer, bool initialState)
         {
-            uint dirtyBits;
-            if (initialState)
+            uint dirtyBits = initialState ? ~0U : syncVarDirtyBits;
+            if (!initialState)
             {
-                dirtyBits = ~0U;
-            }
-            else
-            {
-                dirtyBits = syncVarDirtyBits;
                 writer.WritePackedUInt32(dirtyBits);
             }
 
