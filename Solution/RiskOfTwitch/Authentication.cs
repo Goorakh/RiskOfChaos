@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Security.Authentication;
@@ -10,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using UnityEngine;
 
 namespace RiskOfTwitch
 {
@@ -66,11 +66,10 @@ namespace RiskOfTwitch
         {
             string authorizeUrl = CreateAuthorizeUrl(scopes, out string authState);
 
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = authorizeUrl,
-                UseShellExecute = true
-            });
+            // This call is the only reason the UnityEngine package is included,
+            // And can easily be swapped out with some other equivalent,
+            // But this is generally safer and less prone to setting off malware filters
+            Application.OpenURL(authorizeUrl);
 
             using (HttpListener httpListener = new HttpListener())
             {
