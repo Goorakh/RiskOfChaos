@@ -1,25 +1,21 @@
-﻿using System;
+﻿using HG.Reflection;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
 namespace RiskOfChaos.Content
 {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
-    internal sealed class ContentInitializerAttribute : Attribute
+    internal sealed class ContentInitializerAttribute : SearchableAttribute
     {
         public static List<MethodInfo> GetContentInitializers()
         {
-            List<MethodInfo> initializerMethods = [];
-            foreach (Type type in Assembly.GetExecutingAssembly().GetTypes())
+            List<SearchableAttribute> attributes = GetInstances<ContentInitializerAttribute>();
+            List<MethodInfo> initializerMethods = new List<MethodInfo>(attributes.Count);
+
+            foreach (SearchableAttribute attribute in attributes)
             {
-                foreach (MethodInfo method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DeclaredOnly))
-                {
-                    ContentInitializerAttribute contentInitializerAttribute = method.GetCustomAttribute<ContentInitializerAttribute>();
-                    if (contentInitializerAttribute != null)
-                    {
-                        initializerMethods.Add(method);
-                    }
-                }
+                initializerMethods.Add((MethodInfo)attribute.target);
             }
 
             return initializerMethods;

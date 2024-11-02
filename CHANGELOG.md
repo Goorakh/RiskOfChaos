@@ -1,5 +1,9 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* Fixed the mod preventing the game from loading if ProperSave wasn't installed
+
 **2.0.2 Changes:**
 
 * Fixed a compatibility issue

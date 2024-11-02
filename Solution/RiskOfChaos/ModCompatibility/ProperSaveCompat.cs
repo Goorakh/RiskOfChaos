@@ -1,11 +1,6 @@
 ﻿using BepInEx.Bootstrap;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 using ProperSave;
 using RiskOfChaos.SaveHandling;
-using RiskOfChaos.SaveHandling.DataContainers;
-using RiskOfChaos.Serialization.Converters;
 using RoR2;
 using System;
 using System.Collections.Generic;

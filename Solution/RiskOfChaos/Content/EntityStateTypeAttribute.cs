@@ -1,22 +1,18 @@
-﻿using RiskOfChaos.Content.AssetCollections;
+﻿using HG.Reflection;
+using RiskOfChaos.Content.AssetCollections;
 using System;
-using System.Reflection;
 
 namespace RiskOfChaos.Content
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    internal sealed class EntityStateTypeAttribute : Attribute
+    internal sealed class EntityStateTypeAttribute : SearchableAttribute
     {
         [ContentInitializer]
         static void InitContent(EntityStateAssetCollection entityStates)
         {
-            foreach (Type type in Assembly.GetExecutingAssembly().GetTypes())
+            foreach (SearchableAttribute attribute in GetInstances<EntityStateTypeAttribute>())
             {
-                EntityStateTypeAttribute entityStateTypeAttribute = type.GetCustomAttribute<EntityStateTypeAttribute>();
-                if (entityStateTypeAttribute != null)
-                {
-                    entityStates.Add(type);
-                }
+                entityStates.Add((Type)attribute.target);
             }
         }
     }
