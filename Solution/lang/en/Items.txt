@@ -1,0 +1,6 @@
+{
+    strings:
+    {
+        "ITEM_CORRUPTION_FORMAT": "<style=cIsVoid>Corrupts all {0}</style>."
+    }
+}

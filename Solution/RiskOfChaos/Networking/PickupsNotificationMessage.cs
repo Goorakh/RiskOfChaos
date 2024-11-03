@@ -150,7 +150,7 @@ namespace RiskOfChaos.Networking
                 }
             }
 
-            PlayerPickupListChatMessage pickupMessage = new PlayerPickupListChatMessage
+            SubjectPickupListChatMessage pickupMessage = new SubjectPickupListChatMessage
             {
                 baseToken = MessageToken,
                 PickupIndices = PickupIndices,

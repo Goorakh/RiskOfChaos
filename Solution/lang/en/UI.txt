@@ -1,53 +1,53 @@
 {
-	strings:
-	{
-		"CHAOS_ACTIVE_EFFECTS_BAR_TITLE": "Active Effects:",
-		"CHAOS_ACTIVE_EFFECT_UNTIL_STAGE_END_SINGLE_FORMAT": "{0} <size=75%>({1} stage)</size>",
-		"CHAOS_ACTIVE_EFFECT_UNTIL_STAGE_END_MULTI_FORMAT": "{0} <size=75%>({1} stages)</size>",
-		"CHAOS_ACTIVE_EFFECT_FIXED_DURATION_FORMAT": "{0} <size=90%>({1})</size>",
-		"CHAOS_ACTIVE_EFFECT_FALLBACK_FORMAT": "{0}",
+    strings:
+    {
+        "CHAOS_ACTIVE_EFFECTS_BAR_TITLE": "Active Effects:",
+        "CHAOS_ACTIVE_EFFECT_UNTIL_STAGE_END_SINGLE_FORMAT": "{0} <size=75%>({1} stage)</size>",
+        "CHAOS_ACTIVE_EFFECT_UNTIL_STAGE_END_MULTI_FORMAT": "{0} <size=75%>({1} stages)</size>",
+        "CHAOS_ACTIVE_EFFECT_FIXED_DURATION_FORMAT": "{0} <size=90%>({1})</size>",
+        "CHAOS_ACTIVE_EFFECT_FALLBACK_FORMAT": "{0}",
 
-		"CHAOS_NEXT_EFFECT_DISPLAY_FORMAT": "Next Effect: {0} (in {1})",
-		"CHAOS_NEXT_EFFECT_TIME_REMAINING_DISPLAY_FORMAT": "Next Effect: in {0}",
+        "CHAOS_NEXT_EFFECT_DISPLAY_FORMAT": "Next Effect: {0} (in {1})",
+        "CHAOS_NEXT_EFFECT_TIME_REMAINING_DISPLAY_FORMAT": "Next Effect: in {0}",
 
-		"CHAOS_EFFECT_VOTING_OPTION_FORMAT": "{0}: {1} ({2:F0}%)",
+        "CHAOS_EFFECT_VOTING_OPTION_FORMAT": "{0}: {1} ({2:F0}%)",
 
-		"ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_HEADER": "Reconnect Failed",
-		"ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_DESCRIPTION_TWITCH": "No valid Twitch login found. Please authenticate in the mod settings.",
+        "ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_HEADER": "Reconnect Failed",
+        "ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_DESCRIPTION_TWITCH": "No valid Twitch login found. Please authenticate in the mod settings.",
 
-		"TWITCH_USER_TOKEN_AUTHENTICATING_HEADER": "Authenticating",
-		"TWITCH_USER_TOKEN_AUTHENTICATING_DESCRIPTION": "If a browser tab does not open, cancel and try again",
+        "TWITCH_USER_TOKEN_AUTHENTICATING_HEADER": "Authenticating",
+        "TWITCH_USER_TOKEN_AUTHENTICATING_DESCRIPTION": "If a browser tab does not open, cancel and try again",
 
-		"TWITCH_USER_TOKEN_AUTHENTICATED_HEADER": "Connected!",
-		"TWITCH_USER_TOKEN_AUTHENTICATED_DESCRIPTION": "Risk of Chaos has been successfully connected to Twitch account '{0}'",
+        "TWITCH_USER_TOKEN_AUTHENTICATED_HEADER": "Connected!",
+        "TWITCH_USER_TOKEN_AUTHENTICATED_DESCRIPTION": "Risk of Chaos has been successfully connected to Twitch account '{0}'",
 
-		"TWITCH_USER_TOKEN_AUTHENTICATION_ERROR_HEADER": "Connection Error",
-		"TWITCH_USER_TOKEN_AUTHENTICATION_ERROR_DESCRIPTION": "An unexpected error occured while authenticating, please try again. If the issue persists, please send a bug report :)",
+        "TWITCH_USER_TOKEN_AUTHENTICATION_ERROR_HEADER": "Connection Error",
+        "TWITCH_USER_TOKEN_AUTHENTICATION_ERROR_DESCRIPTION": "An unexpected error occured while authenticating, please try again. If the issue persists, please send a bug report :)",
 
-		"LOGBOOK_INVINCIBLE_LEMURIAN_ENCOUNTERS_FORMAT": "Encountered: <style=cEvent>{0}</style>",
-		"LOGBOOK_INVINCIBLE_LEMURIAN_DEATHS_FORMAT": "Killed By: <style=cEvent>{0}</style>",
-		"LOGBOOK_INVINCIBLE_LEMURIAN_KILLS_FORMAT": "Vanquished: <style=cEvent>{0}</style>",
+        "LOGBOOK_INVINCIBLE_LEMURIAN_ENCOUNTERS_FORMAT": "Encountered: <style=cEvent>{0}</style>",
+        "LOGBOOK_INVINCIBLE_LEMURIAN_DEATHS_FORMAT": "Killed By: <style=cEvent>{0}</style>",
+        "LOGBOOK_INVINCIBLE_LEMURIAN_KILLS_FORMAT": "Vanquished: <style=cEvent>{0}</style>",
 
-		"LOGBOOK_UNLOCK_ITEM_INVINCIBLE_LEMURIAN": "Vanquish or surrender yourself to <color=#E9848D><size=120%>Him</size></color> to unlock this log entry.",
+        "LOGBOOK_UNLOCK_ITEM_INVINCIBLE_LEMURIAN": "Vanquish or surrender yourself to <color=#E9848D><size=120%>Him</size></color> to unlock this log entry.",
 
-		"UNLOCKABLE_LOG_INVINCIBLE_LEMURIAN": "Log: Leonard",
-		"UNLOCKABLE_LOG_INVINCIBLE_LEMURIAN_ELDER": "Log: Elder Leonard",
+        "UNLOCKABLE_LOG_INVINCIBLE_LEMURIAN": "Log: Leonard",
+        "UNLOCKABLE_LOG_INVINCIBLE_LEMURIAN_ELDER": "Log: Elder Leonard",
 
-		"POPUP_CONFIG_UPDATE_HEADER": "Risk of Chaos: Config file outdated!",
-		"POPUP_CONFIG_UPDATE_DESCRIPTION": "The mod has updated since you last played, it is recommended that you reset your config before playing, otherwise you may miss important balance changes. All of your mod settings will be lost",
-		"POPUP_CONFIG_UPDATE_RESET": "Reset Config",
-		"POPUP_CONFIG_UPDATE_IGNORE": "Keep Config",
+        "POPUP_CONFIG_UPDATE_HEADER": "Risk of Chaos: Config file outdated!",
+        "POPUP_CONFIG_UPDATE_DESCRIPTION": "The mod has updated since you last played, it is recommended that you reset your config before playing, otherwise you may miss important balance changes. All of your mod settings will be lost",
+        "POPUP_CONFIG_UPDATE_RESET": "Reset Config",
+        "POPUP_CONFIG_UPDATE_IGNORE": "Keep Config",
 
-		"POPUP_TWITCH_USER_TOKEN_EXPIRED_HEADER": "Risk of Chaos",
-		"POPUP_TWITCH_USER_TOKEN_EXPIRED_DESCRIPTION": "Your stored access token has expired. If you want to use Twitch voting you will need to authenticate again.",
+        "POPUP_TWITCH_USER_TOKEN_EXPIRED_HEADER": "Risk of Chaos",
+        "POPUP_TWITCH_USER_TOKEN_EXPIRED_DESCRIPTION": "Your stored access token has expired. If you want to use Twitch voting you will need to authenticate again.",
 
-		"POPUP_TWITCH_USER_TOKEN_ABOUT_TO_EXPIRE_HEADER": "Risk of Chaos",
-		"POPUP_TWITCH_USER_TOKEN_ABOUT_TO_EXPIRE_DESCRIPTION": "Your stored access token will expire in {0} hour(s), if you intend to use Twitch voting it is recommended that you authenticate again to refresh it.",
+        "POPUP_TWITCH_USER_TOKEN_ABOUT_TO_EXPIRE_HEADER": "Risk of Chaos",
+        "POPUP_TWITCH_USER_TOKEN_ABOUT_TO_EXPIRE_DESCRIPTION": "Your stored access token will expire in {0} hour(s), if you intend to use Twitch voting it is recommended that you authenticate again to refresh it.",
 
-		"POPUP_TWITCH_USER_TOKEN_MISSING_SCOPES_HEADER": "Risk of Chaos",
-		"POPUP_TWITCH_USER_TOKEN_MISSING_SCOPES_DESCRIPTION": "Your stored access token is no longer valid, if you intend to use Twitch voting you must authenticate again to refresh it.",
+        "POPUP_TWITCH_USER_TOKEN_MISSING_SCOPES_HEADER": "Risk of Chaos",
+        "POPUP_TWITCH_USER_TOKEN_MISSING_SCOPES_DESCRIPTION": "Your stored access token is no longer valid, if you intend to use Twitch voting you must authenticate again to refresh it.",
 
-		"POPUP_TWITCH_LOGIN_OAUTH_NO_LONGER_USED_HEADER": "Risk of Chaos: Old login detected!",
-		"POPUP_TWITCH_LOGIN_OAUTH_NO_LONGER_USED_DESCRIPTION": "Your saved login is not compatible with the current authentication method. You must authenticate in the mod settings if you intend to use Twitch integration. See README for more instructions.",
-	}
+        "POPUP_TWITCH_LOGIN_OAUTH_NO_LONGER_USED_HEADER": "Risk of Chaos: Old login detected!",
+        "POPUP_TWITCH_LOGIN_OAUTH_NO_LONGER_USED_DESCRIPTION": "Your saved login is not compatible with the current authentication method. You must authenticate in the mod settings if you intend to use Twitch integration. See README for more instructions.",
+    }
 }

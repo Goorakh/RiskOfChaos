@@ -1,38 +1,40 @@
 {
-	strings:
-	{
-		"TWITCH_EFFECT_VOTING_LOGIN_FAIL_FORMAT": "<style=cWorldEvent>[Risk of Chaos]: Unable to connect to Twitch channel: {0}</style>",
-		"TWITCH_LOGIN_FAIL_NOT_LOGGED_IN": "Not logged in, please authenticate in the mod settings",
+    strings:
+    {
+        "TWITCH_EFFECT_VOTING_LOGIN_FAIL_FORMAT": "<style=cWorldEvent>[Risk of Chaos]: Unable to connect to Twitch channel: {0}</style>",
+        "TWITCH_LOGIN_FAIL_NOT_LOGGED_IN": "Not logged in, please authenticate in the mod settings",
 
-		"TWITCH_EFFECT_VOTING_CONNECTION_ERROR": "<style=cWorldEvent>[Risk of Chaos]: Twitch connection error: {0}</style>",
-		"TWITCH_EFFECT_VOTING_GENERIC_CLIENT_CONNECT_FAIL": "Failed to connect Twitch Client",
-		"TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_USER_REMOVED": "Invalid user",
-		"TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_AUTHORIZATION_REVOKED": "Access revoked by user",
-		"TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_VERSION_REMOVED": "API version error, report this immediately please",
-		"TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_USER_RETRIEVE_FAILED": "Invalid access token, authenticate in mod settings",
-		"TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_SUBSCRIBE_FAILED": "Invalid access token, authenticate in mod settings",
+        "TWITCH_EFFECT_VOTING_CONNECTION_ERROR": "<style=cWorldEvent>[Risk of Chaos]: Twitch connection error: {0}</style>",
+        "TWITCH_EFFECT_VOTING_GENERIC_CLIENT_CONNECT_FAIL": "Failed to connect Twitch Client",
+        "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_USER_REMOVED": "Invalid user",
+        "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_AUTHORIZATION_REVOKED": "Access revoked by user",
+        "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_VERSION_REMOVED": "API version error, report this immediately please",
+        "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_USER_RETRIEVE_FAILED": "Invalid access token, authenticate in mod settings",
+        "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_SUBSCRIBE_FAILED": "Invalid access token, authenticate in mod settings",
 
-		"TWITCH_EFFECT_VOTING_LOGIN_SUCCESS": "<style=cWorldEvent>[Risk of Chaos]: Successfully connected to Twitch channel: {0}</style>",
-		"TWITCH_EFFECT_VOTING_LOGIN_SUCCESS_CHANNEL_FALLBACK": "<style=cWorldEvent>[Risk of Chaos]: Invalid override channel '{0}', using authenticated account's channel instead</style>",
+        "TWITCH_EFFECT_VOTING_LOGIN_SUCCESS": "<style=cWorldEvent>[Risk of Chaos]: Successfully connected to Twitch channel: {0}</style>",
+        "TWITCH_EFFECT_VOTING_LOGIN_SUCCESS_CHANNEL_FALLBACK": "<style=cWorldEvent>[Risk of Chaos]: Invalid override channel '{0}', using authenticated account's channel instead</style>",
 
-		"MONSTER_INVENTORY_ADD_ITEM": "<style=cEvent><b>{1}</b></color> <style=cWorldEvent>was added to monster inventory</style>",
+        "MONSTER_INVENTORY_ADD_ITEM": "<style=cEvent><b>{1}</b></color> <style=cWorldEvent>was added to monster inventory</style>",
 
-		"CHAOS_EFFECT_UNHANDLED_EXCEPTION_MESSAGE": "<color=#FF0000>Unhandled error in effect, it will very likely not work as intended. Please report this, thank you :)</color>",
+        "CHAOS_EFFECT_UNHANDLED_EXCEPTION_MESSAGE": "<color=#FF0000>Unhandled error in effect, it will very likely not work as intended. Please report this, thank you :)</color>",
 
-		"INVINCIBLE_LEMURIAN_DEATH_ALLY_MESSAGE": "<color=#E9848D><size=110%>His presence fades... Gesturing for you to follow...</size></color>",
-		"INVINCIBLE_LEMURIAN_DEATH_REWARD_MESSAGE": "<color=#E9848D><size=110%>His presence fades... You are rewarded.</size></color>",
+        "INVINCIBLE_LEMURIAN_DEATH_ALLY_MESSAGE": "<color=#E9848D><size=110%>His presence fades... Gesturing for you to follow...</size></color>",
+        "INVINCIBLE_LEMURIAN_DEATH_REWARD_MESSAGE": "<color=#E9848D><size=110%>His presence fades... You are rewarded.</size></color>",
 
-		"PLAYER_DEATH_QUOTE_INVINCIBLE_LEMURIAN_2P": "You are stretched into the <size=80%><style=cMono>infinite</style></size>. <color=#E9848D><size=120%>He</size></color> will take good care of you.",
-		"PLAYER_DEATH_QUOTE_INVINCIBLE_LEMURIAN": "{0} has left this world. <color=#E9848D><size=120%>He</size></color> will take good care of them.",
+        "PLAYER_DEATH_QUOTE_INVINCIBLE_LEMURIAN_2P": "You are stretched into the <size=80%><style=cMono>infinite</style></size>. <color=#E9848D><size=120%>He</size></color> will take good care of you.",
+        "PLAYER_DEATH_QUOTE_INVINCIBLE_LEMURIAN": "{0} has left this world. <color=#E9848D><size=120%>He</size></color> will take good care of them.",
 
-		"INVINCIBLE_LEMURIAN_RECRUIT_MESSAGE": "<color=#E9848D><size=110%>His presence... It feels closer than ever before...</size></color>",
+        "INVINCIBLE_LEMURIAN_RECRUIT_MESSAGE": "<color=#E9848D><size=110%>His presence... It feels closer than ever before...</size></color>",
 
-		"RECRUIT_ENEMY_MESSAGE": "<style=cWorldEvent><color=#FFFFFF>{0}</color> has been brought to your side</style>",
-		"RECRUIT_BOSS_MESSAGE": "<style=cWorldEvent><color=#FF2C2C>{0}</color> has been brought to your side</style>",
+        "RECRUIT_ENEMY_MESSAGE": "<style=cWorldEvent><color=#FFFFFF>{0}</color> has been brought to your side</style>",
+        "RECRUIT_BOSS_MESSAGE": "<style=cWorldEvent><color=#FF2C2C>{0}</color> has been brought to your side</style>",
 
-		"INVINCIBLE_LEMURIAN_KILL_FAIL_MESSAGE" : "<color=#E9848D><size=110%>\"It would be far too easy, wouldn't it?\"</size></color>",
-		
-		"PLAYER_MULTI_PICKUP": "<style=cEvent>{0} picked up {1}</color>",
-		"PLAYER_MULTI_PICKUP_2P": "<style=cEvent>You picked up {1}</color>",
-	}
+        "INVINCIBLE_LEMURIAN_KILL_FAIL_MESSAGE" : "<color=#E9848D><size=110%>\"It would be far too easy, wouldn't it?\"</size></color>",
+        
+        "PLAYER_MULTI_PICKUP": "<style=cEvent>{0} picked up {1}</color>",
+        "PLAYER_MULTI_PICKUP_2P": "<style=cEvent>You picked up {1}</color>",
+
+        "ITEM_CORRUPTION_RULE_ADD_MESSAGE": "<style=cEvent>{1} now corrupts all {0}</color>",
+    }
 }

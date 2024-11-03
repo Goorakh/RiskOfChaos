@@ -5,7 +5,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.ChatMessages
 {
-    public sealed class PlayerPickupListChatMessage : SubjectChatMessage
+    public sealed class SubjectPickupListChatMessage : SubjectChatMessage
     {
         static readonly StringBuilder _sharedStringBuilder = new StringBuilder();
 
