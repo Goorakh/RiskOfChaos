@@ -15,18 +15,18 @@ namespace RiskOfChaos.ScreenEffect
     public sealed class ScreenEffectManager : MonoBehaviour
     {
         [ContentInitializer]
-        static void LoadContent(NetworkedPrefabAssetCollection networkPrefabs)
+        static void LoadContent(LocalPrefabAssetCollection localPrefabs, NetworkedPrefabAssetCollection networkPrefabs)
         {
             // ScreenEffectManager
             {
-                GameObject prefab = Prefabs.CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.ScreenEffectManager), [
+                GameObject prefab = Prefabs.CreatePrefab(nameof(RoCContent.LocalPrefabs.ScreenEffectManager), [
                     typeof(SetDontDestroyOnLoad),
                     typeof(AutoCreateOnRunStart),
                     typeof(DestroyOnRunEnd),
                     typeof(ScreenEffectManager)
                 ]);
 
-                networkPrefabs.Add(prefab);
+                localPrefabs.Add(prefab);
             }
 
             // InterpolatedScreenEffect

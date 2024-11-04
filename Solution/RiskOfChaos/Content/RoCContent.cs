@@ -7,7 +7,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -283,8 +282,6 @@ namespace RiskOfChaos.Content
 
             public static GameObject ExplodeAtLowHealthBodyAttachment;
 
-            public static GameObject ScreenEffectManager;
-
             public static GameObject InterpolatedScreenEffect;
 
             public static GameObject CameraModificationProvider;
@@ -329,6 +326,8 @@ namespace RiskOfChaos.Content
             public static GameObject ChaosEffectUIVoteItem;
 
             public static GameObject ChaosNextEffectDisplay;
+
+            public static GameObject ScreenEffectManager;
 
             public static GameObject ValueModificationManager;
 
