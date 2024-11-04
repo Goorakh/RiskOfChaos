@@ -169,12 +169,15 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         ChaosEffectComponent _effectComponent;
 
+        ObjectSerializationComponent _serializationComponent;
+
         [SerializedMember("p")]
         PickupIndex[] _pickupIndicesToGrant = [];
 
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
+            _serializationComponent = GetComponent<ObjectSerializationComponent>();
         }
 
         public override void OnStartServer()
@@ -221,7 +224,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     pickupQuantities[i] = (uint)_monsterInventory.GetPickupCount(PickupCatalog.GetPickupDef(pickupIndices[i]));
                 }
 
-                PickupUtils.QueuePickupsMessage("MONSTER_INVENTORY_ADD_ITEM", pickupIndices, pickupQuantities, false, false);
+                if (!_serializationComponent || !_serializationComponent.IsLoadedFromSave)
+                {
+                    PickupUtils.QueuePickupsMessage("MONSTER_INVENTORY_ADD_ITEM", pickupIndices, pickupQuantities, false, false);
+                }
 
                 CharacterMaster.readOnlyInstancesList.TryDo(master =>
                 {

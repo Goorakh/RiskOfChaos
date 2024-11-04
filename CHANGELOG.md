@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Add Random Item to Monster Inventory:
+  * Prevented item added chat message from sending if the effect was loaded from a save
+
 * Fixed the mod preventing the game from loading if ProperSave wasn't installed
 
 **2.0.2 Changes:**
