@@ -269,11 +269,12 @@ namespace RiskOfChaos.EffectHandling
             List<Type> componentTypes = [
                 typeof(NetworkIdentity),
                 typeof(ChaosEffectTimeoutController),
-                typeof(ChaosEffectComponent),
-                EffectComponentType
+                typeof(ChaosEffectComponent)
             ];
 
             modifyPrefabComponents(componentTypes);
+
+            componentTypes.Add(EffectComponentType);
 
             GameObject prefab = Prefabs.CreateNetworkedPrefab($"{Identifier}_EffectController", componentTypes.ToArray());
 
