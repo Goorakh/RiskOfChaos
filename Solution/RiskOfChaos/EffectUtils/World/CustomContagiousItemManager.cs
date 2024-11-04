@@ -60,9 +60,9 @@ namespace RiskOfChaos.EffectUtils.World
             return ContagiousItemManager.GetTransformedItemIndex(from) == ItemIndex.None;
         }
 
-        public static bool CanItemBeTransformedInto(ItemIndex to)
+        public static bool CanItemBeTransformedInto(ItemIndex from, ItemIndex to)
         {
-            return true;
+            return from != to && ContagiousItemManager.GetTransformedItemIndex(to) != from;
         }
 
         static void Run_onRunDestroyGlobal(Run obj)
@@ -196,7 +196,16 @@ namespace RiskOfChaos.EffectUtils.World
                     for (int i = 0; i < originalItemIndices.Count; i++)
                     {
                         ItemDef originalItem = ItemCatalog.GetItemDef(originalItemIndices[i]);
-                        itemNameListBuilder.Append(Language.GetStringFormatted("ITEM_CORRUPTION_FORMAT", originalItem.nameToken));
+
+                        string itemNameToken = PickupCatalog.invalidPickupToken;
+                        if (originalItem)
+                        {
+                            itemNameToken = originalItem.nameToken;
+                        }
+
+                        itemNameListBuilder.Append(' ');
+
+                        itemNameListBuilder.Append(Language.GetStringFormatted("ITEM_CORRUPTION_FORMAT", Language.GetString(itemNameToken)));
                     }
 
                     string suffix = itemNameListBuilder.Take();
@@ -208,10 +217,10 @@ namespace RiskOfChaos.EffectUtils.World
 
                         string str = Language.GetString(token);
 
-                        string padding = " ";
+                        string padding = string.Empty;
                         if (!str.EndsWith('.'))
                         {
-                            padding = ". ";
+                            padding = ".";
                         }
 
                         _cachedTokenSuffixes[token] = padding + suffix;

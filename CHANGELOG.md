@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Added 1 effect:
+  * Add Random Item Corruption Rule: Gives the "corruption" behaviour of void items to a random pair of items. Lasts for the rest of the run.
+
 * Add Random Item to Monster Inventory:
   * Prevented item added chat message from sending if the effect was loaded from a save
 

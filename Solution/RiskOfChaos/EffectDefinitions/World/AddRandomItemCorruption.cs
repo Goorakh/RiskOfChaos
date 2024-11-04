@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.ChatMessages;
+﻿using Newtonsoft.Json;
+using RiskOfChaos.ChatMessages;
 using RiskOfChaos.Collections.ParsedValue;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
@@ -16,8 +17,6 @@ using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
@@ -38,7 +37,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         [EffectConfig]
         static readonly ConfigHolder<string> _itemBlacklistConfig =
-            ConfigFactory<string>.CreateConfig("Item Blacklist", string.Empty)
+            ConfigFactory<string>.CreateConfig("Item Blacklist", "ArtifactKey")
                                  .Description("A comma-separated list of items that should not be allowed to be used by the effect. Both internal and English display names are accepted, with spaces and commas removed.")
                                  .OptionConfig(new InputFieldConfig
                                  {
@@ -86,53 +85,52 @@ namespace RiskOfChaos.EffectDefinitions.World
             _availableItems = [.. availableItems];
         }
 
-        static IEnumerable<ItemDef.Pair> getTransformableItemPairs()
+        static ItemIndex[] getTransformableItems(Func<ItemIndex, bool> filter = null)
         {
-            static IEnumerable<ItemIndex> getTransformableItems(Func<ItemIndex, bool> filter = null)
+            List<ItemIndex> transformableItems = new List<ItemIndex>(_availableItems.Length);
+            for (int i = 0; i < _availableItems.Length; i++)
             {
-                for (int i = 0; i < _availableItems.Length; i++)
+                ItemIndex itemIndex = _availableItems[i];
+                ItemDef item = ItemCatalog.GetItemDef(itemIndex);
+
+                if (!item.isConsumed && !item.ContainsTag(ItemTag.WorldUnique) && item != RoR2Content.Items.TonicAffliction && !Run.instance.IsItemEnabled(itemIndex))
+                    continue;
+
+                if (_itemBlacklist.Contains(itemIndex))
+                    continue;
+
+                if (filter == null || filter(itemIndex))
                 {
-                    ItemIndex itemIndex = _availableItems[i];
-                    ItemDef item = ItemCatalog.GetItemDef(itemIndex);
-
-                    if (!item.isConsumed && !item.ContainsTag(ItemTag.WorldUnique) && item != RoR2Content.Items.TonicAffliction && !Run.instance.IsItemEnabled(itemIndex))
-                    {
-#if DEBUG
-                        Log.Debug($"Excluding non-enabled item {FormatUtils.GetBestItemDisplayName(item)}");
-#endif
-                        continue;
-                    }
-
-                    if (_itemBlacklist.Contains(itemIndex))
-                        continue;
-
-                    if (filter == null || filter(itemIndex))
-                    {
-                        yield return itemIndex;
-                    }
+                    transformableItems.Add(itemIndex);
                 }
             }
 
-            foreach (ItemIndex from in getTransformableItems(CustomContagiousItemManager.CanItemBeTransformedFrom))
-            {
-                foreach (ItemIndex to in getTransformableItems(CustomContagiousItemManager.CanItemBeTransformedInto))
-                {
-                    if (from == to)
-                        continue;
+            return transformableItems.ToArray();
+        }
 
-                    yield return new ItemDef.Pair
-                    {
-                        itemDef1 = ItemCatalog.GetItemDef(from),
-                        itemDef2 = ItemCatalog.GetItemDef(to)
-                    };
-                }
-            }
+        static ItemIndex[] getAllTransformableFromItems()
+        {
+            return getTransformableItems(CustomContagiousItemManager.CanItemBeTransformedFrom);
+        }
+
+        static ItemIndex[] getAllTransformableToItems(ItemIndex from)
+        {
+            return getTransformableItems(to => CustomContagiousItemManager.CanItemBeTransformedInto(from, to));
         }
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return getTransformableItemPairs().Any();
+            foreach (ItemIndex from in getAllTransformableFromItems())
+            {
+                ItemIndex[] toItemIndices = getAllTransformableToItems(from);
+                if (toItemIndices.Length > 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         ChaosEffectComponent _effectComponent;
@@ -174,22 +172,31 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
-            List<ItemDef.Pair> itemPairs = getTransformableItemPairs().ToList();
-            if (itemPairs.Count == 0)
+            List<ItemIndex> fromItemIndices = [.. getAllTransformableFromItems()];
+            if (fromItemIndices.Count == 0)
             {
                 Log.Error("Not enough available items");
                 return;
             }
 
-            int itemTransformPairCount = Mathf.Min(_numCorruptionsToAdd.Value, itemPairs.Count);
-            _itemTransformPairs.Clear();
-
-            Util.ShuffleList(itemPairs, rng);
-
-            for (int i = 0; i < itemTransformPairCount; i++)
+            int numPairsAdded = 0;
+            while (fromItemIndices.Count > 0 && numPairsAdded < _numCorruptionsToAdd.Value)
             {
-                ItemDef.Pair pair = itemPairs[i];
-                _itemTransformPairs.Add(new ItemTransformationPair(pair.itemDef1.itemIndex, pair.itemDef2.itemIndex));
+                ItemIndex fromItemIndex = fromItemIndices.GetAndRemoveRandom(rng);
+
+                ItemIndex[] toItemIndices = getAllTransformableToItems(fromItemIndex);
+                if (toItemIndices.Length > 0)
+                {
+                    ItemIndex toItemIndex = rng.NextElementUniform(toItemIndices);
+                    _itemTransformPairs.Add(new ItemTransformationPair(fromItemIndex, toItemIndex));
+
+                    numPairsAdded++;
+                }
+            }
+
+            if (numPairsAdded == 0)
+            {
+                Log.Error("Not enough available items");
             }
         }
 
@@ -223,10 +230,10 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         struct ItemTransformationPair : IEquatable<ItemTransformationPair>
         {
-            [SerializedMember("f")]
+            [JsonProperty("f")]
             public ItemIndex From;
 
-            [SerializedMember("t")]
+            [JsonProperty("t")]
             public ItemIndex To;
 
             public ItemTransformationPair(ItemIndex from, ItemIndex to)

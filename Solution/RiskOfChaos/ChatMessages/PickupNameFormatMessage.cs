@@ -1,4 +1,5 @@
 ﻿using RoR2;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.ChatMessages
@@ -15,7 +16,16 @@ namespace RiskOfChaos.ChatMessages
             for (int i = 0; i < PickupIndices.Length; i++)
             {
                 PickupDef pickupDef = PickupCatalog.GetPickupDef(PickupIndices[i]);
-                pickupNames[i] = pickupDef != null ? Language.GetString(pickupDef.nameToken) : PickupCatalog.invalidPickupToken;
+
+                string pickupNameToken = PickupCatalog.invalidPickupToken;
+                Color pickupColor = PickupCatalog.invalidPickupColor;
+                if (pickupDef != null)
+                {
+                    pickupNameToken = pickupDef.nameToken;
+                    pickupColor = pickupDef.baseColor;
+                }
+
+                pickupNames[i] = Util.GenerateColoredString(Language.GetString(pickupNameToken), pickupColor);
             }
 
             return Language.GetStringFormatted(Token, pickupNames);
