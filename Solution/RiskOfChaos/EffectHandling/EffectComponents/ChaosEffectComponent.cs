@@ -177,6 +177,27 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
             }
         }
 
+        void FixedUpdate()
+        {
+            if (NetworkServer.active)
+            {
+                fixedUpdateServer();
+            }
+        }
+
+        [Server]
+        void fixedUpdateServer()
+        {
+            if (Time.deltaTime == 0f || EffectDestructionHandledByComponent)
+                return;
+
+            const float TIMEOUT_DURATION = 3f;
+            if (TimeStarted.TimeSinceClamped > TIMEOUT_DURATION)
+            {
+                RetireEffect();
+            }
+        }
+
         [Server]
         public void RetireEffect()
         {
