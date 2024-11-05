@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**2.0.3 Changes:**
 
 * Added 1 effect:
   * Add Random Item Corruption Rule: Gives the "corruption" behaviour of void items to a random pair of items. Lasts for the rest of the run.
