@@ -30,42 +30,30 @@ namespace RiskOfTwitch.WebSockets
             ConnectionUrl = url;
         }
 
-        ~ClientWebSocketConnection()
-        {
-            Dispose();
-        }
-
         public void Dispose()
-        {
-            dispose();
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void dispose()
         {
             if (_isDisposed)
                 return;
 
-            if (_client != null)
-            {
-                using CancellationTokenSource timeoutTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-
-                try
-                {
-                    Disconnect(timeoutTokenSource.Token).Wait();
-                }
-                catch
-                {
-                    _client?.Dispose();
-                }
-
-                _client = null;
-            }
+            _isDisposed = true;
 
             _objectDisposedTokenSource.Cancel();
             _objectDisposedTokenSource.Dispose();
 
-            _isDisposed = true;
+            if (_client != null)
+            {
+                try
+                {
+                    Disconnect().Wait(TimeSpan.FromSeconds(2));
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e);
+                }
+
+                _client?.Dispose();
+                _client = null;
+            }
         }
 
         void throwIfDisposed()
@@ -130,7 +118,7 @@ namespace RiskOfTwitch.WebSockets
 
             CancellationTokenSource cancelledOrDisposedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_objectDisposedTokenSource.Token, cancellationToken);
 
-            await _client.CloseAsync(WebSocketCloseStatus.NormalClosure, "", cancelledOrDisposedTokenSource.Token).ConfigureAwait(false);
+            await _client.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "", cancelledOrDisposedTokenSource.Token).ConfigureAwait(false);
             _client?.Dispose();
             _client = null;
         }
@@ -165,19 +153,19 @@ namespace RiskOfTwitch.WebSockets
                     continue;
                 }
 
-                if (State != WebSocketState.Open)
-                    continue;
-
-                try
+                if (State == WebSocketState.Open || State == WebSocketState.CloseSent)
                 {
-                    await handleNextMessageAsync(cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception e) when (e is not OperationCanceledException)
-                {
-                    Log.Error_NoCallerPrefix($"Unhandled exception handling web socket message: {e}");
+                    try
+                    {
+                        await handleNextMessageAsync(cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (Exception e) when (e is not OperationCanceledException)
+                    {
+                        Log.Error_NoCallerPrefix($"Unhandled exception handling web socket message: {e}");
 
-                    // Completely arbitrary delay
-                    await Reconnect(TimeSpan.FromSeconds(1), cancellationToken).ConfigureAwait(false);
+                        // Completely arbitrary delay
+                        await Reconnect(TimeSpan.FromSeconds(1), cancellationToken).ConfigureAwait(false);
+                    }
                 }
             }
         }

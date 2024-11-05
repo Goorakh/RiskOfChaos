@@ -6,6 +6,9 @@ namespace RiskOfTwitch.EventSub
     {
         FailedRetrieveUser,
         FailedEventSubscribe,
+        TokenAuthenticationFailed,
+        TokenInvalid,
+        Generic,
     }
 
     public class ConnectionErrorEventArgs : EventArgs

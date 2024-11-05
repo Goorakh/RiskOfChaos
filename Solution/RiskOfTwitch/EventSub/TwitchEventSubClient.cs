@@ -85,55 +85,45 @@ namespace RiskOfTwitch.EventSub
         {
             _disconnectedTokenSource.Cancel();
 
-            Task mainDisconnectTask;
             if (_mainConnection != null)
             {
-                mainDisconnectTask = _mainConnection.Disconnect(cancellationToken).ContinueWith(_ =>
-                {
-                    _mainConnection?.Dispose();
-                    _mainConnection = null;
-                });
-            }
-            else
-            {
-                mainDisconnectTask = Task.CompletedTask;
+                await _mainConnection.Disconnect(cancellationToken);
+                _mainConnection?.Dispose();
+                _mainConnection = null;
             }
 
-            Task migratingDisconnectTask;
             if (_migratingConnection != null)
             {
-                migratingDisconnectTask = _migratingConnection.Disconnect(cancellationToken).ContinueWith(_ =>
-                {
-                    _migratingConnection?.Dispose();
-                    _migratingConnection = null;
-                });
+                await _migratingConnection.Disconnect(cancellationToken);
+                _migratingConnection?.Dispose();
+                _migratingConnection = null;
             }
-            else
-            {
-                migratingDisconnectTask = Task.CompletedTask;
-            }
-
-            await Task.WhenAll(mainDisconnectTask, migratingDisconnectTask).ConfigureAwait(false);
 
             if (_activeSubscriptions.Count > 0)
             {
-                Task[] deleteSubscriptionTasks = new Task[_activeSubscriptions.Count];
-
-                int taskIndex = 0;
                 foreach (string subscriptionId in _activeSubscriptions)
                 {
-                    deleteSubscriptionTasks[taskIndex++] = Task.Run(async () =>
+                    using (HttpClient httpClient = new HttpClient())
                     {
-                        using (HttpClient httpClient = new HttpClient())
-                        {
-                            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_accessToken}");
-                            httpClient.DefaultRequestHeaders.Add("Client-Id", Authentication.CLIENT_ID);
+                        httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_accessToken}");
+                        httpClient.DefaultRequestHeaders.Add("Client-Id", Authentication.CLIENT_ID);
 
-                            using HttpResponseMessage subscriptionDeleteResult = await httpClient.DeleteAsync($"https://api.twitch.tv/helix/eventsub/subscriptions?id={subscriptionId}", cancellationToken).ConfigureAwait(false);
+                        _ = httpClient.DeleteAsync($"https://api.twitch.tv/helix/eventsub/subscriptions?id={subscriptionId}", cancellationToken).ContinueWith(task =>
+                        {
+                            if (task.IsCanceled)
+                                return;
+
+                            if (task.IsFaulted)
+                            {
+                                Log.Error(task.Exception);
+                                return;
+                            }
+
+                            using HttpResponseMessage subscriptionDeleteResult = task.Result;
 
                             if (!subscriptionDeleteResult.IsSuccessStatusCode)
                             {
-                                Log.Error($"Unable to delete subscription {subscriptionId}: {subscriptionDeleteResult.StatusCode:D} ({subscriptionDeleteResult.StatusCode:G}) {subscriptionDeleteResult.ReasonPhrase}");
+                                Log.Error($"Unable to delete subscription {subscriptionId}: {subscriptionDeleteResult.StatusCode:D} {subscriptionDeleteResult.ReasonPhrase}");
                             }
 #if DEBUG
                             else
@@ -141,14 +131,16 @@ namespace RiskOfTwitch.EventSub
                                 Log.Debug($"Removed subscription {subscriptionId}");
                             }
 #endif
-                        }
-                    }, cancellationToken);
+                        });
+                    }
                 }
 
                 _activeSubscriptions.Clear();
-
-                await Task.WhenAll(deleteSubscriptionTasks).ConfigureAwait(false);
             }
+
+#if DEBUG
+            Log.Debug("Disconnected");
+#endif
         }
 
         void beginMigration(string reconnectUrl)
@@ -259,6 +251,7 @@ namespace RiskOfTwitch.EventSub
             if (sessionDataToken == null)
             {
                 Log.Error("Could not deserialize session data");
+                OnConnectionError?.Invoke(this, new ConnectionErrorEventArgs(ConnectionErrorType.Generic));
                 return;
             }
 
@@ -270,6 +263,7 @@ namespace RiskOfTwitch.EventSub
             catch (JsonException e)
             {
                 Log.Error_NoCallerPrefix($"Failed to deserialize session object: {e}");
+                OnConnectionError?.Invoke(this, new ConnectionErrorEventArgs(ConnectionErrorType.Generic));
                 return;
             }
 
@@ -291,12 +285,20 @@ namespace RiskOfTwitch.EventSub
 
             _sessionID = sessionData.SessionID;
 
-            AuthenticationTokenValidationResponse tokenValidationResponse = await Authentication.GetAccessTokenValidationAsync(_accessToken, cancellationToken).ConfigureAwait(false);
-            if (tokenValidationResponse == null)
+            Result<AuthenticationTokenValidationResponse> tokenValidationResult = await Authentication.GetAccessTokenValidationAsync(_accessToken, cancellationToken).ConfigureAwait(false);
+            if (!tokenValidationResult.IsSuccess)
             {
-                Log.Error("Authentication token is not valid");
+                ConnectionErrorType errorType = ConnectionErrorType.TokenAuthenticationFailed;
+                if (tokenValidationResult.Exception is InvalidAccessTokenException)
+                {
+                    errorType = ConnectionErrorType.TokenInvalid;
+                }
+
+                OnConnectionError?.Invoke(this, new ConnectionErrorEventArgs(errorType));
                 return;
             }
+
+            AuthenticationTokenValidationResponse tokenValidationResponse = tokenValidationResult.Value;
 
             async Task<bool> sendSubscription<T>(T message, CancellationToken cancellationToken)
             {
@@ -354,33 +356,26 @@ namespace RiskOfTwitch.EventSub
                 return true;
             }
 
-            string broadcasterId = tokenValidationResponse.UserID;
-            string broadcasterName;
+            string userId = tokenValidationResponse.UserID;
 
-            GetUsersResponse getUsersResponse = await StaticTwitchAPI.GetUsers(_accessToken, [broadcasterId], [], cancellationToken).ConfigureAwait(false);
-            if (getUsersResponse != null && getUsersResponse.Users.Length > 0)
-            {
-                broadcasterName = getUsersResponse.Users[0].UserLoginName;
-            }
-            else
-            {
-                OnConnectionError?.Invoke(this, new ConnectionErrorEventArgs(ConnectionErrorType.FailedRetrieveUser));
-                return;
-            }
+            string broadcasterId = userId;
+            string broadcasterName = tokenValidationResponse.Username;
 
             if (!string.IsNullOrEmpty(_overrideBroadcasterName))
             {
-                getUsersResponse = await StaticTwitchAPI.GetUsers(_accessToken, [], [_overrideBroadcasterName], cancellationToken).ConfigureAwait(false);
-                if (getUsersResponse != null && getUsersResponse.Users.Length > 0)
+                Result<GetUsersResponse> getUsersResult = await StaticTwitchAPI.GetUsers(_accessToken, [], [_overrideBroadcasterName], cancellationToken).ConfigureAwait(false);
+                if (getUsersResult.IsSuccess)
                 {
                     broadcasterName = _overrideBroadcasterName;
-                    broadcasterId = getUsersResponse.Users[0].UserId;
+                    broadcasterId = getUsersResult.Value.Users[0].UserId;
+                }
+                else
+                {
+                    Log.Error($"Failed to retrieve override broadcaster data {getUsersResult.Exception}");
                 }
             }
 
             ConnectedToChannel = broadcasterName;
-
-            string userId = tokenValidationResponse.UserID;
 
             bool allConnectedSuccessfully = true;
 

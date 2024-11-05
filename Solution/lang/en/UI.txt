@@ -49,5 +49,8 @@
 
         "POPUP_TWITCH_LOGIN_OAUTH_NO_LONGER_USED_HEADER": "Risk of Chaos: Old login detected!",
         "POPUP_TWITCH_LOGIN_OAUTH_NO_LONGER_USED_DESCRIPTION": "Your saved login is not compatible with the current authentication method. You must authenticate in the mod settings if you intend to use Twitch integration. See README for more instructions.",
+
+        "POPUP_TWITCH_LOGIN_VALIDATION_FAILED_GENERIC_HEADER": "Risk of Chaos",
+        "POPUP_TWITCH_LOGIN_VALIDATION_FAILED_GENERIC_DESCRIPTION": "An unknown error occured when validating your saved Twitch access token, please re-authenticate and send a bug report if this issue persists.",
     }
 }

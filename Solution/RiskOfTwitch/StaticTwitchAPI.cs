@@ -2,6 +2,7 @@
 using RiskOfTwitch.User;
 using System;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,44 +10,47 @@ namespace RiskOfTwitch
 {
     public static class StaticTwitchAPI
     {
-        public static async Task<GetUsersResponse> GetUsers(string accessToken, string[] userIds, string[] usernames, CancellationToken cancellationToken = default)
+        public static async Task<Result<GetUsersResponse>> GetUsers(string accessToken, string[] userIds, string[] usernames, CancellationToken cancellationToken = default)
         {
             userIds ??= [];
             usernames ??= [];
 
-            if (userIds.Length == 0 && usernames.Length == 0)
+            int combinedCount = userIds.Length + usernames.Length;
+
+            if (combinedCount == 0)
                 return GetUsersResponse.Empty;
 
-            if (userIds.Length + usernames.Length > 100)
-                throw new ArgumentOutOfRangeException($"{nameof(userIds)}, {nameof(usernames)}", "Combined size of user ids and usernames cannot exceed 100");
+            if (combinedCount > 100)
+            {
+                return new Result<GetUsersResponse>(new ArgumentOutOfRangeException($"{nameof(userIds)}, {nameof(usernames)}", "Combined size of user ids and usernames cannot exceed 100"));
+            }
 
             using HttpClient client = new HttpClient();
 
             client.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
             client.DefaultRequestHeaders.Add("Client-Id", Authentication.CLIENT_ID);
 
-            string combinedUserIds = string.Join("&", Array.ConvertAll(userIds, id => $"id={id}"));
-            string combinedUsernames = string.Join("&", Array.ConvertAll(usernames, username => $"login={username}"));
+            StringBuilder queryBuilder = new StringBuilder(combinedCount * 25);
+            foreach (string userId in userIds)
+            {
+                if (queryBuilder.Length > 0)
+                    queryBuilder.Append('&');
 
-            string query;
-            if (string.IsNullOrEmpty(combinedUsernames))
-            {
-                query = combinedUserIds;
-            }
-            else if (string.IsNullOrEmpty(combinedUserIds))
-            {
-                query = combinedUsernames;
-            }
-            else
-            {
-                query = string.Join("&", [combinedUserIds, combinedUsernames]);
+                queryBuilder.AppendFormat("id={0}", userId);
             }
 
-            using HttpResponseMessage getUsersResponseMessage = await client.GetAsync($"https://api.twitch.tv/helix/users?{query}", cancellationToken).ConfigureAwait(false);
+            foreach (string username in usernames)
+            {
+                if (queryBuilder.Length > 0)
+                    queryBuilder.Append('&');
+
+                queryBuilder.AppendFormat("login={0}", username);
+            }
+
+            using HttpResponseMessage getUsersResponseMessage = await client.GetAsync($"https://api.twitch.tv/helix/users?{queryBuilder}", cancellationToken).ConfigureAwait(false);
             if (!getUsersResponseMessage.IsSuccessStatusCode)
             {
-                Log.Error($"Twitch API responded with error code {getUsersResponseMessage.StatusCode:D} {getUsersResponseMessage.ReasonPhrase}");
-                return GetUsersResponse.Empty;
+                return new Result<GetUsersResponse>(new HttpResponseException(getUsersResponseMessage));
             }
 
             GetUsersResponse getUsersResponse;
@@ -56,8 +60,7 @@ namespace RiskOfTwitch
             }
             catch (JsonException e)
             {
-                Log.Error_NoCallerPrefix($"Failed to deserialize user data: {e}");
-                return GetUsersResponse.Empty;
+                return new Result<GetUsersResponse>(e);
             }
 
             return getUsersResponse;

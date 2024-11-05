@@ -62,7 +62,7 @@ namespace RiskOfTwitch
             return $"https://id.twitch.tv/oauth2/authorize?response_type=token&client_id={CLIENT_ID}&redirect_uri={AUTH_REDIRECT_URL}&scope={HttpUtility.UrlEncode(scopes)}&state={authState}";
         }
 
-        public static async Task<string> AuthenticateUserAccessToken(string scopes, CancellationToken cancellationToken = default)
+        public static async Task<Result<string>> AuthenticateUserAccessToken(string scopes, CancellationToken cancellationToken = default)
         {
             string authorizeUrl = CreateAuthorizeUrl(scopes, out string authState);
 
@@ -124,16 +124,16 @@ namespace RiskOfTwitch
                 context.Response.Close();
 
                 if (!fragments.TryGetValue("state", out string receivedAuthState) || !string.Equals(authState, receivedAuthState))
-                    throw new AuthenticationException("Invalid authentication state");
+                    return new Result<string>(new AuthenticationException("Invalid authentication state"));
 
                 if (!fragments.TryGetValue("access_token", out string accessToken))
-                    throw new AuthenticationException("No token received");
+                    return new Result<string>(new AuthenticationException("No token received"));
 
                 return accessToken;
             }
         }
 
-        public static async Task<AuthenticationTokenValidationResponse> GetAccessTokenValidationAsync(string accessToken, CancellationToken cancellationToken = default)
+        public static async Task<Result<AuthenticationTokenValidationResponse>> GetAccessTokenValidationAsync(string accessToken, CancellationToken cancellationToken = default)
         {
             using HttpClient client = new HttpClient();
 
@@ -141,9 +141,28 @@ namespace RiskOfTwitch
 
             using HttpResponseMessage validationResponse = await client.GetAsync("https://id.twitch.tv/oauth2/validate", cancellationToken).ConfigureAwait(false);
 
-            validationResponse.EnsureSuccessStatusCode();
+            string validationResponseContent = await validationResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-            return JsonConvert.DeserializeObject<AuthenticationTokenValidationResponse>(await validationResponse.Content.ReadAsStringAsync().ConfigureAwait(false));
+            if (!validationResponse.IsSuccessStatusCode)
+            {
+                if (validationResponse.StatusCode == HttpStatusCode.Unauthorized &&
+                    !string.IsNullOrEmpty(validationResponseContent) &&
+                    validationResponseContent.Contains("invalid access token", StringComparison.OrdinalIgnoreCase))
+                {
+                    return new Result<AuthenticationTokenValidationResponse>(new InvalidAccessTokenException());
+                }
+
+                return new Result<AuthenticationTokenValidationResponse>(new HttpResponseException(validationResponse));
+            }
+
+            try
+            {
+                return JsonConvert.DeserializeObject<AuthenticationTokenValidationResponse>(validationResponseContent);
+            }
+            catch (Exception e)
+            {
+                return new Result<AuthenticationTokenValidationResponse>(e);
+            }
         }
     }
 }

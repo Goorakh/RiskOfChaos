@@ -160,7 +160,9 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
                     reasonString = Language.GetString("TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_USER_RETRIEVE_FAILED");
                     break;
                 case ConnectionErrorType.FailedEventSubscribe:
-                    reasonString = Language.GetString("TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_SUBSCRIBE_FAILED");
+                case ConnectionErrorType.TokenAuthenticationFailed:
+                case ConnectionErrorType.TokenInvalid:
+                    reasonString = Language.GetString("TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_INVALID_TOKEN");
                     break;
                 default:
                     reasonString = Language.GetString("TWITCH_EFFECT_VOTING_GENERIC_CLIENT_CONNECT_FAIL");
@@ -179,7 +181,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch
             TwitchEventSubClient client = sender as TwitchEventSubClient;
 
             if (!string.IsNullOrEmpty(Configs.ChatVoting.OverrideChannelName.Value) &&
-                !string.Equals(client.ConnectedToChannel, Configs.ChatVoting.OverrideChannelName.Value))
+                !string.Equals(client.ConnectedToChannel, Configs.ChatVoting.OverrideChannelName.Value, StringComparison.OrdinalIgnoreCase))
             {
                 _messageQueue.Enqueue(new Chat.SimpleChatMessage
                 {

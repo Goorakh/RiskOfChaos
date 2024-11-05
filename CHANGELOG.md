@@ -8,6 +8,10 @@
 * Add Random Item to Monster Inventory:
   * Prevented item added chat message from sending if the effect was loaded from a save
 
+* Twitch Integration
+  * Improved error messages if Twitch access token is invalid or expired
+  * Fixed game freezing indefinitely on exit if Twitch Voting was enabled at any point
+
 * Fixed the mod preventing the game from loading if ProperSave wasn't installed
 
 **2.0.2 Changes:**

@@ -10,7 +10,7 @@
         "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_AUTHORIZATION_REVOKED": "Access revoked by user",
         "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_VERSION_REMOVED": "API version error, report this immediately please",
         "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_USER_RETRIEVE_FAILED": "Invalid access token, authenticate in mod settings",
-        "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_SUBSCRIBE_FAILED": "Invalid access token, authenticate in mod settings",
+        "TWITCH_EFFECT_VOTING_CLIENT_CONNECT_FAIL_INVALID_TOKEN": "Invalid access token, authenticate in mod settings",
 
         "TWITCH_EFFECT_VOTING_LOGIN_SUCCESS": "<style=cWorldEvent>[Risk of Chaos]: Successfully connected to Twitch channel: {0}</style>",
         "TWITCH_EFFECT_VOTING_LOGIN_SUCCESS_CHANNEL_FALLBACK": "<style=cWorldEvent>[Risk of Chaos]: Invalid override channel '{0}', using authenticated account's channel instead</style>",

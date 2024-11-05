@@ -69,7 +69,7 @@ namespace RiskOfChaos.Twitch
 
             Task.Run(async () =>
             {
-                AuthenticationTokenValidationResponse validation = await Authentication.GetAccessTokenValidationAsync(CurrentAccessToken.Token);
+                Result<AuthenticationTokenValidationResponse> validationResult = await Authentication.GetAccessTokenValidationAsync(CurrentAccessToken.Token);
 
                 // EventSub will notify us if the token is invalidated, and currently all API access relies on an EventSub connection
                 // So there's not really anything to do here :)
@@ -85,7 +85,7 @@ namespace RiskOfChaos.Twitch
             string[] tokenScopes = accessToken.Scopes.Split(' ');
             bool missingScopes = !Array.TrueForAll(ScopesArray, s => Array.Exists(tokenScopes, ts => string.Equals(ts, s)));
 
-            Task<AuthenticationTokenValidationResponse> validateTokenTask = Task.Run(async () =>
+            Task<Result<AuthenticationTokenValidationResponse>> validateTokenTask = Task.Run(async () =>
             {
                 return await Authentication.GetAccessTokenValidationAsync(accessToken.Token).ConfigureAwait(false);
             });
@@ -95,17 +95,61 @@ namespace RiskOfChaos.Twitch
                 if (validateTask.Status == TaskStatus.Canceled)
                     return;
 
-                if (validateTask.Exception != null)
+                Exception validationException = null;
+                DateTimeStamp? tokenExpiryDate = null;
+
+                if (validateTask.Exception != null || validateTask.Status != TaskStatus.RanToCompletion)
                 {
-                    Log.Error($"Token validation failed: {validateTask.Exception}");
+                    validationException = validateTask.Exception ?? new Exception("Token validation did not complete");
                 }
-                else if (validateTask.Status == TaskStatus.RanToCompletion)
+                else
                 {
-                    AuthenticationTokenValidationResponse validationResponse = validateTask.Result;
+                    Result<AuthenticationTokenValidationResponse> validationResult = validateTask.Result;
+                    if (!validationResult.IsSuccess)
+                    {
+                        validationException = validationResult.Exception;
+                    }
+                    else
+                    {
+                        AuthenticationTokenValidationResponse validationResponse = validationResult.Value;
 
-                    DateTimeStamp tokenExpiryDate = validationResponse.ExpiryDate;
+                        tokenExpiryDate = validationResponse.ExpiryDate;
+                    }
+                }
 
-                    if (tokenExpiryDate.HasPassed || tokenExpiryDate.TimeUntil.TotalMinutes < 10)
+                bool invalidateToken = false;
+                if (!invalidateToken && validationException != null)
+                {
+                    if (validationException is InvalidAccessTokenException)
+                    {
+                        PopupAlertQueue.EnqueueAlert(dialogBox =>
+                        {
+                            dialogBox.headerToken = new SimpleDialogBox.TokenParamsPair("POPUP_TWITCH_USER_TOKEN_EXPIRED_HEADER");
+                            dialogBox.descriptionToken = new SimpleDialogBox.TokenParamsPair("POPUP_TWITCH_USER_TOKEN_EXPIRED_DESCRIPTION");
+
+                            dialogBox.AddCancelButton(CommonLanguageTokens.ok);
+                        });
+                    }
+                    else
+                    {
+                        Log.Error($"Token validation failed: {validationException}");
+
+                        PopupAlertQueue.EnqueueAlert(dialogBox =>
+                        {
+                            dialogBox.headerToken = new SimpleDialogBox.TokenParamsPair("POPUP_TWITCH_LOGIN_VALIDATION_FAILED_GENERIC_HEADER");
+                            dialogBox.descriptionToken = new SimpleDialogBox.TokenParamsPair("POPUP_TWITCH_LOGIN_VALIDATION_FAILED_GENERIC_DESCRIPTION");
+
+                            dialogBox.AddCancelButton(CommonLanguageTokens.ok);
+                        });
+                    }
+
+                    invalidateToken = true;
+                }
+
+                if (!invalidateToken && tokenExpiryDate.HasValue)
+                {
+                    TimeSpan timeUntilExpired = tokenExpiryDate.Value.TimeUntil;
+                    if (timeUntilExpired.TotalMinutes < 10)
                     {
                         PopupAlertQueue.EnqueueAlert(dialogBox =>
                         {
@@ -115,36 +159,33 @@ namespace RiskOfChaos.Twitch
                             dialogBox.AddCancelButton(CommonLanguageTokens.ok);
                         });
 
-                        CurrentAccessToken = TwitchUserAccessToken.Empty;
-
-                        return;
-                    }
-                    else if (tokenExpiryDate.TimeUntil.TotalHours <= 12)
-                    {
-                        PopupAlertQueue.EnqueueAlert(dialogBox =>
-                        {
-                            // Not really correct, but makes sure "0 hour(s)" is not displayed
-                            double hoursRemaining = Math.Max(tokenExpiryDate.TimeUntil.TotalHours, 1);
-
-                            dialogBox.headerToken = new SimpleDialogBox.TokenParamsPair("POPUP_TWITCH_USER_TOKEN_ABOUT_TO_EXPIRE_HEADER");
-                            dialogBox.descriptionToken = new SimpleDialogBox.TokenParamsPair("POPUP_TWITCH_USER_TOKEN_ABOUT_TO_EXPIRE_DESCRIPTION", hoursRemaining.ToString("0"));
-
-                            dialogBox.AddCancelButton(CommonLanguageTokens.ok);
-                        });
-
-                        CurrentAccessToken = TwitchUserAccessToken.Empty;
-
-                        return;
+                        invalidateToken = true;
                     }
                     else
                     {
+                        if (timeUntilExpired.TotalHours <= 12)
+                        {
+                            PopupAlertQueue.EnqueueAlert(dialogBox =>
+                            {
+                                // Not really correct, but makes sure "0 hour(s)" is not displayed
+                                double hoursRemaining = Math.Max(tokenExpiryDate.Value.TimeUntil.TotalHours, 1);
+
+                                dialogBox.headerToken = new SimpleDialogBox.TokenParamsPair("POPUP_TWITCH_USER_TOKEN_ABOUT_TO_EXPIRE_HEADER");
+                                dialogBox.descriptionToken = new SimpleDialogBox.TokenParamsPair("POPUP_TWITCH_USER_TOKEN_ABOUT_TO_EXPIRE_DESCRIPTION", hoursRemaining.ToString("0"));
+
+                                dialogBox.AddCancelButton(CommonLanguageTokens.ok);
+                            });
+                        }
+                        else
+                        {
 #if DEBUG
-                        Log.Debug($"Stored token expires in {tokenExpiryDate.TimeUntil:g}");
+                            Log.Debug($"Stored token expires in {timeUntilExpired:g}");
 #endif
+                        }
                     }
                 }
 
-                if (missingScopes)
+                if (!invalidateToken && missingScopes)
                 {
                     PopupAlertQueue.EnqueueAlert(dialogBox =>
                     {
@@ -154,6 +195,11 @@ namespace RiskOfChaos.Twitch
                         dialogBox.AddCancelButton(CommonLanguageTokens.ok);
                     });
 
+                    invalidateToken = true;
+                }
+
+                if (invalidateToken)
+                {
                     CurrentAccessToken = TwitchUserAccessToken.Empty;
                 }
             }, UnityUpdateTaskScheduler.Instance);
@@ -188,23 +234,37 @@ namespace RiskOfChaos.Twitch
                 }
             }, CommonLanguageTokens.cancel);
 
-            Task<AuthenticationResult> authenticateTokenTask = Task.Run(async () =>
+            Task<Result<AuthenticationResult>> authenticateTokenTask = Task.Run(async () =>
             {
-                string token = await Authentication.AuthenticateUserAccessToken(CombinedScopes, cancelTokenSource.Token).ConfigureAwait(false);
-
-                TwitchUserData user = null;
-
-                AuthenticationTokenValidationResponse validationResponse = await Authentication.GetAccessTokenValidationAsync(token, cancelTokenSource.Token).ConfigureAwait(false);
-                if (validationResponse != null)
+                Result<string> tokenResult = await Authentication.AuthenticateUserAccessToken(CombinedScopes, cancelTokenSource.Token).ConfigureAwait(false);
+                if (!tokenResult.IsSuccess)
                 {
-                    GetUsersResponse getUsersResponse = await StaticTwitchAPI.GetUsers(token, [validationResponse.UserID], [], cancelTokenSource.Token).ConfigureAwait(false);
-                    if (getUsersResponse != null && getUsersResponse.Users.Length > 0)
-                    {
-                        user = getUsersResponse.Users[0];
-                    }
+                    return new Result<AuthenticationResult>(tokenResult.Exception);
                 }
 
-                return new AuthenticationResult(token, user);
+                string token = tokenResult.Value;
+
+                Result<AuthenticationTokenValidationResponse> validationResult = await Authentication.GetAccessTokenValidationAsync(token, cancelTokenSource.Token).ConfigureAwait(false);
+                if (!validationResult.IsSuccess)
+                {
+                    return new Result<AuthenticationResult>(validationResult.Exception);
+                }
+
+                AuthenticationTokenValidationResponse validationResponse = validationResult.Value;
+
+                Result<GetUsersResponse> getUsersResult = await StaticTwitchAPI.GetUsers(token, [validationResponse.UserID], [], cancelTokenSource.Token).ConfigureAwait(false);
+                if (!getUsersResult.IsSuccess)
+                {
+                    return new Result<AuthenticationResult>(getUsersResult.Exception);
+                }
+
+                GetUsersResponse getUsersResponse = getUsersResult.Value;
+                if (getUsersResponse.Users.Length == 0)
+                {
+                    return new Result<AuthenticationResult>(new Exception("No user data was returned"));
+                }
+
+                return new AuthenticationResult(token, getUsersResponse.Users[0]);
             }, cancelTokenSource.Token);
 
             authenticateTokenTask.ContinueWith(task =>
@@ -213,35 +273,46 @@ namespace RiskOfChaos.Twitch
 
                 GameObject.Destroy(authenticatingDialog.rootObject);
 
-                TwitchUserAccessToken accessToken = TwitchUserAccessToken.Empty;
-                switch (task.Status)
+                if (task.Status == TaskStatus.Canceled)
+                    return;
+
+                Exception exception = null;
+                TwitchUserAccessToken accessToken;
+
+                if (task.Exception != null || task.Status != TaskStatus.RanToCompletion)
                 {
-                    case TaskStatus.RanToCompletion:
-                        accessToken = new TwitchUserAccessToken(CombinedScopes, task.Result.Token);
+                    exception = task.Exception ?? new Exception("Authentication did not complete");
+                }
+                else if (!task.Result.IsSuccess)
+                {
+                    exception = task.Result.Exception;
+                }
 
-                        SimpleDialogBox authenticationCompleteDialog = SimpleDialogBox.Create();
+                if (exception != null)
+                {
+                    Log.Error_NoCallerPrefix($"Error authenticating token: {exception}");
 
-                        authenticationCompleteDialog.headerToken = new SimpleDialogBox.TokenParamsPair("TWITCH_USER_TOKEN_AUTHENTICATED_HEADER");
-                        authenticationCompleteDialog.descriptionToken = new SimpleDialogBox.TokenParamsPair("TWITCH_USER_TOKEN_AUTHENTICATED_DESCRIPTION", task.Result.User?.UserDisplayName);
+                    SimpleDialogBox errorDialog = SimpleDialogBox.Create();
 
-                        authenticationCompleteDialog.AddCancelButton(CommonLanguageTokens.ok);
-                        break;
-                    case TaskStatus.Canceled:
-                        accessToken = CurrentAccessToken;
-                        break;
-                    case TaskStatus.Faulted:
-                        Log.Error_NoCallerPrefix(task.Exception);
+                    errorDialog.headerToken = new SimpleDialogBox.TokenParamsPair("TWITCH_USER_TOKEN_AUTHENTICATION_ERROR_HEADER");
+                    errorDialog.descriptionToken = new SimpleDialogBox.TokenParamsPair("TWITCH_USER_TOKEN_AUTHENTICATION_ERROR_DESCRIPTION");
 
-                        SimpleDialogBox errorDialog = SimpleDialogBox.Create();
+                    errorDialog.AddCancelButton(CommonLanguageTokens.ok);
 
-                        errorDialog.headerToken = new SimpleDialogBox.TokenParamsPair("TWITCH_USER_TOKEN_AUTHENTICATION_ERROR_HEADER");
-                        errorDialog.descriptionToken = new SimpleDialogBox.TokenParamsPair("TWITCH_USER_TOKEN_AUTHENTICATION_ERROR_DESCRIPTION");
+                    accessToken = TwitchUserAccessToken.Empty;
+                }
+                else
+                {
+                    AuthenticationResult authenticationResult = task.Result.Value;
 
-                        errorDialog.AddCancelButton(CommonLanguageTokens.ok);
-                        break;
-                    default:
-                        Log.Error($"Unexpected task status {task.Status}");
-                        break;
+                    accessToken = new TwitchUserAccessToken(CombinedScopes, authenticationResult.Token);
+
+                    SimpleDialogBox authenticationCompleteDialog = SimpleDialogBox.Create();
+
+                    authenticationCompleteDialog.headerToken = new SimpleDialogBox.TokenParamsPair("TWITCH_USER_TOKEN_AUTHENTICATED_HEADER");
+                    authenticationCompleteDialog.descriptionToken = new SimpleDialogBox.TokenParamsPair("TWITCH_USER_TOKEN_AUTHENTICATED_DESCRIPTION", authenticationResult.User?.UserDisplayName);
+
+                    authenticationCompleteDialog.AddCancelButton(CommonLanguageTokens.ok);
                 }
 
                 CurrentAccessToken = accessToken;
