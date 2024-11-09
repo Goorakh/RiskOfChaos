@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ModificationController.Projectile;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Projectile;
 using System.Collections;
@@ -8,7 +9,7 @@ namespace RiskOfChaos.Patches
 {
     static class ProjectileMultiSpawnHook
     {
-        static bool _patchDisabled = false;
+        static bool _isFiringRepeat;
 
         [SystemInitializer]
         static void Init()
@@ -20,7 +21,7 @@ namespace RiskOfChaos.Patches
         {
             orig(self, fireProjectileInfo);
 
-            if (_patchDisabled)
+            if (_isFiringRepeat)
                 return;
 
             ProjectileModificationManager projectileModificationManager = ProjectileModificationManager.Instance;
@@ -32,7 +33,7 @@ namespace RiskOfChaos.Patches
                 return;
 
             // Don't allow procs to repeat
-            if (!fireProjectileInfo.procChainMask.Equals(default))
+            if (fireProjectileInfo.procChainMask.HasAnyProc())
                 return;
 
             IEnumerator spawnExtraProjectiles(FireProjectileInfo fireProjectileInfo, int spawnCount)
@@ -46,14 +47,14 @@ namespace RiskOfChaos.Patches
                     if (startingStage != Stage.instance || !ProjectileManager.instance)
                         break;
 
-                    _patchDisabled = true;
+                    _isFiringRepeat = true;
                     try
                     {
                         ProjectileManager.instance.FireProjectile(fireProjectileInfo);
                     }
                     finally
                     {
-                        _patchDisabled = false;
+                        _isFiringRepeat = false;
                     }
                 }
             }

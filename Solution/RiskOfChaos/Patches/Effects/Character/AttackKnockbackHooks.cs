@@ -30,7 +30,7 @@ namespace RiskOfChaos.Patches.Effects.Character
             if (!ChaosEffectTracker.Instance || !ChaosEffectTracker.Instance.IsTimedEffectActive(AttackKnockback.EffectInfo))
                 return;
 
-            if (!self.owner || self.procChainMask.mask != 0)
+            if (!self.owner || self.procChainMask.HasAnyProc())
                 return;
 
             CharacterBody ownerBody = self.owner.GetComponent<CharacterBody>();
@@ -54,7 +54,7 @@ namespace RiskOfChaos.Patches.Effects.Character
             if (orbDirection.sqrMagnitude == 0f)
                 return;
 
-            if (orb.TryGetProcChainMask(out ProcChainMask orbProcChainMask) && orbProcChainMask.mask != 0)
+            if (orb.TryGetProcChainMask(out ProcChainMask orbProcChainMask) && orbProcChainMask.HasAnyProc())
                 return;
 
             CharacterBody attacker = orb.GetAttacker();
@@ -86,7 +86,7 @@ namespace RiskOfChaos.Patches.Effects.Character
             if (!ChaosEffectTracker.Instance || !ChaosEffectTracker.Instance.IsTimedEffectActive(AttackKnockback.EffectInfo))
                 return;
 
-            if (!fireProjectileInfo.owner || fireProjectileInfo.procChainMask.mask != 0)
+            if (!fireProjectileInfo.owner || fireProjectileInfo.procChainMask.HasAnyProc())
                 return;
 
             CharacterBody ownerBody = fireProjectileInfo.owner.GetComponent<CharacterBody>();

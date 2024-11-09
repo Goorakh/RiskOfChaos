@@ -67,14 +67,10 @@ namespace RiskOfChaos.Patches
         {
             get
             {
-                if (ProjectileModificationManager.Instance)
-                {
-                    return ProjectileModificationManager.Instance.OrbBounceCount;
-                }
-                else
-                {
+                if (!ProjectileModificationManager.Instance)
                     return 0;
-                }
+
+                return ProjectileModificationManager.Instance.OrbBounceCount;
             }
         }
 
@@ -148,7 +144,7 @@ namespace RiskOfChaos.Patches
             if (!isEnabled || !OrbManager.instance || !orbInstance.target)
                 return;
 
-            if (orbInstance.TryGetProcChainMask(out ProcChainMask orbProcChain) && !orbProcChain.Equals(default))
+            if (orbInstance.TryGetProcChainMask(out ProcChainMask orbProcChain) && orbProcChain.HasAnyProc())
                 return;
 
             if (bounceChain == null)

@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ModificationController.Projectile;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Collections;
 using UnityEngine;
@@ -33,7 +34,7 @@ namespace RiskOfChaos.Patches
                 return;
 
             // Don't allow procs to repeat
-            if (!self.procChainMask.Equals(default))
+            if (self.procChainMask.HasAnyProc())
                 return;
 
             static IEnumerator spawnExtraBullets(BulletAttack bulletAttack, Vector3 direction, int muzzleIndex, int spawnCount)

@@ -10,7 +10,7 @@ namespace RiskOfChaos.Patches
 {
     static class OrbMultiSpawnHook
     {
-        static bool _isAddingRepeat;
+        static bool _isFiringRepeat;
 
         [SystemInitializer]
         static void Init()
@@ -18,24 +18,28 @@ namespace RiskOfChaos.Patches
             On.RoR2.Orbs.OrbManager.AddOrb += OrbManager_AddOrb;
         }
 
+        static bool shouldSpawnRepeatOrbs(Orb orb)
+        {
+            if (_isFiringRepeat)
+                return false;
+
+            if (orb == null || OrbUtils.IsTransferOrb(orb))
+                return false;
+
+            if (!ProjectileModificationManager.Instance || ProjectileModificationManager.Instance.AdditionalSpawnCount <= 0)
+                return false;
+
+            if (orb.TryGetProcChainMask(out ProcChainMask procChainMask) && procChainMask.HasAnyProc())
+                return false;
+
+            return true;
+        }
+
         static void OrbManager_AddOrb(On.RoR2.Orbs.OrbManager.orig_AddOrb orig, OrbManager self, Orb orb)
         {
-            bool shouldSpawnAdditional = !_isAddingRepeat
-                                         && orb != null
-                                         && !OrbUtils.IsTransferOrb(orb)
-                                         && ProjectileModificationManager.Instance
-                                         && ProjectileModificationManager.Instance.AdditionalSpawnCount > 0
-                                         // Don't allow procs to repeat
-                                         && (!orb.TryGetProcChainMask(out ProcChainMask orbProcChain) || orbProcChain.Equals(default));
-
-            // Clone original orb to use as a template, otherwise changes to the original instance will affect all the repeat orbs
-            Orb orbTemplate = shouldSpawnAdditional ? OrbUtils.Clone(orb) : null;
-
-            orig(self, orb);
-
-            if (shouldSpawnAdditional)
+            if (shouldSpawnRepeatOrbs(orb))
             {
-                IEnumerator spawnExtraOrbs(Orb orbTemplate, int spawnCount)
+                static IEnumerator spawnExtraOrbs(Orb orbTemplate, int spawnCount)
                 {
                     Stage startingStage = Stage.instance;
 
@@ -50,20 +54,22 @@ namespace RiskOfChaos.Patches
                         if (!orbTemplate.target)
                             break;
 
-                        _isAddingRepeat = true;
+                        _isFiringRepeat = true;
                         try
                         {
                             OrbManager.instance.AddOrb(OrbUtils.Clone(orbTemplate));
                         }
                         finally
                         {
-                            _isAddingRepeat = false;
+                            _isFiringRepeat = false;
                         }
                     }
                 }
 
-                ProjectileModificationManager.Instance.StartCoroutine(spawnExtraOrbs(orbTemplate, ProjectileModificationManager.Instance.AdditionalSpawnCount));
+                ProjectileModificationManager.Instance.StartCoroutine(spawnExtraOrbs(orb, ProjectileModificationManager.Instance.AdditionalSpawnCount));
             }
+
+            orig(self, orb);
         }
     }
 }

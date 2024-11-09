@@ -39,14 +39,10 @@ namespace RiskOfChaos.Patches
         {
             get
             {
-                if (ProjectileModificationManager.Instance)
-                {
-                    return ProjectileModificationManager.Instance.BulletBounceCount;
-                }
-                else
-                {
+                if (!ProjectileModificationManager.Instance)
                     return 0;
-                }
+
+                return ProjectileModificationManager.Instance.BulletBounceCount;
             }
         }
 
