@@ -1,5 +1,10 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* All Items are Void Potentials:
+  * Fixed void potential visuals being partially invisible
+
 **2.0.3 Changes:**
 
 * Added 1 effect:
