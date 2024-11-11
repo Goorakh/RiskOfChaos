@@ -33,9 +33,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
         public void UpdateVotes(int optionVotes, int totalVotes)
         {
-            bool votesChanged = false;
-
-            votesChanged |= VoteCount != optionVotes;
+            bool changedVoteCount = VoteCount != optionVotes;
             VoteCount = optionVotes;
 
             float votePercentage = 0f;
@@ -44,10 +42,10 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
                 votePercentage = VoteCount / (float)totalVotes;
             }
 
-            votesChanged |= VotePercentage != votePercentage;
+            bool changedVotePercentage = VotePercentage != votePercentage;
             VotePercentage = votePercentage;
 
-            if (votesChanged)
+            if (changedVoteCount || changedVotePercentage)
             {
                 OnVotesChanged?.Invoke();
             }

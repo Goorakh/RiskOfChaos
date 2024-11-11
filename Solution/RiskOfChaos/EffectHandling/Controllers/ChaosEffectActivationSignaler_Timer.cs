@@ -195,7 +195,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void Update()
         {
-            if (!canDispatchEffects)
+            if (!CanDispatchEffects)
                 return;
 
             _effectDispatchTimer.Update();

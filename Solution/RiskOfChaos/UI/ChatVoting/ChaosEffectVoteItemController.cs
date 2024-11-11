@@ -78,6 +78,12 @@ namespace RiskOfChaos.UI.ChatVoting
 
         void OnEnable()
         {
+            Configs.ChatVoting.VoteDisplayBackgroundColor.SettingChanged += onVoteDisplayBackgroundColorChanged;
+            updateBackdropColor();
+
+            Configs.ChatVoting.VoteDisplayTextColor.SettingChanged += onVoteDisplayTextColorChanged;
+            updateTextColor();
+
             Language.onCurrentLanguageChanged += markVoteDisplayDirty;
 
             refreshTextDisplay();
@@ -85,23 +91,14 @@ namespace RiskOfChaos.UI.ChatVoting
 
         void OnDisable()
         {
+            Configs.ChatVoting.VoteDisplayBackgroundColor.SettingChanged -= onVoteDisplayBackgroundColorChanged;
+            Configs.ChatVoting.VoteDisplayTextColor.SettingChanged -= onVoteDisplayTextColorChanged;
+
             Language.onCurrentLanguageChanged -= markVoteDisplayDirty;
-        }
-
-        void Start()
-        {
-            Configs.ChatVoting.VoteDisplayBackgroundColor.SettingChanged += onVoteDisplayBackgroundColorChanged;
-            updateBackdropColor();
-
-            Configs.ChatVoting.VoteDisplayTextColor.SettingChanged += onVoteDisplayTextColorChanged;
-            updateTextColor();
         }
 
         void OnDestroy()
         {
-            Configs.ChatVoting.VoteDisplayBackgroundColor.SettingChanged -= onVoteDisplayBackgroundColorChanged;
-            Configs.ChatVoting.VoteDisplayTextColor.SettingChanged -= onVoteDisplayTextColorChanged;
-
             unsubscribe(_voteOption);
         }
 
@@ -145,14 +142,13 @@ namespace RiskOfChaos.UI.ChatVoting
         {
             if (_voteDisplayDirty)
             {
+                _voteDisplayDirty = false;
                 refreshTextDisplay();
             }
         }
 
         void refreshTextDisplay()
         {
-            _voteDisplayDirty = false;
-
             string token = string.Empty;
             object[] formatArgs = [];
 

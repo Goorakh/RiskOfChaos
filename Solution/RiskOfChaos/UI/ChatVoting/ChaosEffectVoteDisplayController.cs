@@ -1,10 +1,10 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
+using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.Controllers.ChatVoting;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2.UI;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -122,76 +122,143 @@ namespace RiskOfChaos.UI.ChatVoting
             return chaosEffectVoteDisplay.AddComponent<ChaosEffectVoteDisplayController>();
         }
 
-        public static event Action<ChaosEffectVoteDisplayController> OnDisplayControllerCreated;
+        bool _voteDisplaysDirty;
 
-        ChaosEffectVoteItemController[] _effectVoteItemControllers = [];
+        UIElementAllocator<ChaosEffectVoteItemController> _effectVoteDisplaysAllocator;
 
         Vector3 _defaultScale;
+
+        ChaosEffectActivationSignaler_ChatVote _chatVoteActivationSignaler;
+        public ChaosEffectActivationSignaler_ChatVote ChatVoteActivationSignaler
+        {
+            get
+            {
+                return _chatVoteActivationSignaler;
+            }
+            private set
+            {
+                if (_chatVoteActivationSignaler == value)
+                    return;
+
+                if (_chatVoteActivationSignaler)
+                {
+                    _chatVoteActivationSignaler.OnVoteOptionsChanged -= markVoteDisplaysDirty;
+                }
+
+                _chatVoteActivationSignaler = value;
+
+                if (_chatVoteActivationSignaler)
+                {
+                    _chatVoteActivationSignaler.OnVoteOptionsChanged += markVoteDisplaysDirty;
+                }
+
+                markVoteDisplaysDirty();
+            }
+        }
 
         void Awake()
         {
             _defaultScale = transform.localScale;
+
+            _effectVoteDisplaysAllocator = new UIElementAllocator<ChaosEffectVoteItemController>(GetComponent<RectTransform>(), RoCContent.LocalPrefabs.ChaosEffectUIVoteItem);
         }
 
         void OnEnable()
         {
-            OnDisplayControllerCreated?.Invoke(this);
+            Configs.ChatVoting.VoteDisplayScaleMultiplier.SettingChanged += onScaleMultiplierConfigChanged;
+            updateScale();
 
-            Configs.ChatVoting.VoteDisplayScaleMultiplier.SettingChanged += refreshScale;
-            setScale(Configs.ChatVoting.VoteDisplayScaleMultiplier.Value);
+            _voteDisplaysDirty = false;
+            updateVoteDisplays();
         }
 
         void OnDisable()
         {
-            Configs.ChatVoting.VoteDisplayScaleMultiplier.SettingChanged -= refreshScale;
+            Configs.ChatVoting.VoteDisplayScaleMultiplier.SettingChanged -= onScaleMultiplierConfigChanged;
+
+            ChatVoteActivationSignaler = null;
+            setVoteDisplays([]);
         }
 
-        void refreshScale(object sender, ConfigChangedArgs<float> args)
+        void FixedUpdate()
         {
-            setScale(args.NewValue);
-        }
-
-        void setScale(float scale)
-        {
-            transform.localScale = _defaultScale * scale;
-        }
-
-        public void RemoveAllVoteDisplays()
-        {
-            foreach (ChaosEffectVoteItemController voteItemController in _effectVoteItemControllers)
+            if (!ChatVoteActivationSignaler || !ChatVoteActivationSignaler.enabled)
             {
-                if (voteItemController)
+                ChaosEffectActivationSignaler_ChatVote chatVoteActivationSignaler = null;
+                foreach (ChaosEffectActivationSignaler effectActivationSignaler in ChaosEffectActivationSignaler.InstancesList)
                 {
-                    Destroy(voteItemController.gameObject);
+                    if (effectActivationSignaler is ChaosEffectActivationSignaler_ChatVote chatVoteSignaler)
+                    {
+                        chatVoteActivationSignaler = chatVoteSignaler;
+                        break;
+                    }
                 }
+
+                ChatVoteActivationSignaler = chatVoteActivationSignaler;
             }
 
-            _effectVoteItemControllers = [];
-        }
-
-        public void SetVoteDisplayAlpha(float alpha)
-        {
-            foreach (ChaosEffectVoteItemController voteItemController in _effectVoteItemControllers)
+            if (_voteDisplaysDirty)
             {
-                if (voteItemController)
+                _voteDisplaysDirty = false;
+                updateVoteDisplays();
+            }
+
+            if (_effectVoteDisplaysAllocator.elements.Count > 0)
+            {
+                float voteDisplayAlpha = 1f;
+                if (ChatVoteActivationSignaler && ChatVoteActivationSignaler.CanDispatchEffects)
                 {
-                    voteItemController.SetAlpha(alpha);
+                    float timeRemaining = ChatVoteActivationSignaler.GetNextEffectActivationTime().TimeUntilClamped;
+
+                    const float START_FADE_TIME = 2.5f;
+                    voteDisplayAlpha = Mathf.Clamp01(timeRemaining / START_FADE_TIME);
+                }
+
+                foreach (ChaosEffectVoteItemController voteItemController in _effectVoteDisplaysAllocator.elements)
+                {
+                    if (voteItemController)
+                    {
+                        voteItemController.SetAlpha(voteDisplayAlpha);
+                    }
                 }
             }
         }
 
-        public void DisplayVote(EffectVoteInfo[] voteOptions)
+        void markVoteDisplaysDirty()
         {
-            RemoveAllVoteDisplays();
-
-            _effectVoteItemControllers = Array.ConvertAll(voteOptions, createVoteItemControllerForVote);
+            _voteDisplaysDirty = true;
         }
 
-        ChaosEffectVoteItemController createVoteItemControllerForVote(EffectVoteInfo voteOption)
+        void onScaleMultiplierConfigChanged(object sender, ConfigChangedArgs<float> args)
         {
-            ChaosEffectVoteItemController voteItemController = Instantiate(RoCContent.LocalPrefabs.ChaosEffectUIVoteItem, transform).GetComponent<ChaosEffectVoteItemController>();
-            voteItemController.VoteOption = voteOption;
-            return voteItemController;
+            updateScale();
+        }
+
+        void updateScale()
+        {
+            transform.localScale = _defaultScale * Configs.ChatVoting.VoteDisplayScaleMultiplier.Value;
+        }
+
+        void updateVoteDisplays()
+        {
+            EffectVoteInfo[] voteOptions = [];
+            if (ChatVoteActivationSignaler)
+            {
+                voteOptions = ChatVoteActivationSignaler.GetCurrentVoteOptions();
+            }
+
+            setVoteDisplays(voteOptions);
+        }
+
+        void setVoteDisplays(EffectVoteInfo[] voteOptions)
+        {
+            _effectVoteDisplaysAllocator.AllocateElements(voteOptions.Length);
+
+            for (int i = 0; i < voteOptions.Length; i++)
+            {
+                ChaosEffectVoteItemController voteDisplayController = _effectVoteDisplaysAllocator.elements[i];
+                voteDisplayController.VoteOption = voteOptions[i];
+            }
         }
     }
 }

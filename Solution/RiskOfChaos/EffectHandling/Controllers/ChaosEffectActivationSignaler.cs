@@ -219,7 +219,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
         }
 
-        protected virtual bool canDispatchEffects => !EffectDispatchingDisabled;
+        public virtual bool CanDispatchEffects => !EffectDispatchingDisabled;
 
         public abstract RunTimeStamp GetNextEffectActivationTime();
 

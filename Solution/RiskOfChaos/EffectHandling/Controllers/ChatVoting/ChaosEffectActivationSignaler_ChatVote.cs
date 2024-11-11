@@ -2,8 +2,6 @@
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.SaveHandling;
 using RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers;
-using RiskOfChaos.UI;
-using RiskOfChaos.UI.ChatVoting;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -21,7 +19,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
         static int numVoteOptions => Configs.ChatVoting.NumEffectOptions.Value + (Configs.ChatVoting.IncludeRandomEffectInVote.Value ? 1 : 0);
 
-        public event Action OnVotingStarted;
+        public event Action OnVoteOptionsChanged;
 
         protected abstract Configs.ChatVoting.ChatVotingMode votingMode { get; }
 
@@ -122,29 +120,24 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
                 if (effectVotes.Length > 0)
                 {
-                    _effectVoteSelection.NumOptions = effectVotes.Length;
-                    _effectVoteSelection.StartVote(effectVotes);
+                    startVote(effectVotes);
 
                     for (int i = 0; i < serializedVotes.Length; i++)
                     {
                         foreach (string userId in serializedVotes[i].UserVotes)
                         {
-                            _effectVoteSelection.SetVote(userId, i);
+                            try
+                            {
+                                _effectVoteSelection.SetVote(userId, i);
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Error_NoCallerPrefix($"Failed to set vote index {i} from user {userId}: {e}");
+                            }
                         }
                     }
 
                     _voteOptionsDirty = true;
-
-                    if (ChaosUIController.Instance)
-                    {
-                        ChaosEffectVoteDisplayController effectVoteDisplayController = ChaosUIController.Instance.EffectVoteDisplayController;
-                        if (effectVoteDisplayController)
-                        {
-                            effectVoteDisplayController.DisplayVote(effectVotes);
-                        }
-                    }
-
-                    OnVotingStarted?.Invoke();
                 }
             }
         }
@@ -187,8 +180,11 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
         protected void processVoteMessage(string userId, string message)
         {
+            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(message))
+                return;
+
             if (_effectVoteSelection.IsVoteActive &&
-                byte.TryParse(message, out byte voteNumber))
+                int.TryParse(message.Trim(), out int voteNumber))
             {
                 int voteOptionIndex = getVoteIndex(voteNumber);
 
@@ -225,27 +221,32 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             Configs.General.TimeBetweenEffects.SettingChanged += onTimeBetweenEffectsChanged;
             Configs.General.DisableEffectDispatching.SettingChanged += onDisableEffectDispatchingChanged;
             Configs.ChatVoting.WinnerSelectionMode.SettingChanged += onVoteWinnerSelectionModeChanged;
+        }
 
-            ChaosEffectVoteDisplayController.OnDisplayControllerCreated += onEffectDisplayControllerCreated;
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+
+            Configs.General.TimeBetweenEffects.SettingChanged -= onTimeBetweenEffectsChanged;
+            Configs.General.DisableEffectDispatching.SettingChanged -= onDisableEffectDispatchingChanged;
+            Configs.ChatVoting.WinnerSelectionMode.SettingChanged -= onVoteWinnerSelectionModeChanged;
+
+            if (_voteTimer != null)
+            {
+                _voteTimer.OnActivate -= onVoteEnd;
+                _voteTimer = null;
+            }
+
+            endVote();
+
+            _rng = null;
         }
 
         void onDisableEffectDispatchingChanged(object s, ConfigChangedArgs<bool> args)
         {
             if (args.NewValue)
             {
-                if (_effectVoteSelection.IsVoteActive)
-                {
-                    _effectVoteSelection.EndVote();
-
-                    if (ChaosUIController.Instance)
-                    {
-                        ChaosEffectVoteDisplayController effectVoteDisplayController = ChaosUIController.Instance.EffectVoteDisplayController;
-                        if (effectVoteDisplayController)
-                        {
-                            effectVoteDisplayController.RemoveAllVoteDisplays();
-                        }
-                    }
-                }
+                endVote();
             }
             else
             {
@@ -279,66 +280,10 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
                 _voteOptionsDirty = false;
             }
 
-            if (_effectVoteSelection.IsVoteActive)
-            {
-                const float START_FADE_TIME = 2.5f;
-
-                if (ChaosUIController.Instance)
-                {
-                    ChaosEffectVoteDisplayController effectVoteDisplayController = ChaosUIController.Instance.EffectVoteDisplayController;
-                    if (effectVoteDisplayController)
-                    {
-                        float voteTimeRemaining = _voteTimer.GetNextActivationTime().TimeUntilClamped;
-                        if (voteTimeRemaining <= START_FADE_TIME && canDispatchEffects)
-                        {
-                            effectVoteDisplayController.SetVoteDisplayAlpha(Util.Remap(voteTimeRemaining, 0f, START_FADE_TIME, 0f, 1f));
-                        }
-                        else
-                        {
-                            effectVoteDisplayController.SetVoteDisplayAlpha(1f);
-                        }
-                    }
-                }
-            }
-
-            if (canDispatchEffects)
+            if (CanDispatchEffects)
             {
                 _voteTimer.Update();
             }
-        }
-
-        protected override void OnDisable()
-        {
-            base.OnDisable();
-
-            Configs.General.TimeBetweenEffects.SettingChanged -= onTimeBetweenEffectsChanged;
-            Configs.General.DisableEffectDispatching.SettingChanged -= onDisableEffectDispatchingChanged;
-            Configs.ChatVoting.WinnerSelectionMode.SettingChanged -= onVoteWinnerSelectionModeChanged;
-
-            if (_voteTimer != null)
-            {
-                _voteTimer.OnActivate -= onVoteEnd;
-                _voteTimer = null;
-            }
-
-            if (_effectVoteSelection != null)
-            {
-                _effectVoteSelection.EndVote();
-                _effectVoteSelection = null;
-            }
-
-            _rng = null;
-
-            if (ChaosUIController.Instance)
-            {
-                ChaosEffectVoteDisplayController effectVoteDisplayController = ChaosUIController.Instance.EffectVoteDisplayController;
-                if (effectVoteDisplayController)
-                {
-                    effectVoteDisplayController.RemoveAllVoteDisplays();
-                }
-            }
-
-            ChaosEffectVoteDisplayController.OnDisplayControllerCreated -= onEffectDisplayControllerCreated;
         }
 
         void onTimeBetweenEffectsChanged(object s, ConfigChangedArgs<float> args)
@@ -365,7 +310,6 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             _voteStartCount++;
 
             int numOptions = numVoteOptions;
-            _effectVoteSelection.NumOptions = numOptions;
 
             WeightedSelection<ChaosEffectInfo> effectSelection = ChaosEffectCatalog.GetAllActivatableEffects(new EffectCanActivateContext(_voteTimer.GetNextActivationTime()));
 
@@ -374,44 +318,44 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             {
                 int voteNumber = getVoteNumber(i);
 
+                EffectVoteInfo voteInfo = new EffectVoteInfo(Nothing.EffectInfo, voteNumber);
                 if (Configs.ChatVoting.IncludeRandomEffectInVote.Value && i == numOptions - 1)
                 {
-                    voteOptions[i] = EffectVoteInfo.Random(voteNumber);
+                    voteInfo = EffectVoteInfo.Random(voteNumber);
                 }
                 else
                 {
-                    if (effectSelection.Count <= 0)
+                    if (effectSelection.Count > 0)
                     {
-                        Log.Warning($"No activatable effects remain for vote {voteNumber}");
-                        voteOptions[i] = new EffectVoteInfo(Nothing.EffectInfo, voteNumber);
+                        voteInfo = new EffectVoteInfo(effectSelection.GetAndRemoveRandom(_rng), voteNumber);
                     }
                     else
                     {
-                        voteOptions[i] = new EffectVoteInfo(effectSelection.GetAndRemoveRandom(_rng), voteNumber);
+                        Log.Warning($"No activatable effects remain for vote {voteNumber}");
                     }
                 }
+
+                voteOptions[i] = voteInfo;
             }
 
-            _effectVoteSelection.StartVote(voteOptions);
-
-            if (ChaosUIController.Instance)
-            {
-                ChaosEffectVoteDisplayController effectVoteDisplayController = ChaosUIController.Instance.EffectVoteDisplayController;
-                if (effectVoteDisplayController)
-                {
-                    effectVoteDisplayController.DisplayVote(voteOptions);
-                }
-            }
-
-            OnVotingStarted?.Invoke();
+            startVote(voteOptions);
         }
 
-        void onEffectDisplayControllerCreated(ChaosEffectVoteDisplayController effectVoteDisplayController)
+        void startVote(EffectVoteInfo[] voteOptions)
         {
-            if (_effectVoteSelection.IsVoteActive)
-            {
-                effectVoteDisplayController.DisplayVote(_effectVoteSelection.GetVoteOptions());
-            }
+            _effectVoteSelection.NumOptions = voteOptions.Length;
+            _effectVoteSelection.StartVote(voteOptions);
+
+            OnVoteOptionsChanged?.Invoke();
+        }
+
+        void endVote()
+        {
+            if (_effectVoteSelection == null || !_effectVoteSelection.IsVoteActive)
+                return;
+
+            _effectVoteSelection.EndVote();
+            OnVoteOptionsChanged?.Invoke();
         }
 
         void onVoteEnd(RunTimeStamp activationTime)
@@ -429,6 +373,8 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
                 }
             }
 
+            endVote();
+
             beginNextVote();
         }
 
@@ -438,9 +384,15 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             ChaosEffectDispatchArgs dispatchArgs;
             if (voteResult.IsRandom)
             {
-                HashSet<ChaosEffectInfo> voteOptionEffects = new HashSet<ChaosEffectInfo>(_effectVoteSelection.GetVoteOptions()
-                                                                                                              .Select(vote => vote.EffectInfo)
-                                                                                                              .Where(effect => effect != null));
+                EffectVoteInfo[] voteOptions = _effectVoteSelection.GetVoteOptions();
+                HashSet<ChaosEffectInfo> voteOptionEffects = new HashSet<ChaosEffectInfo>(voteOptions.Length);
+                foreach (EffectVoteInfo voteInfo in voteOptions)
+                {
+                    if (voteInfo.EffectInfo != null)
+                    {
+                        voteOptionEffects.Add(voteInfo.EffectInfo);
+                    }
+                }
 
                 effectInfo = ChaosEffectCatalog.PickActivatableEffect(_rng, EffectCanActivateContext.Now, voteOptionEffects);
 
@@ -464,9 +416,12 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             signalEffectDispatch(effectInfo, dispatchArgs);
         }
 
-        public bool CurrentVoteContains(ChaosEffectInfo effectInfo)
+        public EffectVoteInfo[] GetCurrentVoteOptions()
         {
-            return _effectVoteSelection != null && _effectVoteSelection.IsVoteActive && _effectVoteSelection.GetVoteOptions().Any(voteInfo => voteInfo.EffectInfo == effectInfo);
+            if (_effectVoteSelection == null || !_effectVoteSelection.IsVoteActive)
+                return [];
+
+            return _effectVoteSelection.GetVoteOptions();
         }
 
         public override RunTimeStamp GetNextEffectActivationTime()
