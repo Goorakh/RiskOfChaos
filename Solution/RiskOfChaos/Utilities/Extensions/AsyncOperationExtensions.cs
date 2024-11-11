@@ -51,7 +51,7 @@ namespace RiskOfChaos.Utilities.Extensions
 #if DEBUG
             StackTrace stackTrace = new StackTrace();
 #endif
-            handle.WaitForCompletion();
+
             handle.Completed += handle =>
             {
                 if (handle.Status == AsyncOperationStatus.Failed)
