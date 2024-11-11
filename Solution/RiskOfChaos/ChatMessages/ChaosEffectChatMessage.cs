@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Formatting;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using UnityEngine.Networking;
 
@@ -16,25 +17,23 @@ namespace RiskOfChaos.ChatMessages
         {
         }
 
-        public ChaosEffectChatMessage(string tokenFormat, ChaosEffectInfo effectInfo, EffectNameFormatFlags formatFlags)
+        public ChaosEffectChatMessage(string tokenFormat, ChaosEffectIndex effectIndex, EffectNameFormatter nameFormatter, EffectNameFormatFlags formatFlags)
         {
             TokenFormat = tokenFormat;
-            EffectIndex = effectInfo.EffectIndex;
-            EffectNameFormatter = effectInfo.LocalDisplayNameFormatter;
+            EffectIndex = effectIndex;
+            EffectNameFormatter = nameFormatter;
             EffectNameFormatFlags = formatFlags;
+        }
+
+        public ChaosEffectChatMessage(string tokenFormat, ChaosEffectIndex effectIndex, EffectNameFormatFlags formatFlags) : this(tokenFormat, effectIndex, ChaosEffectCatalog.GetEffectStaticNameFormatter(effectIndex), formatFlags)
+        {
         }
 
         public override string ConstructChatString()
         {
             ChaosEffectInfo effectInfo = ChaosEffectCatalog.GetEffectInfo(EffectIndex);
 
-            string effectDisplayName = "???";
-            if (effectInfo != null)
-            {
-                effectDisplayName = effectInfo.GetDisplayName(EffectNameFormatter, EffectNameFormatFlags);
-            }
-
-            return Language.GetStringFormatted(TokenFormat, effectDisplayName);
+            return Language.GetStringFormatted(TokenFormat, EffectNameFormatter.GetEffectDisplayName(effectInfo, EffectNameFormatFlags));
         }
 
         public override void Serialize(NetworkWriter writer)
@@ -42,7 +41,7 @@ namespace RiskOfChaos.ChatMessages
             base.Serialize(writer);
 
             writer.Write(TokenFormat);
-            writer.WritePackedIndex32((int)EffectIndex);
+            writer.WriteChaosEffectIndex(EffectIndex);
             writer.Write(EffectNameFormatter);
             writer.WritePackedUInt32((uint)EffectNameFormatFlags);
         }
@@ -52,7 +51,7 @@ namespace RiskOfChaos.ChatMessages
             base.Deserialize(reader);
 
             TokenFormat = reader.ReadString();
-            EffectIndex = (ChaosEffectIndex)reader.ReadPackedIndex32();
+            EffectIndex = reader.ReadChaosEffectIndex();
             EffectNameFormatter = reader.ReadEffectNameFormatter();
             EffectNameFormatFlags = (EffectNameFormatFlags)reader.ReadPackedUInt32();
         }

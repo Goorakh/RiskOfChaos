@@ -271,15 +271,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
                         if (_effectVoteSelection.TryGetOption(i, out VoteSelection<EffectVoteInfo>.VoteOption voteOption))
                         {
                             EffectVoteInfo effectVoteInfo = voteOption.Value;
-                            effectVoteInfo.VoteCount = voteOption.NumVotes;
-
-                            float votePercentage = 0f;
-                            if (totalVotes > 0)
-                            {
-                                votePercentage = voteOption.NumVotes / (float)totalVotes;
-                            }
-
-                            effectVoteInfo.VotePercentage = votePercentage;
+                            effectVoteInfo.UpdateVotes(voteOption.NumVotes, totalVotes);
                         }
                     }
                 }

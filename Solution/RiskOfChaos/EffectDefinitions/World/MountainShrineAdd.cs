@@ -27,7 +27,6 @@ namespace RiskOfChaos.EffectDefinitions.World
                               .Description("The amount of mountain shrines to activate each time this effect is activated")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntFieldConfig { Min = 1 })
-                              .FormatsEffectName()
                               .Build();
 
         [SystemInitializer]
@@ -47,7 +46,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
         {
-            return new EffectNameFormatter_GenericInt32(_numShrinesPerActivation.Value);
+            return new EffectNameFormatter_GenericInt32(_numShrinesPerActivation);
         }
 
         void Start()

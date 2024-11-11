@@ -190,7 +190,7 @@ namespace RiskOfChaos.UI.ChatVoting
         ChaosEffectVoteItemController createVoteItemControllerForVote(EffectVoteInfo voteOption)
         {
             ChaosEffectVoteItemController voteItemController = Instantiate(RoCContent.LocalPrefabs.ChaosEffectUIVoteItem, transform).GetComponent<ChaosEffectVoteItemController>();
-            voteItemController.SetVote(voteOption);
+            voteItemController.VoteOption = voteOption;
             return voteItemController;
         }
     }

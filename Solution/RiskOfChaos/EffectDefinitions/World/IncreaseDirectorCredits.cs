@@ -31,7 +31,6 @@ namespace RiskOfChaos.EffectDefinitions.World
                                     max = 2f,
                                     increment = 0.05f
                                 })
-                                .FormatsEffectName()
                                 .Build();
 
         [EffectCanActivate]
@@ -43,7 +42,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
         {
-            return new EffectNameFormatter_GenericFloat(_creditIncrease.Value) { ValueFormat = "P0" };
+            return new EffectNameFormatter_GenericFloat(_creditIncrease) { ValueFormat = "P0" };
         }
 
         ValueModificationController _directorModificationController;

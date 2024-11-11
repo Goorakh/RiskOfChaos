@@ -28,7 +28,22 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         sealed class NameFormatter : EffectNameFormatter
         {
-            public PickupIndex Pickup { get; private set; }
+            PickupIndex _pickupIndex;
+            public PickupIndex PickupIndex
+            {
+                get
+                {
+                    return _pickupIndex;
+                }
+                set
+                {
+                    if (_pickupIndex == value)
+                        return;
+
+                    _pickupIndex = value;
+                    invokeFormatterDirty();
+                }
+            }
 
             public NameFormatter()
             {
@@ -36,22 +51,22 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             public NameFormatter(PickupIndex pickup)
             {
-                Pickup = pickup;
+                PickupIndex = pickup;
             }
 
             public override void Serialize(NetworkWriter writer)
             {
-                writer.Write(Pickup);
+                writer.Write(PickupIndex);
             }
 
             public override void Deserialize(NetworkReader reader)
             {
-                Pickup = reader.ReadPickupIndex();
+                PickupIndex = reader.ReadPickupIndex();
             }
 
             public override object[] GetFormatArgs()
             {
-                PickupDef pickupDef = PickupCatalog.GetPickupDef(Pickup);
+                PickupDef pickupDef = PickupCatalog.GetPickupDef(PickupIndex);
                 if (pickupDef != null)
                 {
                     return [ Util.GenerateColoredString(Language.GetString(pickupDef.nameToken), pickupDef.baseColor) ];
@@ -64,7 +79,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             public override bool Equals(EffectNameFormatter other)
             {
-                return other is NameFormatter nameFormatter && Pickup == nameFormatter.Pickup;
+                return other is NameFormatter nameFormatter && PickupIndex == nameFormatter.PickupIndex;
             }
         }
 
@@ -128,7 +143,20 @@ namespace RiskOfChaos.EffectDefinitions.World
 
         static void onNextOverridePickupChanged()
         {
-            EffectInfo?.MarkNameFormatterDirty();
+            EffectNameFormatterProvider nameFormatterProvider = EffectInfo?.StaticDisplayNameFormatterProvider;
+            if (nameFormatterProvider != null)
+            {
+                PickupIndex pickupIndex = PickupIndex.none;
+                if (ForceAllItemsIntoRandomItemManager.Instance)
+                {
+                    pickupIndex = ForceAllItemsIntoRandomItemManager.Instance.NextOverridePickupIndex;
+                }
+
+                if (nameFormatterProvider.NameFormatter is NameFormatter nameFormatter)
+                {
+                    nameFormatter.PickupIndex = pickupIndex;
+                }
+            }
         }
 
         public static PickupIndex GenerateOverridePickup(Xoroshiro128Plus rng)
@@ -150,6 +178,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         }
 
         ChaosEffectComponent _effectComponent;
+        ChaosEffectNameComponent _effectNameComponent;
 
         bool _addedHooks;
 
@@ -168,6 +197,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
+            _effectNameComponent = GetComponent<ChaosEffectNameComponent>();
         }
 
         public override void OnStartServer()
@@ -229,7 +259,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             if (NetworkServer.active)
             {
-                _effectComponent.EffectNameFormatter = new NameFormatter(overridePickupIndex);
+                _effectNameComponent.SetCustomNameFormatter(new NameFormatter(overridePickupIndex));
             }
         }
 

@@ -29,7 +29,6 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
                                     max = 1f,
                                     increment = 0.05f
                                 })
-                                .FormatsEffectName()
                                 .Build();
 
         [EffectCanActivate]
@@ -41,7 +40,7 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
         {
-            return new EffectNameFormatter_GenericFloat(_decreaseAmount.Value) { ValueFormat = "P0" };
+            return new EffectNameFormatter_GenericFloat(_decreaseAmount) { ValueFormat = "P0" };
         }
 
         ValueModificationController _costModificationController;

@@ -27,7 +27,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
                                     FormatString = "+{0:P0}",
                                     Min = 0f
                                 })
-                                .FormatsEffectName()
                                 .Build();
 
         [EffectCanActivate]
@@ -39,7 +38,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
         [GetEffectNameFormatter]
         static EffectNameFormatter GetEffectNameFormatter()
         {
-            return new EffectNameFormatter_GenericFloat(_cooldownIncrease.Value) { ValueFormat = "P0" };
+            return new EffectNameFormatter_GenericFloat(_cooldownIncrease) { ValueFormat = "P0" };
         }
 
         ValueModificationController _skillSlotModificationController;

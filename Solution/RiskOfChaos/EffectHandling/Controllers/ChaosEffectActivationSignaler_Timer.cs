@@ -273,7 +273,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 if (_overrideAvailableEffects[i].Effect.EffectIndex == effectIndex)
                 {
                     _overrideAvailableEffects[i] = new OverrideEffect(Nothing.EffectInfo, _overrideAvailableEffects[i].GetWeight());
-                    Debug.Log($"Removed '{ChaosEffectCatalog.GetEffectInfo(effectIndex).GetLocalDisplayName(EffectNameFormatFlags.RuntimeFormatArgs)}' from available effects list");
+                    Debug.Log($"Removed '{ChaosEffectCatalog.GetEffectInfo(effectIndex).GetStaticDisplayName(EffectNameFormatFlags.RuntimeFormatArgs)}' from available effects list");
 
                     updateNextEffect();
 
@@ -281,7 +281,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 }
             }
 
-            Debug.Log($"{ChaosEffectCatalog.GetEffectInfo(effectIndex).GetLocalDisplayName(EffectNameFormatFlags.RuntimeFormatArgs)} is not in available stage effects");
+            Debug.Log($"{ChaosEffectCatalog.GetEffectInfo(effectIndex).GetStaticDisplayName(EffectNameFormatFlags.RuntimeFormatArgs)} is not in available stage effects");
         }
 
         [ConCommand(commandName = "roc_remove_stage_effect", flags = ConVarFlagUtil.SERVER, helpText = "Removes an effect from the current stage effect pool")]

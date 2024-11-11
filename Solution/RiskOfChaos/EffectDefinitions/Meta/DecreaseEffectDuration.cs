@@ -26,13 +26,12 @@ namespace RiskOfChaos.EffectDefinitions.Meta
                                     max = 1f,
                                     increment = 0.1f
                                 })
-                                .FormatsEffectName()
                                 .Build();
 
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
         {
-            return new EffectNameFormatter_GenericFloat(_durationMultiplier.Value);
+            return new EffectNameFormatter_GenericFloat(_durationMultiplier);
         }
 
         EffectDurationMultiplierEffect _effectDurationMultiplierEffect;

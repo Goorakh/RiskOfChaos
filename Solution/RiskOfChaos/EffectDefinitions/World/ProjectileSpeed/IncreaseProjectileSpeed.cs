@@ -28,7 +28,6 @@ namespace RiskOfChaos.EffectDefinitions.World.ProjectileSpeed
                                     max = 2f,
                                     increment = 0.01f
                                 })
-                                .FormatsEffectName()
                                 .Build();
 
         [EffectCanActivate]
@@ -40,7 +39,7 @@ namespace RiskOfChaos.EffectDefinitions.World.ProjectileSpeed
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
         {
-            return new EffectNameFormatter_GenericFloat(_projectileSpeedIncrease.Value) { ValueFormat = "P0" };
+            return new EffectNameFormatter_GenericFloat(_projectileSpeedIncrease) { ValueFormat = "P0" };
         }
 
         ValueModificationController _projectileModificationController;

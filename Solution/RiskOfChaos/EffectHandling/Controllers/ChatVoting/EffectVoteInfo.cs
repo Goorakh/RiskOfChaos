@@ -1,4 +1,4 @@
-﻿using RoR2;
+﻿using System;
 
 namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 {
@@ -6,7 +6,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
     {
         public static EffectVoteInfo Random(int voteNumber)
         {
-            return new EffectVoteInfo(default, true, voteNumber);
+            return new EffectVoteInfo(null, voteNumber, true);
         }
 
         public readonly ChaosEffectInfo EffectInfo;
@@ -14,60 +14,43 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
         public readonly int VoteNumber;
 
-        public uint Version { get; private set; }
+        public int VoteCount { get; private set; }
 
-        int _voteCount;
-        public int VoteCount
-        {
-            get
-            {
-                return _voteCount;
-            }
-            set
-            {
-                if (_voteCount == value)
-                    return;
+        public float VotePercentage { get; private set; }
 
-                _voteCount = value;
-                Version++;
-            }
-        }
+        public event Action OnVotesChanged;
 
-        float _votePercentage;
-        public float VotePercentage
-        {
-            get
-            {
-                return _votePercentage;
-            }
-            set
-            {
-                if (_votePercentage == value)
-                    return;
-
-                _votePercentage = value;
-                Version++;
-            }
-        }
-
-        EffectVoteInfo(ChaosEffectInfo effectInfo, bool isRandom, int voteNumber)
+        EffectVoteInfo(ChaosEffectInfo effectInfo, int voteNumber, bool isRandom)
         {
             EffectInfo = effectInfo;
             IsRandom = isRandom;
             VoteNumber = voteNumber;
         }
 
-        public EffectVoteInfo(ChaosEffectInfo effectInfo, int voteNumber) : this(effectInfo, false, voteNumber)
+        public EffectVoteInfo(ChaosEffectInfo effectInfo, int voteNumber) : this(effectInfo, voteNumber, false)
         {
         }
 
-        public object[] GetArgs()
+        public void UpdateVotes(int optionVotes, int totalVotes)
         {
-            return [
-                VoteNumber,
-                IsRandom ? Language.GetString("CHAOS_EFFECT_VOTING_RANDOM_OPTION_NAME") : EffectInfo.GetLocalDisplayName(),
-                VotePercentage * 100f
-            ];
+            bool votesChanged = false;
+
+            votesChanged |= VoteCount != optionVotes;
+            VoteCount = optionVotes;
+
+            float votePercentage = 0f;
+            if (totalVotes > 0)
+            {
+                votePercentage = VoteCount / (float)totalVotes;
+            }
+
+            votesChanged |= VotePercentage != votePercentage;
+            VotePercentage = votePercentage;
+
+            if (votesChanged)
+            {
+                OnVotesChanged?.Invoke();
+            }
         }
     }
 }

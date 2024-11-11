@@ -52,6 +52,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         ChaosEffectInfo _displayingEffectInfo;
         ChaosEffectComponent _displayingEffect;
+        ChaosEffectNameComponent _displayingEffectNameComponent;
         ChaosEffectDurationComponent _displayingEffectDurationComponent;
 
         public ChaosEffectComponent DisplayingEffect
@@ -65,18 +66,31 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
                 if (_displayingEffect == value)
                     return;
 
+                if (_displayingEffectNameComponent)
+                {
+                    _displayingEffectNameComponent.NameFormatterProvider.OnNameFormatterChanged -= onEffectNameFormatterChanged;
+                }
+
                 _displayingEffect = value;
 
                 ChaosEffectInfo displayingEffectInfo = null;
+                ChaosEffectNameComponent displayingEffectNameComponent = null;
                 ChaosEffectDurationComponent durationComponent = null;
                 if (_displayingEffect)
                 {
                     displayingEffectInfo = _displayingEffect.ChaosEffectInfo;
+                    displayingEffectNameComponent = _displayingEffect.GetComponent<ChaosEffectNameComponent>();
                     durationComponent = _displayingEffect.GetComponent<ChaosEffectDurationComponent>();
                 }
 
                 _displayingEffectInfo = displayingEffectInfo;
+                _displayingEffectNameComponent = displayingEffectNameComponent;
                 _displayingEffectDurationComponent = durationComponent;
+
+                if (_displayingEffectNameComponent)
+                {
+                    _displayingEffectNameComponent.NameFormatterProvider.OnNameFormatterChanged += onEffectNameFormatterChanged;
+                }
 
                 if (enabled)
                 {
@@ -94,14 +108,17 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
             Language.onCurrentLanguageChanged += onCurrentLanguageChanged;
             Configs.UI.ActiveEffectsTextColor.SettingChanged += onActiveEffectsTextColorChanged;
-            ChaosEffectInfo.OnEffectNameFormatterDirty += onEffectNameFormatterDirty;
         }
 
         void OnDisable()
         {
             Language.onCurrentLanguageChanged -= onCurrentLanguageChanged;
             Configs.UI.ActiveEffectsTextColor.SettingChanged -= onActiveEffectsTextColorChanged;
-            ChaosEffectInfo.OnEffectNameFormatterDirty -= onEffectNameFormatterDirty;
+        }
+
+        void OnDestroy()
+        {
+            DisplayingEffect = null;
         }
 
         void FixedUpdate()
@@ -124,12 +141,9 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             updateEffectLabel(true);
         }
 
-        void onEffectNameFormatterDirty(ChaosEffectInfo effectInfo)
+        void onEffectNameFormatterChanged()
         {
-            if (_displayingEffectInfo != null && _displayingEffectInfo == effectInfo)
-            {
-                updateEffectLabel(true);
-            }
+            updateEffectLabel(true);
         }
 
         void updateEffectLabel(bool forceUpdate)
@@ -144,19 +158,16 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             if (!forceUpdate && timeRemaining == _displayingEffectTimeRemaining)
                 return;
 
-            ChaosEffectInfo effectInfo = _displayingEffect.ChaosEffectInfo;
-
-            string displayName = "<color=red>INVALID EFFECT</color>";
-            if (effectInfo != null)
+            string displayName = "???";
+            if (_displayingEffectInfo != null)
             {
-                EffectNameFormatter effectNameFormatter = _displayingEffect.EffectNameFormatter;
-                if (effectNameFormatter == null)
+                EffectNameFormatterProvider nameFormatterProvider = _displayingEffectInfo.StaticDisplayNameFormatterProvider;
+                if (_displayingEffectNameComponent)
                 {
-                    Log.Warning($"Unable to resolve name formatter for {_displayingEffect.name}, using local formatter");
-                    effectNameFormatter = effectInfo.LocalDisplayNameFormatter;
+                    nameFormatterProvider = _displayingEffectNameComponent.NameFormatterProvider;
                 }
 
-                displayName = effectInfo.GetDisplayName(effectNameFormatter, EffectNameFormatFlags.RuntimeFormatArgs);
+                displayName = nameFormatterProvider.NameFormatter.GetEffectDisplayName(_displayingEffectInfo, EffectNameFormatFlags.RuntimeFormatArgs);
             }
 
             string token;
@@ -179,6 +190,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
                         displayName,
                         stagesRemaining
                     ];
+
                     break;
                 case TimedEffectType.FixedDuration:
                     token = "CHAOS_ACTIVE_EFFECT_FIXED_DURATION_FORMAT";
@@ -187,10 +199,12 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
                         displayName,
                         FormatUtils.FormatTimeSeconds(timeRemaining)
                     ];
+
                     break;
                 default:
                     token = "CHAOS_ACTIVE_EFFECT_FALLBACK_FORMAT";
                     formatArgs = [displayName];
+
                     break;
             }
 

@@ -1,23 +1,93 @@
-﻿using UnityEngine;
+﻿using RiskOfChaos.ConfigHandling;
+using System;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling.Formatting
 {
-    public class EffectNameFormatter_PluralizedCount : EffectNameFormatter
+    public sealed class EffectNameFormatter_PluralizedCount : EffectNameFormatter, IDisposable
     {
-        public int Count;
+        readonly ConfigHolder<int> _countConfig;
 
-        public string CountFormat = string.Empty;
-
-        public string PluralString = "s";
-
-        public EffectNameFormatter_PluralizedCount()
+        int _count;
+        public int Count
         {
+            get
+            {
+                return _count;
+            }
+            set
+            {
+                if (_count == value)
+                    return;
+
+                _count = value;
+                invokeFormatterDirty();
+            }
+        }
+
+        string _countFormat = string.Empty;
+        public string CountFormat
+        {
+            get
+            {
+                return _countFormat;
+            }
+            set
+            {
+                if (_countFormat == value)
+                    return;
+
+                _countFormat = value;
+                invokeFormatterDirty();
+            }
+        }
+
+        string _pluralString = "s";
+        public string PluralString
+        {
+            get
+            {
+                return _pluralString;
+            }
+            set
+            {
+                if (_pluralString == value)
+                    return;
+
+                _pluralString = value;
+                invokeFormatterDirty();
+            }
         }
 
         public EffectNameFormatter_PluralizedCount(int count)
         {
             Count = count;
+        }
+
+        public EffectNameFormatter_PluralizedCount(ConfigHolder<int> countConfig) : this(countConfig.Value)
+        {
+            _countConfig = countConfig;
+            _countConfig.SettingChanged += onCountConfigChanged;
+        }
+
+        public EffectNameFormatter_PluralizedCount()
+        {
+        }
+
+        public void Dispose()
+        {
+            if (_countConfig != null)
+            {
+                _countConfig.SettingChanged -= onCountConfigChanged;
+            }
+        }
+
+        void onCountConfigChanged(object sender, ConfigChangedArgs<int> e)
+        {
+            if (NetworkServer.active)
+            {
+                Count = _countConfig.Value;
+            }
         }
 
         public override void Serialize(NetworkWriter writer)
@@ -29,16 +99,18 @@ namespace RiskOfChaos.EffectHandling.Formatting
 
         public override void Deserialize(NetworkReader reader)
         {
-            Count = (int)reader.ReadPackedUInt32();
-            CountFormat = reader.ReadString();
+            _count = (int)reader.ReadPackedUInt32();
+            _countFormat = reader.ReadString();
             PluralString = reader.ReadString();
+
+            invokeFormatterDirty();
         }
 
         public override object[] GetFormatArgs()
         {
             return [
                 Count.ToString(CountFormat),
-                Mathf.Abs(Count) != 1 ? PluralString : string.Empty
+                Count != 1 ? PluralString : string.Empty
             ];
         }
 

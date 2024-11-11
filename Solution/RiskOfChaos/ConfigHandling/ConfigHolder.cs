@@ -149,10 +149,10 @@ namespace RiskOfChaos.ConfigHandling
 
             if (Entry != null)
             {
+                invokeOnBind();
+
                 Entry.SettingChanged += Entry_SettingChanged;
                 invokeSettingChanged();
-
-                invokeOnBind();
             }
 
             if ((Flags & ConfigFlags.Networked) != 0)

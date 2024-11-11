@@ -20,13 +20,12 @@ namespace RiskOfChaos.EffectDefinitions.Meta
             ConfigFactory<float>.CreateConfig("Effect Duration Multiplier", 2f)
                                 .AcceptableValues(new AcceptableValueMin<float>(1f))
                                 .OptionConfig(new FloatFieldConfig { Min = 1f, FormatString = "{0}x" })
-                                .FormatsEffectName()
                                 .Build();
 
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
         {
-            return new EffectNameFormatter_GenericFloat(_durationMultiplier.Value);
+            return new EffectNameFormatter_GenericFloat(_durationMultiplier);
         }
 
         EffectDurationMultiplierEffect _effectDurationMultiplierEffect;

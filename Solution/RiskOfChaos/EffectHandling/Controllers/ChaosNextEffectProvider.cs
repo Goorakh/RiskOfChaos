@@ -31,10 +31,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         {
             get
             {
-                if (!ChaosEffectNameFormattersNetworker.Instance)
-                    return null;
-
-                return ChaosEffectNameFormattersNetworker.Instance.GetNameFormatter(NextEffectIndex);
+                return ChaosEffectCatalog.GetEffectStaticNameFormatter(NextEffectIndex);
             }
         }
 

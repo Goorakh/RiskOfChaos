@@ -28,7 +28,6 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
                                     min = 0f,
                                     max = 2f
                                 })
-                                .FormatsEffectName()
                                 .Build();
 
         [EffectCanActivate]
@@ -40,7 +39,7 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
         {
-            return new EffectNameFormatter_GenericFloat(_chargeRateIncrease.Value) { ValueFormat = "P0" };
+            return new EffectNameFormatter_GenericFloat(_chargeRateIncrease) { ValueFormat = "P0" };
         }
 
         ValueModificationController _holdoutZoneModificationController;

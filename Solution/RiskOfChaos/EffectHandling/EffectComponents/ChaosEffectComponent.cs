@@ -1,6 +1,4 @@
-﻿using RiskOfChaos.EffectHandling.Controllers;
-using RiskOfChaos.EffectHandling.Formatting;
-using RiskOfChaos.SaveHandling;
+﻿using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities;
 using RoR2;
 using System;
@@ -22,6 +20,8 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         static readonly List<ChaosEffectComponent> _instances = [];
         public static readonly ReadOnlyCollection<ChaosEffectComponent> Instances = new ReadOnlyCollection<ChaosEffectComponent>(_instances);
 
+        const uint TIME_STARTED_DIRTY_BIT = 1 << 0;
+
         public ChaosEffectIndex ChaosEffectIndex = ChaosEffectIndex.Invalid;
 
         public ChaosEffectInfo ChaosEffectInfo => ChaosEffectCatalog.GetEffectInfo(ChaosEffectIndex);
@@ -32,10 +32,6 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         ObjectSerializationComponent _serializationComponent;
 
         RunTimeStamp _timeStarted;
-        const uint TIME_STARTED_DIRTY_BIT = 1 << 0;
-
-        EffectNameFormatter _instanceNameFormatter;
-        const uint INSTANCE_NAME_FORMATTER_DIRTY_BIT = 1 << 1;
 
         IEffectHUDVisibilityProvider[] _hudVisibilityProviders;
 
@@ -93,26 +89,6 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
                 }
 
                 return true;
-            }
-        }
-
-        public EffectNameFormatter EffectNameFormatter
-        {
-            get
-            {
-                if (_instanceNameFormatter != null)
-                    return _instanceNameFormatter;
-
-                if (!ChaosEffectNameFormattersNetworker.Instance)
-                    return null;
-
-                return ChaosEffectNameFormattersNetworker.Instance.GetNameFormatter(ChaosEffectIndex);
-            }
-            [Server]
-            set
-            {
-                SetSyncVar(value, ref _instanceNameFormatter, INSTANCE_NAME_FORMATTER_DIRTY_BIT);
-                ChaosEffectInfo.MarkNameFormatterDirty();
             }
         }
 
@@ -190,12 +166,12 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         {
             if (!EffectDestructionHandledByComponent)
             {
-            const float TIMEOUT_DURATION = 3f;
-            if (TimeStarted.TimeSinceClamped > TIMEOUT_DURATION)
-            {
-                RetireEffect();
+                const float TIMEOUT_DURATION = 3f;
+                if (TimeStarted.TimeSinceClamped > TIMEOUT_DURATION)
+                {
+                    RetireEffect();
+                }
             }
-        }
         }
 
         [Server]
@@ -224,12 +200,6 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
                 anythingWritten = true;
             }
 
-            if ((dirtyBits & INSTANCE_NAME_FORMATTER_DIRTY_BIT) != 0)
-            {
-                writer.Write(_instanceNameFormatter);
-                anythingWritten = true;
-            }
-
             return anythingWritten || initialState;
         }
 
@@ -240,12 +210,6 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
             if ((dirtyBits & TIME_STARTED_DIRTY_BIT) != 0)
             {
                 _timeStarted = new RunTimeStamp(RunTimerType.Realtime, reader.ReadSingle());
-            }
-
-            if ((dirtyBits & INSTANCE_NAME_FORMATTER_DIRTY_BIT) != 0)
-            {
-                _instanceNameFormatter = reader.ReadEffectNameFormatter();
-                ChaosEffectInfo.MarkNameFormatterDirty();
             }
         }
     }

@@ -117,7 +117,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     ChaosEffectActivationSoundHandler.Instance.PlayEffectActivatedSoundServer();
                 }
 
-                Chat.AddMessage(new ChaosEffectChatMessage("CHAOS_EFFECT_SHORTCUT_CANNOT_ACTIVATE", effectInfo, EffectNameFormatFlags.RuntimeFormatArgs).ConstructChatString());
+                Chat.AddMessage(new ChaosEffectChatMessage("CHAOS_EFFECT_SHORTCUT_CANNOT_ACTIVATE", effectInfo.EffectIndex, EffectNameFormatFlags.RuntimeFormatArgs));
             }
         }
 
@@ -147,7 +147,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         {
             if ((dispatchArgs.DispatchFlags & EffectDispatchFlags.DontSendChatMessage) == 0)
             {
-                Chat.SendBroadcastChat(new ChaosEffectChatMessage("CHAOS_EFFECT_ACTIVATE", effect, EffectNameFormatFlags.All));
+                Chat.SendBroadcastChat(new ChaosEffectChatMessage("CHAOS_EFFECT_ACTIVATE", effect.EffectIndex, EffectNameFormatFlags.All));
             }
 
             bool canActivate = (dispatchArgs.DispatchFlags & EffectDispatchFlags.CheckCanActivate) == 0 || effect.CanActivate(EffectCanActivateContext.Now);

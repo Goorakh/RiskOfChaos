@@ -21,7 +21,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.SkillStocks
             ConfigFactory<int>.CreateConfig("Charges", 1)
                               .Description("The amount of charges to remove from each skill")
                               .OptionConfig(new IntFieldConfig { Min = 1 })
-                              .FormatsEffectName()
                               .Build();
 
         [EffectCanActivate]
@@ -33,7 +32,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.SkillStocks
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
         {
-            return new EffectNameFormatter_PluralizedCount(_stocksToRemove.Value);
+            return new EffectNameFormatter_PluralizedCount(_stocksToRemove);
         }
 
         ValueModificationController _skillSlotModificationController;

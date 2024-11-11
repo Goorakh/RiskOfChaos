@@ -320,7 +320,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     ChaosEffectComponent effectComponent = effectInstanceInfo.EffectComponent;
                     if (effectComponent)
                     {
-                        Debug.Log($"{effectComponent.ChaosEffectInfo.GetLocalDisplayName(EffectNameFormatFlags.RuntimeFormatArgs)} (Identifier={effectComponent.ChaosEffectInfo}, ID={effectComponent.netId.Value})");
+                        Debug.Log($"{effectComponent.ChaosEffectInfo.GetStaticDisplayName(EffectNameFormatFlags.RuntimeFormatArgs)} (Identifier={effectComponent.ChaosEffectInfo}, ID={effectComponent.netId.Value})");
                     }
                 }
             }

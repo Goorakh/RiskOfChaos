@@ -36,8 +36,16 @@ namespace RiskOfChaos.EffectHandling.Formatting
             _effectNameFormatterTypes = effectNameFormatterTypes.ToArray();
             Array.Sort(_effectNameFormatterTypes, (a, b) => a.FullName.CompareTo(b.FullName));
 
-            for (int i = 0; i < _effectNameFormatterTypes.Length; i++)
+            for (int i = _effectNameFormatterTypes.Length - 1; i >= 0; i--)
             {
+                if (_effectNameFormatterTypes[i] == typeof(EffectNameFormatter_None))
+                {
+                    Type noneFormatterType = _effectNameFormatterTypes[i];
+
+                    Array.Copy(_effectNameFormatterTypes, 0, _effectNameFormatterTypes, 1, i);
+                    _effectNameFormatterTypes[0] = noneFormatterType;
+                }
+
                 _formatterTypeToIndexMap[_effectNameFormatterTypes[i]] = i;
             }
         }

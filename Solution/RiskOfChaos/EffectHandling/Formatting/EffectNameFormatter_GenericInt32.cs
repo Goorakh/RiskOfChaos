@@ -1,13 +1,46 @@
-﻿using RoR2;
+﻿using RiskOfChaos.ConfigHandling;
+using System;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling.Formatting
 {
-    public class EffectNameFormatter_GenericInt32 : EffectNameFormatter
+    public sealed class EffectNameFormatter_GenericInt32 : EffectNameFormatter, IDisposable
     {
-        public int Value { get; private set; }
+        readonly ConfigHolder<int> _valueConfig;
 
-        public string ValueFormat = string.Empty;
+        int _value;
+        public int Value
+        {
+            get
+            {
+                return _value;
+            }
+            set
+            {
+                if (_value == value)
+                    return;
+
+                _value = value;
+                invokeFormatterDirty();
+            }
+        }
+
+        string _valueFormat = string.Empty;
+        public string ValueFormat
+        {
+            get
+            {
+                return _valueFormat;
+            }
+            set
+            {
+                if (_valueFormat == value)
+                    return;
+
+                _valueFormat = value;
+                invokeFormatterDirty();
+            }
+        }
 
         public EffectNameFormatter_GenericInt32()
         {
@@ -18,16 +51,40 @@ namespace RiskOfChaos.EffectHandling.Formatting
             Value = value;
         }
 
+        public EffectNameFormatter_GenericInt32(ConfigHolder<int> valueConfig) : this(valueConfig.Value)
+        {
+            _valueConfig = valueConfig;
+            _valueConfig.SettingChanged += onValueConfigChanged;
+        }
+
+        public void Dispose()
+        {
+            if (_valueConfig != null)
+            {
+                _valueConfig.SettingChanged -= onValueConfigChanged;
+            }
+        }
+
+        void onValueConfigChanged(object sender, ConfigChangedArgs<int> e)
+        {
+            if (NetworkServer.active)
+            {
+                Value = _valueConfig.Value;
+            }
+        }
+
         public override void Serialize(NetworkWriter writer)
         {
-            writer.WritePackedIndex32(Value);
+            writer.WritePackedUInt32((uint)Value);
             writer.Write(ValueFormat);
         }
 
         public override void Deserialize(NetworkReader reader)
         {
-            Value = reader.ReadPackedIndex32();
-            ValueFormat = reader.ReadString();
+            _value = (int)reader.ReadPackedUInt32();
+            _valueFormat = reader.ReadString();
+
+            invokeFormatterDirty();
         }
 
         public override object[] GetFormatArgs()

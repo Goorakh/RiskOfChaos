@@ -107,12 +107,6 @@ namespace RiskOfChaos.ConfigHandling
             return this;
         }
 
-        public ConfigFactory<T> FormatsEffectName()
-        {
-            _flags |= ConfigFlags.FormatsEffectName;
-            return this;
-        }
-
         public ConfigHolder<T> Build()
         {
             ConfigDescription description = ConfigDescription.Empty;
@@ -126,7 +120,7 @@ namespace RiskOfChaos.ConfigHandling
                 if (!string.IsNullOrEmpty(_descriptionText))
                 {
                     descriptionText = _descriptionText;
-            }
+                }
 
                 description = new ConfigDescription(descriptionText, _acceptableValues);
             }

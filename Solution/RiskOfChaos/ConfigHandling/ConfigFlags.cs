@@ -7,6 +7,5 @@ namespace RiskOfChaos.ConfigHandling
     {
         None = 0,
         Networked = 1 << 0,
-        FormatsEffectName = 1 << 1,
     }
 }

@@ -5,6 +5,7 @@ using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions;
 using RoR2;
@@ -171,6 +172,12 @@ namespace RiskOfChaos.EffectHandling
         public static ChaosEffectInfo GetEffectInfo(ChaosEffectIndex effectIndex)
         {
             return ArrayUtils.GetSafe(_effects, (int)effectIndex);
+        }
+
+        public static EffectNameFormatter GetEffectStaticNameFormatter(ChaosEffectIndex effectIndex)
+        {
+            ChaosEffectInfo effectInfo = GetEffectInfo(effectIndex);
+            return effectInfo?.StaticDisplayNameFormatterProvider?.NameFormatter ?? EffectNameFormatter_None.Instance;
         }
 
         public static ChaosEffectIndex FindEffectIndex(string identifier)

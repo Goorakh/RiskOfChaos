@@ -28,7 +28,6 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
                                     max = 1f,
                                     increment = 0.01f
                                 })
-                                .FormatsEffectName()
                                 .Build();
 
         [EffectCanActivate]
@@ -40,7 +39,7 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
         {
-            return new EffectNameFormatter_GenericFloat(_timeScaleDecrease.Value) { ValueFormat = "P0" };
+            return new EffectNameFormatter_GenericFloat(_timeScaleDecrease) { ValueFormat = "P0" };
         }
 
         ValueModificationController _timeScaleModificationController;

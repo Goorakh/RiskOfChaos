@@ -25,7 +25,6 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
                                 .Description("The amount to increase costs by")
                                 .AcceptableValues(new AcceptableValueMin<float>(INCREASE_AMOUNT_MIN_VALUE))
                                 .OptionConfig(new FloatFieldConfig { FormatString = "+{0:P0}", Min = INCREASE_AMOUNT_MIN_VALUE })
-                                .FormatsEffectName()
                                 .Build();
 
         [EffectCanActivate]
@@ -37,7 +36,7 @@ namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
         {
-            return new EffectNameFormatter_GenericFloat(_increaseAmount.Value) { ValueFormat = "P0" };
+            return new EffectNameFormatter_GenericFloat(_increaseAmount) { ValueFormat = "P0" };
         }
 
         ValueModificationController _costModificationController;

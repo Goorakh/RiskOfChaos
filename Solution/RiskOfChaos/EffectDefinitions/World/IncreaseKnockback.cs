@@ -24,7 +24,6 @@ namespace RiskOfChaos.EffectDefinitions.World
                                 .Description("The multiplier used to increase knockback while the effect is active")
                                 .AcceptableValues(new AcceptableValueMin<float>(1f))
                                 .OptionConfig(new FloatFieldConfig { Min = 1f, FormatString = "{0}x" })
-                                .FormatsEffectName()
                                 .Build();
 
         [EffectCanActivate]
@@ -36,7 +35,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
         {
-            return new EffectNameFormatter_GenericFloat(_knockbackMultiplier.Value);
+            return new EffectNameFormatter_GenericFloat(_knockbackMultiplier);
         }
 
         ValueModificationController _knockbackModificationController;

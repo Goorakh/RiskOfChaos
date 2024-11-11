@@ -21,13 +21,12 @@ namespace RiskOfChaos.EffectDefinitions.Character
             ConfigFactory<float>.CreateConfig("Proc Multiplier", 2f)
                                 .AcceptableValues(new AcceptableValueMin<float>(1f))
                                 .OptionConfig(new FloatFieldConfig { Min = 1f, FormatString = "{0}x" })
-                                .FormatsEffectName()
                                 .Build();
 
         [GetEffectNameFormatter]
         static EffectNameFormatter GetDisplayNameFormatter()
         {
-            return new EffectNameFormatter_GenericFloat(_multiplierPerActivation.Value);
+            return new EffectNameFormatter_GenericFloat(_multiplierPerActivation);
         }
 
         void Start()

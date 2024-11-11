@@ -21,13 +21,12 @@ namespace RiskOfChaos.EffectDefinitions.World
                               .Description("The amount of minutes to advance the run timer by")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntFieldConfig { Min = 1 })
-                              .FormatsEffectName()
                               .Build();
 
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
         {
-            return new EffectNameFormatter_PluralizedCount(_numMinutesToAdd.Value);
+            return new EffectNameFormatter_PluralizedCount(_numMinutesToAdd);
         }
 
         void Start()

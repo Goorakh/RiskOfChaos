@@ -83,10 +83,13 @@ namespace RiskOfChaos.ConfigHandling
 
         public void ClearServerOverrideValue()
         {
-            _serverOverrideValue = null;
-            _hasServerOverrideValue = false;
+            if (_hasServerOverrideValue)
+            {
+                _serverOverrideValue = null;
+                _hasServerOverrideValue = false;
 
-            invokeSettingChanged();
+                invokeSettingChanged();
+            }
         }
     }
 }

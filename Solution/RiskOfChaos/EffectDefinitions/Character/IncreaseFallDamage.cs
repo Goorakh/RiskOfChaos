@@ -32,13 +32,12 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                     max = 2f,
                                     increment = 0.05f
                                 })
-                                .FormatsEffectName()
                                 .Build();
 
         [GetEffectNameFormatter]
         static EffectNameFormatter GetEffectNameFormatter()
         {
-            return new EffectNameFormatter_GenericFloat(_damageIncreaseAmount.Value) { ValueFormat = "P0" };
+            return new EffectNameFormatter_GenericFloat(_damageIncreaseAmount) { ValueFormat = "P0" };
         }
 
         void Start()

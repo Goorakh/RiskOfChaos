@@ -252,32 +252,5 @@ namespace RiskOfChaos.EffectHandling
 
             return true;
         }
-
-        public override string GetDisplayName(EffectNameFormatter formatter, EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)
-        {
-            string displayName = base.GetDisplayName(formatter, formatFlags);
-
-            if ((formatFlags & EffectNameFormatFlags.TimedType) != 0)
-            {
-                float duration = Duration;
-
-                switch (TimedType)
-                {
-                    case TimedEffectType.UntilStageEnd:
-                        int stageCount = Mathf.CeilToInt(duration);
-                        string token = stageCount == 1 ? "TIMED_TYPE_UNTIL_STAGE_END_SINGLE_FORMAT" : "TIMED_TYPE_UNTIL_STAGE_END_MULTI_FORMAT";
-                        return Language.GetStringFormatted(token, displayName, stageCount);
-                    case TimedEffectType.FixedDuration:
-                        return Language.GetStringFormatted("TIMED_TYPE_FIXED_DURATION_FORMAT", displayName, duration);
-                    case TimedEffectType.Permanent:
-                    case TimedEffectType.AlwaysActive:
-                        return Language.GetStringFormatted("TIMED_TYPE_PERMANENT_FORMAT", displayName);
-                    default:
-                        throw new NotImplementedException($"Timed type {TimedType} is not implemented");
-                }
-            }
-
-            return displayName;
-        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -22,7 +23,24 @@ namespace RiskOfChaos.ModificationController.Effect
             }
         }
 
-        public float DurationMultiplier { get; private set; }
+        public static event Action OnDurationMultiplierChanged;
+
+        float _durationMultiplier = 1f;
+        public float DurationMultiplier
+        {
+            get
+            {
+                return _durationMultiplier;
+            }
+            private set
+            {
+                if (_durationMultiplier == value)
+                    return;
+
+                _durationMultiplier = value;
+                OnDurationMultiplierChanged?.Invoke();
+            }
+        }
 
         ValueModificationProviderHandler<EffectModificationProvider> _modificationProviderHandler;
 
@@ -42,6 +60,8 @@ namespace RiskOfChaos.ModificationController.Effect
                 _modificationProviderHandler.Dispose();
                 _modificationProviderHandler = null;
             }
+
+            DurationMultiplier = 1f;
         }
 
         void refreshValueModifications(IReadOnlyCollection<EffectModificationProvider> modificationProviders)

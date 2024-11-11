@@ -22,7 +22,6 @@ namespace RiskOfChaos.EffectDefinitions.World
                               .Description("The amount of minutes to rewind the run timer by")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntFieldConfig { Min = 1 })
-                              .FormatsEffectName()
                               .Build();
 
         static int numSecondsToRemove
@@ -44,7 +43,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
         {
-            return new EffectNameFormatter_PluralizedCount(_numMinutesToRemove.Value);
+            return new EffectNameFormatter_PluralizedCount(_numMinutesToRemove);
         }
 
         void Start()

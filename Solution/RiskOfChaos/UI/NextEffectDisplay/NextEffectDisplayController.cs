@@ -54,7 +54,12 @@ namespace RiskOfChaos.UI.NextEffectDisplay
             if (displayData.EffectIndex != ChaosEffectIndex.Invalid)
             {
                 ChaosEffectInfo effectInfo = ChaosEffectCatalog.GetEffectInfo(displayData.EffectIndex);
-                string effectName = effectInfo?.GetDisplayName(displayData.NameFormatter, EffectNameFormatFlags.RuntimeFormatArgs) ?? "NULL";
+                string effectName = "???";
+                if (displayData.NameFormatter != null)
+                {
+                    effectName = displayData.NameFormatter.GetEffectDisplayName(effectInfo, EffectNameFormatFlags.RuntimeFormatArgs);
+                }
+
                 EffectText.SetTokenAndFormatArgs("CHAOS_NEXT_EFFECT_DISPLAY_FORMAT", [effectName, timeRemainingString]);
             }
             else

@@ -2,7 +2,6 @@
 using HG;
 using MonoMod.Utils;
 using RiskOfChaos.Collections;
-using RiskOfChaos.Components;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.Content;
@@ -52,6 +51,15 @@ namespace RiskOfChaos.EffectHandling
         public bool IsActivationShortcutPressed => _activationShortcut != null && _activationShortcut.Value.IsDownIgnoringBlockerKeys();
 
         readonly EffectWeightMultiplierDelegate[] _effectWeightMultipliers = [];
+
+        readonly GetEffectNameFormatterDelegate _getStaticEffectNameFormatter;
+
+        public readonly EffectNameFormatterProvider StaticDisplayNameFormatterProvider;
+
+        public readonly string[] PreviousConfigSectionNames = [];
+
+        public readonly ConfigFile ConfigFile;
+
         public float TotalSelectionWeight
         {
             get
@@ -70,58 +78,6 @@ namespace RiskOfChaos.EffectHandling
                 return weight;
             }
         }
-
-        readonly GetEffectNameFormatterDelegate _getEffectNameFormatter;
-
-        EffectNameFormatter _cachedNameFormatter;
-
-        public static event Action<ChaosEffectInfo> OnEffectNameFormatterDirty;
-
-        bool _nameFormatterDirty;
-        bool nameFormatterDirty
-        {
-            get
-            {
-                return _nameFormatterDirty;
-            }
-            set
-            {
-                if (_nameFormatterDirty == value)
-                    return;
-
-                _nameFormatterDirty = value;
-
-                if (_nameFormatterDirty)
-                {
-                    OnEffectNameFormatterDirty?.Invoke(this);
-                }
-            }
-        }
-
-        public EffectNameFormatter LocalDisplayNameFormatter
-        {
-            get
-            {
-                if (_getEffectNameFormatter != null)
-                {
-                    if (_cachedNameFormatter is null || nameFormatterDirty)
-                    {
-                        _cachedNameFormatter = _getEffectNameFormatter();
-                        nameFormatterDirty = false;
-                    }
-
-                    return _cachedNameFormatter;
-                }
-                else
-                {
-                    return EffectNameFormatter_None.Instance;
-                }
-            }
-        }
-
-        public readonly string[] PreviousConfigSectionNames = [];
-
-        public readonly ConfigFile ConfigFile;
 
         public ChaosEffectInfo(ChaosEffectIndex effectIndex, ChaosEffectAttribute attribute, ConfigFile configFile)
         {
@@ -185,7 +141,9 @@ namespace RiskOfChaos.EffectHandling
 
             _canActivateMethods = canActivateMethodsList.ToArray();
             _effectWeightMultipliers = effectWeightMultipliersList.ToArray();
-            _getEffectNameFormatter = getEffectNameFormatterDelegate;
+            _getStaticEffectNameFormatter = getEffectNameFormatterDelegate;
+
+            StaticDisplayNameFormatterProvider = new EffectNameFormatterProvider(GetDefaultNameFormatter(), true);
 
             if (incompatibleEffectTypes.Count > 0)
             {
@@ -268,7 +226,8 @@ namespace RiskOfChaos.EffectHandling
         {
             List<Type> componentTypes = [
                 typeof(NetworkIdentity),
-                typeof(ChaosEffectComponent)
+                typeof(ChaosEffectComponent),
+                typeof(ChaosEffectNameComponent),
             ];
 
             modifyPrefabComponents(componentTypes);
@@ -287,7 +246,7 @@ namespace RiskOfChaos.EffectHandling
 
         internal virtual void Validate()
         {
-            string displayName = GetLocalDisplayName(EffectNameFormatFlags.None);
+            string displayName = GetStaticDisplayName(EffectNameFormatFlags.None);
             if (string.IsNullOrWhiteSpace(displayName))
             {
                 Log.Error($"{this}: Null or empty display name");
@@ -372,26 +331,25 @@ namespace RiskOfChaos.EffectHandling
             return true;
         }
 
-        public void MarkNameFormatterDirty()
+        public EffectNameFormatter GetDefaultNameFormatter()
         {
-            nameFormatterDirty = true;
-        }
-
-        public string GetLocalDisplayName(EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)
-        {
-            return GetDisplayName(LocalDisplayNameFormatter, formatFlags);
-        }
-
-        public virtual string GetDisplayName(EffectNameFormatter formatter, EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)
-        {
-            string displayName = Language.GetString(NameToken);
-
-            if ((formatFlags & EffectNameFormatFlags.RuntimeFormatArgs) != 0 && formatter is not null)
+            EffectNameFormatter nameFormatter = null;
+            if (_getStaticEffectNameFormatter != null)
             {
-                displayName = formatter.FormatEffectName(displayName);
+                nameFormatter = _getStaticEffectNameFormatter();
             }
 
-            return displayName;
+            return nameFormatter ?? EffectNameFormatter_None.Instance;
+        }
+
+        public void RestoreStaticDisplayNameFormatter()
+        {
+            StaticDisplayNameFormatterProvider.NameFormatter = GetDefaultNameFormatter();
+        }
+
+        public string GetStaticDisplayName(EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)
+        {
+            return StaticDisplayNameFormatterProvider.NameFormatter.GetEffectDisplayName(this, formatFlags);
         }
 
         public override string ToString()

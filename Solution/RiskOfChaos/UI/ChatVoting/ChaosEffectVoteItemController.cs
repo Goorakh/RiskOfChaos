@@ -1,5 +1,4 @@
 ﻿using RiskOfChaos.ConfigHandling;
-using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers.ChatVoting;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -18,8 +17,55 @@ namespace RiskOfChaos.UI.ChatVoting
         public LanguageTextMeshController EffectTextController;
         public TMP_Text EffectTextLabel;
 
+        bool _voteDisplayDirty;
+
         EffectVoteInfo _voteOption;
-        uint _displayedVersion;
+        public EffectVoteInfo VoteOption
+        {
+            get
+            {
+                return _voteOption;
+            }
+            set
+            {
+                if (_voteOption == value)
+                    return;
+
+                unsubscribe(_voteOption);
+
+                _voteOption = value;
+
+                subscribe(_voteOption);
+
+                refreshTextDisplay();
+            }
+        }
+
+        void subscribe(EffectVoteInfo voteInfo)
+        {
+            if (voteInfo != null)
+            {
+                if (voteInfo.EffectInfo != null)
+                {
+                    voteInfo.EffectInfo.StaticDisplayNameFormatterProvider.OnNameFormatterChanged += markVoteDisplayDirty;
+                }
+
+                voteInfo.OnVotesChanged += markVoteDisplayDirty;
+            }
+        }
+
+        void unsubscribe(EffectVoteInfo voteInfo)
+        {
+            if (voteInfo != null)
+            {
+                if (voteInfo.EffectInfo != null)
+                {
+                    voteInfo.EffectInfo.StaticDisplayNameFormatterProvider.OnNameFormatterChanged -= markVoteDisplayDirty;
+                }
+
+                voteInfo.OnVotesChanged -= markVoteDisplayDirty;
+            }
+        }
 
         void Awake()
         {
@@ -32,60 +78,56 @@ namespace RiskOfChaos.UI.ChatVoting
 
         void OnEnable()
         {
+            Language.onCurrentLanguageChanged += markVoteDisplayDirty;
+
             refreshTextDisplay();
-
-            Language.onCurrentLanguageChanged += onCurrentLanguageChanged;
-
-            ChaosEffectInfo.OnEffectNameFormatterDirty += ChaosEffectInfo_OnEffectNameFormatterDirty;
         }
 
         void OnDisable()
         {
-            Language.onCurrentLanguageChanged -= onCurrentLanguageChanged;
-
-            ChaosEffectInfo.OnEffectNameFormatterDirty -= ChaosEffectInfo_OnEffectNameFormatterDirty;
+            Language.onCurrentLanguageChanged -= markVoteDisplayDirty;
         }
 
         void Start()
         {
-            Configs.ChatVoting.VoteDisplayBackgroundColor.SettingChanged += VoteDisplayColor_SettingChanged;
-            setBackdropColor(Configs.ChatVoting.VoteDisplayBackgroundColor.Value);
+            Configs.ChatVoting.VoteDisplayBackgroundColor.SettingChanged += onVoteDisplayBackgroundColorChanged;
+            updateBackdropColor();
 
-            Configs.ChatVoting.VoteDisplayTextColor.SettingChanged += VoteDisplayColor_SettingChanged;
-            setTextColor(Configs.ChatVoting.VoteDisplayTextColor.Value);
+            Configs.ChatVoting.VoteDisplayTextColor.SettingChanged += onVoteDisplayTextColorChanged;
+            updateTextColor();
         }
 
         void OnDestroy()
         {
-            Configs.ChatVoting.VoteDisplayBackgroundColor.SettingChanged -= VoteDisplayColor_SettingChanged;
-            Configs.ChatVoting.VoteDisplayTextColor.SettingChanged -= VoteDisplayColor_SettingChanged;
+            Configs.ChatVoting.VoteDisplayBackgroundColor.SettingChanged -= onVoteDisplayBackgroundColorChanged;
+            Configs.ChatVoting.VoteDisplayTextColor.SettingChanged -= onVoteDisplayTextColorChanged;
+
+            unsubscribe(_voteOption);
         }
 
-        void VoteDisplayColor_SettingChanged(object sender, ConfigChangedArgs<Color> e)
+        void onVoteDisplayBackgroundColorChanged(object sender, ConfigChangedArgs<Color> e)
         {
-            if (e.Holder == Configs.ChatVoting.VoteDisplayBackgroundColor)
-            {
-                setBackdropColor(e.NewValue);
-            }
-            else if (e.Holder == Configs.ChatVoting.VoteDisplayTextColor)
-            {
-                setTextColor(e.NewValue);
-            }
+            updateBackdropColor();
         }
 
-        void setBackdropColor(Color color)
+        void onVoteDisplayTextColorChanged(object sender, ConfigChangedArgs<Color> e)
+        {
+            updateTextColor();
+        }
+
+        void updateBackdropColor()
         {
             if (BackdropImage)
             {
-                BackdropImage.color = color;
+                BackdropImage.color = Configs.ChatVoting.VoteDisplayBackgroundColor.Value;
             }
         }
 
-        void setTextColor(Color color)
+        void updateTextColor()
         {
             if (EffectTextLabel)
             {
-                EffectTextLabel.color = color;
+                EffectTextLabel.color = Configs.ChatVoting.VoteDisplayTextColor.Value;
             }
         }
 
@@ -94,20 +136,14 @@ namespace RiskOfChaos.UI.ChatVoting
             CanvasGroup.alpha = alpha;
         }
 
-        public void SetVote(EffectVoteInfo voteOption)
+        void markVoteDisplayDirty()
         {
-            _voteOption = voteOption;
-            refreshTextDisplay();
+            _voteDisplayDirty = true;
         }
 
-        void onCurrentLanguageChanged()
+        void FixedUpdate()
         {
-            refreshTextDisplay();
-        }
-
-        void ChaosEffectInfo_OnEffectNameFormatterDirty(ChaosEffectInfo effectInfo)
-        {
-            if (_voteOption != null && !_voteOption.IsRandom && _voteOption.EffectInfo == effectInfo)
+            if (_voteDisplayDirty)
             {
                 refreshTextDisplay();
             }
@@ -115,26 +151,22 @@ namespace RiskOfChaos.UI.ChatVoting
 
         void refreshTextDisplay()
         {
-            if (_voteOption == null)
-            {
-                EffectTextController.SetTokenAndFormatArgs(string.Empty, []);
+            _voteDisplayDirty = false;
 
-                _displayedVersion = 0;
-            }
-            else
-            {
-                EffectTextController.SetTokenAndFormatArgs("CHAOS_EFFECT_VOTING_OPTION_FORMAT", _voteOption.GetArgs());
+            string token = string.Empty;
+            object[] formatArgs = [];
 
-                _displayedVersion = _voteOption.Version;
-            }
-        }
-
-        void Update()
-        {
-            if (_voteOption != null && _voteOption.Version > _displayedVersion)
+            if (_voteOption != null)
             {
-                refreshTextDisplay();
+                token = "CHAOS_EFFECT_VOTING_OPTION_FORMAT";
+                formatArgs = [
+                    _voteOption.VoteNumber,
+                    _voteOption.IsRandom ? Language.GetString("CHAOS_EFFECT_VOTING_RANDOM_OPTION_NAME") : _voteOption.EffectInfo.GetStaticDisplayName(),
+                    _voteOption.VotePercentage * 100f
+                ];
             }
+
+            EffectTextController.SetTokenAndFormatArgs(token, formatArgs);
         }
     }
 }
