@@ -29,15 +29,15 @@ namespace RiskOfChaos.Components
                     if (inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) == 0)
                     {
                         inventory.GiveItem(RoCContent.Items.InvincibleLemurianMarker);
-                    }
-                }
 
-                InvincibleLemurianLogbookAdder.LemurianStatCollection statCollection = StatCollection;
-                if (statCollection != null)
-                {
-                    foreach (PlayerStatsComponent statsComponent in PlayerStatsComponent.instancesList)
-                    {
-                        statsComponent.currentStats.PushStatValue(statCollection.EncounteredStat, 1);
+                        InvincibleLemurianLogbookAdder.LemurianStatCollection statCollection = StatCollection;
+                        if (statCollection != null)
+                        {
+                            foreach (PlayerStatsComponent statsComponent in PlayerStatsComponent.instancesList)
+                            {
+                                statsComponent.currentStats.PushStatValue(statCollection.EncounteredStat, 1);
+                            }
+                        }
                     }
                 }
             }
