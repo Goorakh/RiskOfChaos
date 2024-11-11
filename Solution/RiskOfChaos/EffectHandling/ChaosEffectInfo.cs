@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using HarmonyLib;
 using HG;
 using MonoMod.Utils;
 using RiskOfChaos.Collections;
@@ -132,8 +133,13 @@ namespace RiskOfChaos.EffectHandling
                     {
                         effectWeightMultipliersList.Add(method.CreateDelegate<EffectWeightMultiplierDelegate>());
                     }
-                    else if (getEffectNameFormatterDelegate == null && method.GetCustomAttribute<GetEffectNameFormatterAttribute>() != null)
+                    else if (method.GetCustomAttribute<GetEffectNameFormatterAttribute>() != null)
                     {
+                        if (getEffectNameFormatterDelegate != null)
+                        {
+                            Log.Warning($"Duplicate name formatter getter for effect {Identifier}: {getEffectNameFormatterDelegate.Method.FullDescription()}, {method.FullDescription()}");
+                        }
+
                         getEffectNameFormatterDelegate = method.CreateDelegate<GetEffectNameFormatterDelegate>();
                     }
                 }
