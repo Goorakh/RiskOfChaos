@@ -40,11 +40,7 @@ namespace RiskOfChaos
                 {
                     onEnigmaEnabled();
                 }
-                else if (artifactDef == RoR2Content.Artifacts.Glass)
-                {
-                    onGlassEnabledOrDisabled();
-                }
-                else if (artifactDef == CU8Content.Artifacts.Devotion)
+                if (artifactDef == CU8Content.Artifacts.Devotion)
                 {
                     onDevotionEnabled();
                 }
@@ -55,6 +51,11 @@ namespace RiskOfChaos
                 else if (artifactDef == DLC2Content.Artifacts.Rebirth)
                 {
                     onRebirthEnabled();
+                }
+
+                foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
+                {
+                    body.MarkAllStatsDirty();
                 }
 
                 foreach (LocalUser user in LocalUserManager.readOnlyLocalUsersList)
@@ -75,11 +76,7 @@ namespace RiskOfChaos
         {
             if (Stage.instance)
             {
-                if (artifactDef == RoR2Content.Artifacts.Glass)
-                {
-                    onGlassEnabledOrDisabled();
-                }
-                else if (artifactDef == RoR2Content.Artifacts.SingleMonsterType)
+                if (artifactDef == RoR2Content.Artifacts.SingleMonsterType)
                 {
                     onKinDisabled();
                 }
@@ -147,30 +144,15 @@ namespace RiskOfChaos
             }
         }
 
-        static void onGlassEnabledOrDisabled()
-        {
-            if (!NetworkServer.active)
-                return;
-
-            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
-            {
-                body.MarkAllStatsDirty();
-            }
-        }
-
         static void onDevotionEnabled()
         {
             if (!NetworkServer.active)
                 return;
 
-            SceneDirector sceneDirector;
+            SceneDirector sceneDirector = null;
             if (DirectorCore.instance)
             {
                 sceneDirector = DirectorCore.instance.GetComponent<SceneDirector>();
-            }
-            else
-            {
-                sceneDirector = GameObject.FindObjectOfType<SceneDirector>();
             }
 
             DirectorCard lemurianEggSpawnCard;

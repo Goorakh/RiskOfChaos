@@ -5,12 +5,11 @@ using UnityEngine;
 
 namespace RiskOfChaos.Components
 {
-    [RequireComponent(typeof(ItemStealController), typeof(SyncStolenItemCount))]
+    [RequiredComponents(typeof(SyncStolenItemCount))]
     public class ShowStolenItemsPositionIndicator : MonoBehaviour
     {
         NetworkedBodyAttachment _bodyAttachment;
 
-        ItemStealController _itemStealController;
         SyncStolenItemCount _syncedStolenItemCount;
 
         GameObject _positionIndicatorObject;
@@ -19,7 +18,6 @@ namespace RiskOfChaos.Components
         void Awake()
         {
             _bodyAttachment = GetComponent<NetworkedBodyAttachment>();
-            _itemStealController = GetComponent<ItemStealController>();
             _syncedStolenItemCount = GetComponent<SyncStolenItemCount>();
         }
 
@@ -30,7 +28,7 @@ namespace RiskOfChaos.Components
 
         void OnDisable()
         {
-            if (_positionIndicator)
+            if (_positionIndicatorObject)
             {
                 Destroy(_positionIndicatorObject);
             }

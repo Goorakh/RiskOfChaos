@@ -59,12 +59,6 @@ namespace RiskOfChaos.ConfigHandling
 
         public static void SetOverrideValue(string definition, string serializedValue)
         {
-            if (string.IsNullOrEmpty(serializedValue))
-            {
-                ClearOverrideValue(definition);
-                return;
-            }
-
             if (!TryGetConfigByDefinition(definition, out ConfigHolderBase configHolder))
             {
                 Log.Error($"Networked config '{definition}' is not defined");

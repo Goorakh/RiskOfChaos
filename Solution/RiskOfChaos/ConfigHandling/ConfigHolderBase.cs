@@ -1,7 +1,6 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.EffectHandling;
 using RiskOfOptions.OptionConfigs;
-using RoR2;
 using System;
 
 namespace RiskOfChaos.ConfigHandling
@@ -50,13 +49,6 @@ namespace RiskOfChaos.ConfigHandling
             Description = description ?? throw new ArgumentNullException(nameof(description));
             _previousKeys = previousKeys ?? throw new ArgumentNullException(nameof(previousKeys));
             Flags = flags;
-
-            Run.onRunDestroyGlobal += onRunEnd;
-        }
-
-        ~ConfigHolderBase()
-        {
-            Run.onRunDestroyGlobal -= onRunEnd;
         }
 
         public abstract void Bind(ChaosEffectInfo effectInfo);
@@ -95,11 +87,6 @@ namespace RiskOfChaos.ConfigHandling
             _hasServerOverrideValue = false;
 
             invokeSettingChanged();
-        }
-
-        void onRunEnd(Run run)
-        {
-            ClearServerOverrideValue();
         }
     }
 }

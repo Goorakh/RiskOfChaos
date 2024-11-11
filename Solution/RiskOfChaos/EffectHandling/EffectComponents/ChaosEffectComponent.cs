@@ -188,14 +188,14 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         [Server]
         void fixedUpdateServer()
         {
-            if (Time.deltaTime == 0f || EffectDestructionHandledByComponent)
-                return;
-
+            if (!EffectDestructionHandledByComponent)
+            {
             const float TIMEOUT_DURATION = 3f;
             if (TimeStarted.TimeSinceClamped > TIMEOUT_DURATION)
             {
                 RetireEffect();
             }
+        }
         }
 
         [Server]

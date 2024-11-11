@@ -72,14 +72,6 @@ namespace RiskOfChaos.ConfigHandling
             _previousConfigSectionNames = previousSections ?? throw new ArgumentNullException(nameof(previousSections));
         }
 
-        ~ConfigHolder()
-        {
-            if (Entry != null)
-            {
-                Entry.SettingChanged -= Entry_SettingChanged;
-            }
-        }
-
         void Entry_SettingChanged(object sender, EventArgs e)
         {
             invokeSettingChanged();
@@ -130,18 +122,6 @@ namespace RiskOfChaos.ConfigHandling
             }
 
             _previousConfigSectionNames = [.. _previousConfigSectionNames, .. ownerEffect.PreviousConfigSectionNames];
-
-            if ((Flags & ConfigFlags.FormatsEffectName) == ConfigFlags.FormatsEffectName)
-            {
-                SettingChanged += (s, e) =>
-                {
-#if DEBUG
-                    Log.Debug($"Effect name formatting config '{e.Holder.Entry.Definition}' changed, marking {ownerEffect} name formatter dirty");
-#endif
-
-                    ownerEffect.MarkNameFormatterDirty();
-                };
-            }
 
             Bind(ownerEffect.ConfigFile, ownerEffect.ConfigSectionName, ChaosEffectCatalog.CONFIG_MOD_GUID, ChaosEffectCatalog.CONFIG_MOD_NAME);
         }

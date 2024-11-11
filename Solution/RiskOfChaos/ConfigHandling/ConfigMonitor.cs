@@ -11,7 +11,7 @@ namespace RiskOfChaos.ConfigHandling
         static string getKey(string section, string key)
         {
             // Illegal config char is used as the separator to guarantee it's unique
-            return section + '\\' + key;
+            return section + @"\" + key;
         }
 
         public static bool TryRegisterConfig(string section, string key, ConfigHolderBase instance)

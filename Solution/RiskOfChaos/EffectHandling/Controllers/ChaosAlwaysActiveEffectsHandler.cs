@@ -85,6 +85,9 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         void FixedUpdate()
         {
+            if (!NetworkServer.active)
+                return;
+
             if (_activeEffectsDirty)
             {
                 refreshEffects();
@@ -175,6 +178,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     }
 
                     activeEffectInstances.RemoveRange(targetAlwaysActiveCount, activeEffectInstances.Count - targetAlwaysActiveCount);
+                    activeEffectInstances.TrimExcess();
                 }
             }
         }
