@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using HG;
+using Newtonsoft.Json;
 using RiskOfChaos.ChatMessages;
 using RiskOfChaos.Collections.ParsedValue;
 using RiskOfChaos.ConfigHandling;
@@ -8,20 +9,22 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.EffectUtils.World;
 using RiskOfChaos.SaveHandling;
-using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Comparers;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
 using System.Collections.Generic;
+using System.Text;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosTimedEffect("add_random_item_corruption", TimedEffectType.Permanent, HideFromEffectsListWhenPermanent = true)]
+    [ChaosTimedEffect("add_random_item_corruption", TimedEffectType.Permanent)]
     public sealed class AddRandomItemCorruption : NetworkBehaviour
     {
         [EffectConfig]
@@ -76,7 +79,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                     continue;
 
 #if DEBUG
-                Log.Debug($"Including item {FormatUtils.GetBestItemDisplayName(item)}");
+                Log.Debug($"Including item {Utilities.FormatUtils.GetBestItemDisplayName(item)}");
 #endif
 
                 availableItems.Add((ItemIndex)i);
@@ -134,7 +137,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         }
 
         ChaosEffectComponent _effectComponent;
-
+        ChaosEffectNameComponent _effectNameComponent;
         ObjectSerializationComponent _serializationComponent;
 
         readonly SyncListItemTransformationPair _itemTransformPairs = [];
@@ -163,6 +166,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
+            _effectNameComponent = GetComponent<ChaosEffectNameComponent>();
             _serializationComponent = GetComponent<ObjectSerializationComponent>();
         }
 
@@ -218,6 +222,17 @@ namespace RiskOfChaos.EffectDefinitions.World
                     }
                 }
             }
+
+            if (NetworkServer.active)
+            {
+                ItemTransformationPair[] transformationPairs = new ItemTransformationPair[_itemTransformPairs.Count];
+                for (int i = 0; i < transformationPairs.Length; i++)
+                {
+                    transformationPairs[i] = _itemTransformPairs[i];
+                }
+
+                _effectNameComponent.SetCustomNameFormatter(new NameFormatter(transformationPairs));
+            }
         }
 
         void OnDestroy()
@@ -246,7 +261,7 @@ namespace RiskOfChaos.EffectDefinitions.World
             {
             }
 
-            public bool Equals(ItemTransformationPair other)
+            public readonly bool Equals(ItemTransformationPair other)
             {
                 return From == other.From && To == other.To;
             }
@@ -266,6 +281,106 @@ namespace RiskOfChaos.EffectDefinitions.World
                 ItemIndex to = reader.ReadItemIndex();
 
                 return new ItemTransformationPair(from, to);
+            }
+        }
+
+        class NameFormatter : EffectNameFormatter
+        {
+            ItemTransformationPair[] _transformationPairs;
+
+            public NameFormatter(ItemTransformationPair[] transformationPairs)
+            {
+                _transformationPairs = transformationPairs;
+            }
+
+            public NameFormatter()
+            {
+            }
+
+            public override void Serialize(NetworkWriter writer)
+            {
+                writer.WritePackedUInt32((uint)_transformationPairs.Length);
+                foreach (ItemTransformationPair pair in _transformationPairs)
+                {
+                    writer.Write(pair.From);
+                    writer.Write(pair.To);
+                }
+            }
+
+            public override void Deserialize(NetworkReader reader)
+            {
+                uint transformPairCount = reader.ReadPackedUInt32();
+                _transformationPairs = new ItemTransformationPair[transformPairCount];
+                for (int i = 0; i < transformPairCount; i++)
+                {
+                    ItemIndex from = reader.ReadItemIndex();
+                    ItemIndex to = reader.ReadItemIndex();
+
+                    _transformationPairs[i] = new ItemTransformationPair(from, to);
+                }
+
+                invokeFormatterDirty();
+            }
+
+            public override string GetEffectDisplayName(ChaosEffectInfo effectInfo, EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)
+            {
+                string displayName = base.GetEffectDisplayName(effectInfo, formatFlags);
+
+                if ((formatFlags & EffectNameFormatFlags.RuntimeFormatArgs) != 0)
+                {
+                    if (_transformationPairs.Length > 0)
+                    {
+                        StringBuilder stringBuilder = HG.StringBuilderPool.RentStringBuilder();
+                        stringBuilder.Append(displayName);
+
+                        stringBuilder.Append("<size=80%>");
+
+                        foreach (ItemTransformationPair pair in _transformationPairs)
+                        {
+                            stringBuilder.Append('\n');
+
+                            Color fromPickupColor = PickupCatalog.invalidPickupColor;
+                            string fromPickupNameToken = PickupCatalog.invalidPickupToken;
+                            PickupDef fromPickup = PickupCatalog.GetPickupDef(PickupCatalog.FindPickupIndex(pair.From));
+                            if (fromPickup != null)
+                            {
+                                fromPickupColor = fromPickup.baseColor;
+                                fromPickupNameToken = fromPickup.nameToken;
+                            }
+
+                            Color toPickupColor = PickupCatalog.invalidPickupColor;
+                            string toPickupNameToken = PickupCatalog.invalidPickupToken;
+                            PickupDef toPickup = PickupCatalog.GetPickupDef(PickupCatalog.FindPickupIndex(pair.To));
+                            if (toPickup != null)
+                            {
+                                toPickupColor = toPickup.baseColor;
+                                toPickupNameToken = toPickup.nameToken;
+                            }
+
+                            stringBuilder.AppendColoredString(Language.GetString(fromPickupNameToken), fromPickupColor)
+                                         .Append(" -> ")
+                                         .AppendColoredString(Language.GetString(toPickupNameToken), toPickupColor);
+                        }
+
+                        stringBuilder.Append("</size>");
+
+                        displayName = stringBuilder.ToString();
+                        stringBuilder = HG.StringBuilderPool.ReturnStringBuilder(stringBuilder);
+                    }
+                }
+
+                return displayName;
+            }
+
+            public override object[] GetFormatArgs()
+            {
+                return [];
+            }
+
+            public override bool Equals(EffectNameFormatter other)
+            {
+                return other is NameFormatter otherFormatter &&
+                       ArrayUtils.SequenceEquals(_transformationPairs, otherFormatter._transformationPairs);
             }
         }
     }

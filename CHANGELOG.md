@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Add Random Item Corruption Rule:
+  * The added corruption rule(s) are now displayed in the Active Effects list.
+
 * All Items are Void Potentials:
   * Fixed void potential visuals being partially invisible
 

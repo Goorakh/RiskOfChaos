@@ -32,7 +32,7 @@ namespace RiskOfChaos.EffectHandling.Formatting
             }
         }
 
-        public string GetEffectDisplayName(ChaosEffectInfo effectInfo, EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)
+        public virtual string GetEffectDisplayName(ChaosEffectInfo effectInfo, EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)
         {
             if (effectInfo == null)
             {
