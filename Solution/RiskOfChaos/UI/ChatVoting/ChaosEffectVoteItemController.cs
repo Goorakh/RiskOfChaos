@@ -217,11 +217,21 @@ namespace RiskOfChaos.UI.ChatVoting
 
             if (_voteOption != null)
             {
+                string optionName = "???";
+                if (_voteOption.IsRandom)
+                {
+                    optionName = Language.GetString("CHAOS_EFFECT_VOTING_RANDOM_OPTION_NAME");
+                }
+                else if (_voteOption.EffectInfo != null)
+                {
+                    optionName = _voteOption.EffectInfo.GetStaticDisplayName();
+                }
+
                 token = "CHAOS_EFFECT_VOTING_OPTION_FORMAT";
                 formatArgs = [
                     _voteOption.VoteNumber,
-                    _voteOption.IsRandom ? Language.GetString("CHAOS_EFFECT_VOTING_RANDOM_OPTION_NAME") : _voteOption.EffectInfo.GetStaticDisplayName(),
-                    _voteOption.VotePercentage * 100f
+                    optionName,
+                    Mathf.RoundToInt(_voteOption.VotePercentage * 100f)
                 ];
             }
 

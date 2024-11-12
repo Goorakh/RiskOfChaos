@@ -10,7 +10,7 @@
         "CHAOS_NEXT_EFFECT_DISPLAY_FORMAT": "Next Effect: {0} (in {1})",
         "CHAOS_NEXT_EFFECT_TIME_REMAINING_DISPLAY_FORMAT": "Next Effect: in {0}",
 
-        "CHAOS_EFFECT_VOTING_OPTION_FORMAT": "{0}: {1} ({2:F0}%)",
+        "CHAOS_EFFECT_VOTING_OPTION_FORMAT": "{0}: {1} ({2}%)",
 
         "ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_HEADER": "Reconnect Failed",
         "ROC_ATTEMPT_RECONNECT_NOT_LOGGED_IN_DESCRIPTION_TWITCH": "No valid Twitch login found. Please authenticate in the mod settings.",
