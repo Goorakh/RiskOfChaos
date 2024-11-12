@@ -10,7 +10,7 @@ using RiskOfOptions.OptionConfigs;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.World
+namespace RiskOfChaos.EffectDefinitions.World.Projectile
 {
     [ChaosTimedEffect("repeat_projectiles", 90f)]
     public sealed class RepeatProjectiles : MonoBehaviour

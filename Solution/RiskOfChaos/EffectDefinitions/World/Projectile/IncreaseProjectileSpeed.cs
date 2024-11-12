@@ -5,37 +5,41 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.ModificationController;
 using RiskOfChaos.ModificationController.Projectile;
 using RiskOfOptions.OptionConfigs;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.World
+namespace RiskOfChaos.EffectDefinitions.World.Projectile
 {
-    [ChaosTimedEffect("bouncy_projectiles", TimedEffectType.UntilStageEnd)]
-    public sealed class BouncyProjectiles : MonoBehaviour
+    [ChaosTimedEffect("increase_projectile_speed", TimedEffectType.UntilStageEnd, ConfigName = "Increase Projectile Speed")]
+    public sealed class IncreaseProjectileSpeed : MonoBehaviour
     {
         [EffectConfig]
-        static readonly ConfigHolder<int> _maxBulletBounceCount =
-            ConfigFactory<int>.CreateConfig("Max Bullet Bounce Count", 20)
-                              .Description("The maximum amount of times bullets can be bounced")
-                              .AcceptableValues(new AcceptableValueMin<int>(1))
-                              .OptionConfig(new IntFieldConfig { Min = 1 })
-                              .Build();
-
-        [EffectConfig]
-        static readonly ConfigHolder<int> _maxProjectileBounceCount =
-            ConfigFactory<int>.CreateConfig("Max Projectile Bounce Count", 7)
-                              .Description("The maximum amount of times projectiles can be bounced")
-                              .AcceptableValues(new AcceptableValueMin<int>(1))
-                              .OptionConfig(new IntFieldConfig { Min = 1 })
-                              .Build();
+        static readonly ConfigHolder<float> _projectileSpeedIncrease =
+            ConfigFactory<float>.CreateConfig("Projectile Speed Increase", 0.5f)
+                                .AcceptableValues(new AcceptableValueMin<float>(0f))
+                                .OptionConfig(new StepSliderConfig
+                                {
+                                    FormatString = "+{0:P0}",
+                                    min = 0f,
+                                    max = 2f,
+                                    increment = 0.01f
+                                })
+                                .Build();
 
         [EffectCanActivate]
         static bool CanActivate()
         {
             return RoCContent.NetworkedPrefabs.ProjectileModificationProvider;
+        }
+
+        [GetEffectNameFormatter]
+        static EffectNameFormatter GetNameFormatter()
+        {
+            return new EffectNameFormatter_GenericFloat(_projectileSpeedIncrease) { ValueFormat = "P0" };
         }
 
         ValueModificationController _projectileModificationController;
@@ -47,10 +51,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 _projectileModificationController = Instantiate(RoCContent.NetworkedPrefabs.ProjectileModificationProvider).GetComponent<ValueModificationController>();
 
                 ProjectileModificationProvider projectileModificationProvider = _projectileModificationController.GetComponent<ProjectileModificationProvider>();
-
-                projectileModificationProvider.BulletBounceCountConfigBinding.BindToConfig(_maxBulletBounceCount);
-                projectileModificationProvider.ProjectileBounceCountConfigBinding.BindToConfig(_maxProjectileBounceCount);
-                projectileModificationProvider.OrbBounceCountConfigBinding.BindToConfig(_maxProjectileBounceCount);
+                projectileModificationProvider.SpeedMultiplierConfigBinding.BindToConfig(_projectileSpeedIncrease, v => 1f + v);
 
                 NetworkServer.Spawn(_projectileModificationController.gameObject);
             }

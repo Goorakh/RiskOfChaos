@@ -10,7 +10,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
-namespace RiskOfChaos.EffectDefinitions.World
+namespace RiskOfChaos.EffectDefinitions.World.Interactables
 {
     [ChaosTimedEffect("lock_all_interactables", 45f, AllowDuplicates = false)]
     public sealed class LockAllInteractables : MonoBehaviour
@@ -100,7 +100,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 return;
 
             Vector3 lockPosition = purchaseInteraction.transform.position;
-            Quaternion lockRotation = Quaternion.Euler(0f, UnityEngine.Random.Range(0f, 360f), 0f);
+            Quaternion lockRotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
             GameObject lockObject = Instantiate(_purchaseLockPrefab, lockPosition, lockRotation);
             NetworkServer.Spawn(lockObject);
             purchaseInteraction.NetworklockGameObject = lockObject;

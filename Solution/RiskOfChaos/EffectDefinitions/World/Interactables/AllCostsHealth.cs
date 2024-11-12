@@ -5,7 +5,6 @@ using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
-using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.ModificationController;
 using RiskOfChaos.ModificationController.Cost;
 using RiskOfChaos.Patches;
@@ -16,7 +15,7 @@ using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
+namespace RiskOfChaos.EffectDefinitions.World.Interactables
 {
     [ChaosTimedEffect("all_costs_health", TimedEffectType.UntilStageEnd, AllowDuplicates = false, DefaultSelectionWeight = 0.8f)]
     [EffectConfigBackwardsCompatibility("Effect: Blood Money (Lasts 1 stage)")]

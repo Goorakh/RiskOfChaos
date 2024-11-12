@@ -5,7 +5,7 @@ using RiskOfChaos.ModificationController;
 using RiskOfChaos.ModificationController.Cost;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
+namespace RiskOfChaos.EffectDefinitions.World.Interactables
 {
     [ChaosTimedEffect("everything_free", 30f, AllowDuplicates = false)]
     public sealed class EverythingFree : NetworkBehaviour

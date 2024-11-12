@@ -6,7 +6,7 @@ using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.World
+namespace RiskOfChaos.EffectDefinitions.World.Interactables
 {
     [ChaosEffect("activate_stage_teleporter")]
     public sealed class ActivateStageTeleporter : MonoBehaviour

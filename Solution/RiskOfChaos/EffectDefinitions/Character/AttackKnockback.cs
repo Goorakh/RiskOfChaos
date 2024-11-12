@@ -1,4 +1,4 @@
-﻿using RiskOfChaos.EffectDefinitions.World;
+﻿using RiskOfChaos.EffectDefinitions.World.Knockback;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;

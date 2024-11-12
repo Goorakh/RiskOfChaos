@@ -1,4 +1,4 @@
-﻿using RiskOfChaos.EffectDefinitions.World;
+﻿using RiskOfChaos.EffectDefinitions.World.RunTimer;
 using RiskOfChaos.EffectHandling.Controllers;
 using RoR2;
 

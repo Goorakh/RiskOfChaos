@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.World
+namespace RiskOfChaos.EffectDefinitions.World.Items
 {
     [ChaosEffect("suppress_random_item")]
     public sealed class SuppressRandomItem : NetworkBehaviour

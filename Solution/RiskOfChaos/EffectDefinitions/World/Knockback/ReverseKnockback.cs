@@ -7,7 +7,7 @@ using RiskOfChaos.ModificationController.Knockback;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.World
+namespace RiskOfChaos.EffectDefinitions.World.Knockback
 {
     [ChaosTimedEffect("reverse_knockback", TimedEffectType.UntilStageEnd)]
     [IncompatibleEffects(typeof(DisableKnockback))]

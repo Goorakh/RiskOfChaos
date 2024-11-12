@@ -10,7 +10,7 @@ using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.World
+namespace RiskOfChaos.EffectDefinitions.World.RunTimer
 {
     [ChaosEffect("advance_run_timer", ConfigName = "Advance Run Timer")]
     public sealed class AdvanceRunTimer : MonoBehaviour
@@ -35,7 +35,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                 return;
 
             Run run = Run.instance;
-            run.SetRunStopwatch(run.GetRunStopwatch() + (_numMinutesToAdd.Value * 60));
+            run.SetRunStopwatch(run.GetRunStopwatch() + _numMinutesToAdd.Value * 60);
 
             foreach (ChaosEffectActivationSignaler effectActivationSignaler in ChaosEffectActivationSignaler.InstancesList)
             {

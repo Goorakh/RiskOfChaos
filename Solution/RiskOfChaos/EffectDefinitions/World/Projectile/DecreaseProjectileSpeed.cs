@@ -12,7 +12,7 @@ using RiskOfOptions.OptionConfigs;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.World.ProjectileSpeed
+namespace RiskOfChaos.EffectDefinitions.World.Projectile
 {
     [ChaosTimedEffect("decrease_projectile_speed", TimedEffectType.UntilStageEnd, ConfigName = "Decrease Projectile Speed")]
     public sealed class DecreaseProjectileSpeed : MonoBehaviour

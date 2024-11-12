@@ -5,7 +5,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.World
+namespace RiskOfChaos.EffectDefinitions.World.RunTimer
 {
     [ChaosTimedEffect("pause_run_timer", 60f, AllowDuplicates = false)]
     public sealed class PauseRunTimer : MonoBehaviour

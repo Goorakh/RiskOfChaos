@@ -8,7 +8,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.World
+namespace RiskOfChaos.EffectDefinitions.World.Interactables
 {
     [ChaosEffect("all_chance_shrines", DefaultSelectionWeight = 0.7f)]
     public sealed class AllChanceShrines : MonoBehaviour

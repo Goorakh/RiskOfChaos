@@ -12,7 +12,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.World
+namespace RiskOfChaos.EffectDefinitions.World.Interactables
 {
     [ChaosEffect("interact_all_interactables", DefaultSelectionWeight = 0.4f)]
     public sealed class InteractAllInteractables : NetworkBehaviour

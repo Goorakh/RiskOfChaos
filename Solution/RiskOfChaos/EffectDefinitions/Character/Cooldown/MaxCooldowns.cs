@@ -5,7 +5,7 @@ using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.Character
+namespace RiskOfChaos.EffectDefinitions.Character.Cooldown
 {
     [ChaosEffect("max_cooldowns")]
     public sealed class MaxCooldowns : MonoBehaviour

@@ -12,7 +12,7 @@ using RiskOfOptions.OptionConfigs;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.World.PurchaseInteractionCost
+namespace RiskOfChaos.EffectDefinitions.World.Interactables
 {
     [ChaosTimedEffect("decrease_interactable_costs", TimedEffectType.UntilStageEnd, DefaultSelectionWeight = 0.8f, ConfigName = "Decrease Chest Prices")]
     public sealed class DecreaseInteractableCosts : MonoBehaviour

@@ -7,7 +7,7 @@ using RiskOfChaos.ModificationController.Knockback;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.World
+namespace RiskOfChaos.EffectDefinitions.World.Knockback
 {
     [ChaosTimedEffect("disable_knockback", TimedEffectType.UntilStageEnd, AllowDuplicates = false, DefaultSelectionWeight = 0.8f)]
     public sealed class DisableKnockback : MonoBehaviour

@@ -22,7 +22,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.World
+namespace RiskOfChaos.EffectDefinitions.World.Items
 {
     [ChaosTimedEffect("add_random_item_corruption", TimedEffectType.Permanent)]
     public sealed class AddRandomItemCorruption : NetworkBehaviour

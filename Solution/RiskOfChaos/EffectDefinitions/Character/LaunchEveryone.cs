@@ -2,7 +2,7 @@
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.Content;
-using RiskOfChaos.EffectDefinitions.World;
+using RiskOfChaos.EffectDefinitions.World.Knockback;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;

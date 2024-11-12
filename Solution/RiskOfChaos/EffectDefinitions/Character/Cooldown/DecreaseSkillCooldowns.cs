@@ -12,7 +12,7 @@ using RiskOfOptions.OptionConfigs;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.Character.CooldownScale
+namespace RiskOfChaos.EffectDefinitions.Character.Cooldown
 {
     [ChaosTimedEffect("decrease_skill_cooldown", TimedEffectType.UntilStageEnd, ConfigName = "Decrease Skill Cooldowns")]
     public sealed class DecreaseSkillCooldowns : MonoBehaviour

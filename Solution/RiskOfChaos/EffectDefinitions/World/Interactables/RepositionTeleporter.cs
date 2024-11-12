@@ -6,7 +6,7 @@ using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.World
+namespace RiskOfChaos.EffectDefinitions.World.Interactables
 {
     [ChaosEffect("reposition_teleporter")]
     public sealed class RepositionTeleporter : NetworkBehaviour

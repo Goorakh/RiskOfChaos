@@ -18,7 +18,7 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.World
+namespace RiskOfChaos.EffectDefinitions.World.Items
 {
     [ChaosTimedEffect("force_all_items_into_random_item", TimedEffectType.UntilStageEnd, AllowDuplicates = false, ConfigName = "All Items Are A Random Item", DefaultSelectionWeight = 0.8f)]
     public sealed class ForceAllItemsIntoRandomItem : NetworkBehaviour
@@ -69,11 +69,11 @@ namespace RiskOfChaos.EffectDefinitions.World
                 PickupDef pickupDef = PickupCatalog.GetPickupDef(PickupIndex);
                 if (pickupDef != null)
                 {
-                    return [ Util.GenerateColoredString(Language.GetString(pickupDef.nameToken), pickupDef.baseColor) ];
+                    return [Util.GenerateColoredString(Language.GetString(pickupDef.nameToken), pickupDef.baseColor)];
                 }
                 else
                 {
-                    return [ "<color=red>[ERROR: PICKUP NOT ROLLED]</color>" ];
+                    return ["<color=red>[ERROR: PICKUP NOT ROLLED]</color>"];
                 }
             }
 
@@ -119,7 +119,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             _dropTable.CreateItemBlacklistConfig("Item Blacklist", "A comma-separated list of items and equipment that should not be included for the effect. Both internal and English display names are accepted, with spaces and commas removed.");
 
-            _dropTable.AddDrops += (List<ExplicitDrop> drops) =>
+            _dropTable.AddDrops += (drops) =>
             {
                 drops.Add(new ExplicitDrop(RoR2Content.Items.CaptainDefenseMatrix.itemIndex, DropType.Tier3, null));
                 drops.Add(new ExplicitDrop(RoR2Content.Items.Pearl.itemIndex, DropType.Boss, null));

@@ -14,7 +14,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
-namespace RiskOfChaos.EffectDefinitions.World
+namespace RiskOfChaos.EffectDefinitions.World.Interactables
 {
     [ChaosEffect("mountain_shrine_add", ConfigName = "Add Mountain Shrine")]
     public sealed class MountainShrineAdd : MonoBehaviour

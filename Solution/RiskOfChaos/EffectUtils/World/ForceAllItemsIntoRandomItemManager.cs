@@ -1,7 +1,7 @@
 ﻿using RiskOfChaos.Components;
 using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
-using RiskOfChaos.EffectDefinitions.World;
+using RiskOfChaos.EffectDefinitions.World.Items;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.Controllers.ChatVoting;
