@@ -1,4 +1,5 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Utilities.Extensions;
+using RoR2;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -36,11 +37,7 @@ namespace RiskOfChaos.ChatMessages
                     pickupColor = pickupDef.baseColor;
                 }
 
-                _sharedStringBuilder.Append("<color=#")
-                                    .AppendColor32RGBHexValues(pickupColor)
-                                    .Append('>')
-                                    .Append(Language.GetString(pickupNameToken))
-                                    .Append("</color>");
+                _sharedStringBuilder.AppendColoredString(Language.GetString(pickupNameToken), pickupColor);
 
                 if (pickupQuantity != 1)
                 {
