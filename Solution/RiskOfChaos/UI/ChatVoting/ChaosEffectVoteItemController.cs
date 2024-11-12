@@ -3,6 +3,7 @@ using RiskOfChaos.EffectHandling.Controllers.ChatVoting;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.UI;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -16,6 +17,14 @@ namespace RiskOfChaos.UI.ChatVoting
 
         public LanguageTextMeshController EffectTextController;
         public TMP_Text EffectTextLabel;
+
+        [NonSerialized]
+        public ChaosEffectVoteDisplayController OwnerVoteDisplayController;
+
+        float _currentVoteFraction;
+        float _voteFractionSmoothVelocity;
+
+        float _maxFontSize;
 
         bool _voteDisplayDirty;
 
@@ -37,7 +46,7 @@ namespace RiskOfChaos.UI.ChatVoting
 
                 subscribe(_voteOption);
 
-                refreshTextDisplay();
+                markVoteDisplayDirty();
             }
         }
 
@@ -74,14 +83,20 @@ namespace RiskOfChaos.UI.ChatVoting
             // These don't want to serialize for some reason
             rectTransform.sizeDelta = Vector2.zero;
             rectTransform.anchoredPosition = Vector2.zero;
+
+            _maxFontSize = EffectTextLabel.fontSize;
         }
 
         void OnEnable()
         {
-            Configs.ChatVoting.VoteDisplayBackgroundColor.SettingChanged += onVoteDisplayBackgroundColorChanged;
+            _currentVoteFraction = 1f;
+            _voteFractionSmoothVelocity = 0f;
+            updateScaling();
+
+            Configs.ChatVotingUI.VoteDisplayBackgroundColor.SettingChanged += onVoteDisplayBackgroundColorChanged;
             updateBackdropColor();
 
-            Configs.ChatVoting.VoteDisplayTextColor.SettingChanged += onVoteDisplayTextColorChanged;
+            Configs.ChatVotingUI.VoteDisplayTextColor.SettingChanged += onVoteDisplayTextColorChanged;
             updateTextColor();
 
             Language.onCurrentLanguageChanged += markVoteDisplayDirty;
@@ -91,15 +106,15 @@ namespace RiskOfChaos.UI.ChatVoting
 
         void OnDisable()
         {
-            Configs.ChatVoting.VoteDisplayBackgroundColor.SettingChanged -= onVoteDisplayBackgroundColorChanged;
-            Configs.ChatVoting.VoteDisplayTextColor.SettingChanged -= onVoteDisplayTextColorChanged;
+            Configs.ChatVotingUI.VoteDisplayBackgroundColor.SettingChanged -= onVoteDisplayBackgroundColorChanged;
+            Configs.ChatVotingUI.VoteDisplayTextColor.SettingChanged -= onVoteDisplayTextColorChanged;
 
             Language.onCurrentLanguageChanged -= markVoteDisplayDirty;
         }
 
         void OnDestroy()
         {
-            unsubscribe(_voteOption);
+            VoteOption = null;
         }
 
         void onVoteDisplayBackgroundColorChanged(object sender, ConfigChangedArgs<Color> e)
@@ -116,7 +131,7 @@ namespace RiskOfChaos.UI.ChatVoting
         {
             if (BackdropImage)
             {
-                BackdropImage.color = Configs.ChatVoting.VoteDisplayBackgroundColor.Value;
+                BackdropImage.color = Configs.ChatVotingUI.VoteDisplayBackgroundColor.Value;
             }
         }
 
@@ -124,7 +139,18 @@ namespace RiskOfChaos.UI.ChatVoting
         {
             if (EffectTextLabel)
             {
-                EffectTextLabel.color = Configs.ChatVoting.VoteDisplayTextColor.Value;
+                Color fullVotesColor = Configs.ChatVotingUI.VoteDisplayTextColor.Value;
+
+                Color currentColor = fullVotesColor;
+                if (Configs.ChatVotingUI.VoteDisplayScalingModeConfig.Value != Configs.ChatVotingUI.VoteDisplayScalingMode.Disabled)
+                {
+                    Color.RGBToHSV(fullVotesColor, out float h, out float s, out float v);
+                    Color noVotesColor = Color.HSVToRGB(h, s * 0.8f, v * 0.9f);
+
+                    currentColor = Color.Lerp(noVotesColor, fullVotesColor, _currentVoteFraction);
+                }
+
+                EffectTextLabel.color = currentColor;
             }
         }
 
@@ -147,6 +173,43 @@ namespace RiskOfChaos.UI.ChatVoting
             }
         }
 
+        void Update()
+        {
+            if (_voteOption != null)
+            {
+                float targetVoteFraction = _voteOption.VotePercentage;
+
+                if (OwnerVoteDisplayController)
+                {
+                    ChaosEffectActivationSignaler_ChatVote chatVoteActivationSignaler = OwnerVoteDisplayController.ChatVoteActivationSignaler;
+                    if (chatVoteActivationSignaler && chatVoteActivationSignaler.TotalVotes == 0)
+                    {
+                        targetVoteFraction = 0.5f;
+                    }
+                }
+
+                float currentVoteFraction = _currentVoteFraction;
+                switch (Configs.ChatVotingUI.VoteDisplayScalingModeConfig.Value)
+                {
+                    case Configs.ChatVotingUI.VoteDisplayScalingMode.Disabled:
+                        currentVoteFraction = 1f;
+                        break;
+                    case Configs.ChatVotingUI.VoteDisplayScalingMode.Smooth:
+                        currentVoteFraction = Mathf.SmoothDamp(currentVoteFraction, targetVoteFraction, ref _voteFractionSmoothVelocity, 0.3f, float.PositiveInfinity, Time.unscaledDeltaTime);
+                        break;
+                    case Configs.ChatVotingUI.VoteDisplayScalingMode.Immediate:
+                        currentVoteFraction = targetVoteFraction;
+                        break;
+                    default:
+                        throw new NotImplementedException($"Scaling mode {Configs.ChatVotingUI.VoteDisplayScalingModeConfig.Value} is not implemented");
+                }
+
+                _currentVoteFraction = currentVoteFraction;
+
+                updateScaling();
+            }
+        }
+
         void refreshTextDisplay()
         {
             string token = string.Empty;
@@ -163,6 +226,16 @@ namespace RiskOfChaos.UI.ChatVoting
             }
 
             EffectTextController.SetTokenAndFormatArgs(token, formatArgs);
+        }
+
+        void updateScaling()
+        {
+            if (EffectTextLabel)
+            {
+                EffectTextLabel.fontSize = _maxFontSize * Mathf.Lerp(0.85f, 1f, _currentVoteFraction);
+            }
+
+            updateTextColor();
         }
     }
 }

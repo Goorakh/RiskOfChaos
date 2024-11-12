@@ -146,6 +146,10 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
         bool offsetVoteNumbers => _voteStartCount % 2 == 0;
 
+        public bool IsVoteActive => _effectVoteSelection != null && _effectVoteSelection.IsVoteActive;
+
+        public int TotalVotes => _effectVoteSelection?.TotalVotes ?? 0;
+
         int getVoteNumber(int voteIndex)
         {
             if (offsetVoteNumbers)

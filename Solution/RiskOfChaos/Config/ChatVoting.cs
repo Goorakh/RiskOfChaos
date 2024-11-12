@@ -8,7 +8,6 @@ using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using System;
 using System.Runtime.CompilerServices;
-using UnityEngine;
 
 namespace RiskOfChaos
 {
@@ -16,6 +15,8 @@ namespace RiskOfChaos
     {
         public static class ChatVoting
         {
+            public const string SECTION_NAME = "Streamer Integration";
+
             public enum ChatVotingMode
             {
                 Disabled,
@@ -84,42 +85,8 @@ namespace RiskOfChaos
                                                       })
                                                       .Build();
 
-            public static readonly ConfigHolder<float> VoteDisplayScaleMultiplier =
-                ConfigFactory<float>.CreateConfig("Vote Display UI Scale", 1f)
-                                    .Description("The scale multiplier of the vote options display")
-                                    .AcceptableValues(new AcceptableValueMin<float>(0f))
-                                    .OptionConfig(new StepSliderConfig
-                                    {
-                                        FormatString = "{0:F2}X",
-                                        min = 0f,
-                                        max = 2.5f,
-                                        increment = 0.05f,
-                                        checkIfDisabled = isVotingDisabled
-                                    })
-                                    .Build();
-
-            public static readonly ConfigHolder<Color> VoteDisplayTextColor =
-                ConfigFactory<Color>.CreateConfig("Vote Display Text Color", new Color(1f, 1f, 1f, 1f))
-                                    .Description("The color of the effect voting options text")
-                                    .OptionConfig(new ColorOptionConfig
-                                    {
-                                        checkIfDisabled = isVotingDisabled
-                                    })
-                                    .Build();
-
-            public static readonly ConfigHolder<Color> VoteDisplayBackgroundColor =
-                ConfigFactory<Color>.CreateConfig("Vote Display Background Color", new Color(0.0943f, 0.0943f, 0.0943f, 0.3373f))
-                                    .Description("The color of the effect voting options backdrop")
-                                    .OptionConfig(new ColorOptionConfig
-                                    {
-                                        checkIfDisabled = isVotingDisabled
-                                    })
-                                    .Build();
-
             internal static void Bind(ConfigFile file)
             {
-                const string SECTION_NAME = "Streamer Integration";
-
                 void bindConfig(ConfigHolderBase configHolder)
                 {
                     configHolder.Bind(file, SECTION_NAME, CONFIG_GUID, CONFIG_NAME);
@@ -141,12 +108,6 @@ namespace RiskOfChaos
                 bindConfig(IncludeRandomEffectInVote);
 
                 bindConfig(WinnerSelectionMode);
-
-                bindConfig(VoteDisplayScaleMultiplier);
-
-                bindConfig(VoteDisplayTextColor);
-
-                bindConfig(VoteDisplayBackgroundColor);
             }
         }
     }

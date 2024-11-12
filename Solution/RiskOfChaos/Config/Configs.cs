@@ -58,6 +58,8 @@ namespace RiskOfChaos
 
             ChatVoting.Bind(file);
 
+            ChatVotingUI.Bind(file);
+
 #if DEBUG
             Debug.Bind(file);
 #endif

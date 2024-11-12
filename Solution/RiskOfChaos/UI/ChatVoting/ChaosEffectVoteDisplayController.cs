@@ -65,7 +65,7 @@ namespace RiskOfChaos.UI.ChatVoting
                 HGTextMeshProUGUI effectTextLabel = effectText.AddComponent<HGTextMeshProUGUI>();
                 effectTextLabel.alignment = TextAlignmentOptions.Left;
                 effectTextLabel.enableWordWrapping = false;
-                effectTextLabel.fontSize = 30;
+                effectTextLabel.fontSize = 32.5f;
                 effectTextLabel.text = string.Empty;
 
                 LayoutElement layoutElement = voteItemCanvasGroup.AddComponent<LayoutElement>();
@@ -160,21 +160,21 @@ namespace RiskOfChaos.UI.ChatVoting
         {
             _defaultScale = transform.localScale;
 
-            _effectVoteDisplaysAllocator = new UIElementAllocator<ChaosEffectVoteItemController>(GetComponent<RectTransform>(), RoCContent.LocalPrefabs.ChaosEffectUIVoteItem);
+            _effectVoteDisplaysAllocator = new UIElementAllocator<ChaosEffectVoteItemController>(GetComponent<RectTransform>(), RoCContent.LocalPrefabs.ChaosEffectUIVoteItem)
+            {
+                onCreateElement = onCreateVoteDisplay
+            };
         }
 
         void OnEnable()
         {
-            Configs.ChatVoting.VoteDisplayScaleMultiplier.SettingChanged += onScaleMultiplierConfigChanged;
+            Configs.ChatVotingUI.VoteDisplayScaleMultiplier.SettingChanged += onScaleMultiplierConfigChanged;
             updateScale();
-
-            _voteDisplaysDirty = false;
-            updateVoteDisplays();
         }
 
         void OnDisable()
         {
-            Configs.ChatVoting.VoteDisplayScaleMultiplier.SettingChanged -= onScaleMultiplierConfigChanged;
+            Configs.ChatVotingUI.VoteDisplayScaleMultiplier.SettingChanged -= onScaleMultiplierConfigChanged;
 
             ChatVoteActivationSignaler = null;
             setVoteDisplays([]);
@@ -236,7 +236,7 @@ namespace RiskOfChaos.UI.ChatVoting
 
         void updateScale()
         {
-            transform.localScale = _defaultScale * Configs.ChatVoting.VoteDisplayScaleMultiplier.Value;
+            transform.localScale = _defaultScale * Configs.ChatVotingUI.VoteDisplayScaleMultiplier.Value;
         }
 
         void updateVoteDisplays()
@@ -259,6 +259,11 @@ namespace RiskOfChaos.UI.ChatVoting
                 ChaosEffectVoteItemController voteDisplayController = _effectVoteDisplaysAllocator.elements[i];
                 voteDisplayController.VoteOption = voteOptions[i];
             }
+        }
+
+        void onCreateVoteDisplay(int elementIndex, ChaosEffectVoteItemController voteDisplayController)
+        {
+            voteDisplayController.OwnerVoteDisplayController = this;
         }
     }
 }

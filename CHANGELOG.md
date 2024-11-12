@@ -6,6 +6,7 @@
   * Fixed void potential visuals being partially invisible
 
 * Effect Voting:
+  * Added highlighting system for the option with the most votes (can be disabled in config)
   * Fixed displayed effect durations on vote options sometimes not updating when effect durations are changed
 
 **2.0.3 Changes:**
