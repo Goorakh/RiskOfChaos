@@ -92,22 +92,21 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
                     _displayingEffectNameComponent.NameFormatterProvider.OnNameFormatterChanged += onEffectNameFormatterChanged;
                 }
 
-                if (enabled)
-                {
-                    updateEffectLabel(true);
-                }
+                markEffectLabelDirty();
             }
         }
 
-        float _displayingEffectTimeRemaining;
+        float _currentlyDisplayedTimeRemaining;
+
+        bool _effectLabelDirty;
 
         void OnEnable()
         {
-            updateTextColor();
-            updateEffectLabel(true);
-
             Language.onCurrentLanguageChanged += onCurrentLanguageChanged;
             Configs.UI.ActiveEffectsTextColor.SettingChanged += onActiveEffectsTextColorChanged;
+
+            updateTextColor();
+            markEffectLabelDirty();
         }
 
         void OnDisable()
@@ -123,7 +122,20 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         void FixedUpdate()
         {
-            updateEffectLabel(false);
+            if (_displayingEffectDurationComponent)
+            {
+                float timeRemaining = _displayingEffectDurationComponent.Remaining;
+                if (timeRemaining != _currentlyDisplayedTimeRemaining)
+                {
+                    markEffectLabelDirty();
+                }
+            }
+
+            if (_effectLabelDirty)
+            {
+                _effectLabelDirty = false;
+                updateEffectLabel();
+            }
         }
 
         void onActiveEffectsTextColorChanged(object sender, ConfigChangedArgs<Color> e)
@@ -138,15 +150,20 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         void onCurrentLanguageChanged()
         {
-            updateEffectLabel(true);
+            markEffectLabelDirty();
         }
 
         void onEffectNameFormatterChanged()
         {
-            updateEffectLabel(true);
+            markEffectLabelDirty();
         }
 
-        void updateEffectLabel(bool forceUpdate)
+        void markEffectLabelDirty()
+        {
+            _effectLabelDirty = true;
+        }
+
+        void updateEffectLabel()
         {
             if (!_displayingEffect || !_displayingEffectDurationComponent)
             {
@@ -155,8 +172,6 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             }
 
             float timeRemaining = _displayingEffectDurationComponent.Remaining;
-            if (!forceUpdate && timeRemaining == _displayingEffectTimeRemaining)
-                return;
 
             string displayName = "???";
             if (_displayingEffectInfo != null)
@@ -210,7 +225,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
             _effectNameText.SetTokenAndFormatArgs(token, formatArgs);
 
-            _displayingEffectTimeRemaining = timeRemaining;
+            _currentlyDisplayedTimeRemaining = timeRemaining;
         }
     }
 }

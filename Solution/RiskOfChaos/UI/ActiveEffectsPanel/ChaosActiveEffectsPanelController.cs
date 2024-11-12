@@ -6,6 +6,7 @@ using RiskOfChaos.EffectHandling.EffectComponents;
 using RoR2;
 using RoR2.UI;
 using RoR2.UI.SkinControllers;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.UI;
@@ -131,16 +132,29 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         void OnEnable()
         {
-            updateActiveEffects();
-
             ChaosEffectTracker.OnTimedEffectStartGlobal += onTimedEffectStartGlobal;
             ChaosEffectTracker.OnTimedEffectEndGlobal += onTimedEffectEndGlobal;
+
+            markActiveEffectsDirty();
         }
 
         void OnDisable()
         {
             ChaosEffectTracker.OnTimedEffectStartGlobal -= onTimedEffectStartGlobal;
             ChaosEffectTracker.OnTimedEffectEndGlobal -= onTimedEffectEndGlobal;
+
+            setDisplayedEffects([]);
+        }
+
+        void OnDestroy()
+        {
+            foreach (ChaosActiveEffectDisplayController activeEffectDisplay in _activeEffectDisplays)
+            {
+                if (activeEffectDisplay)
+                {
+                    Destroy(activeEffectDisplay.gameObject);
+                }
+            }
         }
 
         void onTimedEffectStartGlobal(ChaosEffectComponent effectComponent)
@@ -169,12 +183,15 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         void updateActiveEffects()
         {
-            ReadOnlyCollection<ChaosEffectComponent> allActiveEffects = ChaosEffectTracker.Instance.AllActiveTimedEffects;
+            setDisplayedEffects(ChaosEffectTracker.Instance.AllActiveTimedEffects);
+        }
 
+        void setDisplayedEffects(IReadOnlyCollection<ChaosEffectComponent> effects)
+        {
             int displayingEffectCount = 0;
 
-            ArrayUtils.EnsureCapacity(ref _activeEffectDisplays, allActiveEffects.Count);
-            foreach (ChaosEffectComponent effectComponent in allActiveEffects)
+            ArrayUtils.EnsureCapacity(ref _activeEffectDisplays, effects.Count);
+            foreach (ChaosEffectComponent effectComponent in effects)
             {
                 if (effectComponent.ShouldDisplayOnHUD)
                 {
