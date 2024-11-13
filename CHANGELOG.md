@@ -8,6 +8,9 @@
 * All Items are Void Potentials:
   * Fixed void potential visuals being partially invisible
 
+* Flipped Camera:
+  * Fixed effect reversing inputs during Seeker Meditate
+
 * Effect Voting:
   * Added highlighting system for the option with the most votes (can be disabled in config)
   * Fixed displayed effect durations on vote options sometimes not updating when effect durations are changed

@@ -8,64 +8,53 @@ namespace RiskOfChaos.Patches
 {
     static class PlayerInputHook
     {
-        static bool _appliedMoveInputPatches = false;
-        static void tryApplyMoveInputPatches()
+        public delegate void ModifyPlayerMoveInputDelegate(PlayerCharacterMasterController playerMasterController, ref Vector2 moveInput);
+        public static event ModifyPlayerMoveInputDelegate ModifyPlayerMoveInput;
+
+        [SystemInitializer]
+        static void Init()
         {
-            if (_appliedMoveInputPatches)
-                return;
+            IL.RoR2.PlayerCharacterMasterController.Update += PlayerCharacterMasterController_Update;
+        }
 
-            IL.RoR2.PlayerCharacterMasterController.Update += il =>
+        static void PlayerCharacterMasterController_Update(ILContext il)
+        {
+            ILCursor c = new ILCursor(il);
+
+            if (c.TryFindNext(out ILCursor[] foundCursors,
+                              x => x.MatchLdcI4(RewiredConsts.Action.MoveHorizontal),
+                              x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<Rewired.Player>(_ => _.GetAxis(default(int)))),
+                              x => x.MatchLdcI4(RewiredConsts.Action.MoveVertical),
+                              x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<Rewired.Player>(_ => _.GetAxis(default(int)))),
+                              x => x.MatchCall(AccessTools.DeclaredConstructor(typeof(Vector2), [typeof(float), typeof(float)]))))
             {
-                ILCursor c = new ILCursor(il);
+                ILCursor cursor = foundCursors[foundCursors.Length - 1];
 
-                if (c.TryFindNext(out ILCursor[] foundCursors,
-                                  x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<Rewired.Player>(_ => _.GetAxis(default(int)))),
-                                  x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<Rewired.Player>(_ => _.GetAxis(default(int)))),
-                                  x => x.MatchCall(AccessTools.DeclaredConstructor(typeof(Vector2), [typeof(float), typeof(float)]))))
+                int moveInputLocalIndex = -1;
+                if (cursor.Clone().TryGotoPrev(x => x.MatchLdloca(out moveInputLocalIndex)))
                 {
-                    ILCursor cursor = foundCursors[2];
-                    int patchIndex = cursor.Index + 1;
-
-                    int moveInputLocalIndex = -1;
-                    if (cursor.TryGotoPrev(x => x.MatchLdloca(out moveInputLocalIndex)))
+                    if (!cursor.TryGotoNext(MoveType.After,
+                                            x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<InputBankTest>(_ => _.SetRawMoveStates(default)))))
                     {
-                        cursor.Index = patchIndex;
-
-                        cursor.Emit(OpCodes.Ldarg_0);
-                        cursor.Emit(OpCodes.Ldloca, moveInputLocalIndex);
-                        cursor.EmitDelegate(modifyInput);
-                        static void modifyInput(PlayerCharacterMasterController playerMasterController, ref Vector2 moveInput)
-                        {
-                            _modifiyPlayerInput?.Invoke(playerMasterController, ref moveInput);
-                        }
+                        Log.Warning("Failed to find SetRawMoveStates call");
                     }
-                    else
+
+                    cursor.Emit(OpCodes.Ldarg_0);
+                    cursor.Emit(OpCodes.Ldloca, moveInputLocalIndex);
+                    cursor.EmitDelegate(modifyInput);
+                    static void modifyInput(PlayerCharacterMasterController playerMasterController, ref Vector2 moveInput)
                     {
-                        Log.Error("Failed to find move input local index");
+                        ModifyPlayerMoveInput?.Invoke(playerMasterController, ref moveInput);
                     }
                 }
                 else
                 {
-                    Log.Error("Failed to find patch location");
+                    Log.Error("Failed to find move input local index");
                 }
-            };
-
-            _appliedMoveInputPatches = true;
-        }
-
-        public delegate void ModifyPlayerMoveInputDelegate(PlayerCharacterMasterController playerMasterController, ref Vector2 moveInput);
-        static event ModifyPlayerMoveInputDelegate _modifiyPlayerInput;
-
-        public static event ModifyPlayerMoveInputDelegate ModifyPlayerMoveInput
-        {
-            add
-            {
-                _modifiyPlayerInput += value;
-                tryApplyMoveInputPatches();
             }
-            remove
+            else
             {
-                _modifiyPlayerInput -= value;
+                Log.Error("Failed to find patch location");
             }
         }
     }
