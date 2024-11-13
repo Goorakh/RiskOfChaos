@@ -1,76 +1,47 @@
 ﻿using HarmonyLib;
 using MonoMod.RuntimeDetour;
+using Rewired.ComponentControls.Effects;
 using RiskOfChaos.ModificationController.Projectile;
 using RoR2;
 using RoR2.Orbs;
 using RoR2.Projectile;
-using System;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.Patches
 {
     static class ProjectileSpeedHook
     {
+        static float currentSpeedMultiplier
+        {
+            get
+            {
+                if (!ProjectileModificationManager.Instance)
+                    return 1f;
+
+                return ProjectileModificationManager.Instance.SpeedMultiplier;
+            }
+        }
+
+        static bool useSpeedMultiplier => currentSpeedMultiplier != 1f;
+
         [SystemInitializer]
         static void Init()
         {
-            On.RoR2.Projectile.ProjectileManager.InitializeProjectile += (orig, projectileController, fireProjectileInfo) =>
+            On.RoR2.Projectile.ProjectileManager.InitializeProjectile += ProjectileManager_InitializeProjectile;
+
+            On.RoR2.Projectile.ProjectileSimple.SetLifetime += ProjectileSimple_SetLifetime;
+
+            MethodInfo orbDurationSetter = AccessTools.DeclaredPropertySetter(typeof(Orb), nameof(Orb.duration));
+            if (orbDurationSetter != null)
             {
-                orig(projectileController, fireProjectileInfo);
-
-                if (projectileController.TryGetComponent(out ProjectileSimple projectileSimple))
-                {
-                    tryMultiplyProjectileValues(ref projectileSimple.desiredForwardSpeed, ref projectileSimple.lifetime, projectileSimple);
-                }
-
-                if (projectileController.TryGetComponent(out BoomerangProjectile boomerangProjectile))
-                {
-                    tryMultiplyProjectileSpeed(ref boomerangProjectile.travelSpeed, boomerangProjectile);
-                }
-
-                if (projectileController.TryGetComponent(out DaggerController daggerController))
-                {
-                    tryMultiplyProjectileSpeed(ref daggerController.acceleration, daggerController);
-                }
-
-                if (projectileController.TryGetComponent(out MissileController missileController))
-                {
-                    tryMultiplyProjectileValues(ref missileController.maxVelocity, ref missileController.deathTimer, missileController);
-                    tryMultiplyProjectileTravelTime(ref missileController.giveupTimer, missileController);
-                }
-
-                if (projectileController.TryGetComponent(out ProjectileCharacterController projectileCharacterController))
-                {
-                    tryMultiplyProjectileValues(ref projectileCharacterController.velocity, ref projectileCharacterController.lifetime, projectileCharacterController);
-                }
-
-                if (projectileController.TryGetComponent(out ProjectileSteerTowardTarget projectileSteerTowardTarget))
-                {
-                    tryMultiplyProjectileSpeed(ref projectileSteerTowardTarget.rotationSpeed, projectileSteerTowardTarget);
-                }
-            };
-
-            On.RoR2.VelocityRandomOnStart.Start += (orig, self) =>
+                new Hook(orbDurationSetter, Orb_set_duration);
+            }
+            else
             {
-                if (self.GetComponent<ProjectileController>())
-                {
-                    tryMultiplyProjectileSpeed(ref self.minSpeed, self);
-                    tryMultiplyProjectileSpeed(ref self.maxSpeed, self);
-
-                    tryMultiplyProjectileSpeed(ref self.minAngularSpeed, self);
-                    tryMultiplyProjectileSpeed(ref self.maxAngularSpeed, self);
-                }
-
-                orig(self);
-            };
-
-            On.RoR2.Projectile.ProjectileSimple.SetLifetime += (orig, self, newLifetime) =>
-            {
-                tryMultiplyProjectileTravelTime(ref newLifetime, self);
-
-                orig(self, newLifetime);
-            };
+                Log.Warning("Failed to find Orb.set_duration MethodInfo");
+            }
 
 #pragma warning disable CS0618 // Type or member is obsolete
             MethodInfo projectileSimpleVelocitySetter = AccessTools.DeclaredPropertySetter(typeof(ProjectileSimple), nameof(ProjectileSimple.velocity));
@@ -78,72 +49,217 @@ namespace RiskOfChaos.Patches
             if (projectileSimpleVelocitySetter != null)
             {
                 // Hook the deprecated velocity setter, just in case some old mod is still using it
-                new Hook(projectileSimpleVelocitySetter, (Action<ProjectileSimple, float> orig, ProjectileSimple self, float value) =>
-                {
-                    tryMultiplyProjectileSpeed(ref value, self);
-                    orig(self, value);
-                });
-            }
-
-            MethodInfo orbDurationSetter = AccessTools.DeclaredPropertySetter(typeof(Orb), nameof(Orb.duration));
-            if (orbDurationSetter != null)
-            {
-                new Hook(orbDurationSetter, (Action<Orb, float> orig, Orb self, float value) =>
-                {
-                    if (self.distanceToTarget > 0f)
-                    {
-                        tryMultiplyProjectileTravelTime(ref value, self);
-                    }
-
-                    orig(self, value);
-                });
-            }
-            else
-            {
-                Log.Warning("Failed to find Orb.set_duration MethodInfo");
+                new Hook(projectileSimpleVelocitySetter, ProjectileSimple_set_velocity);
             }
         }
 
-        static bool tryGetTotalMultiplier(out float totalMultiplier)
+        static void ProjectileManager_InitializeProjectile(On.RoR2.Projectile.ProjectileManager.orig_InitializeProjectile orig, ProjectileController projectileController, FireProjectileInfo fireProjectileInfo)
         {
-            if (!ProjectileModificationManager.Instance || !ProjectileModificationManager.Instance.AnyModificationActive)
+            orig(projectileController, fireProjectileInfo);
+
+            if (!useSpeedMultiplier)
+                return;
+
+            float speedMultiplier = currentSpeedMultiplier;
+            float durationMultiplier = speedMultiplier != 0f ? 1f / speedMultiplier : 1f;
+            float durationMultiplierIncreaseOnly = Mathf.Max(durationMultiplier, 1f);
+
+            ProjectileSimple projectileSimple = projectileController.GetComponent<ProjectileSimple>();
+            BoomerangProjectile boomerangProjectile = projectileController.GetComponent<BoomerangProjectile>();
+            CleaverProjectile cleaverProjectile = projectileController.GetComponent<CleaverProjectile>();
+            DaggerController daggerController = projectileController.GetComponent<DaggerController>();
+            MissileController missileController = projectileController.GetComponent<MissileController>();
+            ProjectileCharacterController projectileCharacterController = projectileController.GetComponent<ProjectileCharacterController>();
+            SoulSearchController soulSearchController = projectileController.GetComponent<SoulSearchController>();
+
+            bool isMovingProjectile = (projectileSimple && projectileSimple.desiredForwardSpeed > 0f) ||
+                                      (boomerangProjectile && boomerangProjectile.travelSpeed > 0f) ||
+                                      (cleaverProjectile && cleaverProjectile.travelSpeed > 0f) ||
+                                      (daggerController && daggerController.acceleration > 0f) ||
+                                      (missileController && missileController.maxVelocity > 0f && missileController.acceleration > 0f) ||
+                                      (projectileCharacterController && projectileCharacterController.velocity > 0f) ||
+                                      (soulSearchController && soulSearchController.maxVelocity > 0f && soulSearchController.acceleration > 0f);
+
+            if (boomerangProjectile)
             {
-                totalMultiplier = 1f;
-                return false;
+                boomerangProjectile.travelSpeed *= speedMultiplier;
+
+                boomerangProjectile.transitionDuration *= durationMultiplier;
+                boomerangProjectile.maxFlyStopwatch *= durationMultiplier;
             }
 
-            totalMultiplier = ProjectileModificationManager.Instance.SpeedMultiplier;
-
-            const float MULTIPLIER_ACTIVE_MIN_DIFF = 0.01f;
-            return Mathf.Abs(totalMultiplier - 1f) >= MULTIPLIER_ACTIVE_MIN_DIFF;
-        }
-
-        static void tryMultiplyProjectileValues(ref float speed, ref float travelTime, object debugIdentifier)
-        {
-            if (Mathf.Abs(speed) > float.Epsilon || Mathf.Abs(travelTime) > float.Epsilon)
+            if (cleaverProjectile)
             {
-                if (tryGetTotalMultiplier(out float totalSpeedMultiplier))
-                {
-                    speed *= totalSpeedMultiplier;
-                    travelTime /= totalSpeedMultiplier;
+                cleaverProjectile.travelSpeed *= speedMultiplier;
 
-#if DEBUG
-                    Log.Debug($"Modified projectile speed for {debugIdentifier ?? "null"}: {nameof(totalSpeedMultiplier)}={totalSpeedMultiplier}");
-#endif
+                cleaverProjectile.transitionDuration *= durationMultiplier;
+                cleaverProjectile.maxFlyStopwatch *= durationMultiplier;
+            }
+
+            if (daggerController)
+            {
+                daggerController.acceleration *= speedMultiplier;
+
+                daggerController.delayTimer *= durationMultiplier;
+                daggerController.giveupTimer *= durationMultiplierIncreaseOnly;
+                daggerController.deathTimer *= durationMultiplierIncreaseOnly;
+            }
+
+            if (projectileController.TryGetComponent(out GummyCloneProjectile gummyCloneProjectile))
+            {
+                if (isMovingProjectile)
+                {
+                    gummyCloneProjectile.maxLifetime *= durationMultiplierIncreaseOnly;
                 }
             }
+
+            if (projectileController.TryGetComponent(out HookProjectileImpact hookProjectileImpact))
+            {
+                hookProjectileImpact.reelSpeed *= speedMultiplier;
+
+                hookProjectileImpact.liveTimer *= durationMultiplier;
+                hookProjectileImpact.reelDelayTime *= durationMultiplier;
+            }
+
+            if (missileController)
+            {
+                missileController.maxVelocity *= speedMultiplier;
+                missileController.acceleration *= speedMultiplier;
+
+                missileController.delayTimer *= durationMultiplier;
+                missileController.giveupTimer *= durationMultiplierIncreaseOnly;
+
+                if (isMovingProjectile)
+                {
+                    missileController.deathTimer *= durationMultiplierIncreaseOnly;
+                }
+            }
+
+            if (projectileCharacterController)
+            {
+                projectileCharacterController.velocity *= speedMultiplier;
+
+                if (isMovingProjectile)
+                {
+                    projectileCharacterController.lifetime *= durationMultiplierIncreaseOnly;
+                }
+            }
+
+            if (projectileController.TryGetComponent(out ProjectileGrappleController projectileGrappleController))
+            {
+                projectileGrappleController.maxTravelDistance *= durationMultiplier;
+            }
+
+            if (projectileController.TryGetComponent(out ProjectileImpactExplosion projectileImpactExplosion))
+            {
+                if (isMovingProjectile)
+                {
+                    projectileImpactExplosion.lifetime *= durationMultiplierIncreaseOnly;
+                    projectileImpactExplosion.lifetimeAfterImpact *= durationMultiplierIncreaseOnly;
+                }
+            }
+
+            if (projectileController.TryGetComponent(out ProjectileOwnerOrbiter projectileOwnerOrbiter))
+            {
+                if (NetworkServer.active)
+                {
+                    projectileOwnerOrbiter.NetworkdegreesPerSecond *= speedMultiplier;
+                }
+            }
+
+            if (projectileSimple)
+            {
+                projectileSimple.desiredForwardSpeed *= speedMultiplier;
+
+                if (isMovingProjectile)
+                {
+                    projectileSimple.lifetime *= durationMultiplierIncreaseOnly;
+                }
+            }
+
+            if (projectileController.TryGetComponent(out ProjectileSpawnMaster projectileSpawnMaster))
+            {
+                if (isMovingProjectile)
+                {
+                    projectileSpawnMaster.maxLifetime *= durationMultiplierIncreaseOnly;
+                }
+            }
+
+            if (projectileController.TryGetComponent(out ProjectileSteerTowardTarget projectileSteerTowardTarget))
+            {
+                projectileSteerTowardTarget.rotationSpeed *= speedMultiplier;
+            }
+
+            if (soulSearchController)
+            {
+                soulSearchController.maxVelocity *= speedMultiplier;
+                soulSearchController.acceleration *= speedMultiplier;
+
+                soulSearchController.delayTimer *= durationMultiplier;
+
+                if (isMovingProjectile)
+                {
+                    soulSearchController.deathTimer *= durationMultiplierIncreaseOnly;
+                }
+            }
+
+            if (projectileController.TryGetComponent(out SoulSpiralProjectile soulSpiralProjectile))
+            {
+                soulSpiralProjectile.degreesPerSecond *= speedMultiplier;
+            }
+
+            if (projectileController.TryGetComponent(out VelocityRandomOnStart velocityRandomOnStart))
+            {
+                velocityRandomOnStart.minSpeed *= speedMultiplier;
+                velocityRandomOnStart.maxSpeed *= speedMultiplier;
+
+                velocityRandomOnStart.minAngularSpeed *= speedMultiplier;
+                velocityRandomOnStart.maxAngularSpeed *= speedMultiplier;
+            }
+
+            if (projectileController.TryGetComponent(out RotateAroundAxis rotateAroundAxis))
+            {
+                rotateAroundAxis.slowRotationSpeed *= speedMultiplier;
+                rotateAroundAxis.fastRotationSpeed *= speedMultiplier;
+            }
         }
 
-        static void tryMultiplyProjectileSpeed(ref float speed, object debugIdentifier)
+        static void ProjectileSimple_SetLifetime(On.RoR2.Projectile.ProjectileSimple.orig_SetLifetime orig, ProjectileSimple self, float newLifetime)
         {
-            float travelTime = 0f;
-            tryMultiplyProjectileValues(ref speed, ref travelTime, debugIdentifier);
+            if (useSpeedMultiplier)
+            {
+                float speedMultiplier = currentSpeedMultiplier;
+                float durationMultiplier = speedMultiplier != 0f ? 1f / speedMultiplier : 1f;
+
+                newLifetime *= durationMultiplier;
+            }
+
+            orig(self, newLifetime);
         }
 
-        static void tryMultiplyProjectileTravelTime(ref float travelTime, object debugIdentifier)
+        delegate void orig_Orb_set_duration(Orb self, float value);
+        static void Orb_set_duration(orig_Orb_set_duration orig, Orb self, float value)
         {
-            float speed = 0f;
-            tryMultiplyProjectileValues(ref speed, ref travelTime, debugIdentifier);
+            if (self.distanceToTarget > 0f && useSpeedMultiplier)
+            {
+                float speedMultiplier = currentSpeedMultiplier;
+                float durationMultiplier = speedMultiplier != 0f ? 1f / speedMultiplier : 1f;
+
+                value *= durationMultiplier;
+            }
+
+            orig(self, value);
+        }
+
+        delegate void orig_ProjectileSimple_set_velocity(ProjectileSimple self, float value);
+        static void ProjectileSimple_set_velocity(orig_ProjectileSimple_set_velocity orig, ProjectileSimple self, float value)
+        {
+            if (useSpeedMultiplier)
+            {
+                value *= currentSpeedMultiplier;
+            }
+
+            orig(self, value);
         }
     }
 }

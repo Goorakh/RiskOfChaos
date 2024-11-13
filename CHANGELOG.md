@@ -5,6 +5,9 @@
 * Add Random Item Corruption Rule:
   * The added corruption rule(s) are now displayed in the Active Effects list.
 
+* Increase/Decrease Projectile Speed:
+  * Fixed speed multipliers not applying to certain projectiles
+
 * All Items are Void Potentials:
   * Fixed void potential visuals being partially invisible
 
