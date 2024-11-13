@@ -6,7 +6,6 @@ using RoR2;
 using RoR2.Artifacts;
 using RoR2.UI;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
@@ -103,20 +102,20 @@ namespace RiskOfChaos
             if (!NetworkServer.active)
                 return;
 
-            List<InteractableTracker> interactables = InstanceTracker.GetInstancesList<InteractableTracker>();
-            for (int i = interactables.Count - 1; i >= 0; i--)
+            List<ObjectSpawnCardTracker> spawnedObjects = InstanceTracker.GetInstancesList<ObjectSpawnCardTracker>();
+            for (int i = spawnedObjects.Count - 1; i >= 0; i--)
             {
-                InteractableTracker interactable = interactables[i];
-                if (!interactable)
+                ObjectSpawnCardTracker spawnedObject = spawnedObjects[i];
+                if (!spawnedObject)
                     continue;
 
-                InteractableSpawnCard spawnCard = interactable.SpawnCard;
-                if (!spawnCard)
-                    continue;
-
-                if (spawnCard.skipSpawnWhenSacrificeArtifactEnabled)
+                SpawnCard spawnCard = spawnedObject.SpawnCard;
+                if (spawnCard is InteractableSpawnCard interactableSpawnCard)
                 {
-                    NetworkServer.Destroy(interactable.gameObject);
+                    if (interactableSpawnCard.skipSpawnWhenSacrificeArtifactEnabled)
+                    {
+                        NetworkServer.Destroy(spawnedObject.gameObject);
+                    }
                 }
             }
         }
@@ -176,24 +175,32 @@ namespace RiskOfChaos
                 return;
             }
 
-            DirectorSpawnRequest eggDummySpawnRequest = new DirectorSpawnRequest(lemurianEggSpawnCard.spawnCard, new DirectorPlacementRule(), RoR2Application.rng);
+            Xoroshiro128Plus eggSpawnRng = new Xoroshiro128Plus(RoR2Application.rng.nextUlong);
 
-            List<InteractableTracker> interactables = InstanceTracker.GetInstancesList<InteractableTracker>();
-            for (int i = interactables.Count - 1; i >= 0; i--)
+            List<ObjectSpawnCardTracker> spawnedObjects = InstanceTracker.GetInstancesList<ObjectSpawnCardTracker>();
+            for (int i = spawnedObjects.Count - 1; i >= 0; i--)
             {
-                InteractableTracker interactable = interactables[i];
-                if (!interactable)
+                ObjectSpawnCardTracker spawnedObject = spawnedObjects[i];
+                if (!spawnedObject)
                     continue;
 
-                InteractableSpawnCard spawnCard = interactable.SpawnCard;
-                if (!spawnCard)
-                    continue;
-
-                if (spawnCard.skipSpawnWhenDevotionArtifactEnabled)
+                SpawnCard spawnCard = spawnedObject.SpawnCard;
+                if (spawnCard is InteractableSpawnCard interactableSpawnCard)
                 {
-                    lemurianEggSpawnCard.spawnCard.DoSpawn(interactable.transform.position, interactable.transform.rotation, eggDummySpawnRequest);
+                    if (interactableSpawnCard.skipSpawnWhenDevotionArtifactEnabled)
+                    {
+                        DirectorPlacementRule eggPlacementRule = new DirectorPlacementRule
+                        {
+                            placementMode = DirectorPlacementRule.PlacementMode.Direct,
+                            spawnOnTarget = spawnedObject.transform,
+                        };
 
-                    NetworkServer.Destroy(interactable.gameObject);
+                        DirectorSpawnRequest eggSpawnRequest = new DirectorSpawnRequest(lemurianEggSpawnCard.spawnCard, eggPlacementRule, eggSpawnRng);
+
+                        eggSpawnRequest.spawnCard.DoSpawn(spawnedObject.transform.position, spawnedObject.transform.rotation, eggSpawnRequest);
+
+                        NetworkServer.Destroy(spawnedObject.gameObject);
+                    }
                 }
             }
         }
