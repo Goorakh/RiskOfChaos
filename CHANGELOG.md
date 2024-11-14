@@ -28,7 +28,7 @@
   * Fixed void potential visuals being partially invisible
 
 * Splitscreen:
-  * Default duration: 90s -> 60s
+  * Default duration: 90s -> 45s
 
 * Flipped Camera:
   * Fixed effect reversing inputs during Seeker Meditate
