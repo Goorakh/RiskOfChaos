@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Added 1 effect:
+  * Increase Player Level: Gives additional levels to all players (+5 by default, configurable)
+
 * Add Random Item Corruption Rule:
   * The added corruption rule(s) are now displayed in the Active Effects list.
 

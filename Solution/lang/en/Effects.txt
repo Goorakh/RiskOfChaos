@@ -159,5 +159,6 @@
         "EFFECT_UNLIMITED_PROC_CHAINS_NAME": "Unlimited Proc Chains",
         "EFFECT_HIDE_HEALTHBAR_NAME": "No Healthbars",
         "EFFECT_ADD_RANDOM_ITEM_CORRUPTION_NAME": "Add Random Item Corruption Rule",
+        "EFFECT_INCREASE_PLAYER_LEVEL_NAME": "+{0} Player Level",
     }
 }

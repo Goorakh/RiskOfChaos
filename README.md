@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 140 different effects.
+Currently features 141 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -149,6 +149,7 @@ Currently features 140 different effects.
 * Distant Camera: Moves the camera further away from the player, lasts 90 seconds
 * No Healthbars: Hides all health bars, lasts 60 seconds
 * Add Random Item Corruption Rule: Gives the "corruption" behaviour of void items to a random pair of items. Lasts for the rest of the run.
+* Increase Player Level: Gives additional levels to all players (+5 by default, configurable)
 </details>
 
 <hr>
