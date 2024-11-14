@@ -17,6 +17,9 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [ChaosEffect("convert_random_enemy")]
     public sealed class ConvertRandomEnemy : NetworkBehaviour
     {
+        static readonly Color32 _bossSubjectColor = new Color32(0xFF, 0x2C, 0x2C, 0xFF);
+        static readonly Color32 _defaultSubjectColor = new Color32(0xFF, 0xFF, 0xFF, 0xFF);
+
         static IEnumerable<CharacterBody> getAllConvertableEnemies()
         {
             return CharacterBody.readOnlyInstancesList.Where(c =>
@@ -146,10 +149,17 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 }
                 else
                 {
+                    Color32 subjectNameColor = _defaultSubjectColor;
+                    if (isBoss)
+                    {
+                        subjectNameColor = _bossSubjectColor;
+                    }
+
                     Chat.SendBroadcastChat(new BestNameSubjectChatMessage
                     {
-                        BaseToken = isBoss ? "RECRUIT_BOSS_MESSAGE" : "RECRUIT_ENEMY_MESSAGE",
-                        SubjectAsCharacterBody = enemyToConvertBody
+                        BaseToken = "RECRUIT_ENEMY_MESSAGE",
+                        SubjectAsCharacterBody = enemyToConvertBody,
+                        SubjectNameOverrideColor = subjectNameColor
                     });
                 }
             }
