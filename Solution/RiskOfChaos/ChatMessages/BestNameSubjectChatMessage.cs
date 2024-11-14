@@ -1,5 +1,6 @@
 ﻿using RoR2;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace RiskOfChaos.ChatMessages
 {
@@ -12,6 +13,8 @@ namespace RiskOfChaos.ChatMessages
         MemoizedGetComponent<CharacterBody> _subjectCharacterBodyGetComponent;
 
         public string BaseToken;
+
+        public Color32? SubjectNameOverrideColor;
 
         public NetworkUser SubjectAsNetworkUser
         {
@@ -45,17 +48,22 @@ namespace RiskOfChaos.ChatMessages
 
         protected string getSubjectName()
         {
+            string subjectName = "???";
             if (SubjectAsNetworkUser)
             {
-                return Util.EscapeRichTextForTextMeshPro(SubjectAsNetworkUser.userName);
+                subjectName = Util.EscapeRichTextForTextMeshPro(SubjectAsNetworkUser.userName);
             }
-
-            if (SubjectAsCharacterBody)
+            else if (SubjectAsCharacterBody)
             {
-                return Util.GetBestBodyName(SubjectAsCharacterBody.gameObject);
+                subjectName = Util.GetBestBodyName(SubjectAsCharacterBody.gameObject);
             }
 
-            return "???";
+            if (SubjectNameOverrideColor.HasValue)
+            {
+                subjectName = Util.GenerateColoredString(subjectName, SubjectNameOverrideColor.Value);
+            }
+
+            return subjectName;
         }
 
         protected bool isSecondPerson()
@@ -80,6 +88,34 @@ namespace RiskOfChaos.ChatMessages
         public override string ConstructChatString()
         {
             return Language.GetStringFormatted(getResolvedToken(), getSubjectName());
+        }
+
+        public override void Serialize(NetworkWriter writer)
+        {
+            base.Serialize(writer);
+
+            writer.Write(SubjectNetworkUserObject);
+            writer.Write(SubjectCharacterBodyObject);
+
+            writer.Write(BaseToken);
+
+            writer.Write(SubjectNameOverrideColor.HasValue);
+            if (SubjectNameOverrideColor.HasValue)
+            {
+                writer.Write(SubjectNameOverrideColor.Value);
+            }
+        }
+
+        public override void Deserialize(NetworkReader reader)
+        {
+            base.Deserialize(reader);
+
+            SubjectNetworkUserObject = reader.ReadGameObject();
+            SubjectCharacterBodyObject = reader.ReadGameObject();
+
+            BaseToken = reader.ReadString();
+
+            SubjectNameOverrideColor = reader.ReadBoolean() ? reader.ReadColor32() : null;
         }
     }
 }

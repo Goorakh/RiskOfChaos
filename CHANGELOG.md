@@ -8,6 +8,9 @@
 * Increase/Decrease Projectile Speed:
   * Fixed speed multipliers not applying to certain projectiles
 
+* Spawn Random Enemy:
+  * Added chat message announcing what enemy was spawned
+
 * All Items are Void Potentials:
   * Fixed void potential visuals being partially invisible
 

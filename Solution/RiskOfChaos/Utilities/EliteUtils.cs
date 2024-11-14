@@ -158,12 +158,15 @@ namespace RiskOfChaos.Utilities
 
         public static EliteDef FindEliteDef(EquipmentIndex eliteEquipmentIndex)
         {
-            foreach (EliteIndex eliteIndex in EliteCatalog.eliteList)
+            if (eliteEquipmentIndex != EquipmentIndex.None)
             {
-                EliteDef eliteDef = EliteCatalog.GetEliteDef(eliteIndex);
-                if (eliteDef && eliteDef.eliteEquipmentDef && eliteDef.eliteEquipmentDef.equipmentIndex == eliteEquipmentIndex)
+                foreach (EliteIndex eliteIndex in EliteCatalog.eliteList)
                 {
-                    return eliteDef;
+                    EliteDef eliteDef = EliteCatalog.GetEliteDef(eliteIndex);
+                    if (eliteDef && eliteDef.eliteEquipmentDef && eliteDef.eliteEquipmentDef.equipmentIndex == eliteEquipmentIndex)
+                    {
+                        return eliteDef;
+                    }
                 }
             }
 

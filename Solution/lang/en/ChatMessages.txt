@@ -36,5 +36,7 @@
         "PLAYER_MULTI_PICKUP_2P": "<style=cEvent>You picked up {1}</color>",
 
         "ITEM_CORRUPTION_RULE_ADD_MESSAGE": "<style=cEvent>{1} now corrupts all {0}</color>",
+
+        "RANDOM_ENEMY_SPAWN_MESSAGE": "<style=cWorldEvent><color=#FFFFFF>{0}</color> has been summoned to fight.</style>",
     }
 }

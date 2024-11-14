@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using RiskOfChaos.ChatMessages;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -118,6 +119,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
             if (!NetworkServer.active)
                 return;
 
+            List<CharacterMaster> spawnedMasters = new List<CharacterMaster>(PlayerCharacterMasterController.instances.Count);
+
             foreach (PlayerCharacterMasterController playerMaster in PlayerCharacterMasterController.instances)
             {
                 if (!playerMaster.isConnected)
@@ -130,6 +133,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                 if (!master.TryGetBodyPosition(out Vector3 bodyPosition))
                     continue;
 
+                Xoroshiro128Plus spawnRng = new Xoroshiro128Plus(_rng.nextUlong);
+
                 DirectorPlacementRule placementRule = new DirectorPlacementRule
                 {
                     placementMode = DirectorPlacementRule.PlacementMode.Approximate,
@@ -139,28 +144,54 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                     maxDistance = 50f
                 };
 
-                DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_enemySpawnCard, placementRule, _rng)
+                DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_enemySpawnCard, placementRule, spawnRng)
                 {
                     ignoreTeamMemberLimit = true,
                     teamIndexOverride = TeamIndex.Monster,
                     onSpawnedServer = onEnemySpawnedServer
                 };
 
+                void onEnemySpawnedServer(SpawnCard.SpawnResult result)
+                {
+                    if (!result.success)
+                        return;
+
+                    if (result.spawnedInstance.TryGetComponent(out CharacterMaster master))
+                    {
+                        CombatCharacterSpawnHelper.SetupSpawnedCombatCharacter(master, spawnRng);
+                        CombatCharacterSpawnHelper.TryGrantEliteAspect(master, spawnRng, _eliteChance.Value, _allowDirectorUnavailableElites.Value);
+
+                        master.gameObject.SetDontDestroyOnLoad(false);
+
+                        spawnedMasters.Add(master);
+                    }
+                }
+
                 spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());
             }
-        }
 
-        void onEnemySpawnedServer(SpawnCard.SpawnResult result)
-        {
-            if (!result.success)
-                return;
-
-            if (result.spawnedInstance.TryGetComponent(out CharacterMaster master))
+            if (spawnedMasters.Count > 0)
             {
-                CombatCharacterSpawnHelper.SetupSpawnedCombatCharacter(master, _rng);
-                CombatCharacterSpawnHelper.TryGrantEliteAspect(master, _rng, _eliteChance.Value, _allowDirectorUnavailableElites.Value);
+                RoR2Application.onNextUpdate += () =>
+                {
+                    CharacterBody spawnedBody = null;
+                    foreach (CharacterMaster master in spawnedMasters)
+                    {
+                        CharacterBody body = master.GetBody();
+                        if (body)
+                        {
+                            spawnedBody = body;
+                            break;
+                        }
+                    }
 
-                master.gameObject.SetDontDestroyOnLoad(false);
+                    Chat.SendBroadcastChat(new BestNameSubjectChatMessage
+                    {
+                        BaseToken = "RANDOM_ENEMY_SPAWN_MESSAGE",
+                        SubjectAsCharacterBody = spawnedBody,
+                        SubjectNameOverrideColor = Color.white,
+                    });
+                };   
             }
         }
     }
