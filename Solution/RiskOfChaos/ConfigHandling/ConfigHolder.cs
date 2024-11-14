@@ -128,7 +128,7 @@ namespace RiskOfChaos.ConfigHandling
 
         public override void Bind(ConfigFile file, string section, string modGuid, string modName)
         {
-            if (!ConfigMonitor.TryRegisterConfig(section, Key, this))
+            if (!ConfigManager.TryRegisterConfig(section, Key, this))
             {
                 Log.Warning($"Duplicate config key ({section}.{Key}), skipping. This config instance will only use default value ({DefaultValue})");
                 return;

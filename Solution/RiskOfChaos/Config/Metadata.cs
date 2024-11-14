@@ -10,7 +10,7 @@ namespace RiskOfChaos
     {
         internal static class Metadata
         {
-            const string SECTION_NAME = "META";
+            public const string SECTION_NAME = "META";
 
             public const uint CONFIG_FILE_VERSION_LEGACY = 0;
             public const uint CURRENT_CONFIG_FILE_VERSION = 8;
@@ -38,7 +38,7 @@ namespace RiskOfChaos
                 // == 0 will always be < whatever current version is, so don't need to check it
                 if (ConfigFileVersion.Value < CURRENT_CONFIG_FILE_VERSION)
                 {
-                    return ConfigMonitor.AllConfigs.Any(c => !c.IsDefaultValue);
+                    return ConfigManager.AllConfigs.Any(c => !c.IsDefaultValue);
                 }
                 else
                 {
@@ -55,23 +55,7 @@ namespace RiskOfChaos
                         dialogBox.headerToken = new SimpleDialogBox.TokenParamsPair("POPUP_CONFIG_UPDATE_HEADER");
                         dialogBox.descriptionToken = new SimpleDialogBox.TokenParamsPair("POPUP_CONFIG_UPDATE_DESCRIPTION");
 
-                        dialogBox.AddActionButton(() =>
-                        {
-                            foreach (ConfigHolderBase config in ConfigMonitor.AllConfigs)
-                            {
-                                if (config.Entry.Definition.Section == SECTION_NAME)
-                                    continue;
-
-#if DEBUG
-                                if (!config.IsDefaultValue)
-                                {
-                                    Log.Debug($"Reset config value: {config.Entry.Definition}");
-                                }
-#endif
-
-                                config.LocalBoxedValue = config.Entry.DefaultValue;
-                            }
-                        }, "POPUP_CONFIG_UPDATE_RESET");
+                        dialogBox.AddCommandButton("roc_delete_config", "POPUP_CONFIG_UPDATE_RESET");
 
                         dialogBox.AddCancelButton("POPUP_CONFIG_UPDATE_IGNORE");
                     });
