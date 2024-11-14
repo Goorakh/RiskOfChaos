@@ -14,6 +14,9 @@
 * All Items are Void Potentials:
   * Fixed void potential visuals being partially invisible
 
+* Splitscreen:
+  * Default duration: 90s -> 60s
+
 * Flipped Camera:
   * Fixed effect reversing inputs during Seeker Meditate
 
