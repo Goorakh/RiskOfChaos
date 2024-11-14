@@ -322,54 +322,55 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
                 invokeFormatterDirty();
             }
 
-            public override string GetEffectDisplayName(ChaosEffectInfo effectInfo, EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)
+            public override string GetEffectNameSubtitle(ChaosEffectInfo effectInfo)
             {
-                string displayName = base.GetEffectDisplayName(effectInfo, formatFlags);
-
-                if ((formatFlags & EffectNameFormatFlags.RuntimeFormatArgs) != 0)
+                string subtitle = base.GetEffectNameSubtitle(effectInfo);
+                if (_transformationPairs.Length > 0)
                 {
-                    if (_transformationPairs.Length > 0)
+                    StringBuilder stringBuilder = HG.StringBuilderPool.RentStringBuilder();
+
+                    if (!string.IsNullOrWhiteSpace(subtitle))
                     {
-                        StringBuilder stringBuilder = HG.StringBuilderPool.RentStringBuilder();
-                        stringBuilder.Append(displayName);
+                        stringBuilder.AppendLine(subtitle);
+                    }
 
-                        stringBuilder.Append("<size=80%>");
+                    for (int i = 0; i < _transformationPairs.Length; i++)
+                    {
+                        ItemTransformationPair pair = _transformationPairs[i];
 
-                        foreach (ItemTransformationPair pair in _transformationPairs)
+                        Color fromPickupColor = PickupCatalog.invalidPickupColor;
+                        string fromPickupNameToken = PickupCatalog.invalidPickupToken;
+                        PickupDef fromPickup = PickupCatalog.GetPickupDef(PickupCatalog.FindPickupIndex(pair.From));
+                        if (fromPickup != null)
                         {
-                            stringBuilder.Append('\n');
-
-                            Color fromPickupColor = PickupCatalog.invalidPickupColor;
-                            string fromPickupNameToken = PickupCatalog.invalidPickupToken;
-                            PickupDef fromPickup = PickupCatalog.GetPickupDef(PickupCatalog.FindPickupIndex(pair.From));
-                            if (fromPickup != null)
-                            {
-                                fromPickupColor = fromPickup.baseColor;
-                                fromPickupNameToken = fromPickup.nameToken;
-                            }
-
-                            Color toPickupColor = PickupCatalog.invalidPickupColor;
-                            string toPickupNameToken = PickupCatalog.invalidPickupToken;
-                            PickupDef toPickup = PickupCatalog.GetPickupDef(PickupCatalog.FindPickupIndex(pair.To));
-                            if (toPickup != null)
-                            {
-                                toPickupColor = toPickup.baseColor;
-                                toPickupNameToken = toPickup.nameToken;
-                            }
-
-                            stringBuilder.AppendColoredString(Language.GetString(fromPickupNameToken), fromPickupColor)
-                                         .Append(" -> ")
-                                         .AppendColoredString(Language.GetString(toPickupNameToken), toPickupColor);
+                            fromPickupColor = fromPickup.baseColor;
+                            fromPickupNameToken = fromPickup.nameToken;
                         }
 
-                        stringBuilder.Append("</size>");
+                        Color toPickupColor = PickupCatalog.invalidPickupColor;
+                        string toPickupNameToken = PickupCatalog.invalidPickupToken;
+                        PickupDef toPickup = PickupCatalog.GetPickupDef(PickupCatalog.FindPickupIndex(pair.To));
+                        if (toPickup != null)
+                        {
+                            toPickupColor = toPickup.baseColor;
+                            toPickupNameToken = toPickup.nameToken;
+                        }
 
-                        displayName = stringBuilder.ToString();
-                        stringBuilder = HG.StringBuilderPool.ReturnStringBuilder(stringBuilder);
+                        stringBuilder.AppendColoredString(Language.GetString(fromPickupNameToken), fromPickupColor)
+                                     .Append(" -> ")
+                                     .AppendColoredString(Language.GetString(toPickupNameToken), toPickupColor);
+
+                        if (i != _transformationPairs.Length - 1)
+                        {
+                            stringBuilder.AppendLine();
+                        }
                     }
+
+                    subtitle = stringBuilder.ToString();
+                    stringBuilder = HG.StringBuilderPool.ReturnStringBuilder(stringBuilder);
                 }
 
-                return displayName;
+                return subtitle;
             }
 
             public override object[] GetFormatArgs()

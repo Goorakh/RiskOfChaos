@@ -1,24 +1,28 @@
 ﻿using RiskOfChaos.Components;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.EffectUtils.World;
 using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Items
 {
-    [ChaosEffect("suppress_random_item")]
+    [ChaosTimedEffect("suppress_random_item", TimedEffectType.Permanent, HideFromEffectsListWhenPermanent = true)]
     public sealed class SuppressRandomItem : NetworkBehaviour
     {
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return ExpansionUtils.DLC1Enabled && ItemSuppressionManager.Instance && getAllSuppressableItems().Any();
+            return ExpansionUtils.DLC1Enabled && getAllSuppressableItems().Any();
         }
 
         static IEnumerable<ItemIndex> getAllSuppressableItems()
@@ -30,6 +34,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
         }
 
         ChaosEffectComponent _effectComponent;
+        ChaosEffectNameComponent _effectNameComponent;
+        ObjectSerializationComponent _serializationComponent;
 
         [SerializedMember("i")]
         ItemIndex _itemToSuppress = ItemIndex.None;
@@ -37,6 +43,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
+            _effectNameComponent = GetComponent<ChaosEffectNameComponent>();
+            _serializationComponent = GetComponent<ObjectSerializationComponent>();
         }
 
         public override void OnStartServer()
@@ -54,22 +62,104 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
             if (!NetworkServer.active)
                 return;
 
-            if (_itemToSuppress != ItemIndex.None && ItemSuppressionManager.Instance && ItemSuppressionManager.Instance.SuppressItem(_itemToSuppress))
+            if (_itemToSuppress == ItemIndex.None)
+            {
+                Log.Error($"No item to suppress");
+                return;
+            }
+
+            if (ItemSuppressionManager.SuppressItem(_itemToSuppress))
             {
                 ItemDef suppressedItem = ItemCatalog.GetItemDef(_itemToSuppress);
                 ItemTierDef itemTierDef = ItemTierCatalog.GetItemTierDef(suppressedItem.tier);
 
-                Chat.SendBroadcastChat(new ColoredTokenChatMessage
+                if (!_serializationComponent.IsLoadedFromSave)
                 {
-                    subjectAsCharacterBody = ChaosInteractor.GetBody(),
-                    baseToken = "VOID_SUPPRESSOR_USE_MESSAGE",
-                    paramTokens = [suppressedItem.nameToken],
-                    paramColors = [ColorCatalog.GetColor(itemTierDef.colorIndex)]
-                });
+                    Chat.SendBroadcastChat(new ColoredTokenChatMessage
+                    {
+                        subjectAsCharacterBody = ChaosInteractor.GetBody(),
+                        baseToken = "VOID_SUPPRESSOR_USE_MESSAGE",
+                        paramTokens = [suppressedItem.nameToken],
+                        paramColors = [ColorCatalog.GetColor(itemTierDef.colorIndex)]
+                    });
+                }
+
+                if (_effectNameComponent)
+                {
+                    _effectNameComponent.SetCustomNameFormatter(new NameFormatter(_itemToSuppress));
+                }
             }
-            else
+        }
+
+        void OnDestroy()
+        {
+            if (_itemToSuppress != ItemIndex.None)
             {
-                Log.Error($"Failed to suppress item: {ItemCatalog.GetItemDef(_itemToSuppress)}");
+                ItemSuppressionManager.RemoveSuppressedItem(_itemToSuppress);
+            }
+        }
+
+        class NameFormatter : EffectNameFormatter
+        {
+            ItemIndex _suppressedItemIndex;
+
+            public NameFormatter(ItemIndex suppressedItemIndex)
+            {
+                _suppressedItemIndex = suppressedItemIndex;
+            }
+
+            public NameFormatter()
+            {
+            }
+
+            public override string GetEffectNameSubtitle(ChaosEffectInfo effectInfo)
+            {
+                string subtitle = base.GetEffectNameSubtitle(effectInfo);
+
+                PickupDef suppressedItem = PickupCatalog.GetPickupDef(PickupCatalog.FindPickupIndex(_suppressedItemIndex));
+                if (suppressedItem != null)
+                {
+                    StringBuilder stringBuilder = HG.StringBuilderPool.RentStringBuilder();
+
+                    if (!string.IsNullOrWhiteSpace(subtitle))
+                    {
+                        stringBuilder.AppendLine(subtitle);
+                    }
+
+                    stringBuilder.Append("\n(");
+
+                    stringBuilder.AppendColoredString(Language.GetString(suppressedItem.nameToken), suppressedItem.baseColor);
+
+                    stringBuilder.Append(")");
+
+                    subtitle = stringBuilder.ToString();
+
+                    stringBuilder = HG.StringBuilderPool.ReturnStringBuilder(stringBuilder);
+                }
+
+                return subtitle;
+            }
+
+            public override object[] GetFormatArgs()
+            {
+                return [];
+            }
+
+            public override void Serialize(NetworkWriter writer)
+            {
+                writer.Write(_suppressedItemIndex);
+            }
+
+            public override void Deserialize(NetworkReader reader)
+            {
+                _suppressedItemIndex = reader.ReadItemIndex();
+                invokeFormatterDirty();
+            }
+
+            public override bool Equals(EffectNameFormatter other)
+            {
+                return other is NameFormatter otherFormatter &&
+                       _suppressedItemIndex == otherFormatter._suppressedItemIndex;
             }
         }
     }

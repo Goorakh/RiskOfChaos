@@ -6,7 +6,17 @@
   * Increase Player Level: Gives additional levels to all players (+5 by default, configurable)
 
 * Add Random Item Corruption Rule:
-  * The added corruption rule(s) are now displayed in the Active Effects list.
+  * The added corruption rule(s) from each effect are now displayed in the Active Effects list.
+
+* Add Random Item to Monster Inventory:
+  * The added item(s) from each effect are now displayed in the Active Effects list
+
+* Enable Random Artifact:
+  * The artifact from each effect is now displayed in the Active Effects list
+
+* Eradicate Random Item:
+  * The eradicated item from each effect is now displayed in the Active Effects list
+  * Duration is now configurable (default is Permanent to match previous behavior)
 
 * Increase/Decrease Projectile Speed:
   * Fixed speed multipliers not applying to certain projectiles

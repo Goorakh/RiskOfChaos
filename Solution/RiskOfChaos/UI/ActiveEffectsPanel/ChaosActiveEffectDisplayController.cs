@@ -8,6 +8,7 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.UI;
+using RoR2.UI.SkinControllers;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,25 +20,73 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
         [ContentInitializer]
         static void LoadContent(LocalPrefabAssetCollection localPrefabs)
         {
+            UISkinData uiSkin = UISkins.ActiveEffectsPanel;
+
             GameObject activeEffectItemObject = Prefabs.CreatePrefab(nameof(RoCContent.LocalPrefabs.ActiveEffectListUIItem), []);
 
             RectTransform activeEffectItemTransform = activeEffectItemObject.AddComponent<RectTransform>();
 
+            ChaosActiveEffectDisplayController chaosActiveEffectItemController = activeEffectItemObject.AddComponent<ChaosActiveEffectDisplayController>();
+
             LayoutElement layoutElement = activeEffectItemObject.AddComponent<LayoutElement>();
 
-            HGTextMeshProUGUI effectNameLabel = activeEffectItemObject.AddComponent<HGTextMeshProUGUI>();
-            effectNameLabel.alignment = TextAlignmentOptions.Center;
-            effectNameLabel.fontSizeMin = 8f;
-            effectNameLabel.fontSizeMax = 12f;
-            effectNameLabel.fontSize = 12f;
-            effectNameLabel.enableAutoSizing = true;
-            effectNameLabel.enableWordWrapping = false;
+            VerticalLayoutGroup verticalLayoutGroup = activeEffectItemObject.AddComponent<VerticalLayoutGroup>();
+            verticalLayoutGroup.childAlignment = TextAnchor.UpperCenter;
+            verticalLayoutGroup.padding = new RectOffset(0, 0, 0, 0);
+            verticalLayoutGroup.childForceExpandWidth = true;
 
-            LanguageTextMeshController languageTextMeshController = activeEffectItemObject.AddComponent<LanguageTextMeshController>();
+            // NameLabel
+            {
+                GameObject nameHolder = new GameObject("Name");
+                RectTransform rectTransform = nameHolder.AddComponent<RectTransform>();
+                rectTransform.SetParent(activeEffectItemObject.transform, false);
 
-            ChaosActiveEffectDisplayController chaosActiveEffectItemController = activeEffectItemObject.AddComponent<ChaosActiveEffectDisplayController>();
-            chaosActiveEffectItemController._effectNameLabel = effectNameLabel;
-            chaosActiveEffectItemController._effectNameText = languageTextMeshController;
+                HGTextMeshProUGUI effectNameLabel = nameHolder.AddComponent<HGTextMeshProUGUI>();
+                effectNameLabel.alignment = TextAlignmentOptions.Center;
+                effectNameLabel.fontSizeMin = 8f;
+                effectNameLabel.fontSizeMax = 12f;
+                effectNameLabel.fontSize = 12f;
+                effectNameLabel.enableAutoSizing = true;
+                effectNameLabel.enableWordWrapping = false;
+
+                LabelSkinController labelSkinController = nameHolder.AddComponent<LabelSkinController>();
+                labelSkinController.label = effectNameLabel;
+                labelSkinController.labelType = LabelSkinController.LabelType.Default;
+                labelSkinController.skinData = uiSkin;
+
+                LanguageTextMeshController languageTextMeshController = nameHolder.AddComponent<LanguageTextMeshController>();
+
+                LayoutElement nameLayoutElement = nameHolder.AddComponent<LayoutElement>();
+
+                chaosActiveEffectItemController._effectNameLabel = effectNameLabel;
+                chaosActiveEffectItemController._effectNameText = languageTextMeshController;
+            }
+
+            // SubtitleLabel
+            {
+                GameObject subtitleHolder = new GameObject("Subtitle");
+                RectTransform rectTransform = subtitleHolder.AddComponent<RectTransform>();
+                rectTransform.SetParent(activeEffectItemObject.transform, false);
+
+                HGTextMeshProUGUI subtitleNameLabel = subtitleHolder.AddComponent<HGTextMeshProUGUI>();
+                subtitleNameLabel.alignment = TextAlignmentOptions.Center;
+                subtitleNameLabel.fontSizeMin = 7f;
+                subtitleNameLabel.fontSizeMax = 10f;
+                subtitleNameLabel.fontSize = 10f;
+                subtitleNameLabel.enableAutoSizing = true;
+                subtitleNameLabel.enableWordWrapping = true;
+
+                LabelSkinController labelSkinController = subtitleHolder.AddComponent<LabelSkinController>();
+                labelSkinController.label = subtitleNameLabel;
+                labelSkinController.labelType = LabelSkinController.LabelType.Detail;
+                labelSkinController.skinData = uiSkin;
+
+                LayoutElement nameLayoutElement = subtitleHolder.AddComponent<LayoutElement>();
+
+                chaosActiveEffectItemController._effectSubtitleLabel = subtitleNameLabel;
+
+                subtitleHolder.SetActive(false);
+            }
 
             activeEffectItemObject.layer = LayerIndex.ui.intVal;
 
@@ -49,6 +98,9 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         [SerializeField]
         LanguageTextMeshController _effectNameText;
+
+        [SerializeField]
+        HGTextMeshProUGUI _effectSubtitleLabel;
 
         ChaosEffectInfo _displayingEffectInfo;
         ChaosEffectComponent _displayingEffect;
@@ -146,6 +198,11 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
         void updateTextColor()
         {
             _effectNameLabel.color = Configs.UI.ActiveEffectsTextColor.Value;
+
+            if (_effectSubtitleLabel)
+            {
+                _effectSubtitleLabel.color = Configs.UI.ActiveEffectsTextColor.Value;
+            }
         }
 
         void onCurrentLanguageChanged()
@@ -174,6 +231,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             float timeRemaining = _displayingEffectDurationComponent.Remaining;
 
             string displayName = "???";
+            string subtitle = string.Empty;
             if (_displayingEffectInfo != null)
             {
                 EffectNameFormatterProvider nameFormatterProvider = _displayingEffectInfo.StaticDisplayNameFormatterProvider;
@@ -182,7 +240,14 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
                     nameFormatterProvider = _displayingEffectNameComponent.NameFormatterProvider;
                 }
 
-                displayName = nameFormatterProvider.NameFormatter.GetEffectDisplayName(_displayingEffectInfo, EffectNameFormatFlags.RuntimeFormatArgs);
+                EffectNameFormatter nameFormatter = nameFormatterProvider.NameFormatter;
+                displayName = nameFormatter.GetEffectDisplayName(_displayingEffectInfo, EffectNameFormatFlags.RuntimeFormatArgs);
+                subtitle = nameFormatter.GetEffectNameSubtitle(_displayingEffectInfo);
+
+                if (!string.IsNullOrEmpty(subtitle))
+                {
+                    subtitle = subtitle.Trim();
+                }
             }
 
             string token;
@@ -224,6 +289,16 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             }
 
             _effectNameText.SetTokenAndFormatArgs(token, formatArgs);
+
+            bool hasSubtitle = !string.IsNullOrWhiteSpace(subtitle);
+            if (_effectSubtitleLabel)
+            {
+                _effectSubtitleLabel.gameObject.SetActive(hasSubtitle);
+                if (hasSubtitle)
+                {
+                    _effectSubtitleLabel.text = subtitle;
+                }
+            }
 
             _currentlyDisplayedTimeRemaining = timeRemaining;
         }

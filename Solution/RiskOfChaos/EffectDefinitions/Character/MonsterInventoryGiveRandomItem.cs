@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using HG;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
@@ -6,6 +7,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.DropTables;
@@ -15,6 +17,7 @@ using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -168,7 +171,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         }
 
         ChaosEffectComponent _effectComponent;
-
+        ChaosEffectNameComponent _effectNameComponent;
         ObjectSerializationComponent _serializationComponent;
 
         [SerializedMember("p")]
@@ -177,6 +180,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
+            _effectNameComponent = GetComponent<ChaosEffectNameComponent>();
             _serializationComponent = GetComponent<ObjectSerializationComponent>();
         }
 
@@ -239,6 +243,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
                         }
                     }
                 }, Util.GetBestMasterName);
+
+                if (_effectNameComponent)
+                {
+                    _effectNameComponent.SetCustomNameFormatter(new NameFormatter(pickupIndices));
+                }
             }
         }
 
@@ -262,6 +271,97 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     }
                 }
             }, Util.GetBestMasterName);
+        }
+
+        class NameFormatter : EffectNameFormatter
+        {
+            PickupIndex[] _grantedPickups;
+
+            public NameFormatter(PickupIndex[] grantedPickups)
+            {
+                _grantedPickups = grantedPickups;
+            }
+
+            public NameFormatter()
+            {
+            }
+
+            public override string GetEffectNameSubtitle(ChaosEffectInfo effectInfo)
+            {
+                string subtitle = base.GetEffectNameSubtitle(effectInfo);
+
+                if (_grantedPickups.Length > 0)
+                {
+                    StringBuilder stringBuilder = HG.StringBuilderPool.RentStringBuilder();
+                    if (!string.IsNullOrWhiteSpace(subtitle))
+                    {
+                        stringBuilder.AppendLine(subtitle);
+                    }
+
+                    stringBuilder.Append("(");
+
+                    for (int i = 0; i < _grantedPickups.Length; i++)
+                    {
+                        string pickupNameToken = PickupCatalog.invalidPickupToken;
+                        Color pickupColor = PickupCatalog.invalidPickupColor;
+
+                        PickupDef pickupDef = PickupCatalog.GetPickupDef(_grantedPickups[i]);
+                        if (pickupDef != null)
+                        {
+                            pickupNameToken = pickupDef.nameToken;
+                            pickupColor = pickupDef.baseColor;
+                        }
+
+                        stringBuilder.AppendColoredString(Language.GetString(pickupNameToken), pickupColor);
+
+                        if (i != _grantedPickups.Length - 1)
+                        {
+                            stringBuilder.Append(", ");
+                        }
+                    }
+
+                    stringBuilder.Append(")");
+
+                    subtitle = stringBuilder.ToString();
+                    stringBuilder = HG.StringBuilderPool.ReturnStringBuilder(stringBuilder);
+                }
+
+                return subtitle;
+            }
+
+            public override object[] GetFormatArgs()
+            {
+                return [];
+            }
+
+            public override void Serialize(NetworkWriter writer)
+            {
+                writer.WritePackedUInt32((uint)_grantedPickups.Length);
+                foreach (PickupIndex pickup in _grantedPickups)
+                {
+                    writer.Write(pickup);
+                }
+            }
+
+            public override void Deserialize(NetworkReader reader)
+            {
+                uint pickupCount = reader.ReadPackedUInt32();
+
+                _grantedPickups = new PickupIndex[pickupCount];
+
+                for (int i = 0; i < pickupCount; i++)
+                {
+                    _grantedPickups[i] = reader.ReadPickupIndex();
+                }
+
+                invokeFormatterDirty();
+            }
+
+            public override bool Equals(EffectNameFormatter other)
+            {
+                return other is NameFormatter otherFormatter &&
+                       ArrayUtils.SequenceEquals(_grantedPickups, otherFormatter._grantedPickups);
+            }
         }
     }
 }

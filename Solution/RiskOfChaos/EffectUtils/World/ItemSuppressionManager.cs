@@ -1,37 +1,17 @@
 ﻿using HG;
-using RiskOfChaos.Components;
-using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
-using RiskOfChaos.SaveHandling;
 using RoR2;
 using RoR2.Items;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectUtils.World
 {
-    public sealed class ItemSuppressionManager : MonoBehaviour
+    public static class ItemSuppressionManager
     {
-        [ContentInitializer]
-        static void LoadContent(NetworkedPrefabAssetCollection networkPrefabs)
-        {
-            GameObject prefab = Prefabs.CreateNetworkedPrefab("ItemSuppressionManager", [
-                typeof(SetDontDestroyOnLoad),
-                typeof(DestroyOnRunEnd),
-                typeof(AutoCreateOnRunStart),
-                typeof(ObjectSerializationComponent),
-                typeof(ItemSuppressionManager)
-            ]);
-
-            ObjectSerializationComponent serializationComponent = prefab.GetComponent<ObjectSerializationComponent>();
-            serializationComponent.IsSingleton = true;
-
-            networkPrefabs.Add(prefab);
-        }
+        static HashSet<ItemIndex> _suppressedItems = [];
 
         [SystemInitializer(typeof(ItemCatalog), typeof(ItemTierCatalog))]
-        static void FixStrangeScrap()
+        static void Init()
         {
             HashSet<ItemDef> strangeScrapItems = new HashSet<ItemDef>(3);
 
@@ -79,13 +59,14 @@ namespace RiskOfChaos.EffectUtils.World
                     }
                 };
             }
+
+            Run.onRunStartGlobal += Run_onRunStartGlobal;
         }
 
-        static ItemSuppressionManager _instance;
-        public static ItemSuppressionManager Instance => _instance;
-
-        [SerializedMember("i")]
-        HashSet<ItemIndex> _suppressedItems = [];
+        static void Run_onRunStartGlobal(Run obj)
+        {
+            _suppressedItems = [];
+        }
 
         public static ItemIndex GetSuppressedScrapItemIndex(ItemIndex suppressedItem)
         {
@@ -110,12 +91,12 @@ namespace RiskOfChaos.EffectUtils.World
             return GetSuppressedScrapItemIndex(itemIndex) != ItemIndex.None && !SuppressedItemManager.HasItemBeenSuppressed(itemIndex);
         }
 
-        public bool SuppressItem(ItemIndex itemIndex)
+        public static bool SuppressItem(ItemIndex itemIndex)
         {
             return _suppressedItems.Add(itemIndex) && suppressItemInternal(itemIndex);
         }
 
-        bool suppressItemInternal(ItemIndex itemIndex)
+        static bool suppressItemInternal(ItemIndex itemIndex)
         {
             if (!NetworkServer.active)
             {
@@ -135,25 +116,37 @@ namespace RiskOfChaos.EffectUtils.World
             return success;
         }
 
-        void OnEnable()
-        {
-            SingletonHelper.Assign(ref _instance, this);
-        }
-
-        void OnDsiable()
-        {
-            SingletonHelper.Unassign(ref _instance, this);
-        }
-
-        void Start()
+        public static bool RemoveSuppressedItem(ItemIndex itemIndex)
         {
             if (!NetworkServer.active)
-                return;
-
-            foreach (ItemIndex itemIndex in _suppressedItems)
             {
-                suppressItemInternal(itemIndex);
+                Log.Warning("Called on client");
+                return false;
             }
+
+            bool success = false;
+
+            if (_suppressedItems.Remove(itemIndex))
+            {
+                if (SuppressedItemManager.transformationMap != null)
+                {
+                    success |= SuppressedItemManager.transformationMap.Remove(itemIndex);
+                }
+
+                if (SuppressedItemManager.suppressedInventory)
+                {
+                    SuppressedItemManager.suppressedInventory.RemoveItem(itemIndex);
+                }
+            }
+
+#if DEBUG
+            if (success)
+            {
+                Log.Debug($"Removed suppressed item: {ItemCatalog.GetItemDef(itemIndex)}");
+            }
+#endif
+
+            return success;
         }
     }
 }

@@ -7,7 +7,6 @@ using RoR2;
 using RoR2.UI;
 using RoR2.UI.SkinControllers;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.UI;
 

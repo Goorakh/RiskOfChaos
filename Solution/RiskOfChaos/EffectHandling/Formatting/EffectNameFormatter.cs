@@ -32,7 +32,7 @@ namespace RiskOfChaos.EffectHandling.Formatting
             }
         }
 
-        public virtual string GetEffectDisplayName(ChaosEffectInfo effectInfo, EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)
+        public string GetEffectDisplayName(ChaosEffectInfo effectInfo, EffectNameFormatFlags formatFlags = EffectNameFormatFlags.All)
         {
             if (effectInfo == null)
             {
@@ -73,6 +73,11 @@ namespace RiskOfChaos.EffectHandling.Formatting
                 default:
                     throw new NotImplementedException($"Timed type {timedType} is not implemented");
             }
+        }
+
+        public virtual string GetEffectNameSubtitle(ChaosEffectInfo effectInfo)
+        {
+            return string.Empty;
         }
 
         protected void invokeFormatterDirty()
