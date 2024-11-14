@@ -24,7 +24,8 @@
   * Added highlighting system for the option with the most votes (can be disabled in config)
   * Fixed displayed effect durations on vote options sometimes not updating when effect durations are changed
 
-**2.0.3 Changes:**
+<details>
+  <summary>2.0.3 Changes:</summary>
 
 * Added 1 effect:
   * Add Random Item Corruption Rule: Gives the "corruption" behaviour of void items to a random pair of items. Lasts for the rest of the run.
@@ -38,15 +39,24 @@
 
 * Fixed the mod preventing the game from loading if ProperSave wasn't installed
 
-**2.0.2 Changes:**
+</details>
+
+<details>
+  <summary>2.0.2 Changes:</summary>
 
 * Fixed a compatibility issue
 
-**2.0.1 Changes:**
+</details>
+
+<details>
+  <summary>2.0.1 Changes:</summary>
 
 * Fixed elite spawns sometimes causing a crash
 
-**2.0.0 Changes:**
+</details>
+
+<details>
+  <summary>2.0.0 Changes:</summary>
 
 * Updated for SotS
 
@@ -146,6 +156,8 @@
   * Fixed opening the effects options panel tanking framerate
 
 * Fixed missing icon for Risk of Options Effects config
+
+</details>
 
 <details>
   <summary>1.18.0 Changes:</summary>
