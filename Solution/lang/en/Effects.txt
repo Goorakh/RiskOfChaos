@@ -160,5 +160,6 @@
         "EFFECT_HIDE_HEALTHBAR_NAME": "No Healthbars",
         "EFFECT_ADD_RANDOM_ITEM_CORRUPTION_NAME": "Add Random Item Corruption Rule",
         "EFFECT_INCREASE_PLAYER_LEVEL_NAME": "+{0} Player Level",
+        "EFFECT_ALL_INTERACTABLES_CLOAKED_NAME": "All Interactables are Cloaked",
     }
 }

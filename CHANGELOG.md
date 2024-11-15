@@ -2,8 +2,9 @@
 
 **?.?.? Changes:**
 
-* Added 1 effect:
+* Added 2 effects:
   * Increase Player Level: Gives additional levels to all players (+5 by default, configurable)
+  * All Interactables are Cloaked: Turns all interactables into cloaked variants, lasts 60 seconds
 
 * Add Random Item Corruption Rule:
   * The added corruption rule(s) from each effect are now displayed in the Active Effects list.

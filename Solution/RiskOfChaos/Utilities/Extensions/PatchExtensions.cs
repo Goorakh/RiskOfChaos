@@ -15,6 +15,11 @@ namespace RiskOfChaos.Utilities.Extensions
 
         public static void EmitSkipMethodCall(this ILCursor c, OpCode branchOpCode, MethodDefinition method = null)
         {
+            EmitSkipMethodCall(c, branchOpCode, null, method);
+        }
+
+        public static void EmitSkipMethodCall(this ILCursor c, OpCode branchOpCode, Action<ILCursor> emitSkippedReturnValue, MethodDefinition method = null)
+        {
             if (c is null)
                 throw new ArgumentNullException(nameof(c));
 
@@ -59,10 +64,14 @@ namespace RiskOfChaos.Utilities.Extensions
                     c.Emit(OpCodes.Pop);
                 }
 
-                if (!isVoidReturn)
+                if (emitSkippedReturnValue != null)
+                {
+                    emitSkippedReturnValue(c);
+                }
+                else if (!isVoidReturn)
                 {
                     Log.Warning($"Skipped method ({method.FullName}) is not void, emitting default value: {c.Context.Method.FullName} at instruction {c.Next} ({c.Index})");
-                    
+
                     if (method.ReturnType.IsValueType)
                     {
                         VariableDefinition tmpVar = c.Context.AddVariable(method.ReturnType);
