@@ -98,7 +98,9 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
 
             if (spawnResult.success && spawnResult.spawnedInstance && spawnResult.spawnedInstance.TryGetComponent(out ShrineChanceBehavior shrineChanceBehavior))
             {
-                shrineChanceBehavior.dropTable = createDropTable(spawnResult.spawnedInstance);
+                PickupDropTable shrineDropTable = createDropTable(spawnResult.spawnedInstance);
+                shrineChanceBehavior.dropTable = shrineDropTable;
+                shrineChanceBehavior.chanceDollDropTable = shrineDropTable;
 
                 if (shrineChanceBehavior.TryGetComponent(out PurchaseInteraction shrinePurchaseInteraction))
                 {

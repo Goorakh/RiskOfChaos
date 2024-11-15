@@ -19,6 +19,9 @@
   * The eradicated item from each effect is now displayed in the Active Effects list
   * Duration is now configurable (default is Permanent to match previous behavior)
 
+* Gambling Addiction:
+  * Fixed interactable drops not carrying over to shrine when Chance Doll triggers
+
 * Increase/Decrease Projectile Speed:
   * Fixed speed multipliers not applying to certain projectiles
 
