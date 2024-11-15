@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**2.1.0 Changes:**
 
 * Added 2 effects:
   * Increase Player Level: Gives additional levels to all players (+5 by default, configurable)
