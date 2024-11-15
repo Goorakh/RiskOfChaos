@@ -11,6 +11,8 @@ namespace RiskOfChaos.Networking
 
             NetworkingAPI.RegisterMessageType<PickupsNotificationMessage>();
             NetworkingAPI.RegisterMessageType<PickupTransformationNotificationMessage>();
+
+            NetworkingAPI.RegisterMessageType<GrantTemporaryItemsOnJumpMessage>();
         }
     }
 }

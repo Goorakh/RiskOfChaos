@@ -1,27 +1,20 @@
 ﻿using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using RiskOfChaos.Networking.Components;
-using RiskOfChaos.Utilities;
 using RoR2;
 using UnityEngine;
 
 namespace RiskOfChaos.Patches
 {
-    static class IsJumpingOnJumpPadHook
+    static class JumpVolumeHooks
     {
+        public delegate void OnJumpVolumeJumpDelegate(JumpVolume jumpVolume, CharacterMotor jumpingCharacterMotor);
+        public static event OnJumpVolumeJumpDelegate OnJumpVolumeJumpAuthority;
+
         [SystemInitializer]
         static void Init()
         {
-            On.RoR2.CharacterMotor.Awake += CharacterMotor_Awake;
-
             IL.RoR2.JumpVolume.OnTriggerStay += JumpVolume_OnTriggerStay;
-        }
-
-        static void CharacterMotor_Awake(On.RoR2.CharacterMotor.orig_Awake orig, CharacterMotor self)
-        {
-            orig(self);
-            self.gameObject.AddComponent<IsJumpingOnJumpPadTracker>();
         }
 
         static void JumpVolume_OnTriggerStay(ILContext il)
@@ -40,20 +33,12 @@ namespace RiskOfChaos.Patches
             if (c.TryGotoNext(MoveType.After,
                               x => x.MatchStfld<CharacterMotor>(nameof(CharacterMotor.velocity))))
             {
+                c.Emit(OpCodes.Ldarg_0);
                 c.Emit(OpCodes.Ldloc, characterMotorLocalIndex);
-                c.EmitDelegate(trackJump);
-                static void trackJump(CharacterMotor characterMotor)
+                c.EmitDelegate(onJump);
+                static void onJump(JumpVolume jumpVolume, CharacterMotor characterMotor)
                 {
-                    if (!characterMotor)
-                        return;
-
-                    if (characterMotor.TryGetComponent(out IsJumpingOnJumpPadTracker jumpingTracker) && !jumpingTracker.IsJumping)
-                    {
-#if DEBUG
-                        Log.Debug($"{FormatUtils.GetBestBodyName(characterMotor.body)} started jumping on jump pad");
-#endif
-                        jumpingTracker.CmdSetIsJumping(true);
-                    }
+                    OnJumpVolumeJumpAuthority?.Invoke(jumpVolume, characterMotor);
                 }
             }
             else

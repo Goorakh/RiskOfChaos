@@ -6,20 +6,27 @@ namespace RiskOfChaos.Networking.Components
 {
     public class SyncJumpVolumeVelocity : NetworkBehaviour
     {
-        JumpVolume _jumpVolume;
+        public JumpVolume JumpVolume;
 
         [SyncVar(hook = nameof(syncJumpVelocity))]
         Vector3 _jumpVelocity;
 
         void Awake()
         {
-            _jumpVolume = GetComponentInChildren<JumpVolume>();
+            if (!JumpVolume)
+            {
+                JumpVolume = GetComponentInChildren<JumpVolume>();
+            }
         }
 
         public override void OnStartServer()
         {
             base.OnStartServer();
-            _jumpVelocity = _jumpVolume.jumpVelocity;
+
+            if (JumpVolume)
+            {
+                _jumpVelocity = JumpVolume.jumpVelocity;
+            }
         }
 
         public override void OnStartClient()
@@ -32,7 +39,10 @@ namespace RiskOfChaos.Networking.Components
         {
             if (NetworkServer.active)
             {
-                _jumpVelocity = _jumpVolume.jumpVelocity;
+                if (JumpVolume)
+                {
+                    _jumpVelocity = JumpVolume.jumpVelocity;
+                }
             }
         }
 
@@ -40,14 +50,22 @@ namespace RiskOfChaos.Networking.Components
         {
             _jumpVelocity = newJumpVelocity;
 
-            if (_jumpVolume.jumpVelocity == newJumpVelocity)
+            updateJumpVelocity();
+        }
+
+        void updateJumpVelocity()
+        {
+            if (!JumpVolume)
+                return;
+
+            if (JumpVolume.jumpVelocity == _jumpVelocity)
                 return;
 
 #if DEBUG
-            Log.Debug($"{name} ({netId}) Jump velocity changed: {_jumpVolume.jumpVelocity} -> {newJumpVelocity}");
+            Log.Debug($"{name} ({netId}) Jump velocity changed: {JumpVolume.jumpVelocity} -> {_jumpVelocity}");
 #endif
 
-            _jumpVolume.jumpVelocity = newJumpVelocity;
+            JumpVolume.jumpVelocity = _jumpVelocity;
         }
     }
 }

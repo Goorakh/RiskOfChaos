@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Content;
+﻿using RiskOfChaos.Components;
+using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -53,11 +54,34 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 geyserLoad.OnSuccess(geyserPrefab =>
                 {
                     GameObject geyserHolder = Prefabs.CreateNetworkedPrefab("Networked" + geyserPrefab.name, [
-                        typeof(SyncJumpVolumeVelocity)
+                        typeof(SyncJumpVolumeVelocity),
+                        typeof(GrantTemporaryItemsOnJump)
                     ]);
 
-                    GameObject geyser = GameObject.Instantiate(geyserPrefab, geyserHolder.transform);
+                    GameObject geyser = Instantiate(geyserPrefab, geyserHolder.transform);
                     geyser.transform.localPosition = Vector3.zero;
+
+                    JumpVolume geyserJumpVolume = geyser.GetComponentInChildren<JumpVolume>();
+
+                    SyncJumpVolumeVelocity syncJumpVolumeVelocity = geyserHolder.GetComponent<SyncJumpVolumeVelocity>();
+                    syncJumpVolumeVelocity.JumpVolume = geyserJumpVolume;
+
+                    GrantTemporaryItemsOnJump grantItemsOnJump = geyserHolder.GetComponent<GrantTemporaryItemsOnJump>();
+                    grantItemsOnJump.JumpVolume = geyserJumpVolume;
+                    grantItemsOnJump.Items = [
+                        new GrantTemporaryItemsOnJump.ConditionalItem
+                        {
+                            ItemDef = Addressables.LoadAssetAsync<ItemDef>("RoR2/Base/Feather/Feather.asset").WaitForCompletion(),
+                            GrantToPlayers = true,
+                            IgnoreIfItemAlreadyPresent = true,
+                        },
+                        new GrantTemporaryItemsOnJump.ConditionalItem
+                        {
+                            ItemDef = Addressables.LoadAssetAsync<ItemDef>("RoR2/Base/TeleportWhenOob/TeleportWhenOob.asset").WaitForCompletion(),
+                            GrantToInvincibleLemurian = true,
+                            IgnoreIfItemAlreadyPresent = true,
+                        }
+                    ];
 
                     geyserPrefabs[prefabIndex] = geyserHolder;
 

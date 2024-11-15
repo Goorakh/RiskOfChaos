@@ -22,6 +22,9 @@
 * Increase/Decrease Projectile Speed:
   * Fixed speed multipliers not applying to certain projectiles
 
+* Spawn Jump Pad:
+  * Spawned jump pads now give a temporary feather to all players to prevent forced fall damage
+
 * Spawn Random Enemy:
   * Added chat message announcing what enemy was spawned
 
