@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 142 different effects.
+Currently features 140 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -101,7 +101,6 @@ Currently features 142 different effects.
 * No sprinting: Disables sprinting for all characters, lasts 30 seconds
 * Everyone is Invisible: Every character on the stage becomes invisible, lasts 30 seconds
 * Revive Dead Characters: Revives all recently killed characters
-* The Floor is Lava: Every character touching the ground is set on fire, lasts 30 seconds
 * Lock All Chests: Locks all chests as if the teleporter has started, lasts 45 seconds
 * Delayed Attacks: All attacks have a 0.5 second delay before happening, lasts 90 seconds
 * Recruit Random Enemy: Converts a random enemy on the stage to the player team
@@ -131,7 +130,6 @@ Currently features 142 different effects.
 * Low FOV: Decreases camera Field of View, lasts 45 seconds
 * Flipped Camera: Flips the camera upside down, lasts 30 seconds
 * Everyone Implodes on Death: Spawns a void implosion on any character death, lasts 60 seconds
-* Black Hole: Spawns a black hole somewhere on the map, sucking all characters in, lasts 45 seconds
 * Knockback Recoil: Firing weapons pushes characters backwards, lasts 90 seconds
 * Increase Effect Duration: Increases the duration of all other effects (2x by default), lasts 2 stages
 * Decrease Effect Duration: Decreases the duration of all other effects (0.5x by default), lasts 2 stages
