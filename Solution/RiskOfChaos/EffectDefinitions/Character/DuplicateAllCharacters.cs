@@ -65,7 +65,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 placementMode = SpawnUtils.ExtraPlacementModes.NearestNodeWithConditions,
                 position = body.footPosition,
-                minDistance = body.bestFitRadius * 2f,
+                minDistance = body.bestFitActualRadius * 2f,
                 maxDistance = float.PositiveInfinity
             };
             
