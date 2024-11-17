@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 140 different effects.
+Currently features 139 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -46,7 +46,6 @@ Currently features 140 different effects.
 * Give Tonic Affliction: Gives all players one Tonic Affliction
 * Spawn Random Boss: Spawns a random boss
 * Max All Cooldowns: Sets all skill and equipment cooldowns to their maximum value (as if you just used them)
-* Teleporting Attacks: Teleports the attacker to where their attacks impact
 * Uncorrupt Random Item: Converts all of a random item into its non-void variant
 * Poverty: Sets all players' money to 0
 * +5 Minutes: Adds 5 minutes to the run timer
