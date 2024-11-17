@@ -1,5 +1,11 @@
 ## Changelog
 
+**-.-.- Changes:**
+
+* Removed 2 effects:
+  * The Floor is Lava: Just kills everything and forces you to spam jump
+  * Black Hole: Just kills everything and stalls the player
+
 **2.1.1 Changes:**
 
 * Fixed spawn effects not disabling DLC related spawns if a DLC is disabled
