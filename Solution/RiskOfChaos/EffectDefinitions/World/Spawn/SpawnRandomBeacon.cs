@@ -20,11 +20,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             _beaconPool.EnsureCapacity(5);
 
-            _beaconPool.AddAssetEntry("RoR2/Base/Captain/CaptainSupplyDrop, EquipmentRestock.prefab", 1f);
-            _beaconPool.AddAssetEntry("RoR2/Base/Captain/CaptainSupplyDrop, Hacking.prefab", 1f);
-            _beaconPool.AddAssetEntry("RoR2/Base/Captain/CaptainSupplyDrop, Healing.prefab", 1f);
-            _beaconPool.AddAssetEntry("RoR2/Base/Captain/CaptainSupplyDrop, Plating.prefab", 1f);
-            _beaconPool.AddAssetEntry("RoR2/Base/Captain/CaptainSupplyDrop, Shocking.prefab", 1f);
+            _beaconPool.AddAssetEntry("RoR2/Base/Captain/CaptainSupplyDrop, EquipmentRestock.prefab", new SpawnPoolEntryParameters(1f));
+            _beaconPool.AddAssetEntry("RoR2/Base/Captain/CaptainSupplyDrop, Hacking.prefab", new SpawnPoolEntryParameters(1f));
+            _beaconPool.AddAssetEntry("RoR2/Base/Captain/CaptainSupplyDrop, Healing.prefab", new SpawnPoolEntryParameters(1f));
+            _beaconPool.AddAssetEntry("RoR2/Base/Captain/CaptainSupplyDrop, Plating.prefab", new SpawnPoolEntryParameters(1f));
+            _beaconPool.AddAssetEntry("RoR2/Base/Captain/CaptainSupplyDrop, Shocking.prefab", new SpawnPoolEntryParameters(1f));
         }
 
         [EffectCanActivate]

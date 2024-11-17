@@ -6,6 +6,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.EffectUtils.World.Spawn;
+using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
@@ -26,7 +27,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
             RequiredExpansionsProvider = SpawnPoolUtils.CharacterSpawnCardExpansionsProvider
         };
 
-        [SystemInitializer(typeof(MasterCatalog))]
+        [SystemInitializer(typeof(MasterCatalog), typeof(CharacterExpansionRequirementFix))]
         static void Init()
         {
             List<CharacterMaster> validCombatCharacters = [];
@@ -86,7 +87,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                     }
                 ];
 
-                _spawnPool.AddEntry(spawnCard, weight);
+                _spawnPool.AddEntry(spawnCard, new SpawnPoolEntryParameters(weight));
             }
 
             _spawnPool.TrimExcess();

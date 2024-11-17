@@ -109,7 +109,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 spawnCard.nodeGraphType = MapNodeGroup.GraphType.Ground;
                 spawnCard.occupyPosition = true;
 
-                _spawnPool.AddEntry(spawnCard, 1f);
+                _spawnPool.AddEntry(spawnCard, new SpawnPoolEntryParameters(1f));
             }
 
             _spawnPool.TrimExcess();

@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Utilities.Extensions;
+﻿using HG;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2.ExpansionManagement;
 using System;
 using System.Collections;
@@ -20,7 +21,7 @@ namespace RiskOfChaos.Utilities
         int _debugTestIndex = 0;
 #endif
 
-        public delegate ExpansionDef[] RequiredExpansionsProviderDelegate(T entry);
+        public delegate IList<ExpansionDef> RequiredExpansionsProviderDelegate(T entry);
 
         RequiredExpansionsProviderDelegate _requiredExpansionsProvider = entry => [];
         public RequiredExpansionsProviderDelegate RequiredExpansionsProvider
@@ -45,26 +46,10 @@ namespace RiskOfChaos.Utilities
             {
                 foreach (Entry entry in _entries)
                 {
-                    if (!entry.IsAvailable)
-                        continue;
-
-                    if (!ExpansionUtils.AllExpansionsEnabled(entry.RequiredExpansions))
-                        continue;
-
-                    bool isAvailable = true;
-                    if (CalcIsEntryAvailable != null)
+                    if (IsAvailable(entry))
                     {
-                        foreach (IsEntryAvailableDelegate isAvailableDelegate in CalcIsEntryAvailable.GetInvocationList())
-                        {
-                            if (!isAvailableDelegate(entry.Asset))
-                            {
-                                isAvailable = false;
-                                break;
-                            }
-                        }
+                        return true;
                     }
-
-                    return isAvailable;
                 }
 
                 return false;
@@ -86,11 +71,38 @@ namespace RiskOfChaos.Utilities
 
             foreach (Entry entry in _entries)
             {
-                if (entry.IsAvailable)
+                if (IsAvailable(entry))
                 {
                     weightedSelection.AddChoice(entry.Asset, entry.Weight);
                 }
             }
+        }
+
+        public bool IsAvailable(Entry entry)
+        {
+            if (!entry.IsValid)
+                return false;
+
+            if (!ExpansionUtils.AllExpansionsEnabled(entry.RequiredExpansions))
+                return false;
+
+            bool customIsAvailable = true;
+            if (CalcIsEntryAvailable != null)
+            {
+                foreach (IsEntryAvailableDelegate isAvailableDelegate in CalcIsEntryAvailable.GetInvocationList())
+                {
+                    if (!isAvailableDelegate(entry.Asset))
+                    {
+                        customIsAvailable = false;
+                        break;
+                    }
+                }
+            }
+
+            if (!customIsAvailable)
+                return false;
+
+            return true;
         }
 
         public T PickRandomEntry(Xoroshiro128Plus rng)
@@ -98,7 +110,13 @@ namespace RiskOfChaos.Utilities
 #if DEBUG
             if (DebugTest)
             {
-                return _entries[_debugTestIndex++ % _entries.Count].Asset;
+                Entry entry;
+                do
+                {
+                    entry = _entries[_debugTestIndex++ % _entries.Count];
+                } while (!IsAvailable(entry));
+
+                return entry.Asset;
             }
 #endif
 
@@ -137,8 +155,41 @@ namespace RiskOfChaos.Utilities
 
         void refreshRequiredExpansions(Entry entry)
         {
-            entry.RequiredExpansions = _requiredExpansionsProvider(entry.Asset);
+            entry.SetRequiredExpansions(_requiredExpansionsProvider(entry.Asset));
         }
+
+#if DEBUG
+        public void DebugPrintEntries()
+        {
+            List<Entry> entries = new List<Entry>(_entries);
+            entries.Sort((a, b) =>
+            {
+                ReadOnlyArray<ExpansionDef> expansionsA = a.RequiredExpansions;
+                ReadOnlyArray<ExpansionDef> expansionsB = b.RequiredExpansions;
+
+                if (expansionsA.Length != expansionsB.Length)
+                {
+                    return expansionsB.Length - expansionsA.Length;
+                }
+
+                for (int i = 0; i < expansionsA.Length; i++)
+                {
+                    int compare = string.Compare(expansionsA[i].name, expansionsB[i].name, true);
+                    if (compare != 0)
+                    {
+                        return compare;
+                    }
+                }
+
+                return 0;
+            });
+
+            foreach (Entry entry in entries)
+            {
+                Log.Debug_NoCallerPrefix(entry);
+            }
+        }
+#endif
 
         public void AddEntry(Entry entry)
         {
@@ -147,39 +198,39 @@ namespace RiskOfChaos.Utilities
             entry.CallWhenLoaded(refreshRequiredExpansions);
         }
 
-        public void AddEntry(T asset, float weight)
+        public void AddEntry(T asset, SpawnPoolEntryParameters parameters)
         {
-            AddEntry(new Entry(asset, weight));
+            AddEntry(new Entry(asset, parameters));
         }
 
-        public Entry LoadEntry(string assetPath, float weight)
+        public Entry LoadEntry(string assetPath, SpawnPoolEntryParameters parameters)
         {
-            return Entry.LoadAsync(assetPath, weight);
+            return Entry.LoadAsync(assetPath, parameters);
         }
 
-        public void AddAssetEntry(string assetPath, float weight)
+        public void AddAssetEntry(string assetPath, SpawnPoolEntryParameters parameters)
         {
-            AddEntry(LoadEntry(assetPath, weight));
+            AddEntry(LoadEntry(assetPath, parameters));
         }
 
-        public Entry LoadEntry<TAsset>(string assetPath, float weight, Converter<TAsset, T> assetConverter)
+        public Entry LoadEntry<TAsset>(string assetPath, SpawnPoolEntryParameters parameters, Converter<TAsset, T> assetConverter)
         {
-            return Entry.LoadAsync(assetPath, weight, assetConverter);
+            return Entry.LoadAsync(assetPath, parameters, assetConverter);
         }
 
-        public void AddAssetEntry<TAsset>(string assetPath, float weight, Converter<TAsset, T> assetConverter)
+        public void AddAssetEntry<TAsset>(string assetPath, SpawnPoolEntryParameters parameters, Converter<TAsset, T> assetConverter)
         {
-            AddEntry(LoadEntry(assetPath, weight, assetConverter));
+            AddEntry(LoadEntry(assetPath, parameters, assetConverter));
         }
 
-        public Entry LoadEntry(string assetPath, float weight, Converter<T, T> assetConverter)
+        public Entry LoadEntry(string assetPath, SpawnPoolEntryParameters parameters, Converter<T, T> assetConverter)
         {
-            return LoadEntry<T>(assetPath, weight, assetConverter);
+            return LoadEntry<T>(assetPath, parameters, assetConverter);
         }
 
-        public void AddAssetEntry(string assetPath, float weight, Converter<T, T> assetConverter)
+        public void AddAssetEntry(string assetPath, SpawnPoolEntryParameters parameters, Converter<T, T> assetConverter)
         {
-            AddAssetEntry<T>(assetPath, weight, assetConverter);
+            AddAssetEntry<T>(assetPath, parameters, assetConverter);
         }
 
         public Entry[] GroupEntries(Entry[] entries, float weightMultiplier = 1f)
@@ -220,7 +271,7 @@ namespace RiskOfChaos.Utilities
 
             public float Weight { get; set; }
 
-            public bool IsAvailable
+            public bool IsValid
             {
                 get
                 {
@@ -228,30 +279,49 @@ namespace RiskOfChaos.Utilities
                 }
             }
 
-            public ExpansionDef[] RequiredExpansions = [];
+            readonly ExpansionDef[] _baseRequiredExpansions = [];
+
+            public ReadOnlyArray<ExpansionDef> RequiredExpansions { get; private set; }
 
             public bool IsFullyLoaded { get; private set; }
             readonly List<OnEntryLoadedDelegate> _onLoadedListeners = [];
 
-            Entry(T asset, float weight, bool fullyLoaded)
+            Entry(T asset, SpawnPoolEntryParameters parameters, bool fullyLoaded)
             {
                 Asset = asset;
-                Weight = weight;
+                Weight = parameters.Weight;
+                _baseRequiredExpansions = parameters.RequiredExpansions;
                 IsFullyLoaded = fullyLoaded;
+
+                RequiredExpansions = new ReadOnlyArray<ExpansionDef>(_baseRequiredExpansions);
             }
 
-            public Entry(T asset, float weight) : this(asset, weight, true)
+            public Entry(T asset, SpawnPoolEntryParameters parameters) : this(asset, parameters, true)
             {
+            }
+
+            public void SetRequiredExpansions(IList<ExpansionDef> requiredExpansions)
+            {
+                List<ExpansionDef> distinctExpansions = new List<ExpansionDef>(requiredExpansions.Count);
+                foreach (ExpansionDef expansionDef in requiredExpansions)
+                {
+                    if (Array.IndexOf(_baseRequiredExpansions, expansionDef) == -1)
+                    {
+                        distinctExpansions.Add(expansionDef);
+                    }
+                }
+
+                RequiredExpansions = new ReadOnlyArray<ExpansionDef>([.. _baseRequiredExpansions, .. distinctExpansions]);
             }
 
             public override string ToString()
             {
-                return $"{Asset}: {Weight} ({string.Join<ExpansionDef>(", ", RequiredExpansions)})";
+                return $"{Asset}: {Weight} ({string.Join(", ", RequiredExpansions)})";
             }
 
-            public static Entry LoadAsync<TAsset>(string path, float weight, Converter<TAsset, T> converter)
+            public static Entry LoadAsync<TAsset>(string path, SpawnPoolEntryParameters parameters, Converter<TAsset, T> converter)
             {
-                Entry entry = new Entry(default, weight, false);
+                Entry entry = new Entry(default, parameters, false);
 
                 AsyncOperationHandle<TAsset> assetLoad = Addressables.LoadAssetAsync<TAsset>(path);
                 assetLoad.OnSuccess(asset =>
@@ -263,9 +333,9 @@ namespace RiskOfChaos.Utilities
                 return entry;
             }
 
-            public static Entry LoadAsync(string path, float weight)
+            public static Entry LoadAsync(string path, SpawnPoolEntryParameters parameters)
             {
-                return LoadAsync<T>(path, weight, v => v);
+                return LoadAsync<T>(path, parameters, v => v);
             }
 
             void onFullyLoaded()

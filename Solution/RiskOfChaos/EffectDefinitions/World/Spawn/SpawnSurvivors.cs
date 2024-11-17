@@ -54,7 +54,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 if (!aiMasterIndex.isValid)
                     continue;
 
-                _spawnPool.AddEntry(new SpawnPool<SurvivorDef>.Entry(survivorDef, 1f));
+                _spawnPool.AddEntry(new SpawnPool<SurvivorDef>.Entry(survivorDef, new SpawnPoolEntryParameters(1f)));
             }
 
             _spawnPool.TrimExcess();

@@ -1,5 +1,9 @@
 ## Changelog
 
+**-.-.- Changes:**
+
+* Fixed spawn effects not disabling DLC related spawns if a DLC is disabled
+
 **2.1.0 Changes:**
 
 * Added 2 effects:

@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.ExpansionManagement;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -37,18 +38,18 @@ namespace RiskOfChaos.Utilities
         public static bool DLC1Enabled
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => IsExpansionEnabled(DLC1);
+            get => DLC1 && IsExpansionEnabled(DLC1);
         }
 
         public static bool DLC2Enabled
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => IsExpansionEnabled(DLC2);
+            get => DLC2 && IsExpansionEnabled(DLC2);
         }
 
         public static bool IsExpansionEnabled(ExpansionDef expansionDef)
         {
-            return expansionDef && Run.instance && Run.instance.IsExpansionEnabled(expansionDef);
+            return !expansionDef || (Run.instance && Run.instance.IsExpansionEnabled(expansionDef));
         }
 
         public static bool AllExpansionsEnabled(IEnumerable<ExpansionDef> expansions)
@@ -64,15 +65,12 @@ namespace RiskOfChaos.Utilities
             return true;
         }
 
-        public static ExpansionDef[] GetObjectRequiredExpansions(GameObject obj)
+        public static IList<ExpansionDef> GetObjectRequiredExpansions(GameObject obj)
         {
             if (!obj)
                 return [];
 
             ExpansionRequirementComponent[] expansionRequirements = obj.GetComponents<ExpansionRequirementComponent>();
-            if (expansionRequirements.Length == 0)
-                return [];
-
             List<ExpansionDef> requiredExpansions = new List<ExpansionDef>(expansionRequirements.Length);
 
             foreach (ExpansionRequirementComponent expansionRequirement in expansionRequirements)
@@ -90,7 +88,7 @@ namespace RiskOfChaos.Utilities
 
             requiredExpansions.TrimExcess();
 
-            return [.. requiredExpansions];
+            return requiredExpansions;
         }
 
         public static bool IsObjectExpansionAvailable(GameObject obj)

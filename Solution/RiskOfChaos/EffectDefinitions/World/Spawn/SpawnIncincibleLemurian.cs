@@ -132,8 +132,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             _spawnPool.EnsureCapacity(2);
 
-            _spawnPool.AddEntry(_cscInvincibleLemurian, 0.95f);
-            _spawnPool.AddEntry(_cscInvincibleLemurianBruiser, 0.05f);
+            _spawnPool.AddEntry(_cscInvincibleLemurian, new SpawnPoolEntryParameters(0.95f));
+            _spawnPool.AddEntry(_cscInvincibleLemurianBruiser, new SpawnPoolEntryParameters(0.05f));
         }
 
         [EffectCanActivate]

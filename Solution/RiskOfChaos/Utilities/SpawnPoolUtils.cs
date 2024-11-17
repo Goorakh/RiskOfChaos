@@ -1,5 +1,6 @@
 ﻿using RoR2;
 using RoR2.ExpansionManagement;
+using System.Collections.Generic;
 
 namespace RiskOfChaos.Utilities
 {
@@ -9,17 +10,17 @@ namespace RiskOfChaos.Utilities
 
         public static readonly SpawnPool<InteractableSpawnCard>.RequiredExpansionsProviderDelegate InteractableSpawnCardExpansionsProvider = InteractableSpawnCardExpansionsProviderImpl;
 
-        public static ExpansionDef[] CharacterSpawnCardExpansionsProviderImpl(CharacterSpawnCard characterSpawnCard)
+        public static IList<ExpansionDef> CharacterSpawnCardExpansionsProviderImpl(CharacterSpawnCard characterSpawnCard)
         {
             return SpawnCardExpansionsProviderImpl(characterSpawnCard);
         }
 
-        public static ExpansionDef[] InteractableSpawnCardExpansionsProviderImpl(InteractableSpawnCard interactableSpawnCard)
+        public static IList<ExpansionDef> InteractableSpawnCardExpansionsProviderImpl(InteractableSpawnCard interactableSpawnCard)
         {
             return SpawnCardExpansionsProviderImpl(interactableSpawnCard);
         }
 
-        public static ExpansionDef[] SpawnCardExpansionsProviderImpl(SpawnCard spawnCard)
+        public static IList<ExpansionDef> SpawnCardExpansionsProviderImpl(SpawnCard spawnCard)
         {
             if (spawnCard && spawnCard.prefab)
             {
