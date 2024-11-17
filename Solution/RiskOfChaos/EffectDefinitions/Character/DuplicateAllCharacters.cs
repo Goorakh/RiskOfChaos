@@ -1,10 +1,12 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using RiskOfChaos.EffectUtils.World.Spawn;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using RoR2.Navigation;
 using System;
 using System.Collections.ObjectModel;
 using UnityEngine;
@@ -56,6 +58,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 return;
             
             MasterCopySpawnCard copySpawnCard = MasterCopySpawnCard.FromMaster(master, true, true);
+            copySpawnCard.nodeGraphType = CombatCharacterSpawnHelper.GetSpawnGraphType(master);
+            copySpawnCard.forbiddenFlags |= NodeFlags.NoCharacterSpawn;
 
             DirectorPlacementRule placementRule = new DirectorPlacementRule
             {
@@ -64,7 +68,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 minDistance = body.bestFitRadius * 2f,
                 maxDistance = float.PositiveInfinity
             };
-
+            
             DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(copySpawnCard, placementRule, RoR2Application.rng)
             {
                 summonerBodyObject = body.gameObject,

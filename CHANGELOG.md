@@ -6,6 +6,9 @@
   * The Floor is Lava: Just kills everything and forces you to spam jump
   * Black Hole: Just kills everything and stalls the player
 
+* Mitosis:
+  * Fixed some characters spawning in invalid positions when duplicated
+
 **2.1.1 Changes:**
 
 * Fixed spawn effects not disabling DLC related spawns if a DLC is disabled
