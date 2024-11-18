@@ -10,6 +10,9 @@
 * Mitosis:
   * Fixed some characters spawning in invalid positions when duplicated
 
+* All Items Are A Random Item:
+  * Now also replaces all currently dropped items when the effect activates
+
 * Launch Everyone in Random Directions:
   * Can no longer launch downwards
 

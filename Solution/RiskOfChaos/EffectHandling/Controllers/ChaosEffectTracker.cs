@@ -1,6 +1,5 @@
 ﻿using HG;
 using RiskOfChaos.Content;
-using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RoR2;
@@ -257,6 +256,18 @@ namespace RiskOfChaos.EffectHandling.Controllers
             }
 
             return activeEffectComponents;
+        }
+
+        public ChaosEffectComponent GetFirstActiveTimedEffect(TimedEffectInfo effectInfo)
+        {
+            if (effectInfo == null)
+                return null;
+
+            ref TimedEffectActivityInfo effectActivity = ref _timedEffectActivity[(int)effectInfo.EffectIndex];
+            if (effectActivity.InstancesCount <= 0)
+                return null;
+
+            return effectActivity.Instances[0].EffectComponent;
         }
 
         public TEffectComponent[] GetActiveTimedEffectComponents<TEffectComponent>() where TEffectComponent : MonoBehaviour

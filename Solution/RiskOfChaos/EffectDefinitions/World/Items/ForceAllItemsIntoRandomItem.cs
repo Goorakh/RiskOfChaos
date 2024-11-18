@@ -1,5 +1,4 @@
-﻿using HG;
-using RiskOfChaos.ConfigHandling;
+﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -11,11 +10,12 @@ using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Trackers;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.DropTables;
+using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Items
@@ -25,63 +25,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
     {
         [InitEffectInfo]
         public static readonly TimedEffectInfo EffectInfo;
-
-        sealed class NameFormatter : EffectNameFormatter
-        {
-            PickupIndex _pickupIndex;
-            public PickupIndex PickupIndex
-            {
-                get
-                {
-                    return _pickupIndex;
-                }
-                set
-                {
-                    if (_pickupIndex == value)
-                        return;
-
-                    _pickupIndex = value;
-                    invokeFormatterDirty();
-                }
-            }
-
-            public NameFormatter()
-            {
-            }
-
-            public NameFormatter(PickupIndex pickup)
-            {
-                PickupIndex = pickup;
-            }
-
-            public override void Serialize(NetworkWriter writer)
-            {
-                writer.Write(PickupIndex);
-            }
-
-            public override void Deserialize(NetworkReader reader)
-            {
-                PickupIndex = reader.ReadPickupIndex();
-            }
-
-            public override object[] GetFormatArgs()
-            {
-                PickupDef pickupDef = PickupCatalog.GetPickupDef(PickupIndex);
-                if (pickupDef != null)
-                {
-                    return [Util.GenerateColoredString(Language.GetString(pickupDef.nameToken), pickupDef.baseColor)];
-                }
-                else
-                {
-                    return ["<color=red>[ERROR: PICKUP NOT ROLLED]</color>"];
-                }
-            }
-
-            public override bool Equals(EffectNameFormatter other)
-            {
-                return other is NameFormatter nameFormatter && PickupIndex == nameFormatter.PickupIndex;
-            }
-        }
 
         [EffectConfig]
         static readonly ConfigHolder<bool> _allowEliteEquipments =
@@ -98,6 +41,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
 
         [EffectConfig]
         static readonly ConfigurableDropTable _dropTable;
+
+        static GameObject _recycleEffectPrefab;
 
         static ForceAllItemsIntoRandomItem()
         {
@@ -139,23 +84,15 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
         static void Init()
         {
             ForceAllItemsIntoRandomItemManager.OnNextOverridePickupChanged += onNextOverridePickupChanged;
+
+            Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Recycle/OmniRecycleEffect.prefab").OnSuccess(recycleEffect => _recycleEffectPrefab = recycleEffect);
         }
 
         static void onNextOverridePickupChanged()
         {
-            EffectNameFormatterProvider nameFormatterProvider = EffectInfo?.StaticDisplayNameFormatterProvider;
-            if (nameFormatterProvider != null)
+            if (NetworkServer.active)
             {
-                PickupIndex pickupIndex = PickupIndex.none;
-                if (ForceAllItemsIntoRandomItemManager.Instance)
-                {
-                    pickupIndex = ForceAllItemsIntoRandomItemManager.Instance.NextOverridePickupIndex;
-                }
-
-                if (nameFormatterProvider.NameFormatter is NameFormatter nameFormatter)
-                {
-                    nameFormatter.PickupIndex = pickupIndex;
-                }
+                EffectInfo?.RestoreStaticDisplayNameFormatter();
             }
         }
 
@@ -174,24 +111,28 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
         {
-            return new NameFormatter(ForceAllItemsIntoRandomItemManager.Instance ? ForceAllItemsIntoRandomItemManager.Instance.NextOverridePickupIndex : PickupIndex.none);
+            PickupIndex nextOverridePickupIndex = PickupIndex.none;
+            if (ForceAllItemsIntoRandomItemManager.Instance)
+            {
+                nextOverridePickupIndex = ForceAllItemsIntoRandomItemManager.Instance.NextOverridePickupIndex;
+            }
+
+            return new NameFormatter(nextOverridePickupIndex);
         }
 
         ChaosEffectComponent _effectComponent;
         ChaosEffectNameComponent _effectNameComponent;
 
-        bool _addedHooks;
-
         [SyncVar(hook = nameof(hookSetOverridePickupIndex))]
         int _overridePickupIndexInternal;
 
         [SerializedMember("p")]
-        PickupIndex overridePickupIndex
+        public PickupIndex OverridePickupIndex
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => new PickupIndex(_overridePickupIndexInternal - 1);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => _overridePickupIndexInternal = value.value + 1;
+            private set => _overridePickupIndexInternal = value.@value + 1;
         }
 
         void Awake()
@@ -204,44 +145,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
         {
             base.OnStartServer();
 
-            overridePickupIndex = ForceAllItemsIntoRandomItemManager.Instance.NextOverridePickupIndex;
-        }
-
-        void Start()
-        {
-            if (!NetworkServer.active)
-                return;
-
-            On.RoR2.PickupDropTable.GenerateDrop += PickupDropTable_GenerateDrop;
-            On.RoR2.PickupDropTable.GenerateUniqueDrops += PickupDropTable_GenerateUniqueDrops;
-
-            On.RoR2.ChestBehavior.PickFromList += ChestBehavior_PickFromList;
-
-            AllVoidPotentials.OverrideAllowChoices += AllVoidPotentials_OverrideAllowChoices;
-
-            On.RoR2.PickupPickerController.GetOptionsFromPickupIndex += PickupPickerController_GetOptionsFromPickupIndex;
-
-            _addedHooks = true;
-
-            rerollAllChests();
+            OverridePickupIndex = ForceAllItemsIntoRandomItemManager.Instance.NextOverridePickupIndex;
         }
 
         void OnDestroy()
         {
-            if (_addedHooks)
-            {
-                On.RoR2.PickupDropTable.GenerateDrop -= PickupDropTable_GenerateDrop;
-                On.RoR2.PickupDropTable.GenerateUniqueDrops -= PickupDropTable_GenerateUniqueDrops;
-
-                On.RoR2.ChestBehavior.PickFromList -= ChestBehavior_PickFromList;
-
-                AllVoidPotentials.OverrideAllowChoices -= AllVoidPotentials_OverrideAllowChoices;
-
-                On.RoR2.PickupPickerController.GetOptionsFromPickupIndex -= PickupPickerController_GetOptionsFromPickupIndex;
-
-                _addedHooks = false;
-            }
-
             if (NetworkServer.active)
             {
                 rerollAllChests();
@@ -255,11 +163,31 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
 
         void hookSetOverridePickupIndex(int pickupIndexInt)
         {
+            bool changed = _overridePickupIndexInternal != pickupIndexInt;
+
             _overridePickupIndexInternal = pickupIndexInt;
 
-            if (NetworkServer.active)
+            if (NetworkServer.active && changed)
             {
-                _effectNameComponent.SetCustomNameFormatter(new NameFormatter(overridePickupIndex));
+                _effectNameComponent.SetCustomNameFormatter(new NameFormatter(OverridePickupIndex));
+
+                if (OverridePickupIndex.isValid)
+                {
+                    foreach (GenericPickupController pickupController in InstanceTracker.GetInstancesList<GenericPickupController>())
+                    {
+                        if (pickupController.pickupIndex != OverridePickupIndex)
+                        {
+                            pickupController.NetworkpickupIndex = OverridePickupIndex;
+
+                            if (_recycleEffectPrefab && pickupController.pickupDisplay)
+                            {
+                                EffectManager.SimpleEffect(_recycleEffectPrefab, pickupController.pickupDisplay.transform.position, Quaternion.identity, true);
+                            }
+                        }
+                    }
+                }
+
+                rerollAllChests();
             }
         }
 
@@ -311,49 +239,48 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
             }
         }
 
-        PickupIndex PickupDropTable_GenerateDrop(On.RoR2.PickupDropTable.orig_GenerateDrop orig, PickupDropTable self, Xoroshiro128Plus rng)
+        sealed class NameFormatter : EffectNameFormatter
         {
-            orig(self, rng);
-            return overridePickupIndex;
-        }
+            PickupIndex _pickupIndex;
 
-        PickupIndex[] PickupDropTable_GenerateUniqueDrops(On.RoR2.PickupDropTable.orig_GenerateUniqueDrops orig, PickupDropTable self, int maxDrops, Xoroshiro128Plus rng)
-        {
-            PickupIndex[] result = orig(self, maxDrops, rng);
-            ArrayUtils.SetAll(result, overridePickupIndex);
-            return result;
-        }
-
-        void ChestBehavior_PickFromList(On.RoR2.ChestBehavior.orig_PickFromList orig, ChestBehavior self, List<PickupIndex> dropList)
-        {
-            dropList.Clear();
-            dropList.Add(overridePickupIndex);
-
-            orig(self, dropList);
-        }
-
-        void AllVoidPotentials_OverrideAllowChoices(PickupIndex originalPickup, ref bool allowChoices)
-        {
-            if (originalPickup == overridePickupIndex)
+            public NameFormatter()
             {
-                allowChoices = false;
             }
-        }
 
-        PickupPickerController.Option[] PickupPickerController_GetOptionsFromPickupIndex(On.RoR2.PickupPickerController.orig_GetOptionsFromPickupIndex orig, PickupIndex pickupIndex)
-        {
-            PickupPickerController.Option[] options = orig(pickupIndex);
-
-            if (pickupIndex == overridePickupIndex)
+            public NameFormatter(PickupIndex pickup)
             {
-                ArrayUtils.SetAll(options, new PickupPickerController.Option
+                _pickupIndex = pickup;
+            }
+
+            public override void Serialize(NetworkWriter writer)
+            {
+                writer.Write(_pickupIndex);
+            }
+
+            public override void Deserialize(NetworkReader reader)
+            {
+                _pickupIndex = reader.ReadPickupIndex();
+                invokeFormatterDirty();
+            }
+
+            public override object[] GetFormatArgs()
+            {
+                PickupDef pickupDef = PickupCatalog.GetPickupDef(_pickupIndex);
+                if (pickupDef != null)
                 {
-                    pickupIndex = overridePickupIndex,
-                    available = true
-                });
+                    return [Util.GenerateColoredString(Language.GetString(pickupDef.nameToken), pickupDef.baseColor)];
+                }
+                else
+                {
+                    return ["<color=red>[ERROR: PICKUP NOT ROLLED]</color>"];
+                }
             }
 
-            return options;
+            public override bool Equals(EffectNameFormatter other)
+            {
+                return other is NameFormatter nameFormatter &&
+                       _pickupIndex == nameFormatter._pickupIndex;
+            }
         }
     }
 }
