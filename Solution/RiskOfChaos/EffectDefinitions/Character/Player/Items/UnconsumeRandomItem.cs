@@ -17,7 +17,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
-    [ChaosEffect("unconsume_random_item")]
+    [ChaosEffect("unconsume_random_item", DefaultSelectionWeight = 0.9f)]
     public sealed class UnconsumeRandomItem : NetworkBehaviour
     {
         [EffectConfig]
@@ -30,6 +30,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                                   Min = 1
                               })
                               .Build();
+
+        [EffectConfig]
+        static readonly ConfigHolder<bool> _unconsumeFullStack =
+            ConfigFactory<bool>.CreateConfig("Repair Full Stack", true)
+                               .Description("If full stacks of items should be repaired instead of individual items")
+                               .OptionConfig(new CheckBoxConfig())
+                               .Build();
 
         [EffectConfig]
         static readonly ConfigHolder<string> _itemBlacklistConfig =
@@ -104,13 +111,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             if (!NetworkServer.active)
                 return;
 
-            foreach (PlayerCharacterMasterController playerMaster in PlayerCharacterMasterController.instances)
+            foreach (CharacterMaster master in CharacterMaster.readOnlyInstancesList)
             {
-                if (!playerMaster.isConnected)
+                if (!master || master.IsDeadAndOutOfLivesServer())
                     continue;
 
-                CharacterMaster master = playerMaster.master;
-                if (!master || master.IsDeadAndOutOfLivesServer())
+                if (!master.playerCharacterMasterController && master.teamIndex != TeamIndex.Player)
                     continue;
 
                 Inventory inventory = master.inventory;
@@ -133,7 +139,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     int pickupIndex = 0;
                     foreach (ConsumableItemUtils.ConsumableItemPair consumablePair in unconsumedPairs)
                     {
-                        CharacterMasterNotificationQueueUtils.SendPickupTransformNotification(master, consumablePair.ConsumedItem, consumablePair.Item, CharacterMasterNotificationQueue.TransformationType.Default);
+                        if (master.playerCharacterMasterController)
+                        {
+                            CharacterMasterNotificationQueueUtils.SendPickupTransformNotification(master, consumablePair.ConsumedItem, consumablePair.Item, CharacterMasterNotificationQueue.TransformationType.Default);
+                        }
 
                         pickupIndices[pickupIndex] = consumablePair.Item;
                         pickupIndex++;
@@ -160,14 +169,19 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             foreach (ConsumableItemUtils.ConsumableItemPair consumablePair in unconsumeOrder)
             {
-                if (canUnconsume(consumablePair) && inventory.GetPickupCount(consumablePair.ConsumedItem) > 0)
+                if (canUnconsume(consumablePair))
                 {
-                    if (inventory.TryRemove(consumablePair.ConsumedItem))
+                    int pickupCount = inventory.GetPickupCount(consumablePair.ConsumedItem);
+                    if (pickupCount > 0)
                     {
-                        inventory.TryGrant(consumablePair.Item, InventoryExtensions.ItemReplacementRule.DropExisting);
+                        int consumeCount = _unconsumeFullStack.Value ? pickupCount : 1;
+                        if (inventory.TryRemove(consumablePair.ConsumedItem, consumeCount))
+                        {
+                            inventory.TryGrant(consumablePair.Item, InventoryExtensions.ItemReplacementRule.DropExisting, consumeCount);
 
-                        unconsumedPairs.Add(consumablePair);
-                        return true;
+                            unconsumedPairs.Add(consumablePair);
+                            return true;
+                        }
                     }
                 }
             }

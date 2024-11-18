@@ -39,67 +39,98 @@ namespace RiskOfChaos.Utilities.Extensions
             return false;
         }
 
-        public static bool TryGrant(this Inventory inventory, PickupIndex pickup, ItemReplacementRule replacementRule)
+        public static bool TryGrant(this Inventory inventory, PickupIndex pickup, ItemReplacementRule replacementRule, int count = 1)
         {
-            return TryGrant(inventory, PickupCatalog.GetPickupDef(pickup), replacementRule);
+            return TryGrant(inventory, PickupCatalog.GetPickupDef(pickup), replacementRule, count);
         }
 
-        public static bool TryGrant(this Inventory inventory, PickupDef pickup, ItemReplacementRule replacementRule)
+        public static bool TryGrant(this Inventory inventory, PickupDef pickup, ItemReplacementRule replacementRule, int count = 1)
         {
             if (!inventory || pickup == null)
                 return false;
 
             if (pickup.itemIndex != ItemIndex.None)
             {
-                inventory.GiveItem(pickup.itemIndex);
+                inventory.GiveItem(pickup.itemIndex, count);
                 return true;
             }
             else if (pickup.equipmentIndex != EquipmentIndex.None)
             {
-                if (inventory.TryGetFreeEquipmentSlot(out uint freeSlot))
+                int grantedCount = 0;
+
+                byte activeEquipmentSlot = inventory.activeEquipmentSlot;
+
+                int equipmentSlotCount = inventory.GetEquipmentSlotCount();
+                uint[] equipmentSlots = new uint[equipmentSlotCount];
+                int equipmentSlotIndex = 0;
+
+                for (uint i = 0; i < equipmentSlotCount; i++)
                 {
-                    inventory.SetEquipmentIndexForSlot(pickup.equipmentIndex, freeSlot);
-                    return true;
-                }
+                    if (i == activeEquipmentSlot)
+                        continue;
 
-                byte currentEquipmentSlot = inventory.activeEquipmentSlot;
-                EquipmentState currentEquipmentState = inventory.GetEquipment(currentEquipmentSlot);
-
-                if (currentEquipmentState.equipmentIndex != EquipmentIndex.None)
-                {
-                    if (replacementRule == ItemReplacementRule.KeepExisting)
-                        return false;
-
-                    if (replacementRule == ItemReplacementRule.DropExisting)
+                    if (inventory.GetEquipment(i).equipmentIndex == EquipmentIndex.None)
                     {
-                        Vector3? pickupSpawnPosition = null;
-
-                        if (inventory.TryGetComponent(out CharacterMaster characterMaster))
-                        {
-                            CharacterBody body = characterMaster.GetBody();
-                            if (body)
-                            {
-                                pickupSpawnPosition = body.footPosition;
-                            }
-                        }
-
-                        if (pickupSpawnPosition.HasValue)
-                        {
-                            GenericPickupController.CreatePickup(new GenericPickupController.CreatePickupInfo
-                            {
-                                pickupIndex = PickupCatalog.FindPickupIndex(currentEquipmentState.equipmentIndex),
-                                position = pickupSpawnPosition.Value
-                            });
-                        }
-                        else
-                        {
-                            Log.Warning($"No position could be determined for dropping existing equipment ({currentEquipmentState.equipmentDef}) for {inventory}");
-                        }
+                        equipmentSlots[equipmentSlotIndex++] = i;
                     }
                 }
 
-                inventory.SetEquipmentIndexForSlot(pickup.equipmentIndex, currentEquipmentSlot);
-                return true;
+                equipmentSlots[equipmentSlotIndex++] = activeEquipmentSlot;
+
+                for (uint i = 0; i < equipmentSlotCount; i++)
+                {
+                    if (i == activeEquipmentSlot)
+                        continue;
+
+                    if (inventory.GetEquipment(i).equipmentIndex != EquipmentIndex.None)
+                    {
+                        equipmentSlots[equipmentSlotIndex++] = i;
+                    }
+                }
+
+                Vector3? pickupSpawnPosition = null;
+
+                if (inventory.TryGetComponent(out CharacterMaster characterMaster))
+                {
+                    CharacterBody body = characterMaster.GetBody();
+                    if (body)
+                    {
+                        pickupSpawnPosition = body.footPosition;
+                    }
+                }
+
+                for (int i = 0; grantedCount < count && i < equipmentSlotCount; i++)
+                {
+                    uint equipmentSlot = equipmentSlots[i];
+                    EquipmentState currentEquipmentState = inventory.GetEquipment(equipmentSlot);
+
+                    if (currentEquipmentState.equipmentIndex != EquipmentIndex.None)
+                    {
+                        if (replacementRule == ItemReplacementRule.KeepExisting)
+                            continue;
+
+                        if (replacementRule == ItemReplacementRule.DropExisting)
+                        {
+                            if (pickupSpawnPosition.HasValue)
+                            {
+                                GenericPickupController.CreatePickup(new GenericPickupController.CreatePickupInfo
+                                {
+                                    pickupIndex = PickupCatalog.FindPickupIndex(currentEquipmentState.equipmentIndex),
+                                    position = pickupSpawnPosition.Value
+                                });
+                            }
+                            else
+                            {
+                                Log.Warning($"No position could be determined for dropping existing equipment ({currentEquipmentState.equipmentDef}) for {inventory}");
+                            }
+                        }
+                    }
+
+                    inventory.SetEquipmentIndexForSlot(pickup.equipmentIndex, equipmentSlot);
+                    grantedCount++;
+                }
+
+                return grantedCount > 0;
             }
             else
             {
@@ -108,34 +139,39 @@ namespace RiskOfChaos.Utilities.Extensions
             }
         }
 
-        public static bool TryRemove(this Inventory inventory, PickupIndex pickupIndex)
+        public static bool TryRemove(this Inventory inventory, PickupIndex pickupIndex, int count = 1)
         {
-            return TryRemove(inventory, PickupCatalog.GetPickupDef(pickupIndex));
+            return TryRemove(inventory, PickupCatalog.GetPickupDef(pickupIndex), count);
         }
 
-        public static bool TryRemove(this Inventory inventory, PickupDef pickupDef)
+        public static bool TryRemove(this Inventory inventory, PickupDef pickupDef, int count = 1)
         {
             if (!inventory || pickupDef == null)
                 return false;
 
             if (pickupDef.itemIndex != ItemIndex.None)
             {
-                inventory.RemoveItem(pickupDef.itemIndex);
+                inventory.RemoveItem(pickupDef.itemIndex, count);
                 return true;
             }
             else if (pickupDef.equipmentIndex != EquipmentIndex.None)
             {
+                int numRemoved = 0;
+
                 int equipmentSlotCount = inventory.GetEquipmentSlotCount();
                 for (uint i = 0; i < equipmentSlotCount; i++)
                 {
                     if (inventory.GetEquipment(i).equipmentIndex == pickupDef.equipmentIndex)
                     {
                         inventory.SetEquipmentIndexForSlot(EquipmentIndex.None, i);
-                        return true;
+
+                        numRemoved++;
+                        if (numRemoved <= count)
+                            break;
                     }
                 }
 
-                return false;
+                return numRemoved > 0;
             }
             else
             {

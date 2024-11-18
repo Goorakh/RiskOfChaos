@@ -32,6 +32,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                               .Build();
 
         [EffectConfig]
+        static readonly ConfigHolder<bool> _consumeFullStack =
+            ConfigFactory<bool>.CreateConfig("Consume Full Stack", false)
+                               .Description("If full stacks of items should be consumed instead of individual items")
+                               .OptionConfig(new CheckBoxConfig())
+                               .Build();
+
+        [EffectConfig]
         static readonly ConfigHolder<string> _itemBlacklistConfig =
             ConfigFactory<string>.CreateConfig("Item Blacklist", string.Empty)
                                  .Description("A comma-separated list of items and equipment that should not be allowed to be consumed. Both internal and English display names are accepted, with spaces and commas removed.")
@@ -104,13 +111,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             if (!NetworkServer.active)
                 return;
 
-            foreach (PlayerCharacterMasterController playerMaster in PlayerCharacterMasterController.instances)
+            foreach (CharacterMaster master in CharacterMaster.readOnlyInstancesList)
             {
-                if (!playerMaster.isConnected)
+                if (!master || master.IsDeadAndOutOfLivesServer())
                     continue;
 
-                CharacterMaster master = playerMaster.master;
-                if (!master || master.IsDeadAndOutOfLivesServer())
+                if (!master.playerCharacterMasterController && master.teamIndex != TeamIndex.Player)
                     continue;
 
                 Inventory inventory = master.inventory;
@@ -133,7 +139,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     int pickupIndex = 0;
                     foreach (ConsumableItemUtils.ConsumableItemPair consumablePair in consumedPairs)
                     {
-                        CharacterMasterNotificationQueueUtils.SendPickupTransformNotification(master, consumablePair.Item, consumablePair.ConsumedItem, CharacterMasterNotificationQueue.TransformationType.Default);
+                        if (master.playerCharacterMasterController)
+                        {
+                            CharacterMasterNotificationQueueUtils.SendPickupTransformNotification(master, consumablePair.Item, consumablePair.ConsumedItem, CharacterMasterNotificationQueue.TransformationType.Default);
+                        }
 
                         pickupIndices[pickupIndex] = consumablePair.ConsumedItem;
                         pickupIndex++;
@@ -160,14 +169,19 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             foreach (ConsumableItemUtils.ConsumableItemPair consumablePair in consumeOrder)
             {
-                if (canConsume(consumablePair) && inventory.GetPickupCount(consumablePair.Item) > 0)
+                if (canConsume(consumablePair))
                 {
-                    if (inventory.TryRemove(consumablePair.Item))
+                    int pickupCount = inventory.GetPickupCount(consumablePair.Item);
+                    if (pickupCount > 0)
                     {
-                        inventory.TryGrant(consumablePair.ConsumedItem, InventoryExtensions.ItemReplacementRule.DropExisting);
+                        int consumeCount = _consumeFullStack.Value ? pickupCount : 1;
+                        if (inventory.TryRemove(consumablePair.Item, consumeCount))
+                        {
+                            inventory.TryGrant(consumablePair.ConsumedItem, InventoryExtensions.ItemReplacementRule.DropExisting, consumeCount);
 
-                        consumedPairs.Add(consumablePair);
-                        return true;
+                            consumedPairs.Add(consumablePair);
+                            return true;
+                        }
                     }
                 }
             }
