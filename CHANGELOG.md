@@ -31,12 +31,16 @@
 
 * Spawn Jump Pad:
   * Temporary Hopoo Feather now shows a pickup notification
-
-**2.1.1 Changes:**
+  
+<details>
+  <summary>2.1.1 Changes:</summary>
 
 * Fixed spawn effects not disabling DLC related spawns if a DLC is disabled
 
-**2.1.0 Changes:**
+</details>
+
+<details>
+  <summary>2.1.0 Changes:</summary>
 
 * Added 2 effects:
   * Increase Player Level: Gives additional levels to all players (+5 by default, configurable)
@@ -79,6 +83,7 @@
 * Effect Voting:
   * Added highlighting system for the option with the most votes (can be disabled in config)
   * Fixed displayed effect durations on vote options sometimes not updating when effect durations are changed
+</details>
 
 <details>
   <summary>2.0.3 Changes:</summary>
