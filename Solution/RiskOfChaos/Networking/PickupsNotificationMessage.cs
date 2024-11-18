@@ -1,5 +1,7 @@
 ﻿using R2API.Networking.Interfaces;
 using RiskOfChaos.ChatMessages;
+using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Pickup;
 using RoR2;
 using System;
 using UnityEngine;
@@ -13,11 +15,9 @@ namespace RiskOfChaos.Networking
 
         public CharacterMaster CharacterMaster;
 
+        public PickupNotificationFlags Flags;
+
         public PickupIndex[] PickupIndices;
-
-        public bool DisplayPushNotification = true;
-
-        public bool PlaySound = true;
 
         uint[] _pickupQuantities;
 
@@ -93,7 +93,7 @@ namespace RiskOfChaos.Networking
                 writer.WritePackedUInt32(_pickupQuantities[i]);
             }
 
-            writer.WriteBitArray([DisplayPushNotification, PlaySound]);
+            writer.WritePackedUInt32((uint)Flags);
         }
 
         void ISerializableObject.Deserialize(NetworkReader reader)
@@ -114,11 +114,7 @@ namespace RiskOfChaos.Networking
                 _pickupQuantities[i] = reader.ReadPackedUInt32();
             }
 
-            bool[] flags = new bool[2];
-            reader.ReadBitArray(flags);
-
-            DisplayPushNotification = flags[0];
-            PlaySound = flags[1];
+            Flags = (PickupNotificationFlags)reader.ReadPackedUInt32();
         }
 
         void INetMessage.OnReceived()
@@ -141,34 +137,41 @@ namespace RiskOfChaos.Networking
                     networkUser = Util.LookUpBodyNetworkUser(body);
                 }
 
-                if (DisplayPushNotification && CharacterMaster.hasAuthority)
+                if (CharacterMaster.hasAuthority)
                 {
-                    foreach (PickupIndex pickupIndex in PickupIndices)
+                    if ((Flags & PickupNotificationFlags.DisplayPushNotification) != 0 ||
+                        ((Flags & PickupNotificationFlags.DisplayPushNotificationIfNoneQueued) != 0 && !CharacterMasterNotificationQueueUtils.IsAnyNotificationQueued(CharacterMaster)))
                     {
-                        CharacterMasterNotificationQueue.PushPickupNotification(CharacterMaster, pickupIndex);
+                        foreach (PickupIndex pickupIndex in PickupIndices)
+                        {
+                            CharacterMasterNotificationQueue.PushPickupNotification(CharacterMaster, pickupIndex);
+                        }
                     }
                 }
             }
 
-            SubjectPickupListChatMessage pickupMessage = new SubjectPickupListChatMessage
+            if ((Flags & PickupNotificationFlags.SendChatMessage) != 0)
             {
-                baseToken = MessageToken,
-                PickupIndices = PickupIndices,
-                PickupQuantities = _pickupQuantities
-            };
+                SubjectPickupListChatMessage pickupMessage = new SubjectPickupListChatMessage
+                {
+                    baseToken = MessageToken,
+                    PickupIndices = PickupIndices,
+                    PickupQuantities = _pickupQuantities
+                };
 
-            if (networkUser)
-            {
-                pickupMessage.subjectAsNetworkUser = networkUser;
+                if (networkUser)
+                {
+                    pickupMessage.subjectAsNetworkUser = networkUser;
+                }
+                else if (body)
+                {
+                    pickupMessage.subjectAsCharacterBody = body;
+                }
+
+                Chat.AddMessage(pickupMessage);
             }
-            else if (body)
-            {
-                pickupMessage.subjectAsCharacterBody = body;
-            }
 
-            Chat.AddMessage(pickupMessage);
-
-            if (PlaySound && body)
+            if ((Flags & PickupNotificationFlags.PlaySound) != 0 && body)
             {
                 Util.PlaySound("Play_UI_item_pickup", body.gameObject);
             }

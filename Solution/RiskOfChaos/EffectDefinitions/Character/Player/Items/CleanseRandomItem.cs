@@ -214,7 +214,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             if (grantedPickups.Count > 0)
             {
-                PickupUtils.QueuePickupsMessage(master, [.. grantedPickups], false, false);
+                PickupUtils.QueuePickupsMessage(master, [.. grantedPickups], PickupNotificationFlags.SendChatMessage);
             }
         }
     }

@@ -230,7 +230,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                 if (!_serializationComponent || !_serializationComponent.IsLoadedFromSave)
                 {
-                    PickupUtils.QueuePickupsMessage("MONSTER_INVENTORY_ADD_ITEM", pickupIndices, pickupQuantities, false, false);
+                    PickupUtils.QueuePickupsMessage("MONSTER_INVENTORY_ADD_ITEM", pickupIndices, pickupQuantities, PickupNotificationFlags.SendChatMessage);
                 }
 
                 CharacterMaster.readOnlyInstancesList.TryDo(master =>

@@ -21,6 +21,10 @@
 
 * Launch Everyone in Random Directions:
   * Can no longer launch downwards
+  * Temporary feather now shows a pickup notification
+
+* Spawn Jump Pad:
+  * Temporary feather now shows a pickup notification
 
 **2.1.1 Changes:**
 

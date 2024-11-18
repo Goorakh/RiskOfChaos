@@ -10,6 +10,7 @@ using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.Utilities.Pickup;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using UnityEngine;
@@ -79,12 +80,12 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     // Give players a chance to avoid fall damage
                     // Most relevant on characters without movement abilities (engi, captain)
 
-                    giveAirborneTemporaryItem(body, RoR2Content.Items.Feather);
+                    giveAirborneTemporaryItem(body, RoR2Content.Items.Feather, true, true);
                 }
 
                 if (body.inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
                 {
-                    giveAirborneTemporaryItem(body, RoR2Content.Items.TeleportWhenOob);
+                    giveAirborneTemporaryItem(body, RoR2Content.Items.TeleportWhenOob, true, false);
                 }
             }
         }
@@ -107,12 +108,22 @@ namespace RiskOfChaos.EffectDefinitions.Character
             }
         }
 
-        static void giveAirborneTemporaryItem(CharacterBody body, ItemDef item)
+        static void giveAirborneTemporaryItem(CharacterBody body, ItemDef item, bool skipIfAlreadyPresent, bool notify)
         {
             Inventory inventory = body.inventory;
             if (!inventory)
                 return;
+
+            if (skipIfAlreadyPresent && inventory.GetItemCount(item) > 0)
+                return;
             
+            CharacterMaster master = body.master;
+
+            if (notify && !item.hidden && master.playerCharacterMasterController)
+            {
+                PickupUtils.QueuePickupMessage(master, PickupCatalog.FindPickupIndex(item.itemIndex), PickupNotificationFlags.DisplayPushNotificationIfNoneQueued | PickupNotificationFlags.PlaySound);
+            }
+
             // Ensure item doesn't get turned into a void item if a mod adds that
             IgnoreItemTransformations.IgnoreTransformationsFor(inventory);
             

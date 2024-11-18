@@ -74,6 +74,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                             ItemDef = Addressables.LoadAssetAsync<ItemDef>("RoR2/Base/Feather/Feather.asset").WaitForCompletion(),
                             GrantToPlayers = true,
                             IgnoreIfItemAlreadyPresent = true,
+                            NotifyPickupIfNoneActive = true,
                         },
                         new GrantTemporaryItemsOnJump.ConditionalItem
                         {

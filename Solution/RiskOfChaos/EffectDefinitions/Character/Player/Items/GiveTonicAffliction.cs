@@ -30,7 +30,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 PlayerUtils.GetAllPlayerMasters(false).TryDo(master =>
                 {
                     master.inventory.GiveItem(RoR2Content.Items.TonicAffliction, _itemCount.Value);
-                    PickupUtils.QueuePickupMessage(master, PickupCatalog.FindPickupIndex(RoR2Content.Items.TonicAffliction.itemIndex), true, true);
+                    PickupUtils.QueuePickupMessage(master, PickupCatalog.FindPickupIndex(RoR2Content.Items.TonicAffliction.itemIndex));
                 }, Util.GetBestMasterName);
             }
         }

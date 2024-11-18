@@ -46,7 +46,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     {
                         if (playerMaster.inventory.TryGrant(_aspectPickupDef, InventoryExtensions.ItemReplacementRule.DropExisting))
                         {
-                            PickupUtils.QueuePickupMessage(playerMaster, _aspectPickupDef.pickupIndex, true, true);
+                            PickupUtils.QueuePickupMessage(playerMaster, _aspectPickupDef.pickupIndex);
                         }
                     }, Util.GetBestMasterName);
                 }

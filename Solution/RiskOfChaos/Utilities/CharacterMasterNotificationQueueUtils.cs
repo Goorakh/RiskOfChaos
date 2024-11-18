@@ -18,5 +18,14 @@ namespace RiskOfChaos.Utilities
 
             new PickupTransformationNotificationMessage(characterMaster, fromPickupIndex, toPickupIndex, transformationType).Send(NetworkDestination.Clients | NetworkDestination.Server);
         }
+
+        public static bool IsAnyNotificationQueued(CharacterMaster viewerMaster)
+        {
+            if (!viewerMaster || !viewerMaster.hasAuthority)
+                return false;
+
+            CharacterMasterNotificationQueue notificationQueue = viewerMaster ? viewerMaster.GetComponent<CharacterMasterNotificationQueue>() : null;
+            return notificationQueue && notificationQueue.GetCurrentNotification() != null;
+        }
     }
 }

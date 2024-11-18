@@ -140,7 +140,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     {
                         inventory.GiveItem(itemStack.ItemIndex, itemStack.ItemCount);
 
-                        PickupUtils.QueuePickupMessage(playerMaster, PickupCatalog.FindPickupIndex(itemStack.ItemIndex), true, true);
+                        PickupUtils.QueuePickupMessage(playerMaster, PickupCatalog.FindPickupIndex(itemStack.ItemIndex));
                     }
                 }, Util.GetBestMasterName);
             }

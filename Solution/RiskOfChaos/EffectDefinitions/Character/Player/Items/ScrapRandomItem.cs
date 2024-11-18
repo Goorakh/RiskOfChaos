@@ -170,7 +170,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             if (notifiedScrapPickups.Count > 0)
             {
-                PickupUtils.QueuePickupsMessage(characterMaster, [.. notifiedScrapPickups], false, false);
+                PickupUtils.QueuePickupsMessage(characterMaster, [.. notifiedScrapPickups], PickupNotificationFlags.SendChatMessage);
             }
         }
 

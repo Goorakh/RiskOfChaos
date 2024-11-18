@@ -107,7 +107,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                     if (givenPickups.Count > 0)
                     {
-                        PickupUtils.QueuePickupsMessage(playerMaster, [.. givenPickups], true, true);
+                        PickupUtils.QueuePickupsMessage(playerMaster, [.. givenPickups]);
                     }
                 }, Util.GetBestMasterName);
             }

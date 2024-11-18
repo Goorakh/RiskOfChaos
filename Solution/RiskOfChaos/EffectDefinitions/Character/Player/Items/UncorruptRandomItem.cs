@@ -147,7 +147,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             if (uncorruptedItems.Count > 0)
             {
-                PickupUtils.QueuePickupsMessage(master, [.. uncorruptedItems], false, false);
+                PickupUtils.QueuePickupsMessage(master, [.. uncorruptedItems], PickupNotificationFlags.SendChatMessage);
             }
         }
 

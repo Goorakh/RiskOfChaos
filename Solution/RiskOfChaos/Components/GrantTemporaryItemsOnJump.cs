@@ -4,6 +4,7 @@ using RiskOfChaos.Content;
 using RiskOfChaos.Networking;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Pickup;
 using RoR2;
 using System;
 using System.Collections.Generic;
@@ -89,6 +90,8 @@ namespace RiskOfChaos.Components
             if (!inventory)
                 return;
 
+            CharacterMaster master = body.master;
+
             List<ItemDef> removeOnLandItems = new List<ItemDef>(Items.Length);
 
             foreach (ConditionalItem item in Items)
@@ -102,6 +105,11 @@ namespace RiskOfChaos.Components
                     inventory.GiveItem(item.ItemDef);
 
                     removeOnLandItems.Add(item.ItemDef);
+
+                    if (item.NotifyPickupIfNoneActive && !item.ItemDef.hidden && master && master.playerCharacterMasterController)
+                    {
+                        PickupUtils.QueuePickupMessage(master, PickupCatalog.FindPickupIndex(item.ItemDef.itemIndex), PickupNotificationFlags.DisplayPushNotificationIfNoneQueued | PickupNotificationFlags.PlaySound);
+                    }
 
 #if DEBUG
                     Log.Debug($"Gave jump item {FormatUtils.GetBestItemDisplayName(item.ItemDef)} to {FormatUtils.GetBestBodyName(body)}");
@@ -149,6 +157,8 @@ namespace RiskOfChaos.Components
             public bool GrantToInvincibleLemurian;
 
             public bool IgnoreIfItemAlreadyPresent;
+
+            public bool NotifyPickupIfNoneActive;
         }
     }
 }
