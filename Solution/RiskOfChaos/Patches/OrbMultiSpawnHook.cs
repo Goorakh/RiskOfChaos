@@ -4,6 +4,7 @@ using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Orbs;
 using System.Collections;
+using System.Collections.ObjectModel;
 using UnityEngine;
 
 namespace RiskOfChaos.Patches
@@ -30,6 +31,9 @@ namespace RiskOfChaos.Patches
                 return false;
 
             if (orb.TryGetProcChainMask(out ProcChainMask procChainMask) && procChainMask.HasAnyProc())
+                return false;
+
+            if (orb.TryGetBouncedObjects(out ReadOnlyCollection<HealthComponent> bouncedObjects) && bouncedObjects.Count > 0)
                 return false;
 
             return true;

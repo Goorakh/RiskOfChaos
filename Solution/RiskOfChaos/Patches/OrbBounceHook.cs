@@ -1,5 +1,7 @@
 ﻿using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using R2API;
+using RiskOfChaos.Content;
 using RiskOfChaos.ModificationController.Projectile;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
@@ -402,6 +404,12 @@ namespace RiskOfChaos.Patches
             _orbBounceChains.Add(newOrb, bounceChain);
 
             OrbManager.instance.AddOrb(newOrb);
+
+            if (orbInstance.TryGetProcChainMask(out ProcChainMask procChainMask))
+            {
+                procChainMask.AddModdedProc(CustomProcTypes.Bounced);
+                orbInstance.TrySetProcChainMask(procChainMask);
+            }
         }
     }
 }
