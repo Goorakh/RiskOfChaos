@@ -50,65 +50,18 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             Xoroshiro128Plus rng = new Xoroshiro128Plus(_rngSeed);
 
-            // Launch all the players first so the effect is as consistent as possible with the same seed
-            PlayerUtils.GetAllPlayerBodies(true).TryDo(body =>
-            {
-                tryLaunchInRandomDirection(body, rng.Branch());
-
-                if (NetworkServer.active)
-                {
-                    // Give players a chance to avoid fall damage
-                    // Most relevant on characters without movement abilities (engi, captain)
-
-                    giveAirborneTemporaryItem(body, RoR2Content.Items.Feather);
-                }
-            }, FormatUtils.GetBestBodyName);
+            Xoroshiro128Plus playerRng = new Xoroshiro128Plus(rng.nextUlong);
+            Xoroshiro128Plus nonPlayerRng = new Xoroshiro128Plus(rng.nextUlong);
 
             CharacterBody.readOnlyInstancesList.TryDo(body =>
             {
-                if (body.isPlayerControlled)
-                    return;
-
-                tryLaunchInRandomDirection(body, rng);
-
-                if (NetworkServer.active)
-                {
-                    if (body.inventory && body.inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
-                    {
-                        giveAirborneTemporaryItem(body, RoR2Content.Items.TeleportWhenOob);
-                    }
-                }
+                tryLaunchInRandomDirection(body, body.isPlayerControlled ? playerRng : nonPlayerRng);
             }, FormatUtils.GetBestBodyName);
         }
 
-        static bool canLaunchDown(CharacterBody body)
+        static Vector3 getLaunchDirection(Xoroshiro128Plus rng)
         {
-            if (body.teamComponent.teamIndex == TeamIndex.Player)
-            {
-                if ((Run.instance && Run.instance.selectedDifficulty >= DifficultyIndex.Eclipse3) ||
-                    (RunArtifactManager.instance && RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.WeakAssKnees)) ||
-                    (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(IncreaseFallDamage.EffectInfo)))
-                {
-                    return false;
-                }
-            }
-
-            if (body.characterMotor && body.characterMotor.isGrounded)
-                return false;
-
-            return true;
-        }
-
-        static Vector3 getLaunchDirection(CharacterBody body, Xoroshiro128Plus rng)
-        {
-            if (canLaunchDown(body))
-            {
-                return rng.PointOnUnitSphere();
-            }
-            else
-            {
-                return QuaternionUtils.RandomDeviation(70f, rng) * Vector3.up;
-            }
+            return QuaternionUtils.RandomDeviation(70f, rng) * Vector3.up;
         }
 
         static void tryLaunchInRandomDirection(CharacterBody body, Xoroshiro128Plus rng)
@@ -116,8 +69,24 @@ namespace RiskOfChaos.EffectDefinitions.Character
             if (!body.hasEffectiveAuthority)
                 return;
 
-            Vector3 direction = getLaunchDirection(body, rng.Branch());
+            Vector3 direction = getLaunchDirection(rng.Branch());
             applyForceToBody(body, direction * (rng.RangeFloat(50f, 150f) * _knockbackScale.Value));
+
+            if (NetworkServer.active && body.inventory)
+            {
+                if (body.isPlayerControlled)
+                {
+                    // Give players a chance to avoid fall damage
+                    // Most relevant on characters without movement abilities (engi, captain)
+
+                    giveAirborneTemporaryItem(body, RoR2Content.Items.Feather);
+                }
+
+                if (body.inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
+                {
+                    giveAirborneTemporaryItem(body, RoR2Content.Items.TeleportWhenOob);
+                }
+            }
         }
 
         static void applyForceToBody(CharacterBody body, Vector3 force)
@@ -146,7 +115,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             
             // Ensure item doesn't get turned into a void item if a mod adds that
             IgnoreItemTransformations.IgnoreTransformationsFor(inventory);
-
+            
             inventory.GiveItem(item);
 
             void onHitGroundServer(CharacterBody characterBody, in CharacterMotor.HitGroundInfo hitGroundInfo)

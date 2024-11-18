@@ -10,6 +10,9 @@
 * Mitosis:
   * Fixed some characters spawning in invalid positions when duplicated
 
+* Launch Everyone in Random Directions:
+  * Can no longer launch downwards
+
 **2.1.1 Changes:**
 
 * Fixed spawn effects not disabling DLC related spawns if a DLC is disabled
