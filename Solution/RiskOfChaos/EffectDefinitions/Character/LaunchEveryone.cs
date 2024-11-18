@@ -1,9 +1,7 @@
-﻿using HG;
-using RiskOfChaos.ConfigHandling;
+﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectDefinitions.World.Knockback;
-using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectComponents;
@@ -56,7 +54,9 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             CharacterBody.readOnlyInstancesList.TryDo(body =>
             {
-                tryLaunchInRandomDirection(body, body.isPlayerControlled ? playerRng : nonPlayerRng);
+                Xoroshiro128Plus rng = body.isPlayerControlled ? playerRng : nonPlayerRng;
+
+                tryLaunchInRandomDirection(body, new Xoroshiro128Plus(rng.nextUlong));
             }, FormatUtils.GetBestBodyName);
         }
 
@@ -67,11 +67,21 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         static void tryLaunchInRandomDirection(CharacterBody body, Xoroshiro128Plus rng)
         {
-            if (!body.hasEffectiveAuthority)
+            if (body.currentVehicle != null)
                 return;
 
-            Vector3 direction = getLaunchDirection(rng.Branch());
-            applyForceToBody(body, direction * (rng.RangeFloat(50f, 150f) * _knockbackScale.Value));
+            if (body.hasEffectiveAuthority)
+            {
+                Vector3 direction = getLaunchDirection(rng);
+
+                float knockbackScale = _knockbackScale.Value;
+                if (!body.isPlayerControlled)
+                {
+                    knockbackScale *= 2f;
+                }
+
+                applyForceToBody(body, direction * (rng.RangeFloat(30f, 70f) * knockbackScale));
+            }
 
             if (NetworkServer.active && body.inventory)
             {
@@ -116,7 +126,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             if (skipIfAlreadyPresent && inventory.GetItemCount(item) > 0)
                 return;
-            
+
             CharacterMaster master = body.master;
 
             if (notify && !item.hidden && master.playerCharacterMasterController)
@@ -131,16 +141,20 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             void onHitGroundServer(CharacterBody characterBody, in CharacterMotor.HitGroundInfo hitGroundInfo)
             {
-                if (characterBody != body)
-                    return;
-
-                if (inventory)
+                if (!body || characterBody == body)
                 {
-                    inventory.RemoveItem(item);
-                    IgnoreItemTransformations.ResumeTransformationsFor(inventory);
-                }
+                    if (characterBody)
+                    {
+                        Inventory inventory = characterBody.inventory;
+                        if (inventory)
+                        {
+                            inventory.RemoveItem(item);
+                            IgnoreItemTransformations.ResumeTransformationsFor(inventory);
+                        }
+                    }
 
-                OnCharacterHitGroundServerHook.OnCharacterHitGround -= onHitGroundServer;
+                    OnCharacterHitGroundServerHook.OnCharacterHitGround -= onHitGroundServer;
+                }
             }
 
             OnCharacterHitGroundServerHook.OnCharacterHitGround += onHitGroundServer;
