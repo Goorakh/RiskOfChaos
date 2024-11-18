@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 139 different effects.
+Currently features 141 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -148,6 +148,8 @@ Currently features 139 different effects.
 * Add Random Item Corruption Rule: Gives the "corruption" behaviour of void items to a random pair of items. Lasts for the rest of the run.
 * Increase Player Level: Gives additional levels to all players (+5 by default, configurable)
 * All Interactables are Cloaked: Turns all interactables into cloaked variants, lasts 60 seconds
+* Consume Random Item: Turns a random consumable item from every player into its consumed variant
+* Repair Random Item: Turns a random consumed item from every player into its regular variant
 </details>
 
 <hr>

@@ -2,6 +2,10 @@
 
 **-.-.- Changes:**
 
+* Added 2 effects:
+  * Consume Random Item: Turns a random consumable item from every player into its consumed variant
+  * Repair Random Item: Turns a random consumed item from every player into its regular variant
+
 * Removed 3 effects:
   * The Floor is Lava: Just kills everything and forces you to spam jump
   * Black Hole: Just kills everything and stalls the player

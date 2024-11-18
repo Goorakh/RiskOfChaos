@@ -46,6 +46,31 @@ namespace RiskOfChaos.Utilities
             return item.name;
         }
 
+        public static string GetBestEquipmentDisplayName(EquipmentIndex equipmentIndex)
+        {
+            if (equipmentIndex == EquipmentIndex.None)
+                return "None";
+
+            return GetBestEquipmentDisplayName(EquipmentCatalog.GetEquipmentDef(equipmentIndex));
+        }
+
+        public static string GetBestEquipmentDisplayName(EquipmentDef equipmentDef)
+        {
+            if (!equipmentDef)
+                return "null";
+
+            if (!string.IsNullOrEmpty(equipmentDef.nameToken) && !Language.IsTokenInvalid(equipmentDef.nameToken))
+            {
+                string displayName = Language.GetString(equipmentDef.nameToken);
+                if (!string.IsNullOrWhiteSpace(displayName))
+                {
+                    return displayName;
+                }
+            }
+
+            return equipmentDef.name;
+        }
+
         public static string FormatTimeSeconds(float seconds)
         {
             if (seconds < (2f * 60f) + 0.5f)

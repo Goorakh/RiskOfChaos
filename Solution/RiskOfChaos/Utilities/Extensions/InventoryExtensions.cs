@@ -39,6 +39,11 @@ namespace RiskOfChaos.Utilities.Extensions
             return false;
         }
 
+        public static bool TryGrant(this Inventory inventory, PickupIndex pickup, ItemReplacementRule replacementRule)
+        {
+            return TryGrant(inventory, PickupCatalog.GetPickupDef(pickup), replacementRule);
+        }
+
         public static bool TryGrant(this Inventory inventory, PickupDef pickup, ItemReplacementRule replacementRule)
         {
             if (!inventory || pickup == null)
@@ -103,6 +108,11 @@ namespace RiskOfChaos.Utilities.Extensions
             }
         }
 
+        public static bool TryRemove(this Inventory inventory, PickupIndex pickupIndex)
+        {
+            return TryRemove(inventory, PickupCatalog.GetPickupDef(pickupIndex));
+        }
+
         public static bool TryRemove(this Inventory inventory, PickupDef pickupDef)
         {
             if (!inventory || pickupDef == null)
@@ -132,6 +142,11 @@ namespace RiskOfChaos.Utilities.Extensions
                 Log.Warning($"Unhandled pickup index {pickupDef.pickupIndex}");
                 return false;
             }
+        }
+
+        public static int GetPickupCount(this Inventory inventory, PickupIndex pickupIndex)
+        {
+            return GetPickupCount(inventory, PickupCatalog.GetPickupDef(pickupIndex));
         }
 
         public static int GetPickupCount(this Inventory inventory, PickupDef pickupDef)
