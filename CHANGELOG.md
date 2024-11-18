@@ -10,6 +10,9 @@
 * Bouncy Projectiles & Repeating Projectiles:
   * Fixed bouncing projectiles like Huntress Glaive duplicating infinitely until no targets remain
 
+* Bouncy Projectiles:
+  * Fixed bullets sometimes bouncing from a hit character to the same character again, dealing many times the bullet's damage instantly to a single target. Bullets are now required to bounce at least once on something else before being able to impact some character again.
+
 * Mitosis:
   * Fixed some characters spawning in invalid positions when duplicated
 

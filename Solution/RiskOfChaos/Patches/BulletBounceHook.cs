@@ -232,15 +232,22 @@ namespace RiskOfChaos.Patches
         static bool BulletAttack_DefaultFilterCallbackImplementation_IgnoreBounceSource(On.RoR2.BulletAttack.orig_DefaultFilterCallbackImplementation orig, BulletAttack bulletAttack, ref BulletAttack.BulletHit hitInfo)
         {
             bool result = orig(bulletAttack, ref hitInfo);
-            if (result)
+
+            if (result && hitInfo != null)
             {
                 if (isEnabled && _currentBounceInfo != null)
                 {
-                    if (_currentBounceInfo.CurrentBounceHit == hitInfo)
+                    BulletAttack.BulletHit currentBounceHit = _currentBounceInfo.CurrentBounceHit;
+                    if (currentBounceHit != null)
                     {
-                        const float MIN_DISTANCE_TO_ALLOW = 1f;
-                        const float MIN_SQR_DISTANCE_TO_ALLOW = MIN_DISTANCE_TO_ALLOW * MIN_DISTANCE_TO_ALLOW;
-                        return (_currentBounceInfo.CurrentBounceHit.point - hitInfo.point).sqrMagnitude >= MIN_SQR_DISTANCE_TO_ALLOW;
+                        if (currentBounceHit.hitHurtBox && currentBounceHit.hitHurtBox.healthComponent &&
+                            hitInfo.hitHurtBox && hitInfo.hitHurtBox.healthComponent &&
+                            currentBounceHit.hitHurtBox.healthComponent == hitInfo.hitHurtBox.healthComponent)
+                        {
+                            const float MIN_DISTANCE_TO_ALLOW = 1f;
+                            const float MIN_SQR_DISTANCE_TO_ALLOW = MIN_DISTANCE_TO_ALLOW * MIN_DISTANCE_TO_ALLOW;
+                            return (currentBounceHit.point - hitInfo.point).sqrMagnitude >= MIN_SQR_DISTANCE_TO_ALLOW;
+                        }
                     }
                 }
             }
