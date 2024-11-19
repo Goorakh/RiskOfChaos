@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -57,18 +58,18 @@ namespace RiskOfChaos
             }
         }
 
-#if DEBUG
+        [Conditional("DEBUG")]
         internal static void Debug(object data, [CallerFilePath] string callerPath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
         {
             _logSource.LogDebug(buildCallerLogString(callerPath, callerMemberName, callerLineNumber, data));
         }
 
+        [Conditional("DEBUG")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void Debug_NoCallerPrefix(object data)
         {
             _logSource.LogDebug(data);
         }
-#endif
 
         internal static void Error(object data, [CallerFilePath] string callerPath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
         {
