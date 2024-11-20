@@ -1,14 +1,15 @@
-﻿using HG;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.EffectUtils.World.Items;
 using RiskOfChaos.Patches;
 using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -22,25 +23,43 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
     [EffectConfigBackwardsCompatibility("Effect: All Items Are Void Potentials (Lasts 1 stage)")]
     public sealed class AllVoidPotentials : NetworkBehaviour
     {
-        public delegate void OverrideAllowChoicesDelegate(PickupIndex originalPickup, ref bool allowChoices);
-        public static event OverrideAllowChoicesDelegate OverrideAllowChoices;
-
         static GameObject _optionPickupPrefab;
 
-        [SystemInitializer]
-        static void Init()
+        static PickupTransmutationDropTable[] _pickupTransmutationDropTables = [];
+
+        [SystemInitializer(typeof(PickupCatalog), typeof(PickupTransmutationManager))]
+        static IEnumerator Init()
         {
             AsyncOperationHandle<GameObject> optionPickupLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/OptionPickup/OptionPickup.prefab");
             optionPickupLoad.OnSuccess(optionPickupPrefab =>
             {
                 _optionPickupPrefab = optionPickupPrefab;
             });
+
+            Log.Debug("Creating transmutation drop tables...");
+
+            _pickupTransmutationDropTables = new PickupTransmutationDropTable[PickupCatalog.pickupCount];
+            for (int i = 0; i < PickupCatalog.pickupCount; i++)
+            {
+                PickupIndex pickupIndex = new PickupIndex(i);
+
+                PickupTransmutationDropTable transmutationDropTable = ScriptableObject.CreateInstance<PickupTransmutationDropTable>();
+                transmutationDropTable.name = $"dt{PickupCatalog.GetPickupDef(pickupIndex).internalName}Transmutation";
+                transmutationDropTable.canDropBeReplaced = false;
+                transmutationDropTable.SourcePickup = pickupIndex;
+
+                _pickupTransmutationDropTables[i] = transmutationDropTable;
+
+                yield return null;
+            }
+
+            Log.Debug($"Created {_pickupTransmutationDropTables.Length} transmutation drop tables");
         }
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return _optionPickupPrefab && (!RunArtifactManager.instance || !RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.commandArtifactDef));
+            return _optionPickupPrefab && _pickupTransmutationDropTables.Length > 0 && (!RunArtifactManager.instance || !RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.Command));
         }
 
         ChaosEffectComponent _effectComponent;
@@ -58,21 +77,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
             {
                 value ??= [];
 
-                _pickupOptionGenerators.Clear();
-                _pickupOptionGenerators.EnsureCapacity(value.Length);
+                _pickupOptionGenerators.EnsureCapacity(_pickupOptionGenerators.Count + value.Length);
 
                 foreach (PickupOptionGenerator optionGenerator in value)
                 {
                     if (!optionGenerator.SourcePickup.isValid)
                         continue;
 
-                    if (_pickupOptionGenerators.ContainsKey(optionGenerator.SourcePickup))
-                    {
-                        Log.Warning($"Duplicate source pickups for {optionGenerator.SourcePickup} in save data, ignoring");
-                        continue;
-                    }
-
-                    _pickupOptionGenerators.Add(optionGenerator.SourcePickup, optionGenerator);
+                    _pickupOptionGenerators[optionGenerator.SourcePickup] = optionGenerator;
                 }
 
                 _pickupOptionGenerators.TrimExcess();
@@ -94,9 +106,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
             foreach (PickupDef pickup in PickupCatalog.allPickups)
             {
                 PickupOptionGenerator optionGenerator = new PickupOptionGenerator(pickup.pickupIndex, new Xoroshiro128Plus(rng.nextUlong));
-
-                if (!optionGenerator.HasAnyOptions)
-                    continue;
 
                 if (_pickupOptionGenerators.ContainsKey(pickup.pickupIndex))
                 {
@@ -125,11 +134,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
             _pickupOptionGenerators.Clear();
         }
 
-        bool tryGetAvailableOptionsFor(PickupIndex sourcePickup, out PickupIndex[] options)
+        bool tryGetAvailableOptionsFor(PickupIndex sourcePickup, int maxOptionCount, out PickupIndex[] options)
         {
             if (sourcePickup.isValid && _pickupOptionGenerators.TryGetValue(sourcePickup, out PickupOptionGenerator optionGenerator))
             {
-                options = optionGenerator.GenerateOptions();
+                options = optionGenerator.GenerateOptions(maxOptionCount);
                 return options != null && options.Length > 0;
             }
             else
@@ -144,37 +153,37 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
             const int NUM_ADDITIONAL_OPTIONS = 2;
 
             bool allowChoices = true;
-            OverrideAllowChoices?.Invoke(sourcePickup, ref allowChoices);
 
             // Guarantee the original item is always an option
             PickupPickerController.Option guaranteedOption = new PickupPickerController.Option
             {
-                available = true,
-                pickupIndex = sourcePickup
+                pickupIndex = sourcePickup,
+                available = true
             };
 
-            if (allowChoices && tryGetAvailableOptionsFor(sourcePickup, out PickupIndex[] availableOptions))
+            PickupPickerController.Option[] additionalOptions = [];
+            if (tryGetAvailableOptionsFor(sourcePickup, NUM_ADDITIONAL_OPTIONS, out PickupIndex[] availablePickupOptions))
             {
-                int numExtraOptions = Mathf.Min(availableOptions.Length, NUM_ADDITIONAL_OPTIONS);
-                PickupPickerController.Option[] options = new PickupPickerController.Option[1 + numExtraOptions];
-
-                options[0] = guaranteedOption;
+                int numExtraOptions = availablePickupOptions.Length;
+                additionalOptions = new PickupPickerController.Option[numExtraOptions];
 
                 for (int i = 0; i < numExtraOptions; i++)
                 {
-                    options[i + 1] = new PickupPickerController.Option
+                    PickupIndex pickupIndex = sourcePickup;
+                    if (allowChoices)
                     {
-                        available = true,
-                        pickupIndex = availableOptions[i]
+                        pickupIndex = availablePickupOptions[i];
+                    }
+
+                    additionalOptions[i] = new PickupPickerController.Option
+                    {
+                        pickupIndex = pickupIndex,
+                        available = true
                     };
                 }
+            }
 
-                return options;
-            }
-            else
-            {
-                return [guaranteedOption];
-            }
+            return [guaranteedOption, .. additionalOptions];
         }
 
         void modifyPickupInfo(ref GenericPickupController.CreatePickupInfo createPickupInfo)
@@ -206,28 +215,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
                 set
                 {
                     _sourcePickup = value;
-
-                    PickupIndex[] pickupGroup = PickupTransmutationManager.GetAvailableGroupFromPickupIndex(SourcePickup) ?? [];
-                    if (pickupGroup.Length > 0)
-                    {
-                        int sourcePickupIndex = Array.IndexOf(pickupGroup, SourcePickup);
-                        if (sourcePickupIndex != -1)
-                        {
-                            pickupGroup = ArrayUtils.Clone(pickupGroup);
-                            ArrayUtils.ArrayRemoveAtAndResize(ref pickupGroup, sourcePickupIndex);
-                        }
-                    }
-
-                    _availableOptions = pickupGroup;
                 }
             }
 
             [JsonProperty("rng")]
             readonly Xoroshiro128Plus _rng;
-
-            PickupIndex[] _availableOptions;
-
-            public bool HasAnyOptions => _availableOptions != null && _availableOptions.Length > 0;
 
             public PickupOptionGenerator(PickupIndex sourcePickup, Xoroshiro128Plus rng)
             {
@@ -239,14 +231,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
             {
             }
 
-            public PickupIndex[] GenerateOptions()
+            public PickupIndex[] GenerateOptions(int maxOptionCount)
             {
-                if (!HasAnyOptions)
+                int index = _sourcePickup.value;
+                if (index < 0 || index >= _pickupTransmutationDropTables.Length)
                     return [];
 
-                PickupIndex[] shuffledPickupIndices = ArrayUtils.Clone(_availableOptions);
-                Util.ShuffleArray(shuffledPickupIndices, _rng.Branch());
-                return shuffledPickupIndices;
+                PickupTransmutationDropTable dropTable = _pickupTransmutationDropTables[index];
+                return dropTable.GenerateUniqueDrops(maxOptionCount, new Xoroshiro128Plus(_rng.nextUlong));
             }
         }
     }

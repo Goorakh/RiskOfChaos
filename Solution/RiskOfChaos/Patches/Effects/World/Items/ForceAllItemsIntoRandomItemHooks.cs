@@ -36,8 +36,6 @@ namespace RiskOfChaos.Patches.Effects.World.Items
 
             On.RoR2.ChestBehavior.PickFromList += ChestBehavior_PickFromList;
 
-            AllVoidPotentials.OverrideAllowChoices += AllVoidPotentials_OverrideAllowChoices;
-
             On.RoR2.PickupPickerController.GetOptionsFromPickupIndex += PickupPickerController_GetOptionsFromPickupIndex;
         }
 
@@ -71,15 +69,6 @@ namespace RiskOfChaos.Patches.Effects.World.Items
             }
 
             orig(self, dropList);
-        }
-
-        static void AllVoidPotentials_OverrideAllowChoices(PickupIndex originalPickup, ref bool allowChoices)
-        {
-            PickupIndex overridePickup = currentOverridePickup;
-            if (overridePickup.isValid && originalPickup == overridePickup)
-            {
-                allowChoices = false;
-            }
         }
 
         static PickupPickerController.Option[] PickupPickerController_GetOptionsFromPickupIndex(On.RoR2.PickupPickerController.orig_GetOptionsFromPickupIndex orig, PickupIndex pickupIndex)
