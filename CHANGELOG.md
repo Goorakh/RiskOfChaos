@@ -11,6 +11,9 @@
   * Black Hole: Just kills everything and stalls the player
   * Teleporting Attacks: Was effectively just "don't attack" for the entire duration, stalls for no reason
 
+* Renamed 1 effect:
+  * All Chests are Free -> Everything is Free
+
 * Bouncy Projectiles & Repeating Projectiles:
   * Fixed bouncing projectiles like Huntress Glaive duplicating infinitely until no targets remain
 

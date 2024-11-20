@@ -118,7 +118,7 @@ Currently features 141 different effects.
 * No Equipment Cooldowns: Removes all equipment cooldowns, lasts 60 seconds.
 * Disable Equipment: Disables all equipment activation, lasts 60 seconds.
 * All Items Are A Random Item: All items on the stage get turned into a random item. Essentially Artifact of Kin for items. Lasts 1 stage.
-* All Chests are Free: All chests and interactables are free, lasts 30 seconds.
+* Everything is Free: All interactables are free, lasts 30 seconds.
 * Bouncy Items: Item drops will bounce on the ground before settling, lasts 60 seconds
 * Increase Skill Charges: Adds 1 charge to every skill, lasts 1 stage
 * Decrease Skill Charges: Removes 1 charge from every skill (cannot reduce below 1), lasts 1 stage

@@ -8,6 +8,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.World.Interactables
 {
     [ChaosTimedEffect("everything_free", 30f, AllowDuplicates = false)]
+    [EffectConfigBackwardsCompatibility("Effect: All Chests are Free")]
     public sealed class EverythingFree : NetworkBehaviour
     {
         [EffectCanActivate]

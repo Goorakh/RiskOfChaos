@@ -126,7 +126,7 @@
         "EFFECT_NO_EQUIPMENT_COOLDOWN_NAME": "No Equipment Cooldowns",
         "EFFECT_DISABLE_EQUIPMENT_ACTIVATION_NAME": "Disable Equipment",
         "EFFECT_FORCE_ALL_ITEMS_INTO_RANDOM_ITEM_NAME": "All Items Are {0}",
-        "EFFECT_EVERYTHING_FREE_NAME": "All Chests are Free",
+        "EFFECT_EVERYTHING_FREE_NAME": "Everything is Free",
         "EFFECT_BOUNCY_PICKUPS_NAME": "Bouncy Items",
         "EFFECT_INCREASE_SKILL_STOCKS_NAME": "+{0} Skill Charge{1}",
         "EFFECT_DECREASE_SKILL_STOCKS_NAME": "-{0} Skill Charge{1}",
