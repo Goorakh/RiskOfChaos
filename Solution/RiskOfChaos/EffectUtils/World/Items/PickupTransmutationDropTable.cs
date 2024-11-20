@@ -43,7 +43,6 @@ namespace RiskOfChaos.EffectUtils.World.Items
         {
             if (_transmutationGroupDirty)
             {
-                _transmutationGroupDirty = false;
                 Regenerate(Run.instance);
             }
         }
@@ -66,6 +65,7 @@ namespace RiskOfChaos.EffectUtils.World.Items
             }
 
             _transmutationGroup = pickupGroup;
+            _transmutationGroupDirty = false;
         }
 
         public override PickupIndex GenerateDropPreReplacement(Xoroshiro128Plus rng)
