@@ -38,6 +38,9 @@
 * Gravity:
   * Implemented a speculative fix for gravity modifications sometimes not resetting and staying until game restart
 
+* Scrambled Text:
+  * Now also scrambles player chat messages
+
 <details>
   <summary>2.1.1 Changes:</summary>
 

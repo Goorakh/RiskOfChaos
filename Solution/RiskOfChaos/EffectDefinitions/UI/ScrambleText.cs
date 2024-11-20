@@ -169,9 +169,14 @@ namespace RiskOfChaos.EffectDefinitions.UI
                 return;
             }
 
-            str = scrambleString(str, _baseScrambleSeed + (ulong)StringComparer.OrdinalIgnoreCase.GetHashCode(str));
+            str = ScrambleString(str);
 
             _tokenOverrideCache.Add(token, str);
+        }
+
+        public string ScrambleString(string str)
+        {
+            return scrambleString(str, _baseScrambleSeed + (ulong)StringComparer.OrdinalIgnoreCase.GetHashCode(str));
         }
 
         static string scrambleString(string str, ulong scrambleSeed)
