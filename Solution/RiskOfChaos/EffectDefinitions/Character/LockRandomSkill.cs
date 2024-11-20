@@ -1,16 +1,20 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.Content;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.ModificationController;
 using RiskOfChaos.ModificationController.SkillSlots;
 using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using System;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
@@ -77,6 +81,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         }
 
         ChaosEffectComponent _effectComponent;
+        ChaosEffectNameComponent _effectNameComponent;
 
         [SerializedMember("s")]
         SkillSlot _lockedSkillSlot = SkillSlot.None;
@@ -86,6 +91,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
+            _effectNameComponent = GetComponent<ChaosEffectNameComponent>();
         }
 
         public override void OnStartServer()
@@ -116,6 +122,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 skillSlotModificationProvider.LockedSlots = _lockedSkillSlot;
 
                 NetworkServer.Spawn(_skillSlotModificationController.gameObject);
+
+                if (_effectNameComponent)
+                {
+                    _effectNameComponent.SetCustomNameFormatter(new NameFormatter(_lockedSkillSlot));
+                }
             }
         }
 
@@ -125,6 +136,64 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 _skillSlotModificationController.Retire();
                 _skillSlotModificationController = null;
+            }
+        }
+
+        class NameFormatter : EffectNameFormatter
+        {
+            SkillSlot _skillSlot = SkillSlot.None;
+
+            public NameFormatter(SkillSlot skillSlot)
+            {
+                _skillSlot = skillSlot;
+            }
+
+            public NameFormatter()
+            {
+            }
+
+            public override void Serialize(NetworkWriter writer)
+            {
+                writer.Write((sbyte)_skillSlot);
+            }
+
+            public override void Deserialize(NetworkReader reader)
+            {
+                _skillSlot = (SkillSlot)reader.ReadSByte();
+                invokeFormatterDirty();
+            }
+
+            public override string GetEffectNameSubtitle(ChaosEffectInfo effectInfo)
+            {
+                string subtitle = base.GetEffectNameSubtitle(effectInfo);
+
+                if (_skillSlot > SkillSlot.None && _skillSlot <= SkillSlot.Special)
+                {
+                    StringBuilder stringBuilder = HG.StringBuilderPool.RentStringBuilder();
+
+                    if (!string.IsNullOrWhiteSpace(subtitle))
+                    {
+                        stringBuilder.AppendLine(subtitle);
+                    }
+
+                    stringBuilder.AppendFormat("({0:G})", _skillSlot);
+
+                    subtitle = stringBuilder.ToString();
+                    stringBuilder = HG.StringBuilderPool.ReturnStringBuilder(stringBuilder);
+                }
+
+                return subtitle;
+            }
+
+            public override object[] GetFormatArgs()
+            {
+                return [];
+            }
+
+            public override bool Equals(EffectNameFormatter other)
+            {
+                return other is NameFormatter otherFormatter &&
+                       _skillSlot == otherFormatter._skillSlot;
             }
         }
     }

@@ -26,6 +26,9 @@
 * All Items Are A Random Item:
   * Now also replaces all currently dropped items when the effect activates
 
+* Force Activate Random Skill & Disable Random Skill:
+  * Now displays what skill slot the effect is forcing/disabling in the Active Effects list
+
 * Launch Everyone in Random Directions:
   * Can no longer launch downwards
   * Temporary Hopoo Feather now shows a pickup notification
