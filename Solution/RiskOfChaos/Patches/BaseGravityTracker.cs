@@ -59,6 +59,17 @@ namespace RiskOfChaos.Patches
             {
                 Log.Error("Could not find Physics.set_gravity method");
             }
+
+            Run.onRunDestroyGlobal += onRunDestroyGlobal;
+        }
+
+        static void onRunDestroyGlobal(Run obj)
+        {
+            Log.Debug("Restoring base gravity");
+
+            Vector3 baseGravity = new Vector3(0f, Run.baseGravity, 0f);
+            Physics.gravity = baseGravity;
+            _baseGravity = baseGravity;
         }
 
         delegate void orig_GravitySetter(Vector3 value);

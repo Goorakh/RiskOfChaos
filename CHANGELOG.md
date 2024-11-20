@@ -32,6 +32,9 @@
 * Spawn Jump Pad:
   * Temporary Hopoo Feather now shows a pickup notification
   
+* Gravity:
+  * Implemented a speculative fix for gravity modifications sometimes not resetting and staying until game restart
+
 <details>
   <summary>2.1.1 Changes:</summary>
 

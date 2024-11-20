@@ -80,14 +80,24 @@ namespace RiskOfChaos.Networking.Components.Gravity
 
         void OnDestroy()
         {
-            updateBaseGravity(GravityTracker.BaseGravity);
-            updateCurrentGravity(GravityTracker.BaseGravity);
+            if (NetworkServer.active || NetworkClient.active)
+            {
+                Log.Debug("Restoring gravity");
+                updateCurrentGravity(_baseGravity);
+            }
+            else
+            {
+                Log.Debug("Not restoring gravity, no network session active");
+            }
         }
 
         void updateBaseGravity(Vector3 newBaseGravity)
         {
 #if DEBUG
-            Log.Debug($"Base gravity changed: {_baseGravity} -> {newBaseGravity}");
+            if (_baseGravity != newBaseGravity)
+            {
+                Log.Debug($"Base gravity changed: {_baseGravity} -> {newBaseGravity}");
+            }
 #endif
 
             _baseGravity = newBaseGravity;
@@ -101,7 +111,10 @@ namespace RiskOfChaos.Networking.Components.Gravity
         void updateCurrentGravity(Vector3 newCurrentGravity)
         {
 #if DEBUG
-            Log.Debug($"Current gravity changed: {_currentGravity} -> {newCurrentGravity}");
+            if (_currentGravity != newCurrentGravity)
+            {
+                Log.Debug($"Current gravity changed: {_currentGravity} -> {newCurrentGravity}");
+            }
 #endif
 
             _currentGravity = newCurrentGravity;
