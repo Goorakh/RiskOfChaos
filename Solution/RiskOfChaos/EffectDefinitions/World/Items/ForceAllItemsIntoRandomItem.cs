@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using HG;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -183,6 +184,22 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
                             {
                                 EffectManager.SimpleEffect(_recycleEffectPrefab, pickupController.pickupDisplay.transform.position, Quaternion.identity, true);
                             }
+                        }
+                    }
+
+                    foreach (OptionPickupTracker optionPickupTracker in InstanceTracker.GetInstancesList<OptionPickupTracker>())
+                    {
+                        PickupPickerController pickupPickerController = optionPickupTracker.PickupPickerController;
+                        if (!pickupPickerController)
+                            continue;
+
+                        if (pickupPickerController.options != null)
+                        {
+                            ArrayUtils.SetAll(pickupPickerController.options, new PickupPickerController.Option
+                            {
+                                pickupIndex = OverridePickupIndex,
+                                available = true
+                            });
                         }
                     }
                 }
