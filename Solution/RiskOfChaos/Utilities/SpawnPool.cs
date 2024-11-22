@@ -21,7 +21,7 @@ namespace RiskOfChaos.Utilities
         int _debugTestIndex = 0;
 #endif
 
-        public delegate IList<ExpansionDef> RequiredExpansionsProviderDelegate(T entry);
+        public delegate IReadOnlyList<ExpansionDef> RequiredExpansionsProviderDelegate(T entry);
 
         RequiredExpansionsProviderDelegate _requiredExpansionsProvider = entry => [];
         public RequiredExpansionsProviderDelegate RequiredExpansionsProvider
@@ -195,7 +195,7 @@ namespace RiskOfChaos.Utilities
         {
             _entries.Add(entry);
 
-            entry.CallWhenLoaded(refreshRequiredExpansions);
+            entry.OnEntryLoaded += refreshRequiredExpansions;
         }
 
         public void AddEntry(T asset, SpawnPoolEntryParameters parameters)
@@ -284,7 +284,26 @@ namespace RiskOfChaos.Utilities
             public ReadOnlyArray<ExpansionDef> RequiredExpansions { get; private set; }
 
             public bool IsFullyLoaded { get; private set; }
-            readonly List<OnEntryLoadedDelegate> _onLoadedListeners = [];
+
+            public event OnEntryLoadedDelegate OnEntryLoaded
+            {
+                add
+                {
+                    if (IsFullyLoaded)
+                    {
+                        value(this);
+                        return;
+                    }
+
+                    _onEntryLoaded += value;
+                }
+                remove
+                {
+                    _onEntryLoaded -= value;
+                }
+            }
+
+            event OnEntryLoadedDelegate _onEntryLoaded;
 
             Entry(T asset, SpawnPoolEntryParameters parameters, bool fullyLoaded)
             {
@@ -300,7 +319,7 @@ namespace RiskOfChaos.Utilities
             {
             }
 
-            public void SetRequiredExpansions(IList<ExpansionDef> requiredExpansions)
+            public void SetRequiredExpansions(IReadOnlyCollection<ExpansionDef> requiredExpansions)
             {
                 List<ExpansionDef> distinctExpansions = new List<ExpansionDef>(requiredExpansions.Count);
                 foreach (ExpansionDef expansionDef in requiredExpansions)
@@ -341,24 +360,8 @@ namespace RiskOfChaos.Utilities
             void onFullyLoaded()
             {
                 IsFullyLoaded = true;
-                foreach (OnEntryLoadedDelegate onLoadedListener in _onLoadedListeners)
-                {
-                    onLoadedListener(this);
-                }
-
-                _onLoadedListeners.Clear();
-                _onLoadedListeners.TrimExcess();
-            }
-
-            public void CallWhenLoaded(OnEntryLoadedDelegate onLoaded)
-            {
-                if (IsFullyLoaded)
-                {
-                    onLoaded(this);
-                    return;
-                }
-
-                _onLoadedListeners.Add(onLoaded);
+                _onEntryLoaded?.Invoke(this);
+                _onEntryLoaded = null;
             }
         }
     }

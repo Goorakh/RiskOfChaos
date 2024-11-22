@@ -65,30 +65,40 @@ namespace RiskOfChaos.Utilities
             return true;
         }
 
-        public static IList<ExpansionDef> GetObjectRequiredExpansions(GameObject obj)
+        static void addAllRequiredExpansions(GameObject obj, List<ExpansionDef> dest)
         {
             if (!obj)
-                return [];
+                return;
 
             ExpansionRequirementComponent[] expansionRequirements = obj.GetComponents<ExpansionRequirementComponent>();
-            List<ExpansionDef> requiredExpansions = new List<ExpansionDef>(expansionRequirements.Length);
+
+            dest.EnsureCapacity(dest.Count + expansionRequirements.Length);
 
             foreach (ExpansionRequirementComponent expansionRequirement in expansionRequirements)
             {
                 if (expansionRequirement.requiredExpansion)
                 {
-                    requiredExpansions.Add(expansionRequirement.requiredExpansion);
+                    dest.Add(expansionRequirement.requiredExpansion);
                 }
             }
 
             if (obj.TryGetComponent(out CharacterMaster master) && master.bodyPrefab)
             {
-                requiredExpansions.AddRange(GetObjectRequiredExpansions(master.bodyPrefab));
+                addAllRequiredExpansions(master.bodyPrefab, dest);
             }
+        }
+
+        public static IReadOnlyList<ExpansionDef> GetObjectRequiredExpansions(GameObject obj)
+        {
+            if (!obj)
+                return [];
+
+            List<ExpansionDef> requiredExpansions = [];
+            addAllRequiredExpansions(obj, requiredExpansions);
 
             requiredExpansions.TrimExcess();
 
-            return requiredExpansions;
+            return requiredExpansions.AsReadOnly();
         }
 
         public static bool IsObjectExpansionAvailable(GameObject obj)

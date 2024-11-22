@@ -10,17 +10,17 @@ namespace RiskOfChaos.Utilities
 
         public static readonly SpawnPool<InteractableSpawnCard>.RequiredExpansionsProviderDelegate InteractableSpawnCardExpansionsProvider = InteractableSpawnCardExpansionsProviderImpl;
 
-        public static IList<ExpansionDef> CharacterSpawnCardExpansionsProviderImpl(CharacterSpawnCard characterSpawnCard)
+        public static IReadOnlyList<ExpansionDef> CharacterSpawnCardExpansionsProviderImpl(CharacterSpawnCard characterSpawnCard)
         {
             return SpawnCardExpansionsProviderImpl(characterSpawnCard);
         }
 
-        public static IList<ExpansionDef> InteractableSpawnCardExpansionsProviderImpl(InteractableSpawnCard interactableSpawnCard)
+        public static IReadOnlyList<ExpansionDef> InteractableSpawnCardExpansionsProviderImpl(InteractableSpawnCard interactableSpawnCard)
         {
             return SpawnCardExpansionsProviderImpl(interactableSpawnCard);
         }
 
-        public static IList<ExpansionDef> SpawnCardExpansionsProviderImpl(SpawnCard spawnCard)
+        public static IReadOnlyList<ExpansionDef> SpawnCardExpansionsProviderImpl(SpawnCard spawnCard)
         {
             if (spawnCard && spawnCard.prefab)
             {
