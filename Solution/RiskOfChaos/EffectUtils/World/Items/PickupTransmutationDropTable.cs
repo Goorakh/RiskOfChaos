@@ -1,6 +1,7 @@
 ﻿using HG;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectUtils.World.Items
@@ -56,12 +57,17 @@ namespace RiskOfChaos.EffectUtils.World.Items
             PickupIndex[] pickupGroup = PickupTransmutationManager.GetAvailableGroupFromPickupIndex(SourcePickup) ?? [];
             if (pickupGroup.Length > 0)
             {
-                int sourcePickupIndex = Array.IndexOf(pickupGroup, SourcePickup);
-                if (sourcePickupIndex != -1)
+                List<PickupIndex> availablePickups = new List<PickupIndex>(pickupGroup.Length);
+
+                foreach (PickupIndex pickupIndex in pickupGroup)
                 {
-                    pickupGroup = ArrayUtils.Clone(pickupGroup);
-                    ArrayUtils.ArrayRemoveAtAndResize(ref pickupGroup, sourcePickupIndex);
+                    if (pickupIndex != SourcePickup && run.IsPickupEnabled(pickupIndex))
+                    {
+                        availablePickups.Add(pickupIndex);
+                    }
                 }
+
+                pickupGroup = [.. availablePickups];
             }
 
             _transmutationGroup = pickupGroup;
