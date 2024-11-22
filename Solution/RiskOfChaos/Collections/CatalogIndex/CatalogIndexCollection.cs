@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace RiskOfChaos.Collections.CatalogIndex
 {
-    public abstract class CatalogIndexCollection<T> : IReadOnlyList<T>
+    public abstract class CatalogIndexCollection<T> : IReadOnlyCollection<T>
     {
         static readonly bool _isComparable = typeof(IComparable).IsAssignableFrom(typeof(T));
 
         readonly string[] _names;
-        T[] _items;
+        readonly T[] _items;
+
+        int _itemsLength;
 
         public bool IsInitialized { get; private set; }
 
@@ -32,11 +33,7 @@ namespace RiskOfChaos.Collections.CatalogIndex
             }
         }
 
-        public int Count => _items.Length;
-
-        public bool IsReadOnly => true;
-
-        public T this[int i] => _items[i];
+        public int Count => _itemsLength;
 
         public CatalogIndexCollection(params string[] names)
         {
@@ -46,59 +43,49 @@ namespace RiskOfChaos.Collections.CatalogIndex
 
         void trySortItems()
         {
-            if (Comparer != null)
+            if (Comparer != null || _isComparable)
             {
-                Array.Sort(_items, Comparer);
-            }
-            else if (_isComparable)
-            {
-                Array.Sort(_items);
+                Array.Sort(_items, 0, _itemsLength, Comparer);
             }
         }
+
+        protected abstract T findByName(string name);
 
         protected abstract bool isValid(T value);
 
         protected virtual void initialize()
         {
-            bool anyInvalid = false;
-
+            int length = 0;
             for (int i = 0; i < _names.Length; i++)
             {
                 T value = findByName(_names[i]);
-                _items[i] = value;
 
-                if (!isValid(value))
-                    anyInvalid = true;
+                if (isValid(value))
+                {
+                    _items[length] = value;
+                    length++;
+                }
             }
 
-            if (anyInvalid)
-            {
-                _items = _items.Where(isValid).ToArray();
-            }
+            _itemsLength = length;
 
             trySortItems();
 
             IsInitialized = true;
         }
 
-        protected abstract T findByName(string name);
-
         public int IndexOf(T item)
         {
             if (!IsInitialized)
                 return -1;
 
-            if (Comparer != null)
+            if (Comparer != null || _isComparable)
             {
-                return Array.BinarySearch(_items, item, Comparer);
-            }
-            else if (_isComparable)
-            {
-                return Array.BinarySearch(_items, item);
+                return Array.BinarySearch(_items, 0, _itemsLength, item, Comparer);
             }
             else
             {
-                return Array.IndexOf(_items, item);
+                return Array.IndexOf(_items, item, 0, _itemsLength);
             }
         }
 
@@ -109,17 +96,17 @@ namespace RiskOfChaos.Collections.CatalogIndex
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            _items.CopyTo(array, arrayIndex);
+            Array.Copy(_items, 0, array, arrayIndex, _itemsLength);
         }
 
         public IEnumerator<T> GetEnumerator()
         {
-            return ((IEnumerable<T>)_items).GetEnumerator();
+            return new ArraySegment<T>(_items, 0, _itemsLength).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return _items.GetEnumerator();
+            return GetEnumerator();
         }
     }
 }
