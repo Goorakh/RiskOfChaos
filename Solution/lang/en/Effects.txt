@@ -163,5 +163,6 @@
         "EFFECT_ALL_INTERACTABLES_CLOAKED_NAME": "All Interactables are Cloaked",
         "EFFECT_CONSUME_RANDOM_ITEM_NAME": "Consume Random Item",
         "EFFECT_UNCONSUME_RANDOM_ITEM_NAME": "Repair Random Item",
+        "EFFECT_SPAWN_HEALING_CORE_NAME": "Heal Everyone",
     }
 }

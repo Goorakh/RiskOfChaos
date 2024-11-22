@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 141 different effects.
+Currently features 142 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -150,6 +150,7 @@ Currently features 141 different effects.
 * All Interactables are Cloaked: Turns all interactables into cloaked variants, lasts 60 seconds
 * Consume Random Item: Turns a random consumable item from every player into its consumed variant
 * Repair Random Item: Turns a random consumed item from every player into its regular variant
+* Heal Everyone: Spawns Healing Cores on every character
 </details>
 
 <hr>
