@@ -111,9 +111,7 @@ namespace RiskOfChaos.Components
                         PickupUtils.QueuePickupMessage(master, PickupCatalog.FindPickupIndex(item.ItemDef.itemIndex), PickupNotificationFlags.DisplayPushNotificationIfNoneQueued | PickupNotificationFlags.PlaySound);
                     }
 
-#if DEBUG
                     Log.Debug($"Gave jump item {FormatUtils.GetBestItemDisplayName(item.ItemDef)} to {FormatUtils.GetBestBodyName(body)}");
-#endif
                 }
             }
 

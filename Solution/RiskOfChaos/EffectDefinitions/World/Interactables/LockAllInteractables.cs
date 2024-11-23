@@ -88,9 +88,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
                 UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
 
                 int removedLockObjects = UnityObjectUtils.RemoveAllDestroyed(_spawnedLockObjects);
-#if DEBUG
                 Log.Debug($"Cleared {removedLockObjects} destroyed lock objects");
-#endif
             }
         }
 

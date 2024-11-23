@@ -94,40 +94,30 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
         {
             if (string.IsNullOrWhiteSpace(equipment.nameToken) || Language.IsTokenInvalid(equipment.nameToken))
             {
-#if DEBUG
                 Log.Debug($"excluding equipment {equipment.name} ({equipment.nameToken}): Invalid name token");
-#endif
                 return false;
             }
 
             if (EliteCatalog.eliteList.Select(EliteCatalog.GetEliteDef)
                                       .Any(elite => elite.eliteEquipmentDef == equipment))
             {
-#if DEBUG
                 Log.Debug($"excluding equipment {equipment.name} ({Language.GetString(equipment.nameToken)}): elite affix");
-#endif
                 return false;
             }
 
             if (!equipment.pickupModelPrefab || equipment.pickupModelPrefab.name == "NullModel")
             {
-#if DEBUG
                 Log.Debug($"excluding equipment {equipment.name} ({Language.GetString(equipment.nameToken)}): null model");
-#endif
                 return false;
             }
 
             if (_equipmentsBlacklist.Contains(equipment.equipmentIndex))
             {
-#if DEBUG
                 Log.Debug($"excluding equipment {equipment.name} ({Language.GetString(equipment.nameToken)}): blacklist");
-#endif
                 return false;
             }
 
-#if DEBUG
             Log.Debug($"including equipment {equipment.name} ({Language.GetString(equipment.nameToken)})");
-#endif
 
             return true;
         }
@@ -233,17 +223,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
 
                 if (equipmentSuccessfullyPerformed)
                 {
-#if DEBUG
                     Log.Debug($"Activated equipment \"{Language.GetString(equipment.nameToken)}\" on {FormatUtils.GetBestBodyName(body)}");
-#endif
                     return;
                 }
-#if DEBUG
                 else
                 {
                     Log.Debug($"{Language.GetString(equipment.nameToken)} was not activatable for {FormatUtils.GetBestBodyName(body)}");
                 }
-#endif
             }
 
             Log.Warning($"no equipment was activatable for {FormatUtils.GetBestBodyName(body)}");

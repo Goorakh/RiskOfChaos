@@ -128,9 +128,7 @@ namespace RiskOfChaos.EffectUtils.World.Spawn
                 {
                     EquipmentIndex equipmentIndex = rng.NextElementUniform(availableEquipment);
 
-#if DEBUG
-                    Log.Debug($"Gave {Language.GetString(EquipmentCatalog.GetEquipmentDef(equipmentIndex).nameToken, "en")} to spawned equipment drone");
-#endif
+                    Log.Debug($"Gave {FormatUtils.GetBestEquipmentDisplayName(equipmentIndex)} to spawned equipment drone");
 
                     if (inventory)
                     {

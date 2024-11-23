@@ -22,9 +22,8 @@ namespace RiskOfChaos.Utilities.Assets
             if (assetBundle)
             {
                 _assetBundle = assetBundle;
-#if DEBUG
+
                 Log.Debug("Loaded asset bundle");
-#endif
             }
             else
             {

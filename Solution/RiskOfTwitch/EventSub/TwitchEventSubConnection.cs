@@ -23,15 +23,11 @@ namespace RiskOfTwitch.EventSub
         {
             if (message.MessageType == WebSocketMessageType.Text)
             {
-#if DEBUG
                 Log.Debug($"Received message: {Encoding.UTF8.GetString(message.MessageData.Array, message.MessageData.Offset, message.MessageData.Count)}");
-#endif
             }
             else
             {
-#if DEBUG
                 Log.Debug($"Received message: {message.MessageData.Count} byte(s)");
-#endif
 
                 Log.Warning($"Unhandled socket message type: {message.MessageType}");
 

@@ -55,9 +55,7 @@ namespace RiskOfChaos.EffectUtils.Character.Player.Items
 
                 consumableItemPairs.Add(new ConsumableItemPair(PickupCatalog.FindPickupIndex(itemIndex), PickupCatalog.FindPickupIndex(consumedItemIndex)));
 
-#if DEBUG
                 Log.Debug($"Registered consumable item pair: {FormatUtils.GetBestItemDisplayName(item)} -> {FormatUtils.GetBestItemDisplayName(consumedItem)}");
-#endif
             }
 
 
@@ -102,9 +100,7 @@ namespace RiskOfChaos.EffectUtils.Character.Player.Items
 
                 consumableItemPairs.Add(new ConsumableItemPair(PickupCatalog.FindPickupIndex(equipmentIndex), PickupCatalog.FindPickupIndex(consumedEquipmentIndex)));
 
-#if DEBUG
                 Log.Debug($"Registered consumable equipment pair: {FormatUtils.GetBestEquipmentDisplayName(equipmentDef)} -> {FormatUtils.GetBestEquipmentDisplayName(consumedEquipmentDef)}");
-#endif
             }
 
             ConsumableItemPairs = new HG.ReadOnlyArray<ConsumableItemPair>([.. consumableItemPairs]);

@@ -46,12 +46,10 @@ namespace RiskOfChaos.Patches
                 }
             }
 
-#if DEBUG
             if (anyChatBoxFound)
             {
                 Log.Debug($"Fixed chat scroll on respawn for {body.GetUserName()}");
             }
-#endif
         }
     }
 }

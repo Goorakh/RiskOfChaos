@@ -45,9 +45,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 EntityStateMachine bodyStateMachine = EntityStateMachine.FindByCustomName(body.gameObject, "Body");
                 if (bodyStateMachine)
                 {
-#if DEBUG
                     Log.Debug($"Freezing {FormatUtils.GetBestBodyName(body)} through StateMachine(s) directly");
-#endif
 
                     freezeStateMachine = bodyStateMachine;
 

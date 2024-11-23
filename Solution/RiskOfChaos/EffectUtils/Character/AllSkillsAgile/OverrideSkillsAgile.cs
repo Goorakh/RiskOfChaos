@@ -65,18 +65,14 @@ namespace RiskOfChaos.EffectUtils.Character.AllSkillsAgile
                             }
                         });
 
-#if DEBUG
                         Log.Debug("Skills agile override enabled");
-#endif
                     }
                     else
                     {
                         _skillIsAgileOverrides.TryDo(isAgileOverride => isAgileOverride.Undo());
                         _skillIsAgileOverrides.Clear();
 
-#if DEBUG
                         Log.Debug("Skills agile override cleared");
-#endif
                     }
                 }
             }

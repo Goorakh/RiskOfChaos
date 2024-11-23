@@ -45,9 +45,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 {
                     _equipmentDroneSpawnCard.hullSize = bodyPrefab.hullClassification;
 
-#if DEBUG
                     Log.Debug($"Set SpawnCard hull size to: {_equipmentDroneSpawnCard.hullSize}");
-#endif
                 }
                 else
                 {

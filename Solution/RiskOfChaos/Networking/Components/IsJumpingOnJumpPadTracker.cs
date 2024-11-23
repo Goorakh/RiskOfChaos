@@ -18,9 +18,7 @@ namespace RiskOfChaos.Networking.Components
                 {
                     bodyPrefab.AddComponent<IsJumpingOnJumpPadTracker>();
 
-#if DEBUG
                     Log.Debug($"Added tracker to prefab: {bodyPrefab.name}");
-#endif
                 }
             }
         }
@@ -52,24 +50,20 @@ namespace RiskOfChaos.Networking.Components
             if (!jumpingCharacterMotor || jumpingCharacterMotor != _motor)
                 return;
 
-#if DEBUG
             if (!IsJumping)
             {
                 Log.Debug($"{Util.GetBestBodyName(gameObject)} started jumping on jump pad");
             }
-#endif
 
             CmdSetIsJumping(true);
         }
 
         void onHitGroundAuthority(ref CharacterMotor.HitGroundInfo hitGroundInfo)
         {
-#if DEBUG
             if (IsJumping)
             {
                 Log.Debug($"{FormatUtils.GetBestBodyName(_motor.body)} has landed from jump pad");
             }
-#endif
 
             CmdSetIsJumping(false);
         }

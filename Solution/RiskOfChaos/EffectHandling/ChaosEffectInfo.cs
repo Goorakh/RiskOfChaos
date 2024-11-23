@@ -173,9 +173,7 @@ namespace RiskOfChaos.EffectHandling
                         }
                     }
 
-#if DEBUG
                     Log.Debug($"Initialized incompatibility list for {this}: [{string.Join(", ", incompatibleEffects)}]");
-#endif
                 });
             }
 
@@ -304,9 +302,7 @@ namespace RiskOfChaos.EffectHandling
 
             if (!context.IsShortcut && !IsEnabled())
             {
-#if DEBUG
                 Log.Debug($"effect {Identifier} cannot activate due to: Effect not enabled");
-#endif
                 return false;
             }
 
@@ -325,9 +321,7 @@ namespace RiskOfChaos.EffectHandling
                 {
                     if (ChaosEffectTracker.Instance.IsAnyInstanceOfTimedEffectRelevantForContext(incompatibleEffect, context))
                     {
-#if DEBUG
                         Log.Debug($"Effect {this} cannot activate: incompatible effect {incompatibleEffect} is active");
-#endif
 
                         return false;
                     }

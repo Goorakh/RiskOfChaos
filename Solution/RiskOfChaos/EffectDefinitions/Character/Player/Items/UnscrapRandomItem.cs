@@ -76,9 +76,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 {
                     if (_itemBlacklist.Contains(item))
                     {
-#if DEBUG
                         Log.Debug($"Not including scrap {itemDef}: Blacklist");
-#endif
                         continue;
                     }
 
@@ -153,9 +151,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             Util.ShuffleArray(_unscrapOrder, _rng.Branch());
 
-#if DEBUG
             Log.Debug($"Unscrap order: [{string.Join(", ", _unscrapOrder.Select(u => $"({FormatUtils.GetBestItemDisplayName(u.ScrapItemIndex)})"))}]");
-#endif
         }
 
         void Start()

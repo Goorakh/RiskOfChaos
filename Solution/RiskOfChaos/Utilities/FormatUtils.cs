@@ -71,6 +71,19 @@ namespace RiskOfChaos.Utilities
             return equipmentDef.name;
         }
 
+        public static string GetBestDifficultyDisplayName(DifficultyIndex difficultyIndex)
+        {
+            return GetBestDifficultyDisplayName(DifficultyCatalog.GetDifficultyDef(difficultyIndex));
+        }
+
+        public static string GetBestDifficultyDisplayName(DifficultyDef difficultyDef)
+        {
+            if (difficultyDef == null)
+                return "null";
+
+            return Language.GetString(difficultyDef.nameToken);
+        }
+
         public static string FormatTimeSeconds(float seconds)
         {
             if (seconds < (2f * 60f) + 0.5f)

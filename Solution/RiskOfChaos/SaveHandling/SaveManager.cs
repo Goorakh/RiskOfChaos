@@ -97,9 +97,7 @@ namespace RiskOfChaos.SaveHandling
                     {
                         if (existingSingletonInstances.TryAdd(serializationComponent.AssetId, serializationComponent))
                         {
-#if DEBUG
                             Log.Debug($"Found serializable singleton object: {serializationComponent.name}");
-#endif
                         }
                         else
                         {
@@ -210,11 +208,9 @@ namespace RiskOfChaos.SaveHandling
                         case TraceLevel.Info:
                             Log.Info(_stringBuilder);
                             break;
-#if DEBUG
                         case TraceLevel.Verbose:
                             Log.Debug(_stringBuilder);
                             break;
-#endif
                     }
                 }
             }

@@ -106,12 +106,10 @@ namespace RiskOfChaos.EffectUtils.World
 
             bool success = SuppressedItemManager.SuppressItem(itemIndex, GetSuppressedScrapItemIndex(itemIndex));
 
-#if DEBUG
             if (success)
             {
                 Log.Debug($"Suppressed item: {ItemCatalog.GetItemDef(itemIndex)}");
             }
-#endif
 
             return success;
         }
@@ -139,12 +137,10 @@ namespace RiskOfChaos.EffectUtils.World
                 }
             }
 
-#if DEBUG
             if (success)
             {
                 Log.Debug($"Removed suppressed item: {ItemCatalog.GetItemDef(itemIndex)}");
             }
-#endif
 
             return success;
         }

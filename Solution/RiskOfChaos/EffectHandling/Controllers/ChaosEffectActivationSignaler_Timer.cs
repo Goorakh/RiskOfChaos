@@ -53,9 +53,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
                 _effectDispatchTimer.SetLastActivationTimeStopwatch(value);
 
-#if DEBUG
                 Log.Debug($"Loaded timer data, remaining={_effectDispatchTimer.GetNextActivationTime().TimeUntil}");
-#endif
             }
         }
 
@@ -85,14 +83,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             if (Run.instance)
             {
-#if DEBUG
                 Log.Debug($"Run stopwatch: {Run.instance.GetRunStopwatch()}");
-#endif
+
                 if (Run.instance.GetRunStopwatch() > MIN_STAGE_TIME_REQUIRED_TO_DISPATCH)
                 {
-#if DEBUG
                     Log.Debug($"Skipping {_effectDispatchTimer.GetNumScheduledActivations()} effect activation(s)");
-#endif
 
                     _effectDispatchTimer.SkipAllScheduledActivations();
                 }
@@ -178,9 +173,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 _overrideAvailableEffects[i] = new OverrideEffect(enabledEffects[i], null);
             }
 
-#if DEBUG
             Log.Debug($"Available effects: [{string.Join(", ", _overrideAvailableEffects)}]");
-#endif
         }
 
         void onSeededEffectSelectionConfigChanged(object sender, ConfigChangedArgs<bool> e)

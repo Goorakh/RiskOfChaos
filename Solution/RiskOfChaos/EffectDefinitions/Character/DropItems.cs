@@ -175,9 +175,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
 
                 int removedDropControllers = UnityObjectUtils.RemoveAllDestroyed(_itemDropControllers);
-#if DEBUG
                 Log.Debug($"Cleared {removedDropControllers} destroy drop controller(s)");
-#endif
             }
         }
 

@@ -63,9 +63,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                 if (_itemBlacklist.Contains(itemDef.itemIndex))
                 {
-#if DEBUG
                     Log.Debug($"{itemDef} cannot be duplicated: config blacklist");
-#endif
                     continue;
                 }
 
@@ -73,9 +71,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 int maxItemStacks = _maxItemStacksConfig.Value;
                 if (maxItemStacks > 0 && itemCount >= maxItemStacks)
                 {
-#if DEBUG
                     Log.Debug($"{itemDef} cannot be duplicated: max item stacks config is {maxItemStacks}, current: {itemCount}");
-#endif
                     continue;
                 }
 
@@ -101,9 +97,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             _itemDuplicationOrder = [.. ItemCatalog.allItems];
             Util.ShuffleArray(_itemDuplicationOrder, rng.Branch());
 
-#if DEBUG
             Log.Debug($"Duplication order: [{string.Join(", ", _itemDuplicationOrder.Select(FormatUtils.GetBestItemDisplayName))}]");
-#endif
         }
 
         bool tryGetStackToDuplicate(ItemStack[] availableItemStacks, out ItemStack result)

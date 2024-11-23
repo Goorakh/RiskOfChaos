@@ -40,15 +40,11 @@ namespace RiskOfChaos.EffectHandling
 
                 if (_lastActivationTime.Time >= 0f)
                 {
-#if DEBUG
                     RunTimeStamp oldNextActivationTime = _nextActivationTime;
-#endif
 
                     _nextActivationTime = _lastActivationTime + _period;
 
-#if DEBUG
                     Log.Debug($"({TimeType}) {nameof(_nextActivationTime)}: {oldNextActivationTime} -> {_nextActivationTime}");
-#endif
                 }
             }
         }
@@ -78,9 +74,7 @@ namespace RiskOfChaos.EffectHandling
             _lastActivationTime = _nextActivationTime;
             _nextActivationTime += Period;
 
-#if DEBUG
             Log.Debug($"{nameof(_lastActivationTime)}={_lastActivationTime}, {nameof(_nextActivationTime)}={_nextActivationTime}");
-#endif
         }
 
         public void SkipActivations(int numActivationsToSkip)
@@ -95,9 +89,7 @@ namespace RiskOfChaos.EffectHandling
                 _lastActivationTime = _nextActivationTime - Period;
             }
 
-#if DEBUG
             Log.Debug($"{nameof(_lastActivationTime)}={_lastActivationTime}, {nameof(_nextActivationTime)}={_nextActivationTime}");
-#endif
         }
 
         public readonly int GetNumScheduledActivations()

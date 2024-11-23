@@ -18,9 +18,7 @@ namespace RiskOfChaos.Utilities
         {
             _unityMainThread = Thread.CurrentThread;
 
-#if DEBUG
             Log.Debug($"Recorded Unity main thread: '{_unityMainThread.Name}' ({_unityMainThread.ManagedThreadId})");
-#endif
         }
 
         public override int MaximumConcurrencyLevel => 1;

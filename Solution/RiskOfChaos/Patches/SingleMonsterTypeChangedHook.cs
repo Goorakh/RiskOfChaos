@@ -45,12 +45,10 @@ namespace RiskOfChaos.Patches
             {
                 Log.Error("Found 0 patch locations");
             }
-#if DEBUG
             else
             {
                 Log.Debug($"Found {patchCount} patch location(s)");
             }
-#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -99,9 +99,7 @@ namespace RiskOfChaos.Networking.Components
             if (_costProvider.CostType == CostType)
                 return;
 
-#if DEBUG
             Log.Debug($"{name} ({netId}): Cost type changed ({_costProvider.CostType}->{CostType})");
-#endif
 
             _costProvider.CostType = CostType;
         }

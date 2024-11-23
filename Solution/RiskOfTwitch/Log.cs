@@ -1,4 +1,5 @@
 ﻿using RiskOfTwitch.Logging;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -52,18 +53,18 @@ namespace RiskOfTwitch
             }
         }
 
-#if DEBUG
+        [Conditional("DEBUG")]
         internal static void Debug(object data, [CallerFilePath] string callerPath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
         {
             LogSource.Log(buildCallerLogString(callerPath, callerMemberName, callerLineNumber, data), LogType.Debug);
         }
 
+        [Conditional("DEBUG")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void Debug_NoCallerPrefix(object data)
         {
             LogSource.Log(data, LogType.Debug);
         }
-#endif
 
         internal static void Error(object data, [CallerFilePath] string callerPath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
         {

@@ -20,9 +20,7 @@ namespace RiskOfChaos.ConfigHandling
             string key = configHolder.Definition.ToString();
             _networkedConfigHolders.Add(key, configHolder);
 
-#if DEBUG
             Log.Debug($"Registered networked config: '{key}'");
-#endif
 
             if (!_hasRegisteredRunStartEvent)
             {
@@ -84,9 +82,7 @@ namespace RiskOfChaos.ConfigHandling
 
             configHolder.SetServerOverrideValue(value);
 
-#if DEBUG
             Log.Debug($"Set server override value: '{definition}' = {value}");
-#endif
         }
 
         public static void ClearOverrideValue(string definition)
@@ -99,9 +95,7 @@ namespace RiskOfChaos.ConfigHandling
 
             configHolder.ClearServerOverrideValue();
 
-#if DEBUG
             Log.Debug($"Cleared server override value for '{definition}'");
-#endif
         }
     }
 }

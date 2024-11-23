@@ -32,9 +32,7 @@ namespace RiskOfChaos.Utilities.Extensions
 
             if (NetworkServer.active && !NetworkServer.dontListen && obj.GetComponent<NetworkIdentity>())
             {
-#if DEBUG
                 Log.Debug($"Syncing DontDesroyOnLoad state for {obj}: {dontDestroyOnLoad}");
-#endif
 
                 new SetObjectDontDestroyOnLoadMessage(obj, dontDestroyOnLoad).Send(NetworkDestination.Clients);
             }

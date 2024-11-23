@@ -45,9 +45,7 @@ namespace RiskOfChaos.ModCompatibility
             {
                 saveDataDict.Add(SAVE_DATA_KEY, saveData);
 
-#if DEBUG
                 Log.Debug($"Added save data with key '{SAVE_DATA_KEY}'");
-#endif
             }
         }
 
@@ -68,9 +66,7 @@ namespace RiskOfChaos.ModCompatibility
                 return;
             }
 
-#if DEBUG
             Log.Debug($"Loaded save data with key '{SAVE_DATA_KEY}'");
-#endif
 
             SaveManager.OnSaveDataLoaded(saveData);
             LoadingComplete = true;

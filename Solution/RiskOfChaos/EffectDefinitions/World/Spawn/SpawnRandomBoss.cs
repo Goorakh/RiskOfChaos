@@ -231,9 +231,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     }
                 }
                 
-#if DEBUG
                 Log.Debug($"Spawned {spawnedGeodes} geode(s)");
-#endif
             }
         }
     }

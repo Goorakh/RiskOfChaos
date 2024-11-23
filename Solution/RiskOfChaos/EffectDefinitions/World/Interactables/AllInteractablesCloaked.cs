@@ -63,12 +63,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
                 _lastCloakedInteractablesClearTime = time;
 
                 int removedCloakControllers = UnityObjectUtils.RemoveAllDestroyed(_cloakControllers);
-#if DEBUG
                 if (removedCloakControllers > 0)
                 {
                     Log.Debug($"Cleared {removedCloakControllers} destroyed cloak controller(s)");
                 }
-#endif
             }
         }
 

@@ -33,14 +33,12 @@ namespace RiskOfChaos.ConfigHandling
                 if (config.Entry.Definition.Section == Configs.Metadata.SECTION_NAME)
                     continue;
 
-#if DEBUG
                 if (!config.IsDefaultValue)
                 {
+                    config.LocalBoxedValue = config.Entry.DefaultValue;
+
                     Log.Debug($"Reset config value: {config.Entry.Definition}");
                 }
-#endif
-
-                config.LocalBoxedValue = config.Entry.DefaultValue;
             }
         }
     }

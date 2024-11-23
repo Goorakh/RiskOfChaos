@@ -132,9 +132,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     ChaosEffectInfo activeEffectInfo = ChaosEffectCatalog.GetEffectInfo(effectIndex);
                     if (effectInfo.IncompatibleEffects.Contains(activeEffectInfo) || activeEffectInfo.IncompatibleEffects.Contains(effectInfo))
                     {
-#if DEBUG
                         Log.Debug($"Ending {effectActivity.InstancesCount} timed effect(s) {activeEffectInfo} due to: incompatible effect about to start ({effectInfo})");
-#endif
 
                         for (int i = effectActivity.InstancesCount - 1; i >= 0; i--)
                         {

@@ -242,9 +242,7 @@ namespace RiskOfChaos.EffectHandling
             {
                 if (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsAnyInstanceOfTimedEffectRelevantForContext(this, context))
                 {
-#if DEBUG
                     Log.Debug($"Duplicate effect {this} cannot activate");
-#endif
 
                     return false;
                 }

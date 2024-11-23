@@ -84,9 +84,7 @@ namespace RiskOfChaos.Content
                     }
                 }
 
-#if DEBUG
                 Log.Debug($"Collecting content from initializer {i + 1}/{contentInitializerMethods.Count} ({contentInitializerMethod.FullDescription()})");
-#endif
 
                 object returnValue = contentInitializerMethod.Invoke(null, parameters);
 

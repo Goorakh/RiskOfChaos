@@ -125,12 +125,10 @@ namespace RiskOfTwitch.EventSub
                             {
                                 Log.Error($"Unable to delete subscription {subscriptionId}: {subscriptionDeleteResult.StatusCode:D} {subscriptionDeleteResult.ReasonPhrase}");
                             }
-#if DEBUG
                             else
                             {
                                 Log.Debug($"Removed subscription {subscriptionId}");
                             }
-#endif
                         });
                     }
                 }
@@ -138,9 +136,7 @@ namespace RiskOfTwitch.EventSub
                 _activeSubscriptions.Clear();
             }
 
-#if DEBUG
             Log.Debug("Disconnected");
-#endif
         }
 
         void beginMigration(string reconnectUrl)
@@ -214,9 +210,7 @@ namespace RiskOfTwitch.EventSub
                 return;
             }
 
-#if DEBUG
             Log.Debug($"Starting WebSocket migration {_mainConnection.ConnectionUrl}->{sessionData.ReconnectUrl}");
-#endif
 
             beginMigration(sessionData.ReconnectUrl);
         }
@@ -277,9 +271,7 @@ namespace RiskOfTwitch.EventSub
 
                 _mainConnection = _migratingConnection;
 
-#if DEBUG
                 Log.Debug("Completed WebSocket migration");
-#endif
                 return;
             }
 

@@ -63,9 +63,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                 if (_itemBlacklist.Contains(originalItem) || _itemBlacklist.Contains(transformedItem))
                 {
-#if DEBUG
                     Log.Debug($"Excluding transform {ItemCatalog.GetItemDef(originalItem)} -> {ItemCatalog.GetItemDef(transformedItem)}: Blacklist");
-#endif
 
                     continue;
                 }
@@ -112,9 +110,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             _itemUncorruptionOrder = getReverseItemCorruptionMap().Select(kvp => new ItemUncorruptionInfo(kvp.Key, kvp.Value.ToArray())).ToArray();
             Util.ShuffleArray(_itemUncorruptionOrder, _rng.Branch());
 
-#if DEBUG
             Log.Debug($"Uncorruption order: [{string.Join(", ", _itemUncorruptionOrder.Select(u => FormatUtils.GetBestItemDisplayName(u.CorruptedItem)))}]");
-#endif
         }
 
         void Start()

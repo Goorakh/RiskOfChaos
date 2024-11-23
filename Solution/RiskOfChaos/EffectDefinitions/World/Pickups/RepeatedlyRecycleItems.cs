@@ -76,9 +76,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                 ItemDef item = ItemCatalog.GetItemDef(pickupDef.itemIndex);
                 if (item.ContainsTag(ItemTag.WorldUnique))
                 {
-#if DEBUG
                     Log.Debug($"Including worldunique pickup: {pickup}");
-#endif
                     return true;
                 }
             }
@@ -140,9 +138,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                 }
             }
 
-#if DEBUG
             Log.Debug($"Non-included pickups: [{string.Join(", ", _allAvailablePickupIndices.Except(remainingPickups))}]");
-#endif
 
             int cycleLength = Mathf.CeilToInt(remainingPickups.Count * rng.RangeFloat(1.25f, 2f));
 
@@ -238,9 +234,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                 UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
 
                 int removedRecycleControllers = UnityObjectUtils.RemoveAllDestroyed(_recyclerComponents);
-#if DEBUG
                 Log.Debug($"Cleared {removedRecycleControllers} destroyed recycle controller(s)");
-#endif
             }
         }
 

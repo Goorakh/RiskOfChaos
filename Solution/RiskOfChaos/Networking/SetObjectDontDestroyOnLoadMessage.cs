@@ -37,9 +37,7 @@ namespace RiskOfChaos.Networking
             if (NetworkServer.active)
                 return;
 
-#if DEBUG
             Log.Debug($"Received object DontDestroyOnLoad state: {_obj} ({_dontDestroyOnLoad})");
-#endif
 
             if (_obj)
             {

@@ -100,17 +100,13 @@ namespace RiskOfChaos.ModificationController.SkillSlots
             {
                 if (!prevouslyLockedSlots.Contains(changedSlot))
                 {
-#if DEBUG
                     Log.Debug($"Set skill slot '{changedSlot}' locked");
-#endif
 
                     OnSkillSlotLocked?.Invoke(changedSlot);
                 }
                 else
                 {
-#if DEBUG
                     Log.Debug($"Set skill slot '{changedSlot}' unlocked");
-#endif
 
                     OnSkillSlotUnlocked?.Invoke(changedSlot);
                 }

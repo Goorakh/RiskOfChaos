@@ -34,17 +34,13 @@ namespace RiskOfChaos.Patches
                 {
                     if (ExpansionUtils.GetObjectRequiredExpansions(prefab).Contains(expansionDef))
                     {
-#if DEBUG
                         Log.Debug($"Already has required expansion {expansionDef.name}");
-#endif
                         return;
                     }
 
                     prefab.AddComponent<ExpansionRequirementComponent>().requiredExpansion = expansionDef;
 
-#if DEBUG
                     Log.Debug($"Added expansion requirement {expansionDef.name} to {prefab.name}");
-#endif
                 });
 
                 operationsList.Add(handle);

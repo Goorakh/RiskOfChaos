@@ -99,9 +99,7 @@ namespace RiskOfChaos.Patches
             }
             else
             {
-#if DEBUG
                 Log.Debug($"Found {setCurrentStatePatchCount} set currentCameraState patch location(s)");
-#endif
             }
         }
 

@@ -83,9 +83,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                 if (_itemBlacklist.Contains(pickup.pickupIndex))
                 {
-#if DEBUG
                     Log.Debug($"Not allowing {pickup.internalName}: Blacklist");
-#endif
                     continue;
                 }
 

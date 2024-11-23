@@ -52,12 +52,9 @@ namespace RiskOfChaos.Patches
             {
                 Log.Error($"Failed to find any patch location(s) for {il.Method.FullName}");
             }
-
             else
             {
-#if DEBUG
                 Log.Debug($"Found {patchCount} patch location(s) for {il.Method.FullName}");
-#endif
             }
         }
     }

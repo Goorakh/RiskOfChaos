@@ -158,17 +158,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
 
             if (healFraction > 0.01f)
             {
-#if DEBUG
                 Log.Debug($"Healing {Util.GetBestMasterName(master)} for {healFraction:P} health (+${moneyDiff})");
-#endif
 
                 body.healthComponent.HealFraction(healFraction, new ProcChainMask());
             }
             else
             {
-#if DEBUG
                 Log.Debug($"Not healing {Util.GetBestMasterName(master)}, below threshold heal: {healFraction:P} (+${moneyDiff})");
-#endif
             }
         }
     }

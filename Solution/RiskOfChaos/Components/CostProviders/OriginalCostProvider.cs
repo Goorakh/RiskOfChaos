@@ -80,9 +80,7 @@ namespace RiskOfChaos.Components.CostProviders
                 return;
             }
 
-#if DEBUG
             Log.Debug($"Determined base cost of {name}: {BaseCost} ({ActiveCostProvider.CostType})");
-#endif
         }
 
         void Start()
@@ -94,18 +92,14 @@ namespace RiskOfChaos.Components.CostProviders
                 {
                     BaseCost = multishopControllerCostProvider.BaseCost;
 
-#if DEBUG
                     Log.Debug($"Determined actual base cost of {name} from {multishopControllerCostProvider.name}: {BaseCost}");
-#endif
                 }
             }
 
             OriginalCostType = ActiveCostProvider.CostType;
             OriginalCost = ActiveCostProvider.Cost;
 
-#if DEBUG
             Log.Debug($"Initialized cost of {name}: {OriginalCostType} ({OriginalCost})");
-#endif
 
             _isInitialized = true;
             InstanceTracker.Add(this);

@@ -87,15 +87,11 @@ namespace RiskOfChaos.EffectHandling
             {
                 timer.SkipAllScheduledActivations();
 
-#if DEBUG
                 Log.Debug($"Timer activating (time remaining: {timer.GetNextActivationTime().TimeUntil})");
-#endif
 
                 if (timer.GetNextActivationTime().TimeUntil <= 1f / 20f)
                 {
-#if DEBUG
                     Log.Debug($"Prevented double timer activation");
-#endif
 
                     timer.SkipActivations(1);
                 }

@@ -95,9 +95,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                 if (_itemBlacklist.Contains(itemIndex))
                 {
-#if DEBUG
                     Log.Debug($"Not scrapping {itemDef}: Blacklist");
-#endif
                     continue;
                 }
 
@@ -137,9 +135,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             _itemScrapOrder = getAllScrappableItems().ToArray();
             Util.ShuffleArray(_itemScrapOrder, rng);
 
-#if DEBUG
             Log.Debug($"Scrap order: [{string.Join(", ", _itemScrapOrder.Select(FormatUtils.GetBestItemDisplayName))}]");
-#endif
         }
 
         void Start()

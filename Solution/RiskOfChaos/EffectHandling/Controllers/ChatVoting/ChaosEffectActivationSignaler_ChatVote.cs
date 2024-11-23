@@ -58,9 +58,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
                 _voteTimer.SetLastActivationTimeStopwatch(value);
 
-#if DEBUG
                 Log.Debug($"Loaded timer data, remaining={_voteTimer.GetNextActivationTime().TimeUntil}");
-#endif
             }
         }
 
@@ -194,9 +192,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 
                 if (_effectVoteSelection.IsValidOptionIndex(voteOptionIndex))
                 {
-#if DEBUG
                     Log.Debug($"Received vote {voteOptionIndex} from user {userId}");
-#endif
 
                     _effectVoteSelection.SetVote(userId, voteOptionIndex);
 

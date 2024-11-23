@@ -47,12 +47,10 @@ namespace RiskOfChaos.EffectDefinitions.UI
                 _healthBarHiderDestroyedCheckTimer = 5f;
 
                 int removedHealthBarHiders = UnityObjectUtils.RemoveAllDestroyed(_healthBarHiderComponents);
-#if DEBUG
                 if (removedHealthBarHiders > 0)
                 {
                     Log.Debug($"Cleared {removedHealthBarHiders} destroyed health bar hider(s)");
                 }
-#endif
             }
         }
 

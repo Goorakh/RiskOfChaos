@@ -5,23 +5,29 @@ namespace RiskOfChaos.Utilities.PersistentSaveData
 {
     public static class PersistentSaveDataManager
     {
-        public static readonly string DirectoryPath = Path.Combine(Application.persistentDataPath, Main.PluginName);
+        static string _directoryPath = null;
+        public static string DirectoryPath
+        {
+            get
+            {
+                if (_directoryPath == null)
+                {
+                    _directoryPath = Path.Combine(Application.persistentDataPath, Main.PluginName);
+
+                    if (!Directory.Exists(_directoryPath))
+                    {
+                        Directory.CreateDirectory(_directoryPath);
+                        Log.Debug($"Created persistent save data directory: {_directoryPath}");
+                    }
+                }
+
+                return _directoryPath;
+            }
+        }
 
         public static string GetSaveFilePath(string fileName)
         {
             return Path.Combine(DirectoryPath, fileName);
-        }
-
-        static PersistentSaveDataManager()
-        {
-            if (!Directory.Exists(DirectoryPath))
-            {
-                Directory.CreateDirectory(DirectoryPath);
-
-#if DEBUG
-                Log.Debug($"Created persistent save data directory: {DirectoryPath}");
-#endif
-            }
         }
     }
 }

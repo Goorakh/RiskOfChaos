@@ -52,9 +52,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 
                         if (allyMasterPrefab)
                         {
-#if DEBUG
                             Log.Debug($"Replaced {master.name} with ally variant: {allyMasterPrefab.name}");
-#endif
 
                             master = allyMasterPrefab;
                             masterName = allyMasterName;

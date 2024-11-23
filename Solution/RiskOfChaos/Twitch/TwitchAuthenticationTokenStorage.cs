@@ -22,9 +22,7 @@ namespace RiskOfChaos.Twitch
             HasStoredToken = tryLoadAccessToken(out TwitchUserAccessToken storedAccessToken);
             if (HasStoredToken)
             {
-#if DEBUG
                 Log.Debug("Loaded access token from file");
-#endif
 
                 TwitchAuthenticationManager.SetTokenFromFile(storedAccessToken);
             }

@@ -67,9 +67,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             Util.ShuffleArray(convertOrder, rng);
 
-#if DEBUG
             Log.Debug($"Convert order: [{string.Join(", ", convertOrder.Select(BodyCatalog.GetBodyName))}]");
-#endif
 
             CharacterBody[] allConvertableEnemies = getAllConvertableEnemies().ToArray();
             foreach (BodyIndex bodyIndex in convertOrder)
@@ -102,9 +100,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             if (positionIndicator)
             {
-#if DEBUG
                 Log.Debug($"Destroying old position indicator: {positionIndicator}");
-#endif
 
                 GameObject.Destroy(positionIndicator);
             }

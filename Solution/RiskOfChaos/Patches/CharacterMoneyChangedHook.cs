@@ -65,9 +65,7 @@ namespace RiskOfChaos.Patches
             }
             else
             {
-#if DEBUG
                 Log.Debug($"Found {patchCount} patch location(s)");
-#endif
             }
         }
     }

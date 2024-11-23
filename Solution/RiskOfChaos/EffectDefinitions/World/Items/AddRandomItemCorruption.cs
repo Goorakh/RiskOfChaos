@@ -12,6 +12,7 @@ using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.EffectUtils.World;
 using RiskOfChaos.SaveHandling;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Comparers;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
@@ -78,9 +79,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
                 if (Language.IsTokenInvalid(item.pickupToken) && Language.IsTokenInvalid(item.descriptionToken))
                     continue;
 
-#if DEBUG
-                Log.Debug($"Including item {Utilities.FormatUtils.GetBestItemDisplayName(item)}");
-#endif
+                Log.Debug($"Including item {FormatUtils.GetBestItemDisplayName(item)}");
 
                 availableItems.Add((ItemIndex)i);
             }

@@ -81,7 +81,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
             updateSignalersEnabled(shouldSignalersBeActive);
         }
 
-        bool updateSignalersEnabled(bool enabled)
+        void updateSignalersEnabled(bool enabled)
         {
             bool changedEnabledState = false;
 
@@ -97,14 +97,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 }
             }
 
-#if DEBUG
             if (changedEnabledState)
             {
                 Log.Debug($"{(enabled ? "enabled" : "disabled")} effect activation signaler(s): {name}");
             }
-#endif
-
-            return changedEnabledState;
         }
     }
 }

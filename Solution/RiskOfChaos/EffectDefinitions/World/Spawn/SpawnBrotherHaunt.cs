@@ -116,9 +116,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
 
                 int countdownTimersRemoved = UnityObjectUtils.RemoveAllDestroyed(_countdownTimers);
-#if DEBUG
                 Log.Debug($"Cleared {countdownTimersRemoved} destroyed countdown timer(s)");
-#endif
             }
 
             if (NetworkServer.active)
@@ -141,9 +139,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     _masterRespawnTimer -= Time.fixedDeltaTime;
                     if (_masterRespawnTimer <= 0f && Stage.instance && Stage.instance.entryTime.timeSinceClamped > 1f)
                     {
-#if DEBUG
                         Log.Debug("Spawned master is null or dead, respawning...");
-#endif
 
                         _spawnedMaster = new MasterSummon
                         {
@@ -200,9 +196,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
                         _destroyCallbacks.Add(destroyCallback);
 
-#if DEBUG
                         Log.Debug($"Created countdown timer for local user {hud.localUserViewer?.id}");
-#endif
                     }
                 }
 

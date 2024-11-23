@@ -39,9 +39,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
                 UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
 
                 int removedPositionControllers = UnityObjectUtils.RemoveAllDestroyed(_delayedPositionControllers);
-#if DEBUG
                 Log.Debug($"Cleared {removedPositionControllers} destroyed position controller(s)");
-#endif
             }
         }
 

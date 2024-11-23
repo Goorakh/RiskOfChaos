@@ -63,9 +63,7 @@ namespace RiskOfChaos.Twitch
 
         static void validateToken()
         {
-#if DEBUG
             Log.Debug("Validating current token");
-#endif
 
             Task.Run(async () =>
             {
@@ -178,9 +176,7 @@ namespace RiskOfChaos.Twitch
                         }
                         else
                         {
-#if DEBUG
                             Log.Debug($"Stored token expires in {timeUntilExpired:g}");
-#endif
                         }
                     }
                 }

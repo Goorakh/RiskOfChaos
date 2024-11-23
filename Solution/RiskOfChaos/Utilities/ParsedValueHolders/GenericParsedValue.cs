@@ -177,7 +177,6 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders
             {
                 _parsedValue = handleParsedInput(value, parseInput);
 
-#if DEBUG
                 if (_boundToConfig != null)
                 {
                     Log.Debug($"Successfully parsed value of {_boundToConfig.Definition} (\"{value}\"): {_parsedValue}");
@@ -186,7 +185,6 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders
                 {
                     Log.Debug($"Successfully parsed \"{value}\": {_parsedValue}");
                 }
-#endif
 
                 ParseFailReason = null;
                 ValueState = ParsedValueState.Valid;

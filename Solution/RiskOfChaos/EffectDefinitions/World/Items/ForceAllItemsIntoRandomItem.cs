@@ -232,9 +232,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
 
                 if (shopTerminalBehavior.CurrentPickupIndex() == PickupIndex.none)
                 {
-#if DEBUG
                     Log.Debug($"Skipping reroll of {shopTerminalBehavior}, no current pickup");
-#endif
                     continue;
                 }
 

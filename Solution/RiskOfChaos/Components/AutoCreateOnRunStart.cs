@@ -55,9 +55,7 @@ namespace RiskOfChaos.Components
                 {
                     NetworkServer.Spawn(Instantiate(networkedPrefab));
 
-#if DEBUG
                     Log.Debug($"Spawned networked prefab {networkedPrefab.name}");
-#endif
                 }
             }
 
@@ -65,9 +63,7 @@ namespace RiskOfChaos.Components
             {
                 Instantiate(prefab);
 
-#if DEBUG
                 Log.Debug($"Spawned prefab {prefab.name}");
-#endif
             }
         }
     }

@@ -116,25 +116,19 @@ namespace RiskOfChaos.Components
         {
             if (!targetObject.TryGetComponent(out Rigidbody rb))
             {
-#if DEBUG
                 Log.Debug($"Cannot add component to {targetObject}: missing Rigidbody component");
-#endif
                 return false;
             }
 
             if (rb.isKinematic)
             {
-#if DEBUG
                 Log.Debug($"Cannot add component to {targetObject}: object is kinematic");
-#endif
                 return false;
             }
 
             if (!rb.GetComponent<Collider>())
             {
-#if DEBUG
                 Log.Debug($"Cannot add component to {targetObject}: missing collider");
-#endif
                 return false;
             }
 
@@ -149,9 +143,7 @@ namespace RiskOfChaos.Components
             if (!CanAddComponent(targetObject))
                 return null;
 
-#if DEBUG
             Log.Debug($"Adding component to {targetObject}");
-#endif
 
             if (!targetObject.GetComponent<NetworkTransform>() && !targetObject.GetComponent<ProjectileNetworkTransform>())
             {

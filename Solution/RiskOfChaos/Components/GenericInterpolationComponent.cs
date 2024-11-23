@@ -98,9 +98,7 @@ namespace RiskOfChaos.Components
 
             if (wasInterpolating && isInterpolationOutComplete)
             {
-#if DEBUG
                 Log.Debug($"Finished interpolation out for {name}");
-#endif
 
                 OnInterpolationOutComplete?.Invoke();
             }

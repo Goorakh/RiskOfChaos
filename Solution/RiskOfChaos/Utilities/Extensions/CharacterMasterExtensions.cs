@@ -62,9 +62,7 @@ namespace RiskOfChaos.Utilities.Extensions
 
             if ((flags & CharacterRespawnFlags.KeepVehicle) != 0)
             {
-#if DEBUG
                 Log.Debug($"seat={oldVehicleSeat}");
-#endif
 
                 if (oldVehicleSeat)
                 {

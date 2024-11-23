@@ -63,9 +63,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                     if (!victimMaster || victimMaster.IsExtraLifePendingServer())
                     {
-#if DEBUG
                         Log.Debug($"Not tracking death: {Util.GetBestMasterName(victimMaster)} is invalid or has extra life pending");
-#endif
                         yield break;
                     }
 
@@ -75,9 +73,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                         CharacterBody currentBody = victimMaster.GetBody();
                         if (currentBody && victimBody != currentBody)
                         {
-#if DEBUG
                             Log.Debug($"Not tracking death: {Util.GetBestMasterName(victimMaster)} has new body, likely respawned");
-#endif
                             yield break;
                         }
                     }

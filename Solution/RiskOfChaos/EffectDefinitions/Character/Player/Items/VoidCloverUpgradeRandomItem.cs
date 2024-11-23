@@ -50,12 +50,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     {
                         Log.Error("Found 0 clover rng field patch locations");
                     }
-#if DEBUG
                     else
                     {
                         Log.Debug($"Found {replaceRngPatchCount} clover rng field patch locations");
                     }
-#endif
 
                     c.Index = 0;
 

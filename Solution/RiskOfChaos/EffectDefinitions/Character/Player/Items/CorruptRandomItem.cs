@@ -56,9 +56,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                 if (_itemBlacklist.Contains(item) || _itemBlacklist.Contains(transformedItem))
                 {
-#if DEBUG
                     Log.Debug($"Excluding {ItemCatalog.GetItemDef(item)} ({ItemCatalog.GetItemDef(transformedItem)}): Corruption blacklist");
-#endif
                     continue;
                 }
 
@@ -92,9 +90,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             _itemCorruptOrder = getAllCorruptableItems().ToArray();
             Util.ShuffleArray(_itemCorruptOrder, rng.Branch());
 
-#if DEBUG
             Log.Debug($"Corrupt order: [{string.Join(", ", _itemCorruptOrder.Select(FormatUtils.GetBestItemDisplayName))}]");
-#endif
         }
 
         void Start()

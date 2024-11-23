@@ -281,36 +281,28 @@ namespace RiskOfChaos.Utilities
         {
             if (!card || !card.prefab)
             {
-#if DEBUG
                 Log.Debug($"Unable to spawn null card {card}");
-#endif
                 return false;
             }
 
             SceneInfo sceneInfo = SceneInfo.instance;
             if (!sceneInfo)
             {
-#if DEBUG
                 Log.Debug($"Unable to spawn {card}: No SceneInfo instance");
-#endif
                 return false;
             }
 
             NodeGraph cardNodeGraph = sceneInfo.GetNodeGraph(card.nodeGraphType);
             if (!cardNodeGraph)
             {
-#if DEBUG
                 Log.Debug($"Unable to spawn {card}: Target node graph {card.nodeGraphType} does not exist");
-#endif
                 return false;
             }
 
             List<NodeGraph.NodeIndex> validNodes = cardNodeGraph.GetActiveNodesForHullMaskWithFlagConditions((HullMask)(1 << (int)card.hullSize), card.requiredFlags, card.forbiddenFlags);
             if (validNodes.Count == 0)
             {
-#if DEBUG
                 Log.Debug($"Unable to spawn {card}: No active nodes matches flags");
-#endif
                 return false;
             }
 
@@ -477,9 +469,7 @@ namespace RiskOfChaos.Utilities
             }
             else
             {
-#if DEBUG
                 Log.Debug($"Generated {targetNodesCount} position(s) ({selectionFraction:P})");
-#endif
             }
 
             return nodePositions;

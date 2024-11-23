@@ -46,9 +46,7 @@ namespace RiskOfChaos.Patches
         {
             if (!hasAuthority)
             {
-#if DEBUG
                 Log.Debug($"Not multiplying force, NetworkServer.active={NetworkServer.active}, {nameof(hasAuthority)}={hasAuthority}");
-#endif
                 return;
             }
 

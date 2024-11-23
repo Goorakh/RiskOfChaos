@@ -50,9 +50,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                     networkTransform.positionTransmitInterval = 1f / 15f;
                     networkTransform.allowClientsideCollision = true;
 
-#if DEBUG
                     Log.Debug($"Added network transform component to {prefab.name} ({prefabAssetPath})");
-#endif
                 });
             }
 
@@ -111,10 +109,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                 UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
 
                 int removedAttractComponents = UnityObjectUtils.RemoveAllDestroyed(_attractComponents);
-
-#if DEBUG
                 Log.Debug($"Cleared {removedAttractComponents} destroyed attract component(s)");
-#endif
             }
         }
 

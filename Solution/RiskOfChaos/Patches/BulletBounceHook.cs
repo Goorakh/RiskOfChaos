@@ -170,12 +170,10 @@ namespace RiskOfChaos.Patches
             {
                 Log.Error("Found 0 ret patch locations");
             }
-#if DEBUG
             else
             {
                 Log.Debug($"Found {retPatchCount} ret patch location(s)");
             }
-#endif
         }
 
         static void tryFireBulletBounce(BulletBounceInfo bounceInfo)

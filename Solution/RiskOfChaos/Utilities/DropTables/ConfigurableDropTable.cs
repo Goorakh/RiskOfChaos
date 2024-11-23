@@ -119,9 +119,7 @@ namespace RiskOfChaos.Utilities.DropTables
                 Run run = Run.instance;
                 if (run)
                 {
-#if DEBUG
                     Log.Debug($"Regenerating drop table '{name}'");
-#endif
 
                     Regenerate(run);
                     _dropTableDirty = false;
@@ -170,16 +168,12 @@ namespace RiskOfChaos.Utilities.DropTables
                     bool remove = false;
                     if (_itemBlacklist != null && _itemBlacklist.Contains(pickupIndex))
                     {
-#if DEBUG
                         Log.Debug($"Removing {pickupIndex} from droptable {name}: Blacklist");
-#endif
                         remove = true;
                     }
                     else if (removePickups.Contains(pickupIndex))
                     {
-#if DEBUG
                         Log.Debug($"Removing {pickupIndex} from droptable {name}: In remove list");
-#endif
                         remove = true;
                     }
 

@@ -150,9 +150,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 
                 int removedBuffComponents = UnityObjectUtils.RemoveAllDestroyed(_keepBuffComponents);
 
-#if DEBUG
                 Log.Debug($"Cleared {removedBuffComponents} destroyed buff component(s)");
-#endif
             }
 
             if (NetworkServer.active)

@@ -310,10 +310,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
                 UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
 
                 int destroyedColliderRenderers = UnityObjectUtils.RemoveAllDestroyed(_colliderRenderers);
-
-#if DEBUG
                 Log.Debug($"Cleared {destroyedColliderRenderers} destroyed collider renderer(s)");
-#endif
             }
         }
 

@@ -12,9 +12,7 @@ namespace RiskOfChaos.Utilities
         {
             if (!body.hasEffectiveAuthority)
             {
-#if DEBUG
                 Log.Debug($"No authority over {body}, sending net message");
-#endif
 
                 NetworkIdentity bodyNetIdentity = body.networkIdentity;
                 NetworkConnection targetConnection = bodyNetIdentity.clientAuthorityOwner ?? (NetworkServer.active ? bodyNetIdentity.connectionToClient : bodyNetIdentity.connectionToServer);

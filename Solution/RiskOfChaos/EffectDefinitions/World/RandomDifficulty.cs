@@ -3,6 +3,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.EffectUtils.World;
 using RiskOfChaos.SaveHandling;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using UnityEngine;
@@ -51,11 +52,8 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             DifficultyIndex newDifficultyIndex = newDifficultySelection.GetRandom(rng);
 
-#if DEBUG
-            DifficultyDef selectedDifficultyDef = DifficultyCatalog.GetDifficultyDef(newDifficultyIndex);
-            Log.Debug($"Selected difficulty: {(selectedDifficultyDef != null ? Language.GetString(selectedDifficultyDef.nameToken) : "NULL")}");
-#endif
-
+            Log.Debug($"Selected difficulty: {FormatUtils.GetBestDifficultyDisplayName(newDifficultyIndex)}");
+            
             _difficultyModificationId = DifficultyModificationManager.Instance.PushDifficultyModification(newDifficultyIndex);
         }
 

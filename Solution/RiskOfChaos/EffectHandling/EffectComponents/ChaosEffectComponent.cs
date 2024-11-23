@@ -95,9 +95,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         [Server]
         public void SetRngSeedServer(ulong seed)
         {
-#if DEBUG
             Log.Debug($"{name}: Server RNG seed {seed}");
-#endif
 
             _rng = new Xoroshiro128Plus(seed);
         }
@@ -179,9 +177,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         {
             NetworkServer.Destroy(gameObject);
 
-#if DEBUG
             Log.Debug($"Retired effect controller {name} (id={netId})");
-#endif
         }
 
         public override bool OnSerialize(NetworkWriter writer, bool initialState)

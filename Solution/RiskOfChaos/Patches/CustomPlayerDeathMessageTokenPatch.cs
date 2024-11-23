@@ -32,9 +32,7 @@ namespace RiskOfChaos.Patches
                 int deathMessageTokenLocalIndex = -1;
                 if (c.TryGotoNext(x => x.MatchStloc(out deathMessageTokenLocalIndex)))
                 {
-#if DEBUG
                     Log.Debug($"Death message token local index: {deathMessageTokenLocalIndex}");
-#endif
 
                     ILLabel messageTokenDecidedLabel = null;
                     if (c.TryGotoNext(x => x.MatchBr(out messageTokenDecidedLabel)))
@@ -45,11 +43,12 @@ namespace RiskOfChaos.Patches
                         c.EmitDelegate(overrideMessageToken);
                         static void overrideMessageToken(ref string messageToken, DamageReport damageReport)
                         {
-#if DEBUG
-                            Log.Debug($"Overriding death message token: {messageToken}");
-#endif
+                            if (OverridePlayerDeathMessageToken != null)
+                            {
+                                Log.Debug($"Overriding death message token: {messageToken}");
 
-                            OverridePlayerDeathMessageToken?.Invoke(damageReport, ref messageToken);
+                                OverridePlayerDeathMessageToken(damageReport, ref messageToken);
+                            }
                         }
                     }
                     else

@@ -56,9 +56,7 @@ namespace RiskOfChaos.Components
                 statsComponent.currentStats.AddUnlockable(lemurianStatCollection.LogUnlockableDef);
             }
 
-#if DEBUG
             Log.Debug($"Recorded Leonard death. attacker={Util.GetBestMasterName(damageReport.attackerMaster)}");
-#endif
         }
 
         void IOnKilledOtherServerReceiver.OnKilledOtherServer(DamageReport damageReport)
@@ -75,9 +73,7 @@ namespace RiskOfChaos.Components
 
             victimStatSheet.AddUnlockable(lemurianStatCollection.LogUnlockableDef);
 
-#if DEBUG
             Log.Debug($"Recorded Leonard player kill. victim={Util.GetBestMasterName(damageReport.victimMaster)}");
-#endif
         }
     }
 }

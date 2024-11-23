@@ -42,9 +42,7 @@ namespace RiskOfChaos.Utilities
                 ItemTierCatalog.allItemTierDefs[i].pickupRules = overridePickupRules;
             }
 
-#if DEBUG
             Log.Debug($"Set item pickup rules override: {overridePickupRules}");
-#endif
         }
 
         static void restorePickupRules()
@@ -66,9 +64,7 @@ namespace RiskOfChaos.Utilities
                 ItemTierCatalog.allItemTierDefs[i].pickupRules = _originalPickupRules[i];
             }
 
-#if DEBUG
             Log.Debug("Restored item pickup rules");
-#endif
         }
 
         ItemTierDef.PickupRules _overrideRules;

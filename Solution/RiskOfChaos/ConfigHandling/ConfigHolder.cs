@@ -193,12 +193,9 @@ namespace RiskOfChaos.ConfigHandling
                 ConfigEntry<T> previousConfigEntry = bindConfigFile(previousDefinition);
                 if (!foundLegacyConfig && !EqualityComparer.Equals(previousConfigEntry.Value, DefaultValue))
                 {
-                    result.Value = previousConfigEntry.Value;
-
-#if DEBUG
                     Log.Debug($"Previous config entry found for {definition}: ({previousConfigEntry.Definition}), overriding value");
-#endif
 
+                    result.Value = previousConfigEntry.Value;
                     foundLegacyConfig = true;
                 }
 
@@ -227,12 +224,9 @@ namespace RiskOfChaos.ConfigHandling
                     ConfigEntry<T> previousConfigEntry = _configFile.Bind(new ConfigDefinition(_previousConfigSectionNames[i], definition.Key), DefaultValue);
                     if (!foundLegacyConfig && !EqualityComparer.Equals(previousConfigEntry.Value, DefaultValue))
                     {
-                        result.Value = previousConfigEntry.Value;
-
-#if DEBUG
                         Log.Debug($"Previous config entry found for {definition}, overriding value");
-#endif
 
+                        result.Value = previousConfigEntry.Value;
                         foundLegacyConfig = true;
                     }
 

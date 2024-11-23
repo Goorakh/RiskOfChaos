@@ -112,10 +112,6 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
                     Log.Error($"No duration defined for effect {name} ({netId})");
                 }
 
-#if DEBUG
-                Log.Debug($"Ending timed effect {name} (id={netId})");
-#endif
-
                 EndEffect();
             }
         }
@@ -133,6 +129,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         [Server]
         public void EndEffect()
         {
+            Log.Debug($"Ending timed effect {name} (id={netId})");
             _effectComponent.RetireEffect();
         }
     }

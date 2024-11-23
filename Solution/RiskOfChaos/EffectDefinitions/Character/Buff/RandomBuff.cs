@@ -155,31 +155,23 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                 BuffDef buffDef = BuffCatalog.GetBuffDef(bi);
                 if (!buffDef || buffDef.isHidden || BuffUtils.IsDebuff(buffDef) || BuffUtils.IsCooldown(buffDef))
                 {
-#if DEBUG
                     Log.Debug($"Excluding hidden/debuff/cooldown buff {buffDef.name}");
-#endif
                     return false;
                 }
 
                 if (BuffUtils.IsDOT(buffDef))
                 {
-#if DEBUG
                     Log.Debug($"Excluding DOT buff: {buffDef.name}");
-#endif
                     return false;
                 }
 
                 if (_buffBlacklist.Contains(buffDef.buffIndex))
                 {
-#if DEBUG
                     Log.Debug($"Excluding buff {buffDef.name}: blacklist");
-#endif
                     return false;
                 }
 
-#if DEBUG
                 Log.Debug($"Including buff {buffDef.name}");
-#endif
 
                 return true;
             }).ToArray();
@@ -233,10 +225,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                 selectedBuff = rng.NextElementUniform(ApplyBuffEffect.FilterSelectableBuffs(_availableBuffIndices).ToList());
             }
 
-#if DEBUG
-            BuffDef buffDef = BuffCatalog.GetBuffDef(selectedBuff);
-            Log.Debug($"Applying buff {buffDef?.name ?? "null"}");
-#endif
+            Log.Debug($"Applying buff {BuffCatalog.GetBuffDef(selectedBuff)}");
 
             return selectedBuff;
         }

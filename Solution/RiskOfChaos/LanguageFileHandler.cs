@@ -11,9 +11,7 @@ namespace RiskOfChaos
                 string languageFolderPath = Path.Combine(Main.ModDirectory, "lang");
                 if (Directory.Exists(languageFolderPath))
                 {
-#if DEBUG
                     Log.Debug($"Found lang folder at {languageFolderPath}, adding to list ({string.Join(", ", folders)})");
-#endif
 
                     folders.Add(languageFolderPath);
                 }

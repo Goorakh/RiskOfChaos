@@ -51,9 +51,7 @@ namespace RiskOfChaos.EffectUtils.World
                 if (_nextOverridePickupIndex == value)
                     return;
 
-#if DEBUG
                 Log.Debug($"Next override pickup: {_nextOverridePickupIndex} -> {value}");
-#endif
 
                 _nextOverridePickupIndex = value;
                 OnNextOverridePickupChanged?.Invoke();

@@ -3,6 +3,7 @@ using RiskOfChaos.Components;
 using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.SaveHandling;
+using RiskOfChaos.Utilities;
 using RoR2;
 using System;
 using System.Collections.Generic;
@@ -123,22 +124,14 @@ namespace RiskOfChaos.EffectUtils.World
                 DifficultyIndex overrideDifficulty = _difficultyModificationsStack[^1].OverrideDifficulty;
                 Run.instance.selectedDifficulty = overrideDifficulty;
 
-#if DEBUG
-                string previousDifficultyName = Language.GetString(DifficultyCatalog.GetDifficultyDef(previousDifficultyIndex)?.nameToken ?? "NULL");
-                string newDifficultyName = Language.GetString(DifficultyCatalog.GetDifficultyDef(Run.instance.selectedDifficulty)?.nameToken ?? "NULL");
-                Log.Debug($"Override difficulty changed: {previousDifficultyName} -> {newDifficultyName}");
-#endif
+                Log.Debug($"Override difficulty changed: {FormatUtils.GetBestDifficultyDisplayName(previousDifficultyIndex)} -> {FormatUtils.GetBestDifficultyDisplayName(Run.instance.selectedDifficulty)}");
             }
             else if (_originalDifficulty != DifficultyIndex.Invalid)
             {
                 Run.instance.selectedDifficulty = _originalDifficulty;
                 _originalDifficulty = DifficultyIndex.Invalid;
 
-#if DEBUG
-                string previousDifficultyName = Language.GetString(DifficultyCatalog.GetDifficultyDef(previousDifficultyIndex)?.nameToken ?? "NULL");
-                string newDifficultyName = Language.GetString(DifficultyCatalog.GetDifficultyDef(Run.instance.selectedDifficulty)?.nameToken ?? "NULL");
-                Log.Debug($"Run difficulty restored ({previousDifficultyName} -> {newDifficultyName})");
-#endif
+                Log.Debug($"Run difficulty restored ({FormatUtils.GetBestDifficultyDisplayName(previousDifficultyIndex)} -> {FormatUtils.GetBestDifficultyDisplayName(Run.instance.selectedDifficulty)})");
             }
         }
     }

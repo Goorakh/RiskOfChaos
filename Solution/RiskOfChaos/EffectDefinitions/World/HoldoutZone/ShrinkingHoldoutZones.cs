@@ -67,9 +67,7 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
                 UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
 
                 int removedShrinkControllers = UnityObjectUtils.RemoveAllDestroyed(_holdoutZoneShrinkControllers);
-#if DEBUG
                 Log.Debug($"Cleared {removedShrinkControllers} destroyed shrink controller(s)");
-#endif
             }
         }
 
