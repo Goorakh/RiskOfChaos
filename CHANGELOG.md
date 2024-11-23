@@ -1,6 +1,6 @@
 ## Changelog
 
-**-.-.- Changes:**
+**2.2.0 Changes:**
 
 * Added 3 effects:
   * Consume Random Item: Turns a random consumable item from every player into its consumed variant
