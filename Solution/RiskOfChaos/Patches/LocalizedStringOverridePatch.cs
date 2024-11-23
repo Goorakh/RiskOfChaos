@@ -25,8 +25,6 @@ namespace RiskOfChaos.Patches
                 onCurrentLanguageChanged?.Invoke();
             }
 
-            OverrideObjectiveTrackerDirtyPatch.ForceRefresh();
-
             foreach (BossGroup bossGroup in InstanceTracker.GetInstancesList<BossGroup>())
             {
                 BossUtils.RefreshBossTitle(bossGroup);

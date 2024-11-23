@@ -44,6 +44,7 @@
 
 * Scrambled Text:
   * Now also scrambles player chat messages
+  * Fixed objectives sometimes not being scrambled
 
 <details>
   <summary>2.1.1 Changes:</summary>
