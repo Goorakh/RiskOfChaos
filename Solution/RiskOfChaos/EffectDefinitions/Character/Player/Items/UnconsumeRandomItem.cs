@@ -133,16 +133,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     consumedItems++;
                 }
 
-                if (unconsumedPairs.Count > 0)
+                if (unconsumedPairs.Count > 0 && master.playerCharacterMasterController)
                 {
                     PickupIndex[] pickupIndices = new PickupIndex[unconsumedPairs.Count];
                     int pickupIndex = 0;
                     foreach (ConsumableItemUtils.ConsumableItemPair consumablePair in unconsumedPairs)
                     {
-                        if (master.playerCharacterMasterController)
-                        {
-                            CharacterMasterNotificationQueueUtils.SendPickupTransformNotification(master, consumablePair.ConsumedItem, consumablePair.Item, CharacterMasterNotificationQueue.TransformationType.Default);
-                        }
+                        CharacterMasterNotificationQueueUtils.SendPickupTransformNotification(master, consumablePair.ConsumedItem, consumablePair.Item, CharacterMasterNotificationQueue.TransformationType.Default);
 
                         pickupIndices[pickupIndex] = consumablePair.Item;
                         pickupIndex++;

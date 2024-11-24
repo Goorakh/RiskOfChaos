@@ -1,6 +1,12 @@
 ## Changelog
 
-**2.2.0 Changes:**
+**-.-.- Changes:**
+
+* Consume Random Item & Repair Random Item:
+  * Disabled item pickup messages for non-players
+
+<details>
+  <summary>2.2.0 Changes:</summary>
 
 * Added 3 effects:
   * Consume Random Item: Turns a random consumable item from every player into its consumed variant
@@ -45,6 +51,8 @@
 * Scrambled Text:
   * Now also scrambles player chat messages
   * Fixed objectives sometimes not being scrambled
+
+</details>
 
 <details>
   <summary>2.1.1 Changes:</summary>
