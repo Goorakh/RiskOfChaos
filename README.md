@@ -47,7 +47,7 @@ Currently features 142 different effects.
 * Spawn Random Boss: Spawns a random boss
 * Max All Cooldowns: Sets all skill and equipment cooldowns to their maximum value (as if you just used them)
 * Uncorrupt Random Item: Converts all of a random item into its non-void variant
-* Poverty: Sets all players' money to 0
+* Poverty: Converts all players' money into experience
 * +5 Minutes: Adds 5 minutes to the run timer
 * Trigger Random Family Event: Activates a random family event for the rest of the current stage
 * Spawn Random Beacon: Spawns a random captain beacon on every player

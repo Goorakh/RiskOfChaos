@@ -126,5 +126,21 @@ namespace RiskOfChaos.Utilities.Extensions
             position = default;
             return false;
         }
+
+        public static bool IsPlayerOrPlayerAlly(this CharacterMaster master)
+        {
+            if (master.playerCharacterMasterController || master.teamIndex == TeamIndex.Player)
+                return true;
+
+            MinionOwnership minionOwnership = master.minionOwnership;
+            if (minionOwnership)
+            {
+                CharacterMaster ownerMaster = minionOwnership.ownerMaster;
+                if (ownerMaster && ownerMaster.IsPlayerOrPlayerAlly())
+                    return true;
+            }
+
+            return false;
+        }
     }
 }

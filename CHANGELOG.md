@@ -2,6 +2,9 @@
 
 **-.-.- Changes:**
 
+* Reworked 1 effect:
+  * Poverty: Now converts all player (and ally) money into experience, instead of just removing.
+
 * Consume Random Item & Repair Random Item:
   * Disabled item pickup messages for non-players
 
