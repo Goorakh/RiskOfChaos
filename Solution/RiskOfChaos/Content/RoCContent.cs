@@ -334,6 +334,8 @@ namespace RiskOfChaos.Content
             public static GameObject ValueModificationManager;
 
             public static GameObject UIModificationProvider;
+
+            public static GameObject PlayerMoneyToExpConverter;
         }
     }
 }
