@@ -101,8 +101,8 @@ namespace RiskOfChaos.Content.Logbook
 
                 GameObject glowModelPrefab = modelPrefab.gameObject.InstantiatePrefab(modelPrefab.name + "Glow");
 
-                ForceModelOverlay forceModelOverlay = glowModelPrefab.AddComponent<ForceModelOverlay>();
-                forceModelOverlay.Overlay = CharacterModel.immuneMaterial;
+                PersistentOverlayController overlayController = glowModelPrefab.AddComponent<PersistentOverlayController>();
+                overlayController.Overlay = CharacterModel.immuneMaterial;
 
                 return glowModelPrefab;
             }
