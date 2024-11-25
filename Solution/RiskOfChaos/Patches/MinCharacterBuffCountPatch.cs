@@ -31,7 +31,12 @@ namespace RiskOfChaos.Patches
                 }
             }
 
-            orig(self, buffType, Mathf.Max(totalMinBuffCount, newCount));
+            if (totalMinBuffCount > 0)
+            {
+                newCount = Mathf.Max(totalMinBuffCount, newCount);
+            }
+
+            orig(self, buffType, newCount);
         }
     }
 }

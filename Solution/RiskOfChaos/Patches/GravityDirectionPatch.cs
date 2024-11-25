@@ -57,14 +57,10 @@ namespace RiskOfChaos.Patches
                     static Vector3 getWorldUpByGravity(Vector3 up)
                     {
                         Vector3 gravity = Physics.gravity;
-                        if (Mathf.Abs(gravity.x) > float.Epsilon || Mathf.Abs(gravity.z) > float.Epsilon || Mathf.Sign(-gravity.y) != Mathf.Sign(up.y))
-                        {
-                            return -gravity.normalized;
-                        }
-                        else
-                        {
+                        if (gravity.sqrMagnitude == 0f)
                             return up;
-                        }
+
+                        return -gravity.normalized;
                     }
 
                     patchCount++;

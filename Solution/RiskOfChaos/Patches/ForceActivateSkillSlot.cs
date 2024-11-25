@@ -6,7 +6,6 @@ using RiskOfChaos.ModificationController.SkillSlots;
 using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.CharacterAI;
-using System.Linq;
 using UnityEngine;
 
 namespace RiskOfChaos.Patches
@@ -72,46 +71,43 @@ namespace RiskOfChaos.Patches
 
             int patchCount = 0;
 
+            SkillSlot slotIndex = SkillSlot.None;
             while (c.TryFindNext(out ILCursor[] foundCursors,
-                                 x => x.MatchLdflda(out FieldReference field) && field.DeclaringType.Is(typeof(InputBankTest)) && field.Name.StartsWith("skill"),
+                                 x => x.MatchLdflda(out FieldReference field) && field.DeclaringType.Is(typeof(InputBankTest)) && tryGetSkillSlotIndex(field.Name, out slotIndex),
                                  x => x.MatchCallOrCallvirt<InputBankTest.ButtonState>(nameof(InputBankTest.ButtonState.PushState))))
             {
-                FieldReference buttonField = foundCursors[0].Next.Operand as FieldReference;
-                if (tryGetSkillSlotIndex(buttonField.Name, out SkillSlot slotIndex))
+                ILCursor cursor = foundCursors[1];
+                cursor.Emit(OpCodes.Ldc_I4, (int)slotIndex);
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.EmitDelegate(overrideButtonState);
+                static bool overrideButtonState(bool origButtonState, SkillSlot skillSlot, MonoBehaviour instance)
                 {
-                    ILCursor cursor = foundCursors[1];
-                    cursor.Emit(OpCodes.Ldc_I4, (int)slotIndex);
-                    cursor.Emit(OpCodes.Ldarg_0);
-                    cursor.EmitDelegate(overrideButtonState);
-                    static bool overrideButtonState(bool origButtonState, SkillSlot skillSlot, MonoBehaviour instance)
+                    SkillSlotModificationManager skillSlotModificationManager = SkillSlotModificationManager.Instance;
+                    if (skillSlotModificationManager && skillSlotModificationManager.ForceActivatedSlots.Contains(skillSlot))
                     {
-                        SkillSlotModificationManager skillSlotModificationManager = SkillSlotModificationManager.Instance;
-                        if (skillSlotModificationManager && skillSlotModificationManager.ForceActivatedSlots.Contains(skillSlot))
+                        CharacterBody body;
+                        switch (instance)
                         {
-                            CharacterBody body;
-                            switch (instance)
-                            {
-                                case PlayerCharacterMasterController playerCharacter:
-                                    body = playerCharacter.body;
-                                    break;
-                                case BaseAI ai:
-                                    body = ai.body;
-                                    break;
-                                default:
-                                    Log.Error($"Unhandled instance type: {instance}");
-                                    body = null;
-                                    break;
-                            }
-
-                            if (body && !shouldIgnoreSkillSlot(body.bodyIndex, skillSlot))
-                            {
-                                // Don't actually have it active *all* the time, since some skills require the key to not be held
-                                return RoR2Application.rng.nextNormalizedFloat > 0.2f;
-                            }
+                            case PlayerCharacterMasterController playerCharacter:
+                                body = playerCharacter.body;
+                                break;
+                            case BaseAI ai:
+                                body = ai.body;
+                                break;
+                            default:
+                                Log.Error($"Unhandled instance type: {instance}");
+                                body = null;
+                                break;
                         }
 
-                        return origButtonState;
+                        if (body && !shouldIgnoreSkillSlot(body.bodyIndex, skillSlot))
+                        {
+                            // Don't actually have it active *all* the time, since some skills require the key to not be held
+                            return RoR2Application.rng.nextNormalizedFloat > 0.2f;
+                        }
                     }
+
+                    return origButtonState;
                 }
 
                 c.Index = foundCursors[foundCursors.Length - 1].Index;

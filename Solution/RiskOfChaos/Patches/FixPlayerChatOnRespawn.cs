@@ -1,5 +1,4 @@
 ﻿using RiskOfChaos.Trackers;
-using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.UI;
 

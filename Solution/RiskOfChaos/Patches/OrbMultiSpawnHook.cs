@@ -70,7 +70,7 @@ namespace RiskOfChaos.Patches
                     }
                 }
 
-                ProjectileModificationManager.Instance.StartCoroutine(spawnExtraOrbs(orb, ProjectileModificationManager.Instance.AdditionalSpawnCount));
+                ProjectileModificationManager.Instance.StartCoroutine(spawnExtraOrbs(OrbUtils.Clone(orb), ProjectileModificationManager.Instance.AdditionalSpawnCount));
             }
 
             orig(self, orb);

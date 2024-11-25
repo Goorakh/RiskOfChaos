@@ -42,11 +42,6 @@ namespace RiskOfChaos.Patches
             IL.EntityStates.VoidSurvivor.Weapon.FireCorruptHandBeam.FixedUpdate += fixStateSprintCancel;
         }
 
-        static bool forceAllSkillsAgileActive()
-        {
-            return OverrideSkillsAgile.IsAllSkillsAgile;
-        }
-
         static void fixStateSprintCancel(ILContext il)
         {
             ILCursor c = new ILCursor(il);
@@ -59,7 +54,7 @@ namespace RiskOfChaos.Patches
                 c.EmitDelegate(shouldConsiderSprining);
                 static bool shouldConsiderSprining(bool isSprinting)
                 {
-                    if (forceAllSkillsAgileActive())
+                    if (OverrideSkillsAgile.IsAllSkillsAgile)
                         return false;
 
                     return isSprinting;

@@ -54,25 +54,28 @@ namespace RiskOfChaos.Patches
         delegate Sprite GenericSkill_orig_get_icon(GenericSkill self);
         static Sprite GenericSkill_get_icon(GenericSkill_orig_get_icon orig, GenericSkill self)
         {
-            Sprite defaultIcon = orig(self);
+            Sprite icon = orig(self);
 
             if (isSkillLocked(self) && _lockedSkillIcon)
             {
-                return _lockedSkillIcon;
+                icon = _lockedSkillIcon;
             }
 
-            return defaultIcon;
+            return icon;
         }
 
         static void SkillSlotModificationManager_OnSkillSlotUnlocked(SkillSlot slot)
         {
-            foreach (SkillIcon icon in GameObject.FindObjectsOfType<SkillIcon>())
+            foreach (HUD hud in HUD.readOnlyInstanceList)
             {
-                if (icon.targetSkillSlot == slot)
+                foreach (SkillIcon skillIcon in hud.skillIcons)
                 {
-                    if (icon.flashPanelObject)
+                    if (skillIcon.targetSkillSlot == slot)
                     {
-                        icon.flashPanelObject.SetActive(true);
+                        if (skillIcon.flashPanelObject)
+                        {
+                            skillIcon.flashPanelObject.SetActive(true);
+                        }
                     }
                 }
             }

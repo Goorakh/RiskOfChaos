@@ -16,12 +16,11 @@ namespace RiskOfChaos.Patches
             add
             {
                 _preRecalculateStats += value;
-                setPatchesActive(true);
+                tryApplyPatches();
             }
             remove
             {
                 _preRecalculateStats -= value;
-                refreshPatchesActive();
             }
         }
 
@@ -30,40 +29,22 @@ namespace RiskOfChaos.Patches
             add
             {
                 _postRecalculateStats += value;
-                setPatchesActive(true);
+                tryApplyPatches();
             }
             remove
             {
                 _postRecalculateStats -= value;
-                refreshPatchesActive();
             }
         }
 
-        static void refreshPatchesActive()
+        static void tryApplyPatches()
         {
-            static bool hasAnyListeners<T>(T del) where T : Delegate
-            {
-                return del?.GetInvocationList()?.Length is > 0;
-            }
-
-            setPatchesActive(hasAnyListeners(_preRecalculateStats) || hasAnyListeners(_postRecalculateStats));
-        }
-
-        static void setPatchesActive(bool active)
-        {
-            if (_appliedPatches == active)
+            if (_appliedPatches)
                 return;
 
-            _appliedPatches = active;
+            _appliedPatches = true;
 
-            if (_appliedPatches)
-            {
-                On.RoR2.CharacterBody.RecalculateStats += CharacterBody_RecalculateStats;
-            }
-            else
-            {
-                On.RoR2.CharacterBody.RecalculateStats -= CharacterBody_RecalculateStats;
-            }
+            On.RoR2.CharacterBody.RecalculateStats += CharacterBody_RecalculateStats;
         }
 
         static void CharacterBody_RecalculateStats(On.RoR2.CharacterBody.orig_RecalculateStats orig, CharacterBody self)

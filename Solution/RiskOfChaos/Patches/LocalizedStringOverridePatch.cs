@@ -10,24 +10,17 @@ namespace RiskOfChaos.Patches
     {
         static readonly FieldInfo Language_onCurrentLanguageChanged = AccessTools.DeclaredField(typeof(Language), nameof(Language.onCurrentLanguageChanged));
 
-        static LocalizedStringOverridePatch()
+        public static void RefreshLanguageTokens()
         {
             if (Language_onCurrentLanguageChanged == null)
             {
-                Log.Error($"Failed to find field {nameof(Language)}.{nameof(Language.onCurrentLanguageChanged)}");
+                Log.Error($"Unable to find field {nameof(Language)}.{nameof(Language.onCurrentLanguageChanged)}");
+                return;
             }
-        }
 
-        public static void RefreshLanguageTokens()
-        {
-            if (Language_onCurrentLanguageChanged != null && Language_onCurrentLanguageChanged.GetValue(null) is Action onCurrentLanguageChanged)
+            if (Language_onCurrentLanguageChanged.GetValue(null) is Action onCurrentLanguageChanged)
             {
                 onCurrentLanguageChanged?.Invoke();
-            }
-
-            foreach (BossGroup bossGroup in InstanceTracker.GetInstancesList<BossGroup>())
-            {
-                BossUtils.RefreshBossTitle(bossGroup);
             }
         }
 
@@ -78,18 +71,16 @@ namespace RiskOfChaos.Patches
 
             if (_overrideLanguageString != null && canModifyToken(token))
             {
-                string tmpResult = result;
-
                 try
                 {
-                    _overrideLanguageString(ref tmpResult, token, self);
+                    string resultHolder = result;
+                    _overrideLanguageString(ref resultHolder, token, self);
+                    result = resultHolder;
                 }
                 catch (Exception e)
                 {
                     Log.Error_NoCallerPrefix($"Failed to override language token {token}: {e}");
                 }
-
-                result = tmpResult;
             }
 
             return result;

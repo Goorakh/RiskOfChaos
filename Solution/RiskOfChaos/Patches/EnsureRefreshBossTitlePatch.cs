@@ -8,9 +8,18 @@ namespace RiskOfChaos.Patches
         [SystemInitializer]
         static void Init()
         {
+            Language.onCurrentLanguageChanged += Language_onCurrentLanguageChanged;
             Inventory.onInventoryChangedGlobal += Inventory_onInventoryChangedGlobal;
             On.RoR2.CharacterBody.OnBuffFirstStackGained += CharacterBody_OnBuffFirstStackGained;
             On.RoR2.CharacterBody.OnBuffFinalStackLost += CharacterBody_OnBuffFinalStackLost;
+        }
+
+        static void Language_onCurrentLanguageChanged()
+        {
+            foreach (BossGroup bossGroup in InstanceTracker.GetInstancesList<BossGroup>())
+            {
+                BossUtils.RefreshBossTitle(bossGroup);
+            }
         }
 
         static void Inventory_onInventoryChangedGlobal(Inventory inventory)
