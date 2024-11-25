@@ -14,7 +14,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Gravity
 {
-    [ChaosTimedEffect("rotate_gravity", TimedEffectType.UntilStageEnd, DefaultSelectionWeight = 0.8f)]
+    [ChaosTimedEffect("rotate_gravity", TimedEffectType.UntilStageEnd)]
     [EffectConfigBackwardsCompatibility("Effect: Random Gravity Direction (Lasts 1 stage)")]
     public sealed class RotateGravity : NetworkBehaviour
     {

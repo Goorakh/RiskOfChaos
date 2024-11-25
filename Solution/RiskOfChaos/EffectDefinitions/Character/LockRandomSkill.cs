@@ -19,7 +19,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosTimedEffect("lock_random_skill", 90f, DefaultSelectionWeight = 0.5f)]
+    [ChaosTimedEffect("lock_random_skill", 90f, DefaultSelectionWeight = 0.7f)]
     [EffectConfigBackwardsCompatibility("Effect: Disable Random Skill (Lasts 1 stage)")]
     public sealed class LockRandomSkill : NetworkBehaviour
     {

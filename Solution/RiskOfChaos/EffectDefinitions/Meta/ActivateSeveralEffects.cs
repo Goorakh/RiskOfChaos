@@ -13,7 +13,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Meta
 {
-    [ChaosEffect("activate_several_effects", DefaultSelectionWeight = 0.5f)]
+    [ChaosEffect("activate_several_effects", DefaultSelectionWeight = 0.7f)]
     public sealed class ActivateSeveralEffects : NetworkBehaviour
     {
         [InitEffectInfo]

@@ -5,7 +5,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
-    [ChaosEffect("spawn_doppelganger", DefaultSelectionWeight = 0.8f)]
+    [ChaosEffect("spawn_doppelganger", DefaultSelectionWeight = 0.6f)]
     public sealed class SpawnDoppelganger : NetworkBehaviour
     {
         ChaosEffectComponent _effectComponent;

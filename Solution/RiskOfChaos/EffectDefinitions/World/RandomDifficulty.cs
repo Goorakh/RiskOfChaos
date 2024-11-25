@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosTimedEffect("random_difficulty", TimedEffectType.UntilStageEnd, DefaultSelectionWeight = 0.6f, HideFromEffectsListWhenPermanent = true)]
+    [ChaosTimedEffect("random_difficulty", TimedEffectType.UntilStageEnd, DefaultSelectionWeight = 0.7f, HideFromEffectsListWhenPermanent = true)]
     public sealed class RandomDifficulty : NetworkBehaviour
     {
         ChaosEffectComponent _effectComponent;

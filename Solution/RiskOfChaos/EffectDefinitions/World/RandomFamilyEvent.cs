@@ -12,7 +12,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosEffect("random_family_event", DefaultSelectionWeight = 0.6f)]
+    [ChaosEffect("random_family_event", DefaultSelectionWeight = 0.7f)]
     public sealed class RandomFamilyEvent : NetworkBehaviour
     {
         static readonly HashSet<FamilyDirectorCardCategorySelection> _forcedFamilyCardSelections = [];

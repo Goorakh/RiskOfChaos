@@ -14,7 +14,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Interactables
 {
-    [ChaosEffect("interact_all_interactables", DefaultSelectionWeight = 0.4f)]
+    [ChaosEffect("interact_all_interactables", DefaultSelectionWeight = 0.5f)]
     public sealed class InteractAllInteractables : NetworkBehaviour
     {
         [EffectConfig]

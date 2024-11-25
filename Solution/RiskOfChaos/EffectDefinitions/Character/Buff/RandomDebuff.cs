@@ -14,7 +14,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
-    [ChaosTimedEffect("random_debuff", 60f, DefaultSelectionWeight = 0.9f)]
+    [ChaosTimedEffect("random_debuff", 60f)]
     [EffectConfigBackwardsCompatibility("Effect: Give Everyone a Random Debuff (Lasts 1 stage)")]
     [RequiredComponents(typeof(ApplyBuffEffect))]
     public sealed class RandomDebuff : NetworkBehaviour

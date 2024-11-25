@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions
 {
-    [ChaosEffect("nothing", DefaultSelectionWeight = 0.5f)]
+    [ChaosEffect("nothing", DefaultSelectionWeight = 0.7f)]
     public sealed class Nothing : MonoBehaviour
     {
         [InitEffectInfo]

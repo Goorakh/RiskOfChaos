@@ -19,7 +19,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 {
-    [ChaosEffect("spawn_random_ally", DefaultSelectionWeight = 0.9f)]
+    [ChaosEffect("spawn_random_ally")]
     public sealed class SpawnRandomAlly : NetworkBehaviour
     {
         static readonly SpawnPool<CharacterSpawnCard> _spawnPool = new SpawnPool<CharacterSpawnCard>

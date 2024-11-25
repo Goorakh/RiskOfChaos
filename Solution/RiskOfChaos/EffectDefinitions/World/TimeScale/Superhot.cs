@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 {
-    [ChaosTimedEffect("superhot", 45f, AllowDuplicates = false)]
+    [ChaosTimedEffect("superhot", 45f, DefaultSelectionWeight = 0.8f, AllowDuplicates = false)]
     public sealed class Superhot : MonoBehaviour
     {
         [ContentInitializer]

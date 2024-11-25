@@ -5,6 +5,24 @@
 * Reworked 1 effect:
   * Poverty: Now converts all player (and ally) money into experience, instead of just removing.
 
+* Adjusted Default Effect Weights:
+  * Give Everyone a Random Debuff: 0.9 -> 1.0
+  * Cleanse Random Item: 0.5 -> 0.6
+  * Repair Random Item: 0.9 -> 1.0
+  * Benthic Transform Random Item: 0.5 -> 0.6
+  * Disable Random Skill: 0.5 -> 0.7
+  * Combo: 0.5 -> 0.7
+  * Random Gravity Direction: 0.8 -> 1.0
+  * Decrease Chest Prices: 0.8 -> 1.0
+  * Activate All Interactables: 0.4 -> 0.5
+  * Orbital Bombardment: 0.9 -> 1.0
+  * Spawn Random Ally: 0.9 -> 1.0
+  * Spawn Doppelganger: 0.8 -> 0.6
+  * Change Difficulty: 0.6 -> 0.7
+  * Trigger Random Family Event: 0.6 -> 0.7
+  * Nothing: 0.5 -> 0.7
+  * Superhot: 1.0 -> 0.8
+
 * Consume Random Item & Repair Random Item:
   * Disabled item pickup messages for non-players
 

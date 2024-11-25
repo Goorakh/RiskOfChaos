@@ -20,7 +20,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
-    [ChaosEffect("cleanse_random_item", DefaultSelectionWeight = 0.5f)]
+    [ChaosEffect("cleanse_random_item", DefaultSelectionWeight = 0.6f)]
     public sealed class CleanseRandomItem : NetworkBehaviour
     {
         [EffectConfig]
