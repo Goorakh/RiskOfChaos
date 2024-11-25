@@ -37,7 +37,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
 
         ChaosEffectComponent _effectComponent;
 
-        Quaternion _gravityRotation;
+        Quaternion _gravityRotation = Quaternion.identity;
 
         ValueModificationController _gravityModificationController;
 
@@ -53,7 +53,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
             Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
             float maxDeviation = _maxDeviation.Value;
-            _gravityRotation = QuaternionUtils.RandomDeviation(Mathf.Clamp(maxDeviation - 10f, 0f, 10f), maxDeviation, rng);
+            _gravityRotation = QuaternionUtils.RandomDeviation(Mathf.Max(maxDeviation / 3f, 0f), maxDeviation, rng);
+
+            Log.Debug($"Gravity angle: {Vector3.Angle(Vector3.down, _gravityRotation * Vector3.down)}");
         }
 
         void Start()
