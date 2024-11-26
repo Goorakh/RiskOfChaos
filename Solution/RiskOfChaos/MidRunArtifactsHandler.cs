@@ -25,31 +25,63 @@ namespace RiskOfChaos
 
         static void RunArtifactManager_onArtifactEnabledGlobal(RunArtifactManager runArtifactManager, ArtifactDef artifactDef)
         {
+            onArtifactStateChanged(artifactDef, true);
+        }
+
+        static void RunArtifactManager_onArtifactDisabledGlobal(RunArtifactManager runArtifactManager, ArtifactDef artifactDef)
+        {
+            onArtifactStateChanged(artifactDef, false);
+        }
+
+        static void onArtifactStateChanged(ArtifactDef artifactDef, bool enabled)
+        {
             if (Stage.instance)
             {
                 if (artifactDef == RoR2Content.Artifacts.Sacrifice)
                 {
-                    onSacrificeEnabled();
+                    if (enabled)
+                    {
+                        onSacrificeEnabled();
+                    }
                 }
                 else if (artifactDef == RoR2Content.Artifacts.RandomSurvivorOnRespawn)
                 {
-                    onMetamorphosisEnabled();
+                    if (enabled)
+                    {
+                        onMetamorphosisEnabled();
+                    }
+                }
+                else if (artifactDef == RoR2Content.Artifacts.SingleMonsterType)
+                {
+                    if (!enabled)
+                    {
+                        onKinDisabled();
+                    }
                 }
                 else if (artifactDef == RoR2Content.Artifacts.Enigma)
                 {
-                    onEnigmaEnabled();
+                    if (enabled)
+                    {
+                        onEnigmaEnabled();
+                    }
                 }
-                if (artifactDef == CU8Content.Artifacts.Devotion)
+                else if (artifactDef == CU8Content.Artifacts.Devotion)
                 {
-                    onDevotionEnabled();
+                    if (enabled)
+                    {
+                        onDevotionEnabled();
+                    }
                 }
                 else if (artifactDef == CU8Content.Artifacts.Delusion)
                 {
-                    onDelusionEnabledOrDisabled(true);
+                    onDelusionEnabledOrDisabled(enabled);
                 }
                 else if (artifactDef == DLC2Content.Artifacts.Rebirth)
                 {
-                    onRebirthEnabled();
+                    if (enabled)
+                    {
+                        onRebirthEnabled();
+                    }
                 }
 
                 foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
@@ -57,31 +89,19 @@ namespace RiskOfChaos
                     body.MarkAllStatsDirty();
                 }
 
-                foreach (LocalUser user in LocalUserManager.readOnlyLocalUsersList)
+                if (enabled)
                 {
-                    if (user is null)
-                        continue;
-
-                    CharacterMaster localPlayerMaster = user.cachedMaster;
-                    if (localPlayerMaster)
+                    foreach (LocalUser user in LocalUserManager.readOnlyLocalUsersList)
                     {
-                        CharacterMasterNotificationQueue.PushArtifactNotification(localPlayerMaster, artifactDef);
-                    }
-                }
-            }
-        }
+                        if (user is null)
+                            continue;
 
-        static void RunArtifactManager_onArtifactDisabledGlobal(RunArtifactManager runArtifactManager, ArtifactDef artifactDef)
-        {
-            if (Stage.instance)
-            {
-                if (artifactDef == RoR2Content.Artifacts.SingleMonsterType)
-                {
-                    onKinDisabled();
-                }
-                else if (artifactDef == CU8Content.Artifacts.Delusion)
-                {
-                    onDelusionEnabledOrDisabled(false);
+                        CharacterMaster localPlayerMaster = user.cachedMaster;
+                        if (localPlayerMaster)
+                        {
+                            CharacterMasterNotificationQueue.PushArtifactNotification(localPlayerMaster, artifactDef);
+                        }
+                    }
                 }
             }
         }
