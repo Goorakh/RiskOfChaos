@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.Patches;
+using RiskOfChaos.Utilities;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -66,14 +67,41 @@ namespace RiskOfChaos.ModificationController.Gravity
 
         void refreshGravityModifications(IReadOnlyCollection<GravityModificationProvider> modificationProviders)
         {
-            Vector3 gravity = GravityTracker.BaseGravity;
+            float strengthMultiplier = 1f;
+            Quaternion gravityRotation = Quaternion.identity;
 
             foreach (GravityModificationProvider modificationProvider in modificationProviders)
             {
-                gravity = modificationProvider.GravityRotation * (gravity * modificationProvider.GravityMultiplier);
+                strengthMultiplier *= modificationProvider.GravityMultiplier;
+                gravityRotation *= modificationProvider.GravityRotation;
             }
 
-            GravityTracker.SetGravityUntracked(gravity);
+            strengthMultiplier = Mathf.Max(0.01f, strengthMultiplier);
+
+            gravityRotation.ToAngleAxis(out float tiltAngle, out Vector3 tiltAxis);
+            tiltAngle = Mathf.Min(tiltAngle, 89f);
+            gravityRotation = Quaternion.AngleAxis(tiltAngle, tiltAxis);
+
+            Vector3 gravity = GravityTracker.BaseGravity;
+
+            Vector3 rotatedGravity = gravityRotation * gravity;
+
+            const float BOOST_MIN_ANGLE = 0f;
+            const float BOOST_MAX_ANGLE = 90f;
+            const float BOOST_MIN = 1f;
+            const float BOOST_MAX = 4f;
+
+            float normalizedAngle = Mathf.InverseLerp(BOOST_MIN_ANGLE, BOOST_MAX_ANGLE, tiltAngle);
+
+            float strengthBoostXZ = Mathf.Lerp(BOOST_MIN, BOOST_MAX, 1f - Ease.OutQuad(normalizedAngle));
+            
+            Vector3 gravityScale = new Vector3(strengthBoostXZ, 1f, strengthBoostXZ) * strengthMultiplier;
+
+            Vector3 modifiedGravity = Vector3.Scale(rotatedGravity, gravityScale);
+
+            GravityTracker.SetGravityUntracked(modifiedGravity);
+
+            Log.Debug($"multiplier={strengthMultiplier}, tilt={tiltAngle}, XZ multiplier={strengthBoostXZ}. eff mult={modifiedGravity.magnitude / gravity.magnitude}, eff tilt={Vector3.Angle(gravity, modifiedGravity)}");
         }
     }
 }
