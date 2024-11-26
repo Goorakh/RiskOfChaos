@@ -81,8 +81,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
                                                                                       0.03f,
                                                                                       rng))
             {
-                Quaternion rotation = QuaternionUtils.PointLocalDirectionAt(Vector3.up, SpawnUtils.GetEnvironmentNormalAtPoint(position))
-                                    * QuaternionUtils.RandomDeviation(5f, rng);
+                Vector3 up = VectorUtils.Spread(SpawnUtils.GetEnvironmentNormalAtPoint(position), 5f, rng);
+
+                Quaternion rotation = QuaternionUtils.PointLocalDirectionAt(Vector3.up, up);
 
                 ProjectileManager.instance.FireProjectile(new FireProjectileInfo
                 {

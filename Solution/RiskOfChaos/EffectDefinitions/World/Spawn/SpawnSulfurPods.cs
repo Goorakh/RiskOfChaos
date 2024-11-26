@@ -59,10 +59,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                                                                                       _rng))
             {
                 Vector3 normal = SpawnUtils.GetEnvironmentNormalAtPoint(position);
+                Vector3 up = VectorUtils.Spread(normal, 10f, _rng);
 
                 Quaternion rotation = Quaternion.AngleAxis(_rng.RangeFloat(0f, 360f), normal)
-                                    * QuaternionUtils.RandomDeviation(15f, _rng)
-                                    * QuaternionUtils.PointLocalDirectionAt(Vector3.up, normal);
+                                    * QuaternionUtils.PointLocalDirectionAt(Vector3.up, up);
 
                 if (RoCContent.NetworkedPrefabs.NetworkedSulfurPodBase)
                 {

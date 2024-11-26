@@ -1,4 +1,5 @@
-﻿using RoR2;
+﻿using HG;
+using RoR2;
 using UnityEngine;
 
 namespace RiskOfChaos.Utilities
@@ -10,27 +11,19 @@ namespace RiskOfChaos.Utilities
             return Util.QuaternionSafeLookRotation(targetDirection) * Quaternion.FromToRotation(localDirection, Vector3.forward);
         }
 
-        public static Quaternion RandomDeviation(float minDeviation, float maxDeviation, Xoroshiro128Plus rng)
+        public static Quaternion Spread(Vector3 direction, float minAngle, float maxAngle, Xoroshiro128Plus rng)
         {
-            float deviation;
-            if (minDeviation >= maxDeviation)
-            {
-                deviation = Mathf.Min(minDeviation, maxDeviation);
-            }
-            else
-            {
-                deviation = rng.RangeFloat(minDeviation, maxDeviation);
-            }
+            direction = direction.normalized;
 
-            Vector3 direction = Quaternion.AngleAxis(rng.RangeFloat(0f, 360f), Vector3.forward)
-                                * (Quaternion.AngleAxis(deviation, Vector3.right) * Vector3.forward);
+            float angle = rng.RangeFloat(minAngle, maxAngle);
+            Vector3 axis = Vector3.Cross(direction, rng.PointOnUnitSphere()).normalized;
 
-            return Util.QuaternionSafeLookRotation(direction);
+            return Quaternion.AngleAxis(angle, axis);
         }
 
-        public static Quaternion RandomDeviation(float maxDeviation, Xoroshiro128Plus rng)
+        public static Quaternion Spread(Vector3 baseDirection, float maxAngle, Xoroshiro128Plus rng)
         {
-            return RandomDeviation(0, maxDeviation, rng);
+            return Spread(baseDirection, 0f, maxAngle, rng);
         }
     }
 }

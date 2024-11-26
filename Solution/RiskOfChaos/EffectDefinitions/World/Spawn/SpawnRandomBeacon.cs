@@ -73,8 +73,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
                 Vector3 spawnPosition = body.footPosition;
 
-                Quaternion rotation = QuaternionUtils.PointLocalDirectionAt(Vector3.up, SpawnUtils.GetEnvironmentNormalAtPoint(spawnPosition))
-                                    * QuaternionUtils.RandomDeviation(5f, _rng);
+                Vector3 up = VectorUtils.Spread(SpawnUtils.GetEnvironmentNormalAtPoint(spawnPosition), 5f, _rng);
+
+                Quaternion rotation = QuaternionUtils.PointLocalDirectionAt(Vector3.up, up);
 
                 GameObject beacon = Instantiate(_selectedBeaconPrefab, spawnPosition, rotation);
 

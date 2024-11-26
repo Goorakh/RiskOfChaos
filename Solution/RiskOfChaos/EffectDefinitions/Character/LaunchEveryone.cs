@@ -62,7 +62,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         static Vector3 getLaunchDirection(Xoroshiro128Plus rng)
         {
-            return QuaternionUtils.RandomDeviation(70f, rng) * Vector3.up;
+            return VectorUtils.Spread(Vector3.up, 70f, rng);
         }
 
         static void tryLaunchInRandomDirection(CharacterBody body, Xoroshiro128Plus rng)

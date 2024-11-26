@@ -53,7 +53,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
             Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
             float maxDeviation = _maxDeviation.Value;
-            _gravityRotation = QuaternionUtils.RandomDeviation(Mathf.Max(maxDeviation / 3f, 0f), maxDeviation, rng);
+            _gravityRotation = QuaternionUtils.Spread(Vector3.down, maxDeviation / 3f, maxDeviation, rng);
 
             Log.Debug($"Gravity angle: {Vector3.Angle(Vector3.down, _gravityRotation * Vector3.down)}");
         }

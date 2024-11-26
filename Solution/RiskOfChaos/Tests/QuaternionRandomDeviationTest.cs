@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Utilities;
+﻿using HG;
+using RiskOfChaos.Utilities;
 using RoR2;
 using System;
 using UnityEngine;
@@ -8,7 +9,7 @@ namespace RiskOfChaos.Tests
 #if DEBUG
     static class QuaternionRandomDeviationTest
     {
-        [ConCommand(commandName = "roc_test_quaternion_random_deviation")]
+        [ConCommand(commandName = "roc_test_random_spread")]
         static void CCTestQuaternionRandomDeviation(ConCommandArgs args)
         {
             float firstFloatArg = args.GetArgFloat(0);
@@ -26,6 +27,8 @@ namespace RiskOfChaos.Tests
                 maxAngle = firstFloatArg;
             }
 
+            Xoroshiro128Plus rng = new Xoroshiro128Plus(RoR2Application.rng.nextUlong);
+
             float averageAngle = 0f;
 
             float minGeneratedAngle = float.PositiveInfinity;
@@ -37,11 +40,10 @@ namespace RiskOfChaos.Tests
 
             for (int i = 0; i < ITERATIONS; i++)
             {
-                Quaternion deviation = QuaternionUtils.RandomDeviation(minAngle, maxAngle, RoR2Application.rng);
+                Vector3 baseDirection = rng.PointOnUnitSphere();
+                Vector3 randomSpread = VectorUtils.Spread(baseDirection, minAngle, maxAngle, rng);
 
-                Vector3 vector = deviation * Vector3.forward;
-
-                float angle = Vector3.Angle(vector, Vector3.forward);
+                float angle = Vector3.Angle(baseDirection, randomSpread);
 
                 minGeneratedAngle = Mathf.Min(angle, minGeneratedAngle);
                 maxGeneratedAngle = Mathf.Max(angle, maxGeneratedAngle);

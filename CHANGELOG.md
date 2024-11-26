@@ -5,6 +5,9 @@
 * Reworked 1 effect:
   * Poverty: Now converts all player (and ally) money into experience, instead of just removing.
 
+* Random Gravity Direction:
+  * Fixed new direction minimum angle not working
+
 * Bouncy Projectiles & Repeating Projectiles:
   * Fixed an edge case where certain projectiles would be duplicated infinitely
 
