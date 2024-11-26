@@ -78,6 +78,20 @@ namespace RiskOfChaos.Patches
 
         static readonly Dictionary<Orb, OrbBounceChain> _orbBounceChains = [];
 
+        public static bool IsBouncedOrb(Orb orb)
+        {
+            if (orb == null)
+                return false;
+
+            if (_orbBounceChains.ContainsKey(orb))
+                return true;
+
+            if (orb.TryGetProcChainMask(out ProcChainMask procChainMask))
+                return procChainMask.HasModdedProc(CustomProcTypes.Bouncing);
+
+            return false;
+        }
+
         static void clearBouncesRemaining()
         {
             _orbBounceChains.Clear();
@@ -144,8 +158,13 @@ namespace RiskOfChaos.Patches
             if (!isEnabled || !OrbManager.instance || !orbInstance.target)
                 return;
 
-            if (orbInstance.TryGetProcChainMask(out ProcChainMask orbProcChain) && orbProcChain.HasAnyProc())
-                return;
+            if (orbInstance.TryGetProcChainMask(out ProcChainMask orbProcChain))
+            {
+                if (!orbProcChain.HasModdedProc(CustomProcTypes.Bouncing) && orbProcChain.HasAnyProc())
+                {
+                    return;
+                }
+            }
 
             if (bounceChain == null)
             {
@@ -399,14 +418,20 @@ namespace RiskOfChaos.Patches
             newOrb.origin = oldOrbTargetPosition;
             newOrb.target = newTarget;
 
+            if (newOrb.TryGetProcChainMask(out ProcChainMask newOrbProcChainMask))
+            {
+                newOrbProcChainMask.AddModdedProc(CustomProcTypes.Bouncing);
+                newOrb.TrySetProcChainMask(newOrbProcChainMask);
+            }
+
             _orbBounceChains.Add(newOrb, bounceChain);
 
             OrbManager.instance.AddOrb(newOrb);
 
-            if (orbInstance.TryGetProcChainMask(out ProcChainMask procChainMask))
+            if (orbInstance.TryGetProcChainMask(out ProcChainMask orbProcChainMask))
             {
-                procChainMask.AddModdedProc(CustomProcTypes.Bounced);
-                orbInstance.TrySetProcChainMask(procChainMask);
+                orbProcChainMask.AddModdedProc(CustomProcTypes.BounceChainEnd);
+                orbInstance.TrySetProcChainMask(orbProcChainMask);
             }
         }
     }

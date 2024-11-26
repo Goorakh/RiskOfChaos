@@ -5,6 +5,9 @@
 * Reworked 1 effect:
   * Poverty: Now converts all player (and ally) money into experience, instead of just removing.
 
+* Bouncy Projectiles & Repeating Projectiles:
+  * Fixed an edge case where certain projectiles would be duplicated infinitely
+
 * Adjusted Default Effect Weights:
   * Give Everyone a Random Debuff: 0.9 -> 1.0
   * Cleanse Random Item: 0.5 -> 0.6

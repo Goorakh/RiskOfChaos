@@ -7,13 +7,16 @@ namespace RiskOfChaos.Content
     {
         public static ModdedProcType Repeated { get; private set; }
 
-        public static ModdedProcType Bounced { get; private set; }
+        public static ModdedProcType Bouncing { get; private set; }
+
+        public static ModdedProcType BounceChainEnd { get; private set; }
 
         [SystemInitializer]
         static void Init()
         {
             Repeated = ProcTypeAPI.ReserveProcType();
-            Bounced = ProcTypeAPI.ReserveProcType();
+            Bouncing = ProcTypeAPI.ReserveProcType();
+            BounceChainEnd = ProcTypeAPI.ReserveProcType();
         }
     }
 }

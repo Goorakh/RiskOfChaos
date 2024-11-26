@@ -1,4 +1,6 @@
-﻿using RiskOfChaos.ModificationController.Projectile;
+﻿using R2API;
+using RiskOfChaos.Content;
+using RiskOfChaos.ModificationController.Projectile;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -36,6 +38,9 @@ namespace RiskOfChaos.Patches
             if (orb.TryGetBouncedObjects(out ReadOnlyCollection<HealthComponent> bouncedObjects) && bouncedObjects.Count > 0)
                 return false;
 
+            if (OrbBounceHook.IsBouncedOrb(orb))
+                return false;
+
             return true;
         }
 
@@ -70,7 +75,15 @@ namespace RiskOfChaos.Patches
                     }
                 }
 
-                ProjectileModificationManager.Instance.StartCoroutine(spawnExtraOrbs(OrbUtils.Clone(orb), ProjectileModificationManager.Instance.AdditionalSpawnCount));
+                Orb repeatOrbTemplate = OrbUtils.Clone(orb);
+
+                if (repeatOrbTemplate.TryGetProcChainMask(out ProcChainMask procChainMask))
+                {
+                    procChainMask.AddModdedProc(CustomProcTypes.Repeated);
+                    repeatOrbTemplate.TrySetProcChainMask(procChainMask);
+                }
+
+                ProjectileModificationManager.Instance.StartCoroutine(spawnExtraOrbs(repeatOrbTemplate, ProjectileModificationManager.Instance.AdditionalSpawnCount));
             }
 
             orig(self, orb);
