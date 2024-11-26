@@ -19,7 +19,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
     public sealed class RotateGravity : NetworkBehaviour
     {
         const float MAX_DEVITATION_MIN_VALUE = 0f;
-        const float MAX_DEVITATION_MAX_VALUE = 90f;
+        const float MAX_DEVITATION_MAX_VALUE = 70f;
 
         [EffectConfig]
         static readonly ConfigHolder<float> _maxDeviation =
