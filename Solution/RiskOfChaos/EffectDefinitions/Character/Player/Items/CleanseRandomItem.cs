@@ -16,13 +16,19 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
     [ChaosEffect("cleanse_random_item", DefaultSelectionWeight = 0.6f)]
     public sealed class CleanseRandomItem : NetworkBehaviour
     {
+        [EffectConfig]
+        static readonly ConfigHolder<bool> _onlyCleanseLunar =
+            ConfigFactory<bool>.CreateConfig("Only Cleanse Lunars", false)
+                               .Description("Limits the effect to only cleanse lunar items")
+                               .OptionConfig(new CheckBoxConfig())
+                               .Build();
+
         [EffectConfig]
         static readonly ConfigHolder<int> _cleanseCount =
             ConfigFactory<int>.CreateConfig("Cleanse Count", 1)
@@ -52,8 +58,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         [SystemInitializer]
         static void Init()
         {
-            AsyncOperationHandle<ExplicitPickupDropTable> pearlDropTableLoad = Addressables.LoadAssetAsync<ExplicitPickupDropTable>("RoR2/Base/ShrineCleanse/dtPearls.asset");
-            pearlDropTableLoad.OnSuccess(dropTable => _pearlDropTable = dropTable);
+            Addressables.LoadAssetAsync<ExplicitPickupDropTable>("RoR2/Base/ShrineCleanse/dtPearls.asset").OnSuccess(dropTable => _pearlDropTable = dropTable);
         }
 
         static IEnumerable<PickupDef> getAllCleansablePickups()
@@ -76,6 +81,11 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     {
                         isValidForCleanse = true;
                     }
+                }
+
+                if (_onlyCleanseLunar.Value && !pickup.isLunar)
+                {
+                    isValidForCleanse = false;
                 }
 
                 if (!isValidForCleanse)

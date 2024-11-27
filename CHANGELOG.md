@@ -29,6 +29,9 @@
   * Nothing: 0.5 -> 0.7
   * Superhot: 1.0 -> 0.8
 
+* Cleanse Random Item:
+  * Added option for the effect to only be able to cleanse lunar items.
+
 * Consume Random Item & Repair Random Item:
   * Disabled item pickup messages for non-players
 
