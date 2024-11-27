@@ -32,6 +32,9 @@
 * Consume Random Item & Repair Random Item:
   * Disabled item pickup messages for non-players
 
+* All Interactables are Cloaked:
+  * Fixed some preplaced stage interactables not being cloaked
+
 <details>
   <summary>2.2.0 Changes:</summary>
 

@@ -39,30 +39,42 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
                 }
             }
 
-            foreach (PurchaseInteraction purchaseInteraction in InstanceTracker.GetInstancesList<PurchaseInteraction>())
+            List<PurchaseInteraction> purchaseInteractions = InstanceTracker.GetInstancesList<PurchaseInteraction>();
+            _cloakControllers.EnsureCapacity(_cloakControllers.Count + purchaseInteractions.Count);
+            foreach (PurchaseInteraction purchaseInteraction in purchaseInteractions)
             {
-                tryAddCloakedObject(purchaseInteraction.gameObject);
+                tryCloakPurchaseInteraction(purchaseInteraction);
             }
 
             SpawnCard.onSpawnedServerGlobal += SpawnCard_onSpawnedServerGlobal;
+            PurchaseInteractionHooks.OnPurchaseInteractionStartGlobal += tryCloakPurchaseInteraction;
         }
 
         void OnDestroy()
         {
             SpawnCard.onSpawnedServerGlobal -= SpawnCard_onSpawnedServerGlobal;
+            PurchaseInteractionHooks.OnPurchaseInteractionStartGlobal -= tryCloakPurchaseInteraction;
 
             _cloakControllers.ClearAndDispose(true);
-                }
+        }
 
         void SpawnCard_onSpawnedServerGlobal(SpawnCard.SpawnResult result)
         {
-            if (result.success)
+            if (result.success && result.spawnRequest.spawnCard is InteractableSpawnCard)
             {
                 GameObject spawnedObject = result.spawnedInstance;
                 RoR2Application.onNextUpdate += () =>
                 {
                     tryAddCloakedObject(spawnedObject);
                 };
+            }
+        }
+
+        void tryCloakPurchaseInteraction(PurchaseInteraction purchaseInteraction)
+        {
+            if (!purchaseInteraction.GetComponent<ObjectSpawnCardTracker>())
+            {
+                tryAddCloakedObject(purchaseInteraction.gameObject);
             }
         }
 
