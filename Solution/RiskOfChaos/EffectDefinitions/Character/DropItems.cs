@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using RiskOfChaos.Collections;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -7,7 +8,6 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.Pickup;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -124,11 +124,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             }
         }
 
-        readonly List<DropItemsOnTimer> _itemDropControllers = [];
-
-        readonly List<OnDestroyCallback> _destroyCallbacks = [];
-
-        bool _trackedObjectDestroyed = false;
+        readonly ClearingObjectList<DropItemsOnTimer> _itemDropControllers = [];
 
         void Start()
         {
@@ -137,7 +133,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 ReadOnlyCollection<CharacterBody> characterBodies = CharacterBody.readOnlyInstancesList;
 
                 _itemDropControllers.EnsureCapacity(characterBodies.Count);
-                _destroyCallbacks.EnsureCapacity(characterBodies.Count);
 
                 characterBodies.TryDo(addComponentTo, FormatUtils.GetBestBodyName);
                 CharacterBody.onBodyStartGlobal += addComponentTo;
@@ -148,35 +143,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             CharacterBody.onBodyStartGlobal -= addComponentTo;
 
-            foreach (OnDestroyCallback destroyCallback in _destroyCallbacks)
-            {
-                if (destroyCallback)
-                {
-                    OnDestroyCallback.RemoveCallback(destroyCallback);
-                }
-            }
-
-            _destroyCallbacks.Clear();
-
-            foreach (DropItemsOnTimer dropComponent in _itemDropControllers)
-            {
-                Destroy(dropComponent);
-            }
-
-            _itemDropControllers.Clear();
-        }
-
-        void FixedUpdate()
-        {
-            if (_trackedObjectDestroyed)
-            {
-                _trackedObjectDestroyed = false;
-
-                UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
-
-                int removedDropControllers = UnityObjectUtils.RemoveAllDestroyed(_itemDropControllers);
-                Log.Debug($"Cleared {removedDropControllers} destroy drop controller(s)");
-            }
+            _itemDropControllers.ClearAndDispose(true);
         }
 
         void addComponentTo(CharacterBody body)
@@ -184,13 +151,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
             DropItemsOnTimer dropComponent = body.gameObject.AddComponent<DropItemsOnTimer>();
 
             _itemDropControllers.Add(dropComponent);
-
-            OnDestroyCallback destroyCallback = OnDestroyCallback.AddCallback(dropComponent.gameObject, _ =>
-            {
-                _trackedObjectDestroyed = true;
-            });
-
-            _destroyCallbacks.Add(destroyCallback);
         }
     }
 }

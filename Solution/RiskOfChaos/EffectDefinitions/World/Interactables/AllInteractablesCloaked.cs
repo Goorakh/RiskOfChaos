@@ -1,8 +1,8 @@
-﻿using RiskOfChaos.Components;
+﻿using RiskOfChaos.Collections;
+using RiskOfChaos.Components;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
-using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.Patches;
 using RiskOfChaos.Trackers;
-using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Hologram;
@@ -25,15 +25,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
             cloakedMaterialLoad.OnSuccess(material => _cloakedMaterial = material);
         }
 
-        ChaosEffectComponent _effectComponent;
-
-        readonly List<CloakedInteractableController> _cloakControllers = [];
-        float _lastCloakedInteractablesClearTime;
-
-        void Awake()
-        {
-            _effectComponent = GetComponent<ChaosEffectComponent>();
-        }
+        readonly ClearingObjectList<CloakedInteractableController> _cloakControllers = [];
 
         void Start()
         {
@@ -55,35 +47,12 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
             SpawnCard.onSpawnedServerGlobal += SpawnCard_onSpawnedServerGlobal;
         }
 
-        void FixedUpdate()
-        {
-            float time = _effectComponent.TimeStarted.TimeSinceClamped;
-            if (time > _lastCloakedInteractablesClearTime + 20f)
-            {
-                _lastCloakedInteractablesClearTime = time;
-
-                int removedCloakControllers = UnityObjectUtils.RemoveAllDestroyed(_cloakControllers);
-                if (removedCloakControllers > 0)
-                {
-                    Log.Debug($"Cleared {removedCloakControllers} destroyed cloak controller(s)");
-                }
-            }
-        }
-
         void OnDestroy()
         {
             SpawnCard.onSpawnedServerGlobal -= SpawnCard_onSpawnedServerGlobal;
 
-            foreach (CloakedInteractableController cloakController in _cloakControllers)
-            {
-                if (cloakController)
-                {
-                    Destroy(cloakController);
+            _cloakControllers.ClearAndDispose(true);
                 }
-            }
-
-            _cloakControllers.Clear();
-        }
 
         void SpawnCard_onSpawnedServerGlobal(SpawnCard.SpawnResult result)
         {

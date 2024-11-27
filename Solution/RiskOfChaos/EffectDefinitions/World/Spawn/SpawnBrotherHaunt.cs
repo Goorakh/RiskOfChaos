@@ -1,15 +1,14 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using RiskOfChaos.Collections;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Trackers;
-using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.UI;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -69,10 +68,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         float _masterRespawnTimer;
         CharacterMaster _spawnedMaster;
 
-        readonly List<TimerText> _countdownTimers = [];
-        readonly List<OnDestroyCallback> _destroyCallbacks = [];
-
-        bool _trackedObjectDestroyed;
+        readonly ClearingObjectList<TimerText> _countdownTimers = new ClearingObjectList<TimerText>()
+        {
+            ObjectIdentifier = "SpawnBrotherHauntCountdownTimers",
+            DestroyComponentGameObject = true
+        };
 
         void Awake()
         {
@@ -81,25 +81,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         void OnDestroy()
         {
-            foreach (OnDestroyCallback destroyCallback in _destroyCallbacks)
-            {
-                if (destroyCallback)
-                {
-                    OnDestroyCallback.RemoveCallback(destroyCallback);
-                }
-            }
-
-            _destroyCallbacks.Clear();
-
-            foreach (TimerText countdownTimer in _countdownTimers)
-            {
-                if (countdownTimer)
-                {
-                    Destroy(countdownTimer.gameObject);
-                }
-            }
-
-            _countdownTimers.Clear();
+            _countdownTimers.ClearAndDispose(true);
 
             if (_spawnedMaster)
             {
@@ -109,16 +91,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         void FixedUpdate()
         {
-            if (_trackedObjectDestroyed)
-            {
-                _trackedObjectDestroyed = false;
-
-                UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
-
-                int countdownTimersRemoved = UnityObjectUtils.RemoveAllDestroyed(_countdownTimers);
-                Log.Debug($"Cleared {countdownTimersRemoved} destroyed countdown timer(s)");
-            }
-
             if (NetworkServer.active)
             {
                 updateServer();
@@ -132,26 +104,20 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         void updateServer()
         {
-            if (isValidScene())
+            _masterRespawnTimer -= Time.fixedDeltaTime;
+            if (_masterRespawnTimer <= 0f)
             {
-                if (!_spawnedMaster || _spawnedMaster.IsDeadAndOutOfLivesServer())
+                _masterRespawnTimer = 2.5f;
+                if ((!_spawnedMaster || _spawnedMaster.IsDeadAndOutOfLivesServer()) && isValidScene() && Stage.instance && Stage.instance.entryTime.timeSinceClamped > 1f)
                 {
-                    _masterRespawnTimer -= Time.fixedDeltaTime;
-                    if (_masterRespawnTimer <= 0f && Stage.instance && Stage.instance.entryTime.timeSinceClamped > 1f)
-                    {
-                        Log.Debug("Spawned master is null or dead, respawning...");
+                    Log.Debug("Spawned master is null or dead, respawning...");
 
-                        _spawnedMaster = new MasterSummon
-                        {
-                            masterPrefab = _brotherHauntPrefab,
-                            ignoreTeamMemberLimit = true,
-                            teamIndexOverride = TeamIndex.Lunar
-                        }.Perform();
-                    }
-                }
-                else
-                {
-                    _masterRespawnTimer = 2.5f;
+                    _spawnedMaster = new MasterSummon
+                    {
+                        masterPrefab = _brotherHauntPrefab,
+                        ignoreTeamMemberLimit = true,
+                        teamIndexOverride = TeamIndex.Lunar
+                    }.Perform();
                 }
             }
         }
@@ -189,13 +155,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
                         _countdownTimers.Add(timerText);
 
-                        OnDestroyCallback destroyCallback = OnDestroyCallback.AddCallback(countdownPanel, _ =>
-                        {
-                            _trackedObjectDestroyed = true;
-                        });
-
-                        _destroyCallbacks.Add(destroyCallback);
-
                         Log.Debug($"Created countdown timer for local user {hud.localUserViewer?.id}");
                     }
                 }
@@ -210,13 +169,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             }
             else
             {
-                foreach (TimerText countdownTimer in _countdownTimers)
-                {
-                    if (countdownTimer)
-                    {
-                        Destroy(countdownTimer.gameObject);
-                    }
-                }
+                _countdownTimers.Clear(true);
             }
         }
     }

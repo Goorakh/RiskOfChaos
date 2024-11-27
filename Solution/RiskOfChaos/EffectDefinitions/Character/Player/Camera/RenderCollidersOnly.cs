@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.Collections;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
@@ -255,11 +256,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
             }
         }
 
-        readonly List<ColliderRendererController> _colliderRenderers = [];
-
-        readonly List<OnDestroyCallback> _destroyCallbacks = [];
-
-        bool _trackedObjectDestroyed;
+        readonly ClearingObjectList<ColliderRendererController> _colliderRenderers = [];
 
         void Start()
         {
@@ -268,7 +265,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
                 List<CharacterModel> characterModels = InstanceTracker.GetInstancesList<CharacterModel>();
 
                 _colliderRenderers.EnsureCapacity(characterModels.Count);
-                _destroyCallbacks.EnsureCapacity(characterModels.Count);
 
                 characterModels.TryDo(setupModel);
 
@@ -280,38 +276,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
         {
             CharacterModelHooks.OnCharacterModelStartGlobal -= onCharacterModelStartGlobal;
 
-            foreach (OnDestroyCallback destroyCallback in _destroyCallbacks)
-            {
-                if (destroyCallback)
-                {
-                    OnDestroyCallback.RemoveCallback(destroyCallback);
-                }
-            }
-
-            _destroyCallbacks.Clear();
-
-            foreach (ColliderRendererController colliderRenderer in _colliderRenderers)
-            {
-                if (colliderRenderer)
-                {
-                    Destroy(colliderRenderer);
-                }
-            }
-
-            _colliderRenderers.Clear();
-        }
-
-        void FixedUpdate()
-        {
-            if (_trackedObjectDestroyed)
-            {
-                _trackedObjectDestroyed = false;
-
-                UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
-
-                int destroyedColliderRenderers = UnityObjectUtils.RemoveAllDestroyed(_colliderRenderers);
-                Log.Debug($"Cleared {destroyedColliderRenderers} destroyed collider renderer(s)");
-            }
+            _colliderRenderers.ClearAndDispose(true);
         }
 
         void onCharacterModelStartGlobal(CharacterModel model)
@@ -335,13 +300,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
             ColliderRendererController rendererData = model.gameObject.AddComponent<ColliderRendererController>();
 
             _colliderRenderers.Add(rendererData);
-
-            OnDestroyCallback destroyCallback = OnDestroyCallback.AddCallback(rendererData.gameObject, _ =>
-            {
-                _trackedObjectDestroyed = true;
-            });
-
-            _destroyCallbacks.Add(destroyCallback);
         }
     }
 }

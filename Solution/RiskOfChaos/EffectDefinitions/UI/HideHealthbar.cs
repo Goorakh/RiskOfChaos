@@ -1,9 +1,9 @@
-﻿using RiskOfChaos.Components;
+﻿using RiskOfChaos.Collections;
+using RiskOfChaos.Components;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Trackers;
-using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.UI;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,9 +12,12 @@ namespace RiskOfChaos.EffectDefinitions.UI
     [ChaosTimedEffect("hide_healthbar", 60f, AllowDuplicates = false)]
     public sealed class HideHealthbar : MonoBehaviour
     {
-        readonly List<KeepDisabled> _healthBarHiderComponents = [];
-
-        float _healthBarHiderDestroyedCheckTimer = 0f;
+        readonly ClearingObjectList<KeepDisabled> _healthBarHiderComponents = new ClearingObjectList<KeepDisabled>()
+        {
+            DontUseDestroyEvent = true,
+            AutoClearInterval = 10f,
+            ObjectIdentifier = "HealthBarHider"
+        };
 
         void Start()
         {
@@ -27,31 +30,22 @@ namespace RiskOfChaos.EffectDefinitions.UI
 
             foreach (HealthBarTracker healthBarTracker in healthBarTrackers)
             {
-                hideHealthBar(healthBarTracker);
+                if (healthBarTracker)
+                {
+                    hideHealthBar(healthBarTracker);
+                }
             }
 
             foreach (HUDBossHealthBarControllerTracker bossHealthBarControllerTracker in bossHealthBarControllerTrackers)
             {
-                hideBossHealthBar(bossHealthBarControllerTracker);
+                if (bossHealthBarControllerTracker)
+                {
+                    hideBossHealthBar(bossHealthBarControllerTracker);
+                }
             }
 
             HealthBarTracker.OnHealthBarAwakeGlobal += hideHealthBar;
             HUDBossHealthBarControllerTracker.OnHUDBossHealthBarControllerAwakeGlobal += hideBossHealthBar;
-        }
-
-        void FixedUpdate()
-        {
-            _healthBarHiderDestroyedCheckTimer -= Time.fixedDeltaTime;
-            if (_healthBarHiderDestroyedCheckTimer <= 0f)
-            {
-                _healthBarHiderDestroyedCheckTimer = 5f;
-
-                int removedHealthBarHiders = UnityObjectUtils.RemoveAllDestroyed(_healthBarHiderComponents);
-                if (removedHealthBarHiders > 0)
-                {
-                    Log.Debug($"Cleared {removedHealthBarHiders} destroyed health bar hider(s)");
-                }
-            }
         }
 
         void OnDestroy()
@@ -59,21 +53,16 @@ namespace RiskOfChaos.EffectDefinitions.UI
             HealthBarTracker.OnHealthBarAwakeGlobal -= hideHealthBar;
             HUDBossHealthBarControllerTracker.OnHUDBossHealthBarControllerAwakeGlobal -= hideBossHealthBar;
 
-            foreach (KeepDisabled healthBarHider in _healthBarHiderComponents)
-            {
-                if (healthBarHider)
-                {
-                    Destroy(healthBarHider);
-                    healthBarHider.gameObject.SetActive(true);
-                }
-            }
-
-            _healthBarHiderComponents.Clear();
+            _healthBarHiderComponents.ClearAndDispose(true);
         }
 
         void hideHealthBar(HealthBarTracker healthBarTracker)
         {
-            disableHealthBarObject(healthBarTracker.HealthBar.gameObject);
+            HealthBar healthBar = healthBarTracker.HealthBar;
+            if (!healthBar)
+                return;
+
+            disableHealthBarObject(healthBar.gameObject);
         }
 
         void hideBossHealthBar(HUDBossHealthBarControllerTracker bossHealthBarControllerTracker)
@@ -83,6 +72,9 @@ namespace RiskOfChaos.EffectDefinitions.UI
 
         void disableHealthBarObject(GameObject healthBarRoot)
         {
+            if (!healthBarRoot)
+                return;
+
             KeepDisabled healthBarHider = healthBarRoot.AddComponent<KeepDisabled>();
             _healthBarHiderComponents.Add(healthBarHider);
         }

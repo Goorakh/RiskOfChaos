@@ -1,8 +1,8 @@
-﻿using RiskOfChaos.Components;
+﻿using RiskOfChaos.Collections;
+using RiskOfChaos.Components;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Trackers;
-using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Projectile;
@@ -62,10 +62,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
             addNetworkTransform("RoR2/DLC2/FragmentPotentialPickup.prefab");
         }
 
-        readonly List<AttractToPlayers> _attractComponents = [];
+        readonly ClearingObjectList<AttractToPlayers> _attractComponents = [];
         public ReadOnlyCollection<AttractToPlayers> AttractComponents { get; private set; }
-
-        readonly List<OnDestroyCallback> _destroyCallbacks = [];
 
         public event Action<AttractToPlayers> SetupAttractComponent;
 
@@ -87,7 +85,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                 ];
 
                 _attractComponents.EnsureCapacity(pickupControllerComponents.Count);
-                _destroyCallbacks.EnsureCapacity(pickupControllerComponents.Count);
 
                 foreach (MonoBehaviour pickupControllerComponent in pickupControllerComponents)
                 {
@@ -100,44 +97,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
             }
         }
 
-        void FixedUpdate()
-        {
-            if (_trackedObjectDestroyed)
-            {
-                _trackedObjectDestroyed = false;
-
-                UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
-
-                int removedAttractComponents = UnityObjectUtils.RemoveAllDestroyed(_attractComponents);
-                Log.Debug($"Cleared {removedAttractComponents} destroyed attract component(s)");
-            }
-        }
-
         void OnDestroy()
         {
             PickupDropletControllerTracker.OnPickupDropletControllerStartGlobal -= onPickupDropletControllerStartGlobal;
             GenericPickupControllerHooks.OnGenericPickupControllerStartGlobal -= onGenericPickupControllerStartGlobal;
             PickupPickerControllerHooks.OnPickupPickerControllerAwakeGlobal -= onPickupPickerControllerAwakeGlobal;
 
-            foreach (AttractToPlayers attractComponent in _attractComponents)
-            {
-                if (attractComponent)
-                {
-                    Destroy(attractComponent);
-                }
-            }
-
-            _attractComponents.Clear();
-
-            foreach (OnDestroyCallback destroyCallback in _destroyCallbacks)
-            {
-                if (destroyCallback)
-                {
-                    OnDestroyCallback.RemoveCallback(destroyCallback);
-                }
-            }
-
-            _destroyCallbacks.Clear();
+            _attractComponents.ClearAndDispose(true);
         }
 
         void onPickupDropletControllerStartGlobal(PickupDropletController pickupDropletController)
@@ -162,13 +128,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
             {
                 SetupAttractComponent?.Invoke(attractComponent);
                 _attractComponents.Add(attractComponent);
-
-                OnDestroyCallback destroyCallback = OnDestroyCallback.AddCallback(pickupControllerObj, _ =>
-                {
-                    _trackedObjectDestroyed = true;
-                });
-
-                _destroyCallbacks.Add(destroyCallback);
             }
         }
     }

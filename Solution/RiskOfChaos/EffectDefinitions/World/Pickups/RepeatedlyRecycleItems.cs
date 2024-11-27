@@ -1,11 +1,11 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using RiskOfChaos.Collections;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Patches;
 using RiskOfChaos.SaveHandling;
-using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
@@ -88,10 +88,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
 
         ChaosEffectComponent _effectComponent;
 
-        readonly List<RecycleOnTimer> _recyclerComponents = [];
-        readonly List<OnDestroyCallback> _destroyCallbacks = [];
-
-        bool _trackedObjectDestroyed;
+        readonly ClearingObjectList<RecycleOnTimer> _recyclerComponents = [];
 
         PickupIndex[] _recycleSteps = [];
 
@@ -196,7 +193,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                 List<GenericPickupController> genericPickupControllers = InstanceTracker.GetInstancesList<GenericPickupController>();
 
                 _recyclerComponents.EnsureCapacity(genericPickupControllers.Count);
-                _destroyCallbacks.EnsureCapacity(genericPickupControllers.Count);
 
                 genericPickupControllers.TryDo(handlePickupController);
                 GenericPickupControllerHooks.OnGenericPickupControllerStartGlobal += handlePickupController;
@@ -207,35 +203,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
         {
             GenericPickupControllerHooks.OnGenericPickupControllerStartGlobal -= handlePickupController;
 
-            foreach (OnDestroyCallback destroyCallback in _destroyCallbacks)
-            {
-                if (destroyCallback)
-                {
-                    OnDestroyCallback.RemoveCallback(destroyCallback);
-                }
-            }
-
-            _destroyCallbacks.Clear();
-
-            foreach (RecycleOnTimer recyclerComponent in _recyclerComponents)
-            {
-                Destroy(recyclerComponent);
-            }
-
-            _recyclerComponents.Clear();
-        }
-
-        void FixedUpdate()
-        {
-            if (_trackedObjectDestroyed)
-            {
-                _trackedObjectDestroyed = false;
-
-                UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
-
-                int removedRecycleControllers = UnityObjectUtils.RemoveAllDestroyed(_recyclerComponents);
-                Log.Debug($"Cleared {removedRecycleControllers} destroyed recycle controller(s)");
-            }
+            _recyclerComponents.ClearAndDispose(true);
         }
 
         [Server]
@@ -245,13 +213,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
             recycleOnTimer.EffectInstance = this;
 
             _recyclerComponents.Add(recycleOnTimer);
-
-            OnDestroyCallback onDestroyCallback = OnDestroyCallback.AddCallback(recycleOnTimer.gameObject, _ =>
-            {
-                _trackedObjectDestroyed = true;
-            });
-
-            _destroyCallbacks.Add(onDestroyCallback);
         }
 
         int findRecycleStepIndex(PickupIndex pickupIndex)

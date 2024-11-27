@@ -1,7 +1,7 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using RiskOfChaos.Collections;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Collections.Generic;
@@ -30,45 +30,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
             return _purchaseLockPrefab && (!context.IsNow || InstanceTracker.Any<PurchaseInteraction>());
         }
 
-        readonly List<GameObject> _spawnedLockObjects = [];
-        readonly List<OnDestroyCallback> _destroyCallbacks = [];
-
-        bool _trackedObjectDestroyed;
+        readonly ClearingObjectList<GameObject> _spawnedLockObjects = new ClearingObjectList<GameObject>()
+        {
+            ObjectIdentifier = "PurchaseLockObject"
+        };
 
         float _interactableCheckTimer;
 
-        void Start()
-        {
-            if (!NetworkServer.active)
-                return;
-
-            List<PurchaseInteraction> purchaseInteractions = InstanceTracker.GetInstancesList<PurchaseInteraction>();
-
-            _spawnedLockObjects.EnsureCapacity(purchaseInteractions.Count);
-            _destroyCallbacks.EnsureCapacity(purchaseInteractions.Count);
-        }
-
         void OnDestroy()
         {
-            foreach (OnDestroyCallback destroyCallback in _destroyCallbacks)
-            {
-                if (destroyCallback)
-                {
-                    OnDestroyCallback.RemoveCallback(destroyCallback);
-                }
-            }
-
-            _destroyCallbacks.Clear();
-
-            foreach (GameObject lockObject in _spawnedLockObjects)
-            {
-                if (lockObject)
-                {
-                    NetworkServer.Destroy(lockObject);
-                }
-            }
-
-            _spawnedLockObjects.Clear();
+            _spawnedLockObjects.ClearAndDispose(true);
         }
 
         void FixedUpdate()
@@ -80,15 +51,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
             if (_interactableCheckTimer <= 0f)
             {
                 _interactableCheckTimer += 1f;
-                InstanceTracker.GetInstancesList<PurchaseInteraction>().TryDo(tryLockInteractable);
-            }
+                List<PurchaseInteraction> purchaseInteractions = InstanceTracker.GetInstancesList<PurchaseInteraction>();
 
-            if (_trackedObjectDestroyed)
-            {
-                UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
-
-                int removedLockObjects = UnityObjectUtils.RemoveAllDestroyed(_spawnedLockObjects);
-                Log.Debug($"Cleared {removedLockObjects} destroyed lock objects");
+                _spawnedLockObjects.EnsureCapacity(purchaseInteractions.Count);
+                purchaseInteractions.TryDo(tryLockInteractable);
             }
         }
 
@@ -104,13 +70,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
             purchaseInteraction.NetworklockGameObject = lockObject;
 
             _spawnedLockObjects.Add(lockObject);
-
-            OnDestroyCallback destroyCallback = OnDestroyCallback.AddCallback(lockObject, _ =>
-            {
-                _trackedObjectDestroyed = true;
-            });
-
-            _destroyCallbacks.Add(destroyCallback);
         }
     }
 }
