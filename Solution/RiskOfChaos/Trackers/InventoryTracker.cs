@@ -25,6 +25,9 @@ namespace RiskOfChaos.Trackers
 
         static void trackInventory(Inventory inventory)
         {
+            if (!inventory)
+                return;
+
             InventoryTracker tracker = inventory.gameObject.EnsureComponent<InventoryTracker>();
             tracker.Inventory = inventory;
         }
