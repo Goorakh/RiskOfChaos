@@ -41,7 +41,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
         ChaosEffectComponent _effectComponent;
 
-        Xoroshiro128Plus _rng;
+        ulong _rngSeed;
 
         void Awake()
         {
@@ -52,67 +52,82 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
         {
             base.OnStartServer();
 
-            _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+            _rngSeed = _effectComponent.Rng.nextUlong;
         }
 
         void Start()
         {
-            if (NetworkServer.active)
+            if (!NetworkServer.active)
+                return;
+
+            foreach (CharacterMaster master in CharacterMaster.readOnlyInstancesList)
             {
-                PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
+                if (!master.IsDeadAndOutOfLivesServer() || master.playerCharacterMasterController)
                 {
-                    Xoroshiro128Plus rng = new Xoroshiro128Plus(_rng.nextUlong);
+                    Xoroshiro128Plus rng = new Xoroshiro128Plus(_rngSeed);
 
-                    CharacterBody playerBody = playerMaster.GetBody();
-
-                    Loadout loadout = playerMaster.loadout;
-                    Loadout.BodyLoadoutManager bodyLoadoutManager = loadout.bodyLoadoutManager;
-
-                    bool anyChanges = false;
-                    bool changedCurrentBody = false;
-                    bool changedCurrentBodySkills = false;
-                    bool changedCurrentBodySkin = false;
-
-                    for (BodyIndex bodyIndex = 0; bodyIndex < (BodyIndex)BodyCatalog.bodyCount; bodyIndex++)
+                    try
                     {
-                        if (randomizeLoadoutForBodyIndex(playerMaster, loadout, bodyIndex, rng, out bool changedAnySkill, out bool changedSkin))
-                        {
-                            anyChanges = true;
+                        tryRandomizeLoadout(master, rng);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error_NoCallerPrefix($"Failed to randomize loadout for {Util.GetBestMasterName(master)}: {e}");
+                    }
+                }
+            }
+        }
 
-                            if (playerBody && bodyIndex == playerBody.bodyIndex)
-                            {
-                                changedCurrentBody = true;
+        void tryRandomizeLoadout(CharacterMaster master, Xoroshiro128Plus rng)
+        {
+            CharacterBody body = master.GetBody();
 
-                                changedCurrentBodySkills = changedAnySkill;
-                                changedCurrentBodySkin = changedSkin;
-                            }
-                        }
+            Loadout loadout = master.loadout;
+
+            bool anyChanges = false;
+            bool changedCurrentBody = false;
+            bool changedCurrentBodySkills = false;
+            bool changedCurrentBodySkin = false;
+
+            for (BodyIndex bodyIndex = 0; (int)bodyIndex < BodyCatalog.bodyCount; bodyIndex++)
+            {
+                tryRandomizeLoadoutForBodyIndex(master, loadout, bodyIndex, rng, out bool changedAnySkill, out bool changedSkin);
+                if (changedAnySkill || changedSkin)
+                {
+                    anyChanges = true;
+
+                    if (body && bodyIndex == body.bodyIndex)
+                    {
+                        changedCurrentBody |= true;
+
+                        changedCurrentBodySkills |= changedAnySkill;
+                        changedCurrentBodySkin |= changedSkin;
+                    }
+                }
+            }
+
+            if (anyChanges)
+            {
+                // Set dirty bit
+                master.SetLoadoutServer(loadout);
+
+                if (changedCurrentBody && body)
+                {
+                    body.SetLoadoutServer(loadout);
+
+                    Loadout.BodyLoadoutManager.BodyInfo bodyInfo = Loadout.BodyLoadoutManager.allBodyInfos[(int)body.bodyIndex];
+
+                    uint[] skillVariants = new uint[bodyInfo.skillSlotCount];
+                    for (int i = 0; i < skillVariants.Length; i++)
+                    {
+                        skillVariants[i] = loadout.bodyLoadoutManager.GetSkillVariant(body.bodyIndex, i);
                     }
 
-                    if (anyChanges)
-                    {
-                        // Set dirty bit
-                        playerMaster.SetLoadoutServer(loadout);
+                    uint skinIndex = loadout.bodyLoadoutManager.GetSkinIndex(body.bodyIndex);
 
-                        if (changedCurrentBody && playerBody)
-                        {
-                            playerBody.SetLoadoutServer(loadout);
-
-                            Loadout.BodyLoadoutManager.BodyInfo bodyInfo = Loadout.BodyLoadoutManager.allBodyInfos[(int)playerBody.bodyIndex];
-
-                            uint[] skillVariants = new uint[bodyInfo.skillSlotCount];
-                            for (int i = 0; i < skillVariants.Length; i++)
-                            {
-                                skillVariants[i] = loadout.bodyLoadoutManager.GetSkillVariant(playerBody.bodyIndex, i);
-                            }
-
-                            uint skinIndex = loadout.bodyLoadoutManager.GetSkinIndex(playerBody.bodyIndex);
-
-                            updateLoadout(playerBody, skillVariants, skinIndex);
-                            RpcUpdateLoadout(playerBody.gameObject, skillVariants, skinIndex);
-                        }
-                    }
-                }, Util.GetBestMasterName);
+                    updateLoadout(body, skillVariants, skinIndex);
+                    RpcUpdateLoadout(body.gameObject, skillVariants, skinIndex);
+                }
             }
         }
 
@@ -177,7 +192,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             }
         }
 
-        static bool randomizeLoadoutForBodyIndex(CharacterMaster master, Loadout loadout, BodyIndex bodyIndex, Xoroshiro128Plus rng, out bool changedAnySkill, out bool changedSkin)
+        static void tryRandomizeLoadoutForBodyIndex(CharacterMaster master, Loadout loadout, BodyIndex bodyIndex, Xoroshiro128Plus rng, out bool changedAnySkill, out bool changedSkin)
         {
             NetworkUser networkUser = master && master.playerCharacterMasterController ? master.playerCharacterMasterController.networkUser : null;
 
@@ -217,12 +232,11 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             {
                 changedAnySkill = false;
                 changedSkin = false;
-                return false;
+                return;
             }
 
             LoadoutPreset loadoutPreset = loadoutSelection.GetRandom(rng);
             loadoutPreset.ApplyTo(loadout, out changedAnySkill, out changedSkin);
-            return changedAnySkill || changedSkin;
         }
 
         static List<LoadoutSkillPreset> generateSkillPresets(NetworkUser networkUser, Loadout.BodyLoadoutManager.BodyInfo bodyInfo, uint[] currentSkillVariants)
