@@ -67,8 +67,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
 
         public event Action<AttractToPlayers> SetupAttractComponent;
 
-        bool _trackedObjectDestroyed;
-
         void Awake()
         {
             AttractComponents = _attractComponents.AsReadOnly();
