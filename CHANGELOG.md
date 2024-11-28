@@ -5,6 +5,9 @@
 * Reworked 1 effect:
   * Poverty: Now converts all player (and ally) money into experience, instead of just removing.
 
+* Superhot:
+  * Changed time scale calculations to be more responsive
+
 * Random Gravity Direction:
   * Fixed new direction minimum angle not working
 
@@ -27,7 +30,6 @@
   * Change Difficulty: 0.6 -> 0.7
   * Trigger Random Family Event: 0.6 -> 0.7
   * Nothing: 0.5 -> 0.7
-  * Superhot: 1.0 -> 0.8
 
 * Cleanse Random Item:
   * Added option for the effect to only be able to cleanse lunar items.

@@ -1,17 +1,17 @@
-﻿using RiskOfChaos.Components;
+﻿using RiskOfChaos.Collections;
+using RiskOfChaos.Components;
 using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Networking.Components;
 using RiskOfChaos.Utilities.Interpolation;
 using RoR2;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 {
-    [ChaosTimedEffect("superhot", 45f, DefaultSelectionWeight = 0.8f, AllowDuplicates = false)]
+    [ChaosTimedEffect("superhot", 45f, AllowDuplicates = false)]
     public sealed class Superhot : MonoBehaviour
     {
         [ContentInitializer]
@@ -36,24 +36,19 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
             }
         }
 
-        readonly HashSet<SuperhotPlayerController> _superhotControllers = [];
+        readonly ClearingObjectList<SuperhotPlayerController> _superhotControllers = new ClearingObjectList<SuperhotPlayerController>()
+        {
+            DestroyComponentGameObject = true
+        };
 
         void Start()
         {
             if (NetworkServer.active)
             {
                 _superhotControllers.EnsureCapacity(PlayerCharacterMasterController.instances.Count);
-                foreach (PlayerCharacterMasterController playerMasterController in PlayerCharacterMasterController.instances)
+                foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
                 {
-                    CharacterMaster master = playerMasterController.master;
-                    if (!master)
-                        continue;
-
-                    CharacterBody body = master.GetBody();
-                    if (!body)
-                        continue;
-
-                    createSuperhotController(body);
+                    tryAddSuperhotController(body);
                 }
 
                 CharacterBody.onBodyStartGlobal += onBodyStartGlobal;
@@ -70,12 +65,17 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
                 }
             }
 
-            _superhotControllers.Clear();
+            _superhotControllers.ClearAndDispose(false);
 
             CharacterBody.onBodyStartGlobal -= onBodyStartGlobal;
         }
 
         void onBodyStartGlobal(CharacterBody body)
+        {
+            tryAddSuperhotController(body);
+        }
+
+        void tryAddSuperhotController(CharacterBody body)
         {
             if (body.isPlayerControlled)
             {
@@ -85,7 +85,7 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 
         void createSuperhotController(CharacterBody body)
         {
-            GameObject superhotControllerObj = GameObject.Instantiate(RoCContent.NetworkedPrefabs.SuperhotController);
+            GameObject superhotControllerObj = Instantiate(RoCContent.NetworkedPrefabs.SuperhotController);
 
             SuperhotPlayerController superhotController = superhotControllerObj.GetComponent<SuperhotPlayerController>();
 
@@ -94,10 +94,10 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
                 interpolationComponent.SetInterpolationParameters(new InterpolationParameters(0.5f));
             }
 
-            _superhotControllers.Add(superhotController);
-
             NetworkedBodyAttachment networkedBodyAttachment = superhotControllerObj.GetComponent<NetworkedBodyAttachment>();
             networkedBodyAttachment.AttachToGameObjectAndSpawn(body.gameObject);
+
+            _superhotControllers.Add(superhotController);
         }
     }
 }

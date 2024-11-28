@@ -25,7 +25,9 @@ namespace RiskOfChaos.Networking.Components
         bool _hasEffectiveAuthority;
 
         Vector3 _lastBodyPosition;
+
         CharacterBody _body;
+        IPhysMotor _bodyMotor;
 
         [SyncVar(hook = nameof(setCurrentMultiplier))]
         float _currentMultiplier = 1f;
@@ -73,6 +75,17 @@ namespace RiskOfChaos.Networking.Components
             _hasEffectiveAuthority = Util.HasEffectiveAuthority(_networkIdentity);
         }
 
+        void setBody(CharacterBody body)
+        {
+            if (_body == body)
+                return;
+
+            _body = body;
+
+            _lastBodyPosition = _body.footPosition;
+            _bodyMotor = _body.GetComponent<IPhysMotor>();
+        }
+
         void Update()
         {
             if (PauseStopController.instance && PauseStopController.instance.isPaused)
@@ -90,42 +103,36 @@ namespace RiskOfChaos.Networking.Components
                 hasAuthority = _hasEffectiveAuthority;
             }
 
-            float deltaTime = Time.unscaledDeltaTime;
-
             if (hasAuthority)
             {
-                updateAuthority(body, deltaTime);
+                updateAuthority(body);
             }
 
             if (NetworkServer.active)
             {
-                updateServer(deltaTime);
+                updateServer();
             }
         }
 
-        void updateAuthority(CharacterBody currentBody, float deltaTime)
+        void updateAuthority(CharacterBody currentBody)
         {
-            if (_body != currentBody)
-            {
-                _lastBodyPosition = currentBody.footPosition;
-            }
+            setBody(currentBody);
 
-            _body = currentBody;
-
-            if (deltaTime > 0f)
+            if (Time.deltaTime > 0f)
             {
-                float targetTimeScaleMultiplier = getTargetTimeScaleMultiplier(deltaTime);
+                float targetTimeScaleMultiplier = getTargetTimeScaleMultiplier(Time.deltaTime);
                 if (targetTimeScaleMultiplier != _lastSetTargetMultiplier)
                 {
                     _lastSetTargetMultiplier = targetTimeScaleMultiplier;
-                    CmdSetTargetTimeScaleMultiplier(targetTimeScaleMultiplier);
+                    CmdSetTargetTimeScaleMultiplier(_lastSetTargetMultiplier);
                 }
             }
         }
 
         [Server]
-        void updateServer(float deltaTime)
+        void updateServer()
         {
+            float deltaTime = Time.unscaledDeltaTime;
             if (deltaTime <= 0f)
                 return;
 
@@ -133,8 +140,8 @@ namespace RiskOfChaos.Networking.Components
             {
                 if (_modificationController && !_modificationController.IsRetired)
                 {
-                    const float TIME_SCALE_CHANGE_UP_MAX_DELTA = 1f;
-                    const float TIME_SCALE_CHANGE_DOWN_MAX_DELTA = 2f;
+                    const float TIME_SCALE_CHANGE_UP_MAX_DELTA = 0.35f;
+                    const float TIME_SCALE_CHANGE_DOWN_MAX_DELTA = 2.5f;
                     float maxDelta = _currentMultiplier > _targetMultiplier ? TIME_SCALE_CHANGE_DOWN_MAX_DELTA : TIME_SCALE_CHANGE_UP_MAX_DELTA;
 
                     _currentMultiplier = Mathf.MoveTowards(_currentMultiplier, _targetMultiplier, maxDelta * deltaTime);
@@ -145,10 +152,6 @@ namespace RiskOfChaos.Networking.Components
         bool shouldConsiderMovement()
         {
             if (!_body || !_body.healthComponent || !_body.healthComponent.alive)
-                return false;
-
-            EntityStateMachine bodyStateMachine = EntityStateMachine.FindByCustomName(_body.gameObject, "Body");
-            if (bodyStateMachine && !bodyStateMachine.IsInMainState() && !bodyStateMachine.CurrentStateInheritsFrom(typeof(BaseCharacterMain)))
                 return false;
 
             return true;
@@ -163,21 +166,36 @@ namespace RiskOfChaos.Networking.Components
             float distanceMoved = Vector3.Distance(_lastBodyPosition, currentPosition);
             float velocity = distanceMoved / deltaTime;
 
-            _lastBodyPosition = currentPosition;
+            if (_bodyMotor != null)
+            {
+                velocity = _bodyMotor.velocityAuthority.magnitude;
+            }
 
-            const float TIME_SCALE_MULTIPLIER = 0.95f;
-            const float MIN_TIME_SCALE_MULTIPLIER = 0.15f;
-            const float MAX_TIME_SCALE_MULTIPLIER = 1.7f;
-            const float TIME_SCALE_COEFFICIENT = TIME_SCALE_MULTIPLIER * (MAX_TIME_SCALE_MULTIPLIER - MIN_TIME_SCALE_MULTIPLIER) / MAX_TIME_SCALE_MULTIPLIER;
+            _lastBodyPosition = currentPosition;
 
             float maxSpeed = _body.moveSpeed;
             if (!_body.isSprinting)
                 maxSpeed *= _body.sprintingSpeedMultiplier;
 
-            float unscaledMultiplier = velocity / maxSpeed;
-            float scaledMultiplier = (TIME_SCALE_COEFFICIENT * unscaledMultiplier) + MIN_TIME_SCALE_MULTIPLIER;
+            float minSpeedTimeScale = 0.1f;
+            float maxSpeedTimeScale = 1f;
+            float absoluteMaxTimeScale = 1.5f;
 
-            return Mathf.Clamp(scaledMultiplier, MIN_TIME_SCALE_MULTIPLIER, MAX_TIME_SCALE_MULTIPLIER);
+            EntityStateMachine bodyStateMachine = EntityStateMachine.FindByCustomName(_body.gameObject, "Body");
+            if (bodyStateMachine && !bodyStateMachine.IsInMainState() && !bodyStateMachine.CurrentStateInheritsFrom(typeof(BaseCharacterMain)))
+            {
+                minSpeedTimeScale = 0.5f;
+            }
+
+            float timeScale = Util.Remap(velocity, 0f, maxSpeed, minSpeedTimeScale, maxSpeedTimeScale);
+
+            if (timeScale > maxSpeedTimeScale)
+            {
+                float overspeedTimeScale = timeScale - maxSpeedTimeScale;
+                timeScale = Mathf.Min(maxSpeedTimeScale + (overspeedTimeScale * 0.25f), absoluteMaxTimeScale);
+            }
+
+            return timeScale;
         }
 
         [Command]
