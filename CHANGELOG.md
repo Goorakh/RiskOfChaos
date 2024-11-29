@@ -1,6 +1,6 @@
 ## Changelog
 
-**-.-.- Changes:**
+**2.2.1 Changes:**
 
 * Reworked 1 effect:
   * Poverty: Now converts all player (and ally) money into experience, instead of just removing.
