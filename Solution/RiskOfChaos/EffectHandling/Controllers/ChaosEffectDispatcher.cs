@@ -156,9 +156,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             if (!canActivate)
             {
-#if DEBUG
                 Log.Debug($"{effect} is not activatable, not dispatching");
-#endif
                 return null;
             }
 
