@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.ModificationController.Pickups;
+﻿using RiskOfChaos.Components;
+using RiskOfChaos.ModificationController.Pickups;
 using RoR2;
 using System.Collections.Generic;
 using UnityEngine;
@@ -60,44 +61,20 @@ namespace RiskOfChaos.Patches
                 frictionCombine = PhysicMaterialCombine.Minimum
             };
 
-            readonly record struct OriginalColliderMaterialPair(Collider Collider, PhysicMaterial Material);
-
             public int BouncesRemaining;
 
-            bool _physicMaterialOverrideActive;
-
-            OriginalColliderMaterialPair[] _originalMaterials = [];
+            PhysicMaterialOverride _materialOverrideController;
 
             void Awake()
             {
-                Collider[] colliders = GetComponentsInChildren<Collider>(true);
-                List<OriginalColliderMaterialPair> originalMaterials = new List<OriginalColliderMaterialPair>(colliders.Length);
-                foreach (Collider collider in colliders)
-                {
-                    if (collider.isTrigger)
-                        continue;
-
-                    originalMaterials.Add(new OriginalColliderMaterialPair(collider, collider.sharedMaterial));
-                    collider.sharedMaterial = _bouncyMaterial;
-                }
-
-                _originalMaterials = originalMaterials.ToArray();
-                _physicMaterialOverrideActive = true;
+                _materialOverrideController = PhysicMaterialOverride.AddOverrideMaterial(gameObject, _bouncyMaterial, 1);
             }
 
             void OnDestroy()
             {
-                if (_physicMaterialOverrideActive)
+                if (_materialOverrideController)
                 {
-                    _physicMaterialOverrideActive = false;
-
-                    foreach (OriginalColliderMaterialPair originalMaterialPair in _originalMaterials)
-                    {
-                        if (originalMaterialPair.Collider)
-                        {
-                            originalMaterialPair.Collider.sharedMaterial = originalMaterialPair.Material;
-                        }
-                    }
+                    _materialOverrideController.RemoveOverrideMaterial(_bouncyMaterial);
                 }
             }
 

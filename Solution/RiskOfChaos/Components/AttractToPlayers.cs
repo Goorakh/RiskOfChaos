@@ -15,14 +15,52 @@ namespace RiskOfChaos.Components
         public float Acceleration;
         public float OppositeDirectionFrictionMultiplier = 30f;
 
-        public float? DynamicFrictionOverride = 0.025f;
-        public float? StaticFrictionOverride = 0f;
+        float _dynamicFrictionOverride = 0.025f;
+        public float DynamicFrictionOverride
+        {
+            get
+            {
+                return _dynamicFrictionOverride;
+            }
+            set
+            {
+                if (_dynamicFrictionOverride != value)
+                    return;
+
+                _dynamicFrictionOverride = value;
+
+                if (_overrideMaterial)
+                {
+                    _overrideMaterial.dynamicFriction = _dynamicFrictionOverride;
+                }
+            }
+        }
+
+        float _staticFrictionOverride = 0f;
+        public float StaticFrictionOverride
+        {
+            get
+            {
+                return _staticFrictionOverride;
+            }
+            set
+            {
+                if (_staticFrictionOverride == value)
+                    return;
+
+                _staticFrictionOverride = value;
+
+                if (_overrideMaterial)
+                {
+                    _overrideMaterial.staticFriction = _staticFrictionOverride;
+                }
+            }
+        }
 
         Rigidbody _rigidbody;
 
-        Collider _collider;
+        PhysicMaterialOverride _materialOverrideController;
         PhysicMaterial _overrideMaterial;
-        PhysicMaterial _originalMaterial;
 
         Vector3 _currentVelocity;
         Vector3 _targetVelocity;
@@ -30,34 +68,22 @@ namespace RiskOfChaos.Components
         void Awake()
         {
             _rigidbody = GetComponent<Rigidbody>();
-            _collider = GetComponent<Collider>();
-        }
 
-        void Start()
-        {
-            if (_collider)
+            _overrideMaterial = new PhysicMaterial("LowFriction")
             {
-                _originalMaterial = _collider.material;
-                if (_originalMaterial)
-                {
-                    _overrideMaterial = Instantiate(_originalMaterial);
+                dynamicFriction = _dynamicFrictionOverride,
+                staticFriction = _staticFrictionOverride
+            };
 
-                    if (DynamicFrictionOverride.HasValue)
-                        _overrideMaterial.dynamicFriction = DynamicFrictionOverride.Value;
-
-                    if (StaticFrictionOverride.HasValue)
-                        _overrideMaterial.staticFriction = StaticFrictionOverride.Value;
-
-                    _collider.material = _overrideMaterial;
-                }
-            }
+            _materialOverrideController = PhysicMaterialOverride.AddOverrideMaterial(gameObject, _overrideMaterial);
         }
 
         void OnDestroy()
         {
-            if (_collider && _originalMaterial)
+            if (_overrideMaterial)
             {
-                _collider.material = _originalMaterial;
+                _materialOverrideController.RemoveOverrideMaterial(_overrideMaterial);
+                Destroy(_overrideMaterial);
             }
         }
 
@@ -77,10 +103,9 @@ namespace RiskOfChaos.Components
 
         void setFrictionMultiplier(float multiplier)
         {
-            if (_originalMaterial && _overrideMaterial)
+            if (_overrideMaterial)
             {
-                float baseFriction = DynamicFrictionOverride.GetValueOrDefault(_originalMaterial.dynamicFriction);
-                _overrideMaterial.dynamicFriction = baseFriction * multiplier;
+                _overrideMaterial.dynamicFriction = _dynamicFrictionOverride * multiplier;
             }
         }
 

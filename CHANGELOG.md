@@ -1,5 +1,10 @@
 ## Changelog
 
+**-.-.- Changes:**
+
+* Bouncy Items, Item Magnet, & Item Repulsor:
+  * Fixed inconsistent item physics when certain combinations of these effects were active
+
 **2.2.1 Changes:**
 
 * Reworked 1 effect:

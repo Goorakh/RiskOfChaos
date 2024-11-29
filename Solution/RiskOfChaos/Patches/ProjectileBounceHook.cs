@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using RiskOfChaos.Components;
 using RiskOfChaos.ModificationController.Projectile;
 using RoR2;
 using RoR2.Projectile;
@@ -100,8 +101,6 @@ namespace RiskOfChaos.Patches
                 frictionCombine = PhysicMaterialCombine.Minimum
             };
 
-            readonly record struct OriginalColliderMaterialPair(Collider Collider, PhysicMaterial Material);
-
             int _bouncesRemaining;
 
             ProjectileController _projectileController;
@@ -114,9 +113,7 @@ namespace RiskOfChaos.Patches
             Vector3 _lastAngularVelocity;
             Rigidbody _rigidbody;
 
-            bool _physicMaterialOverrideActive;
-
-            OriginalColliderMaterialPair[] _originalMaterials = [];
+            PhysicMaterialOverride _materialOverrideController;
 
             void Awake()
             {
@@ -129,19 +126,15 @@ namespace RiskOfChaos.Patches
                 _projectileGrappleController = GetComponent<ProjectileGrappleController>();
                 _projectileStateMachine = GetComponent<EntityStateMachine>();
 
-                Collider[] colliders = GetComponentsInChildren<Collider>(true);
-                List<OriginalColliderMaterialPair> originalMaterials = new List<OriginalColliderMaterialPair>(colliders.Length);
-                foreach (Collider collider in colliders)
+                _materialOverrideController = PhysicMaterialOverride.AddOverrideMaterial(gameObject, _bouncyMaterial);
+            }
+
+            void OnDestroy()
+            {
+                if (_materialOverrideController)
                 {
-                    if (collider.isTrigger)
-                        continue;
-
-                    originalMaterials.Add(new OriginalColliderMaterialPair(collider, collider.sharedMaterial));
-                    collider.sharedMaterial = _bouncyMaterial;
+                    _materialOverrideController.RemoveOverrideMaterial(_bouncyMaterial);
                 }
-
-                _originalMaterials = originalMaterials.ToArray();
-                _physicMaterialOverrideActive = true;
             }
 
             void FixedUpdate()
@@ -181,19 +174,7 @@ namespace RiskOfChaos.Patches
                 {
                     _bouncesRemaining = 0;
 
-                    if (_physicMaterialOverrideActive)
-                    {
-                        foreach (OriginalColliderMaterialPair originalMaterialPair in _originalMaterials)
-                        {
-                            if (originalMaterialPair.Collider)
-                            {
-                                originalMaterialPair.Collider.sharedMaterial = originalMaterialPair.Material;
-                            }
-                        }
-
-                        _physicMaterialOverrideActive = false;
-                    }
-
+                    Destroy(this);
                     return false;
                 }
 
@@ -219,6 +200,10 @@ namespace RiskOfChaos.Patches
                 }
 
                 _bouncesRemaining--;
+                if (_bouncesRemaining <= 0)
+                {
+                    Destroy(this);
+                }
 
                 return true;
             }
