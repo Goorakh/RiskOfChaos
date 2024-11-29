@@ -16,12 +16,10 @@ namespace RiskOfChaos
                 ConfigFactory<float>.CreateConfig("Vote Display UI Scale", 1f)
                                     .Description("The scale multiplier of the effect vote options display")
                                     .AcceptableValues(new AcceptableValueMin<float>(0f))
-                                    .OptionConfig(new StepSliderConfig
+                                    .OptionConfig(new FloatFieldConfig
                                     {
-                                        FormatString = "{0:F2}X",
-                                        min = 0f,
-                                        max = 2.5f,
-                                        increment = 0.05f
+                                        FormatString = "{0}X",
+                                        Min = 0f
                                     })
                                     .MovedFrom(ChatVoting.SECTION_NAME)
                                     .Build();

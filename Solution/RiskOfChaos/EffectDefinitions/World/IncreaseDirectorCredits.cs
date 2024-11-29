@@ -24,12 +24,10 @@ namespace RiskOfChaos.EffectDefinitions.World
                                 .RenamedFrom("Credit Increase Amount")
                                 .Description("How much to increase monster spawns by")
                                 .AcceptableValues(new AcceptableValueMin<float>(0f))
-                                .OptionConfig(new StepSliderConfig
+                                .OptionConfig(new FloatFieldConfig
                                 {
                                     FormatString = "+{0:P0}",
-                                    min = 0f,
-                                    max = 2f,
-                                    increment = 0.05f
+                                    Min = 0f
                                 })
                                 .Build();
 

@@ -20,10 +20,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             ConfigFactory<int>.CreateConfig("Levels to Add", 5)
                               .Description("The amount of levels to add to all players")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
-                              .OptionConfig(new IntFieldConfig
-                              {
-                                  Min = 1
-                              })
+                              .OptionConfig(new IntFieldConfig { Min = 1 })
                               .Build();
 
         [GetEffectNameFormatter]

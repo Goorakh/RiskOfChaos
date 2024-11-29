@@ -21,12 +21,10 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
             ConfigFactory<float>.CreateConfig("Rate Increase", 0.5f)
                                 .Description("Percentage increase of teleporter charge rate")
                                 .AcceptableValues(new AcceptableValueMin<float>(0f))
-                                .OptionConfig(new StepSliderConfig
+                                .OptionConfig(new FloatFieldConfig
                                 {
                                     FormatString = "+{0:P0}",
-                                    increment = 0.01f,
-                                    min = 0f,
-                                    max = 2f
+                                    Min = 0f
                                 })
                                 .Build();
 

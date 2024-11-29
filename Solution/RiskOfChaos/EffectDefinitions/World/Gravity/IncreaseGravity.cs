@@ -21,12 +21,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
             ConfigFactory<float>.CreateConfig("Increase per Activation", 0.5f)
                                 .Description("How much gravity should increase per effect activation, 50% means the gravity is multiplied by 1.5, 100% means the gravity is multiplied by 2, etc.")
                                 .AcceptableValues(new AcceptableValueMin<float>(0f))
-                                .OptionConfig(new StepSliderConfig
+                                .OptionConfig(new FloatFieldConfig
                                 {
-                                    min = 0f,
-                                    max = 1f,
-                                    increment = 0.01f,
-                                    FormatString = "+{0:P0}"
+                                    FormatString = "+{0:P0}",
+                                    Min = 0f
                                 })
                                 .Build();
 

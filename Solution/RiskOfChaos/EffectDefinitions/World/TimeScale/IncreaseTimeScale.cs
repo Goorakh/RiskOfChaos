@@ -21,12 +21,10 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
         static readonly ConfigHolder<float> _timeScaleIncrease =
             ConfigFactory<float>.CreateConfig("World Speed Increase", 0.35f)
                                 .AcceptableValues(new AcceptableValueMin<float>(0f))
-                                .OptionConfig(new StepSliderConfig
+                                .OptionConfig(new FloatFieldConfig
                                 {
                                     FormatString = "+{0:P0}",
-                                    min = 0f,
-                                    max = 1f,
-                                    increment = 0.01f
+                                    Min = 0f
                                 })
                                 .Build();
 

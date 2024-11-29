@@ -21,12 +21,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Projectile
         static readonly ConfigHolder<float> _projectileSpeedIncrease =
             ConfigFactory<float>.CreateConfig("Projectile Speed Increase", 0.5f)
                                 .AcceptableValues(new AcceptableValueMin<float>(0f))
-                                .OptionConfig(new StepSliderConfig
+                                .OptionConfig(new FloatFieldConfig
                                 {
                                     FormatString = "+{0:P0}",
-                                    min = 0f,
-                                    max = 2f,
-                                    increment = 0.01f
+                                    Min = 0f
                                 })
                                 .Build();
 

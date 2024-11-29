@@ -54,10 +54,9 @@ namespace RiskOfChaos
                 ConfigFactory<int>.CreateConfig("Num Effect Options", 3)
                                   .Description("The number of effects viewers can pick from during voting")
                                   .AcceptableValues(new AcceptableValueMin<int>(NUM_EFFECT_OPTIONS_MIN_VALUE))
-                                  .OptionConfig(new IntSliderConfig
+                                  .OptionConfig(new IntFieldConfig
                                   {
-                                      min = NUM_EFFECT_OPTIONS_MIN_VALUE,
-                                      max = 10,
+                                      Min = NUM_EFFECT_OPTIONS_MIN_VALUE,
                                       checkIfDisabled = isVotingDisabled
                                   })
                                   .Build();

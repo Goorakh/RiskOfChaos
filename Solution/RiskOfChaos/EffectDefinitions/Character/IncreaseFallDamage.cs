@@ -25,12 +25,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
             ConfigFactory<float>.CreateConfig("Increase Amount", 1f)
                                 .Description("The amount to increase fall damage by")
                                 .AcceptableValues(new AcceptableValueMin<float>(0f))
-                                .OptionConfig(new StepSliderConfig
+                                .OptionConfig(new FloatFieldConfig
                                 {
                                     FormatString = "+{0:P0}",
-                                    min = 0f,
-                                    max = 2f,
-                                    increment = 0.05f
+                                    Min = 0f
                                 })
                                 .Build();
 

@@ -25,13 +25,11 @@ namespace RiskOfChaos
                 ConfigFactory<float>.CreateConfig("Effect Timer", 60f)
                                     .Description("How often new effects should happen")
                                     .AcceptableValues(new AcceptableValueMin<float>(TIME_BETWEEN_EFFECTS_MIN_VALUE))
-                                    .OptionConfig(new StepSliderConfig
+                                    .OptionConfig(new FloatFieldConfig
                                     {
+                                        FormatString = "{0}s",
+                                        Min = TIME_BETWEEN_EFFECTS_MIN_VALUE,
                                         checkIfDisabled = effectDispatchingDisabled,
-                                        FormatString = "{0:F0}s",
-                                        increment = 5f,
-                                        min = TIME_BETWEEN_EFFECTS_MIN_VALUE,
-                                        max = 60f * 5f
                                     })
                                     .Build();
 
