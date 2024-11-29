@@ -173,8 +173,6 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             try
             {
-                TimedEffectInfo timedEffect = effect as TimedEffectInfo;
-
                 effectController = Instantiate(effect.ControllerPrefab);
 
                 ChaosEffectComponent effectComponent = effectController.GetComponent<ChaosEffectComponent>();
@@ -186,42 +184,27 @@ namespace RiskOfChaos.EffectHandling.Controllers
                         throw new ArgumentException($"Effect prefab {effect.ControllerPrefab} is missing expected effect index, expected: {effect.EffectIndex}, set: {effectComponent.ChaosEffectIndex}");
                     }
 
-                    RunTimeStamp startTime = Run.FixedTimeStamp.now;
-                    if (args.OverrideStartTime.HasValue)
-                    {
-                        startTime = args.OverrideStartTime.Value;
-                    }
+                    RunTimeStamp startTime = args.OverrideStartTime ?? Run.FixedTimeStamp.now;
 
                     effectComponent.TimeStarted = startTime;
 
                     effectComponent.SetRngSeedServer(args.RNGSeed);
                 }
 
-                if (timedEffect != null)
+                if (effect is TimedEffectInfo timedEffect)
                 {
-                    if (!effectController.TryGetComponent(out ChaosEffectDurationComponent durationComponent))
+                    if (effectController.TryGetComponent(out ChaosEffectDurationComponent durationComponent))
+                    {
+                        TimedEffectType timedType = args.OverrideDurationType ?? timedEffect.TimedType;
+                        float duration = args.OverrideDuration ?? timedEffect.GetDuration(timedType);
+
+                        durationComponent.TimedType = timedType;
+                        durationComponent.Duration = duration;
+                    }
+                    else
                     {
                         Log.Error($"Timed effect {timedEffect} is missing duration component");
-                        Destroy(effectController);
-                        return null;
                     }
-
-                    TimedEffectType timedType = timedEffect.TimedType;
-
-                    if (args.OverrideDurationType.HasValue)
-                    {
-                        timedType = args.OverrideDurationType.Value;
-                    }
-
-                    float duration = timedEffect.GetDuration(timedType);
-
-                    if (args.OverrideDuration.HasValue)
-                    {
-                        duration = args.OverrideDuration.Value;
-                    }
-
-                    durationComponent.TimedType = timedType;
-                    durationComponent.Duration = duration;
                 }
 
                 NetworkServer.Spawn(effectController);
