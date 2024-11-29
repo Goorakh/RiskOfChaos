@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using RiskOfChaos.Components;
 using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -60,10 +61,12 @@ namespace RiskOfChaos.Patches
             if (!pickupDropletController || !pickupObject)
                 return;
 
-            if (pickupDropletController.TryGetComponent(out Rigidbody dropletRigidbody) &&
-                pickupObject.TryGetComponent(out Rigidbody pickupRigidbody))
+            if (pickupDropletController.GetComponent<AttractToPlayers>())
             {
-                pickupRigidbody.velocity += dropletRigidbody.velocity;
+                if (pickupDropletController.TryGetComponent(out Rigidbody dropletRigidbody) && pickupObject.TryGetComponent(out Rigidbody pickupRigidbody))
+                {
+                    pickupRigidbody.velocity += dropletRigidbody.velocity;
+                }
             }
         }
     }
