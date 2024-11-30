@@ -306,12 +306,11 @@ namespace RiskOfChaos.EffectHandling
                 return false;
             }
 
-            if (_canActivateMethods.Length > 0)
+            foreach (ChaosEffectCanActivateMethod canActivateMethod in _canActivateMethods)
             {
-                foreach (ChaosEffectCanActivateMethod canActivateMethod in _canActivateMethods)
+                if (!canActivateMethod.Invoke(context))
                 {
-                    if (!canActivateMethod.Invoke(context))
-                        return false;
+                    return false;
                 }
             }
 

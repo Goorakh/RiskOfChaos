@@ -13,18 +13,14 @@ namespace RiskOfChaos.EffectHandling
         {
             _methodDescription = method.FullDescription();
 
-            Delegate canActivateDelegate = Delegate.CreateDelegate(typeof(EffectCanActivateDelegate), method, false);
-            if (canActivateDelegate != null)
-            {
-                _canActivate = canActivateDelegate as EffectCanActivateDelegate;
-            }
-            else
+            EffectCanActivateDelegate canActivateDelegate = Delegate.CreateDelegate(typeof(EffectCanActivateDelegate), method, false) as EffectCanActivateDelegate;
+            if (canActivateDelegate == null)
             {
                 ParameterInfo[] methodParameters = method.GetParameters();
                 switch (methodParameters.Length)
                 {
                     case 0:
-                        _canActivate = (in EffectCanActivateContext context) =>
+                        canActivateDelegate = (in EffectCanActivateContext context) =>
                         {
                             return (bool)method.Invoke(null, null);
                         };
@@ -32,9 +28,9 @@ namespace RiskOfChaos.EffectHandling
                     case 1:
                         if (methodParameters[0].ParameterType == typeof(EffectCanActivateContext))
                         {
-                            _canActivate = (in EffectCanActivateContext context) =>
+                            canActivateDelegate = (in EffectCanActivateContext context) =>
                             {
-                                return (bool)method.Invoke(null, [ context ]);
+                                return (bool)method.Invoke(null, [context]);
                             };
                         }
                         else
@@ -48,6 +44,8 @@ namespace RiskOfChaos.EffectHandling
                         break;
                 }
             }
+
+            _canActivate = canActivateDelegate;
         }
 
         public readonly bool Invoke(in EffectCanActivateContext context)

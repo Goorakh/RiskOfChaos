@@ -11,23 +11,31 @@ namespace RiskOfChaos.EffectHandling
         {
         }
 
+        static bool tryGetString(object param, out string str)
+        {
+            switch (param)
+            {
+                case string:
+                    str = (string)param;
+                    return true;
+                case ChaosEffectInfo effectInfo:
+                    str = effectInfo.Identifier;
+                    return true;
+            }
+
+            str = null;
+            return false;
+        }
+
         public int Compare(object x, object y)
         {
-            if (x is ChaosEffectInfo effectInfo)
-            {
-                if (y is string str)
-                {
-                    return StringComparer.OrdinalIgnoreCase.Compare(effectInfo.Identifier, str);
-                }
-                else
-                {
-                    throw new ArgumentException($"parameter must be of type {nameof(String)}", nameof(y));
-                }
-            }
-            else
-            {
-                throw new ArgumentException($"parameter must be of type {nameof(ChaosEffectInfo)}", nameof(x));
-            }
+            if (!tryGetString(x, out string strX))
+                throw new ArgumentException($"Parameter was not of valid type", nameof(x));
+
+            if (!tryGetString(y, out string strY))
+                throw new ArgumentException($"Parameter was not of valid type", nameof(y));
+
+            return StringComparer.OrdinalIgnoreCase.Compare(strX, strY);
         }
     }
 }
