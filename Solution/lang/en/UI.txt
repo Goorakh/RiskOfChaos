@@ -52,5 +52,8 @@
 
         "POPUP_TWITCH_LOGIN_VALIDATION_FAILED_GENERIC_HEADER": "Risk of Chaos",
         "POPUP_TWITCH_LOGIN_VALIDATION_FAILED_GENERIC_DESCRIPTION": "An unknown error occured when validating your saved Twitch access token, please re-authenticate and send a bug report if this issue persists.",
+
+        "EQUIPMENT_DISABLED_NAME": "Unavailable",
+        "EQUIPMENT_DISABLED_DESC": ""
     }
 }

@@ -3,20 +3,16 @@ using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
-using RiskOfChaos.EffectDefinitions.Character.Equipment;
-using RiskOfChaos.EffectHandling.Controllers;
 using RoR2;
 using System.Reflection;
 
-namespace RiskOfChaos.Patches.Effects.Character.Equipment
+namespace RiskOfChaos.Patches
 {
-    static class DisableEquipmentActivationHooks
+    static class FixEquipmentDisabledPatch
     {
         [SystemInitializer]
         static void Init()
         {
-            On.RoR2.EquipmentSlot.PerformEquipmentAction += EquipmentSlot_PerformEquipmentAction;
-
             MethodInfo equipmentSlotStockGetter = AccessTools.DeclaredPropertyGetter(typeof(EquipmentSlot), nameof(EquipmentSlot.stock));
             if (equipmentSlotStockGetter != null)
             {
@@ -34,18 +30,10 @@ namespace RiskOfChaos.Patches.Effects.Character.Equipment
         static int EquipmentSlot_get_stock(orig_EquipmentSlot_get_stock orig, EquipmentSlot self)
         {
             int stock = orig(self);
-            if (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(DisableEquipmentActivation.EffectInfo))
+            if (self.equipmentDisabled)
                 stock = 0;
 
             return stock;
-        }
-
-        static bool EquipmentSlot_PerformEquipmentAction(On.RoR2.EquipmentSlot.orig_PerformEquipmentAction orig, EquipmentSlot self, EquipmentDef equipmentDef)
-        {
-            if (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(DisableEquipmentActivation.EffectInfo))
-                return false;
-
-            return orig(self, equipmentDef);
         }
 
         static void BaseGoldGatState_CheckReturnToIdle(ILContext il)
@@ -61,8 +49,8 @@ namespace RiskOfChaos.Patches.Effects.Character.Equipment
                     c.MoveAfterLabels();
 
                     c.Emit(OpCodes.Ldarg_0);
-                    c.EmitDelegate(isOutOfEquipmentStocks);
-                    static bool isOutOfEquipmentStocks(BaseGoldGatState state)
+                    c.EmitDelegate(isEquipmentDisabled);
+                    static bool isEquipmentDisabled(BaseGoldGatState state)
                     {
                         return state.bodyEquipmentSlot && state.bodyEquipmentSlot.stock <= 0;
                     }
