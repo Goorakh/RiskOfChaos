@@ -3,6 +3,7 @@ using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.EffectHandling.EffectComponents.SubtitleProviders;
 using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
@@ -105,6 +106,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
         ChaosEffectInfo _displayingEffectInfo;
         ChaosEffectComponent _displayingEffect;
         ChaosEffectNameComponent _displayingEffectNameComponent;
+        ChaosEffectSubtitleComponent _displayingEffectSubtitleComponent;
         ChaosEffectDurationComponent _displayingEffectDurationComponent;
 
         public ChaosEffectComponent DisplayingEffect
@@ -123,25 +125,38 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
                     _displayingEffectNameComponent.NameFormatterProvider.OnNameFormatterChanged -= onEffectNameFormatterChanged;
                 }
 
+                if (_displayingEffectSubtitleComponent)
+                {
+                    _displayingEffectSubtitleComponent.OnSubtitleChanged -= onEffectSubtitleChanged;
+                }
+
                 _displayingEffect = value;
 
                 ChaosEffectInfo displayingEffectInfo = null;
                 ChaosEffectNameComponent displayingEffectNameComponent = null;
+                ChaosEffectSubtitleComponent displayingEffectSubtitleComponent = null;
                 ChaosEffectDurationComponent durationComponent = null;
                 if (_displayingEffect)
                 {
                     displayingEffectInfo = _displayingEffect.ChaosEffectInfo;
                     displayingEffectNameComponent = _displayingEffect.GetComponent<ChaosEffectNameComponent>();
+                    displayingEffectSubtitleComponent = _displayingEffect.GetComponent<ChaosEffectSubtitleComponent>();
                     durationComponent = _displayingEffect.GetComponent<ChaosEffectDurationComponent>();
                 }
 
                 _displayingEffectInfo = displayingEffectInfo;
                 _displayingEffectNameComponent = displayingEffectNameComponent;
+                _displayingEffectSubtitleComponent = displayingEffectSubtitleComponent;
                 _displayingEffectDurationComponent = durationComponent;
 
                 if (_displayingEffectNameComponent)
                 {
                     _displayingEffectNameComponent.NameFormatterProvider.OnNameFormatterChanged += onEffectNameFormatterChanged;
+                }
+
+                if (_displayingEffectSubtitleComponent)
+                {
+                    _displayingEffectSubtitleComponent.OnSubtitleChanged += onEffectSubtitleChanged;
                 }
 
                 markEffectLabelDirty();
@@ -215,6 +230,11 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             markEffectLabelDirty();
         }
 
+        void onEffectSubtitleChanged()
+        {
+            markEffectLabelDirty();
+        }
+
         void markEffectLabelDirty()
         {
             _effectLabelDirty = true;
@@ -231,7 +251,6 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             float timeRemaining = _displayingEffectDurationComponent.Remaining;
 
             string displayName = "???";
-            string subtitle = string.Empty;
             if (_displayingEffectInfo != null)
             {
                 EffectNameFormatterProvider nameFormatterProvider = _displayingEffectInfo.StaticDisplayNameFormatterProvider;
@@ -242,12 +261,12 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
                 EffectNameFormatter nameFormatter = nameFormatterProvider.NameFormatter;
                 displayName = nameFormatter.GetEffectDisplayName(_displayingEffectInfo, EffectNameFormatFlags.RuntimeFormatArgs);
-                subtitle = nameFormatter.GetEffectNameSubtitle(_displayingEffectInfo);
+            }
 
-                if (!string.IsNullOrEmpty(subtitle))
-                {
-                    subtitle = subtitle.Trim();
-                }
+            string subtitle = string.Empty;
+            if (_displayingEffectSubtitleComponent)
+            {
+                subtitle = _displayingEffectSubtitleComponent.Subtitle;
             }
 
             string token;

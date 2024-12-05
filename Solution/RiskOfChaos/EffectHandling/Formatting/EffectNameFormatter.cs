@@ -75,11 +75,6 @@ namespace RiskOfChaos.EffectHandling.Formatting
             }
         }
 
-        public virtual string GetEffectNameSubtitle(ChaosEffectInfo effectInfo)
-        {
-            return string.Empty;
-        }
-
         protected void invokeFormatterDirty()
         {
             OnFormatterDirty?.Invoke();

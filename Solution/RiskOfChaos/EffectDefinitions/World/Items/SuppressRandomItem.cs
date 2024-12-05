@@ -1,22 +1,22 @@
 ﻿using RiskOfChaos.Components;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
-using RiskOfChaos.EffectHandling.Formatting;
+using RiskOfChaos.EffectHandling.EffectComponents.SubtitleProviders;
 using RiskOfChaos.EffectUtils.World;
 using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Items
 {
     [ChaosTimedEffect("suppress_random_item", TimedEffectType.Permanent, HideFromEffectsListWhenPermanent = true)]
+    [RequiredComponents(typeof(PickupListSubtitleProvider))]
     public sealed class SuppressRandomItem : NetworkBehaviour
     {
         [EffectCanActivate]
@@ -34,7 +34,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
         }
 
         ChaosEffectComponent _effectComponent;
-        ChaosEffectNameComponent _effectNameComponent;
+        PickupListSubtitleProvider _pickupListSubtitleProvider;
         ObjectSerializationComponent _serializationComponent;
 
         [SerializedMember("i")]
@@ -43,7 +43,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
-            _effectNameComponent = GetComponent<ChaosEffectNameComponent>();
+            _pickupListSubtitleProvider = GetComponent<PickupListSubtitleProvider>();
             _serializationComponent = GetComponent<ObjectSerializationComponent>();
         }
 
@@ -83,11 +83,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
                         paramColors = [ColorCatalog.GetColor(itemTierDef.colorIndex)]
                     });
                 }
+            }
 
-                if (_effectNameComponent)
-                {
-                    _effectNameComponent.SetCustomNameFormatter(new NameFormatter(_itemToSuppress));
-                }
+            if (_pickupListSubtitleProvider)
+            {
+                _pickupListSubtitleProvider.AddPickup(PickupCatalog.FindPickupIndex(_itemToSuppress));
             }
         }
 
@@ -96,70 +96,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
             if (_itemToSuppress != ItemIndex.None)
             {
                 ItemSuppressionManager.RemoveSuppressedItem(_itemToSuppress);
-            }
-        }
-
-        class NameFormatter : EffectNameFormatter
-        {
-            ItemIndex _suppressedItemIndex;
-
-            public NameFormatter(ItemIndex suppressedItemIndex)
-            {
-                _suppressedItemIndex = suppressedItemIndex;
-            }
-
-            public NameFormatter()
-            {
-            }
-
-            public override string GetEffectNameSubtitle(ChaosEffectInfo effectInfo)
-            {
-                string subtitle = base.GetEffectNameSubtitle(effectInfo);
-
-                PickupDef suppressedItem = PickupCatalog.GetPickupDef(PickupCatalog.FindPickupIndex(_suppressedItemIndex));
-                if (suppressedItem != null)
-                {
-                    StringBuilder stringBuilder = HG.StringBuilderPool.RentStringBuilder();
-
-                    if (!string.IsNullOrWhiteSpace(subtitle))
-                    {
-                        stringBuilder.AppendLine(subtitle);
-                    }
-
-                    stringBuilder.Append("\n(");
-
-                    stringBuilder.AppendColoredString(Language.GetString(suppressedItem.nameToken), suppressedItem.baseColor);
-
-                    stringBuilder.Append(")");
-
-                    subtitle = stringBuilder.ToString();
-
-                    stringBuilder = HG.StringBuilderPool.ReturnStringBuilder(stringBuilder);
-                }
-
-                return subtitle;
-            }
-
-            public override object[] GetFormatArgs()
-            {
-                return [];
-            }
-
-            public override void Serialize(NetworkWriter writer)
-            {
-                writer.Write(_suppressedItemIndex);
-            }
-
-            public override void Deserialize(NetworkReader reader)
-            {
-                _suppressedItemIndex = reader.ReadItemIndex();
-                invokeFormatterDirty();
-            }
-
-            public override bool Equals(EffectNameFormatter other)
-            {
-                return other is NameFormatter otherFormatter &&
-                       _suppressedItemIndex == otherFormatter._suppressedItemIndex;
             }
         }
     }

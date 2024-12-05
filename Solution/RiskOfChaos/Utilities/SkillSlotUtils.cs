@@ -41,5 +41,17 @@ namespace RiskOfChaos.Utilities
 
             return mask;
         }
+
+        public static string GetSkillSlotNameToken(SkillSlot slot)
+        {
+            return slot switch
+            {
+                SkillSlot.Primary => "LOADOUT_SKILL_PRIMARY",
+                SkillSlot.Secondary => "LOADOUT_SKILL_SECONDARY",
+                SkillSlot.Utility => "LOADOUT_SKILL_UTILITY",
+                SkillSlot.Special => "LOADOUT_SKILL_SPECIAL",
+                _ => string.Empty
+            };
+        }
     }
 }

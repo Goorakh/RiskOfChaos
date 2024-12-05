@@ -1,12 +1,13 @@
 ﻿using HG;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
-using RiskOfChaos.EffectHandling.Formatting;
+using RiskOfChaos.EffectHandling.EffectComponents.SubtitleProviders;
 using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
@@ -14,12 +15,12 @@ using RoR2;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosTimedEffect("enable_random_artifact", TimedEffectType.UntilStageEnd, HideFromEffectsListWhenPermanent = true)]
+    [RequiredComponents(typeof(ArtifactSubtitleProvider))]
     [EffectConfigBackwardsCompatibility("Effect: Enable Random Artifact (Lasts 1 Stage)")]
     public sealed class EnableRandomArtifact : NetworkBehaviour
     {
@@ -109,7 +110,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         }
 
         ChaosEffectComponent _effectComponent;
-        ChaosEffectNameComponent _effectNameComponent;
+        ArtifactSubtitleProvider _artifactSubtitleProvider;
 
         [SerializedMember("a")]
         ArtifactIndex _enabledArtifact = ArtifactIndex.None;
@@ -117,7 +118,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
-            _effectNameComponent = GetComponent<ChaosEffectNameComponent>();
+            _artifactSubtitleProvider = GetComponent<ArtifactSubtitleProvider>();
         }
 
         public override void OnStartServer()
@@ -146,9 +147,9 @@ namespace RiskOfChaos.EffectDefinitions.World
             {
                 RunArtifactManager.instance.SetArtifactEnabledServer(ArtifactCatalog.GetArtifactDef(_enabledArtifact), true);
 
-                if (_effectNameComponent)
+                if (_artifactSubtitleProvider)
                 {
-                    _effectNameComponent.SetCustomNameFormatter(new NameFormatter(_enabledArtifact));
+                    _artifactSubtitleProvider.ArtifactIndex = _enabledArtifact;
                 }
             }
         }
@@ -161,71 +162,6 @@ namespace RiskOfChaos.EffectDefinitions.World
             if (_enabledArtifact != ArtifactIndex.None)
             {
                 RunArtifactManager.instance.SetArtifactEnabledServer(ArtifactCatalog.GetArtifactDef(_enabledArtifact), false);
-            }
-        }
-
-        class NameFormatter : EffectNameFormatter
-        {
-            ArtifactIndex _enabledArtifactIndex;
-
-            public NameFormatter(ArtifactIndex enabledArtifactIndex)
-            {
-                _enabledArtifactIndex = enabledArtifactIndex;
-            }
-
-            public NameFormatter()
-            {
-            }
-
-            public override string GetEffectNameSubtitle(ChaosEffectInfo effectInfo)
-            {
-                string subtitle = base.GetEffectNameSubtitle(effectInfo);
-
-                ArtifactDef artifactDef = ArtifactCatalog.GetArtifactDef(_enabledArtifactIndex);
-                if (artifactDef)
-                {
-                    StringBuilder stringBuilder = HG.StringBuilderPool.RentStringBuilder();
-                    if (!string.IsNullOrWhiteSpace(subtitle))
-                    {
-                        stringBuilder.AppendLine(subtitle);
-                    }
-
-                    stringBuilder.Append("\n(");
-
-                    stringBuilder.Append("<style=cArtifact>");
-                    stringBuilder.Append(Language.GetString(artifactDef.nameToken));
-                    stringBuilder.Append("</style>");
-
-                    stringBuilder.Append(")");
-
-                    subtitle = stringBuilder.ToString();
-
-                    stringBuilder = HG.StringBuilderPool.ReturnStringBuilder(stringBuilder);
-                }
-
-                return subtitle;
-            }
-
-            public override object[] GetFormatArgs()
-            {
-                return [];
-            }
-
-            public override void Serialize(NetworkWriter writer)
-            {
-                writer.WritePackedIndex32((int)_enabledArtifactIndex);
-            }
-
-            public override void Deserialize(NetworkReader reader)
-            {
-                _enabledArtifactIndex = (ArtifactIndex)reader.ReadPackedIndex32();
-                invokeFormatterDirty();
-            }
-
-            public override bool Equals(EffectNameFormatter other)
-            {
-                return other is NameFormatter otherFormatter &&
-                       _enabledArtifactIndex == otherFormatter._enabledArtifactIndex;
             }
         }
     }
