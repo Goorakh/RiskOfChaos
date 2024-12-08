@@ -8,7 +8,7 @@ using RoR2.Projectile;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace RiskOfChaos.Patches
+namespace RiskOfChaos.Patches.AttackHooks
 {
     static class ProjectileBounceHook
     {

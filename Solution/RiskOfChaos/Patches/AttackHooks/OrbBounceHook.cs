@@ -7,12 +7,13 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Orbs;
+using RoR2BepInExPack.Utilities;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.Patches
+namespace RiskOfChaos.Patches.AttackHooks
 {
     static class OrbBounceHook
     {
@@ -21,6 +22,8 @@ namespace RiskOfChaos.Patches
             public readonly Xoroshiro128Plus RNG;
 
             public readonly int MaxBounces;
+
+            public readonly AttackHookMask ActiveAttackHooks;
 
             public int CompletedBounces { get; private set; }
 
@@ -36,11 +39,12 @@ namespace RiskOfChaos.Patches
 
             public int CurrentDeadBacktrackCount;
 
-            public OrbBounceChain(int maxBounces, Xoroshiro128Plus rng)
+            public OrbBounceChain(int maxBounces, AttackHookMask activeAttackHooks, Xoroshiro128Plus rng)
             {
                 RNG = rng;
 
                 MaxBounces = maxBounces;
+                ActiveAttackHooks = activeAttackHooks;
                 CompletedBounces = 0;
 
                 _hitOrder = new List<HealthComponent>(MaxBounces);
@@ -56,6 +60,22 @@ namespace RiskOfChaos.Patches
                 _hitOrder.Add(hitEntity);
                 UniqueHitEntities.Add(hitEntity);
                 CompletedBounces++;
+            }
+
+            public OrbBounceChain Clone()
+            {
+                OrbBounceChain cloneBounceChain = new OrbBounceChain(MaxBounces, ActiveAttackHooks, new Xoroshiro128Plus(RNG))
+                {
+                    CompletedBounces = CompletedBounces,
+                    CurrentDeadBacktrackCount = CurrentDeadBacktrackCount
+                };
+
+                cloneBounceChain._hitOrder.AddRange(_hitOrder);
+
+                cloneBounceChain.UniqueHitEntities.UnionWith(UniqueHitEntities);
+                cloneBounceChain.UsedDeadBacktrackEntities.UnionWith(UsedDeadBacktrackEntities);
+
+                return cloneBounceChain;
             }
         }
 
@@ -76,40 +96,25 @@ namespace RiskOfChaos.Patches
             }
         }
 
-        static readonly Dictionary<Orb, OrbBounceChain> _orbBounceChains = [];
+        static readonly FixedConditionalWeakTable<Orb, OrbBounceChain> _orbBounceChains = new FixedConditionalWeakTable<Orb, OrbBounceChain>();
 
         public static bool IsBouncedOrb(Orb orb)
         {
             if (orb == null)
                 return false;
 
-            if (_orbBounceChains.ContainsKey(orb))
+            if (_orbBounceChains.TryGetValue(orb, out _))
                 return true;
 
             if (orb.TryGetProcChainMask(out ProcChainMask procChainMask))
-                return procChainMask.HasModdedProc(CustomProcTypes.Bouncing);
+                return procChainMask.HasModdedProc(CustomProcTypes.Bouncing) || procChainMask.HasModdedProc(CustomProcTypes.BounceChainEnd);
 
             return false;
-        }
-
-        static void clearBouncesRemaining()
-        {
-            _orbBounceChains.Clear();
         }
 
         [SystemInitializer]
         static void Init()
         {
-            Run.onRunDestroyGlobal += _ =>
-            {
-                clearBouncesRemaining();
-            };
-
-            Stage.onServerStageBegin += _ =>
-            {
-                clearBouncesRemaining();
-            };
-
             IL.RoR2.Orbs.OrbManager.FixedUpdate += hookOrbArrival;
             IL.RoR2.Orbs.OrbManager.ForceImmediateArrival += hookOrbArrival;
         }
@@ -139,38 +144,28 @@ namespace RiskOfChaos.Patches
             }
         }
 
+        public static bool TryStartBounceOrb(Orb orbInstance, AttackHookMask activeAttackHooks)
+        {
+            if (!isEnabled || !OrbManager.instance || !orbInstance.target)
+                return false;
+
+            _orbBounceChains.Remove(orbInstance);
+            _orbBounceChains.Add(orbInstance, new OrbBounceChain(bounceCount, activeAttackHooks, new Xoroshiro128Plus(RoR2Application.rng.nextUlong)));
+            return true;
+        }
+
         static void tryBounceOrb(Orb orbInstance)
         {
-            if (orbInstance == null || OrbUtils.IsTransferOrb(orbInstance) || orbInstance is VoidLightningOrb)
+            if (orbInstance == null)
                 return;
 
-            if (_orbBounceChains.TryGetValue(orbInstance, out OrbBounceChain bounceChain))
-            {
-                _orbBounceChains.Remove(orbInstance);
-                if (bounceChain.BouncesRemaining <= 0)
-                    return;
-            }
-            else
-            {
-                bounceChain = null;
-            }
-
-            if (!isEnabled || !OrbManager.instance || !orbInstance.target)
+            if (!_orbBounceChains.TryGetValue(orbInstance, out OrbBounceChain bounceChain))
                 return;
 
-            if (orbInstance.TryGetProcChainMask(out ProcChainMask orbProcChain))
-            {
-                if (!orbProcChain.HasModdedProc(CustomProcTypes.Bouncing) && orbProcChain.HasAnyProc())
-                {
-                    return;
-                }
-            }
+            if (bounceChain.BouncesRemaining <= 0)
+                return;
 
-            if (bounceChain == null)
-            {
-                bounceChain = new OrbBounceChain(bounceCount, new Xoroshiro128Plus(RoR2Application.rng.nextUlong));
-            }
-
+            bounceChain = bounceChain.Clone();
             bounceChain.RecordHit(orbInstance.target.healthComponent);
 
             Vector3 oldOrbTargetPosition = orbInstance.target.transform.position;
@@ -383,7 +378,7 @@ namespace RiskOfChaos.Patches
                 }
 
                 const float MIN_DISTANCE_MULTIPLIER = 0.25f;
-                float distanceWeightMultiplier = (Mathf.Pow(1f - normalizedSqrDistance, 2f) * (1f - MIN_DISTANCE_MULTIPLIER)) + MIN_DISTANCE_MULTIPLIER;
+                float distanceWeightMultiplier = Mathf.Pow(1f - normalizedSqrDistance, 2f) * (1f - MIN_DISTANCE_MULTIPLIER) + MIN_DISTANCE_MULTIPLIER;
 
                 float duplicateBounceWeightMultiplier = Mathf.Pow(2f, -effectiveTimesBouncedOnCandidate / 2f);
 
@@ -424,8 +419,10 @@ namespace RiskOfChaos.Patches
                 newOrb.TrySetProcChainMask(newOrbProcChainMask);
             }
 
+            Log.Debug($"Fired bounce of {orbInstance}, {bounceChain.BouncesRemaining} remaining");
             _orbBounceChains.Add(newOrb, bounceChain);
 
+            AttackHookManager.Context.Activate(bounceChain.ActiveAttackHooks | AttackHookMask.Bounced);
             OrbManager.instance.AddOrb(newOrb);
 
             if (orbInstance.TryGetProcChainMask(out ProcChainMask orbProcChainMask))

@@ -73,6 +73,25 @@ namespace RiskOfChaos.Utilities.Extensions
                                     }
                                 }
                             }
+                            else if (fieldType.GetGenericTypeDefinition() == typeof(Queue<>))
+                            {
+                                if (fieldValue is not null)
+                                {
+                                    try
+                                    {
+                                        // copyInstance.queueField = new Queue<T>(source.queueField)
+                                        fieldValue = Activator.CreateInstance(fieldType, fieldValue);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Log.Warning_NoCallerPrefix($"Failed to copy queue type {fieldType.FullDescription()} for {field.DeclaringType.FullDescription()}.{field.Name}, same instance of list object will be used instead: {ex}");
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                Log.Warning($"Unhandled generic type {fieldType.FullName}");
+                            }
                         }
                     }
 

@@ -2,6 +2,12 @@
 
 **-.-.- Changes:**
 
+* Repeating Projectiles:
+  * Now also applies to melee attacks
+
+* Repeating Projectiles, Bouncy Projectiles & Delayed Attacks:
+  * Fixed inconsistent results for bullet attacks when combinations of these effects were active
+
 * Bouncy Items, Item Magnet, & Item Repulsor:
   * Fixed inconsistent item physics when certain combinations of these effects were active
 
