@@ -28,7 +28,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
         static PickupTransmutationDropTable[] _pickupTransmutationDropTables = [];
 
         [SystemInitializer(typeof(PickupCatalog), typeof(PickupTransmutationManager))]
-        static IEnumerator Init()
+        static void Init()
         {
             AsyncOperationHandle<GameObject> optionPickupLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/OptionPickup/OptionPickup.prefab");
             optionPickupLoad.OnSuccess(optionPickupPrefab =>
@@ -38,22 +38,48 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
 
             Log.Debug("Creating transmutation drop tables...");
 
+            int numCreatedTransmutationTables = 0;
+
             _pickupTransmutationDropTables = new PickupTransmutationDropTable[PickupCatalog.pickupCount];
             for (int i = 0; i < PickupCatalog.pickupCount; i++)
             {
                 PickupIndex pickupIndex = new PickupIndex(i);
 
+                PickupDef pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
+                if (pickupDef == null)
+                    continue;
+
+                if (pickupDef.itemIndex == ItemIndex.None && pickupDef.equipmentIndex == EquipmentIndex.None)
+                    continue;
+
+                PickupIndex[] availablePickups = PickupTransmutationManager.GetGroupFromPickupIndex(pickupIndex);
+
+                bool isTransmutable = false;
+                if (availablePickups != null)
+                {
+                    foreach (PickupIndex transmutationPickupIndex in availablePickups)
+                    {
+                        if (transmutationPickupIndex != pickupIndex)
+                        {
+                            isTransmutable = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!isTransmutable)
+                    continue;
+
                 PickupTransmutationDropTable transmutationDropTable = ScriptableObject.CreateInstance<PickupTransmutationDropTable>();
-                transmutationDropTable.name = $"dt{PickupCatalog.GetPickupDef(pickupIndex).internalName}Transmutation";
+                transmutationDropTable.name = $"dt{pickupDef.internalName}Transmutation";
                 transmutationDropTable.canDropBeReplaced = false;
                 transmutationDropTable.SourcePickup = pickupIndex;
 
                 _pickupTransmutationDropTables[i] = transmutationDropTable;
-
-                yield return null;
+                numCreatedTransmutationTables++;
             }
 
-            Log.Debug($"Created {_pickupTransmutationDropTables.Length} transmutation drop tables");
+            Log.Debug($"Created {numCreatedTransmutationTables} transmutation drop tables");
         }
 
         [EffectCanActivate]
@@ -105,15 +131,22 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
             _pickupOptionGenerators.EnsureCapacity(PickupCatalog.pickupCount);
             foreach (PickupDef pickup in PickupCatalog.allPickups)
             {
-                PickupOptionGenerator optionGenerator = new PickupOptionGenerator(pickup.pickupIndex, new Xoroshiro128Plus(rng.nextUlong));
+                PickupIndex pickupIndex = pickup.pickupIndex;
+                if (pickupIndex.value < 0 || pickupIndex.value >= _pickupTransmutationDropTables.Length)
+                    continue;
 
-                if (_pickupOptionGenerators.ContainsKey(pickup.pickupIndex))
+                if (!_pickupTransmutationDropTables[pickupIndex.value])
+                    continue;
+
+                PickupOptionGenerator optionGenerator = new PickupOptionGenerator(pickupIndex, new Xoroshiro128Plus(rng.nextUlong));
+
+                if (_pickupOptionGenerators.ContainsKey(pickupIndex))
                 {
-                    Log.Error($"Duplicate option generators for {pickup.pickupIndex}");
+                    Log.Error($"Duplicate option generators for {pickupIndex}");
                     continue;
                 }
 
-                _pickupOptionGenerators.Add(pickup.pickupIndex, optionGenerator);
+                _pickupOptionGenerators.Add(pickupIndex, optionGenerator);
             }
 
             _pickupOptionGenerators.TrimExcess();
@@ -143,7 +176,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
             }
             else
             {
-                options = null;
+                options = [];
                 return false;
             }
         }
@@ -238,6 +271,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
                     return [];
 
                 PickupTransmutationDropTable dropTable = _pickupTransmutationDropTables[index];
+                if (!dropTable)
+                    return [];
+
                 return dropTable.GenerateUniqueDrops(maxOptionCount, new Xoroshiro128Plus(_rng.nextUlong));
             }
         }
