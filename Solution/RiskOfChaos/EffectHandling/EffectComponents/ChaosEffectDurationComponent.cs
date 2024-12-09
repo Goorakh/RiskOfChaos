@@ -16,6 +16,8 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
 
         public TimedEffectInfo TimedEffectInfo => _effectComponent ? _effectComponent.ChaosEffectInfo as TimedEffectInfo : null;
 
+        bool _isInSceneTransition;
+
         [SyncVar]
         int _timedTypeInternal;
 
@@ -78,11 +80,13 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         void OnEnable()
         {
             Stage.onServerStageComplete += onServerStageComplete;
+            Stage.onStageStartGlobal += onStageStartGlobal;
         }
 
         void OnDisable()
         {
             Stage.onServerStageComplete -= onServerStageComplete;
+            Stage.onStageStartGlobal -= onStageStartGlobal;
         }
 
         void FixedUpdate()
@@ -105,6 +109,9 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         [Server]
         void checkElapsed()
         {
+            if (_isInSceneTransition)
+                return;
+
             if (Elapsed >= Duration)
             {
                 if (Duration <= 0f)
@@ -120,10 +127,15 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         void onServerStageComplete(Stage stage)
         {
             NumStagesCompletedWhileActive++;
+            _isInSceneTransition = true;
+        }
 
-            // This has to be checked immediately, if we wait for the next FixedUpdate to check instead,
-            // it will for some reason not notify clients of the destruction if we end up destroying the object.
-            checkElapsed();
+        void onStageStartGlobal(Stage stage)
+        {
+            if (NetworkServer.active)
+            {
+                _isInSceneTransition = false;
+            }
         }
 
         [Server]

@@ -5,6 +5,9 @@
 * Added 1 effect:
   * Grenade Bullets: All attacks are replaced with grenades, lasts 120 seconds
 
+* Multiplayer:
+  * Fixed a desync issue causing some effects to not end properly for non-host players during stage transitions
+
 * Risk of Thunder:
   * Reduced lightning strike frequency on smaller maps
 
