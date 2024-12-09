@@ -2,6 +2,9 @@
 
 **-.-.- Changes:**
 
+* Risk of Thunder:
+  * Reduced lightning strike frequency on smaller maps
+
 * Repeating Projectiles:
   * Now also applies to melee attacks
 

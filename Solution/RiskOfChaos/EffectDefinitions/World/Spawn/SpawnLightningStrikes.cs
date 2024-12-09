@@ -2,6 +2,7 @@
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -55,6 +56,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 orbEffectLoad.OnSuccess(orbEffectPrefab => _orbEffect = orbEffectPrefab);
             }
 
+            public float Force;
+
             GameObject _debugRangeIndicator;
 
             public override GameObject GetOrbEffect()
@@ -103,16 +106,15 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
                 new BlastAttack
                 {
-                    baseDamage = 50f * Run.instance.teamlessDamageCoefficient,
-                    baseForce = 0f,
-                    bonusForce = new Vector3(0f, 10f, 0f),
-                    damageColorIndex = DamageColorIndex.Item,
-                    damageType = DamageType.SlowOnHit,
+                    baseDamage = damageValue,
+                    baseForce = Force,
+                    damageColorIndex = damageColorIndex,
+                    damageType = damageType,
                     falloffModel = BlastAttack.FalloffModel.None,
                     position = origin,
-                    procCoefficient = 0f,
+                    procCoefficient = procCoefficient,
                     radius = scale,
-                    teamIndex = TeamIndex.None
+                    teamIndex = teamIndex
                 }.Fire();
 
                 if (_debugRangeIndicator)
@@ -124,10 +126,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         ChaosEffectComponent _effectComponent;
 
+        [SerializedMember("rng")]
         Xoroshiro128Plus _rng;
 
-        const float TIME_BETWEEN_LIGHTNING_STRIKES = 0.25f;
-        float _lightningStrikeTimer = float.NegativeInfinity;
+        float _lightningStrikeTimer = 0f;
 
         void Awake()
         {
@@ -147,21 +149,29 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 return;
 
             _lightningStrikeTimer -= Time.fixedDeltaTime;
-            if (_lightningStrikeTimer <= 0f)
+            while (_lightningStrikeTimer <= 0f)
             {
-                _lightningStrikeTimer += TIME_BETWEEN_LIGHTNING_STRIKES;
+                List<CharacterBody> validStrikeTargets = new List<CharacterBody>(CharacterBody.readOnlyInstancesList.Count);
+                foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
+                {
+                    if ((body.bodyFlags & CharacterBody.BodyFlags.Masterless) == 0 && body.healthComponent && body.healthComponent.alive)
+                    {
+                        validStrikeTargets.Add(body);
+                    }
+                }
+
+                int groundNodeCount = 0;
+                if (SceneInfo.instance && SceneInfo.instance.groundNodes)
+                {
+                    groundNodeCount = SceneInfo.instance.groundNodes.GetNodeCount();
+                }
+
+                const float STRIKE_TIMER_MAX = 0.8f;
+
+                _lightningStrikeTimer += 1f / Mathf.Max(1f / STRIKE_TIMER_MAX, (groundNodeCount + validStrikeTargets.Count) / 35f);
 
                 if (OrbManager.instance)
                 {
-                    List<CharacterBody> validStrikeTargets = new List<CharacterBody>(CharacterBody.readOnlyInstancesList.Count);
-                    foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
-                    {
-                        if ((body.bodyFlags & CharacterBody.BodyFlags.Masterless) == 0 && body.healthComponent && body.healthComponent.alive)
-                        {
-                            validStrikeTargets.Add(body);
-                        }
-                    }
-
                     Vector3 origin;
                     if (validStrikeTargets.Count > 0 && _rng.nextNormalizedFloat < Mathf.Min(0.1f, 0.0025f * validStrikeTargets.Count))
                     {
@@ -174,7 +184,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
                     OrbManager.instance.AddOrb(new StationaryLightningStrikeOrb
                     {
-                        origin = origin
+                        Force = 30f,
+                        origin = origin,
+                        damageValue = 50f * Run.instance.teamlessDamageCoefficient,
+                        damageColorIndex = DamageColorIndex.Item,
+                        damageType = DamageType.SlowOnHit,
+                        procCoefficient = 0f,
+                        teamIndex = TeamIndex.None
                     });
                 }
             }
