@@ -7,6 +7,7 @@ using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using UnityEngine;
 
@@ -180,13 +181,38 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             _voteTimer?.RewindScheduledActivations(numSeconds);
         }
 
+        bool tryGetVoteNumber(string message, out int voteNumber)
+        {
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                voteNumber = -1;
+                return false;
+            }
+
+            CultureInfo cultureInfo = CultureInfo.InvariantCulture;
+
+            if (int.TryParse(message, NumberStyles.Integer, cultureInfo, out voteNumber))
+                return true;
+
+            const string VOTE_PREFIX = "!vote";
+            if (message.StartsWith(VOTE_PREFIX, true, cultureInfo))
+            {
+                if (int.TryParse(message.Remove(0, VOTE_PREFIX.Length), NumberStyles.Integer, cultureInfo, out voteNumber))
+                    return true;
+            }
+
+            return false;
+        }
+
         protected void processVoteMessage(string userId, string message)
         {
-            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(message))
+            if (!_effectVoteSelection.IsVoteActive)
                 return;
 
-            if (_effectVoteSelection.IsVoteActive &&
-                int.TryParse(message.Trim(), out int voteNumber))
+            if (string.IsNullOrWhiteSpace(userId))
+                return;
+
+            if (tryGetVoteNumber(message, out int voteNumber))
             {
                 int voteOptionIndex = getVoteIndex(voteNumber);
 
