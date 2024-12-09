@@ -20,6 +20,28 @@ namespace RiskOfChaos.Utilities.Reflection
             _field = fieldReference;
         }
 
+        public bool TryGet(TInstance instance, out TValue value)
+        {
+            if (!IsValid)
+            {
+                value = default;
+                return false;
+            }
+
+            try
+            {
+                value = Get(instance);
+            }
+            catch (Exception e)
+            {
+                Log.Error_NoCallerPrefix(e);
+                value = default;
+                return false;
+            }
+
+            return true;
+        }
+
         public TValue Get(TInstance instance)
         {
             FieldInfo fieldInfo = _field.FieldInfo.Value;
@@ -34,6 +56,24 @@ namespace RiskOfChaos.Utilities.Reflection
             {
                 return ConvertGetValue(fieldInfo.GetValue(instance), fieldInfo.FieldType);
             }
+        }
+
+        public bool TrySet(TInstance instance, TValue value)
+        {
+            if (!IsValid)
+                return false;
+
+            try
+            {
+                Set(instance, value);
+            }
+            catch (Exception e)
+            {
+                Log.Error_NoCallerPrefix(e);
+                return false;
+            }
+
+            return true;
         }
 
         public void Set(TInstance instance, TValue value)

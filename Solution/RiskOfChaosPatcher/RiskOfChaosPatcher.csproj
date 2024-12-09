@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="build\**" />
+    <EmbeddedResource Remove="build\**" />
+    <None Remove="build\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove=".gitignore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BepInEx.Core" Version="5.4.21" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <BuildDir>$(ProjectDir)build/</BuildDir>
+  </PropertyGroup>
+
+  <Target Name="BuildPatcher" AfterTargets="Build">
+    <RemoveDir Directories="$(BuildDir)" />
+    <MakeDir Directories="$(BuildDir)" />
+    
+    <Copy SourceFiles="$(OutDir)$(AssemblyName).dll" DestinationFolder="$(BuildDir)" />
+    
+    <Copy SourceFiles="$(OutDir)$(AssemblyName).pdb" DestinationFolder="$(BuildDir)" Condition="'$(Configuration)'=='Debug'" ContinueOnError="true" />
+    <Delete Files="$(BuildDir)/$(AssemblyName).pdb" Condition="'$(Configuration)'!='Debug'" ContinueOnError="true" />
+  </Target>
+</Project>

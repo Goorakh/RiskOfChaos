@@ -9,5 +9,6 @@ namespace RiskOfChaos.Patches.AttackHooks
         Delayed = 1 << 0,
         Repeat = 1 << 1,
         Bounced = 1 << 2,
+        Replaced = 1 << 3,
     }
 }

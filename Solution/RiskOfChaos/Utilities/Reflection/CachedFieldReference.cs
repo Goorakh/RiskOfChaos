@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace RiskOfChaos.Utilities.Reflection
 {
@@ -9,6 +10,7 @@ namespace RiskOfChaos.Utilities.Reflection
         readonly Type _declaringType;
 
         readonly string _fieldName;
+        readonly Regex _fieldNameRegex;
         readonly Type _fieldType;
 
         readonly BindingFlags _bindingFlags;
@@ -31,46 +33,53 @@ namespace RiskOfChaos.Utilities.Reflection
                 throw new ArgumentException($"'{nameof(name)}' cannot be null or whitespace.", nameof(name));
         }
 
-        public CachedFieldReference(Type declaringType, Type fieldType, BindingFlags bindingFlags) : this(declaringType, null, fieldType, bindingFlags)
+        public CachedFieldReference(Type declaringType, Type fieldType, BindingFlags bindingFlags) : this(declaringType, string.Empty, fieldType, bindingFlags)
         {
             if (fieldType is null)
                 throw new ArgumentNullException(nameof(fieldType));
         }
 
+        public CachedFieldReference(Type declaringType, Regex fieldNameRegex, Type fieldType, BindingFlags bindingFlags) : this(declaringType, string.Empty, fieldType, bindingFlags)
+        {
+            if (fieldNameRegex is null)
+                throw new ArgumentNullException(nameof(fieldNameRegex));
+
+            _fieldNameRegex = fieldNameRegex;
+        }
+
+        public CachedFieldReference(Type declaringType, Regex fieldNameRegex, BindingFlags bindingFlags) : this(declaringType, fieldNameRegex, null, bindingFlags)
+        {
+        }
+
         FieldInfo getFieldInfo()
         {
-            if (_fieldName != null)
+            FieldInfo[] fields = _declaringType.GetFields(_bindingFlags);
+            List<FieldInfo> matchingFields = new List<FieldInfo>(fields.Length);
+
+            foreach (FieldInfo field in fields)
             {
-                FieldInfo fieldInfo = _declaringType.GetField(_fieldName, _bindingFlags);
-                if (fieldInfo != null && (_fieldType == null || fieldInfo.FieldType == _fieldType))
-                {
-                    return fieldInfo;
-                }
+                if (!string.IsNullOrWhiteSpace(_fieldName) && !string.Equals(field.Name, _fieldName))
+                    continue;
+
+                if (_fieldNameRegex != null && !_fieldNameRegex.IsMatch(field.Name))
+                    continue;
+
+                if (_fieldType != null && field.FieldType != _fieldType)
+                    continue;
+
+                matchingFields.Add(field);
             }
 
-            if (_fieldType != null)
+            if (matchingFields.Count > 1)
+                throw new AmbiguousMatchException();
+
+            if (matchingFields.Count < 1)
             {
-                FieldInfo[] fields = _declaringType.GetFields(_bindingFlags);
-
-                List<FieldInfo> matchingFields = new List<FieldInfo>(fields.Length);
-                foreach (FieldInfo field in fields)
-                {
-                    if (field.FieldType == _fieldType)
-                    {
-                        matchingFields.Add(field);
-                    }
-                }
-
-                return matchingFields.Count switch
-                {
-                    0 => null,
-                    1 => matchingFields[0],
-                    _ => throw new AmbiguousMatchException()
-                };
+                Log.Debug($"Could not find field: declaring type={_declaringType.FullName}, type={_fieldType?.FullName}, name={_fieldName}, name regex={_fieldNameRegex}");
+                return null;
             }
 
-            Log.Info($"Could not find field: declaring type={_declaringType.FullName}, type={_fieldType?.FullName}, name={_fieldName}");
-            return null;
+            return matchingFields[0];
         }
     }
 }

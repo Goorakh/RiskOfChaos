@@ -30,6 +30,6 @@
     <Copy SourceFiles="$(OutDir)/$(AssemblyName).dll" DestinationFolder="$(BuildDir)" />
     
     <Copy SourceFiles="$(OutDir)/$(AssemblyName).pdb" DestinationFolder="$(BuildDir)" Condition="'$(Configuration)'=='Debug'" />
-    <Delete Files="$(BuildDir)/$(AssemblyName).pdb" Condition="'$(Configuration)'=='Release'" />
+    <Delete Files="$(BuildDir)/$(AssemblyName).pdb" Condition="'$(Configuration)'!='Debug'" />
   </Target>
 </Project>

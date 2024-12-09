@@ -33,6 +33,15 @@ namespace RiskOfChaos.ModificationController.Projectile
         [SyncVar(hook = nameof(setAdditionalSpawnCount))]
         public int AdditionalSpawnCount;
 
+        [SyncVar(hook = nameof(setOverrideProjectileIndex))]
+        int _overrideProjectileIndexInternal;
+
+        public int OverrideProjectileIndex
+        {
+            get => _overrideProjectileIndexInternal - 1;
+            set => _overrideProjectileIndexInternal = value + 1;
+        }
+
         void Awake()
         {
             _modificationController = GetComponent<ValueModificationController>();
@@ -100,6 +109,12 @@ namespace RiskOfChaos.ModificationController.Projectile
         void setAdditionalSpawnCount(int additionalSpawnCount)
         {
             AdditionalSpawnCount = additionalSpawnCount;
+            onValueChanged();
+        }
+
+        void setOverrideProjectileIndex(int overrideProjectileIndexInt)
+        {
+            _overrideProjectileIndexInternal = overrideProjectileIndexInt;
             onValueChanged();
         }
     }

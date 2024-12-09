@@ -45,6 +45,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RiskOfTwitch\RiskOfTwitch.csproj" />
+    <ProjectReference Include="..\RiskOfChaos_PatcherInterop\RiskOfChaos_PatcherInterop.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -98,6 +99,7 @@
     <BuildDir>$(RootDir)build/</BuildDir>
     <TSPackageDir>$(BuildDir)/package/</TSPackageDir>
     <TSPackagePluginDir>$(TSPackageDir)/plugins/$(SolutionName)/</TSPackagePluginDir>
+    <TSPackagePatcherDir>$(TSPackageDir)/patchers/$(SolutionName)/</TSPackagePatcherDir>
     <UnityProjectDir>$(RootDir)UnityAssets/</UnityProjectDir>
   </PropertyGroup>
 
@@ -134,9 +136,17 @@
 
     <ItemGroup>
       <RiskOfTwitchFiles Include="$(SolutionDir)RiskOfTwitch/build/*" />
+      <RiskOfTwitchFiles Remove="$(SolutionDir)RiskOfChaosPatcher/build/**/*.pdb" Condition="'$(Configuration)'!='Debug'" />
+      
+      <RiskOfChaosPatcherFiles Include="$(SolutionDir)RiskOfChaosPatcher/build/*" />
+      <RiskOfChaosPatcherFiles Remove="$(SolutionDir)RiskOfChaosPatcher/build/**/*.pdb" Condition="'$(Configuration)'!='Debug'" />
+
+      <RiskOfChaosPatcherInteropFiles Include="$(SolutionDir)RiskOfChaos_PatcherInterop/build/*" />
+      <RiskOfChaosPatcherInteropFiles Remove="$(SolutionDir)RiskOfChaos_PatcherInterop/build/**/*.pdb" Condition="'$(Configuration)'!='Debug'" />
     </ItemGroup>
 
-    <Copy SourceFiles="@(RiskOfTwitchFiles)" DestinationFolder="$(TSPackagePluginDir)/%(RecursiveDir)" />
+    <Copy SourceFiles="@(RiskOfTwitchFiles);@(RiskOfChaosPatcherInteropFiles)" DestinationFolder="$(TSPackagePluginDir)/%(RecursiveDir)" />
+    <Copy SourceFiles="@(RiskOfChaosPatcherFiles)" DestinationFolder="$(TSPackagePatcherDir)/%(RecursiveDir)" />
     
     <ZipDirectory SourceDirectory="$(TSPackageDir)" DestinationFile="$(BuildDir)/$(SolutionName).zip" Overwrite="true" />
   </Target>

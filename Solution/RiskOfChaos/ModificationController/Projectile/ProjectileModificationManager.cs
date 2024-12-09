@@ -35,6 +35,8 @@ namespace RiskOfChaos.ModificationController.Projectile
 
         public int AdditionalSpawnCount { get; private set; }
 
+        public int OverrideProjectileIndex { get; private set; }
+
         void OnEnable()
         {
             SingletonHelper.Assign(ref _instance, this);
@@ -61,6 +63,7 @@ namespace RiskOfChaos.ModificationController.Projectile
             int bulletBounceCount = 0;
             int orbBounceCount = 0;
             int additionalSpawnCount = 0;
+            int overrideProjectileIndex = -1;
 
             foreach (ProjectileModificationProvider modificationProvider in modificationProviders)
             {
@@ -70,6 +73,12 @@ namespace RiskOfChaos.ModificationController.Projectile
                 bulletBounceCount += modificationProvider.BulletBounceCount;
                 orbBounceCount += modificationProvider.OrbBounceCount;
                 additionalSpawnCount += modificationProvider.AdditionalSpawnCount;
+
+                int modificationOverrideProjectileIndex = modificationProvider.OverrideProjectileIndex;
+                if (modificationOverrideProjectileIndex != -1)
+                {
+                    overrideProjectileIndex = modificationOverrideProjectileIndex;
+                }
             }
 
             AnyModificationActive = anyModificationActive;
@@ -78,6 +87,7 @@ namespace RiskOfChaos.ModificationController.Projectile
             BulletBounceCount = Mathf.Max(0, bulletBounceCount);
             OrbBounceCount = Mathf.Max(0, orbBounceCount);
             AdditionalSpawnCount = Mathf.Clamp(additionalSpawnCount, 0, 255);
+            OverrideProjectileIndex = overrideProjectileIndex;
         }
     }
 }

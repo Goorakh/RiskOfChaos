@@ -2,7 +2,6 @@
 using RoR2.Orbs;
 using RoR2.Projectile;
 using System.Collections.Generic;
-using System.Diagnostics;
 using UnityEngine;
 
 namespace RiskOfChaos.Patches.AttackHooks
@@ -28,7 +27,7 @@ namespace RiskOfChaos.Patches.AttackHooks
 
         static bool shouldSkipOrig(AttackHookMask activatedHooks)
         {
-            return (activatedHooks & AttackHookMask.Delayed) != 0;
+            return (activatedHooks & (AttackHookMask.Delayed | AttackHookMask.Replaced)) != 0;
         }
 
         static void BulletAttack_FireMulti(On.RoR2.BulletAttack.orig_FireMulti orig, BulletAttack self, Vector3 normal, int muzzleIndex)

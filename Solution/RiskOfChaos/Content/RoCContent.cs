@@ -60,6 +60,7 @@ namespace RiskOfChaos.Content
             BodyPrefabAssetCollection bodyPrefabs = getAssetCollection<BodyPrefabAssetCollection>();
             MasterPrefabAssetCollection masterPrefabs = getAssetCollection<MasterPrefabAssetCollection>();
             EntityStateAssetCollection entityStates = getAssetCollection<EntityStateAssetCollection>();
+            ProjectilePrefabAssetCollection projectilePrefabs = getAssetCollection<ProjectilePrefabAssetCollection>();
             NetworkedPrefabAssetCollection networkedPrefabs = getAssetCollection<NetworkedPrefabAssetCollection>();
             LocalPrefabAssetCollection localPrefabs = getAssetCollection<LocalPrefabAssetCollection>();
             ScreenEffectDefAssetCollection screenEffects = getAssetCollection<ScreenEffectDefAssetCollection>();
@@ -119,6 +120,7 @@ namespace RiskOfChaos.Content
             bodyPrefabs.FlushAssets(_contentPack.bodyPrefabs);
             masterPrefabs.FlushAssets(_contentPack.masterPrefabs);
             entityStates.FlushAssets(_contentPack.entityStateTypes);
+            projectilePrefabs.FlushAssets(_contentPack.projectilePrefabs);
             networkedPrefabs.FlushAssets(_contentPack.networkedObjectPrefabs);
 
             NamedAssetCollection<GameObject> localPrefabAssetCollection = new NamedAssetCollection<GameObject>(ContentPack.getGameObjectName);
@@ -136,6 +138,8 @@ namespace RiskOfChaos.Content
             populateTypeFields(typeof(Unlockables), _contentPack.unlockableDefs);
 
             populateTypeFields(typeof(BodyPrefabs), _contentPack.bodyPrefabs);
+
+            populateTypeFields(typeof(ProjectilePrefabs), _contentPack.projectilePrefabs);
 
             populateTypeFields(typeof(NetworkedPrefabs), _contentPack.networkedObjectPrefabs);
             NetworkedPrefabs.AllPrefabs = [.. _contentPack.networkedObjectPrefabs];
@@ -226,6 +230,11 @@ namespace RiskOfChaos.Content
         public static partial class BodyPrefabs
         {
             public static GameObject ChaosFakeInteractorBody;
+        }
+
+        public static partial class ProjectilePrefabs
+        {
+            public static GameObject GrenadeReplacedProjectile;
         }
 
         public static class NetworkedPrefabs

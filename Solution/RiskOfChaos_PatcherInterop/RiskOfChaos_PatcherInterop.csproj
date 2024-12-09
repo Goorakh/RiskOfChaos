@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="build\**" />
+    <Compile Remove="libs\**" />
+    <EmbeddedResource Remove="build\**" />
+    <EmbeddedResource Remove="libs\**" />
+    <None Remove="build\**" />
+    <None Remove="libs\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove=".gitignore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="RoR2">
+      <HintPath>libs\RoR2.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <BuildDir>$(ProjectDir)build/</BuildDir>
+  </PropertyGroup>
+
+  <Target Name="BuildPackage" AfterTargets="Build">
+    <RemoveDir Directories="$(BuildDir)" />
+    <MakeDir Directories="$(BuildDir)" />
+
+    <Copy SourceFiles="$(OutDir)$(AssemblyName).dll" DestinationFolder="$(BuildDir)" />
+
+    <Copy SourceFiles="$(OutDir)$(AssemblyName).pdb" DestinationFolder="$(BuildDir)" Condition="'$(Configuration)'=='Debug'" ContinueOnError="true" />
+    <Delete Files="$(BuildDir)/$(AssemblyName).pdb" Condition="'$(Configuration)'!='Debug'" ContinueOnError="true" />
+  </Target>
+
+</Project>
