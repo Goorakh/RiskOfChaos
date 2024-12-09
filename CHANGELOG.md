@@ -20,6 +20,9 @@
 * Bouncy Items, Item Magnet, & Item Repulsor:
   * Fixed inconsistent item physics when certain combinations of these effects were active
 
+* Effect Voting:
+  * Fixed incorrect text size when Vote Display Text Scaling Mode was set to Disabled
+
 **2.2.1 Changes:**
 
 * Reworked 1 effect:

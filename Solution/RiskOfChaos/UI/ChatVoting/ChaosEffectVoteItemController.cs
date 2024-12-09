@@ -144,10 +144,10 @@ namespace RiskOfChaos.UI.ChatVoting
                 Color currentColor = fullVotesColor;
                 if (Configs.ChatVotingUI.VoteDisplayScalingModeConfig.Value != Configs.ChatVotingUI.VoteDisplayScalingMode.Disabled)
                 {
-                    Color.RGBToHSV(fullVotesColor, out float h, out float s, out float v);
+                    Color.RGBToHSV(currentColor, out float h, out float s, out float v);
                     Color noVotesColor = Color.HSVToRGB(h, s * 0.8f, v * 0.9f);
 
-                    currentColor = Color.Lerp(noVotesColor, fullVotesColor, _currentVoteFraction);
+                    currentColor = Color.Lerp(noVotesColor, currentColor, _currentVoteFraction);
                 }
 
                 EffectTextLabel.color = currentColor;
@@ -192,7 +192,7 @@ namespace RiskOfChaos.UI.ChatVoting
                 switch (Configs.ChatVotingUI.VoteDisplayScalingModeConfig.Value)
                 {
                     case Configs.ChatVotingUI.VoteDisplayScalingMode.Disabled:
-                        currentVoteFraction = 1f;
+                        currentVoteFraction = 0.5f;
                         break;
                     case Configs.ChatVotingUI.VoteDisplayScalingMode.Smooth:
                         currentVoteFraction = Mathf.SmoothDamp(currentVoteFraction, targetVoteFraction, ref _voteFractionSmoothVelocity, 0.3f, float.PositiveInfinity, Time.unscaledDeltaTime);
