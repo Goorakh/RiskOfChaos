@@ -15,28 +15,13 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             public readonly int VoteIndex;
             public readonly TVoteResult Value;
 
-            int _numVotes;
-
-            public int NumVotes
-            {
-                readonly get
-                {
-                    return _numVotes;
-                }
-                set
-                {
-                    if (_numVotes == value)
-                        return;
-
-                    _numVotes = value;
-                }
-            }
+            public int NumVotes;
 
             public VoteOption(int voteIndex, TVoteResult value)
             {
                 VoteIndex = voteIndex;
                 Value = value;
-                _numVotes = 0;
+                NumVotes = 0;
             }
 
             public override readonly string ToString()
