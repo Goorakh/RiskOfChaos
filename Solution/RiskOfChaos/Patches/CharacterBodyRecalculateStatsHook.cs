@@ -1,5 +1,5 @@
-﻿using RoR2;
-using System;
+﻿using RiskOfChaos.Utilities;
+using RoR2;
 
 namespace RiskOfChaos.Patches
 {
@@ -17,10 +17,12 @@ namespace RiskOfChaos.Patches
             {
                 _preRecalculateStats += value;
                 tryApplyPatches();
+                CharacterBodyUtils.MarkAllBodyStatsDirty();
             }
             remove
             {
                 _preRecalculateStats -= value;
+                CharacterBodyUtils.MarkAllBodyStatsDirty();
             }
         }
 
@@ -30,10 +32,12 @@ namespace RiskOfChaos.Patches
             {
                 _postRecalculateStats += value;
                 tryApplyPatches();
+                CharacterBodyUtils.MarkAllBodyStatsDirty();
             }
             remove
             {
                 _postRecalculateStats -= value;
+                CharacterBodyUtils.MarkAllBodyStatsDirty();
             }
         }
 
