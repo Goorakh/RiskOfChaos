@@ -166,5 +166,6 @@
         "EFFECT_UNCONSUME_RANDOM_ITEM_NAME": "Repair Random Item",
         "EFFECT_SPAWN_HEALING_CORE_NAME": "Heal Everyone",
         "EFFECT_ALL_ATTACKS_GRENADES_NAME": "Grenade Bullets",
+        "EFFECT_ALL_ATTACKS_BACKSTAB_NAME": "Enable Backstabs for All Damage",
     }
 }

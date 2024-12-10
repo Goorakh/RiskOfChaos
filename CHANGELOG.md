@@ -2,8 +2,9 @@
 
 **-.-.- Changes:**
 
-* Added 1 effect:
+* Added 2 effects:
   * Grenade Bullets: All attacks are replaced with grenades, lasts 120 seconds
+  * Enable Backstabs for All Damage: Enables Bandit's backstab passive for all damage, lasts 90 seconds
 
 * Multiplayer:
   * Fixed a desync issue causing some effects to not end properly for non-host players during stage transitions
