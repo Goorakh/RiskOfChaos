@@ -2,6 +2,7 @@
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using RiskOfChaos.Utilities;
 using RoR2;
 using UnityEngine;
 
@@ -42,18 +43,12 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         void Start()
         {
-            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
-            {
-                body.MarkAllStatsDirty();
-            }
+            CharacterBodyUtils.MarkAllBodyStatsDirty();
         }
 
         void OnDestroy()
         {
-            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
-            {
-                body.MarkAllStatsDirty();
-            }
+            CharacterBodyUtils.MarkAllBodyStatsDirty();
         }
     }
 }

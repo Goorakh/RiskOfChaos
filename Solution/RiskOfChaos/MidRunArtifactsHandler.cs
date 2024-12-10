@@ -84,10 +84,7 @@ namespace RiskOfChaos
                     }
                 }
 
-                foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
-                {
-                    body.MarkAllStatsDirty();
-                }
+                CharacterBodyUtils.MarkAllBodyStatsDirty();
 
                 if (enabled)
                 {
