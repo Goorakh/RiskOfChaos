@@ -1,8 +1,10 @@
 ﻿using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using System;
 using UnityEngine;
 
 namespace RiskOfChaos.Patches
@@ -53,15 +55,7 @@ namespace RiskOfChaos.Patches
                 while (c.TryGotoNext(MoveType.After,
                                      x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertyGetter(typeof(Vector3), nameof(Vector3.up)))))
                 {
-                    c.EmitDelegate(getWorldUpByGravity);
-                    static Vector3 getWorldUpByGravity(Vector3 up)
-                    {
-                        Vector3 gravity = Physics.gravity;
-                        if (gravity.sqrMagnitude == 0f)
-                            return up;
-
-                        return -gravity.normalized;
-                    }
+                    c.EmitDelegate<Func<Vector3, Vector3>>(WorldUtils.GetWorldUpByGravity);
 
                     patchCount++;
                 }
