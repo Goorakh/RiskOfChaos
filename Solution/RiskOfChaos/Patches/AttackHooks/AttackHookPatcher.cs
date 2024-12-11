@@ -1,4 +1,8 @@
-﻿using RoR2;
+﻿using EntityStates;
+using HarmonyLib;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
+using RoR2;
 using RoR2.Orbs;
 using RoR2.Projectile;
 using System.Collections.Generic;
@@ -23,6 +27,8 @@ namespace RiskOfChaos.Patches.AttackHooks
             On.RoR2.OverlapAttack.Fire += OverlapAttack_Fire;
             On.RoR2.Projectile.ProjectileManager.FireProjectile_FireProjectileInfo += ProjectileManager_FireProjectile_FireProjectileInfo;
             On.RoR2.Orbs.OrbManager.AddOrb += OrbManager_AddOrb;
+
+            IL.EntityStates.GolemMonster.FireLaser.OnEnter += FireLaser_OnEnter;
         }
 
         static bool shouldSkipOrig(AttackHookMask activatedHooks)
@@ -98,6 +104,36 @@ namespace RiskOfChaos.Patches.AttackHooks
                 return;
 
             orig(self, orb);
+        }
+
+        static void FireLaser_OnEnter(ILContext il)
+        {
+            ILCursor c = new ILCursor(il);
+
+            ILLabel skipAttackLabel = null;
+            if (!c.TryFindNext(out ILCursor[] cursors,
+                               x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertyGetter(typeof(EntityState), nameof(EntityState.isAuthority))),
+                               x => x.MatchBrfalse(out skipAttackLabel)))
+            {
+                Log.Error("Failed to find patch location");
+                return;
+            }
+
+            ILCursor cursor = cursors[1];
+            cursor.Index++;
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.EmitDelegate(runAttackHooks);
+            cursor.Emit(OpCodes.Brfalse, skipAttackLabel);
+
+            static bool runAttackHooks(EntityStates.GolemMonster.FireLaser fireLaserState)
+            {
+                AttackHookManager attackHookManager = new FireGolemLaserAttackHookManager(fireLaserState);
+                AttackHookMask activatedHooks = attackHookManager.RunHooks();
+                if (shouldSkipOrig(activatedHooks))
+                    return false;
+
+                return true;
+            }
         }
     }
 }

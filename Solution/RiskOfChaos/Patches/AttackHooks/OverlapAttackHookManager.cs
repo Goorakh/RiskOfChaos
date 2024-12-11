@@ -1,10 +1,7 @@
 ﻿using RiskOfChaos.Utilities;
-using RiskOfChaos_PatcherInterop;
 using RoR2;
-using RoR2.Projectile;
 using RoR2BepInExPack.Utilities;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace RiskOfChaos.Patches.AttackHooks
 {
@@ -27,11 +24,15 @@ namespace RiskOfChaos.Patches.AttackHooks
         readonly HealthComponent[] _ignoredHealthComponentList;
         readonly (HealthComponent, float)[] _ignoredRemovalList;
 
+        protected override AttackInfo AttackInfo { get; }
+
         public OverlapAttackHookManager(OverlapAttack overlapAttack)
         {
             _overlapAttack = overlapAttack;
             _ignoredHealthComponentList = [.. _overlapAttack.ignoredHealthComponentList];
             _ignoredRemovalList = [.. _overlapAttack.ignoredRemovalList];
+
+            AttackInfo = new AttackInfo(overlapAttack);
         }
 
         protected override AttackHookMask runHooksInternal(AttackHookMask activeAttackHooks)
@@ -42,11 +43,11 @@ namespace RiskOfChaos.Patches.AttackHooks
             return base.runHooksInternal(activeAttackHooks);
         }
 
-        OverlapAttack getAttackInstance()
+        OverlapAttack getAttackInstance(AttackHookMask activeAttackHooks)
         {
             OverlapAttack overlapAttack = _overlapAttack;
 
-            if ((Context.Peek() & AttackHookMask.Repeat) != 0)
+            if ((activeAttackHooks & AttackHookMask.Repeat) != 0)
             {
                 overlapAttack = AttackUtils.Clone(overlapAttack);
                 overlapAttack.ignoredHealthComponentList = [.. _ignoredHealthComponentList];
@@ -58,47 +59,21 @@ namespace RiskOfChaos.Patches.AttackHooks
 
         protected override void fireAttackCopy()
         {
-            OverlapAttack overlapAttack = getAttackInstance();
+            OverlapAttack overlapAttack = getAttackInstance(Context.Peek());
             overlapAttack.Fire();
         }
 
-        protected override bool setupProjectileFireInfo(ref FireProjectileInfo fireProjectileInfo)
+        protected override bool tryReplace(AttackHookMask activeAttackHooks)
         {
-            OverlapAttack overlapAttack = getAttackInstance();
-            if (!overlapAttack.hitBoxGroup || _replacedOverlapAttacks.TryGetValue(overlapAttack, out _))
-                return false;
+            OverlapAttack overlapAttack = getAttackInstance(activeAttackHooks);
 
-            Transform hitBoxGroupTransform = overlapAttack.hitBoxGroup.transform;
-            Vector3 position = hitBoxGroupTransform.position;
-            Vector3 direction = hitBoxGroupTransform.forward;
-
-            HitBox[] hitBoxes = overlapAttack.hitBoxGroup.hitBoxes;
-            if (hitBoxes != null && hitBoxes.Length > 0)
+            bool replaced = overlapAttack.hitBoxGroup && !_replacedOverlapAttacks.TryGetValue(overlapAttack, out _) && base.tryReplace(activeAttackHooks);
+            if (replaced)
             {
-                position = Vector3.zero;
-
-                foreach (HitBox hitBox in hitBoxes)
-                {
-                    position += hitBox.transform.position;
-                }
-
-                position /= hitBoxes.Length;
+                _replacedOverlapAttacks.Add(overlapAttack, new());
             }
 
-            fireProjectileInfo.position = position;
-            fireProjectileInfo.rotation = Util.QuaternionSafeLookRotation(direction);
-            fireProjectileInfo.owner = overlapAttack.attacker;
-            fireProjectileInfo.damage = overlapAttack.damage;
-            fireProjectileInfo.force = overlapAttack.pushAwayForce;
-            fireProjectileInfo.crit = overlapAttack.isCrit;
-            fireProjectileInfo.damageColorIndex = overlapAttack.damageColorIndex;
-            fireProjectileInfo.procChainMask = overlapAttack.procChainMask;
-            fireProjectileInfo.damageTypeOverride = overlapAttack.damageType;
-            fireProjectileInfo.SetProcCoefficientOverride(overlapAttack.procCoefficient);
-
-            _replacedOverlapAttacks.Add(overlapAttack, new());
-
-            return true;
+            return replaced;
         }
     }
 }

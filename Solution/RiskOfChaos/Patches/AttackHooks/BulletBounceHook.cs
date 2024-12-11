@@ -51,14 +51,14 @@ namespace RiskOfChaos.Patches.AttackHooks
             bulletAttack.hitCallback = tryBounce;
             bool tryBounce(BulletAttack bulletAttack, ref BulletAttack.BulletHit hitInfo)
             {
-                bool invalidHit = origHitCallback(bulletAttack, ref hitInfo);
+                bool stopBullet = origHitCallback(bulletAttack, ref hitInfo);
 
-                if (!invalidHit)
+                if (!stopBullet)
                 {
                     handleBulletBounce(bulletAttack, hitInfo);
                 }
 
-                return invalidHit;
+                return stopBullet;
             }
 
             BulletAttack.FilterCallback origFilterCallback = bulletAttack.filterCallback;

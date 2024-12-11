@@ -1,7 +1,4 @@
-﻿using R2API;
-using RiskOfChaos.Content;
-using RiskOfChaos.Utilities.Extensions;
-using RiskOfChaos_PatcherInterop;
+﻿using RiskOfChaos_PatcherInterop;
 using RoR2;
 using RoR2.Projectile;
 
@@ -12,10 +9,14 @@ namespace RiskOfChaos.Patches.AttackHooks
         readonly ProjectileManager _projectileManager;
         readonly FireProjectileInfo _fireProjectileInfo;
 
+        protected override AttackInfo AttackInfo { get; }
+
         public FireProjectileAttackHookManager(ProjectileManager projectileManager, FireProjectileInfo fireProjectileInfo)
         {
             _projectileManager = projectileManager;
             _fireProjectileInfo = fireProjectileInfo;
+
+            AttackInfo = new AttackInfo(_fireProjectileInfo);
         }
 
         ProjectileManager getProjectileManager()
@@ -45,26 +46,6 @@ namespace RiskOfChaos.Patches.AttackHooks
             }
 
             return base.tryReplace(activeAttackHooks);
-        }
-
-        protected override bool setupProjectileFireInfo(ref FireProjectileInfo fireProjectileInfo)
-        {
-            fireProjectileInfo = _fireProjectileInfo;
-
-            if (!fireProjectileInfo.GetProcCoefficientOverride().HasValue)
-            {
-                if (fireProjectileInfo.projectilePrefab && fireProjectileInfo.projectilePrefab.TryGetComponent(out ProjectileController projectileController))
-                {
-                    fireProjectileInfo.SetProcCoefficientOverride(projectileController.procCoefficient);
-                }
-            }
-
-            return true;
-        }
-
-        protected override bool tryFireRepeating(AttackHookMask activeAttackHooks)
-        {
-            return (_fireProjectileInfo.procChainMask.HasModdedProc(CustomProcTypes.Replaced) || !_fireProjectileInfo.procChainMask.HasAnyProc()) && base.tryFireRepeating(activeAttackHooks);
         }
     }
 }
