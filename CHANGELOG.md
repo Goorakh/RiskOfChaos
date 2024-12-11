@@ -1,6 +1,8 @@
 ## Changelog
 
-**-.-.- Changes:**
+**2.3.0 Changes:**
+
+* Updated for new game patch
 
 * Added 2 effects:
   * Grenade Bullets: All attacks are replaced with grenades, lasts 120 seconds
