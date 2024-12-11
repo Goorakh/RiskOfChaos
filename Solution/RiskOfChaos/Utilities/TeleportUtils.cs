@@ -28,7 +28,7 @@ namespace RiskOfChaos.Utilities
                 return;
             }
 
-            TeleportHelper.TeleportBody(body, targetPosition);
+            TeleportHelper.TeleportBody(body, targetPosition, true);
 
             GameObject teleportEffectPrefab = Run.instance.GetTeleportEffectPrefab(body.gameObject);
             if (teleportEffectPrefab)

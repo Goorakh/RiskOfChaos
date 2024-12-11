@@ -148,7 +148,8 @@ namespace RiskOfChaos.Content
                     attackerBody.inventory.GetItemCount(InvincibleLemurianMarker) > 0)
                 {
                     // Instantly die no matter what
-                    damageInfo.damageType |= new DamageTypeCombo(DamageType.BypassArmor | DamageType.BypassBlock | DamageType.BypassOneShotProtection, DamageTypeExtended.SojournVehicleDamage);
+                    damageInfo.damageType.damageType |= DamageType.BypassArmor | DamageType.BypassBlock | DamageType.BypassOneShotProtection;
+                    damageInfo.damageType.damageTypeExtended |= DamageTypeExtended.SojournVehicleDamage;
                     damageInfo.damage = float.PositiveInfinity;
                 }
 
