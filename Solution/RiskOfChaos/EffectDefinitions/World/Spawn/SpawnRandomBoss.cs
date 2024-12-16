@@ -10,7 +10,6 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -24,20 +23,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
     {
         static GameObject _bossCombatSquadPrefab;
 
-        static InteractableSpawnCard _geodeSpawnCard;
-
         static readonly SpawnPool<CharacterSpawnCard> _spawnPool = new SpawnPool<CharacterSpawnCard>
         {
             RequiredExpansionsProvider = SpawnPoolUtils.CharacterSpawnCardExpansionsProvider
         };
 
-        [SystemInitializer(typeof(CustomSpawnCards), typeof(CharacterExpansionRequirementFix))]
+        [SystemInitializer(typeof(CharacterExpansionRequirementFix))]
         static void Init()
         {
             AsyncOperationHandle<GameObject> bossCombatSquadLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Core/BossCombatSquad.prefab");
             bossCombatSquadLoad.OnSuccess(bossCombatSquadPrefab => _bossCombatSquadPrefab = bossCombatSquadPrefab);
-
-            _geodeSpawnCard = CustomSpawnCards.iscGeodeFixed;
 
             _spawnPool.EnsureCapacity(25);
 
@@ -68,11 +63,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
             _spawnPool.AddAssetEntry("RoR2/DLC1/VoidMegaCrab/cscVoidMegaCrab.asset", new SpawnPoolEntryParameters(0.6f));
 
-            _spawnPool.AddGroupedEntries([
-                _spawnPool.LoadEntry("RoR2/DLC2/FalseSonBoss/cscFalseSonBoss.asset", new SpawnPoolEntryParameters(1f)),
-                _spawnPool.LoadEntry("RoR2/DLC2/FalseSonBoss/cscFalseSonBossLunarShard.asset", new SpawnPoolEntryParameters(1f)),
-                _spawnPool.LoadEntry("RoR2/DLC2/FalseSonBoss/cscFalseSonBossBrokenLunarShard.asset", new SpawnPoolEntryParameters(0.5f)),
-            ], 0.7f);
+            _spawnPool.TrimExcess();
         }
 
         [EffectConfig]
@@ -136,7 +127,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             };
 
             List<CharacterMaster> spawnedMasters = [];
-            bool shouldSpawnGeodes = false;
 
             spawnRequest.onSpawnedServer = result =>
             {
@@ -146,14 +136,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 if (result.spawnedInstance.TryGetComponent(out CharacterMaster master))
                 {
                     CombatCharacterSpawnHelper.SetupSpawnedCombatCharacter(master, _rng);
-                    CombatCharacterSpawnHelper.TryGrantEliteAspect(master, _rng, _eliteChance.Value, _allowDirectorUnavailableElites.Value, true);
+
+                    if (_rng.nextNormalizedFloat <= _eliteChance.Value)
+                    {
+                        CombatCharacterSpawnHelper.GrantRandomEliteAspect(master, _rng, _allowDirectorUnavailableElites.Value, true);
+                    }
 
                     spawnedMasters.Add(master);
-
-                    if (!shouldSpawnGeodes && master.masterIndex == MasterCatalog.FindMasterIndex("FalseSonBossLunarShardBrokenMaster"))
-                    {
-                        shouldSpawnGeodes = true;
-                    }
                 }
             };
 
@@ -173,65 +162,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 }
 
                 NetworkServer.Spawn(bossCombatSquadObj);
-            }
-
-            if (shouldSpawnGeodes && _geodeSpawnCard)
-            {
-                const float GEODE_MIN_SPAWN_DISTANCE = 5f;
-                const float GEODE_MAX_SPAWN_DISTANCE = 100f;
-
-                const float GEODE_CLOSE_MIN_SPAWN_DISTANCE = GEODE_MIN_SPAWN_DISTANCE;
-                const float GEODE_CLOSE_MAX_SPAWN_DISTANCE = GEODE_MAX_SPAWN_DISTANCE / 2f;
-
-                int playerGeodeSpawnsAttempted = 0;
-                int spawnedGeodes = 0;
-
-                foreach (PlayerCharacterMasterController playerMaster in PlayerCharacterMasterController.instances)
-                {
-                    if (!playerMaster.isConnected)
-                        continue;
-
-                    CharacterMaster master = playerMaster.master;
-                    if (!master || master.IsDeadAndOutOfLivesServer())
-                        continue;
-
-                    if (!master.TryGetBodyPosition(out Vector3 bodyPosition))
-                        continue;
-
-                    DirectorPlacementRule geodePlacementRule = new DirectorPlacementRule
-                    {
-                        placementMode = DirectorPlacementRule.PlacementMode.Approximate,
-                        position = bodyPosition,
-                        minDistance = GEODE_CLOSE_MIN_SPAWN_DISTANCE,
-                        maxDistance = GEODE_CLOSE_MAX_SPAWN_DISTANCE
-                    };
-
-                    DirectorSpawnRequest geodeSpawnRequest = new DirectorSpawnRequest(_geodeSpawnCard, geodePlacementRule, _rng);
-
-                    playerGeodeSpawnsAttempted++;
-                    if (DirectorCore.instance.TrySpawnObject(geodeSpawnRequest))
-                    {
-                        spawnedGeodes++;
-                    }
-                }
-
-                const int EXTRA_GEODE_COUNT = 5;
-
-                int missedPlayerSpawnGeodes = Math.Max(0, playerGeodeSpawnsAttempted - spawnedGeodes);
-                int additionalGeodeSpawnCount = missedPlayerSpawnGeodes + EXTRA_GEODE_COUNT;
-
-                for (int i = 0; i < additionalGeodeSpawnCount; i++)
-                {
-                    DirectorPlacementRule geodePlacementRule = SpawnUtils.GetPlacementRule_AtRandomPlayerApproximate(_rng, GEODE_MIN_SPAWN_DISTANCE, GEODE_MAX_SPAWN_DISTANCE);
-                    DirectorSpawnRequest geodeSpawnRequest = new DirectorSpawnRequest(_geodeSpawnCard, geodePlacementRule, _rng);
-
-                    if (geodeSpawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule()))
-                    {
-                        spawnedGeodes++;
-                    }
-                }
-                
-                Log.Debug($"Spawned {spawnedGeodes} geode(s)");
             }
         }
     }

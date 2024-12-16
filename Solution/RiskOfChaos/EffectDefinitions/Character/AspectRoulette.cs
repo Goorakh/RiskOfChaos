@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using HG;
 using Newtonsoft.Json;
+using RiskOfChaos.Collections;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
@@ -86,11 +87,12 @@ namespace RiskOfChaos.EffectDefinitions.Character
             _aspectConfigs = new AspectConfig[EliteCatalog.eliteList.Count];
             for (int i = 0; i < _aspectConfigs.Length; i++)
             {
-                EliteDef eliteDef = EliteCatalog.GetEliteDef((EliteIndex)i);
-                if (eliteDef.name.EndsWith("Honor"))
+                EliteIndex eliteIndex = (EliteIndex)i;
+                if (!EliteUtils.IsAvailable(eliteIndex))
                     continue;
 
-                if (Language.IsTokenInvalid(eliteDef.modifierToken) || Language.IsTokenInvalid(eliteDef.eliteEquipmentDef.nameToken))
+                EliteDef eliteDef = EliteCatalog.GetEliteDef(eliteIndex);
+                if (!eliteDef || !eliteDef.eliteEquipmentDef)
                     continue;
 
                 _aspectConfigs[i] = new AspectConfig(eliteDef);
@@ -121,7 +123,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         static AspectStep generateStep(Xoroshiro128Plus rng)
         {
-            EliteIndex[] elites = EliteUtils.GetElites(_allowDirectorUnavailableElites.Value);
+            EliteIndex[] elites = EliteUtils.GetRunAvailableElites(_allowDirectorUnavailableElites.Value);
 
             WeightedSelection<EquipmentIndex> eliteEquipmentSelector = new WeightedSelection<EquipmentIndex>();
             eliteEquipmentSelector.EnsureCapacity(elites.Length);
@@ -144,7 +146,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         AspectStep[] _playerAspectSteps;
         float _totalAspectStepsDuration;
 
-        readonly List<RandomlySwapAspect> _swapAspectComponents = [];
+        readonly ClearingObjectList<RandomlySwapAspect> _swapAspectComponents = [];
 
         [SerializedMember("s")]
         AspectStep[] serializedPlayerAspectSteps
@@ -198,20 +200,20 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 {
                     AspectStep step = generateStep(rng);
 
-                    bool addStep = true;
+                    bool isDuplicateStep = false;
 
                     // Save a tiny bit of space by collapsing together neighboring steps with the same aspect
                     if (aspectSteps.Count > 0)
                     {
-                        AspectStep lastStep = aspectSteps[aspectSteps.Count - 1];
-                        if (lastStep.AspectEquipmentIndex == step.AspectEquipmentIndex)
+                        AspectStep previousStep = aspectSteps[aspectSteps.Count - 1];
+                        if (previousStep.AspectEquipmentIndex == step.AspectEquipmentIndex)
                         {
-                            aspectSteps[aspectSteps.Count - 1] = new AspectStep(lastStep.AspectEquipmentIndex, lastStep.Duration + step.Duration);
-                            addStep = false;
+                            aspectSteps[aspectSteps.Count - 1] = new AspectStep(previousStep.AspectEquipmentIndex, previousStep.Duration + step.Duration);
+                            isDuplicateStep = true;
                         }
                     }
 
-                    if (addStep)
+                    if (!isDuplicateStep)
                     {
                         aspectSteps.Add(step);
                     }
@@ -260,10 +262,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             CharacterBody.onBodyStartGlobal -= tryAddComponentToBody;
 
-            foreach (RandomlySwapAspect swapComponent in _swapAspectComponents)
-            {
-                Destroy(swapComponent);
-            }
+            _swapAspectComponents.ClearAndDispose(true);
         }
 
         void tryAddComponentToBody(CharacterBody body)

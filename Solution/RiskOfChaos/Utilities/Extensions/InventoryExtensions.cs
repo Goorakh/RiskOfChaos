@@ -1,11 +1,13 @@
 ﻿using RoR2;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace RiskOfChaos.Utilities.Extensions
 {
     public static class InventoryExtensions
     {
-        public enum ItemReplacementRule
+        public enum EquipmentReplacementRule
         {
             KeepExisting,
             DeleteExisting,
@@ -39,12 +41,12 @@ namespace RiskOfChaos.Utilities.Extensions
             return false;
         }
 
-        public static bool TryGrant(this Inventory inventory, PickupIndex pickup, ItemReplacementRule replacementRule, int count = 1)
+        public static bool TryGrant(this Inventory inventory, PickupIndex pickup, EquipmentReplacementRule equipmentReplacementRule, int count = 1)
         {
-            return TryGrant(inventory, PickupCatalog.GetPickupDef(pickup), replacementRule, count);
+            return TryGrant(inventory, PickupCatalog.GetPickupDef(pickup), equipmentReplacementRule, count);
         }
 
-        public static bool TryGrant(this Inventory inventory, PickupDef pickup, ItemReplacementRule replacementRule, int count = 1)
+        public static bool TryGrant(this Inventory inventory, PickupDef pickup, EquipmentReplacementRule equipmentReplacementRule, int count = 1)
         {
             if (!inventory || pickup == null)
                 return false;
@@ -61,74 +63,67 @@ namespace RiskOfChaos.Utilities.Extensions
                 byte activeEquipmentSlot = inventory.activeEquipmentSlot;
 
                 int equipmentSlotCount = inventory.GetEquipmentSlotCount();
-                uint[] equipmentSlots = new uint[equipmentSlotCount];
-                int equipmentSlotIndex = 0;
+
+                List<uint> emptyEquipmentSlots = new List<uint>(equipmentSlotCount);
+                List<uint> nonEmptyEquipmentSlots = new List<uint>(equipmentSlotCount);
+
+                List<uint> getEquipmentSlotList(uint slot)
+                {
+                    bool isEmpty = inventory.GetEquipment(slot).equipmentIndex == EquipmentIndex.None;
+
+                    return isEmpty ? emptyEquipmentSlots : nonEmptyEquipmentSlots;
+                }
 
                 for (uint i = 0; i < equipmentSlotCount; i++)
                 {
-                    if (i == activeEquipmentSlot)
-                        continue;
-
-                    if (inventory.GetEquipment(i).equipmentIndex == EquipmentIndex.None)
+                    if (i != activeEquipmentSlot)
                     {
-                        equipmentSlots[equipmentSlotIndex++] = i;
+                        getEquipmentSlotList(i).Add(i);
                     }
                 }
 
-                equipmentSlots[equipmentSlotIndex++] = activeEquipmentSlot;
+                getEquipmentSlotList(activeEquipmentSlot).Insert(0, activeEquipmentSlot);
 
-                for (uint i = 0; i < equipmentSlotCount; i++)
-                {
-                    if (i == activeEquipmentSlot)
-                        continue;
+                uint[] equipmentSlots = [.. emptyEquipmentSlots, .. nonEmptyEquipmentSlots];
 
-                    if (inventory.GetEquipment(i).equipmentIndex != EquipmentIndex.None)
-                    {
-                        equipmentSlots[equipmentSlotIndex++] = i;
-                    }
-                }
+                Log.Debug($"{inventory} sorted equipmentSlots: [{string.Join(", ", equipmentSlots)}]");
 
-                Vector3? pickupSpawnPosition = null;
-
+                Vector3 pickupSpawnPosition = inventory.transform.position;
                 if (inventory.TryGetComponent(out CharacterMaster characterMaster))
                 {
                     CharacterBody body = characterMaster.GetBody();
                     if (body)
                     {
-                        pickupSpawnPosition = body.footPosition;
+                        pickupSpawnPosition = body.corePosition;
                     }
                 }
 
-                for (int i = 0; grantedCount < count && i < equipmentSlotCount; i++)
+                for (int i = 0; grantedCount < count && i < equipmentSlots.Length; i++)
                 {
                     uint equipmentSlot = equipmentSlots[i];
                     EquipmentState currentEquipmentState = inventory.GetEquipment(equipmentSlot);
 
                     if (currentEquipmentState.equipmentIndex != EquipmentIndex.None)
                     {
-                        if (replacementRule == ItemReplacementRule.KeepExisting)
-                            continue;
-
-                        if (replacementRule == ItemReplacementRule.DropExisting)
+                        switch (equipmentReplacementRule)
                         {
-                            if (pickupSpawnPosition.HasValue)
-                            {
-                                GenericPickupController.CreatePickup(new GenericPickupController.CreatePickupInfo
-                                {
-                                    pickupIndex = PickupCatalog.FindPickupIndex(currentEquipmentState.equipmentIndex),
-                                    position = pickupSpawnPosition.Value
-                                });
-                            }
-                            else
-                            {
-                                Log.Warning($"No position could be determined for dropping existing equipment ({currentEquipmentState.equipmentDef}) for {inventory}");
-                            }
+                            case EquipmentReplacementRule.KeepExisting:
+                                continue;
+                            case EquipmentReplacementRule.DeleteExisting:
+                                break;
+                            case EquipmentReplacementRule.DropExisting:
+                                PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(currentEquipmentState.equipmentIndex), pickupSpawnPosition, Vector3.up * 15f);
+                                break;
                         }
                     }
+
+                    Log.Debug($"Setting equipment for {inventory} in slot {equipmentSlot} to {FormatUtils.GetBestEquipmentDisplayName(pickup.equipmentIndex)}");
 
                     inventory.SetEquipmentIndexForSlot(pickup.equipmentIndex, equipmentSlot);
                     grantedCount++;
                 }
+
+                Log.Debug($"Granted {grantedCount}/{count} equipment(s) to {inventory}");
 
                 return grantedCount > 0;
             }

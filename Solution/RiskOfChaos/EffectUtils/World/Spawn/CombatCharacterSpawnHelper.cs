@@ -37,8 +37,14 @@ namespace RiskOfChaos.EffectUtils.World.Spawn
             "VoidRaidCrabMaster", // Beta voidling, half invisible
             "WispSoulMaster", // Just dies on a timer
 
+            // This boss is buggy as hell, can just barely exist outside the boss arena
+            // It also can't be an ally, since it doesn't care about teams, it just specifically targets players lol
+            "FalseSonBossMaster",
+            "FalseSonBossLunarShardMaster",
+            "FalseSonBossLunarShardBrokenMaster",
+
             "InvincibleLemurianMaster",
-            "InvincibleLemurianBruiserMaster"
+            "InvincibleLemurianBruiserMaster",
         ]);
 
         public static void GetAllValidCombatCharacters(List<CharacterMaster> dest)
@@ -123,7 +129,7 @@ namespace RiskOfChaos.EffectUtils.World.Spawn
                         availableEquipment.Add(equipment);
                     }
                 }
-                
+
                 if (availableEquipment.Count > 0)
                 {
                     EquipmentIndex equipmentIndex = rng.NextElementUniform(availableEquipment);
@@ -161,30 +167,37 @@ namespace RiskOfChaos.EffectUtils.World.Spawn
             master.SetLoadoutServer(loadout);
         }
 
-        public static void TryGrantEliteAspect(CharacterMaster master, Xoroshiro128Plus rng, float eliteChance, bool allowDirectorUnavailableElites, bool ignoreEliteStatBoosts = false)
+        public static void GrantRandomEliteAspect(CharacterMaster master, Xoroshiro128Plus rng, bool ignoreEliteTierAvailability, bool ignoreEliteStatBoosts = false)
         {
-            if (rng.nextNormalizedFloat > eliteChance)
+            if (!master)
                 return;
-
-            EquipmentIndex eliteEquipmentIndex = EliteUtils.SelectEliteEquipment(rng, allowDirectorUnavailableElites);
-            if (eliteEquipmentIndex == EquipmentIndex.None)
-                return;
-
-            EliteDef eliteDef = EliteUtils.FindEliteDef(eliteEquipmentIndex);
 
             Inventory inventory = master.inventory;
-            if (inventory)
+            if (!inventory)
+                return;
+
+            EliteIndex[] eliteIndices = EliteUtils.GetRunAvailableElites(ignoreEliteTierAvailability);
+            if (eliteIndices.Length == 0)
+                return;
+
+            EliteIndex eliteIndex = rng.NextElementUniform(eliteIndices);
+            EliteDef eliteDef = EliteCatalog.GetEliteDef(eliteIndex);
+            if (!eliteDef)
+                return;
+
+            EquipmentDef eliteEquipmentDef = eliteDef.eliteEquipmentDef;
+            if (!eliteEquipmentDef)
+                return;
+
+            inventory.TryGrant(PickupCatalog.FindPickupIndex(eliteEquipmentDef.equipmentIndex), InventoryExtensions.EquipmentReplacementRule.DeleteExisting);
+
+            if (!ignoreEliteStatBoosts)
             {
-                inventory.SetEquipmentIndex(eliteEquipmentIndex);
+                float healthBoostCoefficient = eliteDef.healthBoostCoefficient;
+                float damageBoostCoefficient = eliteDef.damageBoostCoefficient;
 
-                if (eliteDef && !ignoreEliteStatBoosts)
-                {
-                    float healthBoostCoefficient = eliteDef.healthBoostCoefficient;
-                    float damageBoostCoefficient = eliteDef.damageBoostCoefficient;
-
-                    inventory.GiveItem(RoR2Content.Items.BoostHp, Mathf.RoundToInt((healthBoostCoefficient - 1f) * 10f));
-                    inventory.GiveItem(RoR2Content.Items.BoostDamage, Mathf.RoundToInt((damageBoostCoefficient - 1f) * 10f));
-                }
+                inventory.GiveItem(RoR2Content.Items.BoostHp, Mathf.RoundToInt((healthBoostCoefficient - 1f) * 10f));
+                inventory.GiveItem(RoR2Content.Items.BoostDamage, Mathf.RoundToInt((damageBoostCoefficient - 1f) * 10f));
             }
         }
     }

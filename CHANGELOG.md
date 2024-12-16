@@ -1,5 +1,14 @@
 ## Changelog
 
+**-.-.- Changes:**
+
+* Spawn Random Boss & Spawn Random Ally:
+  * Removed False Son spawn
+    * This boss is *way* too buggy, and can just barely exist outside the Meridian boss arena. And I can't be bothered to fix it.
+
+* Give Random Elite Aspect:
+  * Now gives aspects to all player allies
+
 **2.3.0 Changes:**
 
 * Updated for new game patch

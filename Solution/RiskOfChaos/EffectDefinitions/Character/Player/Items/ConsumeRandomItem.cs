@@ -174,7 +174,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                         int consumeCount = _consumeFullStack.Value ? pickupCount : 1;
                         if (inventory.TryRemove(consumablePair.Item, consumeCount))
                         {
-                            inventory.TryGrant(consumablePair.ConsumedItem, InventoryExtensions.ItemReplacementRule.DropExisting, consumeCount);
+                            inventory.TryGrant(consumablePair.ConsumedItem, InventoryExtensions.EquipmentReplacementRule.DropExisting, consumeCount);
 
                             consumedPairs.Add(consumablePair);
                             return true;

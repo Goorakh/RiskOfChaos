@@ -5,6 +5,7 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.Pickup;
 using RoR2;
+using System;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
@@ -15,12 +16,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return EliteUtils.HasAnyAvailableEliteEquipments;
+            return EliteUtils.HasAnyRunAvailableElites;
         }
 
         ChaosEffectComponent _effectComponent;
 
-        PickupDef _aspectPickupDef;
+        PickupIndex _aspectPickupIndex;
 
         void Awake()
         {
@@ -33,26 +34,54 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
-            _aspectPickupDef = PickupCatalog.GetPickupDef(PickupCatalog.FindPickupIndex(EliteUtils.GetRandomEliteEquipmentIndex(rng)));
+            EliteIndex[] eliteIndices = EliteUtils.GetRunAvailableElites(true);
+            if (eliteIndices.Length > 0)
+            {
+                EliteIndex eliteIndex = rng.NextElementUniform(eliteIndices);
+                EliteDef eliteDef = EliteCatalog.GetEliteDef(eliteIndex);
+                if (eliteDef && eliteDef.eliteEquipmentDef)
+                {
+                    _aspectPickupIndex = PickupCatalog.FindPickupIndex(eliteDef.eliteEquipmentDef.equipmentIndex);
+                }
+            }
         }
 
         void Start()
         {
-            if (NetworkServer.active)
+            if (!NetworkServer.active)
+                return;
+
+            if (!_aspectPickupIndex.isValid)
             {
-                if (_aspectPickupDef != null)
+                Log.Error($"Invalid aspect pickup def");
+                return;
+            }
+
+            foreach (CharacterMaster master in CharacterMaster.readOnlyInstancesList)
+            {
+                if (!master || master.IsDeadAndOutOfLivesServer())
+                    continue;
+
+                PlayerCharacterMasterController playerMasterController = master.playerCharacterMasterController;
+                if (playerMasterController && !playerMasterController.isConnected)
+                    continue;
+
+                if (!master.IsPlayerOrPlayerAlly())
+                    continue;
+
+                try
                 {
-                    PlayerUtils.GetAllPlayerMasters(true).TryDo(playerMaster =>
+                    if (master.inventory.TryGrant(_aspectPickupIndex, InventoryExtensions.EquipmentReplacementRule.DropExisting))
                     {
-                        if (playerMaster.inventory.TryGrant(_aspectPickupDef, InventoryExtensions.ItemReplacementRule.DropExisting))
+                        if (playerMasterController)
                         {
-                            PickupUtils.QueuePickupMessage(playerMaster, _aspectPickupDef.pickupIndex);
+                            PickupUtils.QueuePickupMessage(master, _aspectPickupIndex);
                         }
-                    }, Util.GetBestMasterName);
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    Log.Error($"Invalid aspect pickup def");
+                    Log.Error_NoCallerPrefix($"Failed to give aspect pickup to {Util.GetBestMasterName(master)}: {e}");
                 }
             }
         }

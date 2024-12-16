@@ -1,176 +1,143 @@
 ﻿using RoR2;
 using System;
-using System.Collections.ObjectModel;
-using System.Linq;
+using System.Collections.Generic;
 
 namespace RiskOfChaos.Utilities
 {
     public static class EliteUtils
     {
-        static EliteUtils()
-        {
-            baseEliteEquipments = [];
-            runAvailableEliteEquipments = [];
-        }
+        static EliteIndex[] _baseEliteIndices = [];
+        static EquipmentIndex[] _baseEliteEquipmentIndices = [];
 
-        static EquipmentIndex[] _baseEliteEquipments;
-        static EquipmentIndex[] baseEliteEquipments
-        {
-            get
-            {
-                return _baseEliteEquipments;
-            }
-            set
-            {
-                value ??= [];
+        static EliteIndex[] _runAvailableEliteIndices = [];
 
-                if (_baseEliteEquipments == null || !_baseEliteEquipments.SequenceEqual(value))
-                {
-                    _baseEliteEquipments = value;
-                    AllEliteEquipments = Array.AsReadOnly(value);
-                }
-            }
-        }
-
-        public static ReadOnlyCollection<EquipmentIndex> AllEliteEquipments { get; private set; }
+        public static bool HasAnyRunAvailableElites => _runAvailableEliteIndices.Length > 0;
 
         [SystemInitializer(typeof(EquipmentCatalog), typeof(EliteCatalog))]
-        static void InitBaseEquipments()
+        static void Init()
         {
-            baseEliteEquipments = EliteCatalog.eliteList
-                                              .Select(i => EliteCatalog.GetEliteDef(i).eliteEquipmentDef)
-                                              .Where(e => e.pickupModelPrefab && e.pickupModelPrefab.name != "NullModel" && e.dropOnDeathChance > 0f)
-                                              .Select(e => e.equipmentIndex)
-                                              .Distinct()
-                                              .OrderBy(i => i)
-                                              .ToArray();
+            List<EliteIndex> validEliteIndices = new List<EliteIndex>(EliteCatalog.eliteList.Count);
+            List<EquipmentIndex> validEliteEquipmentIndices = new List<EquipmentIndex>(EliteCatalog.eliteList.Count);
+
+            foreach (EliteIndex eliteIndex in EliteCatalog.eliteList)
+            {
+                EliteDef eliteDef = EliteCatalog.GetEliteDef(eliteIndex);
+                if (!eliteDef)
+                    continue;
+
+                if (eliteDef.name.EndsWith("Honor", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                EquipmentDef equipmentDef = eliteDef.eliteEquipmentDef;
+                if (!equipmentDef ||
+                    !equipmentDef.pickupModelPrefab ||
+                    string.Equals(equipmentDef.pickupModelPrefab.name, "NullModel", StringComparison.OrdinalIgnoreCase) ||
+                    equipmentDef.dropOnDeathChance <= 0f)
+                {
+                    continue;
+                }
+
+                if (!validEliteIndices.Contains(eliteIndex))
+                {
+                    validEliteIndices.Add(eliteIndex);
+                }
+
+                if (!validEliteEquipmentIndices.Contains(equipmentDef.equipmentIndex))
+                {
+                    validEliteEquipmentIndices.Add(equipmentDef.equipmentIndex);
+                }
+            }
+
+            validEliteIndices.Sort();
+            _baseEliteIndices = [.. validEliteIndices];
+
+            validEliteEquipmentIndices.Sort();
+            _baseEliteEquipmentIndices = [.. validEliteEquipmentIndices];
+
+            Run.onRunStartGlobal += run =>
+            {
+                List<EliteIndex> runAvailableEliteIndices = new List<EliteIndex>(_baseEliteIndices.Length);
+
+                foreach (EliteIndex eliteIndex in _baseEliteIndices)
+                {
+                    EliteDef eliteDef = EliteCatalog.GetEliteDef(eliteIndex);
+                    if (!eliteDef || !eliteDef.IsAvailable())
+                        continue;
+
+                    runAvailableEliteIndices.Add(eliteIndex);
+                }
+
+                _runAvailableEliteIndices = [.. runAvailableEliteIndices];
+            };
+
+            Run.onRunDestroyGlobal += _ =>
+            {
+                _runAvailableEliteIndices = [];
+            };
 
 #if DEBUG
-            foreach (EquipmentDef eliteEquipmentDef in EliteCatalog.eliteList.Select(i => EliteCatalog.GetEliteDef(i).eliteEquipmentDef).Distinct())
+            foreach (EliteIndex eliteIndex in EliteCatalog.eliteList)
             {
-                EliteDef eliteDef = EliteCatalog.GetEliteDef(EliteCatalog.eliteList.FirstOrDefault(i => EliteCatalog.GetEliteDef(i).eliteEquipmentDef == eliteEquipmentDef));
+                EliteDef eliteDef = EliteCatalog.GetEliteDef(eliteIndex);
+                if (!eliteDef)
+                    continue;
 
-                if (Array.BinarySearch(baseEliteEquipments, eliteEquipmentDef.equipmentIndex) < 0)
+                EquipmentDef eliteEquipmentDef = eliteDef.eliteEquipmentDef;
+                string equipmentName = "null";
+                if (eliteEquipmentDef)
                 {
-                    Log.Debug($"Excluded elite equipment {eliteEquipmentDef} ({Language.GetString(eliteEquipmentDef.nameToken)}) ({eliteDef})");
+                    equipmentName = Language.GetString(eliteEquipmentDef.nameToken);
+                }
+
+                if (IsAvailable(eliteIndex))
+                {
+                    Log.Debug($"Included elite equipment {eliteEquipmentDef} ({equipmentName}) ({eliteDef})");
                 }
                 else
                 {
-                    Log.Debug($"Included elite equipment {eliteEquipmentDef} ({Language.GetString(eliteEquipmentDef.nameToken)}) ({eliteDef})");
+                    Log.Debug($"Excluded elite equipment {eliteEquipmentDef} ({equipmentName}) ({eliteDef})");
                 }
             }
 #endif
         }
 
-        static EquipmentIndex[] _runAvailableEliteEquipments;
-        static EquipmentIndex[] runAvailableEliteEquipments
+        public static bool IsAvailable(EliteIndex eliteIndex)
         {
-            get
-            {
-                return _runAvailableEliteEquipments;
-            }
-            set
-            {
-                value ??= [];
+            return Array.BinarySearch(_baseEliteIndices, eliteIndex) >= 0;
+        }
 
-                if (_runAvailableEliteEquipments == null || !_runAvailableEliteEquipments.SequenceEqual(value))
+        public static bool IsRunAvailable(EliteIndex eliteIndex)
+        {
+            return Array.BinarySearch(_runAvailableEliteIndices, eliteIndex) >= 0;
+        }
+
+        public static EliteIndex[] GetRunAvailableElites(bool ignoreEliteTierAvailability)
+        {
+            List<EliteIndex> availableEliteIndices = new List<EliteIndex>(_runAvailableEliteIndices.Length);
+
+            foreach (CombatDirector.EliteTierDef eliteTier in CombatDirector.eliteTiers)
+            {
+                if (ignoreEliteTierAvailability || eliteTier.CanSelect(SpawnCard.EliteRules.Default))
                 {
-                    _runAvailableEliteEquipments = value;
-                    RunAvailableEliteEquipments = Array.AsReadOnly(value);
-                }
-            }
-        }
-
-        public static ReadOnlyCollection<EquipmentIndex> RunAvailableEliteEquipments { get; private set; }
-
-        [SystemInitializer]
-        static void Init()
-        {
-            Run.onRunStartGlobal += run =>
-            {
-                runAvailableEliteEquipments = AllEliteEquipments.Where(i => !run.IsEquipmentExpansionLocked(i)).OrderBy(i => i).ToArray();
-            };
-
-            Run.onRunDestroyGlobal += _ =>
-            {
-                runAvailableEliteEquipments = [];
-            };
-        }
-
-        public static bool HasAnyAvailableEliteEquipments => runAvailableEliteEquipments.Length > 0;
-
-        public static EquipmentIndex GetRandomEliteEquipmentIndex()
-        {
-            return GetRandomEliteEquipmentIndex(RoR2Application.rng);
-        }
-
-        public static EquipmentIndex GetRandomEliteEquipmentIndex(Xoroshiro128Plus rng)
-        {
-            if (!HasAnyAvailableEliteEquipments)
-                return EquipmentIndex.None;
-
-            return rng.NextElementUniform(runAvailableEliteEquipments);
-        }
-
-        public static bool IsEliteEquipment(EquipmentIndex equipmentIndex)
-        {
-            return Array.BinarySearch(baseEliteEquipments, equipmentIndex) >= 0;
-        }
-
-        public static EquipmentIndex SelectEliteEquipment(bool allowDirectorUnavailableElites)
-        {
-            return SelectEliteEquipment(RoR2Application.rng, allowDirectorUnavailableElites);
-        }
-
-        public static EquipmentIndex SelectEliteEquipment(Xoroshiro128Plus rng, bool allowDirectorUnavailableElites)
-        {
-            EquipmentIndex[] eliteEquipments = GetEliteEquipments(allowDirectorUnavailableElites);
-            if (eliteEquipments.Length > 0)
-            {
-                return rng.NextElementUniform(eliteEquipments);
-            }
-            else
-            {
-                return EquipmentIndex.None;
-            }
-        }
-
-        public static EquipmentIndex[] GetEliteEquipments(bool allowDirectorUnavailableElites)
-        {
-            return Array.ConvertAll(GetElites(allowDirectorUnavailableElites), e => EliteCatalog.GetEliteDef(e).eliteEquipmentDef.equipmentIndex);
-        }
-
-        public static EliteIndex[] GetElites(bool allowDirectorUnavailableElites)
-        {
-            if (!allowDirectorUnavailableElites)
-            {
-                CombatDirector.EliteTierDef[] availableEliteTiers = CombatDirector.eliteTiers.Where(e => e.eliteTypes.All(ed => ed) && e.CanSelect(SpawnCard.EliteRules.Default)).ToArray();
-                if (availableEliteTiers.Length > 0)
-                {
-                    return availableEliteTiers.SelectMany(t => t.eliteTypes).Distinct().Select(e => e.eliteIndex).ToArray();
-                }
-
-                Log.Warning("No available elites, using full list");
-            }
-
-            return EliteCatalog.eliteList.ToArray();
-        }
-
-        public static EliteDef FindEliteDef(EquipmentIndex eliteEquipmentIndex)
-        {
-            if (eliteEquipmentIndex != EquipmentIndex.None)
-            {
-                foreach (EliteIndex eliteIndex in EliteCatalog.eliteList)
-                {
-                    EliteDef eliteDef = EliteCatalog.GetEliteDef(eliteIndex);
-                    if (eliteDef && eliteDef.eliteEquipmentDef && eliteDef.eliteEquipmentDef.equipmentIndex == eliteEquipmentIndex)
+                    foreach (EliteDef eliteDef in eliteTier.eliteTypes)
                     {
-                        return eliteDef;
+                        if (eliteDef && IsRunAvailable(eliteDef.eliteIndex))
+                        {
+                            if (!availableEliteIndices.Contains(eliteDef.eliteIndex))
+                            {
+                                availableEliteIndices.Add(eliteDef.eliteIndex);
+                            }
+                        }
                     }
                 }
             }
 
-            return null;
+            return [.. availableEliteIndices];
+        }
+
+        public static bool IsEliteEquipment(EquipmentIndex equipmentIndex)
+        {
+            return Array.BinarySearch(_baseEliteEquipmentIndices, equipmentIndex) >= 0;
         }
     }
 }

@@ -211,7 +211,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (pickupDef == null)
                     continue;
 
-                if (_monsterInventory.TryGrant(pickupDef, InventoryExtensions.ItemReplacementRule.DeleteExisting))
+                if (_monsterInventory.TryGrant(pickupDef, InventoryExtensions.EquipmentReplacementRule.DeleteExisting))
                 {
                     grantedPickups.Add(pickupIndex);
                 }
@@ -238,7 +238,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     {
                         foreach (PickupIndex pickupIndex in pickupIndices)
                         {
-                            master.inventory.TryGrant(PickupCatalog.GetPickupDef(pickupIndex), InventoryExtensions.ItemReplacementRule.DeleteExisting);
+                            master.inventory.TryGrant(PickupCatalog.GetPickupDef(pickupIndex), InventoryExtensions.EquipmentReplacementRule.DeleteExisting);
                         }
                     }
                 }, Util.GetBestMasterName);

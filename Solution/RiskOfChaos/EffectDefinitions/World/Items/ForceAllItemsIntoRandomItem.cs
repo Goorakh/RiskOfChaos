@@ -73,9 +73,17 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
 
                 if (_allowEliteEquipments.Value)
                 {
-                    foreach (EquipmentIndex eliteEquipmentIndex in EliteUtils.RunAvailableEliteEquipments)
+                    foreach (EliteIndex eliteIndex in EliteUtils.GetRunAvailableElites(true))
                     {
-                        drops.Add(new ExplicitDrop(eliteEquipmentIndex, DropType.Equipment, null));
+                        EliteDef eliteDef = EliteCatalog.GetEliteDef(eliteIndex);
+                        if (!eliteDef)
+                            continue;
+
+                        EquipmentDef eliteEquipmentDef = eliteDef.eliteEquipmentDef;
+                        if (!eliteEquipmentDef)
+                            continue;
+
+                        drops.Add(new ExplicitDrop(eliteEquipmentDef.equipmentIndex, DropType.Equipment, eliteEquipmentDef.requiredExpansion));
                     }
                 }
             };

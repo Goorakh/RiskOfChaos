@@ -99,7 +99,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                     foreach (PickupDef pickupDef in _pickupsToGive)
                     {
-                        if (playerMaster.inventory.TryGrant(pickupDef, InventoryExtensions.ItemReplacementRule.DropExisting))
+                        if (playerMaster.inventory.TryGrant(pickupDef, InventoryExtensions.EquipmentReplacementRule.DropExisting))
                         {
                             givenPickups.Add(pickupDef.pickupIndex);
                         }

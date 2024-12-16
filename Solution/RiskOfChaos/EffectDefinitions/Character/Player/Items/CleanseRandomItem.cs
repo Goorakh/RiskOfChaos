@@ -211,7 +211,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                     PickupDef pearlPickup = PickupCatalog.GetPickupDef(pearlPickupIndex);
 
-                    if (inventory.TryGrant(pearlPickup, InventoryExtensions.ItemReplacementRule.DropExisting))
+                    if (inventory.TryGrant(pearlPickup, InventoryExtensions.EquipmentReplacementRule.DropExisting))
                     {
                         CharacterMasterNotificationQueueUtils.SendPickupTransformNotification(master, pickupToCleanse.pickupIndex, pearlPickupIndex, CharacterMasterNotificationQueue.TransformationType.Default);
 

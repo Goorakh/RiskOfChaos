@@ -160,7 +160,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                     if (result.spawnedInstance.TryGetComponent(out CharacterMaster master))
                     {
                         CombatCharacterSpawnHelper.SetupSpawnedCombatCharacter(master, spawnRng);
-                        CombatCharacterSpawnHelper.TryGrantEliteAspect(master, spawnRng, _eliteChance.Value, _allowDirectorUnavailableElites.Value);
+
+                        if (spawnRng.nextNormalizedFloat <= _eliteChance.Value)
+                        {
+                            CombatCharacterSpawnHelper.GrantRandomEliteAspect(master, spawnRng, _allowDirectorUnavailableElites.Value);
+                        }
 
                         master.gameObject.SetDontDestroyOnLoad(false);
 
