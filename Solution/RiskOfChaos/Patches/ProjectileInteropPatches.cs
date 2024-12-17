@@ -117,7 +117,14 @@ namespace RiskOfChaos.Patches
             static void setProjectileInfoProcCoefficientOverrideFromFireMsg(ProjectileManager projectileManager, ref FireProjectileInfo fireProjectileInfo)
             {
                 fireProjectileInfo.SetProcCoefficientOverridePlusOne(projectileManager.fireMsg.GetProcCoefficientOverridePlusOne());
-                fireProjectileInfo.procChainMask = projectileManager.fireMsg.GetProcChainMask();
+
+                ProcChainMask fireMsgProcChainMask = projectileManager.fireMsg.GetProcChainMask();
+                if (fireMsgProcChainMask.HasAnyProc())
+                {
+                    fireProjectileInfo.procChainMask.AddProcsFrom(fireMsgProcChainMask);
+
+                    Log.Debug($"Added procs {fireMsgProcChainMask} to fireProjectileInfo {fireProjectileInfo.projectilePrefab} from client message (resulting: {fireProjectileInfo.procChainMask})");
+                }
             }
         }
 
