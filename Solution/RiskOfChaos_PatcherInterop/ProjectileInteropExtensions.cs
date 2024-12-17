@@ -3,7 +3,7 @@ using RoR2.Projectile;
 
 namespace RiskOfChaos_PatcherInterop
 {
-    public static class ProjectileInteropExtensions
+    internal static class ProjectileInteropExtensions
     {
         static float? decodeProcCoefficientOverride(float overridePlusOne)
         {
