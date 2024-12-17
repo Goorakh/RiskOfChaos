@@ -1,6 +1,6 @@
 ## Changelog
 
-**-.-.- Changes:**
+**2.3.1 Changes:**
 
 * Give Everyone a Random Buff/Debuff:
   * Fixed effect being able to give DLC buffs/debuffs when DLC(s) were disabled
