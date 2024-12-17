@@ -12,7 +12,7 @@ namespace RiskOfChaosPatcher
 
         public static void Initialize()
         {
-            _log.SetLogSource(Logger.CreateLogSource("FireProjectileInfoProcCoefficientPatcher"));
+            _log.SetLogSource(Logger.CreateLogSource(nameof(ProjectilePatcher)));
         }
 
         public static void Patch(AssemblyDefinition assembly)
