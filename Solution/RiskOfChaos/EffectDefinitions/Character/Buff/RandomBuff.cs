@@ -27,160 +27,86 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                               .OptionConfig(new IntFieldConfig { Min = 1 })
                               .Build();
 
-        static readonly BuffIndexCollection _buffBlacklist = new BuffIndexCollection([
-            "bdAurelioniteBlessing", // Nullref spam
-            "bdBearVoidReady", // Invincibility
-            "bdBodyArmor", // Invincibility
-            "bdBoostAllStatsBuff", // Doesn't work without the item
-            "bdBoosted", // Does nothing unless you are Chef
-            "bdChakraBuff", // Does nothing unless you are Seeker
-            "bdCloak", // Invisibility not fun
-            "bdCrocoRegen", // Too much regen
-            "bdElementalRingsReady", // Doesn't work without the item
-            "bdElementalRingVoidReady", // Doesn't work without the item
-            "bdEliteSecretSpeed", // Does nothing
-            "bdEliteHauntedRecipient", // Invisibility not fun
-            "bdExtraLifeBuff", // Basically invincibility
-            "bdExtraStatsOnLevelUpBuff", // Doesn't work without the item
-            "bdGoldEmpowered", // Invincibility
-            "bdHiddenInvincibility", // Invincibility
-            "bdImmune", // Invincibility
-            "bdImmuneToDebuffReady", // Does nothing without the item
-            "bdIncreasePrimaryDamageBuff", // Doesn't work without the item
-            "bdIntangible", // Invincibility
-            "bdKnockDownHitEnemies", // Does nothing
-            "bdLaserTurbineKillCharge", // Doesn't work without the item
-            "bdLightningShield", // Does nothing
-            "bdLoaderOvercharged", // Does nothing unless you are Loader
-            "bdLowerHealthHigherDamageBuff", // Doesn't work without the item
-            "bdMedkitHeal", // Doesn't do anything if constantly applied
-            "bdMushroomVoidActive", // Does nothing without the item
-            "bdOutOfCombatArmorBuff", // Does nothing without the item
-            "bdPrimarySkillShurikenBuff", // Does nothing without the item
-            "bdStunAndPierceBuff", // Does nothing
-            "bdTeslaField", // Doesn't work without the item
-            "bdVoidFogMild", // Does nothing
-            "bdVoidFogStrong", // Does nothing
-            "bdVoidRaidCrabWardWipeFog", // Does nothing
-            "bdVoidSurvivorCorruptMode", // Does nothing
-            "bdWhipBoost", // Doesn't work without the item
+        static readonly SpawnPool<BuffDef> _availableBuffs = new SpawnPool<BuffDef>
+        {
+            RequiredExpansionsProvider = SpawnPoolUtils.BuffExpansionsProvider
+        };
 
-            // Patchable
-            "bdDelayedDamageBuff", // Removed if item is missing, otherwise works
-            "bdIncreaseDamageBuff", // Removed if multikill missing, otherwise works
-            "bdTeleportOnLowHealth", // Only triggers if item is present
-
-            #region MysticsItems compat
-            "MysticsItems_BuffInTPRange", // Doesn't work without item
-            "MysticsItems_DasherDiscActive", // Invincibility
-            "MysticsItems_GachaponBonus", // Doesn't work without item
-            "MysticsItems_MechanicalArmCharge", // Does nothing
-            "MysticsItems_NanomachineArmor", // Doesn't work without item
-            "MysticsItems_StarPickup", // Doesn't work without item
-            #endregion
-
-            #region TsunamiItemsRevived compat
-            "ColaBoostBuff", // Doesn't work without item
-            "GeigerBuff", // Does nothing
-            "ManualReadyBuff", // Doesn't work without item
-            "SandwichHealBuff", // Doesn't work without item
-            "SkullBuff", // Does nothing
-            "SuppressorBoostBuff", // Doesn't work without item
-            #endregion
-
-            #region ExtradimensionalItems compat
-            "Adrenaline Protection", // Doesn't work without item
-            "Damage On Cooldowns", // Doesn't work without item
-            "Royal Guard Damage Buff", // Doesn't work without item
-            "Royal Guard Parry State", // Doesn't work without item
-            "Sheen Damage Bonus", // Doesn't work without item
-            "Skull of Impending Doom", // Doesn't work without item
-            #endregion
-
-            #region VanillaVoid compat
-            "ZnVVOrreryDamage", // Doesn't work without item
-            "ZnVVshatterStatus", // Doesn't work without item
-            #endregion
-
-            #region SpireItems compat
-            "Buffer", // Invincibility
-            "Mantra", // Does nothing
-            #endregion
-
-            #region LostInTransit compat
-            "GoldenGun", // Doesn't work without item
-            #endregion
-
-            #region Starstorm2 compat
-            "bdElitePurple", // Does nothing
-            "BuffChirrAlly", // Does nothing
-            "BuffExecutionerSuperCharged", // Does nothing unless you are Executioner
-            "BuffKickflip", // Doesn't work without item
-            "BuffReactor", // Invincibility
-            "BuffTerminationFailed", // Does nothing
-            "BuffTerminationReady", // Doesn't work without item
-            "BuffTerminationVFX", // Does nothing
-            #endregion
-
-            #region WolfoQoL compat
-            "visual_HelFire",
-            "visual_EnemyBurn",
-            "visual_BugFlight",
-            "visual_ShadowIntangible",
-            "visual_SprintArmor",
-            "visual_Frozen",
-            "visual_HeadstomperReady",
-            "visual_HeadstomperCooldown",
-            "visual_BonusJump",
-            "visual_ShieldDelay",
-            "visual_OutOfCombatArmorCooldown",
-            "visual_VolcanoEgg",
-            "visual_TinctureIgnition",
-            "visual_FrostRelicGrowth",
-            "visual_FakeShurikenStock",
-            "visual_ImpendingVagrantExplosion"
-	        #endregion
-        ]);
-
-        static BuffIndex[] _availableBuffIndices = [];
-
-        [SystemInitializer(typeof(BuffCatalog), typeof(DotController))]
+        [SystemInitializer(typeof(BuffCatalog), typeof(DotController), typeof(ExpansionUtils))]
         static void InitAvailableBuffs()
         {
-            _availableBuffIndices = Enumerable.Range(0, BuffCatalog.buffCount).Select(i => (BuffIndex)i).Where(bi =>
+            _availableBuffs.EnsureCapacity(BuffCatalog.buffCount);
+
+            _availableBuffs.CalcIsEntryAvailable += ApplyBuffEffect.CanSelectBuff;
+
+            const float ELITE_WEIGHT = 0.8f;
+
+            _availableBuffs.AddEntry(RoR2Content.Buffs.AffixRed, new SpawnPoolEntryParameters(ELITE_WEIGHT)); // EliteFire
+            _availableBuffs.AddEntry(RoR2Content.Buffs.AffixHaunted, new SpawnPoolEntryParameters(ELITE_WEIGHT)); // EliteHaunted
+            _availableBuffs.AddEntry(RoR2Content.Buffs.AffixWhite, new SpawnPoolEntryParameters(ELITE_WEIGHT)); // EliteIce
+            _availableBuffs.AddEntry(RoR2Content.Buffs.AffixBlue, new SpawnPoolEntryParameters(ELITE_WEIGHT)); // EliteLightning
+            _availableBuffs.AddEntry(RoR2Content.Buffs.AffixLunar, new SpawnPoolEntryParameters(ELITE_WEIGHT)); // EliteLunar
+            _availableBuffs.AddEntry(RoR2Content.Buffs.AffixPoison, new SpawnPoolEntryParameters(ELITE_WEIGHT)); // ElitePoison
+            _availableBuffs.AddEntry(RoR2Content.Buffs.ArmorBoost, new SpawnPoolEntryParameters(1f));
+            _availableBuffs.AddEntry(RoR2Content.Buffs.AttackSpeedOnCrit, new SpawnPoolEntryParameters(1f));
+            _availableBuffs.AddEntry(RoR2Content.Buffs.BanditSkull, new SpawnPoolEntryParameters(1f));
+            _availableBuffs.AddEntry(RoR2Content.Buffs.BugWings, new SpawnPoolEntryParameters(1f));
+            _availableBuffs.AddEntry(RoR2Content.Buffs.CloakSpeed, new SpawnPoolEntryParameters(1f));
+            _availableBuffs.AddEntry(RoR2Content.Buffs.CrocoRegen, new SpawnPoolEntryParameters(1f));
+            _availableBuffs.AddEntry(RoR2Content.Buffs.ElephantArmorBoost, new SpawnPoolEntryParameters(1f));
+            _availableBuffs.AddEntry(RoR2Content.Buffs.Energized, new SpawnPoolEntryParameters(1f));
+            _availableBuffs.AddEntry(RoR2Content.Buffs.EngiShield, new SpawnPoolEntryParameters(1f));
+            _availableBuffs.AddEntry(RoR2Content.Buffs.FullCrit, new SpawnPoolEntryParameters(1f));
+            _availableBuffs.AddEntry(RoR2Content.Buffs.LifeSteal, new SpawnPoolEntryParameters(1f));
+            _availableBuffs.AddEntry(RoR2Content.Buffs.LunarShell, new SpawnPoolEntryParameters(1f));
+            _availableBuffs.AddEntry(RoR2Content.Buffs.NoCooldowns, new SpawnPoolEntryParameters(1f));
+            _availableBuffs.AddEntry(RoR2Content.Buffs.PowerBuff, new SpawnPoolEntryParameters(1f));
+            _availableBuffs.AddEntry(RoR2Content.Buffs.SmallArmorBoost, new SpawnPoolEntryParameters(1f));
+            _availableBuffs.AddEntry(RoR2Content.Buffs.TeamWarCry, new SpawnPoolEntryParameters(1f));
+            _availableBuffs.AddEntry(RoR2Content.Buffs.TonicBuff, new SpawnPoolEntryParameters(1f));
+            _availableBuffs.AddEntry(RoR2Content.Buffs.Warbanner, new SpawnPoolEntryParameters(1f));
+            _availableBuffs.AddEntry(RoR2Content.Buffs.WarCryBuff, new SpawnPoolEntryParameters(1f));
+            _availableBuffs.AddEntry(RoR2Content.Buffs.WhipBoost, new SpawnPoolEntryParameters(1f));
+
+            _availableBuffs.AddEntry(JunkContent.Buffs.EngiTeamShield, new SpawnPoolEntryParameters(1f));
+            _availableBuffs.AddEntry(JunkContent.Buffs.EnrageAncientWisp, new SpawnPoolEntryParameters(1f));
+            _availableBuffs.AddEntry(JunkContent.Buffs.LoaderPylonPowered, new SpawnPoolEntryParameters(1f));
+            _availableBuffs.AddEntry(JunkContent.Buffs.MeatRegenBoost, new SpawnPoolEntryParameters(1f));
+
+            _availableBuffs.AddEntry(DLC1Content.Buffs.EliteEarth, new SpawnPoolEntryParameters(ELITE_WEIGHT, ExpansionUtils.DLC1));
+            _availableBuffs.AddEntry(DLC1Content.Buffs.EliteVoid, new SpawnPoolEntryParameters(ELITE_WEIGHT, ExpansionUtils.DLC1));
+            _availableBuffs.AddEntry(DLC1Content.Buffs.KillMoveSpeed, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1));
+            _availableBuffs.AddEntry(DLC1Content.Buffs.VoidSurvivorCorruptMode, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1));
+
+            _availableBuffs.AddEntry(DLC2Content.Buffs.EliteAurelionite, new SpawnPoolEntryParameters(ELITE_WEIGHT, ExpansionUtils.DLC2));
+            _availableBuffs.AddEntry(DLC2Content.Buffs.ElusiveAntlersBuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
+            _availableBuffs.AddEntry(DLC2Content.Buffs.HealAndReviveRegenBuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
+            _availableBuffs.AddEntry(DLC2Content.Buffs.IncreaseDamageBuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
+            _availableBuffs.AddEntry(DLC2Content.Buffs.IncreasePrimaryDamageBuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
+            _availableBuffs.AddEntry(DLC2Content.Buffs.LowerHealthHigherDamageBuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
+
+            _availableBuffs.TrimExcess();
+
+#if DEBUG
+            for (int i = 0; i < BuffCatalog.buffCount; i++)
             {
-                if (bi == BuffIndex.None)
-                    return false;
+                BuffIndex buffIndex = (BuffIndex)i;
+                BuffDef buffDef = BuffCatalog.GetBuffDef(buffIndex);
+                if (!buffDef || buffDef.isHidden || buffDef.isCooldown || DotController.GetDotDefIndex(buffDef) != DotController.DotIndex.None)
+                    continue;
 
-                BuffDef buffDef = BuffCatalog.GetBuffDef(bi);
-                if (!buffDef || buffDef.isHidden || BuffUtils.IsDebuff(buffDef) || BuffUtils.IsCooldown(buffDef))
+                if (!_availableBuffs.Contains(buffDef))
                 {
-                    Log.Debug($"Excluding hidden/debuff/cooldown buff {buffDef.name}");
-                    return false;
+                    Log.Debug($"Not including {buffDef.name} as buff");
                 }
-
-                if (BuffUtils.IsDOT(buffDef))
-                {
-                    Log.Debug($"Excluding DOT buff: {buffDef.name}");
-                    return false;
-                }
-
-                if (_buffBlacklist.Contains(buffDef.buffIndex))
-                {
-                    Log.Debug($"Excluding buff {buffDef.name}: blacklist");
-                    return false;
-                }
-
-                Log.Debug($"Including buff {buffDef.name}");
-
-                return true;
-            }).ToArray();
+            }
+#endif
         }
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return _availableBuffIndices.Length > 0 && ApplyBuffEffect.FilterSelectableBuffs(_availableBuffIndices).Any();
+            return _availableBuffs.AnyAvailable;
         }
 
         ChaosEffectComponent _chaosEffect;
@@ -198,36 +124,18 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 
             Xoroshiro128Plus rng = new Xoroshiro128Plus(_chaosEffect.Rng.nextUlong);
 
-            BuffIndex buffIndex = getBuffIndexToApply(rng);
-            _applyBuffEffect.BuffIndex = buffIndex;
-
-            BuffDef buffDef = BuffCatalog.GetBuffDef(buffIndex);
-            _applyBuffEffect.BuffStackCount = buffDef && buffDef.canStack ? _stackableBuffCount.Value : 1;
-        }
-
-#if DEBUG
-        static int _debugIndex = 0;
-        static bool _enableDebugIndex = false;
-#endif
-
-        static BuffIndex getBuffIndexToApply(Xoroshiro128Plus rng)
-        {
-            BuffIndex selectedBuff;
-
-#if DEBUG
-            if (_enableDebugIndex)
+            BuffDef buff = _availableBuffs.PickRandomEntry(rng);
+            if (buff)
             {
-                selectedBuff = _availableBuffIndices[_debugIndex++ % _availableBuffIndices.Length];
+                Log.Debug($"Applying buff {buff}");
+
+                _applyBuffEffect.BuffIndex = buff.buffIndex;
+                _applyBuffEffect.BuffStackCount = buff.canStack ? _stackableBuffCount.Value : 1;
             }
             else
-#endif
             {
-                selectedBuff = rng.NextElementUniform(ApplyBuffEffect.FilterSelectableBuffs(_availableBuffIndices).ToList());
+                Log.Error("No buff selected");
             }
-
-            Log.Debug($"Applying buff {BuffCatalog.GetBuffDef(selectedBuff)}");
-
-            return selectedBuff;
         }
     }
 }

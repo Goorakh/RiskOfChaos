@@ -7,7 +7,6 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -46,9 +45,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             return stackCount < int.MaxValue && (buffDef.canStack || stackCount == 0);
         }
 
-        public static IEnumerable<BuffIndex> FilterSelectableBuffs(IEnumerable<BuffIndex> buffIndices)
+        public static bool CanSelectBuff(BuffDef buff)
         {
-            return buffIndices.Where(CanSelectBuff);
+            return buff && CanSelectBuff(buff.buffIndex);
         }
 
         public delegate void OnBuffAppliedDelegate(CharacterBody body);

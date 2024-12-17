@@ -1,5 +1,4 @@
-﻿using RiskOfChaos.Collections.CatalogIndex;
-using RiskOfChaos.ConfigHandling;
+﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -27,70 +26,70 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                               .OptionConfig(new IntFieldConfig { Min = 1 })
                               .Build();
 
-        static readonly BuffIndexCollection _debuffBlacklist = new BuffIndexCollection([
-            "bdDisableAllSkills", // Nullref spam and not fun
-            "bdEliteBeadThorns", // Does nothing
-            "bdEntangle", // Immobile
-            "bdLunarSecondaryRoot", // Immobile
-            "bdNullified", // Immobile
-            "bdNullifyStack", // Does nothing
-            "bdOverheat", // Does nothing
-            "bdPulverizeBuildup", // Does nothing
+        static readonly SpawnPool<BuffDef> _availableDebuffs = new SpawnPool<BuffDef>
+        {
+            RequiredExpansionsProvider = SpawnPoolUtils.BuffExpansionsProvider
+        };
 
-            #region VanillaVoid compat
-            "ZnVVlotusSlow", // Doesn't work without item
-            #endregion
-
-            #region MysticsItems compat
-            "MysticsItems_Crystallized", // Immobile
-            #endregion
-
-            #region Starstorm2 compat
-            "bdMULENet", // Basically immobile
-            "bdPurplePoison", // Does nothing
-            "BuffNeedleBuildup", // Doesn't work without item
-            #endregion
-        ]);
-
-        static BuffIndex[] _availableBuffIndices = [];
-
-        [SystemInitializer(typeof(BuffCatalog), typeof(DotController))]
+        [SystemInitializer(typeof(BuffCatalog), typeof(DotController), typeof(ExpansionUtils))]
         static void InitAvailableBuffs()
         {
-            _availableBuffIndices = Enumerable.Range(0, BuffCatalog.buffCount).Select(i => (BuffIndex)i).Where(bi =>
+            _availableDebuffs.EnsureCapacity(BuffCatalog.buffCount);
+
+            _availableDebuffs.CalcIsEntryAvailable += ApplyBuffEffect.CanSelectBuff;
+
+            _availableDebuffs.AddEntry(RoR2Content.Buffs.BeetleJuice, new SpawnPoolEntryParameters(1f));
+            _availableDebuffs.AddEntry(RoR2Content.Buffs.ClayGoo, new SpawnPoolEntryParameters(1f));
+            _availableDebuffs.AddEntry(RoR2Content.Buffs.Cripple, new SpawnPoolEntryParameters(1f));
+            _availableDebuffs.AddEntry(RoR2Content.Buffs.DeathMark, new SpawnPoolEntryParameters(1f));
+            _availableDebuffs.AddEntry(RoR2Content.Buffs.Fruiting, new SpawnPoolEntryParameters(1f));
+            _availableDebuffs.AddEntry(RoR2Content.Buffs.HealingDisabled, new SpawnPoolEntryParameters(1f));
+            _availableDebuffs.AddEntry(RoR2Content.Buffs.LunarDetonationCharge, new SpawnPoolEntryParameters(0.7f));
+            _availableDebuffs.AddEntry(RoR2Content.Buffs.MercExpose, new SpawnPoolEntryParameters(0.7f));
+            _availableDebuffs.AddEntry(RoR2Content.Buffs.PermanentCurse, new SpawnPoolEntryParameters(1f));
+            _availableDebuffs.AddEntry(RoR2Content.Buffs.Pulverized, new SpawnPoolEntryParameters(1f));
+            _availableDebuffs.AddEntry(RoR2Content.Buffs.Slow50, new SpawnPoolEntryParameters(0.8f));
+            _availableDebuffs.AddEntry(RoR2Content.Buffs.Slow60, new SpawnPoolEntryParameters(0.8f));
+            _availableDebuffs.AddEntry(RoR2Content.Buffs.Slow80, new SpawnPoolEntryParameters(0.8f));
+            _availableDebuffs.AddEntry(RoR2Content.Buffs.Weak, new SpawnPoolEntryParameters(1f));
+
+            _availableDebuffs.AddEntry(JunkContent.Buffs.Slow30, new SpawnPoolEntryParameters(1f));
+
+            _availableDebuffs.AddEntry(DLC1Content.Buffs.Blinded, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1));
+            _availableDebuffs.AddEntry(DLC1Content.Buffs.JailerSlow, new SpawnPoolEntryParameters(0.8f, ExpansionUtils.DLC1));
+            _availableDebuffs.AddEntry(DLC1Content.Buffs.PermanentDebuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1));
+
+            _availableDebuffs.AddGroupedEntries([
+                new SpawnPool<BuffDef>.Entry(DLC2Content.Buffs.CookingChopped, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
+                new SpawnPool<BuffDef>.Entry(DLC2Content.Buffs.CookingOiled, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
+                new SpawnPool<BuffDef>.Entry(DLC2Content.Buffs.CookingRoasted, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
+                new SpawnPool<BuffDef>.Entry(DLC2Content.Buffs.CookingRolled, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
+            ], 0.7f);
+
+            _availableDebuffs.AddEntry(DLC2Content.Buffs.SoulCost, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
+
+            _availableDebuffs.TrimExcess();
+
+#if DEBUG
+            for (int i = 0; i < BuffCatalog.buffCount; i++)
             {
-                if (bi == BuffIndex.None)
-                    return false;
+                BuffIndex buffIndex = (BuffIndex)i;
+                BuffDef buffDef = BuffCatalog.GetBuffDef(buffIndex);
+                if (!buffDef || buffDef.isHidden || buffDef.isCooldown || DotController.GetDotDefIndex(buffDef) != DotController.DotIndex.None)
+                    continue;
 
-                BuffDef buffDef = BuffCatalog.GetBuffDef(bi);
-                if (!buffDef || buffDef.isHidden || !BuffUtils.IsDebuff(buffDef) || BuffUtils.IsCooldown(buffDef))
+                if (!_availableDebuffs.Contains(buffDef))
                 {
-                    Log.Debug($"Excluding hidden/buff/cooldown: {buffDef.name}");
-                    return false;
+                    Log.Debug($"Not including {buffDef.name} as debuff");
                 }
-
-                if (BuffUtils.IsDOT(buffDef))
-                {
-                    Log.Debug($"Excluding DOT buff: {buffDef.name}");
-                    return false;
-                }
-
-                if (_debuffBlacklist.Contains(buffDef.buffIndex))
-                {
-                    Log.Debug($"Excluding debuff {buffDef.name}: blacklist");
-                    return false;
-                }
-
-                Log.Debug($"Including debuff {buffDef.name}");
-
-                return true;
-            }).ToArray();
+            }
+#endif
         }
 
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return _availableBuffIndices.Length > 0 && ApplyBuffEffect.FilterSelectableBuffs(_availableBuffIndices).Any();
+            return _availableDebuffs.AnyAvailable;
         }
 
         ChaosEffectComponent _chaosEffect;
@@ -108,36 +107,18 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 
             Xoroshiro128Plus rng = new Xoroshiro128Plus(_chaosEffect.Rng.nextUlong);
 
-            BuffIndex buffIndex = getBuffIndexToApply(rng);
-            _applyBuffEffect.BuffIndex = buffIndex;
-
-            BuffDef buffDef = BuffCatalog.GetBuffDef(buffIndex);
-            _applyBuffEffect.BuffStackCount = buffDef && buffDef.canStack ? _stackableDebuffCount.Value : 1;
-        }
-
-#if DEBUG
-        static int _debugIndex = 0;
-        static bool _enableDebugIndex = false;
-#endif
-
-        static BuffIndex getBuffIndexToApply(Xoroshiro128Plus rng)
-        {
-            BuffIndex selectedBuff;
-
-#if DEBUG
-            if (_enableDebugIndex)
+            BuffDef buff = _availableDebuffs.PickRandomEntry(rng);
+            if (buff)
             {
-                selectedBuff = _availableBuffIndices[_debugIndex++ % _availableBuffIndices.Length];
+                Log.Debug($"Applying debuff {buff}");
+
+                _applyBuffEffect.BuffIndex = buff.buffIndex;
+                _applyBuffEffect.BuffStackCount = buff.canStack ? _stackableDebuffCount.Value : 1;
             }
             else
-#endif
             {
-                selectedBuff = rng.NextElementUniform(ApplyBuffEffect.FilterSelectableBuffs(_availableBuffIndices).ToList());
+                Log.Error("No debuff selected");
             }
-
-            Log.Debug($"Applying debuff {BuffCatalog.GetBuffDef(selectedBuff)}");
-
-            return selectedBuff;
         }
     }
 }

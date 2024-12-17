@@ -2,6 +2,9 @@
 
 **-.-.- Changes:**
 
+* Give Everyone a Random Buff/Debuff:
+  * Fixed effect being able to give DLC buffs/debuffs when DLC(s) were disabled
+
 * Spawn Random Boss & Spawn Random Ally:
   * Removed False Son spawn
     * This boss is *way* too buggy, and can just barely exist outside the Meridian boss arena. And I can't be bothered to fix it.

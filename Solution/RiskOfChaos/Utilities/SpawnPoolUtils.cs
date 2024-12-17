@@ -10,6 +10,12 @@ namespace RiskOfChaos.Utilities
 
         public static readonly SpawnPool<InteractableSpawnCard>.RequiredExpansionsProviderDelegate InteractableSpawnCardExpansionsProvider = InteractableSpawnCardExpansionsProviderImpl;
 
+        public static readonly SpawnPool<BuffDef>.RequiredExpansionsProviderDelegate BuffExpansionsProvider = BuffExpansionsProviderImpl;
+
+        public static readonly SpawnPool<EliteDef>.RequiredExpansionsProviderDelegate EliteExpansionsProvider = EliteExpansionsProviderImpl;
+
+        public static readonly SpawnPool<EquipmentDef>.RequiredExpansionsProviderDelegate EquipmentExpansionsProvider = EquipmentExpansionsProviderImpl;
+
         public static IReadOnlyList<ExpansionDef> CharacterSpawnCardExpansionsProviderImpl(CharacterSpawnCard characterSpawnCard)
         {
             return SpawnCardExpansionsProviderImpl(characterSpawnCard);
@@ -30,6 +36,32 @@ namespace RiskOfChaos.Utilities
             {
                 return [];
             }
+        }
+
+        public static IReadOnlyList<ExpansionDef> BuffExpansionsProviderImpl(BuffDef buffDef)
+        {
+            if (!buffDef)
+                return [];
+
+            return EliteExpansionsProviderImpl(buffDef.eliteDef);
+        }
+
+        public static IReadOnlyList<ExpansionDef> EliteExpansionsProviderImpl(EliteDef eliteDef)
+        {
+            if (!eliteDef)
+                return [];
+
+            return EquipmentExpansionsProviderImpl(eliteDef.eliteEquipmentDef);
+        }
+
+        public static IReadOnlyList<ExpansionDef> EquipmentExpansionsProviderImpl(EquipmentDef equipmentDef)
+        {
+            if (equipmentDef && equipmentDef.requiredExpansion)
+            {
+                return [equipmentDef.requiredExpansion];
+            }
+
+            return [];
         }
     }
 }
