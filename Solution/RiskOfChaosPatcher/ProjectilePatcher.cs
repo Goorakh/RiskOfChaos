@@ -40,10 +40,16 @@ namespace RiskOfChaosPatcher
 
             TypeReference floatTypeRef = assembly.MainModule.ImportReference(typeof(float));
 
-            fireProjectileInfoType.Fields.Add(new FieldDefinition("roc_procCoefficientOverridePlusOne", FieldAttributes.Public, floatTypeRef));
+            addField(fireProjectileInfoType, new FieldDefinition("roc_procCoefficientOverridePlusOne", FieldAttributes.Public, floatTypeRef));
 
-            playerFireProjectileMessage.Fields.Add(new FieldDefinition("roc_procCoefficientOverridePlusOne", FieldAttributes.Public, floatTypeRef));
-            playerFireProjectileMessage.Fields.Add(new FieldDefinition("roc_procChainMask", FieldAttributes.Public, procChainMaskType));
+            addField(playerFireProjectileMessage, new FieldDefinition("roc_procCoefficientOverridePlusOne", FieldAttributes.Public, floatTypeRef));
+            addField(playerFireProjectileMessage, new FieldDefinition("roc_procChainMask", FieldAttributes.Public, procChainMaskType));
+        }
+
+        static void addField(TypeDefinition declaringType, FieldDefinition field)
+        {
+            declaringType.Fields.Add(field);
+            _log.Debug($"Added field {field.Attributes} {field.FieldType.FullName} {field.Name} to {declaringType.FullName}");
         }
     }
 }
