@@ -1,5 +1,10 @@
 ## Changelog
 
+**-.-.-**
+
+* Swap Health & Shield:
+  * Fixed effect not working.
+
 **2.3.1 Changes:**
 
 * Give Everyone a Random Buff/Debuff:

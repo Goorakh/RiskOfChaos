@@ -3,6 +3,7 @@ using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RiskOfChaos.EffectDefinitions.Character;
 using RoR2;
+using System;
 using System.Reflection;
 
 namespace RiskOfChaos.Patches.Effects.Character
@@ -64,8 +65,16 @@ namespace RiskOfChaos.Patches.Effects.Character
 
             c.Goto(maxSetInstruction, MoveType.After);
 
+            ILCursor cursor = c.Clone();
+            while (cursor.TryGotoPrev(MoveType.Before, x => x.Operand is ILLabel label && il.IndexOf(label.Target) > c.Index))
+            {
+                ILLabel label = cursor.Next.Operand as ILLabel;
+
+                c.Goto(label.Target, MoveType.AfterLabel);
+            }
+
             c.Emit(OpCodes.Ldarg_0);
-            c.EmitDelegate(SwapHealthShield.TryApplyStatChanges);
+            c.EmitDelegate<Action<CharacterBody>>(SwapHealthShield.TryApplyStatChanges);
         }
     }
 }
