@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
+using RoR2;
 using RoR2.Projectile;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -89,8 +90,8 @@ namespace RiskOfChaos.Components
 
         float getTargetFrictionMultiplier()
         {
-            float angle = Mathf.Abs(Vector3.SignedAngle(_currentVelocity, _targetVelocity, Vector3.up));
-            if (angle > 45f ||
+            float angle = Vector3.Angle(_currentVelocity, _targetVelocity);
+            if (angle >= 35f ||
                 (_targetVelocity.sqrMagnitude < 0.01f && _currentVelocity.sqrMagnitude > 0f)) // Should be stopped, but still moving
             {
                 return OppositeDirectionFrictionMultiplier;
@@ -113,23 +114,33 @@ namespace RiskOfChaos.Components
         {
             Vector3 currentPosition = transform.position;
 
-            _targetVelocity = Vector3.zero;
-            PlayerUtils.GetAllPlayerBodies(true).TryDo(body =>
+            Vector3 targetVelocity = Vector3.zero;
+
+            foreach (PlayerCharacterMasterController playerMaster in PlayerCharacterMasterController.instances)
             {
-                Vector3 bodyPosition = body.corePosition;
+                if (!playerMaster.isConnected)
+                    continue;
+
+                CharacterMaster master = playerMaster.master;
+                if (!master || master.IsDeadAndOutOfLivesServer())
+                    continue;
+
+                if (!master.TryGetBodyPosition(out Vector3 bodyPosition))
+                    continue;
 
                 Vector3 positionDiff = bodyPosition - currentPosition;
                 float sqrDistance = positionDiff.sqrMagnitude;
-                if (sqrDistance >= MaxDistance * MaxDistance)
-                    return;
+                if (sqrDistance > MaxDistance * MaxDistance)
+                    continue;
 
                 Vector3 forceDirectionNormalized = positionDiff / Mathf.Sqrt(sqrDistance);
-                _targetVelocity += forceDirectionNormalized * MaxSpeed;
-            });
+                targetVelocity += forceDirectionNormalized * MaxSpeed;
+            }
+
+            _targetVelocity = targetVelocity;
+            _currentVelocity = Vector3.MoveTowards(_currentVelocity, _targetVelocity, Acceleration * Time.fixedDeltaTime);
 
             setFrictionMultiplier(getTargetFrictionMultiplier());
-
-            _currentVelocity = Vector3.MoveTowards(_currentVelocity, _targetVelocity, Acceleration * Time.fixedDeltaTime);
 
             if (_currentVelocity.sqrMagnitude > MinVelocityTreshold * MinVelocityTreshold)
             {
