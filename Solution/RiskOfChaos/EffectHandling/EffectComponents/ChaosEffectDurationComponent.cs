@@ -109,7 +109,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         [Server]
         void checkElapsed()
         {
-            if (_isInSceneTransition)
+            if (SceneExitController.isRunning || _isInSceneTransition)
                 return;
 
             if (Elapsed >= Duration)
