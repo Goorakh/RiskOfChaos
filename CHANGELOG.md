@@ -2,6 +2,9 @@
 
 **-.-.-**
 
+* Reworked 1 Effect:
+  * Always Sprinting: Now also forces all characters to constantly move
+
 * Swap Health & Shield:
   * Fixed effect not working.
 
