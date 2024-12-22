@@ -3,7 +3,6 @@ using RiskOfChaos_PatcherInterop;
 using RoR2;
 using RoR2.Orbs;
 using RoR2.Projectile;
-using System;
 using UnityEngine;
 
 namespace RiskOfChaos.Patches.AttackHooks
@@ -266,6 +265,24 @@ namespace RiskOfChaos.Patches.AttackHooks
             Speed = null;
         }
 
+        public AttackInfo(EntityStates.Merc.Evis evis, HurtBox target)
+        {
+            Vector3 position = target.transform.position;
+
+            Attacker = evis.gameObject;
+            Target = target.gameObject;
+            Position = position;
+            MuzzlePosition = position;
+            AttackDirection = Vector3.zero;
+            Damage = EntityStates.Merc.Evis.damageCoefficient * evis.damageStat;
+            Force = 0f;
+            Crit = evis.crit;
+            DamageColorIndex = DamageColorIndex.Default;
+            ProcChainMask = default;
+            DamageType = DamageTypeCombo.GenericSpecial;
+            ProcCoefficient = EntityStates.Merc.Evis.procCoefficient;
+        }
+
         public readonly void PopulateFireProjectileInfo(ref FireProjectileInfo fireProjectileInfo)
         {
             fireProjectileInfo.position = MuzzlePosition;
@@ -300,6 +317,20 @@ namespace RiskOfChaos.Patches.AttackHooks
             bulletAttack.procChainMask = ProcChainMask;
             bulletAttack.damageType = DamageType;
             bulletAttack.procCoefficient = ProcCoefficient;
+        }
+
+        public void PopulateDamageInfo(DamageInfo damageInfo)
+        {
+            damageInfo.damage = Damage;
+            damageInfo.crit = Crit;
+            damageInfo.inflictor = Attacker;
+            damageInfo.attacker = Attacker;
+            damageInfo.position = Position;
+            damageInfo.force = AttackDirection * Force;
+            damageInfo.procChainMask = ProcChainMask;
+            damageInfo.procCoefficient = ProcCoefficient;
+            damageInfo.damageType = DamageType;
+            damageInfo.damageColorIndex = DamageColorIndex;
         }
     }
 }

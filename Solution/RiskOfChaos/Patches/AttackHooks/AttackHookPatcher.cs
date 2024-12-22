@@ -29,6 +29,8 @@ namespace RiskOfChaos.Patches.AttackHooks
             On.RoR2.Orbs.OrbManager.AddOrb += OrbManager_AddOrb;
 
             IL.EntityStates.GolemMonster.FireLaser.OnEnter += FireLaser_OnEnter;
+
+            IL.EntityStates.Merc.Evis.FixedUpdate += Evis_FixedUpdate;
         }
 
         static bool shouldSkipOrig(AttackHookMask activatedHooks)
@@ -128,6 +130,47 @@ namespace RiskOfChaos.Patches.AttackHooks
             static bool runAttackHooks(EntityStates.GolemMonster.FireLaser fireLaserState)
             {
                 AttackHookManager attackHookManager = new FireGolemLaserAttackHookManager(fireLaserState);
+                AttackHookMask activatedHooks = attackHookManager.RunHooks();
+                if (shouldSkipOrig(activatedHooks))
+                    return false;
+
+                return true;
+            }
+        }
+
+        static void Evis_FixedUpdate(ILContext il)
+        {
+            ILCursor c = new ILCursor(il);
+
+            int targetHurtBoxLocalIndex = -1;
+            ILLabel invalidTargetLabel = null;
+            if (!c.TryFindNext(out ILCursor[] foundCursors,
+                               x => x.MatchCallOrCallvirt<EntityStates.Merc.Evis>(nameof(EntityStates.Merc.Evis.SearchForTarget)),
+                               x => x.MatchStloc(out targetHurtBoxLocalIndex),
+                               x => x.MatchLdloc(targetHurtBoxLocalIndex),
+                               x => x.MatchBrfalse(out invalidTargetLabel)))
+            {
+                Log.Error("Failed to find patch location");
+                return;
+            }
+
+            c = foundCursors[3];
+            c.Index++;
+
+            ILLabel skipAttackLabel = c.DefineLabel();
+
+            c.Emit(OpCodes.Ldarg_0);
+            c.Emit(OpCodes.Ldloc, targetHurtBoxLocalIndex);
+            c.EmitDelegate(runAttackHooks);
+            c.Emit(OpCodes.Brfalse, skipAttackLabel);
+
+            c.Goto(invalidTargetLabel.Target);
+            c.Index--;
+            c.MarkLabel(skipAttackLabel);
+
+            static bool runAttackHooks(EntityStates.Merc.Evis evis, HurtBox target)
+            {
+                AttackHookManager attackHookManager = new EvisAttackHookManager(evis, target);
                 AttackHookMask activatedHooks = attackHookManager.RunHooks();
                 if (shouldSkipOrig(activatedHooks))
                     return false;

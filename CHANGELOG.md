@@ -5,6 +5,9 @@
 * Reworked 1 Effect:
   * Always Sprinting: Now also forces all characters to constantly move
 
+* Delayed Attacks, Repeating Projectiles, Grenade Bullets:
+  * Fixed effects not applying to Mercenery Eviscerate
+
 * Swap Health & Shield:
   * Fixed effect not working.
 
