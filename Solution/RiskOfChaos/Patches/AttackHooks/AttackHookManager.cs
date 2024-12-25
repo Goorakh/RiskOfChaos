@@ -2,8 +2,6 @@
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectDefinitions.Character;
 using RiskOfChaos.ModificationController.Projectile;
-using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Projectile;
 using UnityEngine;
@@ -12,62 +10,66 @@ namespace RiskOfChaos.Patches.AttackHooks
 {
     abstract class AttackHookManager
     {
-        public static AttackContext Context;
+        public delegate void FireAttackDelegate(AttackInfo attackInfo);
 
         protected abstract AttackInfo AttackInfo { get; }
 
         public AttackHookMask RunHooks()
         {
-            AttackHookMask activeAttackHooks = Context.Pop();
-            return runHooksInternal(activeAttackHooks);   
+            return runHooksInternal();   
         }
 
-        protected virtual AttackHookMask runHooksInternal(AttackHookMask activeAttackHooks)
+        protected virtual AttackHookMask runHooksInternal()
         {
             AttackHookMask activatedAttackHooks = AttackHookMask.None;
 
-            if ((activeAttackHooks & AttackHookMask.Replaced) == 0)
+            ProcChainMask procChainMask = AttackInfo.ProcChainMask;
+
+            if (!procChainMask.HasModdedProc(CustomProcTypes.Replaced))
             {
-                if (tryReplace(activeAttackHooks))
+                if (tryReplace())
                 {
                     activatedAttackHooks |= AttackHookMask.Replaced;
                     return activatedAttackHooks;
                 }
             }
 
-            if ((activeAttackHooks & AttackHookMask.Delayed) == 0)
+            if (!procChainMask.HasModdedProc(CustomProcTypes.Delayed))
             {
-                if (tryFireDelayed(activeAttackHooks))
+                if (tryFireDelayed())
                 {
                     activatedAttackHooks |= AttackHookMask.Delayed;
                     return activatedAttackHooks;
                 }
             }
 
-            if ((activeAttackHooks & AttackHookMask.Bounced) == 0)
+            if (!procChainMask.HasModdedProc(CustomProcTypes.Bouncing))
             {
-                if ((activeAttackHooks & AttackHookMask.Repeat) == 0)
+                if (!procChainMask.HasModdedProc(CustomProcTypes.Repeated))
                 {
-                    if (tryFireRepeating(activeAttackHooks))
+                    if (tryFireRepeating())
                     {
                         activatedAttackHooks |= AttackHookMask.Repeat;
                     }
                 }
 
-                if (tryFireBounce(activeAttackHooks))
+                if (tryFireBounce())
                 {
                     activatedAttackHooks |= AttackHookMask.Bounced;
                 }
             }
 
-            tryKnockback(activeAttackHooks);
+            if (tryKnockback())
+            {
+                activatedAttackHooks |= AttackHookMask.Knockback;
+            }
 
             return activatedAttackHooks;
         }
 
-        protected abstract void fireAttackCopy();
+        protected abstract void fireAttackCopy(AttackInfo attackInfo);
 
-        protected virtual bool tryReplace(AttackHookMask activeAttackHooks)
+        protected virtual bool tryReplace()
         {
             int overrideProjectileIndex = -1;
             if (ProjectileModificationManager.Instance)
@@ -78,62 +80,41 @@ namespace RiskOfChaos.Patches.AttackHooks
             if (overrideProjectileIndex == -1)
                 return false;
 
+            GameObject overrideProjectilePrefab = ProjectileCatalog.GetProjectilePrefab(overrideProjectileIndex);
+            if (!overrideProjectilePrefab)
+                return false;
+
             FireProjectileInfo fireProjectileInfo = new FireProjectileInfo();
             AttackInfo.PopulateFireProjectileInfo(ref fireProjectileInfo);
 
             if (fireProjectileInfo.damage <= 0f && fireProjectileInfo.force <= 0f)
                 return false;
 
-            if (fireProjectileInfo.procChainMask.HasModdedProc(CustomProcTypes.Replaced))
-                return false;
-
-            if (fireProjectileInfo.rotation == Quaternion.identity)
-            {
-                fireProjectileInfo.rotation = QuaternionUtils.Spread(WorldUtils.GetWorldUpByGravity(), 20f, RoR2Application.rng);
-            }
-
-            fireProjectileInfo.projectilePrefab = ProjectileCatalog.GetProjectilePrefab(overrideProjectileIndex);
+            fireProjectileInfo.projectilePrefab = overrideProjectilePrefab;
             fireProjectileInfo.procChainMask.AddModdedProc(CustomProcTypes.Replaced);
 
-            Context.Activate(activeAttackHooks | AttackHookMask.Replaced);
             ProjectileManager.instance.FireProjectile(fireProjectileInfo);
 
             return true;
         }
 
-        protected virtual bool tryFireDelayed(AttackHookMask activeAttackHooks)
+        protected virtual bool tryFireDelayed()
         {
-            return AttackDelayHooks.TryDelayAttack(fireAttackCopy, activeAttackHooks);
+            return AttackDelayHooks.TryDelayAttack(fireAttackCopy, AttackInfo);
         }
 
-        protected virtual bool tryFireRepeating(AttackHookMask activeAttackHooks)
+        protected virtual bool tryFireRepeating()
         {
-            if ((activeAttackHooks & AttackHookMask.Replaced) == 0)
-            {
-                if (AttackInfo.ProcChainMask.HasAnyProc())
-                {
-                    return false;
-                }
-            }
-
-            return AttackMultiSpawnHook.TryMultiSpawn(fireAttackCopy, activeAttackHooks);
+            return AttackMultiSpawnHook.TryMultiSpawn(fireAttackCopy, AttackInfo);
         }
 
-        protected virtual bool tryFireBounce(AttackHookMask activeAttackHooks)
+        protected virtual bool tryFireBounce()
         {
             return false;
         }
 
-        protected virtual bool tryKnockback(AttackHookMask activeAttackHooks)
+        protected virtual bool tryKnockback()
         {
-            if ((activeAttackHooks & AttackHookMask.Replaced) == 0)
-            {
-                if (AttackInfo.ProcChainMask.HasAnyProc())
-                {
-                    return false;
-                }
-            }
-
             return AttackKnockback.TryKnockbackBody(AttackInfo);
         }
     }

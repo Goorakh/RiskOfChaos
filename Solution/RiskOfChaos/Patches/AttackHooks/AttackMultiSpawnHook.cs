@@ -1,6 +1,8 @@
-﻿using RiskOfChaos.ModificationController.Projectile;
+﻿using R2API;
+using RiskOfChaos.Content;
+using RiskOfChaos.ModificationController.Projectile;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using System;
 using System.Collections;
 using UnityEngine;
 
@@ -8,15 +10,12 @@ namespace RiskOfChaos.Patches.AttackHooks
 {
     static class AttackMultiSpawnHook
     {
-        [SystemInitializer]
-        static void Init()
-        {
-            //OverrideBulletTracerOriginExplicitPatch.UseExplicitOriginPosition += _ => (AttackHookManager.Context.Peek() & AttackHookType.Repeat) != 0;
-        }
-
-        public static bool TryMultiSpawn(Action spawnFunc, AttackHookMask activeAttackHooks)
+        public static bool TryMultiSpawn(AttackHookManager.FireAttackDelegate spawnFunc, in AttackInfo attackInfo)
         {
             if (spawnFunc == null)
+                return false;
+
+            if (attackInfo.ProcChainMask.HasAnyProc())
                 return false;
 
             ProjectileModificationManager projectileModificationManager = ProjectileModificationManager.Instance;
@@ -27,14 +26,16 @@ namespace RiskOfChaos.Patches.AttackHooks
             if (additionalBulletSpawnCount <= 0)
                 return false;
 
-            static IEnumerator spawnExtraAttacks(Action spawnFunc, int spawnCount, AttackHookMask activeAttackHooks)
+            AttackInfo multiSpawnAttackInfo = attackInfo;
+            multiSpawnAttackInfo.ProcChainMask.AddModdedProc(CustomProcTypes.Repeated);
+
+            static IEnumerator spawnExtraAttacks(AttackHookManager.FireAttackDelegate spawnFunc, int spawnCount, AttackInfo attackInfo)
             {
                 for (int i = 0; i < spawnCount; i++)
                 {
                     yield return new WaitForSeconds(0.15f);
 
-                    AttackHookManager.Context.Activate(activeAttackHooks | AttackHookMask.Repeat);
-                    spawnFunc();
+                    spawnFunc(attackInfo);
                 }
             }
 
@@ -42,7 +43,7 @@ namespace RiskOfChaos.Patches.AttackHooks
             if (!coroutineHost)
                 coroutineHost = ProjectileModificationManager.Instance;
 
-            coroutineHost.StartCoroutine(spawnExtraAttacks(spawnFunc, additionalBulletSpawnCount, activeAttackHooks));
+            coroutineHost.StartCoroutine(spawnExtraAttacks(spawnFunc, additionalBulletSpawnCount, multiSpawnAttackInfo));
             return true;
         }
     }

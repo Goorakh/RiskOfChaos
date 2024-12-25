@@ -1,20 +1,23 @@
-﻿using RiskOfChaos.ModificationController.Projectile;
+﻿using R2API;
+using RiskOfChaos.Content;
+using RiskOfChaos.ModificationController.Projectile;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2BepInExPack.Utilities;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
 
 namespace RiskOfChaos.Patches.AttackHooks
 {
     static class BulletBounceHook
     {
-        record class BulletBounceInfo(int BulletMuzzleIndex, AttackHookMask UsedAttackHooks, BulletAttack.BulletHit LastHit, int MaxBounces, int BouncesCompleted)
+        public record class BulletBounceInfo(AttackInfo AttackInfo, BulletAttack.BulletHit LastHit, int MaxBounces, int BouncesCompleted, BulletBounceDelegate OnBounceHit)
         {
             public int BouncesRemaining => Mathf.Max(0, MaxBounces - BouncesCompleted);
         }
+
+        public delegate void BulletBounceDelegate(BulletAttack bulletAttack, BulletBounceInfo bounceInfo);
 
         static bool isEnabled => bounceCount > 0;
 
@@ -31,20 +34,23 @@ namespace RiskOfChaos.Patches.AttackHooks
 
         static readonly FixedConditionalWeakTable<BulletAttack, BulletBounceInfo> _bulletBounceInfos = new FixedConditionalWeakTable<BulletAttack, BulletBounceInfo>();
 
-        [SystemInitializer]
-        static void Init()
+        public static bool TryStartBounce(BulletAttack bulletAttack, in AttackInfo attackInfo, BulletBounceDelegate onBounceHit = null)
         {
-            OverrideBulletTracerOriginExplicitPatch.UseExplicitOriginPosition += bulletAttack => _bulletBounceInfos.TryGetValue(bulletAttack, out BulletBounceInfo bounceInfo) && bounceInfo.BouncesCompleted > 0;
-        }
-
-        public static bool TryStartBounce(BulletAttack bulletAttack, Vector3 normal, int muzzleIndex, AttackHookMask activeAttackHooks)
-        {
-            _bulletBounceInfos.Remove(bulletAttack);
-
             if (!isEnabled)
                 return false;
 
-            BulletBounceInfo bounceInfo = new BulletBounceInfo(muzzleIndex, activeAttackHooks, null, bounceCount, 0);
+            if (bulletAttack.procChainMask.HasAnyProc())
+                return false;
+
+            if (_bulletBounceInfos.TryGetValue(bulletAttack, out _))
+                return false;
+
+            if (bulletAttack.procChainMask.HasModdedProc(CustomProcTypes.Bouncing) || bulletAttack.procChainMask.HasModdedProc(CustomProcTypes.BounceFinished))
+                return false;
+
+            bulletAttack.procChainMask.AddModdedProc(CustomProcTypes.Bouncing);
+
+            BulletBounceInfo bounceInfo = new BulletBounceInfo(attackInfo, null, bounceCount, 0, onBounceHit);
             _bulletBounceInfos.Add(bulletAttack, bounceInfo);
 
             BulletAttack.HitCallback origHitCallback = bulletAttack.hitCallback;
@@ -57,6 +63,8 @@ namespace RiskOfChaos.Patches.AttackHooks
                 {
                     handleBulletBounce(bulletAttack, hitInfo);
                 }
+
+                bulletAttack.procChainMask.AddModdedProc(CustomProcTypes.BounceFinished);
 
                 return stopBullet;
             }
@@ -73,9 +81,17 @@ namespace RiskOfChaos.Patches.AttackHooks
 
         static void handleBulletBounce(BulletAttack bulletAttack, BulletAttack.BulletHit hitInfo)
         {
+            Log.Debug($"BulletAttack from {Util.GetBestBodyName(bulletAttack.owner)} bouncing={_bulletBounceInfos.TryGetValue(bulletAttack, out _)}");
+
             if (_bulletBounceInfos.TryGetValue(bulletAttack, out BulletBounceInfo bounceInfo))
             {
-                _bulletBounceInfos.Remove(bulletAttack);
+                bounceInfo.Deconstruct(out AttackInfo attackInfo,
+                                               out BulletAttack.BulletHit lastHit,
+                                               out int maxBounces,
+                                               out int bouncedCompleted,
+                                               out BulletBounceDelegate onBounceHit);
+
+                onBounceHit?.Invoke(bulletAttack, bounceInfo);
 
                 if (bounceInfo.BouncesRemaining > 0)
                 {
@@ -86,31 +102,35 @@ namespace RiskOfChaos.Patches.AttackHooks
                         bounceBulletAttack.origin = hitInfo.point;
                         bounceBulletAttack.maxDistance = bounceMaxDistance;
 
-                        BulletBounceInfo bouncedBounceInfo = new BulletBounceInfo(bounceInfo.BulletMuzzleIndex, bounceInfo.UsedAttackHooks, hitInfo, bounceInfo.MaxBounces, bounceInfo.BouncesCompleted + 1);
+                        bounceBulletAttack.weapon = null;
+                        bounceBulletAttack.muzzleName = string.Empty;
+
+                        BulletBounceInfo bouncedBounceInfo = new BulletBounceInfo(attackInfo, hitInfo, maxBounces, bouncedCompleted + 1, onBounceHit);
 
                         _bulletBounceInfos.Add(bounceBulletAttack, bouncedBounceInfo);
 
                         fireBounceBullet(bounceBulletAttack, bouncedBounceInfo);
                     }
                 }
+
+                _bulletBounceInfos.Remove(bulletAttack);
             }
         }
 
-        static bool bounceFilterCallback(BulletAttack bulletAttack, BulletAttack.BulletHit hitInfo)
+        static bool bounceFilterCallback(BulletAttack bulletAttack, BulletAttack.BulletHit currentHitInfo)
         {
+            Log.Debug($"BulletAttack from {Util.GetBestBodyName(bulletAttack.owner)} bouncing={_bulletBounceInfos.TryGetValue(bulletAttack, out _)}");
+
             if (_bulletBounceInfos.TryGetValue(bulletAttack, out BulletBounceInfo bounceInfo))
             {
                 BulletAttack.BulletHit lastHit = bounceInfo.LastHit;
-                if (lastHit != null)
+
+                HurtBox currentHitEntity = currentHitInfo?.hitHurtBox;
+                HurtBox lastHitEntity = lastHit?.hitHurtBox;
+
+                if (currentHitEntity && lastHitEntity && currentHitEntity == lastHitEntity)
                 {
-                    if (lastHit.hitHurtBox && lastHit.hitHurtBox.healthComponent &&
-                        hitInfo.hitHurtBox && hitInfo.hitHurtBox.healthComponent &&
-                        lastHit.hitHurtBox.healthComponent == hitInfo.hitHurtBox.healthComponent)
-                    {
-                        const float MIN_DISTANCE_TO_ALLOW = 1f;
-                        const float MIN_SQR_DISTANCE_TO_ALLOW = MIN_DISTANCE_TO_ALLOW * MIN_DISTANCE_TO_ALLOW;
-                        return (lastHit.point - hitInfo.point).sqrMagnitude >= MIN_SQR_DISTANCE_TO_ALLOW;
-                    }
+                    return false;
                 }
             }
 
@@ -129,12 +149,12 @@ namespace RiskOfChaos.Patches.AttackHooks
                 TeamMask searchTeamMask = TeamMask.GetEnemyTeams(TeamComponent.GetObjectTeam(bulletAttack.owner));
                 searchTeamMask.RemoveTeam(TeamIndex.Neutral);
 
-                float maxAutoAimAngle = Mathf.Min(45f, bounceInfo.BouncesCompleted * 7.5f);
+                float maxAutoAimAngle = Mathf.Min(45f, bounceInfo.BouncesCompleted * 15f);
                 if (maxAutoAimAngle > 0f)
                 {
                     BullseyeSearch autoAimSearch = new BullseyeSearch
                     {
-                        searchOrigin = bulletAttack.origin,
+                        searchOrigin = lastHit.point,
                         filterByLoS = true,
                         minDistanceFilter = 0f,
                         maxDistanceFilter = bulletAttack.maxDistance,
@@ -149,18 +169,17 @@ namespace RiskOfChaos.Patches.AttackHooks
 
                     autoAimSearch.RefreshCandidates();
 
-                    HurtBox overrideTargetHurtBox = autoAimSearch.GetResults().FirstOrDefault(h => HurtBox.FindEntityObject(h) != lastHit.entityObject);
+                    HurtBox overrideTargetHurtBox = autoAimSearch.GetResults().FirstOrDefault(h => h != lastHit.hitHurtBox);
                     if (overrideTargetHurtBox)
                     {
-                        bounceDirection = (overrideTargetHurtBox.randomVolumePoint - bulletAttack.origin).normalized;
+                        bounceDirection = (overrideTargetHurtBox.randomVolumePoint - autoAimSearch.searchOrigin).normalized;
                     }
                 }
             }
 
             bulletAttack.aimVector = bounceDirection;
 
-            AttackHookManager.Context.Activate(bounceInfo.UsedAttackHooks | AttackHookMask.Bounced);
-            bulletAttack.FireSingle(bounceDirection, bounceInfo.BulletMuzzleIndex);
+            bulletAttack.FireSingle(bounceDirection, -1);
         }
     }
 }

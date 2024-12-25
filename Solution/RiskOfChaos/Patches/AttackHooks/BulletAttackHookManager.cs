@@ -33,9 +33,10 @@ namespace RiskOfChaos.Patches.AttackHooks
             AttackInfo = new AttackInfo(_bulletAttack, normal, muzzleIndex);
         }
 
-        protected override void fireAttackCopy()
+        protected override void fireAttackCopy(AttackInfo attackInfo)
         {
             BulletAttack bulletAttackCopy = AttackUtils.Clone(_bulletAttackTemplate);
+            attackInfo.PopulateBulletAttack(bulletAttackCopy);
             switch (_fireType)
             {
                 case FireType.Multi:
@@ -52,9 +53,9 @@ namespace RiskOfChaos.Patches.AttackHooks
             }
         }
 
-        protected override bool tryFireBounce(AttackHookMask activeAttackHooks)
+        protected override bool tryFireBounce()
         {
-            return BulletBounceHook.TryStartBounce(_bulletAttack, _normal, _muzzleIndex, activeAttackHooks);
+            return BulletBounceHook.TryStartBounce(_bulletAttack, AttackInfo);
         }
     }
 }

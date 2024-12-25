@@ -7,21 +7,34 @@ using UnityEngine;
 
 namespace RiskOfChaos.Patches.AttackHooks
 {
-    public readonly struct AttackInfo
+    public struct AttackInfo
     {
-        public readonly GameObject Attacker;
-        public readonly GameObject Target;
-        public readonly Vector3 Position;
-        public readonly Vector3 MuzzlePosition;
-        public readonly Vector3 AttackDirection;
-        public readonly float Damage;
-        public readonly float Force;
-        public readonly bool Crit;
-        public readonly DamageColorIndex DamageColorIndex;
-        public readonly ProcChainMask ProcChainMask;
-        public readonly DamageTypeCombo DamageType;
-        public readonly float ProcCoefficient;
-        public readonly float? Speed;
+        public GameObject Attacker;
+        public GameObject Inflictor;
+        public GameObject Target;
+        public Vector3 Position;
+        public Vector3 AttackDirection;
+        public float Damage;
+        public float Force;
+        public bool Crit;
+        public DamageColorIndex DamageColorIndex;
+        public ProcChainMask ProcChainMask;
+        public DamageTypeCombo? DamageTypeOverride;
+        public float ProcCoefficient;
+        public float? Speed;
+
+        Vector3? _muzzlePosition;
+        public Vector3 MuzzlePosition
+        {
+            readonly get
+            {
+                return _muzzlePosition.GetValueOrDefault(Position);
+            }
+            set
+            {
+                _muzzlePosition = value;
+            }
+        }
 
         public AttackInfo(in FireProjectileInfo fireProjectileInfo)
         {
@@ -37,7 +50,7 @@ namespace RiskOfChaos.Patches.AttackHooks
             Crit = fireProjectileInfo.crit;
             DamageColorIndex = fireProjectileInfo.damageColorIndex;
             ProcChainMask = fireProjectileInfo.procChainMask;
-            DamageType = fireProjectileInfo.damageTypeOverride ?? DamageTypeCombo.Generic;
+            DamageTypeOverride = fireProjectileInfo.damageTypeOverride;
 
             float procCoefficient = 0f;
             float? procCoefficientOverride = fireProjectileInfo.GetProcCoefficientOverride();
@@ -60,6 +73,7 @@ namespace RiskOfChaos.Patches.AttackHooks
             Vector3 position = blastAttack.position;
 
             Attacker = blastAttack.attacker;
+            Inflictor = blastAttack.inflictor;
             Target = null;
             Position = position;
             MuzzlePosition = position;
@@ -69,7 +83,7 @@ namespace RiskOfChaos.Patches.AttackHooks
             Crit = blastAttack.crit;
             DamageColorIndex = blastAttack.damageColorIndex;
             ProcChainMask = blastAttack.procChainMask;
-            DamageType = blastAttack.damageType;
+            DamageTypeOverride = blastAttack.damageType;
             ProcCoefficient = blastAttack.procCoefficient;
             Speed = null;
         }
@@ -93,6 +107,7 @@ namespace RiskOfChaos.Patches.AttackHooks
             }
 
             Attacker = bulletAttack.owner;
+            Inflictor = bulletAttack.weapon;
             Target = null;
             Position = position;
             MuzzlePosition = muzzlePosition;
@@ -102,7 +117,7 @@ namespace RiskOfChaos.Patches.AttackHooks
             Crit = bulletAttack.isCrit;
             DamageColorIndex = bulletAttack.damageColorIndex;
             ProcChainMask = bulletAttack.procChainMask;
-            DamageType = bulletAttack.damageType;
+            DamageTypeOverride = bulletAttack.damageType;
             ProcCoefficient = bulletAttack.procCoefficient;
             Speed = null;
         }
@@ -195,7 +210,7 @@ namespace RiskOfChaos.Patches.AttackHooks
             Crit = isCrit;
             DamageColorIndex = damageColorIndex;
             ProcChainMask = procChainMask;
-            DamageType = damageType;
+            DamageTypeOverride = damageType;
             ProcCoefficient = procCoefficient;
             Speed = speed;
         }
@@ -225,6 +240,7 @@ namespace RiskOfChaos.Patches.AttackHooks
             }
 
             Attacker = overlapAttack.attacker;
+            Inflictor = overlapAttack.inflictor;
             Target = null;
             Position = position;
             MuzzlePosition = position;
@@ -234,7 +250,7 @@ namespace RiskOfChaos.Patches.AttackHooks
             Crit = overlapAttack.isCrit;
             DamageColorIndex = overlapAttack.damageColorIndex;
             ProcChainMask = overlapAttack.procChainMask;
-            DamageType = overlapAttack.damageType;
+            DamageTypeOverride = overlapAttack.damageType;
             ProcCoefficient = overlapAttack.procCoefficient;
             Speed = null;
         }
@@ -260,7 +276,7 @@ namespace RiskOfChaos.Patches.AttackHooks
             Crit = false;
             DamageColorIndex = DamageColorIndex.Default;
             ProcChainMask = default;
-            DamageType = DamageTypeCombo.Generic;
+            DamageTypeOverride = DamageTypeCombo.Generic;
             ProcCoefficient = 0f;
             Speed = null;
         }
@@ -279,7 +295,7 @@ namespace RiskOfChaos.Patches.AttackHooks
             Crit = evis.crit;
             DamageColorIndex = DamageColorIndex.Default;
             ProcChainMask = default;
-            DamageType = DamageTypeCombo.GenericSpecial;
+            DamageTypeOverride = DamageTypeCombo.GenericSpecial;
             ProcCoefficient = EntityStates.Merc.Evis.procCoefficient;
         }
 
@@ -294,7 +310,7 @@ namespace RiskOfChaos.Patches.AttackHooks
             fireProjectileInfo.crit = Crit;
             fireProjectileInfo.damageColorIndex = DamageColorIndex;
             fireProjectileInfo.procChainMask = ProcChainMask;
-            fireProjectileInfo.damageTypeOverride = DamageType;
+            fireProjectileInfo.damageTypeOverride = DamageTypeOverride;
 
             if (Speed.HasValue)
             {
@@ -306,31 +322,105 @@ namespace RiskOfChaos.Patches.AttackHooks
 
         public readonly void PopulateBulletAttack(BulletAttack bulletAttack)
         {
-            bulletAttack.origin = Position;
+            bulletAttack.origin = MuzzlePosition;
             bulletAttack.aimVector = AttackDirection;
             bulletAttack.owner = Attacker;
-            bulletAttack.weapon = Attacker;
+            bulletAttack.weapon = Inflictor ?? Attacker;
             bulletAttack.damage = Damage;
             bulletAttack.force = Force;
             bulletAttack.isCrit = Crit;
             bulletAttack.damageColorIndex = DamageColorIndex;
             bulletAttack.procChainMask = ProcChainMask;
-            bulletAttack.damageType = DamageType;
+            bulletAttack.damageType = DamageTypeOverride.GetValueOrDefault(DamageTypeCombo.Generic);
             bulletAttack.procCoefficient = ProcCoefficient;
         }
 
-        public void PopulateDamageInfo(DamageInfo damageInfo)
+        public readonly void PopulateBlastAttack(BlastAttack blastAttack)
+        {
+            blastAttack.attacker = Attacker;
+            blastAttack.inflictor = Inflictor ?? Attacker;
+            blastAttack.teamIndex = TeamComponent.GetObjectTeam(Attacker);
+            blastAttack.position = MuzzlePosition;
+            blastAttack.baseDamage = Damage;
+            blastAttack.baseForce = Force;
+            blastAttack.bonusForce = AttackDirection * Force;
+            blastAttack.crit = Crit;
+            blastAttack.damageType = DamageTypeOverride.GetValueOrDefault(DamageTypeCombo.Generic);
+            blastAttack.damageColorIndex = DamageColorIndex;
+            blastAttack.procChainMask = ProcChainMask;
+            blastAttack.procCoefficient = ProcCoefficient;
+        }
+
+        public readonly void PopulateOverlapAttack(OverlapAttack overlapAttack)
+        {
+            overlapAttack.attacker = Attacker;
+            overlapAttack.inflictor = Inflictor ?? Attacker;
+            overlapAttack.teamIndex = TeamComponent.GetObjectTeam(Attacker);
+            overlapAttack.forceVector = AttackDirection * Force;
+            overlapAttack.pushAwayForce = Force;
+            overlapAttack.damage = Damage;
+            overlapAttack.isCrit = Crit;
+            overlapAttack.procChainMask = ProcChainMask;
+            overlapAttack.procCoefficient = ProcCoefficient;
+            overlapAttack.damageColorIndex = DamageColorIndex;
+            overlapAttack.damageType = DamageTypeOverride.GetValueOrDefault(DamageTypeCombo.Generic);
+        }
+
+        public readonly void PopulateDamageInfo(DamageInfo damageInfo)
         {
             damageInfo.damage = Damage;
             damageInfo.crit = Crit;
-            damageInfo.inflictor = Attacker;
+            damageInfo.inflictor = Inflictor ?? Attacker;
             damageInfo.attacker = Attacker;
-            damageInfo.position = Position;
+            damageInfo.position = MuzzlePosition;
             damageInfo.force = AttackDirection * Force;
             damageInfo.procChainMask = ProcChainMask;
             damageInfo.procCoefficient = ProcCoefficient;
-            damageInfo.damageType = DamageType;
+            damageInfo.damageType = DamageTypeOverride.GetValueOrDefault(DamageTypeCombo.Generic);
             damageInfo.damageColorIndex = DamageColorIndex;
+        }
+
+        public readonly void PopulateOrb(Orb orb)
+        {
+            orb.origin = MuzzlePosition;
+
+            HurtBox targetHurtBox = null;
+            if (Target)
+            {
+                targetHurtBox = Target.GetComponent<HurtBox>();
+            }
+
+            orb.target = targetHurtBox;
+
+            if (Speed.HasValue && Speed.Value > 0f)
+            {
+                orb.duration = orb.distanceToTarget / Speed.Value;
+            }
+
+            CharacterBody attackerBody = null;
+            if (Attacker)
+            {
+                attackerBody = Attacker.GetComponent<CharacterBody>();
+            }
+
+            orb.TrySetAttacker(attackerBody);
+
+            orb.TrySetDamageValue(Damage);
+
+            orb.TrySetForceScalar(Force);
+
+            orb.TrySetIsCrit(Crit);
+
+            orb.TrySetDamageColorIndex(DamageColorIndex);
+
+            orb.TrySetProcChainMask(ProcChainMask);
+
+            if (DamageTypeOverride.HasValue)
+            {
+                orb.TrySetDamageType(DamageTypeOverride.Value);
+            }
+
+            orb.TrySetProcCoefficient(ProcCoefficient);
         }
     }
 }

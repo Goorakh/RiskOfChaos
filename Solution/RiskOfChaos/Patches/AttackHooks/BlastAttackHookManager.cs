@@ -16,9 +16,11 @@ namespace RiskOfChaos.Patches.AttackHooks
             AttackInfo = new AttackInfo(_blastAttack);
         }
 
-        protected override void fireAttackCopy()
+        protected override void fireAttackCopy(AttackInfo attackInfo)
         {
-            AttackUtils.Clone(_blastAttack).Fire();
+            BlastAttack blastAttack = AttackUtils.Clone(_blastAttack);
+            attackInfo.PopulateBlastAttack(blastAttack);
+            blastAttack.Fire();
         }
     }
 }

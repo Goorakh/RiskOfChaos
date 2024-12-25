@@ -104,6 +104,15 @@ namespace RiskOfChaos.Utilities.Extensions
             return orbFields.Attacker.TryGet(orb, out CharacterBody attacker) ? attacker : null;
         }
 
+        public static bool TrySetAttacker(this Orb orb, CharacterBody attacker)
+        {
+            if (orb is null)
+                return false;
+
+            CachedOrbFields orbFields = getOrCreateOrbFields(orb.GetType());
+            return orbFields.Attacker.TrySet(orb, attacker);
+        }
+
         public static bool TryGetProcChainMask(this Orb orb, out ProcChainMask procChainMask)
         {
             if (orb is null)
@@ -190,6 +199,15 @@ namespace RiskOfChaos.Utilities.Extensions
             return orbFields.DamageValue.TryGet(orb, out damage);
         }
 
+        public static bool TrySetDamageValue(this Orb orb, float damage)
+        {
+            if (orb is null)
+                return false;
+
+            CachedOrbFields orbFields = getOrCreateOrbFields(orb.GetType());
+            return orbFields.DamageValue.TrySet(orb, damage);
+        }
+
         public static bool TryGetForceScalar(this Orb orb, out float forceScalar)
         {
             if (orb is null)
@@ -200,6 +218,15 @@ namespace RiskOfChaos.Utilities.Extensions
 
             CachedOrbFields orbFields = getOrCreateOrbFields(orb.GetType());
             return orbFields.ForceScalar.TryGet(orb, out forceScalar);
+        }
+
+        public static bool TrySetForceScalar(this Orb orb, float forceScalar)
+        {
+            if (orb is null)
+                return false;
+
+            CachedOrbFields orbFields = getOrCreateOrbFields(orb.GetType());
+            return orbFields.ForceScalar.TrySet(orb, forceScalar);
         }
 
         public static bool TryGetIsCrit(this Orb orb, out bool isCrit)
@@ -214,6 +241,15 @@ namespace RiskOfChaos.Utilities.Extensions
             return orbFields.IsCrit.TryGet(orb, out isCrit);
         }
 
+        public static bool TrySetIsCrit(this Orb orb, bool isCrit)
+        {
+            if (orb is null)
+                return false;
+
+            CachedOrbFields orbFields = getOrCreateOrbFields(orb.GetType());
+            return orbFields.IsCrit.TrySet(orb, isCrit);
+        }
+
         public static bool TryGetDamageColorIndex(this Orb orb, out DamageColorIndex damageColorIndex)
         {
             if (orb is null)
@@ -224,6 +260,15 @@ namespace RiskOfChaos.Utilities.Extensions
 
             CachedOrbFields orbFields = getOrCreateOrbFields(orb.GetType());
             return orbFields.DamageColorIndex.TryGet(orb, out damageColorIndex);
+        }
+
+        public static bool TrySetDamageColorIndex(this Orb orb, DamageColorIndex damageColorIndex)
+        {
+            if (orb is null)
+                return false;
+
+            CachedOrbFields orbFields = getOrCreateOrbFields(orb.GetType());
+            return orbFields.DamageColorIndex.TrySet(orb, damageColorIndex);
         }
 
         public static bool TryGetDamageType(this Orb orb, out DamageTypeCombo damageType)
@@ -238,6 +283,15 @@ namespace RiskOfChaos.Utilities.Extensions
             return orbFields.DamageType.TryGet(orb, out damageType);
         }
 
+        public static bool TrySetDamageType(this Orb orb, DamageTypeCombo damageType)
+        {
+            if (orb is null)
+                return false;
+
+            CachedOrbFields orbFields = getOrCreateOrbFields(orb.GetType());
+            return orbFields.DamageType.TrySet(orb, damageType);
+        }
+
         public static bool TryGetProcCoefficient(this Orb orb, out float procCoefficient)
         {
             if (orb is null)
@@ -248,6 +302,15 @@ namespace RiskOfChaos.Utilities.Extensions
 
             CachedOrbFields orbFields = getOrCreateOrbFields(orb.GetType());
             return orbFields.ProcCoefficient.TryGet(orb, out procCoefficient);
+        }
+
+        public static bool TrySetProcCoefficient(this Orb orb, float procCoefficient)
+        {
+            if (orb is null)
+                return false;
+
+            CachedOrbFields orbFields = getOrCreateOrbFields(orb.GetType());
+            return orbFields.ProcCoefficient.TrySet(orb, procCoefficient);
         }
     }
 }

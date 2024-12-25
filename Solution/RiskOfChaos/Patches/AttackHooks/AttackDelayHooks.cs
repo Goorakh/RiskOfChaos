@@ -1,7 +1,8 @@
-﻿using RiskOfChaos.ModificationController.AttackDelay;
+﻿using R2API;
+using RiskOfChaos.Content;
+using RiskOfChaos.ModificationController.AttackDelay;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using System;
 using UnityEngine;
 
 namespace RiskOfChaos.Patches.AttackHooks
@@ -48,7 +49,7 @@ namespace RiskOfChaos.Patches.AttackHooks
             _delayedAttackTimers.Update(Time.deltaTime);
         }
 
-        public static bool TryDelayAttack(Action spawnFunc, AttackHookMask activeAttackHooks)
+        public static bool TryDelayAttack(AttackHookManager.FireAttackDelegate spawnFunc, in AttackInfo attackInfo)
         {
             if (spawnFunc == null)
                 return false;
@@ -60,10 +61,12 @@ namespace RiskOfChaos.Patches.AttackHooks
             if (delay <= 0f)
                 return false;
 
+            AttackInfo delayedAttackInfo = attackInfo;
+            delayedAttackInfo.ProcChainMask.AddModdedProc(CustomProcTypes.Delayed);
+
             _delayedAttackTimers.CreateTimer(delay, () =>
             {
-                AttackHookManager.Context.Activate(activeAttackHooks | AttackHookMask.Delayed);
-                spawnFunc();
+                spawnFunc(delayedAttackInfo);
             });
 
             return true;

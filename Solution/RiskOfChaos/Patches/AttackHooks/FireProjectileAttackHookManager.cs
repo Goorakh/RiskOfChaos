@@ -1,5 +1,4 @@
-﻿using RiskOfChaos_PatcherInterop;
-using RoR2;
+﻿using RoR2;
 using RoR2.Projectile;
 
 namespace RiskOfChaos.Patches.AttackHooks
@@ -27,16 +26,18 @@ namespace RiskOfChaos.Patches.AttackHooks
             return ProjectileManager.instance;
         }
 
-        protected override void fireAttackCopy()
+        protected override void fireAttackCopy(AttackInfo attackInfo)
         {
             ProjectileManager projectileManager = getProjectileManager();
             if (!projectileManager)
                 return;
 
-            projectileManager.FireProjectile(_fireProjectileInfo);
+            FireProjectileInfo fireProjectileInfo = _fireProjectileInfo;
+            attackInfo.PopulateFireProjectileInfo(ref fireProjectileInfo);
+            projectileManager.FireProjectile(fireProjectileInfo);
         }
 
-        protected override bool tryReplace(AttackHookMask activeAttackHooks)
+        protected override bool tryReplace()
         {
             int projectileIndex = ProjectileCatalog.GetProjectileIndex(_fireProjectileInfo.projectilePrefab);
             if (projectileIndex != -1)
@@ -45,7 +46,7 @@ namespace RiskOfChaos.Patches.AttackHooks
                     return false;
             }
 
-            return base.tryReplace(activeAttackHooks);
+            return base.tryReplace();
         }
     }
 }

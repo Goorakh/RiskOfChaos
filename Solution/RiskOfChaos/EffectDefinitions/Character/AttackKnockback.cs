@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Patches.AttackHooks;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -20,6 +21,9 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         public static bool TryKnockbackBody(in AttackInfo attackInfo)
         {
+            if (attackInfo.ProcChainMask.HasAnyProc())
+                return false;
+
             CharacterBody attackerBody = attackInfo.Attacker ? attackInfo.Attacker.GetComponent<CharacterBody>() : null;
             if (!attackerBody)
                 return false;

@@ -1,6 +1,8 @@
 ﻿using EntityStates.GolemMonster;
+using HG;
 using RoR2;
 using UnityEngine;
+using static UnityEngine.SendMouseEvents;
 
 namespace RiskOfChaos.Patches.AttackHooks
 {
@@ -15,10 +17,8 @@ namespace RiskOfChaos.Patches.AttackHooks
             AttackInfo = new AttackInfo(fireLaserState);
         }
 
-        protected override void fireAttackCopy()
+        protected override void fireAttackCopy(AttackInfo attackInfo)
         {
-            AttackInfo attackInfo = AttackInfo;
-
             Util.PlaySound(FireLaser.attackSoundString, attackInfo.Attacker);
 
             Ray laserRay = new Ray(attackInfo.Position, attackInfo.AttackDirection);
@@ -29,18 +29,13 @@ namespace RiskOfChaos.Patches.AttackHooks
                 laserEndPosition = raycastHit.point;
             }
 
-            new BlastAttack
-            {
-                attacker = attackInfo.Attacker,
-                inflictor = attackInfo.Attacker,
-                teamIndex = TeamComponent.GetObjectTeam(attackInfo.Attacker),
-                baseDamage = attackInfo.Damage,
-                baseForce = attackInfo.Force * 0.2f,
-                position = laserEndPosition,
-                radius = FireLaser.blastRadius,
-                falloffModel = BlastAttack.FalloffModel.SweetSpot,
-                bonusForce = attackInfo.Force * laserRay.direction
-            }.Fire();
+            BlastAttack blastAttack = new BlastAttack();
+            attackInfo.PopulateBlastAttack(blastAttack);
+            blastAttack.attackerFiltering = AttackerFiltering.Default;
+            blastAttack.falloffModel = BlastAttack.FalloffModel.SweetSpot;
+            blastAttack.baseForce = attackInfo.Force * 0.2f;
+            blastAttack.radius = FireLaser.blastRadius;
+            blastAttack.Fire();
 
             if (FireLaser.tracerEffectPrefab)
             {
@@ -55,10 +50,12 @@ namespace RiskOfChaos.Patches.AttackHooks
             }
         }
 
-        protected override bool tryFireBounce(AttackHookMask activeAttackHooks)
+        protected override bool tryFireBounce()
         {
+            AttackInfo attackInfo = AttackInfo;
+
             BulletAttack bulletAttack = new BulletAttack();
-            AttackInfo.PopulateBulletAttack(bulletAttack);
+            attackInfo.PopulateBulletAttack(bulletAttack);
 
             bulletAttack.allowTrajectoryAimAssist = false;
 
@@ -67,49 +64,50 @@ namespace RiskOfChaos.Patches.AttackHooks
 
             bulletAttack.maxDistance = MAX_DISTANCE;
 
-            // HACK: Prevent duplicate damage before bounce
-            float damage = bulletAttack.damage;
             bulletAttack.damage = 0f;
+            bulletAttack.damageType = DamageTypeCombo.Generic;
+            bulletAttack.isCrit = false;
+            bulletAttack.force = 0f;
+            bulletAttack.procCoefficient = 0f;
 
-            BulletAttack.HitCallback origHitCallback = bulletAttack.hitCallback;
-            bulletAttack.hitCallback = hitCallback;
-            bool hitCallback(BulletAttack bulletAttack, ref BulletAttack.BulletHit hitInfo)
+            void onBounceHit(BulletAttack bulletAttack, BulletBounceHook.BulletBounceInfo bounceInfo)
             {
-                bool stopBullet = false;
+                BulletAttack.BulletHit bounceHit = bounceInfo.LastHit;
 
-                bool isAfterFirstBounce = bulletAttack.damage > 0f;
-
-                if (isAfterFirstBounce)
+                if (bounceInfo.BouncesCompleted >= 2)
                 {
-                    stopBullet = origHitCallback(bulletAttack, ref hitInfo);
-
-                    new BlastAttack
+                    if (bounceHit != null)
                     {
-                        attacker = bulletAttack.owner,
-                        inflictor = bulletAttack.weapon,
-                        teamIndex = TeamComponent.GetObjectTeam(bulletAttack.owner),
-                        baseDamage = bulletAttack.damage,
-                        baseForce = bulletAttack.force * 0.2f,
-                        position = hitInfo.point,
-                        radius = FireLaser.blastRadius,
-                        falloffModel = BlastAttack.FalloffModel.SweetSpot,
-                        bonusForce = bulletAttack.force * hitInfo.direction,
-                        procChainMask = bulletAttack.procChainMask,
-                        procCoefficient = bulletAttack.procCoefficient
-                    }.Fire();
+                        BlastAttack blastAttack = new BlastAttack();
+                        attackInfo.PopulateBlastAttack(blastAttack);
+                        blastAttack.radius = FireLaser.blastRadius;
+                        blastAttack.falloffModel = BlastAttack.FalloffModel.SweetSpot;
+                        blastAttack.position = bounceHit.point;
+                        blastAttack.baseForce = attackInfo.Force * 0.2f;
+                        blastAttack.bonusForce = attackInfo.Force * bounceHit.direction;
 
+                        blastAttack.Fire();
+
+#if DEBUG
+                        GameObject sphereIndicator = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                        sphereIndicator.transform.position = blastAttack.position;
+                        sphereIndicator.transform.localScale = Vector3.one * (blastAttack.radius / 2f);
+                        sphereIndicator.GetComponent<Collider>().enabled = false;
+
+                        DestroyOnTimer sphereTimer = sphereIndicator.AddComponent<DestroyOnTimer>();
+                        sphereTimer.duration = 5f;
+#endif
+                    }
+                }
+
+                if (bounceInfo.BouncesCompleted >= 1)
+                {
                     bulletAttack.tracerEffectPrefab = FireLaser.tracerEffectPrefab;
                     bulletAttack.hitEffectPrefab = FireLaser.hitEffectPrefab;
                 }
-                else
-                {
-                    bulletAttack.damage = damage;
-                }
-
-                return stopBullet;
             }
 
-            if (!BulletBounceHook.TryStartBounce(bulletAttack, AttackInfo.AttackDirection, 0, activeAttackHooks))
+            if (!BulletBounceHook.TryStartBounce(bulletAttack, attackInfo, onBounceHit))
                 return false;
 
             bulletAttack.Fire();

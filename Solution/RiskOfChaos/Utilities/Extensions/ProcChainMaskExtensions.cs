@@ -1,17 +1,28 @@
 ﻿using R2API;
+using RiskOfChaos.Content;
 using RoR2;
-using System.Runtime.CompilerServices;
 
 namespace RiskOfChaos.Utilities.Extensions
 {
     public static class ProcChainMaskExtensions
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool HasAnyProc(this ProcChainMask mask)
+        public static bool HasAnyProc(this in ProcChainMask procChain)
         {
-            // ProcTypeAPI compatibility:
-            // Compare to zero struct instead of checking the mask field
-            return !mask.Equals(default);
+            if (procChain.mask != 0)
+                return true;
+
+            for (ModdedProcType moddedProcType = 0; moddedProcType < (ModdedProcType)ProcTypeAPI.ModdedProcTypeCount; moddedProcType++)
+            {
+                if (CustomProcTypes.IsMarkerProc(moddedProcType))
+                    continue;
+
+                if (procChain.HasModdedProc(moddedProcType))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static void AddProcsFrom(this ref ProcChainMask dst, in ProcChainMask src)

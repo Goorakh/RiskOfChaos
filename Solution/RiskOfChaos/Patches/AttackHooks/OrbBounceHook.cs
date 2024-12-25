@@ -23,7 +23,7 @@ namespace RiskOfChaos.Patches.AttackHooks
 
             public readonly int MaxBounces;
 
-            public readonly AttackHookMask ActiveAttackHooks;
+            public readonly AttackInfo AttackInfo;
 
             public int CompletedBounces { get; private set; }
 
@@ -39,12 +39,12 @@ namespace RiskOfChaos.Patches.AttackHooks
 
             public int CurrentDeadBacktrackCount;
 
-            public OrbBounceChain(int maxBounces, AttackHookMask activeAttackHooks, Xoroshiro128Plus rng)
+            public OrbBounceChain(int maxBounces, AttackInfo attackInfo, Xoroshiro128Plus rng)
             {
                 RNG = rng;
 
                 MaxBounces = maxBounces;
-                ActiveAttackHooks = activeAttackHooks;
+                AttackInfo = attackInfo;
                 CompletedBounces = 0;
 
                 _hitOrder = new List<HealthComponent>(MaxBounces);
@@ -64,7 +64,7 @@ namespace RiskOfChaos.Patches.AttackHooks
 
             public OrbBounceChain Clone()
             {
-                OrbBounceChain cloneBounceChain = new OrbBounceChain(MaxBounces, ActiveAttackHooks, new Xoroshiro128Plus(RNG))
+                OrbBounceChain cloneBounceChain = new OrbBounceChain(MaxBounces, AttackInfo, new Xoroshiro128Plus(RNG))
                 {
                     CompletedBounces = CompletedBounces,
                     CurrentDeadBacktrackCount = CurrentDeadBacktrackCount
@@ -107,7 +107,7 @@ namespace RiskOfChaos.Patches.AttackHooks
                 return true;
 
             if (orb.TryGetProcChainMask(out ProcChainMask procChainMask))
-                return procChainMask.HasModdedProc(CustomProcTypes.Bouncing) || procChainMask.HasModdedProc(CustomProcTypes.BounceChainEnd);
+                return procChainMask.HasModdedProc(CustomProcTypes.Bouncing) || procChainMask.HasModdedProc(CustomProcTypes.BounceFinished);
 
             return false;
         }
@@ -144,13 +144,21 @@ namespace RiskOfChaos.Patches.AttackHooks
             }
         }
 
-        public static bool TryStartBounceOrb(Orb orbInstance, AttackHookMask activeAttackHooks)
+        public static bool TryStartBounceOrb(Orb orbInstance, AttackInfo attackInfo)
         {
             if (!isEnabled || !OrbManager.instance || !orbInstance.target)
                 return false;
 
+            if (attackInfo.ProcChainMask.HasAnyProc())
+                return false;
+
+            if (attackInfo.ProcChainMask.HasModdedProc(CustomProcTypes.Bouncing))
+                return false;
+
+            attackInfo.ProcChainMask.AddModdedProc(CustomProcTypes.Bouncing);
+
             _orbBounceChains.Remove(orbInstance);
-            _orbBounceChains.Add(orbInstance, new OrbBounceChain(bounceCount, activeAttackHooks, new Xoroshiro128Plus(RoR2Application.rng.nextUlong)));
+            _orbBounceChains.Add(orbInstance, new OrbBounceChain(bounceCount, attackInfo, new Xoroshiro128Plus(RoR2Application.rng.nextUlong)));
             return true;
         }
 
@@ -422,12 +430,11 @@ namespace RiskOfChaos.Patches.AttackHooks
             Log.Debug($"Fired bounce of {orbInstance}, {bounceChain.BouncesRemaining} remaining");
             _orbBounceChains.Add(newOrb, bounceChain);
 
-            AttackHookManager.Context.Activate(bounceChain.ActiveAttackHooks | AttackHookMask.Bounced);
             OrbManager.instance.AddOrb(newOrb);
 
             if (orbInstance.TryGetProcChainMask(out ProcChainMask orbProcChainMask))
             {
-                orbProcChainMask.AddModdedProc(CustomProcTypes.BounceChainEnd);
+                orbProcChainMask.AddModdedProc(CustomProcTypes.BounceFinished);
                 orbInstance.TrySetProcChainMask(orbProcChainMask);
             }
         }

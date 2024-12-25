@@ -34,21 +34,20 @@ namespace RiskOfChaos.Patches.AttackHooks
             return OrbManager.instance;
         }
 
-        protected override void fireAttackCopy()
+        protected override void fireAttackCopy(AttackInfo attackInfo)
         {
             OrbManager orbManager = getOrbManager();
             if (!orbManager)
                 return;
 
-            orbManager.AddOrb(OrbUtils.Clone(_orbTemplate));
+            Orb orb = OrbUtils.Clone(_orbTemplate);
+            attackInfo.PopulateOrb(orb);
+            orbManager.AddOrb(orb);
         }
 
-        protected override bool tryFireRepeating(AttackHookMask activeAttackHooks)
+        protected override bool tryFireRepeating()
         {
             if (OrbUtils.IsTransferOrb(_orbTemplate))
-                return false;
-
-            if (_orbTemplate.TryGetProcChainMask(out ProcChainMask procChainMask) && procChainMask.HasAnyProc())
                 return false;
 
             if (_orbTemplate.TryGetBouncedObjects(out ReadOnlyCollection<HealthComponent> bouncedObjects) && bouncedObjects.Count > 0)
@@ -57,10 +56,10 @@ namespace RiskOfChaos.Patches.AttackHooks
             if (OrbBounceHook.IsBouncedOrb(_originalOrb))
                 return false;
 
-            return base.tryFireRepeating(activeAttackHooks);
+            return base.tryFireRepeating();
         }
 
-        protected override bool tryFireBounce(AttackHookMask activeAttackHooks)
+        protected override bool tryFireBounce()
         {
             if (OrbUtils.IsTransferOrb(_originalOrb) || _originalOrb is VoidLightningOrb)
                 return false;
@@ -73,12 +72,12 @@ namespace RiskOfChaos.Patches.AttackHooks
                 }
             }
 
-            return OrbBounceHook.TryStartBounceOrb(_originalOrb, activeAttackHooks);
+            return OrbBounceHook.TryStartBounceOrb(_originalOrb, AttackInfo);
         }
 
-        protected override bool tryReplace(AttackHookMask activeAttackHooks)
+        protected override bool tryReplace()
         {
-            return !OrbUtils.IsTransferOrb(_originalOrb) && AttackInfo.Position != Vector3.zero && base.tryReplace(activeAttackHooks);
+            return !OrbUtils.IsTransferOrb(_originalOrb) && AttackInfo.Position != Vector3.zero && base.tryReplace();
         }
     }
 }

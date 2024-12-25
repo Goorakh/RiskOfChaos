@@ -10,5 +10,6 @@ namespace RiskOfChaos.Patches.AttackHooks
         Repeat = 1 << 1,
         Bounced = 1 << 2,
         Replaced = 1 << 3,
+        Knockback = 1 << 4,
     }
 }

@@ -17,12 +17,10 @@ namespace RiskOfChaos.Patches.AttackHooks
             _target = target;
         }
 
-        protected override void fireAttackCopy()
+        protected override void fireAttackCopy(AttackInfo attackInfo)
         {
             if (!_target)
                 return;
-
-            AttackInfo attackInfo = AttackInfo;
 
             CharacterBody attackerBody = null;
             if (attackInfo.Attacker)
