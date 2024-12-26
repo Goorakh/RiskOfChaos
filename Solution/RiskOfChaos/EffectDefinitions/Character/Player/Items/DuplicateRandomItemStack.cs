@@ -23,7 +23,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
     {
         [EffectConfig]
         static readonly ConfigHolder<int> _maxItemStacksConfig =
-            ConfigFactory<int>.CreateConfig("Max Item Stacks", 1000)
+            ConfigFactory<int>.CreateConfig("Max Item Stacks", 0)
                               .Description("The maximum amount of item stacks to allow, the effect will not duplicate an item stack if it is greater than this number. Set to 0 to disable the limit.")
                               .OptionConfig(new IntFieldConfig { Min = 0 })
                               .Build();

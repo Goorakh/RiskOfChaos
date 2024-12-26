@@ -11,6 +11,9 @@
 * Explosive Deaths:
   * No longer skips remaining countdown on death. Countdown time is now always consistent.
 
+* Duplicate Random Item Stack:
+  * Changed 'Max Item Stacks' config default value: 1000 -> 0 (disabled)
+
 * Swap Health & Shield:
   * Fixed effect not working.
 
