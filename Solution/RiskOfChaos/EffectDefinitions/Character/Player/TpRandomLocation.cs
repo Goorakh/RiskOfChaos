@@ -1,12 +1,9 @@
-﻿using RiskOfChaos.EffectHandling;
-using RiskOfChaos.EffectHandling.EffectClassAttributes;
-using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Navigation;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -15,12 +12,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
     [ChaosEffect("tp_random_location")]
     public sealed class TpRandomLocation : NetworkBehaviour
     {
-        [EffectCanActivate]
-        static bool CanSelect(in EffectCanActivateContext context)
-        {
-            return !context.IsNow || (DirectorCore.instance && PlayerUtils.GetAllPlayerBodies(true).Any());
-        }
-
         ChaosEffectComponent _effectComponent;
 
         Xoroshiro128Plus _rng;

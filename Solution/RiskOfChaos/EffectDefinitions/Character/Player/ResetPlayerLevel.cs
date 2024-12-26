@@ -9,12 +9,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
     [ChaosEffect("reset_player_level")]
     public sealed class ResetPlayerLevel : MonoBehaviour
     {
-        [EffectCanActivate]
-        static bool CanActivate()
-        {
-            return TeamManager.instance && TeamManager.instance.GetTeamExperience(TeamIndex.Player) > 0;
-        }
-
         [EffectWeightMultiplierSelector]
         static float GetEffectWeightMultiplier()
         {
