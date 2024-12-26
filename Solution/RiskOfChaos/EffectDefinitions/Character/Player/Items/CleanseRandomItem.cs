@@ -132,14 +132,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             foreach (PickupDef cleansablePickup in allCleansablePickups)
             {
-                if (cleansablePickup.isLunar)
-                {
-                    primaryCleansables.Add(cleansablePickup.pickupIndex);
-                }
-                else
-                {
-                    secondaryCleansables.Add(cleansablePickup.pickupIndex);
-                }
+                List<PickupIndex> cleansablesList = cleansablePickup.isLunar ? primaryCleansables : secondaryCleansables;
+                cleansablesList.Add(cleansablePickup.pickupIndex);
             }
 
             int cleanseCount = _cleanseCount.Value;
@@ -186,15 +180,15 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             int cleanseCount = _cleanseOrder.GetLength(0);
             int cleansablesCount = _cleanseOrder.GetLength(1);
 
-            HashSet<PickupIndex> grantedPickups = new HashSet<PickupIndex>(2);
+            HashSet<PickupIndex> grantedPickups = new HashSet<PickupIndex>(_pearlDropTable.GetPickupCount());
 
             for (int i = 0; i < cleanseCount; i++)
             {
-                PickupDef pickupToCleanse = null;
+                PickupIndex pickupToCleanse = PickupIndex.none;
 
                 for (int j = 0; j < cleansablesCount; j++)
                 {
-                    PickupDef candidatePickup = PickupCatalog.GetPickupDef(_cleanseOrder[i, j]);
+                    PickupIndex candidatePickup = _cleanseOrder[i, j];
                     if (inventory.GetPickupCount(candidatePickup) > 0)
                     {
                         pickupToCleanse = candidatePickup;
@@ -202,18 +196,16 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     }
                 }
 
-                if (pickupToCleanse == null)
+                if (!pickupToCleanse.isValid)
                     break;
 
                 if (inventory.TryRemove(pickupToCleanse))
                 {
                     PickupIndex pearlPickupIndex = _pearlDropTable.GenerateDrop(rng.Branch());
 
-                    PickupDef pearlPickup = PickupCatalog.GetPickupDef(pearlPickupIndex);
-
-                    if (inventory.TryGrant(pearlPickup, InventoryExtensions.EquipmentReplacementRule.DropExisting))
+                    if (inventory.TryGrant(pearlPickupIndex, InventoryExtensions.EquipmentReplacementRule.DropExisting))
                     {
-                        CharacterMasterNotificationQueueUtils.SendPickupTransformNotification(master, pickupToCleanse.pickupIndex, pearlPickupIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                        CharacterMasterNotificationQueueUtils.SendPickupTransformNotification(master, pickupToCleanse, pearlPickupIndex, CharacterMasterNotificationQueue.TransformationType.Default);
 
                         grantedPickups.Add(pearlPickupIndex);
                     }

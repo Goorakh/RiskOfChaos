@@ -8,27 +8,13 @@ namespace RiskOfChaos.Patches
 {
     static class PreventMetamorphosisRespawn
     {
-        static bool _hasAppliedPatch;
+        static readonly FieldInfo _preventionEnabled_FI = AccessTools.DeclaredField(typeof(PreventMetamorphosisRespawn), nameof(PreventionEnabled));
+        public static bool PreventionEnabled;
 
-        static readonly FieldInfo _preventionEnabled_FI = AccessTools.DeclaredField(typeof(PreventMetamorphosisRespawn), nameof(_preventionEnabled));
-        static bool _preventionEnabled;
-
-        internal static bool PreventionEnabled
+        [SystemInitializer]
+        static void Init()
         {
-            get
-            {
-                return _preventionEnabled;
-            }
-            set
-            {
-                _preventionEnabled = value;
-
-                if (!_hasAppliedPatch && _preventionEnabled)
-                {
-                    IL.RoR2.CharacterMaster.Respawn += CharacterMaster_Respawn;
-                    _hasAppliedPatch = true;
-                }
-            }
+            IL.RoR2.CharacterMaster.Respawn += CharacterMaster_Respawn;
         }
 
         static void CharacterMaster_Respawn(ILContext il)

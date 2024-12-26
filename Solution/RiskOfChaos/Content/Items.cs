@@ -148,8 +148,7 @@ namespace RiskOfChaos.Content
                     attackerBody.inventory.GetItemCount(InvincibleLemurianMarker) > 0)
                 {
                     // Instantly die no matter what
-                    damageInfo.damageType.damageType |= DamageType.BypassArmor | DamageType.BypassBlock | DamageType.BypassOneShotProtection;
-                    damageInfo.damageType.damageTypeExtended |= DamageTypeExtended.SojournVehicleDamage;
+                    damageInfo.damageType |= DamageType.BypassArmor | DamageType.BypassBlock | DamageType.BypassOneShotProtection | (DamageTypeCombo)DamageTypeExtended.SojournVehicleDamage;
                     damageInfo.damage = float.PositiveInfinity;
                 }
 
@@ -158,7 +157,7 @@ namespace RiskOfChaos.Content
 
             static HurtBox On_BaseAI_FindEnemyHurtBox(On.RoR2.CharacterAI.BaseAI.orig_FindEnemyHurtBox orig, BaseAI self, float maxDistance, bool full360Vision, bool filterByLoS)
             {
-                if (self.master && self.master.inventory.GetItemCount(InvincibleLemurianMarker) > 0)
+                if (self.master && self.master.inventory && self.master.inventory.GetItemCount(InvincibleLemurianMarker) > 0)
                 {
                     maxDistance = float.PositiveInfinity;
                     full360Vision = true;
@@ -179,7 +178,7 @@ namespace RiskOfChaos.Content
                     c.EmitDelegate(filterTargets);
                     static IEnumerable<HurtBox> filterTargets(IEnumerable<HurtBox> results, BaseAI instance)
                     {
-                        if (instance && instance.master.inventory.GetItemCount(InvincibleLemurianMarker) > 0)
+                        if (instance && instance.master && instance.master.inventory && instance.master.inventory.GetItemCount(InvincibleLemurianMarker) > 0)
                         {
                             // Filter results to only target players (don't target player allies like drones)
                             IEnumerable<HurtBox> playerControlledTargets = results.Where(hurtBox =>
@@ -189,12 +188,13 @@ namespace RiskOfChaos.Content
                             });
 
                             // If there are no players, use the default target so that the AI doesn't end up doing nothing
-                            return playerControlledTargets.Any() ? playerControlledTargets : results;
+                            if (playerControlledTargets.Any())
+                            {
+                                results = playerControlledTargets;
+                            }
                         }
-                        else
-                        {
-                            return results;
-                        }
+
+                        return results;
                     }
                 }
                 else
@@ -222,12 +222,12 @@ namespace RiskOfChaos.Content
 
             static void CustomPlayerDeathMessageTokenPatch_OverridePlayerDeathMessageToken(DamageReport damageReport, ref string messageToken)
             {
-                if (damageReport is null || !damageReport.attackerMaster)
-                    return;
-
-                if (damageReport.attackerMaster.inventory.GetItemCount(InvincibleLemurianMarker) > 0)
+                if (damageReport != null && damageReport.attackerMaster && damageReport.attackerMaster.inventory)
                 {
-                    messageToken = "PLAYER_DEATH_QUOTE_INVINCIBLE_LEMURIAN";
+                    if (damageReport.attackerMaster.inventory.GetItemCount(InvincibleLemurianMarker) > 0)
+                    {
+                        messageToken = "PLAYER_DEATH_QUOTE_INVINCIBLE_LEMURIAN";
+                    }
                 }
             }
         }

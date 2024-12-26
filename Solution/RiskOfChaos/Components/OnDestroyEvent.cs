@@ -6,19 +6,38 @@ namespace RiskOfChaos.Components
     public class OnDestroyEvent : MonoBehaviour
     {
         public delegate void OnDestroyedDelegate(GameObject obj);
-        public event OnDestroyedDelegate OnDestroyed;
+        event OnDestroyedDelegate _onDestroyed;
+        public event OnDestroyedDelegate OnDestroyed
+        {
+            add
+            {
+                _onDestroyed += value;
+
+                Log.Debug($"Added OnDestroy event to {gameObject}");
+            }
+            remove
+            {
+                _onDestroyed -= value;
+
+                Log.Debug($"Removed OnDestroy event from {gameObject}");
+
+                if (_onDestroyed == null)
+                {
+                    Log.Debug($"Removing OnDestroyEvent component from {gameObject}");
+                    Destroy(this);
+                }
+            }
+        }
 
         void OnDestroy()
         {
-            OnDestroyed?.Invoke(gameObject);
+            _onDestroyed?.Invoke(gameObject);
         }
 
         public static OnDestroyEvent Add(GameObject obj, OnDestroyedDelegate onDestroyed)
         {
             OnDestroyEvent onDestroyEvent = obj.EnsureComponent<OnDestroyEvent>();
             onDestroyEvent.OnDestroyed += onDestroyed;
-
-            Log.Debug($"Added OnDestroy event to {obj}");
 
             return onDestroyEvent;
         }
@@ -28,8 +47,6 @@ namespace RiskOfChaos.Components
             if (obj.TryGetComponent(out OnDestroyEvent onDestroyEvent))
             {
                 onDestroyEvent.OnDestroyed -= onDestroyed;
-
-                Log.Debug($"Removed OnDestroy event from {obj}");
             }
         }
     }

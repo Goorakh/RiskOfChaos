@@ -11,7 +11,6 @@ using RiskOfChaos.ScreenEffect;
 using RiskOfChaos.Utilities.Interpolation;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using System;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -50,8 +49,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
         ScreenEffectComponent _screenEffect;
 
         ValueModificationController _uiModificationController;
-
-        public event Action OnValueDirty;
 
         void Start()
         {

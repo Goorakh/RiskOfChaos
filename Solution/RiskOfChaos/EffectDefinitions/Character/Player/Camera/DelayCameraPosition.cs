@@ -15,7 +15,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
     {
         readonly Dictionary<UnityObjectWrapperKey<CameraRigController>, DelayedCameraPositionController> _delayedPositionControllers = [];
 
-        readonly List<OnDestroyCallback> _destroyCallbacks = [];
+        readonly List<OnDestroyEvent> _destroyEvent = [];
 
         bool _trackedObjectDestroyed;
 
@@ -24,7 +24,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
             ReadOnlyCollection<CameraRigController> cameraRigInstances = CameraRigController.readOnlyInstancesList;
 
             _delayedPositionControllers.EnsureCapacity(cameraRigInstances.Count);
-            _destroyCallbacks.EnsureCapacity(cameraRigInstances.Count);
+            _destroyEvent.EnsureCapacity(cameraRigInstances.Count);
 
             cameraRigInstances.TryDo(tryAddDelayCameraComponent);
             CameraRigController.onCameraEnableGlobal += tryAddDelayCameraComponent;
@@ -36,7 +36,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
             {
                 _trackedObjectDestroyed = false;
 
-                UnityObjectUtils.RemoveAllDestroyed(_destroyCallbacks);
+                UnityObjectUtils.RemoveAllDestroyed(_destroyEvent);
 
                 int removedPositionControllers = UnityObjectUtils.RemoveAllDestroyed(_delayedPositionControllers);
                 Log.Debug($"Cleared {removedPositionControllers} destroyed position controller(s)");
@@ -47,15 +47,15 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
         {
             CameraRigController.onCameraEnableGlobal -= tryAddDelayCameraComponent;
 
-            foreach (OnDestroyCallback destroyCallback in _destroyCallbacks)
+            foreach (OnDestroyEvent destroyEvent in _destroyEvent)
             {
-                if (destroyCallback)
+                if (destroyEvent)
                 {
-                    OnDestroyCallback.RemoveCallback(destroyCallback);
+                    destroyEvent.OnDestroyed -= onCameraRigDestroyed;
                 }
             }
 
-            _destroyCallbacks.Clear();
+            _destroyEvent.Clear();
 
             foreach (DelayedCameraPositionController delayedPositionController in _delayedPositionControllers.Values)
             {
@@ -79,12 +79,14 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 
             _delayedPositionControllers.Add(cameraRigController, delayedPositionController);
 
-            OnDestroyCallback destroyCallback = OnDestroyCallback.AddCallback(cameraRigController.gameObject, _ =>
-            {
-                _trackedObjectDestroyed = true;
-            });
+            OnDestroyEvent destroyEvent = OnDestroyEvent.Add(cameraRigController.gameObject, onCameraRigDestroyed);
 
-            _destroyCallbacks.Add(destroyCallback);
+            _destroyEvent.Add(destroyEvent);
+        }
+
+        void onCameraRigDestroyed(GameObject obj)
+        {
+            _trackedObjectDestroyed = true;
         }
     }
 }

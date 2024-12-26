@@ -48,25 +48,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (!healthComponent || !healthComponent.alive)
                     return false;
 
-                if (_excludeAllAllies.Value)
-                {
-                    if (body.teamComponent.teamIndex == TeamIndex.Player)
-                        return false;
-
-                    CharacterMaster master = body.master;
-                    if (master)
-                    {
-                        MinionOwnership minionOwnership = master.minionOwnership;
-                        if (minionOwnership)
-                        {
-                            CharacterMaster ownerMaster = minionOwnership.ownerMaster;
-                            if (ownerMaster && ownerMaster.playerCharacterMasterController)
-                            {
-                                return false;
-                            }
-                        }
-                    }
-                }
+                if (_excludeAllAllies.Value && body.IsPlayerOrPlayerAlly())
+                    return false;
 
                 if (_excludeDrones.Value && (body.bodyFlags & CharacterBody.BodyFlags.Mechanical) != 0)
                     return false;
@@ -97,14 +80,14 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 Inventory inventory = body.inventory;
                 if (inventory)
                 {
-                    inventory.SetEquipmentIndex(DLC1Content.Elites.Void.eliteEquipmentDef.equipmentIndex);
+                    inventory.SetEquipmentIndex(DLC1Content.Equipment.EliteVoidEquipment.equipmentIndex);
                 }
 
                 if (master)
                 {
                     master.teamIndex = TeamIndex.Void;
 
-                    aiToReset.AddRange(master.GetComponents<BaseAI>());
+                    aiToReset.AddRange(master.AiComponents);
 
                     // Make sure void infested allies don't stay until the next stage
                     master.gameObject.SetDontDestroyOnLoad(false);

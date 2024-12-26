@@ -186,7 +186,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                 {
                     if (modelSkinController.currentSkinIndex != skinIndex)
                     {
-                        modelSkinController.ApplySkin((int)skinIndex);
+                        modelSkinController.ApplySkin(ClampedConversion.Int32(skinIndex));
                     }
                 }
             }
@@ -241,62 +241,58 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
         static List<LoadoutSkillPreset> generateSkillPresets(NetworkUser networkUser, Loadout.BodyLoadoutManager.BodyInfo bodyInfo, uint[] currentSkillVariants)
         {
+            if (!_randomizeSkills.Value)
+                return [new LoadoutSkillPreset(currentSkillVariants, 1f)];
+
             List<LoadoutSkillPreset> allSkillPresets;
-            if (_randomizeSkills.Value)
+            int skillSlotCount = bodyInfo.skillSlotCount;
+
+            int[] skillVariantCount = new int[skillSlotCount];
+            int presetCount = 1;
+            for (int i = 0; i < skillSlotCount; i++)
             {
-                int skillSlotCount = bodyInfo.skillSlotCount;
+                SkillFamily.Variant[] skillVariants = bodyInfo.prefabSkillSlots[i].skillFamily.variants;
+                skillVariantCount[i] = skillVariants.Length;
 
-                int[] skillVariantCount = new int[skillSlotCount];
-                int presetCount = 1;
-                for (int i = 0; i < skillSlotCount; i++)
-                {
-                    SkillFamily.Variant[] skillVariants = bodyInfo.prefabSkillSlots[i].skillFamily.variants;
-                    skillVariantCount[i] = skillVariants.Length;
-
-                    presetCount *= skillVariants.Length;
-                }
-
-                allSkillPresets = new List<LoadoutSkillPreset>(presetCount);
-
-                for (int i = 0; i < presetCount; i++)
-                {
-                    uint[] skillVariants = new uint[skillSlotCount];
-
-                    int completedCombinationCounts = 1;
-                    for (int j = 0; j < skillSlotCount; j++)
-                    {
-                        int slotVariantCount = skillVariantCount[j];
-
-                        skillVariants[j] = (uint)(i / completedCombinationCounts % slotVariantCount);
-                        completedCombinationCounts *= slotVariantCount;
-                    }
-
-                    float weight = 1f;
-                    for (int j = 0; j < skillVariants.Length; j++)
-                    {
-                        SkillFamily.Variant skillVariant = bodyInfo.prefabSkillSlots[j].skillFamily.variants[skillVariants[j]];
-                        if (skillVariant.unlockableDef && networkUser && !networkUser.unlockables.Contains(skillVariant.unlockableDef))
-                        {
-                            weight = float.NegativeInfinity;
-                            break;
-                        }
-
-                        if (skillVariants[j] == currentSkillVariants[j])
-                        {
-                            weight *= 0.9f;
-                        }
-                    }
-
-                    if (weight > 0f)
-                    {
-                        LoadoutSkillPreset skillPreset = new LoadoutSkillPreset(skillVariants, weight);
-                        allSkillPresets.Add(skillPreset);
-                    }
-                }
+                presetCount *= skillVariants.Length;
             }
-            else
+
+            allSkillPresets = new List<LoadoutSkillPreset>(presetCount);
+
+            for (int i = 0; i < presetCount; i++)
             {
-                allSkillPresets = [new LoadoutSkillPreset(currentSkillVariants, 1f)];
+                uint[] skillVariants = new uint[skillSlotCount];
+
+                int completedCombinationCounts = 1;
+                for (int j = 0; j < skillSlotCount; j++)
+                {
+                    int slotVariantCount = skillVariantCount[j];
+
+                    skillVariants[j] = (uint)(i / completedCombinationCounts % slotVariantCount);
+                    completedCombinationCounts *= slotVariantCount;
+                }
+
+                float weight = 1f;
+                for (int j = 0; j < skillVariants.Length; j++)
+                {
+                    SkillFamily.Variant skillVariant = bodyInfo.prefabSkillSlots[j].skillFamily.variants[skillVariants[j]];
+                    if (skillVariant.unlockableDef && networkUser && !networkUser.unlockables.Contains(skillVariant.unlockableDef))
+                    {
+                        weight = float.NegativeInfinity;
+                        break;
+                    }
+
+                    if (skillVariants[j] == currentSkillVariants[j])
+                    {
+                        weight *= 0.9f;
+                    }
+                }
+
+                if (weight > 0f)
+                {
+                    LoadoutSkillPreset skillPreset = new LoadoutSkillPreset(skillVariants, weight);
+                    allSkillPresets.Add(skillPreset);
+                }
             }
 
             return allSkillPresets;
@@ -304,26 +300,22 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
         static List<LoadoutSkinPreset> generateSkinPresets(BodyIndex bodyIndex, NetworkUser networkUser, uint currentSkinIndex)
         {
+            if (!_randomizeSkin.Value)
+                return [new LoadoutSkinPreset(currentSkinIndex, 1f)];
+
             List<LoadoutSkinPreset> allSkinPresets;
-            if (_randomizeSkin.Value)
-            {
-                int bodySkinCount = SkinCatalog.GetBodySkinCount(bodyIndex);
-                allSkinPresets = new List<LoadoutSkinPreset>(bodySkinCount);
+            int bodySkinCount = SkinCatalog.GetBodySkinCount(bodyIndex);
+            allSkinPresets = new List<LoadoutSkinPreset>(bodySkinCount);
 
-                for (uint i = 0; i < bodySkinCount; i++)
+            for (uint i = 0; i < bodySkinCount; i++)
+            {
+                SkinDef skinDef = SkinCatalog.GetBodySkinDef(bodyIndex, (int)i);
+
+                if (skinDef && (!skinDef.unlockableDef || !networkUser || networkUser.unlockables.Contains(skinDef.unlockableDef)))
                 {
-                    SkinDef skinDef = SkinCatalog.GetBodySkinDef(bodyIndex, (int)i);
-
-                    if (skinDef && (!skinDef.unlockableDef || !networkUser || networkUser.unlockables.Contains(skinDef.unlockableDef)))
-                    {
-                        LoadoutSkinPreset skinPreset = new LoadoutSkinPreset(i, 1f);
-                        allSkinPresets.Add(skinPreset);
-                    }
+                    LoadoutSkinPreset skinPreset = new LoadoutSkinPreset(i, 1f);
+                    allSkinPresets.Add(skinPreset);
                 }
-            }
-            else
-            {
-                allSkinPresets = [new LoadoutSkinPreset(currentSkinIndex, 1f)];
             }
 
             return allSkinPresets;
