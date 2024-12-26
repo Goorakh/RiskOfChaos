@@ -6,7 +6,7 @@
   * Always Sprinting: Now also forces all characters to constantly move
 
 * Delayed Attacks, Repeating Projectiles, Grenade Bullets:
-  * Fixed effects not applying to Mercenery Eviscerate
+  * Fixed effects not applying to Mercenary Eviscerate
 
 * Explosive Deaths:
   * No longer skips remaining countdown on death. Countdown time is now always consistent.
