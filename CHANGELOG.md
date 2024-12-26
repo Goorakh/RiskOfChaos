@@ -8,6 +8,9 @@
 * Delayed Attacks, Repeating Projectiles, Grenade Bullets:
   * Fixed effects not applying to Mercenery Eviscerate
 
+* Explosive Deaths:
+  * No longer skips remaining countdown on death. Countdown time is now always consistent.
+
 * Swap Health & Shield:
   * Fixed effect not working.
 

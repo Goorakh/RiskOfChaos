@@ -291,7 +291,7 @@ namespace RiskOfChaos.Content
 
             public static GameObject NewtStatueFixedOrigin;
 
-            public static GameObject ExplodeAtLowHealthBodyAttachment;
+            public static GameObject ExplodeAtLowHealthController;
 
             public static GameObject InterpolatedScreenEffect;
 

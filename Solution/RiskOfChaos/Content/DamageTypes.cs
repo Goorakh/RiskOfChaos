@@ -1,5 +1,4 @@
 ﻿using R2API;
-using RiskOfChaos.Components;
 using RoR2;
 using UnityEngine;
 
@@ -8,9 +7,9 @@ namespace RiskOfChaos.Content
     public static class DamageTypes
     {
         /// <summary>
-        /// Makes an instance of damage NonLethal for all players hit, except for if a player hit themselves
+        /// Makes an instance of damage NonLethal for all players hit
         /// </summary>
-        public static DamageAPI.ModdedDamageType NonLethalToNonAttackerPlayers { get; private set; }
+        public static DamageAPI.ModdedDamageType NonLethalToPlayers { get; private set; }
 
         /// <summary>
         /// Bypass armor if hitting yourself
@@ -30,48 +29,44 @@ namespace RiskOfChaos.Content
         [SystemInitializer]
         static void Init()
         {
-            NonLethalToNonAttackerPlayers = DamageAPI.ReserveDamageType();
+            NonLethalToPlayers = DamageAPI.ReserveDamageType();
             BypassArmorSelf = DamageAPI.ReserveDamageType();
             BypassBlockSelf = DamageAPI.ReserveDamageType();
             BypassOSPSelf = DamageAPI.ReserveDamageType();
 
-            On.RoR2.HealthComponent.TakeDamage += HealthComponent_TakeDamage;
+            On.RoR2.HealthComponent.TakeDamageProcess += HealthComponent_TakeDamageProcess;
         }
 
-        static void HealthComponent_TakeDamage(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo)
+        static void HealthComponent_TakeDamageProcess(On.RoR2.HealthComponent.orig_TakeDamageProcess orig, HealthComponent self, DamageInfo damageInfo)
         {
-            GameObject attacker;
-            if (damageInfo.inflictor &&
-                damageInfo.inflictor.TryGetComponent(out GenericOwnership ownership) &&
-                ownership.ownerObject)
+            GameObject attacker = damageInfo.attacker;
+            if (damageInfo.inflictor && damageInfo.inflictor.TryGetComponent(out GenericOwnership ownership))
             {
-                attacker = ownership.ownerObject;
-            }
-            else
-            {
-                attacker = damageInfo.attacker;
+                GameObject ownerObject = ownership.ownerObject;
+                if (ownerObject)
+                {
+                    attacker = ownerObject;
+                }
             }
 
             if (attacker == self.gameObject)
             {
-                if (damageInfo.HasModdedDamageType(BypassArmorSelf))
+                if (damageInfo.damageType.HasModdedDamageType(BypassArmorSelf))
                     damageInfo.damageType |= DamageType.BypassArmor;
 
-                if (damageInfo.HasModdedDamageType(BypassBlockSelf))
+                if (damageInfo.damageType.HasModdedDamageType(BypassBlockSelf))
                     damageInfo.damageType |= DamageType.BypassBlock;
 
-                if (damageInfo.HasModdedDamageType(BypassOSPSelf))
+                if (damageInfo.damageType.HasModdedDamageType(BypassOSPSelf))
                     damageInfo.damageType |= DamageType.BypassOneShotProtection;
             }
-            else
+
+            if (damageInfo.damageType.HasModdedDamageType(NonLethalToPlayers))
             {
-                if (damageInfo.HasModdedDamageType(NonLethalToNonAttackerPlayers))
+                CharacterBody body = self.body;
+                if (body && body.isPlayerControlled)
                 {
-                    CharacterBody body = self.body;
-                    if (body && body.isPlayerControlled)
-                    {
-                        damageInfo.damageType |= DamageType.NonLethal;
-                    }
+                    damageInfo.damageType |= DamageType.NonLethal;
                 }
             }
 

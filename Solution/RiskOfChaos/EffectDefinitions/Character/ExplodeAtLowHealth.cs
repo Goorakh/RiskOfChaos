@@ -1,13 +1,13 @@
 ﻿using EntityStates;
 using HG;
-using R2API;
+using RiskOfChaos.Collections;
+using RiskOfChaos.Components;
 using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -18,16 +18,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [ChaosTimedEffect("explode_at_low_health", 90f, AllowDuplicates = false)]
     public sealed class ExplodeAtLowHealth : MonoBehaviour
     {
-        static GameObject _explosionVFXPrefab;
-
         static GameObject _countDownVFXPrefab;
 
         [SystemInitializer]
         static void Init()
         {
-            AsyncOperationHandle<GameObject> explosionVfxLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/QuestVolatileBattery/VolatileBatteryExplosion.prefab");
-            explosionVfxLoad.OnSuccess(vfx => _explosionVFXPrefab = vfx);
-
             AsyncOperationHandle<GameObject> countdownVfxLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/QuestVolatileBattery/VolatileBatteryPreDetonation.prefab");
             countdownVfxLoad.OnSuccess(vfx => _countDownVFXPrefab = vfx);
         }
@@ -35,18 +30,14 @@ namespace RiskOfChaos.EffectDefinitions.Character
         [ContentInitializer]
         static void LoadContent(NetworkedPrefabAssetCollection networkedPrefabs)
         {
-            // ExplodeAtLowHealthBodyAttachment
+            // ExplodeAtLowHealthController
             {
-                GameObject prefab = Prefabs.CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.ExplodeAtLowHealthBodyAttachment), [
-                    typeof(NetworkedBodyAttachment),
+                GameObject prefab = Prefabs.CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.ExplodeAtLowHealthController), [
                     typeof(EntityStateMachine),
                     typeof(NetworkStateMachine),
-                    typeof(GenericOwnership)
+                    typeof(GenericOwnership),
+                    typeof(ExplodeOnLowHealthController)
                 ]);
-
-                NetworkedBodyAttachment networkedBodyAttachment = prefab.GetComponent<NetworkedBodyAttachment>();
-                networkedBodyAttachment.shouldParentToAttachedBody = true;
-                networkedBodyAttachment.forceHostAuthority = true;
 
                 EntityStateMachine stateMachine = prefab.GetComponent<EntityStateMachine>();
                 stateMachine.initialStateType = new SerializableEntityStateType(typeof(MonitorState));
@@ -59,15 +50,15 @@ namespace RiskOfChaos.EffectDefinitions.Character
             }
         }
 
-        readonly List<GameObject> _exploderBodyAttachments = [];
+        readonly ClearingObjectList<GameObject> _exploderControllers = [];
 
         void Start()
         {
             if (NetworkServer.active)
             {
-                _exploderBodyAttachments.EnsureCapacity(CharacterBody.readOnlyInstancesList.Count);
-                CharacterBody.readOnlyInstancesList.TryDo(attachExploder, FormatUtils.GetBestBodyName);
-                CharacterBody.onBodyStartGlobal += attachExploder;
+                _exploderControllers.EnsureCapacity(CharacterBody.readOnlyInstancesList.Count);
+                CharacterBody.readOnlyInstancesList.TryDo(handleBody, FormatUtils.GetBestBodyName);
+                CharacterBody.onBodyStartGlobal += handleBody;
 
                 GlobalEventManager.onCharacterDeathGlobal += onCharacterDeathGlobal;
             }
@@ -75,140 +66,66 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         void OnDestroy()
         {
-            CharacterBody.onBodyStartGlobal -= attachExploder;
+            CharacterBody.onBodyStartGlobal -= handleBody;
 
             GlobalEventManager.onCharacterDeathGlobal -= onCharacterDeathGlobal;
 
-            foreach (GameObject bodyAttachment in _exploderBodyAttachments)
-            {
-                if (bodyAttachment)
-                {
-                    Destroy(bodyAttachment);
-                }
-            }
+            _exploderControllers.ClearAndDispose(true);
         }
 
-        static void onCharacterDeathGlobal(DamageReport damageReport)
+        void onCharacterDeathGlobal(DamageReport damageReport)
         {
-            CharacterBody victimBody = damageReport.victimBody;
-            if (!victimBody)
-                return;
-
-            List<NetworkedBodyAttachment> bodyAttachments = [];
-            NetworkedBodyAttachment.FindBodyAttachments(victimBody, bodyAttachments);
-
-            foreach (NetworkedBodyAttachment bodyAttachment in bodyAttachments)
+            // Catch "fake" death events (eg. FMP), begin countdown immediately in that case
+            if (damageReport.victim && damageReport.victim.alive && damageReport.victimBody)
             {
-                if (bodyAttachment.TryGetComponent(out EntityStateMachine esm))
-                {
-                    EntityState state = esm.state;
-                    if (state is BaseState)
-                    {
-                        if (state is CountDownState countDownState)
-                        {
-                            countDownState.TryForceDetonate();
-                        }
-                        else
-                        {
-                            explodeBody(victimBody, bodyAttachment.gameObject);
-                        }
-                    }
-                }
+                GameObject explodeController = attachExploder(damageReport.victimBody);
+
+                EntityStateMachine entityStateMachine = explodeController.GetComponent<EntityStateMachine>();
+                entityStateMachine.initialStateType = new SerializableEntityStateType(typeof(CountDownState));
             }
         }
 
-        void attachExploder(CharacterBody body)
+        void handleBody(CharacterBody body)
+        {
+            attachExploder(body);
+        }
+
+        GameObject attachExploder(CharacterBody body)
         {
             if (body.isPlayerControlled)
-                return;
+                return null;
 
-            GameObject attachment = Instantiate(RoCContent.NetworkedPrefabs.ExplodeAtLowHealthBodyAttachment);
+            GameObject explodeController = Instantiate(RoCContent.NetworkedPrefabs.ExplodeAtLowHealthController);
 
-            NetworkedBodyAttachment exploderAttachment = attachment.GetComponent<NetworkedBodyAttachment>();
-            exploderAttachment.AttachToGameObjectAndSpawn(body.gameObject);
+            ExplodeOnLowHealthController explodeOnLowHealthController = explodeController.GetComponent<ExplodeOnLowHealthController>();
+            explodeOnLowHealthController.AttachedBody = body;
 
-            _exploderBodyAttachments.Add(attachment);
-        }
+            NetworkServer.Spawn(explodeController);
 
-        static void explodeBody(CharacterBody body, GameObject inflictor)
-        {
-            HealthComponent healthComponent = body.healthComponent;
+            _exploderControllers.Add(explodeController);
 
-            Vector3 blastCenter = body.corePosition;
-
-            float maxHealth;
-            if (healthComponent)
-            {
-                maxHealth = healthComponent.fullCombinedHealth;
-            }
-            else
-            {
-                maxHealth = body.maxHealth + body.maxShield;
-            }
-
-            float damageMultiplier = body.isPlayerControlled ? 3f : 1.25f;
-
-            float damage = Mathf.Max(15f, maxHealth) * damageMultiplier;
-
-            float blastRadius = Mathf.Max(body.radius * 1.5f, 20f);
-
-            EffectManager.SpawnEffect(_explosionVFXPrefab, new EffectData
-            {
-                origin = blastCenter,
-                scale = blastRadius
-            }, true);
-
-            BlastAttack blastAttack = new BlastAttack
-            {
-                position = blastCenter,
-                radius = blastRadius,
-                falloffModel = BlastAttack.FalloffModel.Linear,
-                // Credit whoever (probably) triggered the explosion, if applicable
-                attacker = healthComponent && healthComponent.lastHitAttacker ? healthComponent.lastHitAttacker : body.gameObject, 
-                inflictor = inflictor,
-                damageColorIndex = DamageColorIndex.Item,
-                baseDamage = damage,
-                baseForce = 5000f,
-                attackerFiltering = AttackerFiltering.AlwaysHit,
-                crit = false,
-                procCoefficient = 1f,
-                teamIndex = body.teamComponent.teamIndex
-            };
-
-            blastAttack.AddModdedDamageType(DamageTypes.BypassArmorSelf);
-            blastAttack.AddModdedDamageType(DamageTypes.BypassBlockSelf);
-
-            if (!body.isPlayerControlled)
-            {
-                blastAttack.AddModdedDamageType(DamageTypes.BypassOSPSelf);
-            }
-
-            blastAttack.AddModdedDamageType(DamageTypes.NonLethalToNonAttackerPlayers);
-
-            blastAttack.Fire();
+            return explodeController;
         }
 
         class BaseState : EntityState
         {
-            protected CharacterBody attachedBody { get; private set; }
-
-            protected HealthComponent attachedHealthComponent { get; private set; }
+            protected ExplodeOnLowHealthController explodeOnLowHealthController { get; private set; }
 
             public override void OnEnter()
             {
                 base.OnEnter();
 
-                NetworkedBodyAttachment bodyAttachment = GetComponent<NetworkedBodyAttachment>();
-                if (bodyAttachment)
-                {
-                    attachedBody = bodyAttachment.attachedBody;
-                    attachedHealthComponent = attachedBody.healthComponent;
-                }
+                explodeOnLowHealthController = GetComponent<ExplodeOnLowHealthController>();
+            }
 
-                if (NetworkServer.active)
+            public override void FixedUpdate()
+            {
+                base.FixedUpdate();
+
+                CharacterBody attachedBody = explodeOnLowHealthController.AttachedBody;
+                if (attachedBody)
                 {
-                    GenericOwnership ownership = GetComponent<GenericOwnership>();
-                    ownership.ownerObject = attachedBody ? attachedBody.gameObject : null;
+                    transform.SetPositionAndRotation(attachedBody.corePosition, Quaternion.identity);
                 }
             }
         }
@@ -216,82 +133,83 @@ namespace RiskOfChaos.EffectDefinitions.Character
         [EntityStateType]
         class MonitorState : BaseState
         {
-            const float EXPLODE_HEALTH_FRACTION_PLAYER = 0.15f;
-            const float EXPLODE_HEALTH_FRACTION_ENEMY = 0.45f;
+            const float EXPLODE_HEALTH_FRACTION_DEFAULT = 0.45f;
             const float EXPLODE_HEALTH_FRACTION_BOSS = 0.175f;
+            const float EXPLODE_HEALTH_FRACTION_PLAYER = 0.15f;
 
-            float _explodeHealthFraction;
+            bool _hasEverBeenAttachedToBody;
 
             float _lastHealthFraction;
-
-            public override void OnEnter()
-            {
-                base.OnEnter();
-
-                if (NetworkServer.active)
-                {
-                    if (attachedHealthComponent)
-                    {
-                        _lastHealthFraction = attachedHealthComponent.combinedHealthFraction;
-                    }
-
-                    if (attachedBody.isPlayerControlled)
-                    {
-                        _explodeHealthFraction = EXPLODE_HEALTH_FRACTION_PLAYER;
-                    }
-                    else if (attachedBody.isBoss)
-                    {
-                        _explodeHealthFraction = EXPLODE_HEALTH_FRACTION_BOSS;
-                    }
-                    else
-                    {
-                        _explodeHealthFraction = EXPLODE_HEALTH_FRACTION_ENEMY;
-                    }
-                }
-            }
 
             public override void FixedUpdate()
             {
                 base.FixedUpdate();
 
-                if (NetworkServer.active)
+                if (!_hasEverBeenAttachedToBody)
                 {
-                    if (updateShouldExplode())
+                    CharacterBody attachedBody = explodeOnLowHealthController.AttachedBody;
+                    if (attachedBody)
+                    {
+                        _hasEverBeenAttachedToBody = true;
+                    }
+                }
+
+                if (isAuthority)
+                {
+                    if (updateShouldStartCountdown())
                     {
                         outer.SetNextState(new CountDownState());
                     }
                 }
             }
 
-            bool updateShouldExplode()
+            bool updateShouldStartCountdown()
             {
-                if (!attachedHealthComponent || !attachedHealthComponent.alive)
-                {
+                if (!_hasEverBeenAttachedToBody)
                     return false;
+
+                CharacterBody attachedBody = explodeOnLowHealthController.AttachedBody;
+
+                HealthComponent attachedHealthComponent = null;
+                if (attachedBody)
+                {
+                    attachedHealthComponent = attachedBody.healthComponent;
                 }
 
-                float currentHealthFraction = attachedHealthComponent.combinedHealthFraction;
-
-                if (_lastHealthFraction > _explodeHealthFraction)
+                if (attachedHealthComponent && attachedHealthComponent.alive)
                 {
-                    if (currentHealthFraction <= _explodeHealthFraction)
+                    float currentHealthFraction = attachedHealthComponent.combinedHealthFraction;
+
+                    float explodeHealthFraction = EXPLODE_HEALTH_FRACTION_DEFAULT;
+                    if (attachedBody)
                     {
-                        return true;
+                        if (attachedBody.isBoss)
+                            explodeHealthFraction = EXPLODE_HEALTH_FRACTION_BOSS;
+
+                        if (attachedBody.isPlayerControlled)
+                            explodeHealthFraction = EXPLODE_HEALTH_FRACTION_PLAYER;
+                    }
+
+                    if (_lastHealthFraction <= explodeHealthFraction)
+                    {
+                        _lastHealthFraction = currentHealthFraction;
+                        return false;
+                    }
+
+                    if (currentHealthFraction > explodeHealthFraction)
+                    {
+                        return false;
                     }
                 }
-                else
-                {
-                    _lastHealthFraction = currentHealthFraction;
-                }
 
-                return false;
+                return true;
             }
         }
 
         [EntityStateType]
         class CountDownState : BaseState
         {
-            float _countDownTime;
+            float _countDownDuration;
 
             bool _hasDetonated;
 
@@ -301,9 +219,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 base.OnEnter();
 
-                if (_countDownVFXPrefab && attachedBody)
+                CharacterBody attachedBody = explodeOnLowHealthController.AttachedBody;
+
+                if (_countDownVFXPrefab)
                 {
-                    Transform vfxParent = attachedBody.coreTransform;
+                    Transform vfxParent = transform;
                     if (vfxParent)
                     {
                         _countDownVFXInstance = GameObject.Instantiate(_countDownVFXPrefab, vfxParent);
@@ -311,18 +231,24 @@ namespace RiskOfChaos.EffectDefinitions.Character
                         Transform vfxTransform = _countDownVFXInstance.transform;
                         vfxTransform.localPosition = Vector3.zero;
                         vfxTransform.localRotation = Quaternion.identity;
-                        vfxTransform.localScale *= (Mathf.Max(0.5f, attachedBody.radius) / vfxParent.lossyScale.ComponentMax()) * 2f;
+
+                        float radius = 1f;
+                        if (attachedBody)
+                        {
+                            radius = Mathf.Max(0.5f, attachedBody.radius);
+                        }
+
+                        vfxTransform.localScale *= (radius / vfxParent.lossyScale.ComponentMax()) * 2f;
                     }
                 }
 
+                float countDownDuration = 2f;
                 if (attachedBody && attachedBody.isBoss)
                 {
-                    _countDownTime = 3.5f;
+                    countDownDuration = 3.5f;
                 }
-                else
-                {
-                    _countDownTime = 2f;
-                }
+                
+                _countDownDuration = countDownDuration;
             }
 
             public override void OnExit()
@@ -339,44 +265,32 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 base.FixedUpdate();
 
-                if (NetworkServer.active)
+                if (!_hasDetonated && checkShouldDetonate())
                 {
-                    if (!_hasDetonated && checkShouldDetonate())
-                    {
-                        detonate();
-                        _hasDetonated = true;
-                    }
+                    detonate();
+                    _hasDetonated = true;
                 }
             }
 
             bool checkShouldDetonate()
             {
-                if (!attachedHealthComponent || !attachedHealthComponent.alive)
-                    return false;
-
-                if (fixedAge >= _countDownTime)
+                if (fixedAge >= _countDownDuration)
                     return true;
 
                 return false;
             }
 
-            public void TryForceDetonate()
-            {
-                if (_hasDetonated)
-                    return;
-
-                detonate();
-                _hasDetonated = true;
-            }
-
             void detonate()
             {
-                if (attachedBody)
+                if (isAuthority)
                 {
-                    explodeBody(attachedBody, gameObject);
+                    explodeOnLowHealthController.Detonate();
                 }
 
-                outer.SetState(new Idle());
+                if (NetworkServer.active)
+                {
+                    Destroy(gameObject);
+                }
             }
         }
     }
