@@ -36,14 +36,6 @@ namespace RiskOfChaos.Trackers
             SkillSlotModificationManager.OnStockAddChanged -= onGlobalStockAddChanged;
         }
 
-        void FixedUpdate()
-        {
-            if (!Skill)
-            {
-                Destroy(this);
-            }
-        }
-
         void onGlobalCooldownMultiplierChanged()
         {
             if (Skill)
