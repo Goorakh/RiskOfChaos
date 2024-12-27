@@ -77,6 +77,8 @@ namespace RiskOfChaos.ModificationController
                 RoR2Application.onFixedUpdate -= Update;
             }
 
+            refreshValueModifications();
+
             _isDisposed = true;
         }
 
