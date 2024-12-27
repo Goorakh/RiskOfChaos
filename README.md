@@ -151,7 +151,7 @@ Currently features 144 different effects.
 * Consume Random Item: Turns a random consumable item from every player into its consumed variant
 * Repair Random Item: Turns a random consumed item from every player into its regular variant
 * Heal Everyone: Spawns Healing Cores on every character
-* Grenade Bullets: All attacks are replaced with grenades, lasts 120 seconds
+* Grenade Bullets: All attacks are replaced with grenades, lasts 90 seconds
 * Enable Backstabs for All Damage: Enables Bandit's backstab passive for all damage, lasts 90 seconds
 </details>
 
