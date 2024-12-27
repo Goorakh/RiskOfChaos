@@ -14,6 +14,9 @@
 * Explosive Deaths:
   * No longer skips remaining countdown on death. Countdown time is now always consistent.
 
+* Enable Random Artifact:
+  * Fixed effect being able to select artifacts unavailable to player(s) (not unlocked or missing DLC)
+
 * Grenade Bullets:
   * Default duration: 120s -> 90s
 

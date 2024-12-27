@@ -14,7 +14,6 @@ using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World
@@ -92,10 +91,14 @@ namespace RiskOfChaos.EffectDefinitions.World
             return config?.SelectionWeight?.Value ?? 0f;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static bool canEnableArtifact(ArtifactIndex index)
         {
-            return getArtifactSelectionWeight(index) > 0f;
+            ArtifactDef artifactDef = ArtifactCatalog.GetArtifactDef(index);
+            return getArtifactSelectionWeight(index) > 0f &&
+                   artifactDef &&
+                   Run.instance &&
+                   (!artifactDef.unlockableDef || Run.instance.IsUnlockableUnlocked(artifactDef.unlockableDef)) &&
+                   (!artifactDef.requiredExpansion || Run.instance.IsExpansionEnabled(artifactDef.requiredExpansion));
         }
 
         static IEnumerable<ArtifactIndex> getAllAvailableArtifactIndices()
