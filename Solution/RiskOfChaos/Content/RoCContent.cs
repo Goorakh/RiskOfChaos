@@ -108,9 +108,40 @@ namespace RiskOfChaos.Content
                     Log.Error($"Unknown return type for content intializer {contentInitializerMethod.FullDescription()}");
                 }
 
-                args.ReportProgress((float)(i + 1) / contentInitializerMethods.Count);
+                args.ReportProgress(Util.Remap((float)(i + 1) / contentInitializerMethods.Count, 0f, 1f, 0f, 0.75f));
 
-                yield return 0;
+                yield return null;
+            }
+
+            List<GameObject> allPrefabs = [];
+
+            foreach (ItemDef itemDef in itemDefs)
+            {
+                if (itemDef.pickupModelPrefab)
+                {
+                    allPrefabs.Add(itemDef.pickupModelPrefab);
+                }
+            }
+
+            foreach (EffectDef effectDef in effectDefs)
+            {
+                GameObject effectPrefab = effectDef.prefab;
+                if (effectPrefab)
+                {
+                    allPrefabs.Add(effectPrefab);
+                }
+            }
+
+            allPrefabs.AddRange(bodyPrefabs);
+            allPrefabs.AddRange(masterPrefabs);
+            allPrefabs.AddRange(projectilePrefabs);
+            allPrefabs.AddRange(networkedPrefabs);
+            allPrefabs.AddRange(localPrefabs);
+
+            for (int i = 0; i < allPrefabs.Count; i++)
+            {
+                yield return PrefabInitializerAttribute.RunPrefabInitializers(allPrefabs[i]);
+                args.ReportProgress(Util.Remap((float)(i + 1) / allPrefabs.Count, 0f, 1f, 0.75f, 1f));
             }
 
             itemDefs.FlushAssets(_contentPack.itemDefs);
