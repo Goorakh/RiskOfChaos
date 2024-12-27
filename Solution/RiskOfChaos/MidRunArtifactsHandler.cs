@@ -42,72 +42,72 @@ namespace RiskOfChaos
 
         static void onArtifactStateChanged(ArtifactDef artifactDef, bool enabled)
         {
-            if (Stage.instance)
+            if (!Stage.instance)
+                return;
+            
+            if (enabled)
             {
-                if (artifactDef == RoR2Content.Artifacts.Sacrifice)
+                foreach (LocalUser user in LocalUserManager.readOnlyLocalUsersList)
                 {
-                    if (enabled)
-                    {
-                        onSacrificeEnabled();
-                    }
-                }
-                else if (artifactDef == RoR2Content.Artifacts.RandomSurvivorOnRespawn)
-                {
-                    if (enabled)
-                    {
-                        onMetamorphosisEnabled();
-                    }
-                }
-                else if (artifactDef == RoR2Content.Artifacts.SingleMonsterType)
-                {
-                    if (!enabled)
-                    {
-                        onKinDisabled();
-                    }
-                }
-                else if (artifactDef == RoR2Content.Artifacts.Enigma)
-                {
-                    if (enabled)
-                    {
-                        onEnigmaEnabled();
-                    }
-                }
-                else if (artifactDef == CU8Content.Artifacts.Devotion)
-                {
-                    if (enabled)
-                    {
-                        onDevotionEnabled();
-                    }
-                }
-                else if (artifactDef == CU8Content.Artifacts.Delusion)
-                {
-                    onDelusionEnabledOrDisabled(enabled);
-                }
-                else if (artifactDef == DLC2Content.Artifacts.Rebirth)
-                {
-                    if (enabled)
-                    {
-                        onRebirthEnabled();
-                    }
-                }
+                    if (user is null)
+                        continue;
 
-                CharacterBodyUtils.MarkAllBodyStatsDirty();
-
-                if (enabled)
-                {
-                    foreach (LocalUser user in LocalUserManager.readOnlyLocalUsersList)
+                    CharacterMaster localPlayerMaster = user.cachedMaster;
+                    if (localPlayerMaster)
                     {
-                        if (user is null)
-                            continue;
-
-                        CharacterMaster localPlayerMaster = user.cachedMaster;
-                        if (localPlayerMaster)
-                        {
-                            CharacterMasterNotificationQueue.PushArtifactNotification(localPlayerMaster, artifactDef);
-                        }
+                        CharacterMasterNotificationQueue.PushArtifactNotification(localPlayerMaster, artifactDef);
                     }
                 }
             }
+
+            if (artifactDef == RoR2Content.Artifacts.Sacrifice)
+            {
+                if (enabled)
+                {
+                    onSacrificeEnabled();
+                }
+            }
+            else if (artifactDef == RoR2Content.Artifacts.RandomSurvivorOnRespawn)
+            {
+                if (enabled)
+                {
+                    onMetamorphosisEnabled();
+                }
+            }
+            else if (artifactDef == RoR2Content.Artifacts.SingleMonsterType)
+            {
+                if (!enabled)
+                {
+                    onKinDisabled();
+                }
+            }
+            else if (artifactDef == RoR2Content.Artifacts.Enigma)
+            {
+                if (enabled)
+                {
+                    onEnigmaEnabled();
+                }
+            }
+            else if (artifactDef == CU8Content.Artifacts.Devotion)
+            {
+                if (enabled)
+                {
+                    onDevotionEnabled();
+                }
+            }
+            else if (artifactDef == CU8Content.Artifacts.Delusion)
+            {
+                onDelusionEnabledOrDisabled(enabled);
+            }
+            else if (artifactDef == DLC2Content.Artifacts.Rebirth)
+            {
+                if (enabled)
+                {
+                    onRebirthEnabled();
+                }
+            }
+
+            CharacterBodyUtils.MarkAllBodyStatsDirty();
         }
 
         static void onKinDisabled()
@@ -306,11 +306,14 @@ namespace RiskOfChaos
             {
                 foreach (NetworkUser networkUser in NetworkUser.readOnlyInstancesList)
                 {
-                    UserProfile profile = networkUser.localUser?.userProfile;
-                    if (profile != null && !string.IsNullOrEmpty(profile.RebirthItem))
+                    if (networkUser.isLocalPlayer)
                     {
-                        profile.RebirthItem = null;
-                        profile.RequestEventualSave();
+                        UserProfile profile = networkUser.localUser?.userProfile;
+                        if (profile != null && !string.IsNullOrEmpty(profile.RebirthItem))
+                        {
+                            profile.RebirthItem = null;
+                            profile.RequestEventualSave();
+                        }
                     }
                 }
             }
