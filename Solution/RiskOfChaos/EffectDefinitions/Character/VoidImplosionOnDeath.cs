@@ -1,55 +1,46 @@
 ﻿using HG;
 using Newtonsoft.Json;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Serialization.Converters;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Projectile;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("void_implosion_on_death", 60f, AllowDuplicates = false)]
-    [EffectConfigBackwardsCompatibility([
-        "Effect: Void Implosion on Death"
-    ])]
+    [EffectConfigBackwardsCompatibility("Effect: Void Implosion on Death")]
     public sealed class VoidImplosionOnDeath : NetworkBehaviour
     {
-        readonly record struct VoidImplosionProjectileInfo(GameObject ProjectilePrefab);
+        static GameObject _fallbackProjectilePrefab;
 
-        static readonly WeightedSelection<VoidImplosionProjectileInfo> _projectileSelection = new WeightedSelection<VoidImplosionProjectileInfo>();
+        static readonly SpawnPool<GameObject> _projectileSelection = new SpawnPool<GameObject>();
 
-        [SystemInitializer]
-        static IEnumerator Init()
+        [SystemInitializer(typeof(ExpansionUtils))]
+        static void Init()
         {
-            AsyncOperationHandle<GameObject> nullifierImplosionLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Nullifier/NullifierDeathBombProjectile.prefab");
-            AsyncOperationHandle<GameObject> jailerImplosionLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/VoidJailer/VoidJailerDeathBombProjectile.prefab");
-            AsyncOperationHandle<GameObject> devastatorImplosionLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/VoidMegaCrab/VoidMegaCrabDeathBombProjectile.prefab");
+            _projectileSelection.EnsureCapacity(3);
 
-            yield return AsyncOperationExtensions.WaitForAllLoaded([nullifierImplosionLoad, jailerImplosionLoad, devastatorImplosionLoad]);
-            
-            static void addChoice(AsyncOperationHandle<GameObject> prefabLoad, float weight)
-            {
-                if (!prefabLoad.Result)
-                {
-                    Log.Error($"Failed to load prefab {prefabLoad.LocationName}");
-                    return;
-                }
+            _projectileSelection.AddAssetEntry("RoR2/Base/Nullifier/NullifierDeathBombProjectile.prefab", new SpawnPoolEntryParameters(1f));
+            _projectileSelection.AddAssetEntry("RoR2/DLC1/VoidJailer/VoidJailerDeathBombProjectile.prefab", new SpawnPoolEntryParameters(0.3f, ExpansionUtils.DLC1));
+            _projectileSelection.AddAssetEntry("RoR2/DLC1/VoidMegaCrab/VoidMegaCrabDeathBombProjectile.prefab", new SpawnPoolEntryParameters(0.7f, ExpansionUtils.DLC1));
 
-                _projectileSelection.AddChoice(new VoidImplosionProjectileInfo(prefabLoad.Result), weight);
-            }
+            Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Nullifier/NullifierDeathBombProjectile.prefab").OnSuccess(fallbackProjectilePrefab => _fallbackProjectilePrefab = fallbackProjectilePrefab);
+        }
 
-            addChoice(nullifierImplosionLoad, 1f);
-            addChoice(jailerImplosionLoad, 0.3f);
-            addChoice(devastatorImplosionLoad, 0.7f);
+        [EffectCanActivate]
+        static bool CanActivate()
+        {
+            return _projectileSelection.AnyAvailable;
         }
 
         ChaosEffectComponent _effectComponent;
@@ -70,7 +61,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             _voidProjectilePrefabByBodyIndex = new GameObject[BodyCatalog.bodyCount];
             for (int i = 0; i < _voidProjectilePrefabByBodyIndex.Length; i++)
             {
-                _voidProjectilePrefabByBodyIndex[i] = _projectileSelection.Evaluate(rng.nextNormalizedFloat).ProjectilePrefab;
+                _voidProjectilePrefabByBodyIndex[i] = _projectileSelection.PickRandomEntry(rng);
             }
         }
 
@@ -95,14 +86,32 @@ namespace RiskOfChaos.EffectDefinitions.Character
             if (report.victimBodyIndex == BodyIndex.None)
                 return;
 
-            int index = (int)report.victimBodyIndex;
-            if (!ArrayUtils.IsInBounds(_voidProjectilePrefabByBodyIndex, index))
+            GameObject projectilePrefab = ArrayUtils.GetSafe(_voidProjectilePrefabByBodyIndex, (int)report.victimBodyIndex);
+            if (!projectilePrefab)
+            {
+                projectilePrefab = _fallbackProjectilePrefab;
+            }
+
+            if (!projectilePrefab)
+            {
+                Log.Error($"Failed to select void implosion projectile for body death: {BodyCatalog.GetBodyName(report.victimBodyIndex)}");
                 return;
+            }
+
+            Vector3 position = report.damageInfo.position;
+            if (report.victimBody)
+            {
+                position = report.victimBody.corePosition;
+            }
+            else if (report.victimMaster && report.victimMaster.lostBodyToDeath)
+            {
+                position = report.victimMaster.deathFootPosition;
+            }
 
             ProjectileManager.instance.FireProjectile(new FireProjectileInfo
             {
-                projectilePrefab = _voidProjectilePrefabByBodyIndex[index],
-                position = report.victimBody.corePosition,
+                projectilePrefab = projectilePrefab,
+                position = position,
                 rotation = Quaternion.identity
             });
         }
@@ -128,29 +137,31 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     bodyIndices.Add(bodyIndex);
                 }
 
-                SerializedProjectileBodyPairing[] pairings = new SerializedProjectileBodyPairing[bodyIndicesByProjectilePrefab.Count];
-                int currentIndex = 0;
+                List<SerializedProjectileBodyPairing> pairings = new List<SerializedProjectileBodyPairing>(bodyIndicesByProjectilePrefab.Count);
                 foreach (KeyValuePair<GameObject, List<BodyIndex>> kvp in bodyIndicesByProjectilePrefab)
                 {
                     GameObject projectilePrefab = kvp.Key;
                     List<BodyIndex> bodyIndices = kvp.Value;
 
-                    pairings[currentIndex] = new SerializedProjectileBodyPairing
+                    pairings.Add(new SerializedProjectileBodyPairing
                     {
                         ProjectileCatalogIndex = ProjectileCatalog.GetProjectileIndex(projectilePrefab),
                         BodyIncides = [.. bodyIndices]
-                    };
-
-                    currentIndex++;
+                    });
                 }
 
-                return pairings;
+                return [.. pairings];
             }
             set
             {
                 foreach (SerializedProjectileBodyPairing pairing in value)
                 {
                     GameObject projectilePrefab = ProjectileCatalog.GetProjectilePrefab(pairing.ProjectileCatalogIndex);
+                    if (!projectilePrefab)
+                    {
+                        projectilePrefab = _fallbackProjectilePrefab;
+                    }
+
                     foreach (BodyIndex bodyIndex in pairing.BodyIncides)
                     {
                         if (bodyIndex == BodyIndex.None)
@@ -158,7 +169,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                         if (!ArrayUtils.IsInBounds(_voidProjectilePrefabByBodyIndex, (int)bodyIndex))
                         {
-                            Log.Error($"Body index out of bounds: {bodyIndex} (0-{_voidProjectilePrefabByBodyIndex.Length})");
+                            Log.Error($"Body index out of bounds: {bodyIndex} (0-{_voidProjectilePrefabByBodyIndex.Length - 1})");
                             continue;
                         }
 

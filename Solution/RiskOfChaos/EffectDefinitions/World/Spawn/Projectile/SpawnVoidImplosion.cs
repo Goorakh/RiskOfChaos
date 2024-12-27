@@ -14,12 +14,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
     {
         static readonly SpawnPool<GameObject> _implosionProjectiles = new SpawnPool<GameObject>();
 
-        [SystemInitializer]
+        [SystemInitializer(typeof(ExpansionUtils))]
         static void Init()
         {
+            _implosionProjectiles.EnsureCapacity(3);
+
             _implosionProjectiles.AddAssetEntry("RoR2/Base/Nullifier/NullifierDeathBombProjectile.prefab", new SpawnPoolEntryParameters(1f));
-            _implosionProjectiles.AddAssetEntry("RoR2/DLC1/VoidJailer/VoidJailerDeathBombProjectile.prefab", new SpawnPoolEntryParameters(0.4f));
-            _implosionProjectiles.AddAssetEntry("RoR2/DLC1/VoidMegaCrab/VoidMegaCrabDeathBombProjectile.prefab", new SpawnPoolEntryParameters(0.4f));
+            _implosionProjectiles.AddAssetEntry("RoR2/DLC1/VoidJailer/VoidJailerDeathBombProjectile.prefab", new SpawnPoolEntryParameters(0.4f, ExpansionUtils.DLC1));
+            _implosionProjectiles.AddAssetEntry("RoR2/DLC1/VoidMegaCrab/VoidMegaCrabDeathBombProjectile.prefab", new SpawnPoolEntryParameters(0.4f, ExpansionUtils.DLC1));
         }
 
         [EffectCanActivate]
@@ -56,7 +58,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
                 ProjectileManager.instance.FireProjectile(new FireProjectileInfo
                 {
                     projectilePrefab = _projectilePrefab,
-                    position = playerBody.corePosition + new Vector3(0f, 5f, 0f)
+                    position = playerBody.corePosition + new Vector3(0f, 5f, 0f),
+                    rotation = Quaternion.identity
                 });
             }
         }

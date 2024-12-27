@@ -20,6 +20,9 @@
 * Revive Dead Characters:
   * Fixed revived characters often not facing the correct direction
 
+* Spawn Void Implosion & Everyone Implodes on Death:
+  * Fixed effect spawning SotV implosions (Jailer & Devastator) when SotV isn't enabled.
+
 * Duplicate Random Item Stack:
   * Changed 'Max Item Stacks' config default value: 1000 -> 0 (disabled)
 
