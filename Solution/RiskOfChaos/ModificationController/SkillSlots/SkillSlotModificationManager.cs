@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
-using RiskOfChaos.Trackers;
 using RoR2;
 using System;
 using System.Collections.Generic;
@@ -24,10 +23,13 @@ namespace RiskOfChaos.ModificationController.SkillSlots
             }
         }
 
-        public delegate void SkillSlotLockedDelegate(SkillSlot slot);
+        public delegate void SkillSlotStateChangedDelegate(SkillSlot slot);
 
-        public static event SkillSlotLockedDelegate OnSkillSlotLocked;
-        public static event SkillSlotLockedDelegate OnSkillSlotUnlocked;
+        public static event SkillSlotStateChangedDelegate OnSkillSlotLocked;
+        public static event SkillSlotStateChangedDelegate OnSkillSlotUnlocked;
+
+        public static event SkillSlotStateChangedDelegate OnSkillSlotStartForced;
+        public static event SkillSlotStateChangedDelegate OnSkillSlotEndForced;
 
         public static event Action OnCooldownMultiplierChanged;
 
@@ -35,13 +37,107 @@ namespace RiskOfChaos.ModificationController.SkillSlots
 
         ValueModificationProviderHandler<SkillSlotModificationProvider> _modificationProviderHandler;
 
-        public float CooldownMultiplier { get; private set; }
+        float _cooldownMultiplier = 1f;
+        public float CooldownMultiplier
+        {
+            get
+            {
+                return _cooldownMultiplier;
+            }
+            private set
+            {
+                if (_cooldownMultiplier == value)
+                    return;
 
-        public int StockAdd { get; private set; }
+                _cooldownMultiplier = value;
+                OnCooldownMultiplierChanged?.Invoke();
+            }
+        }
 
-        public SkillSlotMask LockedSlots { get; private set; }
+        int _stockAdd;
+        public int StockAdd
+        {
+            get
+            {
+                return _stockAdd;
+            }
+            private set
+            {
+                if (_stockAdd == value)
+                    return;
 
-        public SkillSlotMask ForceActivatedSlots { get; private set; }
+                _stockAdd = value;
+                OnStockAddChanged?.Invoke();
+            }
+        }
+
+        SkillSlotMask _lockedSlots;
+        public SkillSlotMask LockedSlots
+        {
+            get
+            {
+                return _lockedSlots;
+            }
+            private set
+            {
+                if (_lockedSlots == value)
+                    return;
+
+                SkillSlotMask previouslyLockedSlots = _lockedSlots;
+                _lockedSlots = value;
+
+                SkillSlotMask changedLockedSlots = previouslyLockedSlots ^ _lockedSlots;
+                foreach (SkillSlot changedSlot in changedLockedSlots)
+                {
+                    if (!previouslyLockedSlots.Contains(changedSlot))
+                    {
+                        Log.Debug($"Set skill slot '{changedSlot}' locked");
+
+                        OnSkillSlotLocked?.Invoke(changedSlot);
+                    }
+                    else
+                    {
+                        Log.Debug($"Set skill slot '{changedSlot}' unlocked");
+
+                        OnSkillSlotUnlocked?.Invoke(changedSlot);
+                    }
+                }
+            }
+        }
+
+        SkillSlotMask _forceActivatedSlots;
+        public SkillSlotMask ForceActivatedSlots
+        {
+            get
+            {
+                return _forceActivatedSlots;
+            }
+            private set
+            {
+                if (_forceActivatedSlots == value)
+                    return;
+
+                SkillSlotMask previouslyForceActivatedSlots = _forceActivatedSlots;
+                _forceActivatedSlots = value;
+
+                SkillSlotMask changedForceActivatedSlots = previouslyForceActivatedSlots ^ _forceActivatedSlots;
+                foreach (SkillSlot changedSlot in changedForceActivatedSlots)
+                {
+                    if (!previouslyForceActivatedSlots.Contains(changedSlot))
+                    {
+                        Log.Debug($"Set skill slot '{changedSlot}' force activated");
+
+                        OnSkillSlotStartForced?.Invoke(changedSlot);
+                    }
+                    else
+                    {
+                        Log.Debug($"Set skill slot '{changedSlot}' not force activated");
+
+                        OnSkillSlotEndForced?.Invoke(changedSlot);
+                    }
+                }
+            }
+        }
 
         void OnEnable()
         {
@@ -63,10 +159,6 @@ namespace RiskOfChaos.ModificationController.SkillSlots
 
         void refreshValueModifications(IReadOnlyCollection<SkillSlotModificationProvider> modificationProviders)
         {
-            float previousCooldownMultiplier = CooldownMultiplier;
-            int previousStockAdd = StockAdd;
-            SkillSlotMask prevouslyLockedSlots = LockedSlots;
-
             float cooldownMultiplier = 1f;
             int stockAdds = 0;
             SkillSlotMask lockedSlots = new SkillSlotMask();
@@ -84,33 +176,6 @@ namespace RiskOfChaos.ModificationController.SkillSlots
             StockAdd = stockAdds;
             LockedSlots = lockedSlots;
             ForceActivatedSlots = forceActivatedSlots;
-
-            if (Mathf.Abs(CooldownMultiplier - previousCooldownMultiplier) > 0.001f)
-            {
-                OnCooldownMultiplierChanged?.Invoke();
-            }
-
-            if (StockAdd != previousStockAdd)
-            {
-                OnStockAddChanged?.Invoke();
-            }
-
-            SkillSlotMask changedLockedSlots = prevouslyLockedSlots ^ LockedSlots;
-            foreach (SkillSlot changedSlot in changedLockedSlots)
-            {
-                if (!prevouslyLockedSlots.Contains(changedSlot))
-                {
-                    Log.Debug($"Set skill slot '{changedSlot}' locked");
-
-                    OnSkillSlotLocked?.Invoke(changedSlot);
-                }
-                else
-                {
-                    Log.Debug($"Set skill slot '{changedSlot}' unlocked");
-
-                    OnSkillSlotUnlocked?.Invoke(changedSlot);
-                }
-            }
         }
     }
 }

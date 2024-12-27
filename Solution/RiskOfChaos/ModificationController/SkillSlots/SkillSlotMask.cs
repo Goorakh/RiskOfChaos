@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace RiskOfChaos.ModificationController.SkillSlots
 {
@@ -13,24 +14,23 @@ namespace RiskOfChaos.ModificationController.SkillSlots
 
         static SkillSlotMask()
         {
-            _containedSlotCountLookup = new int[1 << SkillSlotUtils.SkillSlotCount];
+            const int LOOKUP_SIZE = 1 << SkillSlotUtils.SkillSlotCount;
+            _containedSlotCountLookup = new int[LOOKUP_SIZE];
 
-            for (int i = 0; i < _containedSlotCountLookup.Length; i++)
+            for (uint mask = 0; mask < LOOKUP_SIZE; mask++)
             {
                 int containedSlotCount = 0;
-                for (int slot = 0; slot < SkillSlotUtils.SkillSlotCount; slot++)
+                for (SkillSlot slot = 0; slot <= SkillSlotUtils.MaxSlot; slot++)
                 {
-                    if ((i & (1 << slot)) != 0)
+                    if (SkillSlotUtils.GetSkillSlotBit(mask, slot))
                     {
                         containedSlotCount++;
                     }
                 }
 
-                _containedSlotCountLookup[i] = containedSlotCount;
+                _containedSlotCountLookup[mask] = containedSlotCount;
             }
         }
-
-        public const int MASK_SIZE = sizeof(uint) * 8;
 
         public readonly uint Mask;
 
@@ -45,7 +45,7 @@ namespace RiskOfChaos.ModificationController.SkillSlots
 
         public SkillSlotMask(uint mask)
         {
-            Mask = mask;
+            Mask = mask & SkillSlotUtils.ValidSkillSlotMask;
         }
 
         public readonly bool Contains(SkillSlot skillSlot)
@@ -53,7 +53,33 @@ namespace RiskOfChaos.ModificationController.SkillSlots
             return SkillSlotUtils.GetSkillSlotBit(Mask, skillSlot);
         }
 
-        public override int GetHashCode()
+        public override readonly string ToString()
+        {
+            if ((Mask & SkillSlotUtils.ValidSkillSlotMask) == 0)
+                return string.Empty;
+
+            StringBuilder stringBuilder = HG.StringBuilderPool.RentStringBuilder();
+
+            for (SkillSlot slot = 0; slot <= SkillSlotUtils.MaxSlot; slot++)
+            {
+                if (Contains(slot))
+                {
+                    if (stringBuilder.Length > 0)
+                    {
+                        stringBuilder.Append(" | ");
+                    }
+
+                    stringBuilder.Append(slot.ToString("G"));
+                }
+            }
+
+            string result = stringBuilder.ToString();
+            stringBuilder = HG.StringBuilderPool.ReturnStringBuilder(stringBuilder);
+
+            return result;
+        }
+
+        public override readonly int GetHashCode()
         {
             return Mask.GetHashCode();
         }
@@ -68,22 +94,32 @@ namespace RiskOfChaos.ModificationController.SkillSlots
             return Mask == other.Mask;
         }
 
-        public static SkillSlotMask operator |(in SkillSlotMask lhs, in SkillSlotMask rhs)
+        public static bool operator ==(SkillSlotMask lhs, SkillSlotMask rhs)
+        {
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(SkillSlotMask lhs, SkillSlotMask rhs)
+        {
+            return !(lhs == rhs);
+        }
+
+        public static SkillSlotMask operator |(SkillSlotMask lhs, SkillSlotMask rhs)
         {
             return new SkillSlotMask(lhs.Mask | rhs.Mask);
         }
 
-        public static SkillSlotMask operator &(in SkillSlotMask lhs, in SkillSlotMask rhs)
+        public static SkillSlotMask operator &(SkillSlotMask lhs, SkillSlotMask rhs)
         {
             return new SkillSlotMask(lhs.Mask & rhs.Mask);
         }
 
-        public static SkillSlotMask operator ^(in SkillSlotMask lhs, in SkillSlotMask rhs)
+        public static SkillSlotMask operator ^(SkillSlotMask lhs, SkillSlotMask rhs)
         {
             return new SkillSlotMask(lhs.Mask ^ rhs.Mask);
         }
 
-        public static SkillSlotMask operator ~(in SkillSlotMask slotMask)
+        public static SkillSlotMask operator ~(SkillSlotMask slotMask)
         {
             return new SkillSlotMask(~slotMask.Mask);
         }
@@ -120,7 +156,7 @@ namespace RiskOfChaos.ModificationController.SkillSlots
 
             int _position = -1;
 
-            public Enumerator(in SkillSlotMask mask)
+            public Enumerator(SkillSlotMask mask)
             {
                 _mask = mask;
             }

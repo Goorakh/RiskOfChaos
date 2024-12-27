@@ -57,7 +57,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             SkillSlotMask nonLockedNonForceActivatedSlotsMask = ~(lockedSlotsMask | forceActivatesSlotsMask);
 
-            List<SkillSlot> forcableSkillSlots = new List<SkillSlot>(SkillSlotUtils.SkillSlotCount);
+            List<SkillSlot> forcableSkillSlots = new List<SkillSlot>(nonLockedNonForceActivatedSlotsMask.ContainedSlotCount);
             foreach (SkillSlot availableSlot in nonLockedNonForceActivatedSlotsMask)
             {
                 if (canForceSkill(availableSlot))

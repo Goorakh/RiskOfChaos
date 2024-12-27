@@ -65,7 +65,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             SkillSlotMask nonLockedSlots = ~SkillSlotModificationManager.Instance.LockedSlots;
 
-            List<SkillSlot> lockableSkillSlots = new List<SkillSlot>(SkillSlotUtils.SkillSlotCount);
+            List<SkillSlot> lockableSkillSlots = new List<SkillSlot>(nonLockedSlots.ContainedSlotCount);
 
             foreach (SkillSlot nonLockedSlot in nonLockedSlots)
             {
