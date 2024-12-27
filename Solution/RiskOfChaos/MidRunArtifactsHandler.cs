@@ -13,14 +13,21 @@ namespace RiskOfChaos
 {
     static class MidRunArtifactsHandler
     {
+        static InteractableSpawnCard _lemurianEggSpawnCard;
+
         [SystemInitializer]
-        static void InitListeners()
+        static void Init()
         {
             RunArtifactManager.onArtifactEnabledGlobal += RunArtifactManager_onArtifactEnabledGlobal;
             RunArtifactManager.onArtifactDisabledGlobal += RunArtifactManager_onArtifactDisabledGlobal;
 
             // Enabling/Disabling an artifact doesn't refresh the info panel, so Artifact of Kin display doesn't update if it's enabled or disabled mid-run
             SingleMonsterTypeChangedHook.OnSingleMonsterTypeChanged += EnemyInfoPanel.MarkDirty;
+
+            Addressables.LoadAssetAsync<InteractableSpawnCard>("RoR2/CU8/LemurianEgg/iscLemurianEgg.asset").OnSuccess(iscLemurianEgg =>
+            {
+                _lemurianEggSpawnCard = iscLemurianEgg;
+            });
         }
 
         static void RunArtifactManager_onArtifactEnabledGlobal(RunArtifactManager runArtifactManager, ArtifactDef artifactDef)
@@ -182,7 +189,7 @@ namespace RiskOfChaos
 
                 lemurianEggSpawnCard = new DirectorCard
                 {
-                    spawnCard = Addressables.LoadAssetAsync<InteractableSpawnCard>("RoR2/CU8/LemurianEgg/iscLemurianEgg.asset").WaitForCompletion()
+                    spawnCard = _lemurianEggSpawnCard
                 };
             }
 
