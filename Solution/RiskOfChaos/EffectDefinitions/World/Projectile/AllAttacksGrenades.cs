@@ -1,16 +1,15 @@
 ﻿using RiskOfChaos.Content;
-using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.ModificationController.Projectile;
 using RiskOfChaos.ModificationController;
+using RiskOfChaos.ModificationController.Projectile;
+using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;
-using RoR2;
 
 namespace RiskOfChaos.EffectDefinitions.World.Projectile
 {
-    [ChaosTimedEffect("all_attacks_grenades", 120f, AllowDuplicates = false)]
+    [ChaosTimedEffect("all_attacks_grenades", 90f, AllowDuplicates = false)]
     public sealed class AllAttacksGrenades : MonoBehaviour
     {
         [EffectCanActivate]

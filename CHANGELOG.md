@@ -14,6 +14,9 @@
 * Explosive Deaths:
   * No longer skips remaining countdown on death. Countdown time is now always consistent.
 
+* Grenade Bullets:
+  * Default duration: 120s -> 90s
+
 * Revive Dead Characters:
   * Fixed revived characters often not facing the correct direction
 
