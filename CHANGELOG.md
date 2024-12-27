@@ -8,14 +8,17 @@
 * Delayed Attacks, Repeating Projectiles, Grenade Bullets:
   * Fixed effects not applying to Mercenary Eviscerate
 
+* Swap Health & Shield:
+  * Fixed effect not working.
+
 * Explosive Deaths:
   * No longer skips remaining countdown on death. Countdown time is now always consistent.
 
+* Revive Dead Characters:
+  * Fixed revived characters often not facing the correct direction
+
 * Duplicate Random Item Stack:
   * Changed 'Max Item Stacks' config default value: 1000 -> 0 (disabled)
-
-* Swap Health & Shield:
-  * Fixed effect not working.
 
 **2.3.1 Changes:**
 

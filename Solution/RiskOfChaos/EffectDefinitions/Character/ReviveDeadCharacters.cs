@@ -24,6 +24,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
     {
         static GameObject _bossCombatSquadPrefab;
 
+        static GameObject _reviveEffectPrefab;
+
         [EffectConfig]
         static readonly ConfigHolder<int> _maxTrackedCharactersCount =
             ConfigFactory<int>.CreateConfig("Max Characters to Revive", 50)
@@ -44,6 +46,9 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             AsyncOperationHandle<GameObject> bossCombatSquadLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Core/BossCombatSquad.prefab");
             bossCombatSquadLoad.OnSuccess(bossCombatSquadPrefab => _bossCombatSquadPrefab = bossCombatSquadPrefab);
+
+            AsyncOperationHandle<GameObject> reviveEffectLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/ExtraLife/HippoRezEffect.prefab");
+            reviveEffectLoad.OnSuccess(reviveEffectPrefab => _reviveEffectPrefab = reviveEffectPrefab);
 
             GlobalEventManager.onCharacterDeathGlobal += damageReport =>
             {
@@ -145,7 +150,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             readonly CharacterMaster _master;
 
             readonly Vector3 _bodyPosition;
-            readonly Quaternion _bodyRotation;
+            readonly Vector3 _bodyForward;
 
             readonly BodyIndex _bodyIndex;
             readonly TeamIndex _teamIndex;
@@ -170,24 +175,39 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 _bodyIndex = deathReport.victimBodyIndex;
                 _teamIndex = deathReport.victimTeamIndex;
 
+                Vector3? position = null;
+                Vector3 forward = Vector3.forward;
+
                 CharacterBody victimBody = deathReport.victimBody;
+                CharacterMaster victimMaster = deathReport.victimMaster;
+
+                if (victimMaster)
+                {
+                    if (victimMaster.lostBodyToDeath)
+                    {
+                        position = victimMaster.deathFootPosition;
+                    }
+                }
+
                 if (victimBody)
                 {
-                    _bodyPosition = victimBody.footPosition;
-                    _bodyRotation = victimBody.transform.rotation;
+                    position = victimBody.footPosition;
+
+                    forward = victimBody.transform.forward;
+                    if (victimBody.characterDirection)
+                    {
+                        forward = victimBody.characterDirection.forward;
+                    }
 
                     if (victimBody.TryGetComponent(out DeathRewards deathRewards))
                     {
                         _deathRewardsData = new DeathRewardsData(deathRewards);
                     }
                 }
-                else
-                {
-                    _bodyPosition = SpawnUtils.GetBestValidRandomPlacementRule().EvaluateToPosition(RoR2Application.rng);
-                    _bodyRotation = Quaternion.identity;
-                }
 
-                CharacterMaster victimMaster = deathReport.victimMaster;
+                _bodyPosition = position ?? SpawnUtils.GetBestValidRandomPlacementRule().EvaluateToPosition(RoR2Application.rng);
+                _bodyForward = forward;
+
                 if (victimMaster)
                 {
                     if (victimMaster.loadout != null)
@@ -206,7 +226,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     }
                 }
 
-                Inventory inventory = victimMaster.inventory;
+                Inventory inventory = victimMaster ? victimMaster.inventory : null;
                 if (inventory)
                 {
                     _itemStacks = ItemCatalog.RequestItemStackArray();
@@ -223,22 +243,26 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             public readonly void Respawn()
             {
-                bool respawned;
+                bool respawned = false;
+
+                Quaternion bodyRotation = Util.QuaternionSafeLookRotation(_bodyForward);
 
                 CharacterMaster master = _master;
                 if (master)
                 {
-                    // Body already exists, we've likely missed a respawn, ignore
+                    // If body still exists, we've likely missed a respawn, ignore
                     CharacterBody body = master.GetBody();
-                    if ((body && body.healthComponent && body.healthComponent.alive) || master.IsExtraLifePendingServer())
+                    if ((!body || !body.healthComponent || !body.healthComponent.alive) && !master.IsExtraLifePendingServer())
                     {
-                        respawned = false;
-                    }
-                    else
-                    {
-                        PreventMetamorphosisRespawn.PreventionEnabled = RunArtifactManager.instance && RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.randomSurvivorOnRespawnArtifactDef);
-                        master.Respawn(_bodyPosition, _bodyRotation);
-                        PreventMetamorphosisRespawn.PreventionEnabled = false;
+                        PreventMetamorphosisRespawn.PreventionEnabled = true;
+                        try
+                        {
+                            master.Respawn(_bodyPosition, bodyRotation);
+                        }
+                        finally
+                        {
+                            PreventMetamorphosisRespawn.PreventionEnabled = false;
+                        }
 
                         respawned = true;
                     }
@@ -246,25 +270,26 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 else
                 {
                     MasterCatalog.MasterIndex masterIndex = MasterCatalog.FindAiMasterIndexForBody(_bodyIndex);
-                    if (!masterIndex.isValid)
+                    if (masterIndex.isValid)
+                    {
+                        master = new MasterSummon()
+                        {
+                            masterPrefab = MasterCatalog.GetMasterPrefab(masterIndex),
+                            position = _bodyPosition,
+                            rotation = bodyRotation,
+                            ignoreTeamMemberLimit = true,
+                            teamIndexOverride = _teamIndex,
+                            loadout = _loadout,
+                            inventorySetupCallback = this,
+                            preSpawnSetupCallback = preSpawnSetupCallback
+                        }.Perform();
+
+                        respawned = true;
+                    }
+                    else
                     {
                         Log.Warning($"No master index found for {BodyCatalog.GetBodyName(_bodyIndex)}");
-                        return;
                     }
-
-                    master = new MasterSummon()
-                    {
-                        masterPrefab = MasterCatalog.GetMasterPrefab(masterIndex),
-                        position = _bodyPosition,
-                        rotation = _bodyRotation,
-                        ignoreTeamMemberLimit = true,
-                        teamIndexOverride = _teamIndex,
-                        loadout = _loadout,
-                        inventorySetupCallback = this,
-                        preSpawnSetupCallback = preSpawnSetupCallback
-                    }.Perform();
-
-                    respawned = true;
                 }
 
                 if (_loadout != null)
@@ -275,25 +300,31 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (!respawned)
                     return;
 
-                GameObject reviveEffect = LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/HippoRezEffect");
-                if (reviveEffect)
+                CharacterBody newBody = master.GetBody();
+
+                if (_reviveEffectPrefab)
                 {
-                    EffectManager.SpawnEffect(reviveEffect, new EffectData
+                    Vector3 reviveEffectPosition = _bodyPosition;
+                    if (newBody)
                     {
-                        origin = _bodyPosition,
-                        rotation = _bodyRotation
+                        reviveEffectPosition = newBody.footPosition;
+                    }
+
+                    EffectManager.SpawnEffect(_reviveEffectPrefab, new EffectData
+                    {
+                        origin = reviveEffectPosition,
+                        rotation = bodyRotation
                     }, true);
                 }
 
-                GameObject bodyObj = master.GetBodyObject();
-                if (bodyObj)
+                if (newBody)
                 {
-                    foreach (EntityStateMachine entityStateMachine in bodyObj.GetComponents<EntityStateMachine>())
+                    foreach (EntityStateMachine entityStateMachine in newBody.GetComponents<EntityStateMachine>())
                     {
                         entityStateMachine.initialStateType = entityStateMachine.mainStateType;
                     }
 
-                    if (bodyObj.TryGetComponent(out DeathRewards deathRewards))
+                    if (newBody.TryGetComponent(out DeathRewards deathRewards))
                     {
                         _deathRewardsData.ApplyRewards(deathRewards);
                     }
