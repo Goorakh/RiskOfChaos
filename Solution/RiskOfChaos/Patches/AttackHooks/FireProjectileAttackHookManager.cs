@@ -36,7 +36,7 @@ namespace RiskOfChaos.Patches.AttackHooks
             attackInfo.PopulateFireProjectileInfo(ref fireProjectileInfo);
             projectileManager.FireProjectile(fireProjectileInfo);
         }
-
+        
         protected override bool tryReplace()
         {
             int projectileIndex = ProjectileCatalog.GetProjectileIndex(_fireProjectileInfo.projectilePrefab);

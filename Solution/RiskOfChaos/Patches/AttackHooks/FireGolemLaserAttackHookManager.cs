@@ -1,8 +1,6 @@
 ﻿using EntityStates.GolemMonster;
-using HG;
 using RoR2;
 using UnityEngine;
-using static UnityEngine.SendMouseEvents;
 
 namespace RiskOfChaos.Patches.AttackHooks
 {
