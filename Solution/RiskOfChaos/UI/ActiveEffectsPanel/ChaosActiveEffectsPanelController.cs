@@ -207,16 +207,13 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
                 }
             }
 
-            if (displayingEffectCount < _numDisplayingEffects)
+            for (int i = displayingEffectCount; i < _numDisplayingEffects; i++)
             {
-                for (int i = displayingEffectCount; i < _numDisplayingEffects; i++)
+                ChaosActiveEffectDisplayController activeEffectDisplay = _activeEffectDisplays[i];
+                if (activeEffectDisplay)
                 {
-                    ChaosActiveEffectDisplayController activeEffectDisplay = _activeEffectDisplays[i];
-                    if (activeEffectDisplay)
-                    {
-                        activeEffectDisplay.DisplayingEffect = null;
-                        activeEffectDisplay.gameObject.SetActive(false);
-                    }
+                    activeEffectDisplay.DisplayingEffect = null;
+                    activeEffectDisplay.gameObject.SetActive(false);
                 }
             }
 
