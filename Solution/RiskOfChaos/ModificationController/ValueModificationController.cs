@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.Components;
 using RiskOfChaos.Utilities.Interpolation;
+using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -64,7 +65,7 @@ namespace RiskOfChaos.ModificationController
         {
             if (_interpolation == null)
             {
-                Log.Warning($"Cannot set interpolation parameters of {name}, missing interpolation component");
+                Log.Warning($"Cannot set interpolation parameters of {Util.GetGameObjectHierarchyName(gameObject)}, missing interpolation component");
                 return;
             }
 

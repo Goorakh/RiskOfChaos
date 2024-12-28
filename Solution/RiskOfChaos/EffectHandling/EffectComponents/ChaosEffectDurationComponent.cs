@@ -119,7 +119,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
             {
                 if (Duration <= 0f)
                 {
-                    Log.Error($"No duration defined for effect {name} ({netId})");
+                    Log.Error($"No duration defined for effect {Util.GetGameObjectHierarchyName(gameObject)} ({netId})");
                 }
 
                 if (!_effectEnded)
@@ -157,7 +157,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         [Server]
         public void EndEffect()
         {
-            Log.Debug($"Ending timed effect {name} (id={netId})");
+            Log.Debug($"Ending timed effect {Util.GetGameObjectHierarchyName(gameObject)} (id={netId})");
             _effectComponent.RetireEffect();
         }
     }

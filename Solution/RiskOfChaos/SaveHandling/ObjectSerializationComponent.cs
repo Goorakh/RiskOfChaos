@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using RiskOfChaos.Content;
 using RiskOfChaos.SaveHandling.DataContainers;
 using RiskOfChaos.Utilities.Extensions;
+using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -99,7 +100,7 @@ namespace RiskOfChaos.SaveHandling
                 Type componentType = component.GetType();
                 if (_serializationInfoByComponentType.ContainsKey(componentType))
                 {
-                    Log.Error($"Duplicate component types ({componentType.FullName}) for serialization on object {name}, this is not supported");
+                    Log.Error($"Duplicate component types ({componentType.FullName}) for serialization on object {Util.GetGameObjectHierarchyName(gameObject)}, this is not supported");
                     continue;
                 }
 
@@ -184,7 +185,7 @@ namespace RiskOfChaos.SaveHandling
             {
                 if (!_serializationInfoByComponentType.TryGetValue(serializedComponent.ComponentType, out ComponentSerializationInfo serializationInfo))
                 {
-                    Log.Warning($"Serializable object {name} is missing component found in serialized data: {serializedComponent.ComponentType}");
+                    Log.Warning($"Serializable object {Util.GetGameObjectHierarchyName(gameObject)} is missing component found in serialized data: {serializedComponent.ComponentType}");
                     continue;
                 }
 
@@ -193,7 +194,7 @@ namespace RiskOfChaos.SaveHandling
                     SerializableMemberInfo serializableMember = serializationInfo.SerializableMembers.FirstOrDefault(m => string.Equals(m.Name, serializedField.Name));
                     if (serializableMember == null)
                     {
-                        Log.Warning($"Serializable object {name} component ({serializedComponent.ComponentType}) is missing field '{serializedField.Name}' found in serialized data");
+                        Log.Warning($"Serializable object {Util.GetGameObjectHierarchyName(gameObject)} component ({serializedComponent.ComponentType}) is missing field '{serializedField.Name}' found in serialized data");
                         continue;
                     }
 
@@ -204,7 +205,7 @@ namespace RiskOfChaos.SaveHandling
                     }
                     catch (Exception e)
                     {
-                        Log.Error_NoCallerPrefix($"Serializable object {name} failed to deserialize field value ({serializedComponent.ComponentType}.{serializedField.Name}): {e}");
+                        Log.Error_NoCallerPrefix($"Serializable object {Util.GetGameObjectHierarchyName(gameObject)} failed to deserialize field value ({serializedComponent.ComponentType}.{serializedField.Name}): {e}");
                         continue;
                     }
 

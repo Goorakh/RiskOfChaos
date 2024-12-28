@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.Utilities.Extensions;
+using RoR2;
 using UnityEngine;
 
 namespace RiskOfChaos.Components
@@ -13,17 +14,17 @@ namespace RiskOfChaos.Components
             {
                 _onDestroyed += value;
 
-                Log.Debug($"Added OnDestroy event to {gameObject}");
+                Log.Debug($"Added OnDestroy event to {Util.GetGameObjectHierarchyName(gameObject)}");
             }
             remove
             {
                 _onDestroyed -= value;
 
-                Log.Debug($"Removed OnDestroy event from {gameObject}");
+                Log.Debug($"Removed OnDestroy event from {Util.GetGameObjectHierarchyName(gameObject)}");
 
                 if (_onDestroyed == null)
                 {
-                    Log.Debug($"Removing OnDestroyEvent component from {gameObject}");
+                    Log.Debug($"Removing OnDestroyEvent component from {Util.GetGameObjectHierarchyName(gameObject)}");
                     Destroy(this);
                 }
             }

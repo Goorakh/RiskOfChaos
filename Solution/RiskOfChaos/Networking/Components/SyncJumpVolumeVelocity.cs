@@ -61,7 +61,7 @@ namespace RiskOfChaos.Networking.Components
             if (JumpVolume.jumpVelocity == _jumpVelocity)
                 return;
 
-            Log.Debug($"{name} ({netId}) Jump velocity changed: {JumpVolume.jumpVelocity} -> {_jumpVelocity}");
+            Log.Debug($"{Util.GetGameObjectHierarchyName(gameObject)} ({netId}) Jump velocity changed: {JumpVolume.jumpVelocity} -> {_jumpVelocity}");
 
             JumpVolume.jumpVelocity = _jumpVelocity;
         }

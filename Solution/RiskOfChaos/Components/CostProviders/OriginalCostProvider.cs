@@ -58,7 +58,7 @@ namespace RiskOfChaos.Components.CostProviders
         {
             if (!NetworkServer.active)
             {
-                Log.Error($"Added to {name} on client");
+                Log.Error($"Added to {Util.GetGameObjectHierarchyName(gameObject)} on client");
                 enabled = false;
                 return;
             }
@@ -80,7 +80,7 @@ namespace RiskOfChaos.Components.CostProviders
                 return;
             }
 
-            Log.Debug($"Determined base cost of {name}: {BaseCost} ({ActiveCostProvider.CostType})");
+            Log.Debug($"Determined base cost of {Util.GetGameObjectHierarchyName(gameObject)}: {BaseCost} ({ActiveCostProvider.CostType})");
         }
 
         void Start()
@@ -92,14 +92,14 @@ namespace RiskOfChaos.Components.CostProviders
                 {
                     BaseCost = multishopControllerCostProvider.BaseCost;
 
-                    Log.Debug($"Determined actual base cost of {name} from {multishopControllerCostProvider.name}: {BaseCost}");
+                    Log.Debug($"Determined actual base cost of {Util.GetGameObjectHierarchyName(gameObject)} from {Util.GetGameObjectHierarchyName(multishopControllerCostProvider.gameObject)}: {BaseCost}");
                 }
             }
 
             OriginalCostType = ActiveCostProvider.CostType;
             OriginalCost = ActiveCostProvider.Cost;
 
-            Log.Debug($"Initialized cost of {name}: {OriginalCostType} ({OriginalCost})");
+            Log.Debug($"Initialized cost of {Util.GetGameObjectHierarchyName(gameObject)}: {OriginalCostType} ({OriginalCost})");
 
             _isInitialized = true;
             InstanceTracker.Add(this);

@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.Utilities.Extensions;
+using RoR2;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -63,7 +64,7 @@ namespace RiskOfChaos.Components
             _hasAppliedOverrideMaterial = true;
             _appliedOverrideMaterial = overrideMaterial;
 
-            Log.Debug($"{gameObject} set override material: {overrideMaterial}");
+            Log.Debug($"{Util.GetGameObjectHierarchyName(gameObject)} set override material: {overrideMaterial}");
         }
 
         void restoreMaterials()
@@ -85,7 +86,7 @@ namespace RiskOfChaos.Components
             _appliedOverrideMaterial = null;
             _hasAppliedOverrideMaterial = false;
 
-            Log.Debug($"{gameObject} reset material");
+            Log.Debug($"{Util.GetGameObjectHierarchyName(gameObject)} reset material");
         }
 
         public void AddOverrideMaterial(PhysicMaterial material, int priority = 0)

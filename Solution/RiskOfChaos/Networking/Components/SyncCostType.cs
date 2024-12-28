@@ -99,7 +99,7 @@ namespace RiskOfChaos.Networking.Components
             if (_costProvider.CostType == CostType)
                 return;
 
-            Log.Debug($"{name} ({netId}): Cost type changed ({_costProvider.CostType}->{CostType})");
+            Log.Debug($"{Util.GetGameObjectHierarchyName(gameObject)} ({netId}): Cost type changed ({_costProvider.CostType}->{CostType})");
 
             _costProvider.CostType = CostType;
         }

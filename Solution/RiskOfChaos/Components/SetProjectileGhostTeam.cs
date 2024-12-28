@@ -21,7 +21,7 @@ namespace RiskOfChaos.Components
         {
             if (!_teamFilter && !_teamComponent)
             {
-                Log.Error($"No TeamFilter or TeamComponent available on projectile {_projectileController.gameObject}");
+                Log.Error($"No TeamFilter or TeamComponent available on projectile {Util.GetGameObjectHierarchyName(_projectileController.gameObject)}");
                 return;
             }
 

@@ -62,7 +62,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
                     // In this case, this situation is harmless, no need to print an error :)
                     if (!_serializationComponent || !_serializationComponent.IsLoadedFromSave)
                     {
-                        Log.Error($"Effect {name} ({netId}) is missing RNG seed, generating random seed.");
+                        Log.Error($"Effect {Util.GetGameObjectHierarchyName(gameObject)} ({netId}) is missing RNG seed, generating random seed.");
                     }
 
                     SetRngSeedServer(RoR2Application.rng.nextUlong);
@@ -95,7 +95,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         [Server]
         public void SetRngSeedServer(ulong seed)
         {
-            Log.Debug($"{name}: Server RNG seed {seed}");
+            Log.Debug($"{Util.GetGameObjectHierarchyName(gameObject)}: Server RNG seed {seed}");
 
             _rng = new Xoroshiro128Plus(seed);
         }
@@ -129,7 +129,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
 
             if (ChaosEffectIndex == ChaosEffectIndex.Invalid)
             {
-                Log.Error($"Effect controller {name} ({netId}) is missing an effect index");
+                Log.Error($"Effect controller {Util.GetGameObjectHierarchyName(gameObject)} ({netId}) is missing an effect index");
 
                 if (NetworkServer.active)
                 {
@@ -177,7 +177,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         {
             NetworkServer.Destroy(gameObject);
 
-            Log.Debug($"Retired effect controller {name} (id={netId})");
+            Log.Debug($"Retired effect controller {Util.GetGameObjectHierarchyName(gameObject)} (id={netId})");
         }
 
         public override bool OnSerialize(NetworkWriter writer, bool initialState)

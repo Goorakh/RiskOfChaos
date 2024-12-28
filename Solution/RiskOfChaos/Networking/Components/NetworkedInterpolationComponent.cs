@@ -139,7 +139,7 @@ namespace RiskOfChaos.Networking.Components
 
             if (wasInterpolating && isInterpolationOutComplete)
             {
-                Log.Debug($"Finished interpolation out for {name}");
+                Log.Debug($"Finished interpolation out for {Util.GetGameObjectHierarchyName(gameObject)}");
 
                 OnInterpolationOutComplete?.Invoke();
             }

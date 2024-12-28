@@ -4,6 +4,7 @@ using Newtonsoft.Json.Serialization;
 using RiskOfChaos.Content;
 using RiskOfChaos.SaveHandling.DataContainers;
 using RiskOfChaos.Serialization.Converters;
+using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -57,7 +58,7 @@ namespace RiskOfChaos.SaveHandling
                 }
                 catch (Exception e)
                 {
-                    Log.Error_NoCallerPrefix($"Failed to serialize object {serializationComponent.name}: {e}");
+                    Log.Error_NoCallerPrefix($"Failed to serialize object {Util.GetGameObjectHierarchyName(serializationComponent.gameObject)}: {e}");
                     continue;
                 }
 
@@ -97,11 +98,11 @@ namespace RiskOfChaos.SaveHandling
                     {
                         if (existingSingletonInstances.TryAdd(serializationComponent.AssetId, serializationComponent))
                         {
-                            Log.Debug($"Found serializable singleton object: {serializationComponent.name}");
+                            Log.Debug($"Found serializable singleton object: {Util.GetGameObjectHierarchyName(serializationComponent.gameObject)}");
                         }
                         else
                         {
-                            Log.Warning($"Multiple instances found of serializable object {serializationComponent.name} (id={serializationComponent.AssetId})");
+                            Log.Warning($"Multiple instances found of serializable object {Util.GetGameObjectHierarchyName(serializationComponent.gameObject)} (id={serializationComponent.AssetId})");
                         }
                     }
                 }
@@ -139,7 +140,7 @@ namespace RiskOfChaos.SaveHandling
                     }
                     catch (Exception e)
                     {
-                        Log.Error_NoCallerPrefix($"Failed to deserialize object {serializationComponent.name}: {e}");
+                        Log.Error_NoCallerPrefix($"Failed to deserialize object {Util.GetGameObjectHierarchyName(serializationComponent.gameObject)}: {e}");
                     }
                 }
             }

@@ -99,7 +99,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
             if (changedEnabledState)
             {
-                Log.Debug($"{(enabled ? "enabled" : "disabled")} effect activation signaler(s): {name}");
+                Log.Debug($"{(enabled ? "enabled" : "disabled")} effect activation signaler(s): {Util.GetGameObjectHierarchyName(gameObject)}");
             }
         }
     }
