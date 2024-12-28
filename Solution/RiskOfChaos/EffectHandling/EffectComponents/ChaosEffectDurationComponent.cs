@@ -16,6 +16,10 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
 
         public TimedEffectInfo TimedEffectInfo => _effectComponent ? _effectComponent.ChaosEffectInfo as TimedEffectInfo : null;
 
+        ObjectSerializationComponent _serializationComponent;
+
+        bool _effectEnded;
+
         bool _isInSceneTransition;
 
         [SyncVar]
@@ -75,6 +79,8 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
             _effectComponent.EffectDestructionHandledByComponent = true;
+
+            _serializationComponent = GetComponent<ObjectSerializationComponent>();
         }
 
         void OnEnable()
@@ -109,9 +115,6 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         [Server]
         void checkElapsed()
         {
-            if (SceneExitController.isRunning || _isInSceneTransition)
-                return;
-
             if (Elapsed >= Duration)
             {
                 if (Duration <= 0f)
@@ -119,6 +122,19 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
                     Log.Error($"No duration defined for effect {name} ({netId})");
                 }
 
+                if (!_effectEnded)
+                {
+                    if (_serializationComponent)
+                    {
+                        _serializationComponent.enabled = false;
+                    }
+                }
+
+                _effectEnded = true;
+            }
+
+            if (_effectEnded && !SceneExitController.isRunning && !_isInSceneTransition)
+            {
                 EndEffect();
             }
         }
