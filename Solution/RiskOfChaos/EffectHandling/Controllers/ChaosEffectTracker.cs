@@ -44,15 +44,20 @@ namespace RiskOfChaos.EffectHandling.Controllers
         }
 
         TimedEffectActivityInfo[] _timedEffectActivity;
-        readonly List<ChaosEffectComponent> _allActiveTimedEffects = [];
-        public ReadOnlyCollection<ChaosEffectComponent> AllActiveTimedEffects { get; private set; }
+        readonly List<ChaosEffectComponent> _allActiveTimedEffects;
+        public readonly ReadOnlyCollection<ChaosEffectComponent> AllActiveTimedEffects;
 
         ChaosEffectDispatcher _effectDispatcher;
+
+        ChaosEffectTracker()
+        {
+            _allActiveTimedEffects = [];
+            AllActiveTimedEffects = _allActiveTimedEffects.AsReadOnly();
+        }
 
         void Awake()
         {
             _effectDispatcher = GetComponent<ChaosEffectDispatcher>();
-            AllActiveTimedEffects = new ReadOnlyCollection<ChaosEffectComponent>(_allActiveTimedEffects);
         }
 
         void OnEnable()
