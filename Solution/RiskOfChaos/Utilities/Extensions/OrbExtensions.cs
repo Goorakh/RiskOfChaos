@@ -1,8 +1,8 @@
 ﻿using RiskOfChaos.Collections;
-using RiskOfChaos.Content;
 using RiskOfChaos.Utilities.Reflection;
 using RoR2;
 using RoR2.Orbs;
+using RoR2BepInExPack.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -85,6 +85,13 @@ namespace RiskOfChaos.Utilities.Extensions
 
         static readonly Dictionary<Type, CachedOrbFields> _cachedOrbFields = [];
 
+        class AdditionalOrbFields
+        {
+            public ProcChainMask? ProcChainMask;
+        }
+
+        static readonly FixedConditionalWeakTable<Orb, AdditionalOrbFields> _additionalOrbFields = new FixedConditionalWeakTable<Orb, AdditionalOrbFields>();
+
         static CachedOrbFields getOrCreateOrbFields(Type orbType)
         {
             if (_cachedOrbFields.TryGetValue(orbType, out CachedOrbFields orbFields))
@@ -122,7 +129,20 @@ namespace RiskOfChaos.Utilities.Extensions
             }
 
             CachedOrbFields orbFields = getOrCreateOrbFields(orb.GetType());
-            return orbFields.ProcChainMask.TryGet(orb, out procChainMask);
+            if (orbFields.ProcChainMask.TryGet(orb, out procChainMask))
+                return true;
+
+            if (_additionalOrbFields.TryGetValue(orb, out AdditionalOrbFields additionalOrbFields))
+            {
+                if (additionalOrbFields.ProcChainMask.HasValue)
+                {
+                    Log.Debug($"Retrieving ProcChainMask from additional orb fields entry for {orb}");
+                    procChainMask = additionalOrbFields.ProcChainMask.Value;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static bool TrySetProcChainMask(this Orb orb, ProcChainMask procChainMask)
@@ -131,7 +151,19 @@ namespace RiskOfChaos.Utilities.Extensions
                 return false;
 
             CachedOrbFields orbFields = getOrCreateOrbFields(orb.GetType());
-            return orbFields.ProcChainMask.TrySet(orb, procChainMask);
+            if (orbFields.ProcChainMask.TrySet(orb, procChainMask))
+                return true;
+
+            if (!_additionalOrbFields.TryGetValue(orb, out AdditionalOrbFields additionalOrbFields))
+            {
+                additionalOrbFields = new AdditionalOrbFields();
+                _additionalOrbFields.Add(orb, additionalOrbFields);
+
+                Log.Debug($"Adding ProcChainMask additional orb fields entry for {orb}");
+            }
+
+            additionalOrbFields.ProcChainMask = procChainMask;
+            return true;
         }
 
         public static bool TryGetTeamIndex(this Orb orb, out TeamIndex teamIndex)

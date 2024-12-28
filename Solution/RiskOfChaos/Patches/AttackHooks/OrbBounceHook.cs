@@ -421,22 +421,22 @@ namespace RiskOfChaos.Patches.AttackHooks
             newOrb.origin = oldOrbTargetPosition;
             newOrb.target = newTarget;
 
-            if (newOrb.TryGetProcChainMask(out ProcChainMask newOrbProcChainMask))
-            {
-                newOrbProcChainMask.AddModdedProc(CustomProcTypes.Bouncing);
-                newOrb.TrySetProcChainMask(newOrbProcChainMask);
-            }
+            if (!newOrb.TryGetProcChainMask(out ProcChainMask newOrbProcChainMask))
+                newOrbProcChainMask = new ProcChainMask();
+
+            newOrbProcChainMask.AddModdedProc(CustomProcTypes.Bouncing);
+            newOrb.TrySetProcChainMask(newOrbProcChainMask);
 
             Log.Debug($"Fired bounce of {orbInstance}, {bounceChain.BouncesRemaining} remaining");
             _orbBounceChains.Add(newOrb, bounceChain);
 
             OrbManager.instance.AddOrb(newOrb);
 
-            if (orbInstance.TryGetProcChainMask(out ProcChainMask orbProcChainMask))
-            {
-                orbProcChainMask.AddModdedProc(CustomProcTypes.BounceFinished);
-                orbInstance.TrySetProcChainMask(orbProcChainMask);
-            }
+            if (!orbInstance.TryGetProcChainMask(out ProcChainMask orbProcChainMask))
+                orbProcChainMask = new ProcChainMask();
+
+            orbProcChainMask.AddModdedProc(CustomProcTypes.BounceFinished);
+            orbInstance.TrySetProcChainMask(orbProcChainMask);
         }
     }
 }
