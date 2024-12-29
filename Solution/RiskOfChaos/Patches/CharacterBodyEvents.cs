@@ -3,20 +3,17 @@ using RoR2;
 
 namespace RiskOfChaos.Patches
 {
-    static class CharacterBodyRecalculateStatsHook
+    static class CharacterBodyEvents
     {
         public delegate void RecalculateStatsDelegate(CharacterBody body);
+        public delegate void BuffStackDelegate(CharacterBody body, BuffDef buffDef);
+
         static event RecalculateStatsDelegate _preRecalculateStats;
-        static event RecalculateStatsDelegate _postRecalculateStats;
-
-        static bool _appliedPatches;
-
         public static event RecalculateStatsDelegate PreRecalculateStats
         {
             add
             {
                 _preRecalculateStats += value;
-                tryApplyPatches();
                 CharacterBodyUtils.MarkAllBodyStatsDirty();
             }
             remove
@@ -26,12 +23,12 @@ namespace RiskOfChaos.Patches
             }
         }
 
+        static event RecalculateStatsDelegate _postRecalculateStats;
         public static event RecalculateStatsDelegate PostRecalculateStats
         {
             add
             {
                 _postRecalculateStats += value;
-                tryApplyPatches();
                 CharacterBodyUtils.MarkAllBodyStatsDirty();
             }
             remove
@@ -41,14 +38,16 @@ namespace RiskOfChaos.Patches
             }
         }
 
+        public static event BuffStackDelegate OnBuffFirstStackGained;
+
+        public static event BuffStackDelegate OnBuffFinalStackLost;
+
+        [SystemInitializer]
         static void tryApplyPatches()
         {
-            if (_appliedPatches)
-                return;
-
-            _appliedPatches = true;
-
             On.RoR2.CharacterBody.RecalculateStats += CharacterBody_RecalculateStats;
+            On.RoR2.CharacterBody.OnBuffFirstStackGained += CharacterBody_OnBuffFirstStackGained;
+            On.RoR2.CharacterBody.OnBuffFinalStackLost += CharacterBody_OnBuffFinalStackLost;
         }
 
         static void CharacterBody_RecalculateStats(On.RoR2.CharacterBody.orig_RecalculateStats orig, CharacterBody self)
@@ -56,6 +55,18 @@ namespace RiskOfChaos.Patches
             _preRecalculateStats?.Invoke(self);
             orig(self);
             _postRecalculateStats?.Invoke(self);
+        }
+
+        static void CharacterBody_OnBuffFirstStackGained(On.RoR2.CharacterBody.orig_OnBuffFirstStackGained orig, CharacterBody self, BuffDef buffDef)
+        {
+            orig(self, buffDef);
+            OnBuffFirstStackGained?.Invoke(self, buffDef);
+        }
+
+        static void CharacterBody_OnBuffFinalStackLost(On.RoR2.CharacterBody.orig_OnBuffFinalStackLost orig, CharacterBody self, BuffDef buffDef)
+        {
+            orig(self, buffDef);
+            OnBuffFinalStackLost?.Invoke(self, buffDef);
         }
     }
 }

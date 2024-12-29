@@ -1,6 +1,5 @@
-﻿using RiskOfChaos.Utilities.Extensions;
+﻿using RiskOfChaos.Patches;
 using RoR2;
-using System;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.Networking.Components
@@ -10,22 +9,14 @@ namespace RiskOfChaos.Networking.Components
         [SystemInitializer]
         static void Init()
         {
-            On.RoR2.HoldoutZoneController.Awake += (orig, self) =>
-            {
-                orig(self);
-
-                HoldoutZoneModifier zoneModifier = self.gameObject.EnsureComponent<HoldoutZoneModifier>();
-                zoneModifier.HoldoutZoneController = self;
-
-                if (self.minimumRadius == 0f)
-                {
-                    // Make sure all holdout zones have a minimum radius to avoid softlocks
-                    self.minimumRadius = 5f;
-                }
-            };
+            HoldoutZoneControllerEvents.OnHoldoutZoneControllerAwakeGlobal += onHoldoutZoneControllerAwakeGlobal;
         }
 
-        public static event Action<HoldoutZoneModifier> OnHoldoutZoneEnabled;
+        static void onHoldoutZoneControllerAwakeGlobal(HoldoutZoneController holdoutZoneController)
+        {
+            HoldoutZoneModifier zoneModifier = holdoutZoneController.gameObject.AddComponent<HoldoutZoneModifier>();
+            zoneModifier.HoldoutZoneController = holdoutZoneController;
+        }
 
         HoldoutZoneController _holdoutZoneController;
         public HoldoutZoneController HoldoutZoneController
@@ -50,29 +41,27 @@ namespace RiskOfChaos.Networking.Components
         }
 
         [SyncVar]
-        public float RadiusMultiplier;
+        public float RadiusMultiplier = 1f;
 
         [SyncVar]
-        public float ChargeRateMultiplier;
+        public float ChargeRateMultiplier = 1f;
 
         void subscribe(HoldoutZoneController zoneController)
         {
             zoneController.calcRadius += calcRadius;
             zoneController.calcChargeRate += calcChargeRate;
+            
+            if (zoneController.minimumRadius == 0f)
+            {
+                // Make sure all holdout zones have a minimum radius to avoid softlocks
+                zoneController.minimumRadius = 5f;
+            }
         }
 
         void unsubscribe(HoldoutZoneController zoneController)
         {
             zoneController.calcRadius -= calcRadius;
             zoneController.calcChargeRate -= calcChargeRate;
-        }
-
-        void Start()
-        {
-            if (HoldoutZoneController)
-            {
-                OnHoldoutZoneEnabled?.Invoke(this);
-            }
         }
 
         void OnEnable()
@@ -82,8 +71,6 @@ namespace RiskOfChaos.Networking.Components
             if (HoldoutZoneController)
             {
                 subscribe(HoldoutZoneController);
-
-                OnHoldoutZoneEnabled?.Invoke(this);
             }
         }
 

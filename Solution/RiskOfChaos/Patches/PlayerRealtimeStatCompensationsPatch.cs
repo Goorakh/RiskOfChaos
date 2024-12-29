@@ -9,7 +9,7 @@ namespace RiskOfChaos.Patches
         [SystemInitializer]
         static void Init()
         {
-            CharacterBodyRecalculateStatsHook.PostRecalculateStats += postRecalculateStats;
+            CharacterBodyEvents.PostRecalculateStats += postRecalculateStats;
 
             On.RoR2.Util.PlayAttackSpeedSound += Util_PlayAttackSpeedSound;
 

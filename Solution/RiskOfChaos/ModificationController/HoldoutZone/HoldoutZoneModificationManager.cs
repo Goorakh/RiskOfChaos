@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.Networking.Components;
+using RiskOfChaos.Trackers;
 using RoR2;
 using System.Collections.Generic;
 using UnityEngine;
@@ -31,23 +32,23 @@ namespace RiskOfChaos.ModificationController.HoldoutZone
 
             _modificationProviderHandler = new ValueModificationProviderHandler<IHoldoutZoneModificationProvider>(refreshAllHoldoutZoneModifications);
 
-            HoldoutZoneModifier.OnHoldoutZoneEnabled += onHoldoutZoneEnabled;
+            HoldoutZoneTracker.OnHoldoutZoneStartGlobal += onHoldoutZoneStartGlobal;
         }
 
         void OnDisable()
         {
             SingletonHelper.Unassign(ref _instance, this);
 
+            HoldoutZoneTracker.OnHoldoutZoneStartGlobal -= onHoldoutZoneStartGlobal;
+
             if (_modificationProviderHandler != null)
             {
                 _modificationProviderHandler.Dispose();
                 _modificationProviderHandler = null;
             }
-
-            HoldoutZoneModifier.OnHoldoutZoneEnabled -= onHoldoutZoneEnabled;
         }
 
-        void onHoldoutZoneEnabled(HoldoutZoneModifier holdoutZoneModifier)
+        void onHoldoutZoneStartGlobal(HoldoutZoneTracker holdoutZoneTracker)
         {
             _modificationProviderHandler?.MarkValueModificationsDirty();
         }

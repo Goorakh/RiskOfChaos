@@ -20,7 +20,7 @@ namespace RiskOfChaos.Patches
 
             On.RoR2.GlobalEventManager.OnHitEnemy += GlobalEventManager_OnHitEnemy;
 
-            On.RoR2.HealthComponent.TakeDamage += HealthComponent_TakeDamage;
+            HealthComponentHooks.PreTakeDamage += HealthComponentHooks_PreTakeDamage;
         }
 
         static void tryModifyDamageInfo(DamageInfo damageInfo)
@@ -48,10 +48,9 @@ namespace RiskOfChaos.Patches
             orig(self, damageInfo, victim);
         }
 
-        static void HealthComponent_TakeDamage(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo)
+        static void HealthComponentHooks_PreTakeDamage(HealthComponent healthComponent, DamageInfo damageInfo)
         {
             tryModifyDamageInfo(damageInfo);
-            orig(self, damageInfo);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using R2API;
+using RiskOfChaos.Patches;
 using RoR2;
 using UnityEngine;
 
@@ -34,10 +35,10 @@ namespace RiskOfChaos.Content
             BypassBlockSelf = DamageAPI.ReserveDamageType();
             BypassOSPSelf = DamageAPI.ReserveDamageType();
 
-            On.RoR2.HealthComponent.TakeDamageProcess += HealthComponent_TakeDamageProcess;
+            HealthComponentHooks.PreTakeDamage += HealthComponentHooks_PreTakeDamage;
         }
 
-        static void HealthComponent_TakeDamageProcess(On.RoR2.HealthComponent.orig_TakeDamageProcess orig, HealthComponent self, DamageInfo damageInfo)
+        static void HealthComponentHooks_PreTakeDamage(HealthComponent healthComponent, DamageInfo damageInfo)
         {
             GameObject attacker = damageInfo.attacker;
             if (damageInfo.inflictor && damageInfo.inflictor.TryGetComponent(out GenericOwnership ownership))
@@ -49,7 +50,7 @@ namespace RiskOfChaos.Content
                 }
             }
 
-            if (attacker == self.gameObject)
+            if (attacker == healthComponent.gameObject)
             {
                 if (damageInfo.damageType.HasModdedDamageType(BypassArmorSelf))
                     damageInfo.damageType |= DamageType.BypassArmor;
@@ -63,14 +64,12 @@ namespace RiskOfChaos.Content
 
             if (damageInfo.damageType.HasModdedDamageType(NonLethalToPlayers))
             {
-                CharacterBody body = self.body;
+                CharacterBody body = healthComponent.body;
                 if (body && body.isPlayerControlled)
                 {
                     damageInfo.damageType |= DamageType.NonLethal;
                 }
             }
-
-            orig(self, damageInfo);
         }
     }
 }

@@ -10,12 +10,12 @@ namespace RiskOfChaos.EffectDefinitions.Character
     {
         void Start()
         {
-            CharacterBodyRecalculateStatsHook.PostRecalculateStats += postRecalculateStats;
+            CharacterBodyEvents.PostRecalculateStats += postRecalculateStats;
         }
 
         void OnDestroy()
         {
-            CharacterBodyRecalculateStatsHook.PostRecalculateStats -= postRecalculateStats;
+            CharacterBodyEvents.PostRecalculateStats -= postRecalculateStats;
         }
 
         static void postRecalculateStats(CharacterBody body)

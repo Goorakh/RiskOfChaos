@@ -31,9 +31,8 @@ namespace RiskOfChaos.Content
             {
                 RecalculateStatsAPI.GetStatCoefficients += getCharacterStatCoefficients;
 
-                CharacterBodyRecalculateStatsHook.PostRecalculateStats += CharacterBodyRecalculateStatsHook_PostRecalculateStats;
-
-                On.RoR2.CharacterBody.OnBuffFirstStackGained += CharacterBody_OnBuffFirstStackGained;
+                CharacterBodyEvents.PostRecalculateStats += CharacterBodyRecalculateStatsHook_PostRecalculateStats;
+                CharacterBodyEvents.OnBuffFirstStackGained += CharacterBody_OnBuffFirstStackGained;
             }
 
             static void getCharacterStatCoefficients(CharacterBody body, RecalculateStatsAPI.StatHookEventArgs args)
@@ -55,25 +54,23 @@ namespace RiskOfChaos.Content
                 }
             }
 
-            static void CharacterBody_OnBuffFirstStackGained(On.RoR2.CharacterBody.orig_OnBuffFirstStackGained orig, CharacterBody self, BuffDef buffDef)
+            static void CharacterBody_OnBuffFirstStackGained(CharacterBody body, BuffDef buffDef)
             {
-                orig(self, buffDef);
-
                 if (buffDef == SetTo1Hp)
                 {
                     if (NetworkServer.active)
                     {
-                        HealthComponent healthComponent = self.healthComponent;
+                        HealthComponent healthComponent = body.healthComponent;
                         if (healthComponent)
                         {
                             healthComponent.Networkbarrier = 0f;
                         }
 
-                        if (self.isPlayerControlled)
+                        if (body.isPlayerControlled)
                         {
-                            self.AddTimedBuff(RoR2Content.Buffs.HiddenInvincibility, 1f);
+                            body.AddTimedBuff(RoR2Content.Buffs.HiddenInvincibility, 1f);
 
-                            Util.CleanseBody(self, false, false, false, true, false, false);
+                            Util.CleanseBody(body, false, false, false, true, false, false);
                         }
                     }
                 }

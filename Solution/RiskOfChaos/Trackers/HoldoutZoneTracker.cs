@@ -1,4 +1,5 @@
-﻿using RoR2;
+﻿using RiskOfChaos.Patches;
+using RoR2;
 using System;
 using UnityEngine;
 
@@ -11,15 +12,13 @@ namespace RiskOfChaos.Trackers
         [SystemInitializer]
         static void Init()
         {
-            On.RoR2.HoldoutZoneController.Awake += HoldoutZoneController_Awake;
+            HoldoutZoneControllerEvents.OnHoldoutZoneControllerAwakeGlobal += onHoldoutZoneControllerAwakeGlobal;
         }
 
-        static void HoldoutZoneController_Awake(On.RoR2.HoldoutZoneController.orig_Awake orig, HoldoutZoneController self)
+        static void onHoldoutZoneControllerAwakeGlobal(HoldoutZoneController holdoutZoneController)
         {
-            orig(self);
-
-            HoldoutZoneTracker holdoutZoneTracker = self.gameObject.AddComponent<HoldoutZoneTracker>();
-            holdoutZoneTracker.HoldoutZoneController = self;
+            HoldoutZoneTracker holdoutZoneTracker = holdoutZoneController.gameObject.AddComponent<HoldoutZoneTracker>();
+            holdoutZoneTracker.HoldoutZoneController = holdoutZoneController;
         }
 
         public HoldoutZoneController HoldoutZoneController { get; private set; }

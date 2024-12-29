@@ -10,8 +10,8 @@ namespace RiskOfChaos.Patches
         {
             Language.onCurrentLanguageChanged += Language_onCurrentLanguageChanged;
             Inventory.onInventoryChangedGlobal += Inventory_onInventoryChangedGlobal;
-            On.RoR2.CharacterBody.OnBuffFirstStackGained += CharacterBody_OnBuffFirstStackGained;
-            On.RoR2.CharacterBody.OnBuffFinalStackLost += CharacterBody_OnBuffFinalStackLost;
+            CharacterBodyEvents.OnBuffFirstStackGained += CharacterBody_OnBuffFirstStackGained;
+            CharacterBodyEvents.OnBuffFinalStackLost += CharacterBody_OnBuffFinalStackLost;
         }
 
         static void Language_onCurrentLanguageChanged()
@@ -30,18 +30,14 @@ namespace RiskOfChaos.Patches
             }
         }
 
-        static void CharacterBody_OnBuffFirstStackGained(On.RoR2.CharacterBody.orig_OnBuffFirstStackGained orig, CharacterBody self, BuffDef buffDef)
+        static void CharacterBody_OnBuffFirstStackGained(CharacterBody body, BuffDef buffDef)
         {
-            orig(self, buffDef);
-
-            BossUtils.TryRefreshBossTitleFor(self.master);
+            BossUtils.TryRefreshBossTitleFor(body.master);
         }
 
-        static void CharacterBody_OnBuffFinalStackLost(On.RoR2.CharacterBody.orig_OnBuffFinalStackLost orig, CharacterBody self, BuffDef buffDef)
+        static void CharacterBody_OnBuffFinalStackLost(CharacterBody body, BuffDef buffDef)
         {
-            orig(self, buffDef);
-
-            BossUtils.TryRefreshBossTitleFor(self.master);
+            BossUtils.TryRefreshBossTitleFor(body.master);
         }
     }
 }

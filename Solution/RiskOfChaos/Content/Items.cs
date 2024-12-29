@@ -62,7 +62,7 @@ namespace RiskOfChaos.Content
             [SystemInitializer]
             static void InitHooks()
             {
-                On.RoR2.HealthComponent.TakeDamage += HealthComponent_TakeDamage;
+                HealthComponentHooks.PreTakeDamage += HealthComponentHooks_PreTakeDamage;
 
                 On.RoR2.CharacterAI.BaseAI.FindEnemyHurtBox += On_BaseAI_FindEnemyHurtBox;
 
@@ -138,7 +138,7 @@ namespace RiskOfChaos.Content
                 }
             }
 
-            static void HealthComponent_TakeDamage(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo)
+            static void HealthComponentHooks_PreTakeDamage(HealthComponent healthComponent, DamageInfo damageInfo)
             {
                 if (NetworkServer.active &&
                     damageInfo != null &&
@@ -151,8 +151,6 @@ namespace RiskOfChaos.Content
                     damageInfo.damageType |= DamageType.BypassArmor | DamageType.BypassBlock | DamageType.BypassOneShotProtection | (DamageTypeCombo)DamageTypeExtended.SojournVehicleDamage;
                     damageInfo.damage = float.PositiveInfinity;
                 }
-
-                orig(self, damageInfo);
             }
 
             static HurtBox On_BaseAI_FindEnemyHurtBox(On.RoR2.CharacterAI.BaseAI.orig_FindEnemyHurtBox orig, BaseAI self, float maxDistance, bool full360Vision, bool filterByLoS)
