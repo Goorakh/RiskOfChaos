@@ -33,9 +33,16 @@ namespace RiskOfChaos.Components
                         InvincibleLemurianLogbookAdder.LemurianStatCollection statCollection = StatCollection;
                         if (statCollection != null)
                         {
-                            foreach (PlayerStatsComponent statsComponent in PlayerStatsComponent.instancesList)
+                            foreach (NetworkUser networkUser in NetworkUser.readOnlyInstancesList)
                             {
-                                statsComponent.currentStats.PushStatValue(statCollection.EncounteredStat, 1);
+                                if (networkUser.isParticipating)
+                                {
+                                    PlayerStatsComponent statsComponent = networkUser.masterPlayerStatsComponent;
+                                    if (statsComponent)
+                                    {
+                                        statsComponent.currentStats.PushStatValue(statCollection.EncounteredStat, 1);
+                                    }
+                                }
                             }
                         }
                     }
@@ -49,11 +56,21 @@ namespace RiskOfChaos.Components
             if (lemurianStatCollection == null)
                 return;
 
-            foreach (PlayerStatsComponent statsComponent in PlayerStatsComponent.instancesList)
+            foreach (NetworkUser networkUser in NetworkUser.readOnlyInstancesList)
             {
-                statsComponent.currentStats.PushStatValue(lemurianStatCollection.KilledStat, 1);
+                if (networkUser.isParticipating)
+                {
+                    PlayerStatsComponent statsComponent = networkUser.masterPlayerStatsComponent;
+                    if (statsComponent)
+                    {
+                        statsComponent.currentStats.PushStatValue(lemurianStatCollection.KilledStat, 1);
+                    }
+                }
+            }
 
-                statsComponent.currentStats.AddUnlockable(lemurianStatCollection.LogUnlockableDef);
+            if (Run.instance)
+            {
+                Run.instance.GrantUnlockToAllParticipatingPlayers(lemurianStatCollection.LogUnlockableDef);
             }
 
             Log.Debug($"Recorded Leonard death. attacker={Util.GetBestMasterName(damageReport.attackerMaster)}");
@@ -65,15 +82,29 @@ namespace RiskOfChaos.Components
             if (lemurianStatCollection == null)
                 return;
 
-            StatSheet victimStatSheet = PlayerStatsComponent.FindMasterStatSheet(damageReport.victimMaster);
-            if (victimStatSheet == null)
-                return;
+            if (damageReport.victimMaster)
+            {
+                PlayerCharacterMasterController victimPlayerMasterController = damageReport.victimMaster.playerCharacterMasterController;
+                if (victimPlayerMasterController)
+                {
+                    NetworkUser victimNetworkUser = victimPlayerMasterController.networkUser;
+                    if (victimNetworkUser)
+                    {
+                        PlayerStatsComponent victimStatsComponent = victimNetworkUser.masterPlayerStatsComponent;
+                        if (victimStatsComponent)
+                        {
+                            victimStatsComponent.currentStats.PushStatValue(lemurianStatCollection.KilledByStat, 1);
+                        }
 
-            victimStatSheet.PushStatValue(lemurianStatCollection.KilledByStat, 1);
+                        if (!victimNetworkUser.unlockables.Contains(lemurianStatCollection.LogUnlockableDef))
+                        {
+                            victimNetworkUser.ServerHandleUnlock(lemurianStatCollection.LogUnlockableDef);
+                        }
+                    }
+                }
 
-            victimStatSheet.AddUnlockable(lemurianStatCollection.LogUnlockableDef);
-
-            Log.Debug($"Recorded Leonard player kill. victim={Util.GetBestMasterName(damageReport.victimMaster)}");
+                Log.Debug($"Recorded Leonard player kill. victim={Util.GetBestMasterName(damageReport.victimMaster)}");
+            }
         }
     }
 }
