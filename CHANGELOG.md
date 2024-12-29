@@ -20,6 +20,9 @@
 * Grenade Bullets:
   * Default duration: 120s -> 90s
 
+* You and a super intelligent Lemurian:
+  * Fixed logbook entries showing incorrect move speed
+
 * Revive Dead Characters:
   * Fixed revived characters often not facing the correct direction
 

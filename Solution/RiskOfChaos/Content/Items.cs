@@ -86,12 +86,6 @@ namespace RiskOfChaos.Content
                 if (!inventory)
                     return;
 
-                if (inventory.GetItemCount(InvincibleLemurianMarker) > 0)
-                {
-                    args.attackSpeedReductionMultAdd += 0.5f;
-                    args.moveSpeedReductionMultAdd += 1f;
-                }
-
                 if (inventory.GetItemCount(MinAllyRegen) > 0)
                 {
                     const float TARGET_BASE_REGEN = 2.5f;

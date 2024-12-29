@@ -45,12 +45,17 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
             const CharacterBody.BodyFlags INVINCIBLE_LEMURIAN_BODY_FLAGS = CharacterBody.BodyFlags.IgnoreFallDamage | CharacterBody.BodyFlags.ImmuneToExecutes | CharacterBody.BodyFlags.ImmuneToVoidDeath | CharacterBody.BodyFlags.ImmuneToLava;
 
+            const float MOVE_SPEED_MULT = 1f / 2f;
+            const float ATTACK_SPEED_MULT = 1f / 1.5f;
+
             // InvincibleLemurian
             {
                 GameObject bodyPrefabObj = lemurianBodyPrefabLoad.Result.InstantiateNetworkedPrefab("InvincibleLemurianBody");
                 CharacterBody bodyPrefab = bodyPrefabObj.GetComponent<CharacterBody>();
                 bodyPrefab.baseNameToken = "INVINCIBLE_LEMURIAN_BODY_NAME";
                 bodyPrefab.bodyFlags = INVINCIBLE_LEMURIAN_BODY_FLAGS;
+                bodyPrefab.baseMoveSpeed *= MOVE_SPEED_MULT;
+                bodyPrefab.baseAttackSpeed *= ATTACK_SPEED_MULT;
 
                 Destroy(bodyPrefabObj.GetComponent<DeathRewards>());
 
@@ -89,6 +94,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 CharacterBody bodyPrefab = bodyPrefabObj.GetComponent<CharacterBody>();
                 bodyPrefab.baseNameToken = "INVINCIBLE_LEMURIAN_ELDER_BODY_NAME";
                 bodyPrefab.bodyFlags = INVINCIBLE_LEMURIAN_BODY_FLAGS;
+                bodyPrefab.baseMoveSpeed *= MOVE_SPEED_MULT;
+                bodyPrefab.baseAttackSpeed *= ATTACK_SPEED_MULT;
 
                 Destroy(bodyPrefabObj.GetComponent<DeathRewards>());
 
