@@ -22,6 +22,7 @@
 
 * You and a super intelligent Lemurian:
   * Fixed logbook entries showing incorrect move speed
+  * Swapped log entries
 
 * Revive Dead Characters:
   * Fixed revived characters often not facing the correct direction
