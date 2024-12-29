@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 144 different effects.
+Currently features 145 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -153,6 +153,7 @@ Currently features 144 different effects.
 * Heal Everyone: Spawns Healing Cores on every character
 * Grenade Bullets: All attacks are replaced with grenades, lasts 90 seconds
 * Enable Backstabs for All Damage: Enables Bandit's backstab passive for all damage, lasts 90 seconds
+* Spawn Fake Teleporter: Spawns a fake teleporter somewhere on the stage.
 </details>
 
 <hr>

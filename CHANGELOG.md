@@ -2,6 +2,9 @@
 
 **-.-.-**
 
+* Added 1 effect:
+  * Spawn Fake Teleporter: Spawns a fake teleporter somewhere on the stage.
+
 * Reworked 1 Effect:
   * Always Sprinting: Now also forces all characters to constantly move
 

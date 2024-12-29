@@ -37,5 +37,8 @@
         "ITEM_CORRUPTION_RULE_ADD_MESSAGE": "<style=cEvent>{1} now corrupts all {0}</color>",
 
         "RANDOM_ENEMY_SPAWN_MESSAGE": "<style=cWorldEvent><color=#FFFFFF>{0}</color> has been summoned to fight.</style>",
+
+        "PLAYER_ACTIVATED_FAKE_TELEPORTER_2P": "<style=cEvent>You have chosen... <style=cDeath><b>Poorly</b> <sprite name=\"TP\" tint=1></style>.</style>",
+        "PLAYER_ACTIVATED_FAKE_TELEPORTER": "<style=cEvent>{0} has chosen... <style=cDeath><b>Poorly</b> <sprite name=\"TP\" tint=1></style>.</style>",
     }
 }
