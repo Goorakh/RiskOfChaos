@@ -26,6 +26,11 @@
 * Spawn Void Implosion & Everyone Implodes on Death:
   * Fixed effect spawning SotV implosions (Jailer & Devastator) when SotV isn't enabled.
 
+* Scrambled Text:
+  * Fixed stage counter not scrambling properly
+  * Fixed monster level display not scrambling properly
+  * Fixed Simulacrum wave counter not scrambling properly
+
 * Duplicate Random Item Stack:
   * Changed 'Max Item Stacks' config default value: 1000 -> 0 (disabled)
 
