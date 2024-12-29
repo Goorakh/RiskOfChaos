@@ -86,10 +86,10 @@ namespace RiskOfChaos.Patches.AttackHooks
             if (_bulletBounceInfos.TryGetValue(bulletAttack, out BulletBounceInfo bounceInfo))
             {
                 bounceInfo.Deconstruct(out AttackInfo attackInfo,
-                                               out BulletAttack.BulletHit lastHit,
-                                               out int maxBounces,
-                                               out int bouncedCompleted,
-                                               out BulletBounceDelegate onBounceHit);
+                                       out BulletAttack.BulletHit lastHit,
+                                       out int maxBounces,
+                                       out int bouncedCompleted,
+                                       out BulletBounceDelegate onBounceHit);
 
                 onBounceHit?.Invoke(bulletAttack, bounceInfo);
 
