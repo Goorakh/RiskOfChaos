@@ -183,7 +183,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     float explodeHealthFraction = EXPLODE_HEALTH_FRACTION_DEFAULT;
                     if (attachedBody)
                     {
-                        if (attachedBody.isBoss)
+                        if (attachedBody.isChampion)
                             explodeHealthFraction = EXPLODE_HEALTH_FRACTION_BOSS;
 
                         if (attachedBody.isPlayerControlled)
@@ -243,7 +243,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 }
 
                 float countDownDuration = 2f;
-                if (attachedBody && attachedBody.isBoss)
+                if (attachedBody && attachedBody.isChampion)
                 {
                     countDownDuration = 3.5f;
                 }
