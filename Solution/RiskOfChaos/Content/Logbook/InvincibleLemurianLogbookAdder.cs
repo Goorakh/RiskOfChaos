@@ -225,14 +225,13 @@ namespace RiskOfChaos.Content.Logbook
 
             Entry insertInvincibleLemurianEntry(CharacterBody lemurianPrefab, CharacterBody invincibleLemurianPrefab, GameObject modelPrefab, Entry.GetStatusDelegate getStatus, Action<PageBuilder> pageBuilder, Entry.GetTooltipContentDelegate getTooltipContent)
             {
-                int invincibleLemurianInsertIndex;
-
                 // Gearbox fucked up and put devoted lemurians in the logbook, so the instance we have is actually not in the entries array at all
                 // So hacky name token comparison it is!
                 int lemurianIndex = Array.FindIndex(entries, e => e.extraData is CharacterBody body && body.baseNameToken == lemurianPrefab.baseNameToken);
+                int invincibleLemurianInsertIndex = lemurianIndex + 1;
                 if (lemurianIndex == -1)
                 {
-                    invincibleLemurianInsertIndex = -1;
+                    invincibleLemurianInsertIndex = entries.Length;
 
                     for (int i = 0; i < entries.Length; i++)
                     {
@@ -245,13 +244,6 @@ namespace RiskOfChaos.Content.Logbook
                             }
                         }
                     }
-
-                    if (invincibleLemurianInsertIndex < 0)
-                        invincibleLemurianInsertIndex = entries.Length;
-                }
-                else
-                {
-                    invincibleLemurianInsertIndex = lemurianIndex + 1;
                 }
 
                 if (!modelPrefab)
