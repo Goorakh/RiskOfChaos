@@ -182,7 +182,7 @@ namespace RiskOfChaos.Content
         [ContentInitializer]
         static IEnumerator InitContent(NetworkedPrefabAssetCollection networkedPrefabs, LocalPrefabAssetCollection localPrefabs)
         {
-            List<AsyncOperationHandle> asyncOperations = new List<AsyncOperationHandle>(5);
+            List<AsyncOperationHandle> asyncOperations = new List<AsyncOperationHandle>(10);
 
             // GenericTeamInventory
             {
@@ -292,6 +292,25 @@ namespace RiskOfChaos.Content
                 });
 
                 asyncOperations.Add(newtStatueLoad);
+            }
+
+            // BossCombatSquadNoReward
+            {
+                AsyncOperationHandle<GameObject> bossCombatSquadLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Core/BossCombatSquad.prefab");
+                bossCombatSquadLoad.OnSuccess(bossCombatSquad =>
+                {
+                    GameObject prefab = bossCombatSquad.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.BossCombatSquadNoReward));
+
+                    if (prefab.TryGetComponent(out BossGroup bossGroup))
+                    {
+                        bossGroup.dropPosition = null;
+                        bossGroup.dropTable = null;
+                    }
+
+                    networkedPrefabs.Add(prefab);
+                });
+
+                asyncOperations.Add(bossCombatSquadLoad);
             }
 
             yield return asyncOperations.WaitForAllLoaded();

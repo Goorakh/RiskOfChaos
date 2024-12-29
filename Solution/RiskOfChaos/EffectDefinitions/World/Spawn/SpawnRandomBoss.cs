@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -7,22 +8,17 @@ using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.EffectUtils.World.Spawn;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("spawn_random_boss", DefaultSelectionWeight = 0.8f)]
     public sealed class SpawnRandomBoss : NetworkBehaviour
     {
-        static GameObject _bossCombatSquadPrefab;
-
         static readonly SpawnPool<CharacterSpawnCard> _spawnPool = new SpawnPool<CharacterSpawnCard>
         {
             RequiredExpansionsProvider = SpawnPoolUtils.CharacterSpawnCardExpansionsProvider
@@ -31,9 +27,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [SystemInitializer(typeof(CharacterExpansionRequirementFix))]
         static void Init()
         {
-            AsyncOperationHandle<GameObject> bossCombatSquadLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Core/BossCombatSquad.prefab");
-            bossCombatSquadLoad.OnSuccess(bossCombatSquadPrefab => _bossCombatSquadPrefab = bossCombatSquadPrefab);
-
             _spawnPool.EnsureCapacity(25);
 
             _spawnPool.AddAssetEntry("RoR2/Base/Beetle/cscBeetleQueen.asset", new SpawnPoolEntryParameters(1f));
@@ -148,12 +141,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
             spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());
 
-            if (spawnedMasters.Count > 0 && _bossCombatSquadPrefab)
+            if (spawnedMasters.Count > 0)
             {
-                GameObject bossCombatSquadObj = Instantiate(_bossCombatSquadPrefab);
-
-                BossGroup bossGroup = bossCombatSquadObj.GetComponent<BossGroup>();
-                bossGroup.dropPosition = null; // Don't drop an item
+                GameObject bossCombatSquadObj = Instantiate(RoCContent.NetworkedPrefabs.BossCombatSquadNoReward);
 
                 CombatSquad bossCombatSquad = bossCombatSquadObj.GetComponent<CombatSquad>();
                 foreach (CharacterMaster master in spawnedMasters)

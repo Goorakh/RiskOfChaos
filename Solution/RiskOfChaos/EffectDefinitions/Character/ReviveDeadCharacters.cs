@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.Collections;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -22,8 +23,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [ChaosEffect("revive_dead_characters")]
     public sealed class ReviveDeadCharacters : MonoBehaviour
     {
-        static GameObject _bossCombatSquadPrefab;
-
         static GameObject _reviveEffectPrefab;
 
         [EffectConfig]
@@ -44,9 +43,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
         [SystemInitializer]
         static void Init()
         {
-            AsyncOperationHandle<GameObject> bossCombatSquadLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Core/BossCombatSquad.prefab");
-            bossCombatSquadLoad.OnSuccess(bossCombatSquadPrefab => _bossCombatSquadPrefab = bossCombatSquadPrefab);
-
             AsyncOperationHandle<GameObject> reviveEffectLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/ExtraLife/HippoRezEffect.prefab");
             reviveEffectLoad.OnSuccess(reviveEffectPrefab => _reviveEffectPrefab = reviveEffectPrefab);
 
@@ -359,12 +355,9 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 {
                     _combatSquad.AddMember(master);
                 }
-                else if (_deathReport.victimIsBoss && _bossCombatSquadPrefab)
+                else if (_deathReport.victimIsBoss)
                 {
-                    GameObject bossCombatSquadObj = GameObject.Instantiate(_bossCombatSquadPrefab);
-
-                    BossGroup bossGroup = bossCombatSquadObj.GetComponent<BossGroup>();
-                    bossGroup.dropPosition = null; // Don't drop an item
+                    GameObject bossCombatSquadObj = Instantiate(RoCContent.NetworkedPrefabs.BossCombatSquadNoReward);
 
                     CombatSquad bossCombatSquad = bossCombatSquadObj.GetComponent<CombatSquad>();
                     bossCombatSquad.AddMember(master);
