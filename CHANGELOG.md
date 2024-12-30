@@ -1,5 +1,10 @@
 ## Changelog
 
+**-.-.- Changes:**
+
+* Revive Dead Characters:
+  * Default maximum non-player character revive count: 50 -> 30
+
 **2.4.0 Changes:**
 
 * Added 1 effect:

@@ -13,7 +13,7 @@ namespace RiskOfChaos
             public const string SECTION_NAME = "META";
 
             public const uint CONFIG_FILE_VERSION_LEGACY = 0;
-            public const uint CURRENT_CONFIG_FILE_VERSION = 12;
+            public const uint CURRENT_CONFIG_FILE_VERSION = 13;
 
             public static ConfigHolder<uint> ConfigFileVersion =
                 ConfigFactory<uint>.CreateConfig("VERSION", CONFIG_FILE_VERSION_LEGACY)

@@ -27,7 +27,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         [EffectConfig]
         static readonly ConfigHolder<int> _maxTrackedCharactersCount =
-            ConfigFactory<int>.CreateConfig("Max Characters to Revive", 50)
+            ConfigFactory<int>.CreateConfig("Max Characters to Revive", 30)
                               .Description("The maximum amount of characters the effect can revive at once")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntFieldConfig { Min = 1 })
