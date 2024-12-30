@@ -1,6 +1,6 @@
 ## Changelog
 
-**2.4.0**
+**2.4.0 Changes:**
 
 * Added 1 effect:
   * Spawn Fake Teleporter: Spawns a fake teleporter somewhere on the stage.
