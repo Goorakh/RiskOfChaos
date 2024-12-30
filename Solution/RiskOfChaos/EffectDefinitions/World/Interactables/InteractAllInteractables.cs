@@ -1,9 +1,10 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using RiskOfChaos.Components;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
-using RiskOfChaos.Utilities;
+using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
@@ -70,22 +71,15 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
                                   .Where(canBeOpened);
         }
 
-        static IEnumerable<Interactor> getInteractors()
-        {
-            return PlayerUtils.GetAllPlayerBodies(true).Select(c => c.GetComponent<Interactor>()).Where(i => i);
-        }
-
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return getInteractors().Any() && getAllValidInteractables().Any();
+            return getAllValidInteractables().Any();
         }
 
         ChaosEffectComponent _effectComponent;
 
         Xoroshiro128Plus _rng;
-
-        EquipmentIndex _fallbackEquipment = EquipmentIndex.None;
 
         void Awake()
         {
@@ -97,16 +91,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
             base.OnStartServer();
 
             _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
-
-            List<PickupIndex> availableEquipmentDropList = Run.instance.availableEquipmentDropList;
-            if (availableEquipmentDropList != null && availableEquipmentDropList.Count > 0)
-            {
-                _fallbackEquipment = PickupCatalog.GetPickupDef(_rng.NextElementUniform(availableEquipmentDropList)).equipmentIndex;
-            }
-            else
-            {
-                _fallbackEquipment = RoR2Content.Equipment.Scanner.equipmentIndex;
-            }
         }
 
         void Start()
@@ -114,10 +98,39 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
             if (!NetworkServer.active)
                 return;
 
-            Interactor[] interactors = getInteractors().ToArray();
+            List<Interactor> interactors = new List<Interactor>(PlayerCharacterMasterController.instances.Count);
+            foreach (PlayerCharacterMasterController playerMaster in PlayerCharacterMasterController.instances)
+            {
+                if (playerMaster.isConnected && playerMaster.master && !playerMaster.master.IsDeadAndOutOfLivesServer())
+                {
+                    CharacterBody playerBody = playerMaster.master.GetBody();
+                    if (playerBody && playerBody.TryGetComponent(out Interactor playerInteractor))
+                    {
+                        interactors.Add(playerInteractor);
+                    }
+                }
+            }
 
-            On.RoR2.CostTypeDef.IsAffordable += CostTypeDef_IsAffordable;
-            On.RoR2.CostTypeDef.PayCost += CostTypeDef_PayCost;
+            if (interactors.Count == 0)
+            {
+                Log.Debug("No player interactors available, using chaos interactor");
+
+                Interactor chaosInteractor = ChaosInteractor.GetInteractor();
+                if (chaosInteractor)
+                {
+                    interactors.Add(chaosInteractor);
+                }
+            }
+
+            Interactor[] availableInteractors = [.. interactors];
+
+            if (availableInteractors.Length == 0)
+            {
+                Log.Warning("No available interactors");
+            }
+
+            CostHooks.OverrideIsAffordable += overrideIsAffordable;
+            CostHooks.OverridePayCost += overridePayCost;
 
             getAllValidInteractables().ToList().TryDo(interactable =>
             {
@@ -125,59 +138,63 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
                 if (!canBeOpened(interactable))
                     return;
 
-                Component interactableComponent = (Component)interactable;
-
-                PurchaseInteraction purchaseInteraction = interactableComponent.GetComponent<PurchaseInteraction>();
-
-                if (interactableComponent.TryGetComponent(out ShopTerminalBehavior shopTerminalBehavior))
+                Component interactableComponent = interactable as Component;
+                if (interactableComponent)
                 {
-                    if (shopTerminalBehavior.serverMultiShopController)
+                    if (interactableComponent.TryGetComponent(out ShopTerminalBehavior shopTerminalBehavior) &&
+                        shopTerminalBehavior.serverMultiShopController)
                     {
-                        shopTerminalBehavior.serverMultiShopController.SetCloseOnTerminalPurchase(purchaseInteraction, false);
+                        if (interactableComponent.TryGetComponent(out PurchaseInteraction purchaseInteraction))
+                        {
+                            shopTerminalBehavior.serverMultiShopController.SetCloseOnTerminalPurchase(purchaseInteraction, false);
+                        }
                     }
                 }
 
-                Interactor interactor = _rng.NextElementUniform(interactors);
+                Interactor interactor = null;
+                if (availableInteractors.Length > 0)
+                {
+                    interactor = _rng.NextElementUniform(availableInteractors);
+                }
 
                 interactable.OnInteractionBegin(interactor);
             });
 
-            On.RoR2.CostTypeDef.IsAffordable -= CostTypeDef_IsAffordable;
-            On.RoR2.CostTypeDef.PayCost -= CostTypeDef_PayCost;
+            CostHooks.OverrideIsAffordable -= overrideIsAffordable;
+            CostHooks.OverridePayCost -= overridePayCost;
         }
 
-        static bool CostTypeDef_IsAffordable(On.RoR2.CostTypeDef.orig_IsAffordable orig, CostTypeDef self, int cost, Interactor activator)
+        static void overrideIsAffordable(CostTypeDef costTypeDef, int cost, Interactor activator, ref bool isAffordable)
         {
-            return true;
+            isAffordable = true;
         }
 
-        CostTypeDef.PayCostResults CostTypeDef_PayCost(On.RoR2.CostTypeDef.orig_PayCost orig, CostTypeDef self, int cost, Interactor activator, GameObject purchasedObject, Xoroshiro128Plus rng, ItemIndex avoidedItemIndex)
+        static void overridePayCost(CostTypeDef costTypeDef, int cost, Interactor activator, GameObject purchasedObject, Xoroshiro128Plus rng, ItemIndex avoidedItemIndex, ref CostTypeDef.PayCostResults results)
         {
-            CostTypeDef.PayCostResults results = new CostTypeDef.PayCostResults();
-
             // Still include equipment data in cost results, but don't remove from inventory
             // If this isn't done equipment drones will not spawn at all
-            if (self == CostTypeCatalog.GetCostTypeDef(CostTypeIndex.Equipment) || self == CostTypeCatalog.GetCostTypeDef(CostTypeIndex.VolatileBattery))
+            if (costTypeDef == CostTypeCatalog.GetCostTypeDef(CostTypeIndex.Equipment) || costTypeDef == CostTypeCatalog.GetCostTypeDef(CostTypeIndex.VolatileBattery))
             {
-                if (activator)
+                if (results.equipmentTaken.Count == 0)
                 {
-                    CharacterBody activatorBody = activator.GetComponent<CharacterBody>();
-                    if (activatorBody && activatorBody.inventory)
+                    EquipmentIndex equipmentTaken = EquipmentIndex.None;
+                    if (activator && activator.TryGetComponent(out CharacterBody activatorBody))
                     {
-                        EquipmentIndex equipment = activatorBody.inventory.GetEquipmentIndex();
-
-                        if (equipment == EquipmentIndex.None)
-                            equipment = _fallbackEquipment;
-
-                        if (equipment != EquipmentIndex.None)
+                        Inventory activatorInventory = activatorBody.inventory;
+                        if (activatorInventory)
                         {
-                            results.equipmentTaken.Add(equipment);
+                            EquipmentIndex activatorCurrentEquipment = activatorInventory.GetEquipmentIndex();
+                            if (activatorCurrentEquipment != EquipmentIndex.None)
+                            {
+                                equipmentTaken = activatorCurrentEquipment;
+                            }
                         }
                     }
+
+                    // EquipmentIndex.None is perfectly fine here, there just needs to be *something* in the list
+                    results.equipmentTaken.Add(equipmentTaken);
                 }
             }
-
-            return results;
         }
     }
 }
