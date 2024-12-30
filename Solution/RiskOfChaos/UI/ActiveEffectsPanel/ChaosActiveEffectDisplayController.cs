@@ -159,7 +159,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
                     _displayingEffectSubtitleComponent.OnSubtitleChanged += onEffectSubtitleChanged;
                 }
 
-                markEffectLabelDirty();
+                updateEffectLabel();
             }
         }
 
@@ -172,8 +172,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             Language.onCurrentLanguageChanged += onCurrentLanguageChanged;
             Configs.UI.ActiveEffectsTextColor.SettingChanged += onActiveEffectsTextColorChanged;
 
-            updateTextColor();
-            markEffectLabelDirty();
+            updateEffectLabel();
         }
 
         void OnDisable()
@@ -212,11 +211,13 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         void updateTextColor()
         {
-            _effectNameLabel.color = Configs.UI.ActiveEffectsTextColor.Value;
+            Color textColor = Configs.UI.ActiveEffectsTextColor.Value;
+
+            _effectNameLabel.color = textColor;
 
             if (_effectSubtitleLabel)
             {
-                _effectSubtitleLabel.color = Configs.UI.ActiveEffectsTextColor.Value;
+                _effectSubtitleLabel.color = textColor;
             }
         }
 
@@ -242,14 +243,6 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         void updateEffectLabel()
         {
-            if (!_displayingEffect || !_displayingEffectDurationComponent)
-            {
-                _effectNameText.SetTokenAndFormatArgs(string.Empty, []);
-                return;
-            }
-
-            float timeRemaining = _displayingEffectDurationComponent.Remaining;
-
             string displayName = "???";
             if (_displayingEffectInfo != null)
             {
@@ -269,42 +262,44 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
                 subtitle = _displayingEffectSubtitleComponent.Subtitle;
             }
 
-            string token;
-            object[] formatArgs;
-            switch (_displayingEffectDurationComponent.TimedType)
+            float timeRemaining = -1f;
+            string token = "CHAOS_ACTIVE_EFFECT_FALLBACK_FORMAT";
+            object[] formatArgs = [displayName];
+
+            if (_displayingEffectDurationComponent)
             {
-                case TimedEffectType.UntilStageEnd:
-                    int stagesRemaining = Mathf.CeilToInt(timeRemaining);
+                timeRemaining = _displayingEffectDurationComponent.Remaining;
 
-                    if (stagesRemaining == 1)
-                    {
-                        token = "CHAOS_ACTIVE_EFFECT_UNTIL_STAGE_END_SINGLE_FORMAT";
-                    }
-                    else
-                    {
-                        token = "CHAOS_ACTIVE_EFFECT_UNTIL_STAGE_END_MULTI_FORMAT";
-                    }
+                switch (_displayingEffectDurationComponent.TimedType)
+                {
+                    case TimedEffectType.UntilStageEnd:
+                        int stagesRemaining = Mathf.CeilToInt(timeRemaining);
 
-                    formatArgs = [
-                        displayName,
-                        stagesRemaining
-                    ];
+                        if (stagesRemaining == 1)
+                        {
+                            token = "CHAOS_ACTIVE_EFFECT_UNTIL_STAGE_END_SINGLE_FORMAT";
+                        }
+                        else
+                        {
+                            token = "CHAOS_ACTIVE_EFFECT_UNTIL_STAGE_END_MULTI_FORMAT";
+                        }
 
-                    break;
-                case TimedEffectType.FixedDuration:
-                    token = "CHAOS_ACTIVE_EFFECT_FIXED_DURATION_FORMAT";
+                        formatArgs = [
+                            displayName,
+                            stagesRemaining
+                        ];
 
-                    formatArgs = [
-                        displayName,
-                        FormatUtils.FormatTimeSeconds(timeRemaining)
-                    ];
+                        break;
+                    case TimedEffectType.FixedDuration:
+                        token = "CHAOS_ACTIVE_EFFECT_FIXED_DURATION_FORMAT";
 
-                    break;
-                default:
-                    token = "CHAOS_ACTIVE_EFFECT_FALLBACK_FORMAT";
-                    formatArgs = [displayName];
+                        formatArgs = [
+                            displayName,
+                            FormatUtils.FormatTimeSeconds(timeRemaining)
+                        ];
 
-                    break;
+                        break;
+                }
             }
 
             _effectNameText.SetTokenAndFormatArgs(token, formatArgs);
@@ -320,6 +315,8 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             }
 
             _currentlyDisplayedTimeRemaining = timeRemaining;
+
+            updateTextColor();
         }
     }
 }
