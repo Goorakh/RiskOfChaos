@@ -43,8 +43,9 @@
 
 * Duplicate Random Item Stack:
   * Changed 'Max Item Stacks' config default value: 1000 -> 0 (disabled)
-
-**2.3.1 Changes:**
+  
+<details>
+  <summary>2.3.1 Changes:</summary>
 
 * Give Everyone a Random Buff/Debuff:
   * Fixed effect being able to give DLC buffs/debuffs when DLC(s) were disabled
@@ -55,8 +56,11 @@
 
 * Give Random Elite Aspect:
   * Now gives aspects to all player allies
+  
+</details>
 
-**2.3.0 Changes:**
+<details>
+  <summary>2.3.0 Changes:</summary>
 
 * Updated for new game patch
 
@@ -81,8 +85,11 @@
 
 * Effect Voting:
   * Fixed incorrect text size when Vote Display Text Scaling Mode was set to Disabled
+  
+</details>
 
-**2.2.1 Changes:**
+<details>
+  <summary>2.2.1 Changes:</summary>
 
 * Reworked 1 effect:
   * Poverty: Now converts all player (and ally) money into experience, instead of just removing.
@@ -121,6 +128,8 @@
 
 * All Interactables are Cloaked:
   * Fixed some preplaced stage interactables not being cloaked
+
+</details>
 
 <details>
   <summary>2.2.0 Changes:</summary>
