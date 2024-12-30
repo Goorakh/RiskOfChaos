@@ -4,11 +4,11 @@ using System.Collections.Generic;
 
 namespace RiskOfChaos.Collections
 {
-    public class MaxCapacityQueue<T> : IEnumerable<T>, IReadOnlyCollection<T>, ICollection
+    public class MaxCapacityQueue<T> : IReadOnlyCollection<T>, ICollection
     {
         readonly Queue<T> _queue;
 
-        public int Count => ((ICollection)_queue).Count;
+        public int Count => _queue.Count;
 
         int _maxCapacity;
         public int MaxCapacity
