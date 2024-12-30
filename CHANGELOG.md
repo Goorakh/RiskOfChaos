@@ -23,6 +23,9 @@
 * Grenade Bullets:
   * Default duration: 120s -> 90s
 
+* Activate All Interactables:
+  * Fixed effect not being able to activate printers more than once
+
 * You and a super intelligent Lemurian:
   * Fixed logbook entries showing incorrect move speed
   * Swapped log entries

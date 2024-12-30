@@ -39,7 +39,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
 
             if (interactableComponent.TryGetComponent(out ShopTerminalBehavior shopTerminalBehavior))
             {
-                if (shopTerminalBehavior.hasBeenPurchased)
+                if (shopTerminalBehavior.CurrentPickupIndex() == PickupIndex.none)
                     return false;
             }
 
