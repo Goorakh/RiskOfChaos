@@ -104,6 +104,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
             {
                 ItemIndex itemIndex = _availableItems[i];
                 ItemDef item = ItemCatalog.GetItemDef(itemIndex);
+                if (!item)
+                    continue;
 
                 if (!item.isConsumed && !item.ContainsTag(ItemTag.WorldUnique) && item != RoR2Content.Items.TonicAffliction && !Run.instance.IsItemEnabled(itemIndex))
                     continue;
@@ -215,6 +217,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
 
         void Start()
         {
+            if (_itemTransformPairs.Count == 0)
+            {
+                Log.Error("No item transform pairs");
+            }
+
             foreach (ItemTransformationPair pair in _itemTransformPairs)
             {
                 CustomContagiousItemManager.AddItemTransformation(pair.From, pair.To);
@@ -236,7 +243,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
             {
                 if (_pickupPairSubtitleProvider)
                 {
-                    _pickupPairSubtitleProvider.PairFormatToken = "EFFECT_ADD_RANDOM_ITEM_CORRUPTION_SUBTITLE_FORMAT";
                     for (int i = 0; i < _itemTransformPairs.Count; i++)
                     {
                         ItemTransformationPair pair = _itemTransformPairs[i];
