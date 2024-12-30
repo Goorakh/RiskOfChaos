@@ -3,6 +3,7 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Collections.Generic;
@@ -14,20 +15,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
     [ChaosEffect("activate_stage_teleporter")]
     public sealed class ActivateStageTeleporter : NetworkBehaviour
     {
-        static List<IInteractable> getTeleporterInteractables()
-        {
-            List<IInteractable> teleporterInteractables = [];
-
-            if (TeleporterInteraction.instance)
-            {
-                teleporterInteractables.Add(TeleporterInteraction.instance);
-            }
-
-            teleporterInteractables.AddRange(InstanceTracker.GetInstancesList<FakeTeleporterInteraction>());
-
-            return teleporterInteractables;
-        }
-
         [EffectCanActivate]
         static bool CanActivate(in EffectCanActivateContext context)
         {
@@ -35,12 +22,15 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
             if (!interactor)
                 return false;
 
-            foreach (IInteractable teleporterInteractable in getTeleporterInteractables())
+            foreach (GameObject teleporterObject in TeleporterUtils.GetActiveTeleporterObjects())
             {
-                Interactability interactability = teleporterInteractable.GetInteractability(interactor);
-                if (interactability == Interactability.Available || (teleporterInteractable is TeleporterInteraction && !context.IsNow))
+                if (teleporterObject && teleporterObject.TryGetComponent(out IInteractable teleporterInteractable))
                 {
-                    return true;
+                    Interactability interactability = teleporterInteractable.GetInteractability(interactor);
+                    if (interactability == Interactability.Available || (teleporterInteractable is TeleporterInteraction && !context.IsNow))
+                    {
+                        return true;
+                    }
                 }
             }
 
@@ -83,20 +73,23 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
         {
             if (!NetworkServer.active)
                 return;
-            
-            List<IInteractable> teleporterInteractables = getTeleporterInteractables();
+
+            List<GameObject> teleporterObjects = TeleporterUtils.GetActiveTeleporterObjects();
             WeightedSelection<IInteractable> teleporterSelection = new WeightedSelection<IInteractable>();
-            teleporterSelection.EnsureCapacity(teleporterInteractables.Count);
+            teleporterSelection.EnsureCapacity(teleporterObjects.Count);
 
-            foreach (IInteractable teleporterInteractable in teleporterInteractables)
+            foreach (GameObject teleporterObject in teleporterObjects)
             {
-                float weight = 1f;
-                if (teleporterInteractable is FakeTeleporterInteraction)
+                if (teleporterObject && teleporterObject.TryGetComponent(out IInteractable teleporterInteractable))
                 {
-                    weight = 0.5f;
-                }
+                    float weight = 1f;
+                    if (teleporterInteractable is FakeTeleporterInteraction)
+                    {
+                        weight = 0.5f;
+                    }
 
-                teleporterSelection.AddChoice(teleporterInteractable, weight);
+                    teleporterSelection.AddChoice(teleporterInteractable, weight);
+                }
             }
 
             IInteractable selectedTeleporterInteraction = null;

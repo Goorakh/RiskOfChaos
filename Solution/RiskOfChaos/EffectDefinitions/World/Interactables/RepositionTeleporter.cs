@@ -14,13 +14,12 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return TeleporterInteraction.instance;
+            return TeleporterUtils.GetActiveTeleporterObjects().Count > 0;
         }
 
         ChaosEffectComponent _effectComponent;
 
-        [SyncVar(hook = nameof(setNewTeleporterPosition))]
-        Vector3 _newTeleporterPosition;
+        Xoroshiro128Plus _rng;
 
         void Awake()
         {
@@ -31,26 +30,38 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
         {
             base.OnStartServer();
 
-            Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
-            _newTeleporterPosition = SpawnUtils.GetBestValidRandomPlacementRule().EvaluateToPosition(rng);
+            _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
         }
 
         void Start()
         {
-            updateTeleporterPosition();
-        }
+            if (!NetworkServer.active)
+                return;
 
-        void setNewTeleporterPosition(Vector3 newTeleporterPosition)
-        {
-            _newTeleporterPosition = newTeleporterPosition;
-            updateTeleporterPosition();
-        }
+            DirectorPlacementRule teleporterPlacementRule = SpawnUtils.GetBestValidRandomPlacementRule();
 
-        void updateTeleporterPosition()
-        {
-            if (TeleporterInteraction.instance)
+            foreach (GameObject teleporterObject in TeleporterUtils.GetActiveTeleporterObjects())
             {
-                TeleporterInteraction.instance.transform.position = _newTeleporterPosition;
+                if (teleporterObject)
+                {
+                    setTeleporterPosition(teleporterObject, teleporterPlacementRule.EvaluateToPosition(_rng));
+                }
+            }
+        }
+
+        [Server]
+        void setTeleporterPosition(GameObject teleporterObject, Vector3 newPosition)
+        {
+            teleporterObject.transform.position = newPosition;
+            RpcSetTeleporterPosition(teleporterObject, newPosition);
+        }
+
+        [ClientRpc]
+        void RpcSetTeleporterPosition(GameObject teleporterObject, Vector3 newPosition)
+        {
+            if (teleporterObject)
+            {
+                teleporterObject.transform.position = newPosition;
             }
         }
     }
