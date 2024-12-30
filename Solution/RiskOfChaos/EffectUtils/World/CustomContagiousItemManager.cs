@@ -142,7 +142,7 @@ namespace RiskOfChaos.EffectUtils.World
         {
             readonly Dictionary<string, string> _cachedTokenSuffixes = [];
 
-            ItemDef.Pair[] _itemPairs;
+            ItemDef.Pair[] _itemPairs = [];
 
             public CustomContagiousItemTokenModifier()
             {
