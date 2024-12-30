@@ -20,6 +20,7 @@ using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Items
@@ -85,6 +86,15 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
             }
 
             _availableItems = [.. availableItems];
+        }
+
+        [PrefabInitializer]
+        static void SetupPrefab(GameObject prefab)
+        {
+            if (prefab.TryGetComponent(out PickupPairListSubtitleProvider pickupPairListSubtitleProvider))
+            {
+                pickupPairListSubtitleProvider.PairFormatToken = "EFFECT_ADD_RANDOM_ITEM_CORRUPTION_SUBTITLE_FORMAT";
+            }
         }
 
         static ItemIndex[] getTransformableItems(Func<ItemIndex, bool> filter = null)

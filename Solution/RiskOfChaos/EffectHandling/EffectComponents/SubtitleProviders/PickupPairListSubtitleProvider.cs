@@ -12,7 +12,6 @@ namespace RiskOfChaos.EffectHandling.EffectComponents.SubtitleProviders
     [RequiredComponents(typeof(ChaosEffectSubtitleComponent))]
     public class PickupPairListSubtitleProvider : NetworkBehaviour, IEffectSubtitleProvider
     {
-        [SyncVar(hook = nameof(hookSetPairFormatToken))]
         public string PairFormatToken;
 
         readonly SyncListPickupPair _pickupPairs = [];
@@ -127,12 +126,6 @@ namespace RiskOfChaos.EffectHandling.EffectComponents.SubtitleProviders
             stringBuilder = HG.StringBuilderPool.ReturnStringBuilder(stringBuilder);
 
             return subtitle;
-        }
-
-        void hookSetPairFormatToken(string pairFormatToken)
-        {
-            PairFormatToken = pairFormatToken;
-            markSubtitleDirty();
         }
     }
 }
