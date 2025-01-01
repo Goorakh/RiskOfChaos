@@ -23,7 +23,7 @@
         "INVINCIBLE_LEMURIAN_DEATH_REWARD_MESSAGE": "<color=#E9848D><size=110%>His presence fades... You are rewarded.</size></color>",
 
         "PLAYER_DEATH_QUOTE_INVINCIBLE_LEMURIAN_2P": "You are stretched into the <size=80%><style=cMono>infinite</style></size>. <color=#E9848D><size=120%>He</size></color> will take good care of you.",
-        "PLAYER_DEATH_QUOTE_INVINCIBLE_LEMURIAN": "{0} has left this world. <color=#E9848D><size=120%>He</size></color> will take good care of them.",
+        "PLAYER_DEATH_QUOTE_INVINCIBLE_LEMURIAN": "{0} has vanished without a trace. <color=#E9848D><size=120%>He</size></color> will take good care of them.",
 
         "INVINCIBLE_LEMURIAN_RECRUIT_MESSAGE": "<color=#E9848D><size=110%>His presence... It feels closer than ever before...</size></color>",
 
