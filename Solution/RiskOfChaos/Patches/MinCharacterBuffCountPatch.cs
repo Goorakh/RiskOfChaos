@@ -19,14 +19,17 @@ namespace RiskOfChaos.Patches
         {
             int totalMinBuffCount = 0;
 
-            self.GetComponents(_keepBuffComponentsBuffer);
-            foreach (KeepBuff keepBuff in _keepBuffComponentsBuffer)
+            if (self)
             {
-                if (keepBuff.enabled && keepBuff.BuffIndex == buffType)
+                self.GetComponents(_keepBuffComponentsBuffer);
+                foreach (KeepBuff keepBuff in _keepBuffComponentsBuffer)
                 {
-                    if (keepBuff.MinBuffCount >= 0)
+                    if (keepBuff.enabled && keepBuff.BuffIndex == buffType)
                     {
-                        totalMinBuffCount += keepBuff.MinBuffCount;
+                        if (keepBuff.MinBuffCount >= 0)
+                        {
+                            totalMinBuffCount += keepBuff.MinBuffCount;
+                        }
                     }
                 }
             }
