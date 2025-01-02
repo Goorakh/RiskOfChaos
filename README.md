@@ -147,7 +147,7 @@ Currently features 146 different effects.
 * No Healthbars: Hides all health bars, lasts 60 seconds
 * Add Random Item Corruption Rule: Gives the "corruption" behaviour of void items to a random pair of items. Lasts for the rest of the run.
 * Increase Player Level: Gives additional levels to all players (+5 by default, configurable)
-* All Interactables are Cloaked: Turns all interactables into cloaked variants, lasts 60 seconds
+* All Interactables are Cloaked: Turns all interactables into cloaked variants, lasts 90 seconds
 * Consume Random Item: Turns a random consumable item from every player into its consumed variant
 * Repair Random Item: Turns a random consumed item from every player into its regular variant
 * Heal Everyone: Spawns Healing Cores on every character

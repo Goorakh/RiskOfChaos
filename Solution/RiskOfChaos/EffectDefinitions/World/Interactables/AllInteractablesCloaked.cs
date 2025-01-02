@@ -13,7 +13,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Interactables
 {
-    [ChaosTimedEffect("all_interactables_cloaked", 60f, AllowDuplicates = false)]
+    [ChaosTimedEffect("all_interactables_cloaked", 90f, AllowDuplicates = false)]
     public sealed class AllInteractablesCloaked : MonoBehaviour
     {
         static Material _cloakedMaterial;
