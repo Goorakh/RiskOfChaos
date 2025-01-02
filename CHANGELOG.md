@@ -1,6 +1,6 @@
 ## Changelog
 
-**-.-.- Changes:**
+**2.4.1 Changes:**
 
 * Added 1 effect:
   * End All Active Effects: Ends all currently active effects.
