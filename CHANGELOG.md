@@ -2,6 +2,9 @@
 
 **-.-.- Changes:**
 
+* Multiplayer:
+  * Fixed effect desync issues, for real this time, probably.
+
 * Increase/Decrease Effect Duration:
   * Duration multiplier now applies to the remaining time rather than the total duration. Stops decreased effect duration ending other effects immediately.
 

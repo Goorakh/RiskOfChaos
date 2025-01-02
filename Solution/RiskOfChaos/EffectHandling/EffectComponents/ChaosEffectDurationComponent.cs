@@ -16,12 +16,6 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
 
         public TimedEffectInfo TimedEffectInfo => _effectComponent ? _effectComponent.ChaosEffectInfo as TimedEffectInfo : null;
 
-        ObjectSerializationComponent _serializationComponent;
-
-        bool _effectEnded;
-
-        bool _isInSceneTransition;
-
         [SyncVar]
         int _timedTypeInternal;
 
@@ -89,20 +83,16 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
             _effectComponent.EffectDestructionHandledByComponent = true;
-
-            _serializationComponent = GetComponent<ObjectSerializationComponent>();
         }
 
         void OnEnable()
         {
             Stage.onServerStageComplete += onServerStageComplete;
-            Stage.onStageStartGlobal += onStageStartGlobal;
         }
 
         void OnDisable()
         {
             Stage.onServerStageComplete -= onServerStageComplete;
-            Stage.onStageStartGlobal -= onStageStartGlobal;
         }
 
         void FixedUpdate()
@@ -132,19 +122,6 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
                     Log.Error($"No duration defined for effect {Util.GetGameObjectHierarchyName(gameObject)} ({netId})");
                 }
 
-                if (!_effectEnded)
-                {
-                    if (_serializationComponent)
-                    {
-                        _serializationComponent.enabled = false;
-                    }
-                }
-
-                _effectEnded = true;
-            }
-
-            if (_effectEnded && !SceneExitController.isRunning && !_isInSceneTransition)
-            {
                 EndEffect();
             }
         }
@@ -153,15 +130,6 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         void onServerStageComplete(Stage stage)
         {
             NumStagesCompletedWhileActive++;
-            _isInSceneTransition = true;
-        }
-
-        void onStageStartGlobal(Stage stage)
-        {
-            if (NetworkServer.active)
-            {
-                _isInSceneTransition = false;
-            }
         }
 
         [Server]

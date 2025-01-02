@@ -91,6 +91,8 @@ namespace RiskOfChaos.Content
                 }
 
                 networkIdentity.m_AssetId = assetId;
+
+                prefab.EnsureComponent<EnsureNetworkDestroy>();
             }
             else
             {
@@ -112,6 +114,8 @@ namespace RiskOfChaos.Content
             {
                 NetworkIdentity networkIdentity = prefab.EnsureComponent<NetworkIdentity>();
                 networkIdentity.m_AssetId = getNetworkedObjectAssetId(name);
+
+                prefab.EnsureComponent<EnsureNetworkDestroy>();
             }
 
             return prefab;
