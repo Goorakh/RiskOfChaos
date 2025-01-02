@@ -158,10 +158,13 @@ namespace RiskOfChaos.Components
 
             protected void SetChildActive(string childLocatorName, bool newActive)
             {
-                Transform child = teleporterInteraction._modelChildLocator.FindChild(childLocatorName);
-                if (child)
+                if (teleporterInteraction._modelChildLocator)
                 {
-                    child.gameObject.SetActive(newActive);
+                    Transform child = teleporterInteraction._modelChildLocator.FindChild(childLocatorName);
+                    if (child)
+                    {
+                        child.gameObject.SetActive(newActive);
+                    }
                 }
             }
         }
