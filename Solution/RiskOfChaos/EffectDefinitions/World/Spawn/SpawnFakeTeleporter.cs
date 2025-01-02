@@ -158,10 +158,25 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
                 TeleporterInteraction teleporterInteraction = teleporterPrefab.GetComponent<TeleporterInteraction>();
 
+                List<string> portalIndicatorChildNames = ["ShopPortalIndicator", "GoldshoresPortalIndicator", "MSPortalIndicator"];
+                PortalSpawner[] teleporterPortalSpawners = teleporterInteraction.GetComponents<PortalSpawner>();
+                if (teleporterPortalSpawners.Length > 0)
+                {
+                    portalIndicatorChildNames.EnsureCapacity(portalIndicatorChildNames.Count + teleporterPortalSpawners.Length);
+                    foreach (PortalSpawner portalSpawner in teleporterPortalSpawners)
+                    {
+                        if (!string.IsNullOrEmpty(portalSpawner.previewChildName) && !portalIndicatorChildNames.Contains(portalSpawner.previewChildName))
+                        {
+                            portalIndicatorChildNames.Add(portalSpawner.previewChildName);
+                        }
+                    }
+                }
+
                 FakeTeleporterInteraction fakeTeleporterInteraction = fakeTeleporterPrefab.GetComponent<FakeTeleporterInteraction>();
                 fakeTeleporterInteraction.MainStateMachine = fakeTeleporterStateMachine;
                 fakeTeleporterInteraction.BeginContextString = teleporterInteraction.beginContextString;
                 fakeTeleporterInteraction.DiscoveryRadius = teleporterInteraction.discoveryRadius;
+                fakeTeleporterInteraction.SyncTeleporterChildActivations = ["BossShrineSymbol", .. portalIndicatorChildNames];
 
                 CombatDirector bossDirector = fakeTeleporterPrefab.GetComponent<CombatDirector>();
                 bossDirector.enabled = false;

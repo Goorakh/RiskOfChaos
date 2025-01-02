@@ -18,11 +18,11 @@ namespace RiskOfChaos.Components
 
         public float DiscoveryRadius;
 
+        public string[] SyncTeleporterChildActivations = [];
+
         ModelLocator _modelLocator;
 
         ChildLocator _modelChildLocator;
-
-        GameObject _bossShrineIndicator;
 
         BaseTeleporterState currentState => MainStateMachine ? MainStateMachine.state as BaseTeleporterState : null;
 
@@ -32,15 +32,6 @@ namespace RiskOfChaos.Components
             if (_modelLocator && _modelLocator.modelTransform)
             {
                 _modelChildLocator = _modelLocator.modelTransform.GetComponent<ChildLocator>();
-            }
-
-            if (_modelChildLocator)
-            {
-                Transform bossShrineIndicatorTransform = _modelChildLocator.FindChild("BossShrineSymbol");
-                if (bossShrineIndicatorTransform)
-                {
-                    _bossShrineIndicator = bossShrineIndicatorTransform.gameObject;
-                }
             }
         }
 
@@ -56,19 +47,26 @@ namespace RiskOfChaos.Components
 
         void FixedUpdate()
         {
-            bool enableBossShrineIndiciator = false;
-            if (TeleporterInteraction.instance)
+            if (_modelChildLocator)
             {
-                GameObject realBossShrineIndicator = TeleporterInteraction.instance.bossShrineIndicator;
-                if (realBossShrineIndicator)
+                foreach (string childName in SyncTeleporterChildActivations)
                 {
-                    enableBossShrineIndiciator = realBossShrineIndicator.activeSelf;
-                }
-            }
+                    Transform childTransform = _modelChildLocator.FindChild(childName);
+                    if (childTransform)
+                    {
+                        bool shouldBeActive = false;
+                        if (TeleporterInteraction.instance && TeleporterInteraction.instance.modelChildLocator)
+                        {
+                            Transform teleporterChildTransform = TeleporterInteraction.instance.modelChildLocator.FindChild(childName);
+                            if (teleporterChildTransform)
+                            {
+                                shouldBeActive = teleporterChildTransform.gameObject.activeSelf;
+                            }
+                        }
 
-            if (_bossShrineIndicator)
-            {
-                _bossShrineIndicator.SetActive(enableBossShrineIndiciator);
+                        childTransform.gameObject.SetActive(shouldBeActive);
+                    }
+                }
             }
         }
 

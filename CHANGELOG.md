@@ -11,6 +11,9 @@
 * All Interactables Are Cloaked:
   * Default duration: 60s -> 90s
 
+* Spawn Fake Teleporter:
+  * Fixed fake teleporter not showing portal orbs
+
 * Increase/Decrease Effect Duration:
   * Duration multiplier now applies to the remaining time rather than the total duration. Stops decreased effect duration ending other effects immediately.
 
