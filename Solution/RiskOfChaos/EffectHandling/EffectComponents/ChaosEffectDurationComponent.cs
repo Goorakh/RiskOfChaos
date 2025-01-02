@@ -62,7 +62,17 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
             }
         }
 
-        public float Remaining => Mathf.Max(0f, Duration - Elapsed);
+        public float Remaining
+        {
+            get
+            {
+                return Mathf.Max(0f, Duration - Elapsed);
+            }
+            set
+            {
+                Duration = Elapsed + value;
+            }
+        }
 
         bool IEffectHUDVisibilityProvider.CanShowOnHUD
         {

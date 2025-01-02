@@ -2,6 +2,9 @@
 
 **-.-.- Changes:**
 
+* Increase/Decrease Effect Duration:
+  * Duration multiplier now applies to the remaining time rather than the total duration. Stops decreased effect duration ending other effects immediately.
+
 * Revive Dead Characters:
   * Default maximum non-player character revive count: 50 -> 30
 

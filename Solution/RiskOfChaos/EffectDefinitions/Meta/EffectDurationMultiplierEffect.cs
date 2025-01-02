@@ -65,7 +65,7 @@ namespace RiskOfChaos.EffectDefinitions.Meta
                             TimedEffectInfo effectInfo = durationComponent.TimedEffectInfo;
                             if (effectInfo != null && !effectInfo.IgnoreDurationModifiers)
                             {
-                                durationComponent.Duration *= DurationMultiplier;
+                                durationComponent.Remaining *= DurationMultiplier;
                             }
                         }
                     }
