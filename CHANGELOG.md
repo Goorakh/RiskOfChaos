@@ -2,6 +2,9 @@
 
 **-.-.- Changes:**
 
+* Added 1 effect:
+  * End All Active Effects: Ends all currently active effects.
+
 * Multiplayer:
   * Fixed effect desync issues, for real this time, probably.
 
