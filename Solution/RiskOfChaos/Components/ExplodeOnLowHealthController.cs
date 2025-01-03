@@ -105,18 +105,25 @@ namespace RiskOfChaos.Components
             float radius = _cachedRadius;
             HealthComponent healthComponent = null;
             TeamComponent teamComponent = null;
+            GameObject attacker = _cachedAttacker;
             if (AttachedBody)
             {
                 isPlayerControlled = AttachedBody.isPlayerControlled;
                 radius = AttachedBody.radius;
                 healthComponent = AttachedBody.healthComponent;
                 teamComponent = AttachedBody.teamComponent;
+                attacker = AttachedBody.gameObject;
             }
 
             float fullHealth = _cachedFullHealth;
             if (healthComponent)
             {
                 fullHealth = healthComponent.fullCombinedHealth;
+
+                if (healthComponent.lastHitAttacker)
+                {
+                    attacker = healthComponent.lastHitAttacker;
+                }
             }
 
             TeamIndex teamIndex = _cachedTeamIndex;
@@ -158,7 +165,7 @@ namespace RiskOfChaos.Components
                 position = blastCenter,
                 radius = blastRadius,
                 falloffModel = BlastAttack.FalloffModel.Linear,
-                attacker = _cachedAttacker,
+                attacker = attacker,
                 inflictor = gameObject,
                 damageColorIndex = DamageColorIndex.Item,
                 baseDamage = damage,
