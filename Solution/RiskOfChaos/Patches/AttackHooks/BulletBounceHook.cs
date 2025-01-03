@@ -81,8 +81,6 @@ namespace RiskOfChaos.Patches.AttackHooks
 
         static void handleBulletBounce(BulletAttack bulletAttack, BulletAttack.BulletHit hitInfo)
         {
-            Log.Debug($"BulletAttack from {Util.GetBestBodyName(bulletAttack.owner)} bouncing={_bulletBounceInfos.TryGetValue(bulletAttack, out _)}");
-
             if (_bulletBounceInfos.TryGetValue(bulletAttack, out BulletBounceInfo bounceInfo))
             {
                 bounceInfo.Deconstruct(out AttackInfo attackInfo,
@@ -119,14 +117,21 @@ namespace RiskOfChaos.Patches.AttackHooks
 
         static bool bounceFilterCallback(BulletAttack bulletAttack, BulletAttack.BulletHit currentHitInfo)
         {
-            Log.Debug($"BulletAttack from {Util.GetBestBodyName(bulletAttack.owner)} bouncing={_bulletBounceInfos.TryGetValue(bulletAttack, out _)}");
-
             if (_bulletBounceInfos.TryGetValue(bulletAttack, out BulletBounceInfo bounceInfo))
             {
                 BulletAttack.BulletHit lastHit = bounceInfo.LastHit;
 
-                HurtBox currentHitEntity = currentHitInfo?.hitHurtBox;
-                HurtBox lastHitEntity = lastHit?.hitHurtBox;
+                GameObject currentHitEntity = null;
+                if (currentHitInfo != null && currentHitInfo.hitHurtBox)
+                {
+                    currentHitEntity = HurtBox.FindEntityObject(currentHitInfo.hitHurtBox);
+                }
+
+                GameObject lastHitEntity = null;
+                if (lastHit != null && lastHit.hitHurtBox)
+                {
+                    lastHitEntity = HurtBox.FindEntityObject(lastHit.hitHurtBox);
+                }
 
                 if (currentHitEntity && lastHitEntity && currentHitEntity == lastHitEntity)
                 {
@@ -140,6 +145,11 @@ namespace RiskOfChaos.Patches.AttackHooks
         static void fireBounceBullet(BulletAttack bulletAttack, BulletBounceInfo bounceInfo)
         {
             BulletAttack.BulletHit lastHit = bounceInfo.LastHit;
+            GameObject lastHitEntity = null;
+            if (lastHit != null && lastHit.hitHurtBox)
+            {
+                lastHitEntity = HurtBox.FindEntityObject(lastHit.hitHurtBox);
+            }
 
             Vector3 bounceDirection = Vector3.Reflect(lastHit.direction, lastHit.surfaceNormal);
 
@@ -169,7 +179,7 @@ namespace RiskOfChaos.Patches.AttackHooks
 
                     autoAimSearch.RefreshCandidates();
 
-                    HurtBox overrideTargetHurtBox = autoAimSearch.GetResults().FirstOrDefault(h => h != lastHit.hitHurtBox);
+                    HurtBox overrideTargetHurtBox = autoAimSearch.GetResults().FirstOrDefault(h => HurtBox.FindEntityObject(h) != lastHitEntity);
                     if (overrideTargetHurtBox)
                     {
                         bounceDirection = (overrideTargetHurtBox.randomVolumePoint - autoAimSearch.searchOrigin).normalized;
