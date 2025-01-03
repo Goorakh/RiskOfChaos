@@ -20,9 +20,15 @@ namespace RiskOfChaos.Components
 
         public string[] SyncTeleporterChildActivations = [];
 
+        public float SyncChildActivationsInterval = 0.5f;
+
+        float _syncChildActivationsTimer;
+
         ModelLocator _modelLocator;
 
         ChildLocator _modelChildLocator;
+
+        Particle_SetMinSize _particleScalerController;
 
         BaseTeleporterState currentState => MainStateMachine ? MainStateMachine.state as BaseTeleporterState : null;
 
@@ -32,6 +38,15 @@ namespace RiskOfChaos.Components
             if (_modelLocator && _modelLocator.modelTransform)
             {
                 _modelChildLocator = _modelLocator.modelTransform.GetComponent<ChildLocator>();
+            }
+
+            if (_modelChildLocator)
+            {
+                Transform passiveParticleSphereTransform = _modelChildLocator.FindChild("PassiveParticleSphere");
+                if (passiveParticleSphereTransform)
+                {
+                    _particleScalerController = passiveParticleSphereTransform.GetComponent<Particle_SetMinSize>();
+                }
             }
         }
 
@@ -47,24 +62,61 @@ namespace RiskOfChaos.Components
 
         void FixedUpdate()
         {
-            if (_modelChildLocator)
+            if (_particleScalerController)
             {
-                foreach (string childName in SyncTeleporterChildActivations)
-                {
-                    Transform childTransform = _modelChildLocator.FindChild(childName);
-                    if (childTransform)
-                    {
-                        bool shouldBeActive = false;
-                        if (TeleporterInteraction.instance && TeleporterInteraction.instance.modelChildLocator)
-                        {
-                            Transform teleporterChildTransform = TeleporterInteraction.instance.modelChildLocator.FindChild(childName);
-                            if (teleporterChildTransform)
-                            {
-                                shouldBeActive = teleporterChildTransform.gameObject.activeSelf;
-                            }
-                        }
+                bool shouldScaleParticles = false;
 
-                        childTransform.gameObject.SetActive(shouldBeActive);
+                LocalUser localUser = LocalUserManager.GetFirstLocalUser();
+                if (localUser != null)
+                {
+                    UserProfile localUserProfile = localUser.userProfile;
+                    if (localUserProfile != null)
+                    {
+                        shouldScaleParticles = localUserProfile.useTeleporterParticleScaling;
+                    }
+                }
+
+                if (TeleporterInteraction.instance)
+                {
+                    Particle_SetMinSize teleporterParticleMinSizeController = TeleporterInteraction.instance.cachedParticleMinSizeScript;
+                    if (teleporterParticleMinSizeController)
+                    {
+                        shouldScaleParticles = teleporterParticleMinSizeController._isEnabled;
+                    }
+                }
+
+                if (_particleScalerController._isEnabled != shouldScaleParticles)
+                {
+                    _particleScalerController.SetEnabled(shouldScaleParticles);
+                }
+            }
+
+            if (SyncTeleporterChildActivations.Length > 0 && _modelChildLocator)
+            {
+                _syncChildActivationsTimer -= Time.fixedDeltaTime;
+                if (_syncChildActivationsTimer < 0f)
+                {
+                    _syncChildActivationsTimer = SyncChildActivationsInterval;
+
+                    ChildLocator teleporterModelChildLocator = TeleporterInteraction.instance ? TeleporterInteraction.instance.modelChildLocator : null;
+
+                    foreach (string childName in SyncTeleporterChildActivations)
+                    {
+                        Transform childTransform = _modelChildLocator.FindChild(childName);
+                        if (childTransform)
+                        {
+                            bool shouldBeActive = false;
+                            if (teleporterModelChildLocator)
+                            {
+                                Transform teleporterChildTransform = teleporterModelChildLocator.FindChild(childName);
+                                if (teleporterChildTransform)
+                                {
+                                    shouldBeActive = teleporterChildTransform.gameObject.activeSelf;
+                                }
+                            }
+
+                            childTransform.gameObject.SetActive(shouldBeActive);
+                        }
                     }
                 }
             }
