@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -21,6 +22,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
             {
                 CharacterBody.readOnlyInstancesList.TryDo(skipActiveEquipmentCooldowns, FormatUtils.GetBestBodyName);
             }
+
+            InventoryHooks.OverrideEquipmentCooldownScale += overrideEquipmentCooldownScale;
+        }
+
+        void OnDestroy()
+        {
+            InventoryHooks.OverrideEquipmentCooldownScale -= overrideEquipmentCooldownScale;
         }
 
         static void skipActiveEquipmentCooldowns(CharacterBody body)
@@ -38,6 +46,11 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
                     inventory.RestockEquipmentCharges(i, int.MaxValue);
                 }
             }
+        }
+
+        static void overrideEquipmentCooldownScale(Inventory inventory, ref float cooldownScale)
+        {
+            cooldownScale = 0f;
         }
     }
 }
