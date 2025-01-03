@@ -8,6 +8,9 @@
 * Bouncy Projectiles:
   * Fixed bullets sometimes dealing damage several times to the same target
 
+* Explosive Deaths:
+  * Removed explosion proc coefficient
+
 **2.4.1 Changes:**
 
 * Added 1 effect:

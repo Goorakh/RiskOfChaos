@@ -172,7 +172,7 @@ namespace RiskOfChaos.Components
                 baseForce = 5000f,
                 attackerFiltering = AttackerFiltering.AlwaysHit,
                 crit = false,
-                procCoefficient = 1f,
+                procCoefficient = 0f,
                 teamIndex = teamIndex,
                 damageType = damageType
             };
