@@ -21,6 +21,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosEffect("revive_dead_characters")]
+    [IncompatibleEffects(typeof(DisableRevives))]
     public sealed class ReviveDeadCharacters : MonoBehaviour
     {
         static GameObject _reviveEffectPrefab;

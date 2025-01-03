@@ -169,5 +169,6 @@
         "EFFECT_ALL_ATTACKS_BACKSTAB_NAME": "Enable Backstabs for All Damage",
         "EFFECT_SPAWN_FAKE_TELEPORTER_NAME": "Spawn Fake Teleporter",
         "EFFECT_END_ALL_EFFECTS_NAME": "End All Active Effects",
+        "EFFECT_DISABLE_REVIVES_NAME": "Disable Revives",
     }
 }

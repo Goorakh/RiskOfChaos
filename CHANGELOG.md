@@ -2,6 +2,9 @@
 
 **-.-.- Changes:**
 
+* Added 1 effect:
+  * Disable Revives: Disables all means of reviving, lasts 1 stage.
+
 * Spawn Fake Teleporter:
   * Fixed telporter particles not scaling when "Scale Teleporter Particles" setting is enabled
 

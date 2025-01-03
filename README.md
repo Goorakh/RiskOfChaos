@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 146 different effects.
+Currently features 147 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -155,6 +155,7 @@ Currently features 146 different effects.
 * Enable Backstabs for All Damage: Enables Bandit's backstab passive for all damage, lasts 90 seconds
 * Spawn Fake Teleporter: Spawns a fake teleporter somewhere on the stage.
 * End All Active Effects: Ends all currently active effects.
+* Disable Revives: Disables all means of reviving, lasts 1 stage.
 </details>
 
 <hr>

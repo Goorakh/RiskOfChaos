@@ -3,6 +3,7 @@ using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.Utils;
 using System;
+using System.Collections;
 
 namespace RiskOfChaos.Utilities.Extensions
 {
@@ -93,6 +94,45 @@ namespace RiskOfChaos.Utilities.Extensions
             {
                 c.MarkLabel(skipCallLabel);
             }
+        }
+
+        public static bool TryFindForeachContinueLabel(this ILCursor cursor, out ILLabel continueLabel)
+        {
+            static bool isEnumerableGetEnumerator(MethodReference method)
+            {
+                if (method == null)
+                    return false;
+
+                if (!string.Equals(method.Name, nameof(IEnumerable.GetEnumerator)))
+                    return false;
+
+                // TODO: More robust check here, check return type is an IEnumerator and make sure declaring type is actually implementing the IEnumerable interface
+
+                return true;
+            }
+
+            ILCursor c = cursor.Clone();
+
+            int enumeratorLocalIndex = -1;
+            if (!c.TryGotoPrev(x => x.MatchCallOrCallvirt(out MethodReference method) && isEnumerableGetEnumerator(method)) ||
+                !c.TryGotoNext(x => x.MatchStloc(out enumeratorLocalIndex)))
+            {
+                Log.Warning("Failed to find GetEnumerator call");
+                continueLabel = null;
+                return false;
+            }
+
+            c = cursor.Clone();
+            if (!c.TryGotoNext(x => x.MatchCallOrCallvirt<IEnumerator>(nameof(IEnumerator.MoveNext))) ||
+                !c.TryGotoPrev(MoveType.Before, x => x.MatchLdloc(enumeratorLocalIndex)))
+            {
+                Log.Warning("Failed to find matching MoveNext call");
+                continueLabel = null;
+                return false;
+            }
+
+            continueLabel = c.MarkLabel();
+            return true;
         }
 
         public static bool TryFindParameter(this MethodReference method, Type type, string name, out ParameterDefinition parameter)
