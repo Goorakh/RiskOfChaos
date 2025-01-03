@@ -10,7 +10,6 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.Character.Equipment
 {
     [ChaosTimedEffect("no_equipment_cooldown", 60f, AllowDuplicates = false)]
-    [IncompatibleEffects(typeof(DisableEquipmentActivation))]
     public sealed class NoEquipmentCooldown : MonoBehaviour
     {
         [InitEffectInfo]
