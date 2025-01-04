@@ -13,7 +13,7 @@ namespace RiskOfChaos
 
             public static readonly ConfigHolder<bool> DisableEffectDispatching =
                 ConfigFactory<bool>.CreateConfig("Disable Effect Activation", false)
-                                   .Description("If effect activation should be disabled completely")
+                                   .Description("If timer-based effect activation should be disabled completely")
                                    .OptionConfig(new CheckBoxConfig())
                                    .Networked()
                                    .Build();
