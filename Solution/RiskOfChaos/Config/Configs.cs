@@ -2,6 +2,7 @@
 using RiskOfOptions;
 using System;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 namespace RiskOfChaos
@@ -13,39 +14,49 @@ namespace RiskOfChaos
 
         public static Sprite GenericIcon { get; private set; }
 
-        static void findIcon()
+        static FileInfo findFileInParentDirectories(DirectoryInfo startDir, string searchPattern)
         {
-            FileInfo iconFile = null;
-
-            DirectoryInfo dir = new DirectoryInfo(Main.ModDirectory);
-            do
+            for (DirectoryInfo dir = startDir; dir != null; dir = dir.Parent)
             {
-                FileInfo[] files = dir.GetFiles("icon.png", SearchOption.TopDirectoryOnly);
-                if (files != null && files.Length > 0)
+                if (string.Equals(dir.FullName, BepInEx.Paths.PluginPath, StringComparison.OrdinalIgnoreCase))
                 {
-                    iconFile = files[0];
+                    Log.Debug($"File search (matching '{searchPattern}') reached plugin directory");
                     break;
                 }
 
-                dir = dir.Parent;
+                Log.Debug($"Searching '{dir.FullName}' for file matching '{searchPattern}'");
 
-            } while (dir != null && !string.Equals(dir.Name, "plugins", StringComparison.OrdinalIgnoreCase));
-
-            if (iconFile != null)
-            {
-                Texture2D iconTexture = new Texture2D(256, 256);
-                iconTexture.name = $"tex{Main.PluginName}Icon";
-                if (iconTexture.LoadImage(File.ReadAllBytes(iconFile.FullName)))
+                FileInfo iconFile = dir.EnumerateFiles(searchPattern, SearchOption.TopDirectoryOnly).FirstOrDefault();
+                if (iconFile != null)
                 {
-                    GenericIcon = Sprite.Create(iconTexture, new Rect(0f, 0f, iconTexture.width, iconTexture.height), new Vector2(0.5f, 0.5f));
-                    GenericIcon.name = $"{Main.PluginName}Icon";
+                    Log.Debug($"File matching '{searchPattern}' found at: {iconFile.FullName}");
+                    return iconFile;
                 }
             }
 
-            if (!GenericIcon)
+            return null;
+        }
+
+        static Sprite generateIcon()
+        {
+            DirectoryInfo pluginDir = new DirectoryInfo(Main.ModDirectory);
+            FileInfo iconFile = findFileInParentDirectories(pluginDir, "icon.png");
+            if (iconFile == null)
             {
-                Log.Error("Failed to load config icon");
+                return null;
             }
+
+            Texture2D iconTexture = new Texture2D(256, 256);
+            iconTexture.name = $"tex{Main.PluginName}Icon";
+            if (!iconTexture.LoadImage(File.ReadAllBytes(iconFile.FullName)))
+            {
+                GameObject.Destroy(iconTexture);
+                return null;
+            }
+
+            Sprite icon = Sprite.Create(iconTexture, new Rect(0f, 0f, iconTexture.width, iconTexture.height), new Vector2(0.5f, 0.5f));
+            icon.name = $"{Main.PluginName}Icon";
+            return icon;
         }
 
         internal static void Init(ConfigFile file)
@@ -66,7 +77,10 @@ namespace RiskOfChaos
 
             Metadata.Bind(file);
 
-            findIcon();
+            if (!GenericIcon)
+            {
+                GenericIcon = generateIcon();
+            }
 
             if (GenericIcon)
             {
