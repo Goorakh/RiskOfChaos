@@ -6,6 +6,7 @@
   * Disable Revives: Disables all means of reviving, lasts 1 stage.
 
 * Spawn Fake Teleporter:
+  * Default weight: 1.0 -> 0.8
   * Fixed fake teleporter particles not scaling when "Scale Teleporter Particles" setting is enabled
   * Fixed fake teleporter not working with teleporter discovery setting
   * Fixed fake teleporter ping indicator not showing correctly
