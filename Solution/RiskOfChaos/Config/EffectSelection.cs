@@ -2,6 +2,7 @@
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfOptions.OptionConfigs;
+using System;
 
 namespace RiskOfChaos
 {
@@ -45,7 +46,7 @@ namespace RiskOfChaos
                 ChaosEffectCatalog.Availability.CallWhenAvailable(() =>
                 {
                     PerStageEffectListSize =
-                        ConfigFactory<int>.CreateConfig("Effect List Size", 50)
+                        ConfigFactory<int>.CreateConfig("Effect List Size", Math.Min(50, ChaosEffectCatalog.EffectCount / 2))
                                           .Description("""
                                            The size of the per-stage effect list
                                            Not supported in any chat voting mode
