@@ -176,7 +176,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 fakeTeleporterInteraction.MainStateMachine = fakeTeleporterStateMachine;
                 fakeTeleporterInteraction.BeginContextString = teleporterInteraction.beginContextString;
                 fakeTeleporterInteraction.DiscoveryRadius = teleporterInteraction.discoveryRadius;
-                fakeTeleporterInteraction.SyncTeleporterChildActivations = ["BossShrineSymbol", .. portalIndicatorChildNames];
+                fakeTeleporterInteraction.SyncTeleporterChildActivations = ["BossShrineSymbol", "TimeCrystalProps", "TimeCrystalBeaconBlocker", .. portalIndicatorChildNames];
 
                 CombatDirector bossDirector = fakeTeleporterPrefab.GetComponent<CombatDirector>();
                 bossDirector.enabled = false;
