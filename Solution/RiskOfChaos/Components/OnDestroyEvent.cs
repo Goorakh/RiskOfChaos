@@ -21,12 +21,6 @@ namespace RiskOfChaos.Components
                 _onDestroyed -= value;
 
                 Log.Debug($"Removed OnDestroy event from {Util.GetGameObjectHierarchyName(gameObject)}");
-
-                if (_onDestroyed == null)
-                {
-                    Log.Debug($"Removing OnDestroyEvent component from {Util.GetGameObjectHierarchyName(gameObject)}");
-                    Destroy(this);
-                }
             }
         }
 
