@@ -11,6 +11,9 @@
   * Fixed fake teleporter not working with teleporter discovery setting
   * Fixed fake teleporter ping indicator not showing correctly
 
+* You and a super intelligent Lemurian...:
+  * Fixed Unstable Transmitter being able to block invincible lemurian damage
+
 * 2x Item Drops:
   * Default duration: 90s -> 45s
   * Default weight: 1.0 -> 0.8

@@ -1,4 +1,5 @@
-﻿using Mono.Cecil.Cil;
+﻿using Mono.Cecil;
+using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using R2API;
 using RiskOfChaos.Content.AssetCollections;
@@ -63,6 +64,8 @@ namespace RiskOfChaos.Content
             static void InitHooks()
             {
                 HealthComponentHooks.PreTakeDamage += HealthComponentHooks_PreTakeDamage;
+
+                IL.RoR2.HealthComponent.TakeDamageProcess += HealthComponent_TakeDamageProcess;
 
                 On.RoR2.CharacterAI.BaseAI.FindEnemyHurtBox += On_BaseAI_FindEnemyHurtBox;
 
@@ -145,6 +148,45 @@ namespace RiskOfChaos.Content
                     damageInfo.damageType |= DamageType.BypassArmor | DamageType.BypassBlock | DamageType.BypassOneShotProtection | (DamageTypeCombo)DamageTypeExtended.SojournVehicleDamage;
                     damageInfo.damage = float.PositiveInfinity;
                 }
+            }
+
+            static void HealthComponent_TakeDamageProcess(ILContext il)
+            {
+                ILCursor c = new ILCursor(il);
+
+                if (!il.Method.TryFindParameter<DamageInfo>(out ParameterDefinition damageInfoParameter))
+                {
+                    Log.Error("Failed to find DamageInfo parameter");
+                    return;
+                }
+
+                if (!c.TryGotoNext(MoveType.Before,
+                                  x => x.MatchCallOrCallvirt<TeleportOnLowHealthBehavior>(nameof(TeleportOnLowHealthBehavior.TryProc))))
+                {
+                    Log.Error("Failed to find patch location");
+                    return;
+                }
+
+                c.Emit(OpCodes.Ldarg, damageInfoParameter);
+                c.EmitDelegate(canProcTransmitter);
+                static bool canProcTransmitter(DamageInfo damageInfo)
+                {
+                    if (damageInfo != null &&
+                        damageInfo.attacker &&
+                        damageInfo.attacker.TryGetComponent(out CharacterBody attackerBody) &&
+                        attackerBody.inventory &&
+                        attackerBody.inventory.GetItemCount(InvincibleLemurianMarker) > 0)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+
+                c.EmitSkipMethodCall(OpCodes.Brfalse, c =>
+                {
+                    c.Emit(OpCodes.Ldc_I4_0);
+                });
             }
 
             static HurtBox On_BaseAI_FindEnemyHurtBox(On.RoR2.CharacterAI.BaseAI.orig_FindEnemyHurtBox orig, BaseAI self, float maxDistance, bool full360Vision, bool filterByLoS)
