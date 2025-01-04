@@ -8,7 +8,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Pickups
 {
-    [ChaosTimedEffect("double_pickups", 90f)]
+    [ChaosTimedEffect("double_pickups", 45f, DefaultSelectionWeight = 0.8f)]
     public sealed class DoublePickups : MonoBehaviour
     {
         [EffectCanActivate]

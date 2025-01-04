@@ -136,7 +136,7 @@ Currently features 147 different effects.
 * Explosive Deaths: All non-players explode at low health or death, lasts 90 seconds
 * Prototype Models: Replaces all character models with their hitboxes, lasts 90 seconds
 * Pause: Pauses the run timer and effect activation, lasts 60 seconds
-* 2x Item Drops: Doubles all dropped pickups, lasts 90 seconds
+* 2x Item Drops: Doubles all dropped pickups, lasts 45 seconds
 * Enable Weak Points for All Damage: Enables the weak point check from Railgunner snipe to all damage, lasts 90 seconds
 * Always Sprinting: Forces all characters to constantly sprint, lasts 60 seconds
 * Repeating Projectiles: All projectiles spawn an additional 5 copies after a delay, lasts 90 seconds

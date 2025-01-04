@@ -11,6 +11,10 @@
   * Fixed fake teleporter not working with teleporter discovery setting
   * Fixed fake teleporter ping indicator not showing correctly
 
+* 2x Item Drops:
+  * Default duration: 90s -> 45s
+  * Default weight: 1.0 -> 0.8
+
 * Bouncy Projectiles:
   * Fixed bullets sometimes dealing damage several times to the same target
 
