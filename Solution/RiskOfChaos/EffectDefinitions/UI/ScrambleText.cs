@@ -31,13 +31,6 @@ namespace RiskOfChaos.EffectDefinitions.UI
             ConfigFactory<bool>.CreateConfig("Exclude Effect Names", false)
                                .Description("Excludes chaos effect names from being scrambled")
                                .OptionConfig(new CheckBoxConfig())
-                               .OnValueChanged(() =>
-                               {
-                                   if (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(EffectInfo))
-                                   {
-                                       LocalizedStringOverridePatch.RefreshLanguageTokens();
-                                   }
-                               })
                                .Build();
 
         // Match string formats ({0}, {0:F0}, etc.)
@@ -73,6 +66,8 @@ namespace RiskOfChaos.EffectDefinitions.UI
 
         void Start()
         {
+            _excludeEffectNames.SettingChanged += excludeEffectNamesSettingChanged;
+
             LocalizedStringOverridePatch.OverrideLanguageString += overrideLanguageString;
             Language.onCurrentLanguageChanged += onCurrentLanguageChanged;
 
@@ -82,6 +77,8 @@ namespace RiskOfChaos.EffectDefinitions.UI
 
         void OnDestroy()
         {
+            _excludeEffectNames.SettingChanged -= excludeEffectNamesSettingChanged;
+
             Language.onCurrentLanguageChanged -= onCurrentLanguageChanged;
             LocalizedStringOverridePatch.OverrideLanguageString -= overrideLanguageString;
 
@@ -97,6 +94,11 @@ namespace RiskOfChaos.EffectDefinitions.UI
             }
 
             _processedTextLabels.Clear();
+        }
+
+        static void excludeEffectNamesSettingChanged(object sender, ConfigChangedArgs<bool> e)
+        {
+            LocalizedStringOverridePatch.RefreshLanguageTokens();
         }
 
         void onCurrentLanguageChanged()
