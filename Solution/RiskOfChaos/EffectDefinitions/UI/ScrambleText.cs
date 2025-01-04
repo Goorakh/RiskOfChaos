@@ -89,7 +89,7 @@ namespace RiskOfChaos.EffectDefinitions.UI
 
             foreach (TMP_Text label in _processedTextLabels)
             {
-                if (label.textPreprocessor is ScramblePreprocessor)
+                if (label && label.textPreprocessor is ScramblePreprocessor)
                 {
                     label.textPreprocessor = null;
                     label.ForceMeshUpdate();
