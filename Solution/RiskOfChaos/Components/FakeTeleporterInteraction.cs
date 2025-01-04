@@ -1,14 +1,30 @@
 ﻿using EntityStates;
 using RiskOfChaos.Content;
+using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.UI;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.Components
 {
-    public class FakeTeleporterInteraction : NetworkBehaviour, IInteractable
+    public class FakeTeleporterInteraction : NetworkBehaviour, IInteractable, ICustomPingBehavior
     {
         public static readonly SerializableEntityStateType IdleStateType = new SerializableEntityStateType(typeof(IdleState));
+
+        static GameObject _chargingPositionIndicatorPrefab;
+
+        [SystemInitializer]
+        static void Init()
+        {
+            Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Teleporters/TeleporterChargingPositionIndicator.prefab").OnSuccess(positionIndicatorPrefab =>
+            {
+                _chargingPositionIndicatorPrefab = positionIndicatorPrefab;
+            });
+        }
 
         public PerpetualBossController BossController;
 
@@ -30,7 +46,19 @@ namespace RiskOfChaos.Components
 
         Particle_SetMinSize _particleScalerController;
 
+        PositionIndicator _positionIndicator;
+        ChargeIndicatorController _chargeIndicator;
+
+        readonly List<PingIndicator> _currentPings = [];
+
+        bool _wasDiscovered;
+
+        [SyncVar]
+        bool _isDiscovered;
+
         BaseTeleporterState currentState => MainStateMachine ? MainStateMachine.state as BaseTeleporterState : null;
+
+        public bool IsIdle => currentState is IdleState;
 
         void Awake()
         {
@@ -48,6 +76,28 @@ namespace RiskOfChaos.Components
                     _particleScalerController = passiveParticleSphereTransform.GetComponent<Particle_SetMinSize>();
                 }
             }
+
+            if (_chargingPositionIndicatorPrefab)
+            {
+                GameObject positionIndicator = Instantiate(_chargingPositionIndicatorPrefab, transform.position, Quaternion.identity);
+                _positionIndicator = positionIndicator.GetComponent<PositionIndicator>();
+                if (_positionIndicator)
+                {
+                    _positionIndicator.targetTransform = transform;
+                }
+
+                _chargeIndicator = positionIndicator.GetComponent<ChargeIndicatorController>();
+
+                positionIndicator.SetActive(false);
+            }
+        }
+
+        void OnDestroy()
+        {
+            if (_positionIndicator)
+            {
+                Destroy(_positionIndicator.gameObject);
+            }
         }
 
         void OnEnable()
@@ -58,23 +108,37 @@ namespace RiskOfChaos.Components
         void OnDisable()
         {
             InstanceTracker.Remove(this);
+
+            if (_positionIndicator)
+            {
+                _positionIndicator.gameObject.SetActive(false);
+            }
         }
 
         void FixedUpdate()
         {
+            bool shouldScaleParticlesSetting = false;
+            bool useTeleporterDiscoveryIndicatorSetting = false;
+
+            LocalUser localUser = LocalUserManager.GetFirstLocalUser();
+            if (localUser != null)
+            {
+                UserProfile localUserProfile = localUser.userProfile;
+                if (localUserProfile != null)
+                {
+                    shouldScaleParticlesSetting = localUserProfile.useTeleporterParticleScaling;
+                    useTeleporterDiscoveryIndicatorSetting = localUserProfile.useTeleporterDiscoveryIndicator;
+                }
+            }
+
+            if (_positionIndicator)
+            {
+                _positionIndicator.gameObject.SetActive(IsIdle && ((_isDiscovered && useTeleporterDiscoveryIndicatorSetting) || _currentPings.Count > 0));
+            }
+
             if (_particleScalerController)
             {
-                bool shouldScaleParticles = false;
-
-                LocalUser localUser = LocalUserManager.GetFirstLocalUser();
-                if (localUser != null)
-                {
-                    UserProfile localUserProfile = localUser.userProfile;
-                    if (localUserProfile != null)
-                    {
-                        shouldScaleParticles = localUserProfile.useTeleporterParticleScaling;
-                    }
-                }
+                bool shouldScaleParticles = shouldScaleParticlesSetting;
 
                 if (TeleporterInteraction.instance)
                 {
@@ -91,6 +155,13 @@ namespace RiskOfChaos.Components
                 }
             }
 
+            updateModelChildActivations();
+
+            updateDiscovered();
+        }
+
+        void updateModelChildActivations()
+        {
             if (SyncTeleporterChildActivations.Length > 0 && _modelChildLocator)
             {
                 _syncChildActivationsTimer -= Time.fixedDeltaTime;
@@ -122,6 +193,117 @@ namespace RiskOfChaos.Components
             }
         }
 
+        void updateDiscovered()
+        {
+            if (NetworkServer.active)
+            {
+                if (!_isDiscovered && PlayerUtils.AnyPlayerInRadius(transform.position, DiscoveryRadius))
+                {
+                    _isDiscovered = true;
+                }
+            }
+
+            if (_isDiscovered != _wasDiscovered)
+            {
+                if (_chargeIndicator)
+                {
+                    _chargeIndicator.isDiscovered = _isDiscovered;
+
+                    if (_isDiscovered)
+                    {
+                        _chargeIndicator.TriggerPingAnimation();
+                    }
+                }
+
+                _wasDiscovered = _isDiscovered;
+            }
+        }
+
+        void ICustomPingBehavior.OnPingAdded(PingIndicator pingIndicator)
+        {
+            if (!pingIndicator || !IsIdle)
+                return;
+
+            pingIndicator.pingDuration = 30f;
+            pingIndicator.fixedTimer = pingIndicator.pingDuration;
+
+            if (pingIndicator.pingText)
+            {
+                pingIndicator.pingText.enabled = false;
+            }
+
+            if (pingIndicator.interactablePingGameObjects != null && pingIndicator.interactablePingGameObjects.Length > 0)
+            {
+                if (pingIndicator.interactablePingGameObjects[0].TryGetComponent(out SpriteRenderer spriteRenderer))
+                {
+                    spriteRenderer.enabled = false;
+                }
+            }
+
+            _currentPings.Add(pingIndicator);
+
+            updatePings(true);
+        }
+
+        void ICustomPingBehavior.OnPingRemoved(PingIndicator pingIndicator)
+        {
+            if (!IsIdle)
+                return;
+
+            _currentPings.Remove(pingIndicator);
+
+            updatePings(false);
+        }
+
+        void clearPings()
+        {
+            for (int i = _currentPings.Count - 1; i >= 0; i--)
+            {
+                PingIndicator pingIndicator = _currentPings[i];
+                if (pingIndicator)
+                {
+                    pingIndicator.DestroyPing();
+                }
+            }
+
+            _currentPings.Clear();
+            updatePings(false);
+        }
+
+        void updatePings(bool usePingedAnimation)
+        {
+            for (int i = _currentPings.Count - 1; i >= 0; i--)
+            {
+                if (!_currentPings[i])
+                {
+                    _currentPings.RemoveAt(i);
+                }
+            }
+
+            PingIndicator activePingIndicator = null;
+            if (_currentPings.Count > 0)
+            {
+                activePingIndicator = _currentPings[_currentPings.Count - 1];
+            }
+
+            if (NetworkServer.active && activePingIndicator)
+            {
+                _isDiscovered = true;
+            }
+
+            if (_chargeIndicator)
+            {
+                if (activePingIndicator)
+                {
+                    _chargeIndicator.TriggerPing(activePingIndicator.GetOwnerName(), usePingedAnimation);
+                }
+                else
+                {
+                    _chargeIndicator.isPinged = false;
+                }
+            }
+        }
+
         public string GetContextString(Interactor activator)
         {
             return Language.GetString(BeginContextString);
@@ -129,7 +311,7 @@ namespace RiskOfChaos.Components
 
         public Interactability GetInteractability(Interactor activator)
         {
-            if (TeleporterInteraction.instance)
+            if (TeleporterInteraction.instance && TeleporterInteraction.instance.isIdle)
             {
                 Interactability realTeleporterInteractability = TeleporterInteraction.instance.GetInteractability(activator);
                 if (realTeleporterInteractability != Interactability.Available)
@@ -252,6 +434,8 @@ namespace RiskOfChaos.Components
 
                 SetChildActive("IdleToChargingEffect", true);
                 SetChildActive("PPVolume", true);
+
+                teleporterInteraction.clearPings();
             }
 
             public override void OnExit()

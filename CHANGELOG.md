@@ -6,7 +6,9 @@
   * Disable Revives: Disables all means of reviving, lasts 1 stage.
 
 * Spawn Fake Teleporter:
-  * Fixed telporter particles not scaling when "Scale Teleporter Particles" setting is enabled
+  * Fixed fake teleporter particles not scaling when "Scale Teleporter Particles" setting is enabled
+  * Fixed fake teleporter not working with teleporter discovery setting
+  * Fixed fake teleporter ping indicator not showing correctly
 
 * Bouncy Projectiles:
   * Fixed bullets sometimes dealing damage several times to the same target
