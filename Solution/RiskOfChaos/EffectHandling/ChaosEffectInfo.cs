@@ -104,7 +104,7 @@ namespace RiskOfChaos.EffectHandling
                 controllerComponentTypes.Add(controllerComponent.GetType());
             }
 
-            ControllerComponentTypes = new ReadOnlyCollection<Type>(controllerComponentTypes.ToList());
+            ControllerComponentTypes = new ReadOnlyCollection<Type>([.. controllerComponentTypes]);
 
             HashSet<MethodInfo> processedMethods = [];
 
@@ -145,8 +145,8 @@ namespace RiskOfChaos.EffectHandling
                 }
             }
 
-            _canActivateMethods = canActivateMethodsList.ToArray();
-            _effectWeightMultipliers = effectWeightMultipliersList.ToArray();
+            _canActivateMethods = [.. canActivateMethodsList];
+            _effectWeightMultipliers = [.. effectWeightMultipliersList];
             _getStaticEffectNameFormatter = getEffectNameFormatterDelegate;
 
             StaticDisplayNameFormatterProvider = new EffectNameFormatterProvider(GetDefaultNameFormatter(), true);
@@ -238,7 +238,7 @@ namespace RiskOfChaos.EffectHandling
 
             componentTypes.Add(EffectComponentType);
 
-            GameObject prefab = Prefabs.CreateNetworkedPrefab($"{Identifier}_EffectController", componentTypes.ToArray());
+            GameObject prefab = Prefabs.CreateNetworkedPrefab($"{Identifier}_EffectController", [.. componentTypes]);
 
             if (prefab.TryGetComponent(out ChaosEffectComponent effectComponent))
             {

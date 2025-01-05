@@ -296,7 +296,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 }
             }
 
-            return componentsList.ToArray();
+            return [.. componentsList];
         }
 
         [ConCommand(commandName = "roc_end_all_effects", flags = ConVarFlagUtil.SERVER, helpText = "Ends all active timed effects")]
