@@ -119,7 +119,7 @@ Currently features 147 different effects.
 * Disable Equipment: Disables all equipment activation, lasts 60 seconds.
 * All Items Are A Random Item: All items on the stage get turned into a random item. Essentially Artifact of Kin for items. Lasts 1 stage.
 * Everything is Free: All interactables are free, lasts 30 seconds.
-* Bouncy Items: Item drops will bounce on the ground before settling, lasts 60 seconds
+* Bouncy Items: Item drops will bounce on the ground before settling, lasts 90 seconds
 * Increase Skill Charges: Adds 1 charge to every skill, lasts 1 stage
 * Decrease Skill Charges: Removes 1 charge from every skill (cannot reduce below 1), lasts 1 stage
 * Focused Teleporter Charging: Holdout zone radius decreases with charge percentage, lasts 1 stage

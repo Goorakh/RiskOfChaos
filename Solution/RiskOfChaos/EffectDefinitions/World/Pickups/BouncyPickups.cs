@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Pickups
 {
-    [ChaosTimedEffect("bouncy_pickups", 60f, AllowDuplicates = true)]
+    [ChaosTimedEffect("bouncy_pickups", 90f, AllowDuplicates = true)]
     public sealed class BouncyPickups : MonoBehaviour
     {
         [EffectConfig]

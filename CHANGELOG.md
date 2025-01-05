@@ -18,6 +18,9 @@
   * Default duration: 90s -> 45s
   * Default weight: 1.0 -> 0.8
 
+* Bouncy Items:
+  * Default duration: 60s -> 90s
+
 * Bouncy Projectiles:
   * Fixed bullets sometimes dealing damage several times to the same target
 
