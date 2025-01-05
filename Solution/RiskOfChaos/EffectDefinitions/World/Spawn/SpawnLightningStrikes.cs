@@ -154,7 +154,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 List<CharacterBody> validStrikeTargets = new List<CharacterBody>(CharacterBody.readOnlyInstancesList.Count);
                 foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
                 {
-                    if ((body.bodyFlags & CharacterBody.BodyFlags.Masterless) == 0 && body.healthComponent && body.healthComponent.alive)
+                    if (body && (body.bodyFlags & CharacterBody.BodyFlags.Masterless) == 0 && body.healthComponent && body.healthComponent.alive)
                     {
                         validStrikeTargets.Add(body);
                     }
