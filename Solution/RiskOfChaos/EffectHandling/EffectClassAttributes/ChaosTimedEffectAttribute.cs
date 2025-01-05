@@ -1,5 +1,4 @@
 ﻿using BepInEx.Configuration;
-using RiskOfChaos.EffectDefinitions;
 using System;
 
 namespace RiskOfChaos.EffectHandling.EffectClassAttributes
