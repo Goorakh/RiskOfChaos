@@ -14,6 +14,9 @@
 * You and a super intelligent Lemurian...:
   * Fixed Unstable Transmitter being able to block invincible lemurian damage
 
+* Ahoy!:
+  * Fixed drones spawning in overlapping positions if several drones are spawned on the same player.
+
 * 2x Item Drops:
   * Default duration: 90s -> 45s
   * Default weight: 1.0 -> 0.8
