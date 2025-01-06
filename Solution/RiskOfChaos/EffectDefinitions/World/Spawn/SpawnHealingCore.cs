@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -37,13 +38,18 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             if (!NetworkServer.active)
                 return;
 
-            for (int i = CharacterBody.readOnlyInstancesList.Count - 1; i >= 0; i--)
+            List<CharacterBody> spawnTargets = new List<CharacterBody>(CharacterBody.readOnlyInstancesList.Count);
+
+            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
             {
-                CharacterBody body = CharacterBody.readOnlyInstancesList[i];
+                if (body && !_spawnOnBlacklist.Contains(body.bodyIndex))
+                {
+                    spawnTargets.Add(body);
+                }
+            }
 
-                if (_spawnOnBlacklist.Contains(body.bodyIndex))
-                    continue;
-
+            foreach (CharacterBody body in spawnTargets)
+            {
                 Vector2 randomSpawnOffset = UnityEngine.Random.insideUnitCircle * 0.75f;
 
                 CharacterMaster healingCoreMaster = new MasterSummon
