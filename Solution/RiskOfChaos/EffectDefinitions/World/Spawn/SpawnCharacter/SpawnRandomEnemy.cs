@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using RiskOfChaos.ChatMessages;
+using RiskOfChaos.Collections.ParsedValue;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -33,6 +34,17 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
             CombatCharacterSpawnHelper.GetAllValidCombatCharacters(validCombatCharacters);
 
             _spawnPool.EnsureCapacity(validCombatCharacters.Count);
+
+            _spawnPool.CalcIsEntryAvailable += entry =>
+            {
+                CharacterBody bodyPrefab = null;
+                if (entry && entry.prefab && entry.prefab.TryGetComponent(out CharacterMaster masterPrefab) && masterPrefab.bodyPrefab)
+                {
+                    bodyPrefab = masterPrefab.bodyPrefab.GetComponent<CharacterBody>();
+                }
+
+                return bodyPrefab && !_enemyBlacklist.Contains(bodyPrefab.bodyIndex);
+            };
 
             foreach (CharacterMaster master in validCombatCharacters)
             {
@@ -88,6 +100,18 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                                .Description("If the effect should ignore normal elite selection rules. If enabled, any elite type can be selected, if disabled, only the elite types that can currently be spawned on the stage can be selected")
                                .OptionConfig(new CheckBoxConfig())
                                .Build();
+
+        [EffectConfig]
+        static readonly ConfigHolder<string> _enemyBlacklistConfig =
+            ConfigFactory<string>.CreateConfig("Enemy Blacklist", string.Empty)
+                                 .Description("A comma-separated list of characters to exclude from the enemy pool. Internal body names and English display names are allowed, with spaces and commas removed.")
+                                 .OptionConfig(new InputFieldConfig())
+                                 .Build();
+
+        static readonly ParsedBodyList _enemyBlacklist = new ParsedBodyList
+        {
+            ConfigHolder = _enemyBlacklistConfig
+        };
 
         [EffectCanActivate]
         static bool CanActivate()

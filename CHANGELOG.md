@@ -21,6 +21,9 @@
 * Bouncy Items:
   * Default duration: 60s -> 90s
 
+* Spawn Random Ally & Spawn Random Enemy:
+  * Added config option to exclude certain characters from being spawned by the effect.
+
 * Bouncy Projectiles:
   * Fixed bullets sometimes dealing damage several times to the same target
 

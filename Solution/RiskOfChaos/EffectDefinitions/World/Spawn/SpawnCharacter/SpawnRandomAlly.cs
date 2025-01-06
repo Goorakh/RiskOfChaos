@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using RiskOfChaos.Collections.ParsedValue;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -34,6 +35,17 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
             CombatCharacterSpawnHelper.GetAllValidCombatCharacters(validCombatCharacters);
 
             _spawnPool.EnsureCapacity(validCombatCharacters.Count);
+
+            _spawnPool.CalcIsEntryAvailable += entry =>
+            {
+                CharacterBody bodyPrefab = null;
+                if (entry && entry.prefab && entry.prefab.TryGetComponent(out CharacterMaster masterPrefab) && masterPrefab.bodyPrefab)
+                {
+                    bodyPrefab = masterPrefab.bodyPrefab.GetComponent<CharacterBody>();
+                }
+
+                return bodyPrefab && !_allyBlacklist.Contains(bodyPrefab.bodyIndex);
+            };
 
             for (int i = 0; i < validCombatCharacters.Count; i++)
             {
@@ -111,6 +123,18 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                                .Description("If the effect should ignore normal elite selection rules. If enabled, any elite type can be selected, if disabled, only the elite types that can currently be spawned on the stage can be selected")
                                .OptionConfig(new CheckBoxConfig())
                                .Build();
+
+        [EffectConfig]
+        static readonly ConfigHolder<string> _allyBlacklistConfig =
+            ConfigFactory<string>.CreateConfig("Ally Blacklist", string.Empty)
+                                 .Description("A comma-separated list of characters to exclude from the ally pool. Internal body names and English display names are allowed, with spaces and commas removed.")
+                                 .OptionConfig(new InputFieldConfig())
+                                 .Build();
+
+        static readonly ParsedBodyList _allyBlacklist = new ParsedBodyList
+        {
+            ConfigHolder = _allyBlacklistConfig
+        };
 
         [EffectCanActivate]
         static bool CanActivate()
