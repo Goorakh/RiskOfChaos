@@ -9,9 +9,15 @@ namespace RiskOfChaos.Components
     {
         public CombatDirector BossDirector;
 
-        public float CreditMultiplier = 1f;
+        public float BaseCreditMultiplier = 1f;
+
+        public float CreditMultiplierPerWave = 0f;
 
         public float BossDelay = 3.5f;
+
+        public float CurrentCreditMultiplier => BaseCreditMultiplier + (CreditMultiplierPerWave * _waveCount);
+
+        int _waveCount;
 
         CombatSquad _currentCombatSquad;
 
@@ -19,21 +25,21 @@ namespace RiskOfChaos.Components
 
         void OnEnable()
         {
-            if (!NetworkServer.active)
-                return;
+            if (NetworkServer.active)
+            {
+                if (BossDirector)
+                {
+                    BossDirector.enabled = true;
+                }
 
-            if (BossDirector)
-            {
-                BossDirector.enabled = true;
-            }
-
-            if (_currentCombatSquad && !_currentCombatSquad.defeatedServer)
-            {
-                _currentCombatSquad.onDefeatedServer += onBossDefeatedServer;
-            }
-            else
-            {
-                spawnNextBoss();
+                if (_currentCombatSquad && !_currentCombatSquad.defeatedServer)
+                {
+                    _currentCombatSquad.onDefeatedServer += onBossDefeatedServer;
+                }
+                else
+                {
+                    spawnNextBoss();
+                }
             }
         }
 
@@ -52,12 +58,15 @@ namespace RiskOfChaos.Components
 
         void FixedUpdate()
         {
-            if (_nextBossSpawnTimer > 0f)
+            if (NetworkServer.active)
             {
-                _nextBossSpawnTimer -= Time.fixedDeltaTime;
-                if (_nextBossSpawnTimer <= 0f)
+                if (_nextBossSpawnTimer > 0f)
                 {
-                    spawnNextBoss();
+                    _nextBossSpawnTimer -= Time.fixedDeltaTime;
+                    if (_nextBossSpawnTimer <= 0f)
+                    {
+                        spawnNextBoss();
+                    }
                 }
             }
         }
@@ -83,13 +92,16 @@ namespace RiskOfChaos.Components
 
             NetworkServer.Spawn(bossCombatSquadObj);
 
+            float difficultyCoefficient = Run.instance ? Run.instance.compensatedDifficultyCoefficient : 1f;
+
+            BossDirector.monsterCredit = (int)(600f * Mathf.Pow(difficultyCoefficient, 0.5f) * CurrentCreditMultiplier);
             BossDirector.combatSquad = _currentCombatSquad;
-            BossDirector.monsterCredit = (int)(600f * Mathf.Pow(Run.instance.compensatedDifficultyCoefficient, 0.5f) * CreditMultiplier);
             BossDirector.SetNextSpawnAsBoss();
         }
 
         void onBossDefeatedServer()
         {
+            _waveCount++;
             _nextBossSpawnTimer = Mathf.Max(_nextBossSpawnTimer, BossDelay);
         }
     }

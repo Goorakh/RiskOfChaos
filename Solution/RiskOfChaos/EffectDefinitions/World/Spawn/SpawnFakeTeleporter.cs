@@ -184,7 +184,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 PerpetualBossController perpetualBossController = fakeTeleporterPrefab.GetComponent<PerpetualBossController>();
                 perpetualBossController.enabled = false;
                 perpetualBossController.BossDirector = bossDirector;
-                perpetualBossController.CreditMultiplier = 4.5f;
+                perpetualBossController.BaseCreditMultiplier = 1f + 3.5f;
+                perpetualBossController.CreditMultiplierPerWave = 1.5f;
 
                 FakeTeleporterInteraction fakeTeleporterInteraction = fakeTeleporterPrefab.GetComponent<FakeTeleporterInteraction>();
                 fakeTeleporterInteraction.BossController = perpetualBossController;
