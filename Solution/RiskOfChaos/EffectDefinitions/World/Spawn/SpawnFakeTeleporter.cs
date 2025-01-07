@@ -149,13 +149,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     fakeTeleporterEntityLocator.entity = mapObjectReference(fakeTeleporterEntityLocator.entity, teleporterPrefab, fakeTeleporterPrefab);
                 }
 
-                EntityStateMachine fakeTeleporterStateMachine = fakeTeleporterPrefab.GetComponent<EntityStateMachine>();
-                fakeTeleporterStateMachine.initialStateType = FakeTeleporterInteraction.IdleStateType;
-                fakeTeleporterStateMachine.mainStateType = FakeTeleporterInteraction.IdleStateType;
-
-                NetworkStateMachine fakeTeleporterNetworkStateMachine = fakeTeleporterPrefab.GetComponent<NetworkStateMachine>();
-                fakeTeleporterNetworkStateMachine.stateMachines = [fakeTeleporterStateMachine];
-
                 TeleporterInteraction teleporterInteraction = teleporterPrefab.GetComponent<TeleporterInteraction>();
 
                 List<string> portalIndicatorChildNames = ["ShopPortalIndicator", "GoldshoresPortalIndicator", "MSPortalIndicator"];
@@ -172,11 +165,12 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     }
                 }
 
-                FakeTeleporterInteraction fakeTeleporterInteraction = fakeTeleporterPrefab.GetComponent<FakeTeleporterInteraction>();
-                fakeTeleporterInteraction.MainStateMachine = fakeTeleporterStateMachine;
-                fakeTeleporterInteraction.BeginContextString = teleporterInteraction.beginContextString;
-                fakeTeleporterInteraction.DiscoveryRadius = teleporterInteraction.discoveryRadius;
-                fakeTeleporterInteraction.SyncTeleporterChildActivations = ["BossShrineSymbol", "TimeCrystalProps", "TimeCrystalBeaconBlocker", .. portalIndicatorChildNames];
+                EntityStateMachine fakeTeleporterStateMachine = fakeTeleporterPrefab.GetComponent<EntityStateMachine>();
+                fakeTeleporterStateMachine.initialStateType = FakeTeleporterInteraction.IdleStateType;
+                fakeTeleporterStateMachine.mainStateType = FakeTeleporterInteraction.IdleStateType;
+
+                NetworkStateMachine fakeTeleporterNetworkStateMachine = fakeTeleporterPrefab.GetComponent<NetworkStateMachine>();
+                fakeTeleporterNetworkStateMachine.stateMachines = [fakeTeleporterStateMachine];
 
                 CombatDirector bossDirector = fakeTeleporterPrefab.GetComponent<CombatDirector>();
                 bossDirector.enabled = false;
@@ -192,7 +186,12 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 perpetualBossController.BossDirector = bossDirector;
                 perpetualBossController.CreditMultiplier = 4.5f;
 
+                FakeTeleporterInteraction fakeTeleporterInteraction = fakeTeleporterPrefab.GetComponent<FakeTeleporterInteraction>();
                 fakeTeleporterInteraction.BossController = perpetualBossController;
+                fakeTeleporterInteraction.MainStateMachine = fakeTeleporterStateMachine;
+                fakeTeleporterInteraction.BeginContextString = teleporterInteraction.beginContextString;
+                fakeTeleporterInteraction.DiscoveryRadius = teleporterInteraction.discoveryRadius;
+                fakeTeleporterInteraction.SyncTeleporterChildActivations = ["BossShrineSymbol", "TimeCrystalProps", "TimeCrystalBeaconBlocker", .. portalIndicatorChildNames];
 
                 PingInfoProvider fakeTpPingInfoProvider = fakeTeleporterPrefab.GetComponent<PingInfoProvider>();
                 Addressables.LoadAssetAsync<Sprite>("RoR2/Base/Common/MiscIcons/texTeleporterIconOutlined.png").OnSuccess(tpIcon =>
