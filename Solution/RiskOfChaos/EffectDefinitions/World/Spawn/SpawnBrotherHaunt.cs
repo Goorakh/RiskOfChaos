@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.Collections;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -63,6 +64,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             return true;
         }
 
+        ChaosEffectComponent _effectComponent;
         ChaosEffectDurationComponent _durationComponent;
 
         float _masterRespawnTimer;
@@ -76,6 +78,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         void Awake()
         {
+            _effectComponent = GetComponent<ChaosEffectComponent>();
             _durationComponent = GetComponent<ChaosEffectDurationComponent>();
         }
 
@@ -102,6 +105,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             }
         }
 
+        void Update()
+        {
+            updateTimers();
+        }
+
         void updateServer()
         {
             _masterRespawnTimer -= Time.fixedDeltaTime;
@@ -124,14 +132,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         void updateClient()
         {
-            bool canShowCountdownTimer = false;
-            float timeRemaining = 0f;
-
-            if (_durationComponent && _durationComponent.TimedType == EffectHandling.TimedEffectType.FixedDuration)
-            {
-                canShowCountdownTimer = true;
-                timeRemaining = _durationComponent.Remaining;
-            }
+            bool canShowCountdownTimer = _durationComponent && _durationComponent.TimedType == TimedEffectType.FixedDuration;
 
             if (canShowCountdownTimer && _showCountdownTimer.Value && isValidScene())
             {
@@ -158,6 +159,22 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                         Log.Debug($"Created countdown timer for local user {hud.localUserViewer?.id}");
                     }
                 }
+            }
+            else
+            {
+                _countdownTimers.Clear(true);
+            }
+        }
+
+        void updateTimers()
+        {
+            if (_countdownTimers.Count > 0)
+            {
+                float timeRemaining = _effectComponent.TimeStarted.TimeSinceClamped;
+                if (_durationComponent && _durationComponent.TimedType == TimedEffectType.FixedDuration)
+                {
+                    timeRemaining = _durationComponent.Remaining;
+                }
 
                 foreach (TimerText timerText in _countdownTimers)
                 {
@@ -166,10 +183,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                         timerText.seconds = timeRemaining;
                     }
                 }
-            }
-            else
-            {
-                _countdownTimers.Clear(true);
             }
         }
     }
