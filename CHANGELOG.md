@@ -17,6 +17,9 @@
 * Ahoy!:
   * Fixed drones spawning in overlapping positions if several drones are spawned on the same player.
 
+* Revive Dead Characters:
+  * Fixed being able to revive the invisible controller character for Moon Detonation
+
 * 2x Item Drops:
   * Default duration: 90s -> 45s
   * Default weight: 1.0 -> 0.8

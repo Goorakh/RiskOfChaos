@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.Collections;
+using RiskOfChaos.Collections.CatalogIndex;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.Content;
@@ -38,6 +39,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
                               })
                               .Build();
 
+        static readonly MasterIndexCollection _reviveBlacklist = new MasterIndexCollection([
+            "BrotherHauntMaster",
+            "ArtifactShellMaster",
+        ]);
+
         static readonly MaxCapacityQueue<DeadCharacterInfo> _trackedDeadCharacters = new MaxCapacityQueue<DeadCharacterInfo>(_maxTrackedCharactersCount.Value);
         static readonly List<DeadCharacterInfo> _trackedDeadPlayers = [];
 
@@ -54,6 +60,9 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                 CharacterMaster victimMaster = damageReport.victimMaster;
                 if (!victimMaster)
+                    return;
+
+                if (_reviveBlacklist.Contains(victimMaster.masterIndex))
                     return;
 
                 CharacterBody victimBody = damageReport.victimBody;
