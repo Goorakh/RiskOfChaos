@@ -131,6 +131,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         float _lightningStrikeTimer = 0f;
 
+        float _strikeTargetsUpdateTimer = 0f;
+        const float STRIKE_TARGETS_UPDATE_INTERVAL = 1f;
+
+        readonly List<CharacterBody> _validStrikeTargets = [];
+
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
@@ -148,44 +153,53 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             if (!NetworkServer.active)
                 return;
 
-            _lightningStrikeTimer -= Time.fixedDeltaTime;
-            while (_lightningStrikeTimer <= 0f)
+            _strikeTargetsUpdateTimer -= Time.fixedDeltaTime;
+            if (_strikeTargetsUpdateTimer <= 0f)
             {
-                List<CharacterBody> validStrikeTargets = new List<CharacterBody>(CharacterBody.readOnlyInstancesList.Count);
+                _strikeTargetsUpdateTimer += STRIKE_TARGETS_UPDATE_INTERVAL;
+
+                _validStrikeTargets.Clear();
+                _validStrikeTargets.EnsureCapacity(CharacterBody.readOnlyInstancesList.Count);
                 foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
                 {
                     if (body && (body.bodyFlags & CharacterBody.BodyFlags.Masterless) == 0 && body.healthComponent && body.healthComponent.alive)
                     {
-                        validStrikeTargets.Add(body);
+                        _validStrikeTargets.Add(body);
                     }
                 }
+            }
 
+            _lightningStrikeTimer -= Time.fixedDeltaTime;
+            while (_lightningStrikeTimer <= 0f)
+            {
                 int groundNodeCount = 0;
                 if (SceneInfo.instance && SceneInfo.instance.groundNodes)
                 {
                     groundNodeCount = SceneInfo.instance.groundNodes.GetNodeCount();
                 }
 
+                int validTargetCount = groundNodeCount + _validStrikeTargets.Count;
+
                 const float STRIKE_TIMER_MAX = 0.8f;
 
-                _lightningStrikeTimer += 1f / Mathf.Max(1f / STRIKE_TIMER_MAX, (groundNodeCount + validStrikeTargets.Count) / 35f);
+                _lightningStrikeTimer += 1f / Mathf.Max(1f / STRIKE_TIMER_MAX, validTargetCount / 35f);
 
                 if (OrbManager.instance)
                 {
-                    Vector3 origin;
-                    if (validStrikeTargets.Count > 0 && _rng.nextNormalizedFloat < Mathf.Min(0.1f, 0.0025f * validStrikeTargets.Count))
+                    Vector3 strikePosition = SpawnUtils.EvaluateToPosition(SpawnUtils.GetBestValidRandomPlacementRule(), _rng);
+                    if (_validStrikeTargets.Count > 0 && _rng.nextNormalizedFloat <= Mathf.Min(0.1f, 0.005f * _validStrikeTargets.Count))
                     {
-                        origin = _rng.NextElementUniform(validStrikeTargets).footPosition;
-                    }
-                    else
-                    {
-                        origin = SpawnUtils.EvaluateToPosition(SpawnUtils.GetBestValidRandomPlacementRule(), _rng);
+                        CharacterBody targetBody = _rng.NextElementUniform(_validStrikeTargets);
+                        if (targetBody)
+                        {
+                            strikePosition = targetBody.corePosition;
+                        }
                     }
 
                     OrbManager.instance.AddOrb(new StationaryLightningStrikeOrb
                     {
                         Force = 30f,
-                        origin = origin,
+                        origin = strikePosition,
                         damageValue = 50f * Run.instance.teamlessDamageCoefficient,
                         damageColorIndex = DamageColorIndex.Item,
                         damageType = DamageType.SlowOnHit,
