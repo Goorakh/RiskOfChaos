@@ -1,6 +1,7 @@
 ﻿using EntityStates;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
@@ -60,7 +61,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             if (!freezeStateMachine)
                 return;
 
-            freezeStateMachine.SetNextState(new FrozenState
+            freezeStateMachine.SetNextState(new CustomFrozenState
             {
                 freezeDuration = _freezeDuration.Value
             });
@@ -71,6 +72,50 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 {
                     stateMachine.SetNextState(new Idle());
                 }
+            }
+        }
+
+        [EntityStateType]
+        class CustomFrozenState : FrozenState
+        {
+            WormBodyPositions2 _wormBodyPositions;
+            bool _wormBodyPositionsEnabled;
+
+            WormBodyPositionsDriver _wormBodyPositionsDriver;
+            bool _wormBodyPositionsDriverEnabled;
+
+            public override void OnEnter()
+            {
+                base.OnEnter();
+
+                _wormBodyPositions = GetComponent<WormBodyPositions2>();
+                if (_wormBodyPositions)
+                {
+                    _wormBodyPositionsEnabled = _wormBodyPositions.enabled;
+                    _wormBodyPositions.enabled = false;
+                }
+
+                _wormBodyPositionsDriver = GetComponent<WormBodyPositionsDriver>();
+                if (_wormBodyPositionsDriver)
+                {
+                    _wormBodyPositionsDriverEnabled = _wormBodyPositionsDriver.enabled;
+                    _wormBodyPositionsDriver.enabled = false;
+                }
+            }
+
+            public override void OnExit()
+            {
+                if (_wormBodyPositions)
+                {
+                    _wormBodyPositions.enabled = _wormBodyPositionsEnabled;
+                }
+
+                if (_wormBodyPositionsDriver)
+                {
+                    _wormBodyPositionsDriver.enabled = _wormBodyPositionsDriverEnabled;
+                }
+
+                base.OnExit();
             }
         }
     }
