@@ -1,6 +1,6 @@
 ## Changelog
 
-**-.-.- Changes:**
+**2.5.0 Changes:**
 
 * Added 1 effect:
   * Disable Revives: Disables all means of reviving, lasts 1 stage.
@@ -39,7 +39,8 @@
 * Explosive Deaths:
   * Removed explosion proc coefficient
 
-**2.4.1 Changes:**
+<details>
+  <summary>2.4.1 Changes:</summary>
 
 * Added 1 effect:
   * End All Active Effects: Ends all currently active effects.
@@ -59,7 +60,10 @@
 * Revive Dead Characters:
   * Default maximum non-player character revive count: 50 -> 30
 
-**2.4.0 Changes:**
+</details>
+
+<details>
+  <summary>2.4.0 Changes:</summary>
 
 * Added 1 effect:
   * Spawn Fake Teleporter: Spawns a fake teleporter somewhere on the stage.
@@ -102,7 +106,9 @@
 
 * Duplicate Random Item Stack:
   * Changed 'Max Item Stacks' config default value: 1000 -> 0 (disabled)
-  
+
+</details>
+
 <details>
   <summary>2.3.1 Changes:</summary>
 
