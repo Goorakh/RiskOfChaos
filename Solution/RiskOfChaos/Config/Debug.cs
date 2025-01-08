@@ -9,30 +9,21 @@ namespace RiskOfChaos
     {
         public static class Debug
         {
-            public static ConfigHolder<bool> UseLocalhostConnect =
-                ConfigFactory<bool>.CreateConfig("Use Localhost Connect", false)
+            public const string SECTION_NAME = "Debug";
+
+            public static readonly ConfigHolder<bool> EnableDebugVisuals =
+                ConfigFactory<bool>.CreateConfig("Enable Debug Visualizations", false)
                                    .OptionConfig(new CheckBoxConfig())
                                    .Build();
 
             internal static void Bind(ConfigFile file)
             {
-                const string SECTION_NAME = "Debug";
-
-                UseLocalhostConnect.Bind(file, SECTION_NAME, CONFIG_GUID, CONFIG_NAME);
-
-                On.RoR2.Networking.NetworkManagerSystem.ClientSendAuth += (orig, self, conn) =>
+                void bindConfig(ConfigHolderBase config)
                 {
-                    if (UseLocalhostConnect.Value)
-                        return;
+                    config.Bind(file, SECTION_NAME, CONFIG_GUID, CONFIG_NAME);
+                }
 
-                    orig(self, conn);
-                };
-
-                // Connecting to localhost this way makes entitlements not work, so just force them all to be enabled
-                On.RoR2.PlayerCharacterMasterControllerEntitlementTracker.HasEntitlement += (orig, self, entitlementDef) =>
-                {
-                    return UseLocalhostConnect.Value || orig(self, entitlementDef);
-                };
+                bindConfig(EnableDebugVisuals);
             }
         }
     }

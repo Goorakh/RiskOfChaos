@@ -143,6 +143,21 @@ namespace RiskOfChaos.Components
             setFrictionMultiplier(getTargetFrictionMultiplier());
         }
 
+#if DEBUG
+        void OnGUI()
+        {
+            if (Configs.Debug.EnableDebugVisuals.Value)
+            {
+                Vector3 screenPosition = Camera.main.WorldToScreenPoint(transform.position);
+                if (screenPosition.z > 0)
+                {
+                    string label = $"Current Velocity: {_rigidbody.velocity}\nTarget Direction: {_targetDirection}\nAngle to Target: {Vector3.Angle(_rigidbody.velocity, _targetDirection)}\nFriction: {_overrideMaterial.dynamicFriction}";
+                    GUI.Label(new Rect(screenPosition.x, Screen.height - screenPosition.y, 300, 150), label);
+                }
+            }
+        }
+#endif
+
         public static bool CanAddComponent(GameObject targetObject)
         {
             if (!targetObject.TryGetComponent(out Rigidbody rb))
