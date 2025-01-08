@@ -1,5 +1,4 @@
-﻿using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
+﻿using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Projectile;
 using UnityEngine;
@@ -10,9 +9,7 @@ namespace RiskOfChaos.Components
     [RequireComponent(typeof(Rigidbody))]
     public sealed class AttractToPlayers : MonoBehaviour
     {
-        public float MinVelocityTreshold;
         public float MaxDistance;
-        public float MaxSpeed;
         public float Acceleration;
         public float OppositeDirectionFrictionMultiplier = 30f;
 
@@ -25,7 +22,7 @@ namespace RiskOfChaos.Components
             }
             set
             {
-                if (_dynamicFrictionOverride != value)
+                if (_dynamicFrictionOverride == value)
                     return;
 
                 _dynamicFrictionOverride = value;
@@ -63,8 +60,7 @@ namespace RiskOfChaos.Components
         PhysicMaterialOverride _materialOverrideController;
         PhysicMaterial _overrideMaterial;
 
-        Vector3 _currentVelocity;
-        Vector3 _targetVelocity;
+        Vector3 _targetDirection;
 
         void Awake()
         {
@@ -90,16 +86,18 @@ namespace RiskOfChaos.Components
 
         float getTargetFrictionMultiplier()
         {
-            float angle = Vector3.Angle(_currentVelocity, _targetVelocity);
-            if (angle >= 35f ||
-                (_targetVelocity.sqrMagnitude < 0.01f && _currentVelocity.sqrMagnitude > 0f)) // Should be stopped, but still moving
-            {
-                return OppositeDirectionFrictionMultiplier;
-            }
-            else
-            {
+            Vector3 velocity = _rigidbody.velocity;
+
+            bool isMoving = velocity.sqrMagnitude > 0f;
+            bool shouldBeMoving = _targetDirection.sqrMagnitude > 0f;
+
+            if (!isMoving && shouldBeMoving)
                 return 1f;
-            }
+
+            if (!shouldBeMoving || (isMoving && Vector3.Angle(velocity, _targetDirection) >= 90f))
+                return OppositeDirectionFrictionMultiplier;
+
+            return 1f;
         }
 
         void setFrictionMultiplier(float multiplier)
@@ -114,7 +112,7 @@ namespace RiskOfChaos.Components
         {
             Vector3 currentPosition = transform.position;
 
-            Vector3 targetVelocity = Vector3.zero;
+            Vector3 targetDirection = Vector3.zero;
 
             foreach (PlayerCharacterMasterController playerMaster in PlayerCharacterMasterController.instances)
             {
@@ -133,19 +131,16 @@ namespace RiskOfChaos.Components
                 if (sqrDistance > MaxDistance * MaxDistance)
                     continue;
 
-                Vector3 forceDirectionNormalized = positionDiff / Mathf.Sqrt(sqrDistance);
-                targetVelocity += forceDirectionNormalized * MaxSpeed;
+                float normalizedStrength = 1f - (sqrDistance / (MaxDistance * MaxDistance));
+
+                Vector3 force = positionDiff.normalized * (Acceleration * normalizedStrength);
+                _rigidbody.AddForce(force, ForceMode.Acceleration);
+                targetDirection += force.normalized;
             }
 
-            _targetVelocity = targetVelocity;
-            _currentVelocity = Vector3.MoveTowards(_currentVelocity, _targetVelocity, Acceleration * Time.fixedDeltaTime);
+            _targetDirection = targetDirection;
 
             setFrictionMultiplier(getTargetFrictionMultiplier());
-
-            if (_currentVelocity.sqrMagnitude > MinVelocityTreshold * MinVelocityTreshold)
-            {
-                _rigidbody.AddForce(_currentVelocity, ForceMode.VelocityChange);
-            }
         }
 
         public static bool CanAddComponent(GameObject targetObject)

@@ -55,11 +55,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
 
         static void updateAttractComponent(AttractToPlayers attractComponent)
         {
-            attractComponent.MaxDistance = 20f;
-            attractComponent.MinVelocityTreshold = 0f;
-
-            attractComponent.MaxSpeed = -0.5f * _speedMultiplier.Value;
-            attractComponent.Acceleration = 1f * (((_speedMultiplier.Value - 1) / 2f) + 1);
+            attractComponent.MaxDistance = 30f + (Mathf.Max(0f, _speedMultiplier.Value - 1f) * 10f);
+            attractComponent.Acceleration = -35f * _speedMultiplier.Value;
         }
 
         void updateAllAttractComponents()

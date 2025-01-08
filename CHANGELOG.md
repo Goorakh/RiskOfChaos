@@ -1,5 +1,10 @@
 ## Changelog
 
+**-.-.- Changes:**
+
+* Item Magnet & Item Repulsor:
+  * Tweaked item physics to be more consistent.
+
 **2.5.0 Changes:**
 
 * Added 1 effect:
