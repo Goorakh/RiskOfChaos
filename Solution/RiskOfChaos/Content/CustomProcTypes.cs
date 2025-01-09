@@ -1,5 +1,6 @@
 ﻿using R2API;
 using RoR2;
+using System;
 
 namespace RiskOfChaos.Content
 {
@@ -15,13 +16,11 @@ namespace RiskOfChaos.Content
 
         public static ModdedProcType Replaced { get; private set; } = ModdedProcType.Invalid;
 
+        static ModdedProcType[] _markerProcTypes = [];
+
         public static bool IsMarkerProc(ModdedProcType moddedProcType)
         {
-            return moddedProcType == Repeated ||
-                   moddedProcType == Bouncing ||
-                   moddedProcType == BounceFinished ||
-                   moddedProcType == Delayed ||
-                   moddedProcType == Replaced;
+            return Array.BinarySearch(_markerProcTypes, moddedProcType) >= 0;
         }
 
         [SystemInitializer]
@@ -32,6 +31,16 @@ namespace RiskOfChaos.Content
             BounceFinished = ProcTypeAPI.ReserveProcType();
             Delayed = ProcTypeAPI.ReserveProcType();
             Replaced = ProcTypeAPI.ReserveProcType();
+
+            _markerProcTypes = [
+                Repeated,
+                Bouncing,
+                BounceFinished,
+                Delayed,
+                Replaced
+            ];
+
+            Array.Sort(_markerProcTypes);
         }
     }
 }
