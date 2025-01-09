@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace RiskOfChaos.Utilities.Extensions
 {
@@ -25,6 +26,22 @@ namespace RiskOfChaos.Utilities.Extensions
         {
             if (list.Capacity < capacity)
                 list.Capacity = capacity;
+        }
+
+        public static void InsertSorted<T>(this List<T> list, T item, IComparer<T> comparer)
+        {
+            int index = list.BinarySearch(item, comparer);
+            if (index < 0)
+            {
+                index = ~index;
+            }
+
+            list.Insert(index, item);
+        }
+
+        public static void InsertSorted<T>(this List<T> list, T item)
+        {
+            list.InsertSorted(item, Comparer<T>.Default);
         }
     }
 }

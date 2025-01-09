@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,7 +10,13 @@ namespace RiskOfChaos.Components
     {
         readonly Dictionary<Collider, PhysicMaterial> _originalMaterials = [];
 
-        readonly record struct OverrideMaterial(PhysicMaterial Material, int Priority);
+        readonly record struct OverrideMaterial(PhysicMaterial Material, int Priority) : IComparable<OverrideMaterial>
+        {
+            public readonly int CompareTo(OverrideMaterial other)
+            {
+                return other.Priority.CompareTo(Priority);
+            }
+        }
 
         readonly List<OverrideMaterial> _overrideMaterials = [];
 
@@ -33,7 +40,7 @@ namespace RiskOfChaos.Components
         void OnDestroy()
         {
             _overrideMaterials.Clear();
-            restoreMaterials();
+            refreshMaterials();
         }
 
         void refreshMaterials()
@@ -93,13 +100,7 @@ namespace RiskOfChaos.Components
         {
             OverrideMaterial overrideMaterial = new OverrideMaterial(material, priority);
 
-            int materialIndex = 0;
-            while (materialIndex < _overrideMaterials.Count && _overrideMaterials[materialIndex].Priority > overrideMaterial.Priority)
-            {
-                materialIndex++;
-            }
-
-            _overrideMaterials.Insert(materialIndex, overrideMaterial);
+            _overrideMaterials.InsertSorted(overrideMaterial);
             refreshMaterials();
         }
 
