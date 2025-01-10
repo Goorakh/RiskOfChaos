@@ -6,6 +6,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.EffectHandling.EffectComponents.SubtitleProviders;
 using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
@@ -16,7 +17,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
     [ChaosTimedEffect("random_buff", 90f)]
     [EffectConfigBackwardsCompatibility("Effect: Give Everyone a Random Buff (Lasts 1 stage)")]
-    [RequiredComponents(typeof(ApplyBuffEffect))]
+    [RequiredComponents(typeof(ApplyBuffEffect), typeof(BuffSubtitleProvider))]
     public sealed class RandomBuff : NetworkBehaviour
     {
         [EffectConfig]
@@ -67,7 +68,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             _availableBuffs.AddEntry(RoR2Content.Buffs.Warbanner, new SpawnPoolEntryParameters(1f));
             _availableBuffs.AddEntry(RoR2Content.Buffs.WarCryBuff, new SpawnPoolEntryParameters(1f));
             _availableBuffs.AddEntry(RoR2Content.Buffs.WhipBoost, new SpawnPoolEntryParameters(1f));
-
+            
             _availableBuffs.AddEntry(JunkContent.Buffs.EngiTeamShield, new SpawnPoolEntryParameters(1f));
             _availableBuffs.AddEntry(JunkContent.Buffs.EnrageAncientWisp, new SpawnPoolEntryParameters(1f));
             _availableBuffs.AddEntry(JunkContent.Buffs.LoaderPylonPowered, new SpawnPoolEntryParameters(1f));

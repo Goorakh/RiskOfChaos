@@ -5,6 +5,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.EffectHandling.EffectComponents.SubtitleProviders;
 using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
@@ -15,7 +16,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
     [ChaosTimedEffect("random_debuff", 60f)]
     [EffectConfigBackwardsCompatibility("Effect: Give Everyone a Random Debuff (Lasts 1 stage)")]
-    [RequiredComponents(typeof(ApplyBuffEffect))]
+    [RequiredComponents(typeof(ApplyBuffEffect), typeof(BuffSubtitleProvider))]
     public sealed class RandomDebuff : NetworkBehaviour
     {
         [EffectConfig]

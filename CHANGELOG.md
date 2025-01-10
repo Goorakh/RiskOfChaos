@@ -5,7 +5,11 @@
 * Item Magnet & Item Repulsor:
   * Tweaked item physics to be more consistent.
 
+* Give Everyone a Random Buff:
+  * The buff is now displayed in the Active Effects list.
+
 * Give Everyone a Random Debuff:
+  * The debuff is now displayed in the Active Effects list.
   * Added Breaching Fin Juggle debuff to debuff selection.
 
 **2.5.0 Changes:**

@@ -6,6 +6,7 @@ using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -14,7 +15,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
     [DisallowMultipleComponent]
     [RequiredComponents(typeof(ChaosEffectComponent))]
-    public sealed class ApplyBuffEffect : MonoBehaviour
+    public sealed class ApplyBuffEffect : NetworkBehaviour
     {
         static readonly List<ApplyBuffEffect> _instancesList = [];
 
@@ -53,47 +54,31 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         public delegate void OnBuffAppliedDelegate(CharacterBody body);
         public event OnBuffAppliedDelegate OnBuffAppliedServer;
 
-        BuffIndex _buffIndex = BuffIndex.None;
+        public event Action OnAppliedBuffChanged;
+
+        [SyncVar(hook = nameof(hookSetBuffIndex))]
+        int _buffIndexInternal;
 
         [SerializedMember("bi")]
         public BuffIndex BuffIndex
         {
-            get
-            {
-                return _buffIndex;
-            }
-            set
-            {
-                if (_buffIndex == value)
-                    return;
-
-                _buffIndex = value;
-                _buffComponentsDirty = true;
-            }
+            get => (BuffIndex)(_buffIndexInternal - 1);
+            set => _buffIndexInternal = (int)value + 1;
         }
 
+        [SyncVar(hook = nameof(hookSetBuffStackCount))]
         int _buffStackCount = 1;
 
         [SerializedMember("sc")]
         public int BuffStackCount
         {
-            get
-            {
-                return _buffStackCount;
-            }
-            set
-            {
-                if (_buffStackCount == value)
-                    return;
-
-                _buffStackCount = value;
-                _buffComponentsDirty = true;
-            }
+            get => _buffStackCount;
+            set => _buffStackCount = value;
         }
 
         readonly ClearingObjectList<KeepBuff> _keepBuffComponents = [];
 
-        bool _buffComponentsDirty;
+        bool _appliedBuffDirty;
 
         void Awake()
         {
@@ -122,19 +107,28 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 
         void FixedUpdate()
         {
-            if (NetworkServer.active)
+            if (_appliedBuffDirty)
             {
-                if (_buffComponentsDirty)
+                _appliedBuffDirty = false;
+
+                if (NetworkServer.active)
                 {
-                    _buffComponentsDirty = false;
                     updateAllBuffComponents();
                 }
+
+                OnAppliedBuffChanged?.Invoke();
             }
         }
 
+        void markAppliedBuffDirty()
+        {
+            _appliedBuffDirty = true;
+        }
+
+        [Server]
         void tryAddBuff(CharacterBody body)
         {
-            if (!NetworkServer.active || !isActiveAndEnabled || BuffIndex == BuffIndex.None || BuffStackCount <= 0)
+            if (!isActiveAndEnabled || BuffIndex == BuffIndex.None || BuffStackCount <= 0)
                 return;
 
             KeepBuff keepBuff = body.gameObject.AddComponent<KeepBuff>();
@@ -145,11 +139,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             OnBuffAppliedServer?.Invoke(body);
         }
 
+        [Server]
         void updateAllBuffComponents()
         {
-            if (!NetworkServer.active)
-                return;
-
             foreach (KeepBuff keepBuff in _keepBuffComponents)
             {
                 if (keepBuff)
@@ -159,11 +151,24 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             }
         }
 
+        [Server]
         void updateBuffComponent(KeepBuff keepBuff)
         {
             keepBuff.BuffIndex = BuffIndex;
             keepBuff.MinBuffCount = BuffStackCount;
             keepBuff.enabled = isActiveAndEnabled && keepBuff.BuffIndex != BuffIndex.None && keepBuff.MinBuffCount > 0;
+        }
+
+        void hookSetBuffIndex(int value)
+        {
+            _buffIndexInternal = value;
+            markAppliedBuffDirty();
+        }
+
+        void hookSetBuffStackCount(int value)
+        {
+            _buffStackCount = value;
+            markAppliedBuffDirty();
         }
     }
 }
