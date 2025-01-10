@@ -5,6 +5,9 @@
 * Item Magnet & Item Repulsor:
   * Tweaked item physics to be more consistent.
 
+* Give Everyone a Random Debuff:
+  * Added Breaching Fin Juggle debuff to debuff selection.
+
 **2.5.0 Changes:**
 
 * Added 1 effect:

@@ -66,6 +66,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                 new SpawnPool<BuffDef>.Entry(DLC2Content.Buffs.CookingRolled, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
             ], 0.7f);
 
+            _availableDebuffs.AddEntry(DLC2Content.Buffs.KnockUpHitEnemies, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
             _availableDebuffs.AddEntry(DLC2Content.Buffs.SoulCost, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
 
             _availableDebuffs.TrimExcess();
