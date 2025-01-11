@@ -16,6 +16,9 @@
   * Added minimum deviation angle to config.
   * Max deviation default value: 30&deg; -> 50&deg;
 
+* Corrupt Random Item:
+  * Fixed effect requiring the SotV DLC to be enabled in order to activate, even if there were void items that did not require the DLC.
+
 * Prototype Models:
   * Fixed characters sometimes being moved slightly when the new model is applied
 

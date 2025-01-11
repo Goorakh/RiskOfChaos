@@ -39,42 +39,67 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return ExpansionUtils.DLC1Enabled && PlayerUtils.GetAllPlayerMasters(false).Any(m => getAllCorruptableItems(m.inventory).Any());
+            List<ContagiousItemManager.TransformationInfo> itemCorruptions = getAllAvailableItemCorruptions();
+            if (itemCorruptions.Count > 0)
+            {
+                foreach (PlayerCharacterMasterController playerMasterController in PlayerCharacterMasterController.instances)
+                {
+                    if (!playerMasterController.isConnected)
+                        continue;
+
+                    CharacterMaster playerMaster = playerMasterController.master;
+                    if (!playerMaster)
+                        continue;
+
+                    Inventory inventory = playerMaster.inventory;
+                    if (!inventory)
+                        continue;
+                    
+                    foreach (ContagiousItemManager.TransformationInfo itemCorruptionInfo in itemCorruptions)
+                    {
+                        if (inventory.GetItemCount(itemCorruptionInfo.originalItem) > 0)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
-        static IEnumerable<ItemIndex> getAllCorruptableItems()
+        static List<ContagiousItemManager.TransformationInfo> getAllAvailableItemCorruptions()
         {
             Run run = Run.instance;
             if (!run)
-                yield break;
+                return [];
 
-            foreach (ItemIndex item in ItemCatalog.allItems)
+            List<ContagiousItemManager.TransformationInfo> itemCorruptions = new List<ContagiousItemManager.TransformationInfo>(ContagiousItemManager.transformationInfos.Length);
+
+            for (int i = 0; i < ContagiousItemManager.transformationInfos.Length; i++)
             {
-                ItemIndex transformedItem = ContagiousItemManager.GetTransformedItemIndex(item);
-                if (!run.IsItemEnabled(transformedItem))
-                    continue;
+                ContagiousItemManager.TransformationInfo transformationInfo = ContagiousItemManager.transformationInfos[i];
 
-                if (_itemBlacklist.Contains(item) || _itemBlacklist.Contains(transformedItem))
+                if (run.IsItemExpansionLocked(transformationInfo.originalItem) || run.IsItemExpansionLocked(transformationInfo.transformedItem))
                 {
-                    Log.Debug($"Excluding {ItemCatalog.GetItemDef(item)} ({ItemCatalog.GetItemDef(transformedItem)}): Corruption blacklist");
                     continue;
                 }
 
-                yield return item;
+                if (_itemBlacklist.Contains(transformationInfo.originalItem) || _itemBlacklist.Contains(transformationInfo.transformedItem))
+                {
+                    Log.Debug($"Excluding {ItemCatalog.GetItemDef(transformationInfo.originalItem)} ({ItemCatalog.GetItemDef(transformationInfo.transformedItem)}): Corruption blacklist");
+                    continue;
+                }
+
+                itemCorruptions.Add(transformationInfo);
             }
-        }
 
-        static IEnumerable<ItemIndex> getAllCorruptableItems(Inventory inventory)
-        {
-            if (!inventory)
-                return [];
-
-            return getAllCorruptableItems().Where(i => inventory.GetItemCount(i) > 0);
+            return itemCorruptions;
         }
 
         ChaosEffectComponent _effectComponent;
 
-        ItemIndex[] _itemCorruptOrder;
+        ContagiousItemManager.TransformationInfo[] _itemCorruptionOrder = [];
 
         void Awake()
         {
@@ -87,28 +112,35 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
-            _itemCorruptOrder = getAllCorruptableItems().ToArray();
-            Util.ShuffleArray(_itemCorruptOrder, rng.Branch());
+            _itemCorruptionOrder = [.. getAllAvailableItemCorruptions()];
+            Util.ShuffleArray(_itemCorruptionOrder, rng.Branch());
 
-            Log.Debug($"Corrupt order: [{string.Join(", ", _itemCorruptOrder.Select(FormatUtils.GetBestItemDisplayName))}]");
+            Log.Debug($"Corrupt order: [{string.Join(", ", _itemCorruptionOrder.Select(t => FormatUtils.GetBestItemDisplayName(t.originalItem)))}]");
         }
 
         void Start()
         {
-            if (NetworkServer.active)
+            if (!NetworkServer.active)
+                return;
+            
+            foreach (PlayerCharacterMasterController playerMasterController in PlayerCharacterMasterController.instances)
             {
-                PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
-                {
-                    Inventory inventory = playerMaster.inventory;
-                    if (!inventory)
-                        return;
+                if (!playerMasterController.isConnected)
+                    continue;
 
-                    int itemToCorruptIndex = Array.FindIndex(_itemCorruptOrder, i => inventory.GetItemCount(i) > 0);
-                    if (itemToCorruptIndex == -1) // This inventory has none of the corruptable items
-                        return;
+                CharacterMaster playerMaster = playerMasterController.master;
+                if (!playerMaster)
+                    continue;
 
-                    ContagiousItemManager.TryForceReplacement(inventory, _itemCorruptOrder[itemToCorruptIndex]);
-                }, Util.GetBestMasterName);
+                Inventory inventory = playerMaster.inventory;
+                if (!inventory)
+                    continue;
+
+                int itemToCorruptIndex = Array.FindIndex(_itemCorruptionOrder, i => inventory.GetItemCount(i.originalItem) > 0);
+                if (itemToCorruptIndex == -1) // This inventory has none of the corruptable items
+                    return;
+
+                ContagiousItemManager.TryForceReplacement(inventory, _itemCorruptionOrder[itemToCorruptIndex].originalItem);
             }
         }
     }
