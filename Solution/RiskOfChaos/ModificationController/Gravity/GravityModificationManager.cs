@@ -82,26 +82,20 @@ namespace RiskOfChaos.ModificationController.Gravity
             tiltAngle = Mathf.Min(tiltAngle, 89f);
             gravityRotation = Quaternion.AngleAxis(tiltAngle, tiltAxis);
 
+            // The "multiplier" that will be effectively introduced to the vertical component of the gravity
+            float tiltDownStrengthMultiplier = Mathf.Cos(tiltAngle * Mathf.Deg2Rad);
+
+            // "normalize" the vertical gravity to make down always have the same magnitude, regardless of tilt
+            // Upper bound so gravity doesn't end up too insane, this bound cuts off at tilt=60°
+            float tiltStrengthMultiplier = Mathf.Min(2f, 1f / tiltDownStrengthMultiplier);
+
             Vector3 gravity = GravityTracker.BaseGravity;
 
-            Vector3 rotatedGravity = gravityRotation * gravity;
-
-            const float BOOST_MIN_ANGLE = 0f;
-            const float BOOST_MAX_ANGLE = 90f;
-            const float BOOST_MIN = 1f;
-            const float BOOST_MAX = 4f;
-
-            float normalizedAngle = Mathf.InverseLerp(BOOST_MIN_ANGLE, BOOST_MAX_ANGLE, tiltAngle);
-
-            float strengthBoostXZ = Mathf.Lerp(BOOST_MIN, BOOST_MAX, 1f - Ease.OutQuad(normalizedAngle));
-            
-            Vector3 gravityScale = new Vector3(strengthBoostXZ, 1f, strengthBoostXZ) * strengthMultiplier;
-
-            Vector3 modifiedGravity = Vector3.Scale(rotatedGravity, gravityScale);
+            Vector3 modifiedGravity = (gravityRotation * gravity) * (strengthMultiplier * tiltStrengthMultiplier);
 
             GravityTracker.SetGravityUntracked(modifiedGravity);
 
-            Log.Debug($"multiplier={strengthMultiplier}, tilt={tiltAngle}, XZ multiplier={strengthBoostXZ}. eff mult={modifiedGravity.magnitude / gravity.magnitude}, eff tilt={Vector3.Angle(gravity, modifiedGravity)}");
+            Log.Debug($"multiplier={strengthMultiplier}, tilt={tiltAngle}. eff mult={modifiedGravity.magnitude / gravity.magnitude}, eff tilt={Vector3.Angle(gravity, modifiedGravity)}");
         }
     }
 }
