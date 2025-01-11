@@ -12,6 +12,10 @@
   * The debuff is now displayed in the Active Effects list.
   * Added Breaching Fin Juggle debuff to debuff selection.
 
+* Random Gravity Direction:
+  * Added minimum deviation angle to config.
+  * Max deviation default value: 30&deg; -> 50&deg;
+
 * Prototype Models:
   * Fixed characters sometimes being moved slightly when the new model is applied
 
