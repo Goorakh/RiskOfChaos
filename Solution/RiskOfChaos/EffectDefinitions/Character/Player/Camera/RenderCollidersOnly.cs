@@ -14,12 +14,65 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
     [ChaosTimedEffect("render_colliders_only", 90f, AllowDuplicates = false)]
     public sealed class RenderCollidersOnly : MonoBehaviour
     {
+        static Material _hurtBoxSniperTargetMaterial;
+        static Material _hurtBoxBullseyeMaterial;
+        static Material _hurtBoxDefaultMaterial;
+        
+        static Mesh _cubeMesh;
+        static Mesh _sphereMesh;
+        static Mesh _capsuleMesh;
+
+        [SystemInitializer]
+        static void Init()
+        {
+            static Material createColorMaterial(Color color)
+            {
+                Shader standardShader = LegacyShaderAPI.Find("Shaders/Deferred/HGStandard");
+
+                Material material;
+                if (standardShader)
+                {
+                    material = new Material(standardShader);
+                }
+                else
+                {
+                    Log.Warning("Failed to find HGStandard shader");
+                    material = new Material(Material.GetDefaultMaterial());
+                }
+
+                material.color = color;
+                return material;
+            }
+
+            _hurtBoxSniperTargetMaterial = createColorMaterial(new Color32(224, 56, 44, 255));
+            _hurtBoxBullseyeMaterial = createColorMaterial(new Color32(239, 222, 33, 255));
+            _hurtBoxDefaultMaterial = createColorMaterial(new Color32(169, 246, 252, 255));
+
+            static Mesh getPrimitiveMesh(PrimitiveType primitiveType)
+            {
+                GameObject primitiveObject = GameObject.CreatePrimitive(primitiveType);
+                Mesh mesh = null;
+                if (primitiveObject && primitiveObject.TryGetComponent(out MeshFilter meshFilter))
+                {
+                    mesh = meshFilter.sharedMesh;
+                    Destroy(primitiveObject);
+                }
+
+                if (!mesh)
+                {
+                    Log.Error($"Failed to find mesh for primitive type '{primitiveType}'");
+                }
+
+                return mesh;
+            }
+
+            _cubeMesh = getPrimitiveMesh(PrimitiveType.Cube);
+            _sphereMesh = getPrimitiveMesh(PrimitiveType.Sphere);
+            _capsuleMesh = getPrimitiveMesh(PrimitiveType.Capsule);
+        }
+
         class ColliderRendererController : MonoBehaviour
         {
-            static readonly Color _hurtBoxSniperTargetColor = new Color(224f / 255f, 56f / 255f, 44f / 255f);
-            static readonly Color _hurtBoxBullseyeColor = new Color(239f / 255f, 222f / 255f, 33f / 255f);
-            static readonly Color _hurtBoxColor = new Color(169f / 255f, 246f / 255f, 252f / 255f);
-
             readonly List<GameObject> _visualObjects = [];
             readonly List<Renderer> _visualObjectRenderers = [];
 
@@ -91,28 +144,23 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 
             static GameObject createVisualForCollider(Collider collider, out Vector3 visualLocalPosition, out Quaternion visualLocalRotation, out Vector3 visualLocalScale)
             {
+                Mesh visualMesh = null;
                 switch (collider)
                 {
                     case BoxCollider boxCollider:
                         visualLocalPosition = boxCollider.center;
                         visualLocalRotation = Quaternion.identity;
                         visualLocalScale = boxCollider.size;
+                        visualMesh = _cubeMesh;
 
-                        GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                        if (cube.TryGetComponent(out Collider cubeObjectCollider))
-                            Destroy(cubeObjectCollider);
-
-                        return cube;
+                        break;
                     case SphereCollider sphereCollider:
                         visualLocalPosition = sphereCollider.center;
                         visualLocalRotation = Quaternion.identity;
                         visualLocalScale = Vector3.one * (sphereCollider.radius * 2f);
+                        visualMesh = _sphereMesh;
 
-                        GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                        if (sphere.TryGetComponent(out Collider sphereObjectCollider))
-                            Destroy(sphereObjectCollider);
-
-                        return sphere;
+                        break;
                     case CapsuleCollider capsuleCollider:
                         visualLocalPosition = capsuleCollider.center;
 
@@ -133,43 +181,47 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
                                 pointDirection = Vector3.up;
                                 break;
                         }
-
+                        
                         visualLocalRotation = QuaternionUtils.PointLocalDirectionAt(Vector3.up, pointDirection);
-
+                        
                         float diameter = capsuleCollider.radius * 2f;
-
-                        // MeshFilter capsuleMeshFilter = hurtBoxVisual.GetComponent<MeshFilter>();
-                        // capsuleMeshFilter.sharedMesh = getCapsuleMesh(capsuleCollider.height - diameter, capsuleCollider.radius, out Vector3 scale);
 
                         visualLocalScale = new Vector3(diameter, capsuleCollider.height - diameter, diameter);
 
-                        GameObject capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-                        if (capsule.TryGetComponent(out Collider capsuleObjectCollider))
-                            Destroy(capsuleObjectCollider);
+                        // TODO: Compute the actual collision shape mesh instead of stretching the default capsule
+                        visualMesh = _capsuleMesh;
 
-                        return capsule;
+                        break;
                     case MeshCollider meshCollider:
-                        GameObject meshRendererObject = new GameObject("Mesh");
-
                         visualLocalPosition = Vector3.zero;
                         visualLocalRotation = Quaternion.identity;
                         visualLocalScale = Vector3.one;
+                        visualMesh = meshCollider.sharedMesh;
 
-                        MeshFilter meshFilter = meshRendererObject.AddComponent<MeshFilter>();
-                        meshFilter.sharedMesh = meshCollider.sharedMesh;
-
-                        meshRendererObject.AddComponent<MeshRenderer>();
-
-                        return meshRendererObject;
+                        break;
                     default:
                         Log.Warning($"Unhandled hurtbox collider type {collider?.GetType()}");
 
                         visualLocalPosition = Vector3.zero;
                         visualLocalRotation = Quaternion.identity;
                         visualLocalScale = Vector3.one;
+                        visualMesh = null;
 
-                        return null;
+                        break;
                 }
+
+                if (!visualMesh)
+                {
+                    Log.Error($"Failed to determine visual mesh for collider {collider}");
+                    return null;
+                }
+
+                GameObject visualObject = new GameObject("ColliderVisual", [typeof(MeshFilter), typeof(MeshRenderer)]);
+
+                MeshFilter visualMeshFilter = visualObject.GetComponent<MeshFilter>();
+                visualMeshFilter.sharedMesh = visualMesh;
+
+                return visualObject;
             }
 
             void setupCharacterModel()
@@ -220,22 +272,18 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
                         visualTransform.localRotation = hurtBoxTransform.localRotation * visualLocalRotation;
                         visualTransform.localScale = Vector3.Scale(hurtBoxTransform.localScale, visualLocalScale);
 
-                        Color color;
+                        Material material = _hurtBoxDefaultMaterial;
                         if (hurtBox.isSniperTarget)
                         {
-                            color = _hurtBoxSniperTargetColor;
+                            material = _hurtBoxSniperTargetMaterial;
                         }
                         else if (hurtBox.isBullseye)
                         {
-                            color = _hurtBoxBullseyeColor;
-                        }
-                        else
-                        {
-                            color = _hurtBoxColor;
+                            material = _hurtBoxBullseyeMaterial;
                         }
 
                         Renderer renderer = hurtBoxVisual.GetComponent<Renderer>();
-                        renderer.material.color = color;
+                        renderer.sharedMaterial = material;
 
                         _visualObjectRenderers.Add(renderer);
 
@@ -245,7 +293,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
                             ignoreOverlays = false,
                             hideOnDeath = false,
                             defaultShadowCastingMode = renderer.shadowCastingMode,
-                            defaultMaterial = renderer.sharedMaterial
+                            defaultMaterial = material
                         });
 
                         _visualObjects.Add(hurtBoxVisual);

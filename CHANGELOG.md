@@ -12,6 +12,9 @@
   * The debuff is now displayed in the Active Effects list.
   * Added Breaching Fin Juggle debuff to debuff selection.
 
+* Prototype Models:
+  * Fixed characters sometimes being moved slightly when the new model is applied
+
 **2.5.0 Changes:**
 
 * Added 1 effect:
