@@ -16,8 +16,8 @@ namespace RiskOfChaos.Utilities
         [SystemInitializer(typeof(EquipmentCatalog), typeof(EliteCatalog))]
         static void Init()
         {
-            List<EliteIndex> validEliteIndices = new List<EliteIndex>(EliteCatalog.eliteList.Count);
-            List<EquipmentIndex> validEliteEquipmentIndices = new List<EquipmentIndex>(EliteCatalog.eliteList.Count);
+            HashSet<EliteIndex> validEliteIndices = new HashSet<EliteIndex>(EliteCatalog.eliteList.Count);
+            HashSet<EquipmentIndex> validEliteEquipmentIndices = new HashSet<EquipmentIndex>(EliteCatalog.eliteList.Count);
 
             foreach (EliteIndex eliteIndex in EliteCatalog.eliteList)
             {
@@ -25,55 +25,38 @@ namespace RiskOfChaos.Utilities
                 if (!eliteDef)
                     continue;
 
+                if (string.IsNullOrWhiteSpace(eliteDef.modifierToken) || Language.IsTokenInvalid(eliteDef.modifierToken))
+                    continue;
+
                 if (eliteDef.name.EndsWith("Honor", StringComparison.OrdinalIgnoreCase))
                     continue;
 
                 EquipmentDef equipmentDef = eliteDef.eliteEquipmentDef;
                 if (!equipmentDef ||
+                    equipmentDef.equipmentIndex == EquipmentIndex.None ||
                     !equipmentDef.pickupModelPrefab ||
-                    string.Equals(equipmentDef.pickupModelPrefab.name, "NullModel", StringComparison.OrdinalIgnoreCase) ||
-                    equipmentDef.dropOnDeathChance <= 0f)
+                    string.Equals(equipmentDef.pickupModelPrefab.name, "NullModel", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
 
-                if (!validEliteIndices.Contains(eliteIndex))
+                if (validEliteEquipmentIndices.Add(equipmentDef.equipmentIndex))
                 {
                     validEliteIndices.Add(eliteIndex);
                 }
-
-                if (!validEliteEquipmentIndices.Contains(equipmentDef.equipmentIndex))
-                {
-                    validEliteEquipmentIndices.Add(equipmentDef.equipmentIndex);
-                }
             }
 
-            validEliteIndices.Sort();
             _baseEliteIndices = [.. validEliteIndices];
+            Array.Sort(_baseEliteIndices);
 
-            validEliteEquipmentIndices.Sort();
             _baseEliteEquipmentIndices = [.. validEliteEquipmentIndices];
+            Array.Sort(_baseEliteEquipmentIndices);
 
-            Run.onRunStartGlobal += run =>
+            if (_baseEliteIndices.Length > 0)
             {
-                List<EliteIndex> runAvailableEliteIndices = new List<EliteIndex>(_baseEliteIndices.Length);
-
-                foreach (EliteIndex eliteIndex in _baseEliteIndices)
-                {
-                    EliteDef eliteDef = EliteCatalog.GetEliteDef(eliteIndex);
-                    if (!eliteDef || !eliteDef.IsAvailable())
-                        continue;
-
-                    runAvailableEliteIndices.Add(eliteIndex);
-                }
-
-                _runAvailableEliteIndices = [.. runAvailableEliteIndices];
-            };
-
-            Run.onRunDestroyGlobal += _ =>
-            {
-                _runAvailableEliteIndices = [];
-            };
+                Run.onRunStartGlobal += onRunStartGlobal;
+                Run.onRunDestroyGlobal += onRunDestroyGlobal;
+            }
 
 #if DEBUG
             foreach (EliteIndex eliteIndex in EliteCatalog.eliteList)
@@ -99,6 +82,27 @@ namespace RiskOfChaos.Utilities
                 }
             }
 #endif
+        }
+
+        static void onRunStartGlobal(Run run)
+        {
+            List<EliteIndex> runAvailableEliteIndices = new List<EliteIndex>(_baseEliteIndices.Length);
+
+            foreach (EliteIndex eliteIndex in _baseEliteIndices)
+            {
+                EliteDef eliteDef = EliteCatalog.GetEliteDef(eliteIndex);
+                if (!eliteDef || !eliteDef.IsAvailable())
+                    continue;
+
+                runAvailableEliteIndices.Add(eliteIndex);
+            }
+
+            _runAvailableEliteIndices = [.. runAvailableEliteIndices];
+        }
+
+        static void onRunDestroyGlobal(Run run)
+        {
+            _runAvailableEliteIndices = [];
         }
 
         public static bool IsAvailable(EliteIndex eliteIndex)
