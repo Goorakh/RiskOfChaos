@@ -20,7 +20,10 @@
   * Fixed effect requiring the SotV DLC to be enabled in order to activate, even if there were void items that did not require the DLC.
 
 * Prototype Models:
-  * Fixed characters sometimes being moved slightly when the new model is applied
+  * Fixed characters sometimes being moved slightly when the new model is applied.
+
+* Inventory Swap:
+  * Fixed effect being able to activate in singleplayer if seeded effect mode was enabled.
 
 **2.5.0 Changes:**
 

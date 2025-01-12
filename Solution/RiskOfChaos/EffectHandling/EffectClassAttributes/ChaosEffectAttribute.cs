@@ -13,6 +13,10 @@ namespace RiskOfChaos.EffectHandling.EffectClassAttributes
 
         public float DefaultSelectionWeight { get; set; } = 1f;
 
+        public bool EnabledInSingleplayer { get; set; } = true;
+
+        public bool EnabledInMultiplayer { get; set; } = true;
+
         public new Type target => base.target as Type;
 
         public ChaosEffectAttribute(string identifier)

@@ -48,6 +48,9 @@ namespace RiskOfChaos.EffectHandling
         public readonly ConfigHolder<bool> IsEnabledConfig;
         readonly ConfigHolder<float> _selectionWeightConfig;
 
+        public readonly bool EnabledInSingleplayer;
+        public readonly bool EnabledInMultiplayer;
+
         readonly ConfigHolder<KeyboardShortcut> _activationShortcut;
         public bool IsActivationShortcutPressed => _activationShortcut != null && _activationShortcut.Value.IsDownIgnoringBlockerKeys();
 
@@ -88,6 +91,9 @@ namespace RiskOfChaos.EffectHandling
             NameToken = $"EFFECT_{Identifier.ToUpper()}_NAME";
 
             EffectComponentType = attribute.target;
+
+            EnabledInSingleplayer = attribute.EnabledInSingleplayer;
+            EnabledInMultiplayer = attribute.EnabledInMultiplayer;
 
             EffectConfigBackwardsCompatibilityAttribute configBackwardsCompatibilityAttribute = EffectComponentType.GetCustomAttribute<EffectConfigBackwardsCompatibilityAttribute>();
             if (configBackwardsCompatibilityAttribute != null)
@@ -285,9 +291,13 @@ namespace RiskOfChaos.EffectHandling
             }
 
             if (IsEnabledConfig != null && !IsEnabledConfig.Value)
-            {
                 return false;
-            }
+
+            if (!EnabledInSingleplayer && RoR2Application.isInSinglePlayer)
+                return false;
+            
+            if (!EnabledInMultiplayer && RoR2Application.isInMultiPlayer)
+                return false;
 
             return true;
         }
