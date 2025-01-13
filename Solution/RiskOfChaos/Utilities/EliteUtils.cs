@@ -6,8 +6,10 @@ namespace RiskOfChaos.Utilities
 {
     public static class EliteUtils
     {
-        static EliteIndex[] _baseEliteIndices = [];
-        static EquipmentIndex[] _baseEliteEquipmentIndices = [];
+        static EliteIndex[] _validEliteIndices = [];
+        static EquipmentIndex[] _validEliteEquipmentIndices = [];
+
+        static EquipmentIndex[] _allEliteEquipmentIndices = [];
 
         static EliteIndex[] _runAvailableEliteIndices = [];
 
@@ -16,8 +18,10 @@ namespace RiskOfChaos.Utilities
         [SystemInitializer(typeof(EquipmentCatalog), typeof(EliteCatalog))]
         static void Init()
         {
-            HashSet<EliteIndex> validEliteIndices = new HashSet<EliteIndex>(EliteCatalog.eliteList.Count);
-            HashSet<EquipmentIndex> validEliteEquipmentIndices = new HashSet<EquipmentIndex>(EliteCatalog.eliteList.Count);
+            int eliteCount = EliteCatalog.eliteList.Count;
+            HashSet<EliteIndex> validEliteIndices = new HashSet<EliteIndex>(eliteCount);
+            HashSet<EquipmentIndex> validEliteEquipmentIndices = new HashSet<EquipmentIndex>(eliteCount);
+            HashSet<EquipmentIndex> allEliteEquipmentIndices = new HashSet<EquipmentIndex>(eliteCount);
 
             foreach (EliteIndex eliteIndex in EliteCatalog.eliteList)
             {
@@ -25,17 +29,21 @@ namespace RiskOfChaos.Utilities
                 if (!eliteDef)
                     continue;
 
+                EquipmentDef equipmentDef = eliteDef.eliteEquipmentDef;
+                if (!equipmentDef || equipmentDef.equipmentIndex == EquipmentIndex.None)
+                {
+                    continue;
+                }
+
+                allEliteEquipmentIndices.Add(equipmentDef.equipmentIndex);
+
                 if (string.IsNullOrWhiteSpace(eliteDef.modifierToken) || Language.IsTokenInvalid(eliteDef.modifierToken))
                     continue;
 
                 if (eliteDef.name.EndsWith("Honor", StringComparison.OrdinalIgnoreCase))
                     continue;
 
-                EquipmentDef equipmentDef = eliteDef.eliteEquipmentDef;
-                if (!equipmentDef ||
-                    equipmentDef.equipmentIndex == EquipmentIndex.None ||
-                    !equipmentDef.pickupModelPrefab ||
-                    string.Equals(equipmentDef.pickupModelPrefab.name, "NullModel", StringComparison.OrdinalIgnoreCase))
+                if (!equipmentDef.pickupModelPrefab || string.Equals(equipmentDef.pickupModelPrefab.name, "NullModel", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
@@ -46,13 +54,16 @@ namespace RiskOfChaos.Utilities
                 }
             }
 
-            _baseEliteIndices = [.. validEliteIndices];
-            Array.Sort(_baseEliteIndices);
+            _validEliteIndices = [.. validEliteIndices];
+            Array.Sort(_validEliteIndices);
 
-            _baseEliteEquipmentIndices = [.. validEliteEquipmentIndices];
-            Array.Sort(_baseEliteEquipmentIndices);
+            _validEliteEquipmentIndices = [.. validEliteEquipmentIndices];
+            Array.Sort(_validEliteEquipmentIndices);
 
-            if (_baseEliteIndices.Length > 0)
+            _allEliteEquipmentIndices = [.. allEliteEquipmentIndices];
+            Array.Sort(_allEliteEquipmentIndices);
+
+            if (_validEliteIndices.Length > 0)
             {
                 Run.onRunStartGlobal += onRunStartGlobal;
                 Run.onRunDestroyGlobal += onRunDestroyGlobal;
@@ -86,9 +97,9 @@ namespace RiskOfChaos.Utilities
 
         static void onRunStartGlobal(Run run)
         {
-            List<EliteIndex> runAvailableEliteIndices = new List<EliteIndex>(_baseEliteIndices.Length);
+            List<EliteIndex> runAvailableEliteIndices = new List<EliteIndex>(_validEliteIndices.Length);
 
-            foreach (EliteIndex eliteIndex in _baseEliteIndices)
+            foreach (EliteIndex eliteIndex in _validEliteIndices)
             {
                 EliteDef eliteDef = EliteCatalog.GetEliteDef(eliteIndex);
                 if (!eliteDef || !eliteDef.IsAvailable())
@@ -107,7 +118,7 @@ namespace RiskOfChaos.Utilities
 
         public static bool IsAvailable(EliteIndex eliteIndex)
         {
-            return Array.BinarySearch(_baseEliteIndices, eliteIndex) >= 0;
+            return Array.BinarySearch(_validEliteIndices, eliteIndex) >= 0;
         }
 
         public static bool IsRunAvailable(EliteIndex eliteIndex)
@@ -115,13 +126,18 @@ namespace RiskOfChaos.Utilities
             return Array.BinarySearch(_runAvailableEliteIndices, eliteIndex) >= 0;
         }
 
-        public static EliteIndex[] GetRunAvailableElites(bool ignoreEliteTierAvailability)
+        public static IReadOnlyList<EliteIndex> GetRunAvailableElites(bool ignoreEliteTierAvailability)
+        {
+            return ignoreEliteTierAvailability ? Array.AsReadOnly(_runAvailableEliteIndices) : GetAllCombatDirectorElites();
+        }
+
+        public static IReadOnlyList<EliteIndex> GetAllCombatDirectorElites()
         {
             List<EliteIndex> availableEliteIndices = new List<EliteIndex>(_runAvailableEliteIndices.Length);
 
             foreach (CombatDirector.EliteTierDef eliteTier in CombatDirector.eliteTiers)
             {
-                if (ignoreEliteTierAvailability || eliteTier.CanSelect(SpawnCard.EliteRules.Default))
+                if (eliteTier.CanSelect(SpawnCard.EliteRules.Default))
                 {
                     foreach (EliteDef eliteDef in eliteTier.eliteTypes)
                     {
@@ -136,12 +152,12 @@ namespace RiskOfChaos.Utilities
                 }
             }
 
-            return [.. availableEliteIndices];
+            return availableEliteIndices.AsReadOnly();
         }
 
         public static bool IsEliteEquipment(EquipmentIndex equipmentIndex)
         {
-            return Array.BinarySearch(_baseEliteEquipmentIndices, equipmentIndex) >= 0;
+            return Array.BinarySearch(_allEliteEquipmentIndices, equipmentIndex) >= 0;
         }
     }
 }

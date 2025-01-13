@@ -6,6 +6,7 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.Pickup;
 using RoR2;
 using System;
+using System.Collections.Generic;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
@@ -34,10 +35,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
-            EliteIndex[] eliteIndices = EliteUtils.GetRunAvailableElites(true);
-            if (eliteIndices.Length > 0)
+            IReadOnlyList<EliteIndex> elites = EliteUtils.GetRunAvailableElites(true);
+            if (elites.Count > 0)
             {
-                EliteIndex eliteIndex = rng.NextElementUniform(eliteIndices);
+                EliteIndex eliteIndex = rng.NextElementUniform(elites);
                 EliteDef eliteDef = EliteCatalog.GetEliteDef(eliteIndex);
                 if (eliteDef && eliteDef.eliteEquipmentDef)
                 {

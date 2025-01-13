@@ -123,10 +123,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         static AspectStep generateStep(Xoroshiro128Plus rng)
         {
-            EliteIndex[] elites = EliteUtils.GetRunAvailableElites(_allowDirectorUnavailableElites.Value);
+            IReadOnlyList<EliteIndex> elites = EliteUtils.GetRunAvailableElites(_allowDirectorUnavailableElites.Value);
 
             WeightedSelection<EquipmentIndex> eliteEquipmentSelector = new WeightedSelection<EquipmentIndex>();
-            eliteEquipmentSelector.EnsureCapacity(elites.Length);
+            eliteEquipmentSelector.EnsureCapacity(elites.Count);
             foreach (EliteIndex eliteIndex in elites)
             {
                 EliteDef eliteDef = EliteCatalog.GetEliteDef(eliteIndex);

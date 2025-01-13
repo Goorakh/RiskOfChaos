@@ -176,11 +176,11 @@ namespace RiskOfChaos.EffectUtils.World.Spawn
             if (!inventory)
                 return;
 
-            EliteIndex[] eliteIndices = EliteUtils.GetRunAvailableElites(ignoreEliteTierAvailability);
-            if (eliteIndices.Length == 0)
+            IReadOnlyList<EliteIndex> elites = EliteUtils.GetRunAvailableElites(ignoreEliteTierAvailability);
+            if (elites.Count == 0)
                 return;
 
-            EliteIndex eliteIndex = rng.NextElementUniform(eliteIndices);
+            EliteIndex eliteIndex = rng.NextElementUniform(elites);
             EliteDef eliteDef = EliteCatalog.GetEliteDef(eliteIndex);
             if (!eliteDef)
                 return;
