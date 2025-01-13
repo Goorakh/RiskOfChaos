@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
+using RiskOfChaos.Utilities;
 using RoR2;
 using System;
 using System.Runtime.CompilerServices;
@@ -53,6 +54,8 @@ namespace RiskOfChaos.Patches
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void onSetRunDifficulty()
         {
+            CharacterBodyUtils.MarkAllBodyStatsDirty();
+
             OnRunDifficultyChanged?.Invoke();
         }
     }
