@@ -143,6 +143,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         ChaosEffectComponent _effectComponent;
 
+        Xoroshiro128Plus _aspectStepRng;
+
         AspectStep[] _playerAspectSteps;
         float _totalAspectStepsDuration;
 
@@ -177,53 +179,50 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             base.OnStartServer();
 
-            Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+            _aspectStepRng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
-            if (Configs.EffectSelection.SeededEffectSelection.Value)
+            _totalAspectStepsDuration = 0f;
+
+            // Generate as many steps as needed for the fixed duration,
+            // otherwise create a cycle long enough that the looping would hopefully not be noticeable
+            float effectDuration = 120f;
+            if (TryGetComponent(out ChaosEffectDurationComponent durationComponent))
             {
-                _totalAspectStepsDuration = 0f;
-
-                // Generate as many steps as needed for the fixed duration,
-                // otherwise create a cycle long enough that the looping would hopefully not be noticeable
-                float effectDuration = 120f;
-                if (TryGetComponent(out ChaosEffectDurationComponent durationComponent))
+                if (durationComponent.TimedType == TimedEffectType.FixedDuration)
                 {
-                    if (durationComponent.TimedType == TimedEffectType.FixedDuration)
-                    {
-                        effectDuration = durationComponent.Duration;
-                    }
+                    effectDuration = durationComponent.Duration;
                 }
-
-                List<AspectStep> aspectSteps = new List<AspectStep>(Mathf.CeilToInt(effectDuration / MIN_ASPECT_DURATION));
-
-                while (effectDuration > 0f)
-                {
-                    AspectStep step = generateStep(rng);
-
-                    bool isDuplicateStep = false;
-
-                    // Save a tiny bit of space by collapsing together neighboring steps with the same aspect
-                    if (aspectSteps.Count > 0)
-                    {
-                        AspectStep previousStep = aspectSteps[aspectSteps.Count - 1];
-                        if (previousStep.AspectEquipmentIndex == step.AspectEquipmentIndex)
-                        {
-                            aspectSteps[aspectSteps.Count - 1] = new AspectStep(previousStep.AspectEquipmentIndex, previousStep.Duration + step.Duration);
-                            isDuplicateStep = true;
-                        }
-                    }
-
-                    if (!isDuplicateStep)
-                    {
-                        aspectSteps.Add(step);
-                    }
-
-                    effectDuration -= step.Duration;
-                    _totalAspectStepsDuration += step.Duration;
-                }
-
-                _playerAspectSteps = [.. aspectSteps];
             }
+
+            List<AspectStep> aspectSteps = new List<AspectStep>(Mathf.CeilToInt(effectDuration / MIN_ASPECT_DURATION));
+
+            while (effectDuration > 0f)
+            {
+                AspectStep step = generateStep(_aspectStepRng);
+
+                bool isDuplicateStep = false;
+
+                // Save a tiny bit of space by collapsing together neighboring steps with the same aspect
+                if (aspectSteps.Count > 0)
+                {
+                    AspectStep previousStep = aspectSteps[aspectSteps.Count - 1];
+                    if (previousStep.AspectEquipmentIndex == step.AspectEquipmentIndex)
+                    {
+                        aspectSteps[aspectSteps.Count - 1] = new AspectStep(previousStep.AspectEquipmentIndex, previousStep.Duration + step.Duration);
+                        isDuplicateStep = true;
+                    }
+                }
+
+                if (!isDuplicateStep)
+                {
+                    aspectSteps.Add(step);
+                }
+
+                effectDuration -= step.Duration;
+                _totalAspectStepsDuration += step.Duration;
+            }
+
+            _playerAspectSteps = [.. aspectSteps];
         }
 
         AspectStep getCurrentAspectStep(CharacterBody body)
@@ -233,17 +232,18 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 float time = _effectComponent.TimeStarted.TimeSinceClamped % _totalAspectStepsDuration;
                 foreach (AspectStep step in _playerAspectSteps)
                 {
-                    time -= step.Duration;
-                    if (time < 0f)
+                    if (time < step.Duration)
                     {
-                        return new AspectStep(step.AspectEquipmentIndex, -time);
+                        return new AspectStep(step.AspectEquipmentIndex, step.Duration - time);
                     }
+
+                    time -= step.Duration;
                 }
 
                 Log.Error($"Effect time out of bounds for {FormatUtils.GetBestBodyName(body)}");
             }
 
-            return generateStep(RoR2Application.rng);
+            return generateStep(_aspectStepRng);
         }
 
         void Start()
@@ -296,8 +296,14 @@ namespace RiskOfChaos.EffectDefinitions.Character
             void FixedUpdate()
             {
                 _aspectReplaceTimer -= Time.fixedDeltaTime;
-                if (_aspectReplaceTimer <= 0)
+                if (_aspectReplaceTimer <= 0f)
                 {
+                    if (!_body || !EffectInstance)
+                    {
+                        Destroy(this);
+                        return;
+                    }
+
                     AspectStep currentStep = EffectInstance.getCurrentAspectStep(_body);
 
                     tryReplaceAspect(currentStep.AspectEquipmentIndex);
@@ -318,10 +324,15 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (currentEquipment == aspectEquipment)
                     return;
 
-                if (!_body.isPlayerControlled || currentEquipment == EquipmentIndex.None || EliteUtils.IsEliteEquipment(currentEquipment))
+                if (currentEquipment != EquipmentIndex.None && !EliteUtils.IsEliteEquipment(currentEquipment))
                 {
-                    inventory.SetEquipmentIndex(aspectEquipment);
+                    if (_body.isPlayerControlled)
+                        return;
+
+                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(currentEquipment), _body.corePosition, Vector3.up * 15f);
                 }
+
+                inventory.SetEquipmentIndex(aspectEquipment);
             }
         }
     }

@@ -12,6 +12,9 @@
 * Randomize Loadout:
   * Fixed game sometimes freezing when the effect activated with lots of characters active.
 
+* Aspect Roulette:
+  * Replacing an equipment with an aspect now drops the previous equipment on the ground instead of deleting it.
+
 * Give Everyone a Random Buff:
   * The buff is now displayed in the Active Effects list.
 
