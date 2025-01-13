@@ -82,14 +82,44 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
         {
             CharacterBody body = master.GetBody();
 
+            BodyIndex currentBodyIndex = BodyIndex.None;
+            if (body)
+            {
+                currentBodyIndex = body.bodyIndex;
+            }
+            else if (master.bodyPrefab)
+            {
+                currentBodyIndex = BodyCatalog.FindBodyIndex(master.bodyPrefab);
+            }
+            else if (master.playerCharacterMasterController && master.playerCharacterMasterController.networkUser)
+            {
+                currentBodyIndex = master.playerCharacterMasterController.networkUser.bodyIndexPreference;
+            }
+
+            if (currentBodyIndex == BodyIndex.None)
+                return;
+
             Loadout loadout = master.loadout;
 
             bool anyChanges = false;
             bool changedCurrentBody = false;
-            bool changedCurrentBodySkills = false;
-            bool changedCurrentBodySkin = false;
 
-            for (BodyIndex bodyIndex = 0; (int)bodyIndex < BodyCatalog.bodyCount; bodyIndex++)
+            List<BodyIndex> bodyIndicesToRandomize = [currentBodyIndex];
+
+            if (master.playerCharacterMasterController)
+            {
+                bodyIndicesToRandomize.EnsureCapacity(bodyIndicesToRandomize.Count + SurvivorCatalog.survivorCount);
+                foreach (SurvivorDef survivor in SurvivorCatalog.allSurvivorDefs)
+                {
+                    BodyIndex survivorBodyIndex = BodyCatalog.FindBodyIndex(survivor.bodyPrefab);
+                    if (survivorBodyIndex != BodyIndex.None && !bodyIndicesToRandomize.Contains(survivorBodyIndex))
+                    {
+                        bodyIndicesToRandomize.Add(survivorBodyIndex);
+                    }
+                }
+            }
+
+            foreach (BodyIndex bodyIndex in bodyIndicesToRandomize)
             {
                 tryRandomizeLoadoutForBodyIndex(master, loadout, bodyIndex, rng, out bool changedAnySkill, out bool changedSkin);
                 if (changedAnySkill || changedSkin)
@@ -98,10 +128,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
                     if (body && bodyIndex == body.bodyIndex)
                     {
-                        changedCurrentBody |= true;
-
-                        changedCurrentBodySkills |= changedAnySkill;
-                        changedCurrentBodySkin |= changedSkin;
+                        changedCurrentBody = true;
                     }
                 }
             }
@@ -170,11 +197,15 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                     uint skillVariantIndex = skillVariantIndices[i];
                     if (skillVariantIndex >= skillVariants.Length)
                     {
-                        Log.Warning($"({Util.GetBestBodyName(body.gameObject)}) Skill variant index out of range! expected={skillVariants.Length}, received={skillVariantIndex}");
-                        skillVariantIndex = 0;
+                        Log.Warning($"({Util.GetBestBodyName(body.gameObject)}) Skill variant {SkillCatalog.GetSkillFamilyName(genericSkill.skillFamily.catalogIndex)} index out of range! expected={skillVariants.Length}, received={skillVariantIndex}");
+                        continue;
                     }
 
-                    genericSkill.SetBaseSkill(skillVariants[skillVariantIndex].skillDef);
+                    SkillDef newSkillDef = skillVariants[skillVariantIndex].skillDef;
+                    if (genericSkill.baseSkill != newSkillDef)
+                    {
+                        genericSkill.SetBaseSkill(newSkillDef);
+                    }
                 }
             }
 
@@ -244,7 +275,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             if (!_randomizeSkills.Value)
                 return [new LoadoutSkillPreset(currentSkillVariants, 1f)];
 
-            List<LoadoutSkillPreset> allSkillPresets;
             int skillSlotCount = bodyInfo.skillSlotCount;
 
             int[] skillVariantCount = new int[skillSlotCount];
@@ -257,7 +287,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                 presetCount *= skillVariants.Length;
             }
 
-            allSkillPresets = new List<LoadoutSkillPreset>(presetCount);
+            List<LoadoutSkillPreset> allSkillPresets = new List<LoadoutSkillPreset>(presetCount);
 
             for (int i = 0; i < presetCount; i++)
             {
@@ -303,19 +333,20 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             if (!_randomizeSkin.Value)
                 return [new LoadoutSkinPreset(currentSkinIndex, 1f)];
 
-            List<LoadoutSkinPreset> allSkinPresets;
             int bodySkinCount = SkinCatalog.GetBodySkinCount(bodyIndex);
-            allSkinPresets = new List<LoadoutSkinPreset>(bodySkinCount);
+            List<LoadoutSkinPreset> allSkinPresets = new List<LoadoutSkinPreset>(bodySkinCount);
 
             for (uint i = 0; i < bodySkinCount; i++)
             {
                 SkinDef skinDef = SkinCatalog.GetBodySkinDef(bodyIndex, (int)i);
+                if (!skinDef)
+                    continue;
 
-                if (skinDef && (!skinDef.unlockableDef || !networkUser || networkUser.unlockables.Contains(skinDef.unlockableDef)))
-                {
-                    LoadoutSkinPreset skinPreset = new LoadoutSkinPreset(i, 1f);
-                    allSkinPresets.Add(skinPreset);
-                }
+                if (skinDef.unlockableDef && networkUser && !networkUser.unlockables.Contains(skinDef.unlockableDef))
+                    continue;
+                
+                LoadoutSkinPreset skinPreset = new LoadoutSkinPreset(i, 1f);
+                allSkinPresets.Add(skinPreset);
             }
 
             return allSkinPresets;
@@ -331,7 +362,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
             public readonly uint[] SkillVariants;
 
-            public readonly uint? SkinIndex;
+            public readonly uint SkinIndex;
 
             public readonly float Weight;
 
@@ -366,13 +397,11 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                         }
                     }
 
-                    if (SkinIndex.HasValue)
+                    uint currentSkinIndex = tmpLoadout.bodyLoadoutManager.GetSkinIndex(BodyIndex);
+                    if (currentSkinIndex != SkinIndex)
                     {
-                        uint currentSkinIndex = tmpLoadout.bodyLoadoutManager.GetSkinIndex(BodyIndex);
-                        if (skinChanged = currentSkinIndex != SkinIndex)
-                        {
-                            tmpLoadout.bodyLoadoutManager.SetSkinIndex(BodyIndex, SkinIndex.Value);
-                        }
+                        skinChanged = true;
+                        tmpLoadout.bodyLoadoutManager.SetSkinIndex(BodyIndex, SkinIndex);
                     }
 
                     if (anySkillChanged || skinChanged)

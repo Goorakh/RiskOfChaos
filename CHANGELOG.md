@@ -9,6 +9,9 @@
   * Fixed effects being able to select an invalid elite.
   * Fixed effects not being able to select Voidtouched as an elite.
 
+* Randomize Loadout:
+  * Fixed game sometimes freezing when the effect activated with lots of characters active.
+
 * Give Everyone a Random Buff:
   * The buff is now displayed in the Active Effects list.
 
