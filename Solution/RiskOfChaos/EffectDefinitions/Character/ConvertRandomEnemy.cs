@@ -47,8 +47,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         ChaosEffectComponent _effectComponent;
 
-        [SyncVar]
-        GameObject _enemyToConvert;
+        CharacterBody _enemyToConvert;
 
         void Awake()
         {
@@ -61,9 +60,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
-            BodyIndex[] convertOrder = Enumerable.Range(0, BodyCatalog.bodyCount)
-                                                 .Cast<BodyIndex>()
-                                                 .ToArray();
+            BodyIndex[] convertOrder = new BodyIndex[BodyCatalog.bodyCount];
+            for (int i = 0; i < BodyCatalog.bodyCount; i++)
+            {
+                convertOrder[i] = (BodyIndex)i;
+            }
 
             Util.ShuffleArray(convertOrder, rng);
 
@@ -75,7 +76,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 CharacterBody[] availableBodies = allConvertableEnemies.Where(b => b.bodyIndex == bodyIndex).ToArray();
                 if (availableBodies.Length > 0)
                 {
-                    _enemyToConvert = rng.NextElementUniform(availableBodies).gameObject;
+                    _enemyToConvert = rng.NextElementUniform(availableBodies);
                     break;
                 }
             }
@@ -88,77 +89,71 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         void Start()
         {
+            if (!NetworkServer.active)
+                return;
+
             if (!_enemyToConvert)
             {
                 Log.Warning("No enemy object reference, nothing to do");
                 return;
             }
 
-            CharacterBody enemyToConvertBody = _enemyToConvert.GetComponent<CharacterBody>();
+            _enemyToConvert.teamComponent.teamIndex = TeamIndex.Player;
 
-            GameObject positionIndicator = enemyToConvertBody.teamComponent.indicator;
-
-            if (positionIndicator)
+            CharacterMaster master = _enemyToConvert.master;
+            if (master)
             {
-                Log.Debug($"Destroying old position indicator: {positionIndicator}");
+                master.teamIndex = TeamIndex.Player;
 
-                GameObject.Destroy(positionIndicator);
+                foreach (BaseAI ai in master.AiComponents)
+                {                    
+                    ai.enemyAttention = 0f;
+                    ai.currentEnemy.Reset();
+                    ai.ForceAcquireNearestEnemyIfNoCurrentEnemy();
+                }
+
+                foreach (CombatSquad combatSquad in InstanceTracker.GetInstancesList<CombatSquad>())
+                {
+                    if (combatSquad.ContainsMember(master))
+                    {
+                        combatSquad.RemoveMember(master);
+                    }
+                }
+
+                master.gameObject.SetDontDestroyOnLoad(true);
+
+                master.inventory.EnsureItem(RoCContent.Items.MinAllyRegen);
             }
 
-            if (NetworkServer.active)
+            ChatMessageBase announcementMessage = getEnemyConvertedAnnouncementChatMessage(_enemyToConvert);
+            if (announcementMessage != null)
             {
-                bool isBoss = enemyToConvertBody.isBoss;
-
-                enemyToConvertBody.teamComponent.teamIndex = TeamIndex.Player;
-
-                CharacterMaster master = enemyToConvertBody.master;
-                if (master)
-                {
-                    master.teamIndex = TeamIndex.Player;
-
-                    if (master.TryGetComponent(out BaseAI ai))
-                    {
-                        ai.enemyAttention = 0f;
-                        ai.currentEnemy.Reset();
-                        ai.ForceAcquireNearestEnemyIfNoCurrentEnemy();
-                    }
-
-                    foreach (CombatSquad combatSquad in InstanceTracker.GetInstancesList<CombatSquad>())
-                    {
-                        if (combatSquad.ContainsMember(master))
-                        {
-                            combatSquad.RemoveMember(master);
-                        }
-                    }
-
-                    master.gameObject.SetDontDestroyOnLoad(true);
-
-                    master.inventory.GiveItem(RoCContent.Items.MinAllyRegen);
-                }
-
-                if (master && master.inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
-                {
-                    Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-                    {
-                        baseToken = "INVINCIBLE_LEMURIAN_RECRUIT_MESSAGE"
-                    });
-                }
-                else
-                {
-                    Color32 subjectNameColor = _defaultSubjectColor;
-                    if (isBoss)
-                    {
-                        subjectNameColor = _bossSubjectColor;
-                    }
-
-                    Chat.SendBroadcastChat(new BestNameSubjectChatMessage
-                    {
-                        BaseToken = "RECRUIT_ENEMY_MESSAGE",
-                        SubjectAsCharacterBody = enemyToConvertBody,
-                        SubjectNameOverrideColor = subjectNameColor
-                    });
-                }
+                Chat.SendBroadcastChat(announcementMessage);
             }
+        }
+
+        static ChatMessageBase getEnemyConvertedAnnouncementChatMessage(CharacterBody convertedBody)
+        {
+            if (convertedBody.inventory && convertedBody.inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
+            {
+                return new Chat.SimpleChatMessage
+                {
+                    baseToken = "INVINCIBLE_LEMURIAN_RECRUIT_MESSAGE"
+                };
+            }
+
+            Color32 subjectNameColor = _defaultSubjectColor;
+            if (convertedBody.isBoss)
+            {
+                subjectNameColor = _bossSubjectColor;
+            }
+
+            return new BestNameSubjectChatMessage
+            {
+                BaseToken = "RECRUIT_ENEMY_MESSAGE",
+                SubjectAsCharacterBody = convertedBody,
+                SubjectNameOverrideColor = subjectNameColor
+            };
         }
     }
 }
