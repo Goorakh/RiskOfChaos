@@ -15,6 +15,9 @@
 * Aspect Roulette:
   * Replacing an equipment with an aspect now drops the previous equipment on the ground instead of deleting it.
 
+* Cleanse Random Item:
+  * Now can only cleanse lunar items by default.
+
 * Give Everyone a Random Buff:
   * The buff is now displayed in the Active Effects list.
 

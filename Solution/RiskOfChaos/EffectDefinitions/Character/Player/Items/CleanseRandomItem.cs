@@ -24,7 +24,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
     {
         [EffectConfig]
         static readonly ConfigHolder<bool> _onlyCleanseLunar =
-            ConfigFactory<bool>.CreateConfig("Only Cleanse Lunars", false)
+            ConfigFactory<bool>.CreateConfig("Only Cleanse Lunars", true)
                                .Description("Limits the effect to only cleanse lunar items")
                                .OptionConfig(new CheckBoxConfig())
                                .Build();
