@@ -2,6 +2,7 @@
 using MonoMod.Cil;
 using RiskOfChaos.ModificationController.Director;
 using RoR2;
+using System.Collections.Generic;
 
 namespace RiskOfChaos.Patches
 {
@@ -10,7 +11,9 @@ namespace RiskOfChaos.Patches
         [SystemInitializer]
         static void Init()
         {
-            IL.RoR2.CombatDirector.DirectorMoneyWave.Update += DirectorMoneyWave_Update;
+            IL.RoR2.CombatDirector.AttemptSpawnOnTarget += CombatDirector_ApplyCreditMultiplier;
+            IL.RoR2.CombatDirector.PrepareNewMonsterWave += CombatDirector_ApplyCreditMultiplier;
+            IL.RoR2.CombatDirector.SpendAllCreditsOnMapSpawns += CombatDirector_ApplyCreditMultiplier;
         }
 
         static float getCombatDirectorCreditMultiplier()
@@ -21,28 +24,45 @@ namespace RiskOfChaos.Patches
             return DirectorModificationManager.Instance.CombatDirectorCreditMultiplier;
         }
 
-        static void DirectorMoneyWave_Update(ILContext il)
+        static void CombatDirector_ApplyCreditMultiplier(ILContext il)
         {
             ILCursor c = new ILCursor(il);
+
+            List<Instruction> ignoreMonsterCreditLoadInstructions = [];
+
+            while (c.TryGotoNext(x => x.MatchStfld<CombatDirector>(nameof(CombatDirector.monsterCredit))))
+            {
+                if (c.TryFindPrev(out ILCursor[] foundCursors, x => x.MatchLdfld<CombatDirector>(nameof(CombatDirector.monsterCredit))))
+                {
+                    ignoreMonsterCreditLoadInstructions.Add(foundCursors[0].Next);
+                }
+            }
+
+            Log.Debug($"{il.Method.FullName}: Found {ignoreMonsterCreditLoadInstructions.Count} credit load location(s) to ignore");
+
+            c.Index = 0;
 
             int patchCount = 0;
 
             while (c.TryGotoNext(MoveType.After,
-                                 x => x.MatchLdfld<CombatDirector.DirectorMoneyWave>(nameof(CombatDirector.DirectorMoneyWave.multiplier))))
+                                 x => x.MatchLdfld<CombatDirector>(nameof(CombatDirector.monsterCredit))))
             {
-                c.EmitDelegate(getCombatDirectorCreditMultiplier);
-                c.Emit(OpCodes.Mul);
+                if (!ignoreMonsterCreditLoadInstructions.Contains(c.Prev))
+                {
+                    c.EmitDelegate(getCombatDirectorCreditMultiplier);
+                    c.Emit(OpCodes.Mul);
 
-                patchCount++;
+                    patchCount++;
+                }
             }
 
             if (patchCount == 0)
             {
-                Log.Error("Found 0 patch locations");
+                Log.Error($"{il.Method.FullName}: Failed to find any valid patch locations");
             }
             else
             {
-                Log.Debug($"Found {patchCount} patch location(s)");
+                Log.Debug($"{il.Method.FullName}: Found {patchCount} valid patch location(s)");
             }
         }
     }

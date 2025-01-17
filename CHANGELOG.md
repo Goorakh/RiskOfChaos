@@ -1,5 +1,10 @@
 ## Changelog
 
+**-.-.- Changes:**
+
+* Increase Monster Spawnes:
+  * Fixed effect not applying to teleporter events properly.
+
 **2.5.1 Changes:**
 
 * Item Magnet & Item Repulsor:
