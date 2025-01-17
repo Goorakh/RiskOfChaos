@@ -9,6 +9,9 @@ namespace RiskOfChaos.ConfigHandling
 
         public ConfigChangedArgs(ConfigHolder<T> configHolder)
         {
+            if (configHolder is null)
+                throw new ArgumentNullException(nameof(configHolder));
+
             Holder = configHolder;
             NewValue = Holder.Value;
         }
@@ -21,6 +24,9 @@ namespace RiskOfChaos.ConfigHandling
 
         public ConfigChangedArgs(ConfigHolderBase configHolder)
         {
+            if (configHolder is null)
+                throw new ArgumentNullException(nameof(configHolder));
+
             Holder = configHolder;
             NewValue = Holder.BoxedValue;
         }

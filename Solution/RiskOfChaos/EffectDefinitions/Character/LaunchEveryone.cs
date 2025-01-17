@@ -1,16 +1,15 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using RiskOfChaos.Components;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectDefinitions.World.Knockback;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectComponents;
-using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
-using RiskOfChaos.Utilities.Pickup;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using System;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -52,12 +51,22 @@ namespace RiskOfChaos.EffectDefinitions.Character
             Xoroshiro128Plus playerRng = new Xoroshiro128Plus(rng.nextUlong);
             Xoroshiro128Plus nonPlayerRng = new Xoroshiro128Plus(rng.nextUlong);
 
-            CharacterBody.readOnlyInstancesList.TryDo(body =>
+            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
             {
-                Xoroshiro128Plus rng = body.isPlayerControlled ? playerRng : nonPlayerRng;
+                if (!body)
+                    continue;
 
-                tryLaunchInRandomDirection(body, new Xoroshiro128Plus(rng.nextUlong));
-            }, FormatUtils.GetBestBodyName);
+                Xoroshiro128Plus launchRng = body.isPlayerControlled ? playerRng : nonPlayerRng;
+
+                try
+                {
+                    tryLaunchInRandomDirection(body, new Xoroshiro128Plus(launchRng.nextUlong));
+                }
+                catch (Exception e)
+                {
+                    Log.Error_NoCallerPrefix($"Failed to launch {FormatUtils.GetBestBodyName(body)}: {e}");
+                }
+            }
         }
 
         static Vector3 getLaunchDirection(Xoroshiro128Plus rng)
@@ -67,7 +76,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         static void tryLaunchInRandomDirection(CharacterBody body, Xoroshiro128Plus rng)
         {
-            if (body.currentVehicle != null)
+            if (body.currentVehicle)
                 return;
 
             if (body.hasEffectiveAuthority)
@@ -87,22 +96,22 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 Inventory inventory = body.inventory;
                 if (inventory)
-            {
-                if (body.isPlayerControlled)
                 {
-                    // Give players a chance to avoid fall damage
-                    // Most relevant on characters without movement abilities (engi, captain)
+                    if (body.isPlayerControlled)
+                    {
+                        // Give players a chance to avoid fall damage
+                        // Most relevant on characters without movement abilities (engi, captain)
 
                         if (inventory.GetItemCount(RoR2Content.Items.Feather) == 0)
                         {
                             TemporaryItemController.AddTemporaryItem(inventory, RoR2Content.Items.Feather, TemporaryItemController.TemporaryItemCondition.Airborne, TemporaryItemController.TemporaryItemFlags.SuppressItemTransformation);
                         }
-                }
+                    }
 
                     if (inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
                     {
                         if (inventory.GetItemCount(RoR2Content.Items.TeleportWhenOob) == 0)
-                {
+                        {
                             TemporaryItemController.AddTemporaryItem(inventory, RoR2Content.Items.TeleportWhenOob, TemporaryItemController.TemporaryItemCondition.Airborne);
                         }
                     }

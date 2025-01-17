@@ -30,11 +30,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         static void modifyDamage(DamageInfo damageInfo)
         {
             damageInfo.procCoefficient = 0f;
-
-            if (damageInfo.attacker)
-            {
-                damageInfo.damageType &= ~(DamageTypeCombo)(DamageType.SlowOnHit | DamageType.ClayGoo | DamageType.Nullify | DamageType.CrippleOnHit | DamageType.ApplyMercExpose);
-            }
+            damageInfo.damageType &= ~(DamageTypeCombo)(DamageType.SlowOnHit | DamageType.ClayGoo | DamageType.Nullify | DamageType.CrippleOnHit | DamageType.ApplyMercExpose);
         }
     }
 }

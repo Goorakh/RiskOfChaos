@@ -69,7 +69,6 @@ namespace RiskOfChaos.ConfigHandling
             DefaultValue = defaultValue;
             EqualityComparer = equalityComparer ?? throw new ArgumentNullException(nameof(equalityComparer));
             _optionConfig = optionConfig;
-            _previousConfigSectionNames = previousSections ?? throw new ArgumentNullException(nameof(previousSections));
         }
 
         void Entry_SettingChanged(object sender, EventArgs e)

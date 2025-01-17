@@ -8,7 +8,7 @@ using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.Navigation;
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -29,21 +29,31 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         void Start()
         {
-            if (NetworkServer.active)
+            if (!NetworkServer.active)
+                return;
+            
+            List<CharacterBody> charactersToDuplicate = new List<CharacterBody>(CharacterMaster.readOnlyInstancesList.Count);
+            foreach (CharacterMaster master in CharacterMaster.readOnlyInstancesList)
             {
-                ReadOnlyCollection<CharacterBody> allCharacterBodies = CharacterBody.readOnlyInstancesList;
-                for (int i = allCharacterBodies.Count - 1; i >= 0; i--)
+                if (master)
                 {
-                    CharacterBody body = allCharacterBodies[i];
+                    CharacterBody body = master.GetBody();
+                    if (body)
+                    {
+                        charactersToDuplicate.Add(body);
+                    }
+                }
+            }
 
-                    try
-                    {
-                        duplicateCharacter(body);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error_NoCallerPrefix($"Failed to duplicate body {FormatUtils.GetBestBodyName(body)}: {ex}");
-                    }
+            foreach (CharacterBody body in charactersToDuplicate)
+            {
+                try
+                {
+                    duplicateCharacter(body);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error_NoCallerPrefix($"Failed to duplicate body {FormatUtils.GetBestBodyName(body)}: {ex}");
                 }
             }
         }

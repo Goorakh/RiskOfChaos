@@ -7,7 +7,7 @@ namespace RiskOfChaos.ConfigHandling
     {
         static readonly Dictionary<string, ConfigHolderBase> _registeredConfigs = [];
 
-        public static ICollection<ConfigHolderBase> AllConfigs => _registeredConfigs.Values;
+        public static IReadOnlyCollection<ConfigHolderBase> AllConfigs => _registeredConfigs.Values;
 
         static string getKey(string section, string key)
         {

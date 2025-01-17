@@ -11,36 +11,42 @@ namespace RiskOfChaos.ConfigHandling
 {
     public static class NetworkedConfigManager
     {
-        static bool _hasRegisteredRunStartEvent = false;
-
         static readonly Dictionary<string, ConfigHolderBase> _networkedConfigHolders = [];
+
+        static void onRunStartGlobal(Run run)
+        {
+            if (!NetworkServer.active)
+                return;
+
+            foreach (ConfigHolderBase networkedConfigHolder in _networkedConfigHolders.Values)
+            {
+                GameObject configNetworker = GameObject.Instantiate(RoCContent.NetworkedPrefabs.ConfigNetworker);
+
+                SyncConfigValue syncConfigValue = configNetworker.GetComponent<SyncConfigValue>();
+                syncConfigValue.Config = networkedConfigHolder;
+
+                NetworkServer.Spawn(configNetworker);
+            }
+        }
 
         public static void RegisterNetworkedConfig(ConfigHolderBase configHolder)
         {
             string key = configHolder.Definition.ToString();
+            if (_networkedConfigHolders.ContainsKey(key))
+            {
+                Log.Error($"Networked config '{key}' is already defined");
+                return;
+            }
+
+            bool isFirstNetworkedConfig = _networkedConfigHolders.Count == 0;
+
             _networkedConfigHolders.Add(key, configHolder);
 
             Log.Debug($"Registered networked config: '{key}'");
 
-            if (!_hasRegisteredRunStartEvent)
+            if (isFirstNetworkedConfig)
             {
-                Run.onRunStartGlobal += _ =>
-                {
-                    if (!NetworkServer.active)
-                        return;
-
-                    foreach (ConfigHolderBase networkedConfigHolder in _networkedConfigHolders.Values)
-                    {
-                        GameObject configNetworker = GameObject.Instantiate(RoCContent.NetworkedPrefabs.ConfigNetworker);
-
-                        SyncConfigValue syncConfigValue = configNetworker.GetComponent<SyncConfigValue>();
-                        syncConfigValue.Config = networkedConfigHolder;
-
-                        NetworkServer.Spawn(configNetworker);
-                    }
-                };
-
-                _hasRegisteredRunStartEvent = true;
+                Run.onRunStartGlobal += onRunStartGlobal;
             }
         }
 

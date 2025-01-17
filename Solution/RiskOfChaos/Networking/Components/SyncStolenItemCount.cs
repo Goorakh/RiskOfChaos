@@ -30,7 +30,7 @@ namespace RiskOfChaos.Networking.Components
             if (NetworkServer.active)
             {
                 _refreshInventoriesTimer -= Time.fixedDeltaTime;
-                if (_refreshInventoriesTimer <= 0)
+                if (_refreshInventoriesTimer <= 0f)
                 {
                     _refreshInventoriesTimer += GetNetworkSendInterval();
                     refreshInventories();

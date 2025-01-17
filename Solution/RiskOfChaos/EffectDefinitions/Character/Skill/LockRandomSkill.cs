@@ -8,13 +8,12 @@ using RiskOfChaos.EffectHandling.EffectComponents.SubtitleProviders;
 using RiskOfChaos.ModificationController;
 using RiskOfChaos.ModificationController.SkillSlots;
 using RiskOfChaos.SaveHandling;
-using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Collections.Generic;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.Character
+namespace RiskOfChaos.EffectDefinitions.Character.Skill
 {
     [ChaosTimedEffect("lock_random_skill", 90f, DefaultSelectionWeight = 0.7f)]
     [RequiredComponents(typeof(SkillSlotSubtitleProvider))]
@@ -29,10 +28,17 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                       .Build();
         }
 
-        [EffectConfig] static readonly ConfigHolder<bool> _allowLockPrimary = createSkillAllowedConfig(SkillSlot.Primary);
-        [EffectConfig] static readonly ConfigHolder<bool> _allowLockSecondary = createSkillAllowedConfig(SkillSlot.Secondary);
-        [EffectConfig] static readonly ConfigHolder<bool> _allowLockUtility = createSkillAllowedConfig(SkillSlot.Utility);
-        [EffectConfig] static readonly ConfigHolder<bool> _allowLockSpecial = createSkillAllowedConfig(SkillSlot.Special);
+        [EffectConfig]
+        static readonly ConfigHolder<bool> _allowLockPrimary = createSkillAllowedConfig(SkillSlot.Primary);
+        
+        [EffectConfig]
+        static readonly ConfigHolder<bool> _allowLockSecondary = createSkillAllowedConfig(SkillSlot.Secondary);
+        
+        [EffectConfig]
+        static readonly ConfigHolder<bool> _allowLockUtility = createSkillAllowedConfig(SkillSlot.Utility);
+        
+        [EffectConfig]
+        static readonly ConfigHolder<bool> _allowLockSpecial = createSkillAllowedConfig(SkillSlot.Special);
 
         static bool canLockSkill(SkillSlot slot)
         {

@@ -2,7 +2,6 @@
 using RiskOfChaos.Content.AssetCollections;
 using RoR2;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace RiskOfChaos.Components
 {

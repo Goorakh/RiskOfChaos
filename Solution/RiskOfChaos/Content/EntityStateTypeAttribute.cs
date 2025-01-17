@@ -1,6 +1,8 @@
-﻿using HG.Reflection;
+﻿using EntityStates;
+using HG.Reflection;
 using RiskOfChaos.Content.AssetCollections;
 using System;
+using System.Collections.Generic;
 
 namespace RiskOfChaos.Content
 {
@@ -10,9 +12,23 @@ namespace RiskOfChaos.Content
         [ContentInitializer]
         static void InitContent(EntityStateAssetCollection entityStates)
         {
-            foreach (SearchableAttribute attribute in GetInstances<EntityStateTypeAttribute>())
+            List<EntityStateTypeAttribute> attributes = [];
+            GetInstances(attributes);
+            foreach (EntityStateTypeAttribute attribute in attributes)
             {
-                entityStates.Add((Type)attribute.target);
+                if (attribute.target is not Type entityStateType)
+                {
+                    Log.Error($"Invalid attribute target {attribute.target}: Must be a type that inherits from EntityState");
+                    continue;
+                }
+
+                if (!typeof(EntityState).IsAssignableFrom(entityStateType))
+                {
+                    Log.Error($"Invalid attribute target {entityStateType}: Must inherit from EntityState");
+                    continue;
+                }
+
+                entityStates.Add(entityStateType);
             }
         }
     }

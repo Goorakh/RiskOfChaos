@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Utilities.Extensions;
+﻿using RiskOfChaos.Patches;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -10,25 +11,25 @@ namespace RiskOfChaos.Components.CostProviders
         [SystemInitializer]
         static void Init()
         {
-            On.RoR2.PurchaseInteraction.Awake += (orig, self) =>
+            PurchaseInteractionHooks.OnPurchaseInteractionAwakeGlobal += onPurchaseInteractionAwakeGlobal;
+
+            MultiShopControllerHooks.OnMultiShopControllerStartGlobal += onMultiShopControllerStartGlobal;
+        }
+
+        static void onPurchaseInteractionAwakeGlobal(PurchaseInteraction purchaseInteraction)
+        {
+            if (NetworkServer.active)
             {
-                if (NetworkServer.active)
-                {
-                    self.gameObject.EnsureComponent<OriginalCostProvider>();
-                }
+                purchaseInteraction.gameObject.EnsureComponent<OriginalCostProvider>();
+            }
+        }
 
-                orig(self);
-            };
-
-            On.RoR2.MultiShopController.Start += (orig, self) =>
+        static void onMultiShopControllerStartGlobal(MultiShopController multiShopController)
+        {
+            if (NetworkServer.active)
             {
-                if (NetworkServer.active)
-                {
-                    self.gameObject.EnsureComponent<OriginalCostProvider>();
-                }
-
-                orig(self);
-            };
+                multiShopController.gameObject.EnsureComponent<OriginalCostProvider>();
+            }
         }
 
         public delegate void OnOriginalCostInitializedDelegate(OriginalCostProvider originalCost);

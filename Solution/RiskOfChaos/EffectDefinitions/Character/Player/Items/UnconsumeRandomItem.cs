@@ -23,12 +23,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         [EffectConfig]
         static readonly ConfigHolder<int> _unconsumeCountConfig =
             ConfigFactory<int>.CreateConfig("Repair Count", 1)
-                              .Description("How many items can be reparied per effect activation")
+                              .Description("How many items can be repaired per effect activation")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
-                              .OptionConfig(new IntFieldConfig
-                              {
-                                  Min = 1
-                              })
+                              .OptionConfig(new IntFieldConfig { Min = 1 })
                               .Build();
 
         [EffectConfig]

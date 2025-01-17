@@ -23,7 +23,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
     [ChaosEffect("scrap_random_item", DefaultSelectionWeight = 0.8f)]
     public sealed class ScrapRandomItem : NetworkBehaviour
     {
-        static PickupIndex[] _scrapPickupByItemTier;
+        static PickupIndex[] _scrapPickupByItemTier = [];
 
         [SystemInitializer(typeof(PickupCatalog), typeof(ItemTierCatalog))]
         static void InitItemScrapDict()
@@ -56,7 +56,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             ConfigFactory<int>.CreateConfig("Scrap Count", 1)
                               .Description("How many items/stacks should be scrapped per player")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
-                              .OptionConfig(new IntFieldConfig { Min = 1})
+                              .OptionConfig(new IntFieldConfig { Min = 1 })
                               .Build();
 
         [EffectConfig]

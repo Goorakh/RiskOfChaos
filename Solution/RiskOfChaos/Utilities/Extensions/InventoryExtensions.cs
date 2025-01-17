@@ -210,5 +210,19 @@ namespace RiskOfChaos.Utilities.Extensions
                 return 0;
             }
         }
+
+        public static void EnsureItem(this Inventory inventory, ItemDef item, int count = 1)
+        {
+            inventory.EnsureItem(item ? item.itemIndex : ItemIndex.None, count);
+        }
+
+        public static void EnsureItem(this Inventory inventory, ItemIndex item, int count = 1)
+        {
+            int currentItemCount = inventory.GetItemCount(item);
+            if (currentItemCount < count)
+            {
+                inventory.GiveItem(item, count - currentItemCount);
+            }
+        }
     }
 }

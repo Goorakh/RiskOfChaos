@@ -33,6 +33,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
             CharacterBody _body;
             Inventory _inventory;
 
+            Xoroshiro128Plus _rng;
+
             float _dropItemTimer;
 
             public static bool ItemDropFilter(PickupInfo pickup)
@@ -54,8 +56,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 _body = GetComponent<CharacterBody>();
                 _inventory = _body.inventory;
 
+                _rng = new Xoroshiro128Plus(RoR2Application.rng.nextUlong);
+
                 scheduleNextDrop();
-                _dropItemTimer *= RoR2Application.rng.nextNormalizedFloat;
+                _dropItemTimer *= _rng.nextNormalizedFloat;
             }
 
             void FixedUpdate()
@@ -108,11 +112,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (droppableItemSelection.Count == 0)
                     return;
 
-                PickupInfo itemToDrop = droppableItemSelection.Evaluate(RoR2Application.rng.nextNormalizedFloat);
+                PickupInfo itemToDrop = droppableItemSelection.Evaluate(_rng.nextNormalizedFloat);
 
                 itemToDrop.RemoveFromInventory();
 
-                Vector3 dropVelocity = Quaternion.AngleAxis(RoR2Application.rng.RangeFloat(0f, 360f), Vector3.up) * _baseDropVelocity;
+                Vector3 dropVelocity = Quaternion.AngleAxis(_rng.RangeFloat(0f, 360f), Vector3.up) * _baseDropVelocity;
                 Quaternion rotationPerDrop = Quaternion.AngleAxis(360f / itemToDrop.PickupDropletCount, Vector3.up);
 
                 for (int i = itemToDrop.PickupDropletCount - 1; i >= 0; i--)

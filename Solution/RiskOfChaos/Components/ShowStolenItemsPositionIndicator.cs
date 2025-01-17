@@ -5,15 +5,17 @@ using UnityEngine;
 
 namespace RiskOfChaos.Components
 {
-    [RequiredComponents(typeof(SyncStolenItemCount))]
+    [RequiredComponents(typeof(NetworkedBodyAttachment), typeof(SyncStolenItemCount))]
     public class ShowStolenItemsPositionIndicator : MonoBehaviour
     {
         NetworkedBodyAttachment _bodyAttachment;
 
         SyncStolenItemCount _syncedStolenItemCount;
 
-        GameObject _positionIndicatorObject;
         PositionIndicator _positionIndicator;
+
+        float _refreshIndicatorTimer;
+        const float INDICATOR_REFRESH_INTERVAL = 1.5f;
 
         void Awake()
         {
@@ -21,16 +23,27 @@ namespace RiskOfChaos.Components
             _syncedStolenItemCount = GetComponent<SyncStolenItemCount>();
         }
 
-        void FixedUpdate()
+        void OnEnable()
         {
-            refreshShowPositionIndicator();
+            refreshPositionIndicator();
         }
 
         void OnDisable()
         {
-            if (_positionIndicatorObject)
+            if (_positionIndicator)
             {
-                Destroy(_positionIndicatorObject);
+                Destroy(_positionIndicator.gameObject);
+                _positionIndicator = null;
+            }
+        }
+
+        void FixedUpdate()
+        {
+            _refreshIndicatorTimer -= Time.fixedDeltaTime;
+            if (_refreshIndicatorTimer <= 0f)
+            {
+                _refreshIndicatorTimer = INDICATOR_REFRESH_INTERVAL;
+                refreshPositionIndicator();
             }
         }
 
@@ -61,30 +74,30 @@ namespace RiskOfChaos.Components
             return false;
         }
 
-        void refreshShowPositionIndicator()
+        void refreshPositionIndicator()
         {
-            if (shouldShowPositionIndicator())
-            {
-                if (!_positionIndicatorObject)
-                {
-                    if (_bodyAttachment.attachedBody)
-                    {
-                        _positionIndicatorObject = Instantiate(RoCContent.LocalPrefabs.ItemStealerPositionIndicator);
+            setIndicatorVisible(shouldShowPositionIndicator());
 
-                        _positionIndicator = _positionIndicatorObject.GetComponent<PositionIndicator>();
-                        _positionIndicator.targetTransform = _bodyAttachment.attachedBody.coreTransform;
-                    }
-                }
-                else if (!_positionIndicatorObject.activeSelf)
-                {
-                    _positionIndicatorObject.SetActive(true);
-                }
-            }
-            else
+            if (_positionIndicator && _positionIndicator.gameObject.activeInHierarchy && !_positionIndicator.targetTransform && _bodyAttachment.attachedBody)
             {
-                if (_positionIndicatorObject)
+                _positionIndicator.targetTransform = _bodyAttachment.attachedBody.coreTransform;
+            }
+        }
+
+        void setIndicatorVisible(bool active)
+        {
+            if (_positionIndicator)
+            {
+                _positionIndicator.gameObject.SetActive(active);
+            }
+            else if (active)
+            {
+                if (_bodyAttachment.attachedBody)
                 {
-                    _positionIndicatorObject.SetActive(false);
+                    GameObject positionIndicatorObject = Instantiate(RoCContent.LocalPrefabs.ItemStealerPositionIndicator);
+
+                    _positionIndicator = positionIndicatorObject.GetComponent<PositionIndicator>();
+                    _positionIndicator.targetTransform = _bodyAttachment.attachedBody.coreTransform;
                 }
             }
         }

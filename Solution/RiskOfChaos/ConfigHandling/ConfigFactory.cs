@@ -59,7 +59,7 @@ namespace RiskOfChaos.ConfigHandling
 
         public ConfigFactory<T> EqualityComparer(IEqualityComparer<T> equalityComparer)
         {
-            if (equalityComparer is null)
+            if (equalityComparer == null)
                 throw new ArgumentNullException(nameof(equalityComparer));
 
             _equalityComparer = equalityComparer;
@@ -74,7 +74,7 @@ namespace RiskOfChaos.ConfigHandling
 
         public ConfigFactory<T> OnValueChanged(EventHandler<ConfigChangedArgs<T>> listener)
         {
-            if (listener is null)
+            if (listener == null)
                 throw new ArgumentNullException(nameof(listener));
 
             _configChangedListeners.Add(listener);
@@ -83,7 +83,7 @@ namespace RiskOfChaos.ConfigHandling
 
         public ConfigFactory<T> OnValueChanged(Action listener)
         {
-            if (listener is null)
+            if (listener == null)
                 throw new ArgumentNullException(nameof(listener));
 
             return OnValueChanged((s, e) => listener());

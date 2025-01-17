@@ -1,24 +1,19 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.Content;
-using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.EffectHandling.EffectComponents.SubtitleProviders;
-using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.ModificationController;
 using RiskOfChaos.ModificationController.SkillSlots;
 using RiskOfChaos.SaveHandling;
-using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.Character
+namespace RiskOfChaos.EffectDefinitions.Character.Skill
 {
     [ChaosTimedEffect("force_activate_random_skill", 90f, DefaultSelectionWeight = 0.6f)]
     [EffectConfigBackwardsCompatibility("Effect: Force Activate Random Skill (Lasts 1 stage)")]
@@ -33,10 +28,17 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                       .Build();
         }
 
-        [EffectConfig] static readonly ConfigHolder<bool> _allowForcePrimary = createSkillAllowedConfig(SkillSlot.Primary);
-        [EffectConfig] static readonly ConfigHolder<bool> _allowForceSecondary = createSkillAllowedConfig(SkillSlot.Secondary);
-        [EffectConfig] static readonly ConfigHolder<bool> _allowForceUtility = createSkillAllowedConfig(SkillSlot.Utility);
-        [EffectConfig] static readonly ConfigHolder<bool> _allowForceSpecial = createSkillAllowedConfig(SkillSlot.Special);
+        [EffectConfig]
+        static readonly ConfigHolder<bool> _allowForcePrimary = createSkillAllowedConfig(SkillSlot.Primary);
+        
+        [EffectConfig]
+        static readonly ConfigHolder<bool> _allowForceSecondary = createSkillAllowedConfig(SkillSlot.Secondary);
+
+        [EffectConfig]
+        static readonly ConfigHolder<bool> _allowForceUtility = createSkillAllowedConfig(SkillSlot.Utility);
+
+        [EffectConfig]
+        static readonly ConfigHolder<bool> _allowForceSpecial = createSkillAllowedConfig(SkillSlot.Special);
 
         static bool canForceSkill(SkillSlot slot)
         {

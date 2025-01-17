@@ -19,7 +19,9 @@ namespace RiskOfChaos.Content
             {
                 AsyncOperationHandle<GameObject> commandoGrenadeGhostLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Commando/CommandoGrenadeGhost.prefab");
                 while (!commandoGrenadeGhostLoad.IsDone)
+                {
                     yield return null;
+                }
 
                 if (commandoGrenadeGhostLoad.Status != AsyncOperationStatus.Succeeded)
                 {

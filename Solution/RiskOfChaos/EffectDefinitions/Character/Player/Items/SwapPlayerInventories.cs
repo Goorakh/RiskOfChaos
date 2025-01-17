@@ -58,7 +58,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                 if (OwnerInventory)
                 {
-                    List<ItemStack> itemsToTransfer = [];
+                    List<ItemStack> itemsToTransfer = new List<ItemStack>(OwnerInventory.itemAcquisitionOrder.Count);
                     foreach (ItemIndex item in OwnerInventory.itemAcquisitionOrder)
                     {
                         if (ItemTransferFilter(item))
@@ -67,7 +67,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                         }
                     }
 
-                    _itemStacksToTransfer = itemsToTransfer.ToArray();
+                    _itemStacksToTransfer = [.. itemsToTransfer];
                 }
             }
 

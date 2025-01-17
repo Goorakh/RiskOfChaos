@@ -2,6 +2,7 @@
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfOptions.OptionConfigs;
+using System.Runtime.CompilerServices;
 
 namespace RiskOfChaos
 {
@@ -18,7 +19,11 @@ namespace RiskOfChaos
                                    .Networked()
                                    .Build();
 
-            static bool effectDispatchingDisabled() => DisableEffectDispatching.LocalValue;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            static bool effectDispatchingDisabled()
+            {
+                return DisableEffectDispatching.LocalValue;
+            }
 
             const float TIME_BETWEEN_EFFECTS_MIN_VALUE = 5f;
             public static readonly ConfigHolder<float> TimeBetweenEffects =

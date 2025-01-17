@@ -6,7 +6,8 @@ namespace RiskOfChaos.Components
 {
     public class ProjectileGhostTeamProvider : MonoBehaviour
     {
-        TeamIndex _teamIndex;
+        [SerializeField]
+        TeamIndex _teamIndex = TeamIndex.None;
         public TeamIndex TeamIndex
         {
             get
@@ -15,16 +16,14 @@ namespace RiskOfChaos.Components
             }
             set
             {
+                if (_teamIndex == value)
+                    return;
+
                 _teamIndex = value;
                 OnTeamChanged?.Invoke();
             }
         }
 
         public event Action OnTeamChanged;
-
-        void OnEnable()
-        {
-            TeamIndex = TeamIndex.None;
-        }
     }
 }

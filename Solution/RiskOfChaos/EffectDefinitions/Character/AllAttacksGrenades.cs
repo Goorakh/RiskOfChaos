@@ -7,7 +7,7 @@ using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace RiskOfChaos.EffectDefinitions.World.Projectile
+namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("all_attacks_grenades", 90f, AllowDuplicates = false)]
     public sealed class AllAttacksGrenades : MonoBehaviour

@@ -6,7 +6,7 @@ namespace RiskOfChaos.Collections.CatalogIndex
 {
     public abstract class CatalogIndexCollection<T> : IReadOnlyCollection<T>
     {
-        static readonly bool _isComparable = typeof(IComparable).IsAssignableFrom(typeof(T));
+        static readonly bool _isComparable = typeof(IComparable).IsAssignableFrom(typeof(T)) || typeof(IComparable<T>).IsAssignableFrom(typeof(T));
 
         readonly string[] _names;
         readonly T[] _items;

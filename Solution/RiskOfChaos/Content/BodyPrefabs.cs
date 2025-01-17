@@ -30,6 +30,7 @@ namespace RiskOfChaos.Content
                     body.baseNameToken = "CHAOS_FAKE_INTERACTOR_BODY_NAME";
                     body.baseMaxHealth = 1e9F; // 10^9
                     body.baseRegen = 1e9F; // 10^9
+                    body.bodyFlags = CharacterBody.BodyFlags.Masterless;
 
                     Transform modelBase = new GameObject("ModelBase").transform;
                     modelBase.SetParent(bodyPrefab.transform);

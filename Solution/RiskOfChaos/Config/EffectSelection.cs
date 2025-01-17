@@ -3,6 +3,7 @@ using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfOptions.OptionConfigs;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace RiskOfChaos
 {
@@ -19,7 +20,11 @@ namespace RiskOfChaos
                                    .MovedFrom(General.SECTION_NAME)
                                    .Build();
 
-            static bool perStageEffectListDisabled() => !PerStageEffectListEnabled.Value;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            static bool perStageEffectListDisabled()
+            {
+                return !PerStageEffectListEnabled.Value;
+            }
 
             public static readonly ConfigHolder<bool> PerStageEffectListEnabled =
                 ConfigFactory<bool>.CreateConfig("Per-Stage Effect List", false)

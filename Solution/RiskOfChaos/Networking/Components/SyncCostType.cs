@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.Components.CostProviders;
+using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Runtime.CompilerServices;
@@ -14,20 +15,16 @@ namespace RiskOfChaos.Networking.Components
         [SystemInitializer]
         static void Init()
         {
-            On.RoR2.PurchaseInteraction.Awake += (orig, self) =>
+            PurchaseInteractionHooks.OnPurchaseInteractionAwakeGlobal += purchaseInteraction =>
             {
-                orig(self);
-
-                self.gameObject.EnsureComponent<SyncCostType>();
+                purchaseInteraction.gameObject.EnsureComponent<SyncCostType>();
             };
 
-            On.RoR2.MultiShopController.Start += (orig, self) =>
+            MultiShopControllerHooks.OnMultiShopControllerStartGlobal += multiShopController =>
             {
-                orig(self);
-
-                if (!self.gameObject.GetComponent<SyncCostType>())
+                if (!multiShopController.gameObject.GetComponent<SyncCostType>())
                 {
-                    Log.Warning($"MultiShopController {self} is missing SyncCostType component, cost type will not be synchronized over the network");
+                    Log.Warning($"MultiShopController {Util.GetGameObjectHierarchyName(multiShopController.gameObject)} is missing SyncCostType component, cost type will not be synchronized over the network");
                 }
             };
 

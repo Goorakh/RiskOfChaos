@@ -5,6 +5,7 @@ using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.UI;
 using System;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace RiskOfChaos
@@ -21,7 +22,11 @@ namespace RiskOfChaos
                                    .OptionConfig(new CheckBoxConfig())
                                    .Build();
 
-            static bool activeEffectsPanelHidden() => HideActiveEffectsPanel.Value;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            static bool activeEffectsPanelHidden()
+            {
+                return HideActiveEffectsPanel.Value;
+            }
 
             public static readonly ConfigHolder<bool> DisplayAlwaysActiveEffects =
                 ConfigFactory<bool>.CreateConfig("Display Permanently Active Effects", false)

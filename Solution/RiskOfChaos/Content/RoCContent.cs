@@ -105,7 +105,7 @@ namespace RiskOfChaos.Content
                 }
                 else if (returnValue is not null)
                 {
-                    Log.Error($"Unknown return type for content intializer {contentInitializerMethod.FullDescription()}");
+                    Log.Error($"Unknown return type for content initializer {contentInitializerMethod.FullDescription()}");
                 }
 
                 args.ReportProgress(Util.Remap((float)(i + 1) / contentInitializerMethods.Count, 0f, 1f, 0f, 0.75f));
@@ -299,7 +299,7 @@ namespace RiskOfChaos.Content
                     {
                         GameObject existingPrefab = _prefabsByAssetId[assetId];
 
-                        Log.Error($"Duplicate assed ids! '{existingPrefab.name}' and '{prefab.name}' both have the same asset id of {assetId}");
+                        Log.Error($"Duplicate asset ids! '{existingPrefab.name}' and '{prefab.name}' both have the same asset id of {assetId}");
                     }
                 }
 

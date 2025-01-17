@@ -9,7 +9,13 @@ namespace RiskOfChaos.Collections.ParsedValue
 {
     public abstract class GenericParsedList<T> : GenericParsedValue<ReadOnlyArray<T>>, IEnumerable<T>
     {
-        public int Length => TryGetValue(out ReadOnlyArray<T> array) ? array.Length : 0;
+        public int Length
+        {
+            get
+            {
+                return TryGetValue(out ReadOnlyArray<T> array) ? array.Length : 0;
+            }
+        }
 
         readonly IComparer<T> _comparer;
 
@@ -90,11 +96,11 @@ namespace RiskOfChaos.Collections.ParsedValue
                 {
                     if (_boundToConfig != null)
                     {
-                        Log.Warning($"Failed to parse {_boundToConfig.Definition} list item \"{item}\": " + ex.Message);
+                        Log.Warning($"Failed to parse {_boundToConfig.Definition} list item \"{item}\": {ex.Message}");
                     }
                     else
                     {
-                        Log.Warning($"Failed to parse list item \"{item}\": " + ex.Message);
+                        Log.Warning($"Failed to parse list item \"{item}\": {ex.Message}");
                     }
 
                     failReasonsList?.Add(new ParseFailReason(item, ex));

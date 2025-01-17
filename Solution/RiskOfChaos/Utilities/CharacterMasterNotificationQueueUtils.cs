@@ -24,7 +24,7 @@ namespace RiskOfChaos.Utilities
             if (!viewerMaster || !viewerMaster.hasAuthority)
                 return false;
 
-            CharacterMasterNotificationQueue notificationQueue = viewerMaster ? viewerMaster.GetComponent<CharacterMasterNotificationQueue>() : null;
+            CharacterMasterNotificationQueue notificationQueue = viewerMaster.GetComponent<CharacterMasterNotificationQueue>();
             return notificationQueue && notificationQueue.GetCurrentNotification() != null;
         }
     }

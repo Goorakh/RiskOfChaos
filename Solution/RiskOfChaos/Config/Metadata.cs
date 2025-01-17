@@ -15,7 +15,7 @@ namespace RiskOfChaos
             public const uint CONFIG_FILE_VERSION_LEGACY = 0;
             public const uint CURRENT_CONFIG_FILE_VERSION = 19;
 
-            public static ConfigHolder<uint> ConfigFileVersion =
+            public static readonly ConfigHolder<uint> ConfigFileVersion =
                 ConfigFactory<uint>.CreateConfig("VERSION", CONFIG_FILE_VERSION_LEGACY)
                                    .Description("""
                                     Used internally by the mod
@@ -36,14 +36,8 @@ namespace RiskOfChaos
             static bool isOutdatedVersion()
             {
                 // == 0 will always be < whatever current version is, so don't need to check it
-                if (ConfigFileVersion.Value < CURRENT_CONFIG_FILE_VERSION)
-                {
-                    return ConfigManager.AllConfigs.Any(c => !c.IsDefaultValue);
-                }
-                else
-                {
-                    return false;
-                }
+                return ConfigFileVersion.Value < CURRENT_CONFIG_FILE_VERSION &&
+                       ConfigManager.AllConfigs.Any(c => !c.IsDefaultValue);
             }
 
             internal static void CheckVersion()

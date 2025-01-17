@@ -48,6 +48,7 @@ namespace RiskOfChaos.ConfigHandling
             Key = key;
             Description = description ?? throw new ArgumentNullException(nameof(description));
             _previousKeys = previousKeys ?? throw new ArgumentNullException(nameof(previousKeys));
+            _previousConfigSectionNames = previousSections ?? throw new ArgumentNullException(nameof(previousSections));
             Flags = flags;
         }
 
@@ -65,12 +66,26 @@ namespace RiskOfChaos.ConfigHandling
 
         protected virtual void invokeSettingChanged()
         {
-            SettingChanged?.Invoke(this, new ConfigChangedArgs(this));
+            try
+            {
+                SettingChanged?.Invoke(this, new ConfigChangedArgs(this));
+            }
+            catch (Exception e)
+            {
+                Log.Error_NoCallerPrefix($"SettingChanged invoke failed for {Definition}: {e}");
+            }
         }
 
         protected virtual void invokeOnBind()
         {
-            OnBind?.Invoke(Entry);
+            try
+            {
+                OnBind?.Invoke(Entry);
+            }
+            catch (Exception e)
+            {
+                Log.Error_NoCallerPrefix($"OnBind invoke failed for {Definition}: {e}");
+            }
         }
 
         public void SetServerOverrideValue(object value)

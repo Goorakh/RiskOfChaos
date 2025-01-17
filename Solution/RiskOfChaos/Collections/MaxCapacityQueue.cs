@@ -8,7 +8,13 @@ namespace RiskOfChaos.Collections
     {
         readonly Queue<T> _queue;
 
-        public int Count => _queue.Count;
+        public int Count
+        {
+            get
+            {
+                return _queue.Count;
+            }
+        }
 
         int _maxCapacity;
         public int MaxCapacity
@@ -33,6 +39,9 @@ namespace RiskOfChaos.Collections
 
         public MaxCapacityQueue(int maxCapacity)
         {
+            if (maxCapacity <= 0)
+                throw new ArgumentOutOfRangeException(nameof(maxCapacity), "Max capacity must be greater than zero.");
+
             _queue = new Queue<T>(maxCapacity);
             MaxCapacity = maxCapacity;
         }
@@ -44,26 +53,30 @@ namespace RiskOfChaos.Collections
 
         public IEnumerator<T> GetEnumerator()
         {
-            return ((IEnumerable<T>)_queue).GetEnumerator();
+            return _queue.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return ((IEnumerable)_queue).GetEnumerator();
+            return _queue.GetEnumerator();
         }
 
         void checkCapacity()
         {
-            while (Count > MaxCapacity)
+            while (_queue.Count > _maxCapacity)
             {
-                Dequeue();
+                _queue.Dequeue();
             }
         }
 
         public void Enqueue(T item)
         {
             _queue.Enqueue(item);
-            checkCapacity();
+
+            if (_queue.Count > _maxCapacity)
+            {
+                _queue.Dequeue();
+            }
         }
 
         public T Dequeue()

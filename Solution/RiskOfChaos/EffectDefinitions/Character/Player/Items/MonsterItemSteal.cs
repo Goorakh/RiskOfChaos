@@ -121,8 +121,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 int stealIterations = 0;
                 float currentStealInterval = 0.3f;
 
-                Dictionary<Inventory, int> stolenItemStacksByInventory = [];
-                stolenItemStacksByInventory.EnsureCapacity(_activeStealControllers.Count);
+                Dictionary<Inventory, int> stolenItemStacksByInventory = new Dictionary<Inventory, int>(_activeStealControllers.Count);
 
                 while (_activeStealControllers.Count > 0)
                 {

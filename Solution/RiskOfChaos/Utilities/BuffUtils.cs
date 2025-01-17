@@ -27,6 +27,10 @@ namespace RiskOfChaos.Utilities
                     continue;
 
                 string buffName = buffDef.name;
+                if (string.IsNullOrWhiteSpace(buffName))
+                    continue;
+
+                buffName = buffName.Trim();
 
                 int nameStartIndex = 0;
                 if (buffName.StartsWith("bd"))

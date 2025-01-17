@@ -1,6 +1,12 @@
 ﻿using RiskOfChaos.Content;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -9,57 +15,83 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [ChaosEffect("kill_all", DefaultSelectionWeight = 0.7f)]
     public sealed class KillAll : MonoBehaviour
     {
+        static bool canKillCharacter(CharacterBody body)
+        {
+            if (body.IsPlayerOrPlayerAlly())
+                return false;
+
+            if (body.master && body.master.isBoss)
+                return false;
+
+            return true;
+        }
+
+        [EffectCanActivate]
+        static bool CanActivate(in EffectCanActivateContext context)
+        {
+            if (!context.IsNow)
+                return true;
+
+            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
+            {
+                if (canKillCharacter(body))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         void Start()
         {
             if (!NetworkServer.active)
                 return;
-            
-            bool sendInvincibleLemurianMessage = false;
 
-            for (int i = CharacterBody.readOnlyInstancesList.Count - 1; i >= 0; i--)
+            List<CharacterBody> charactersToKill = new List<CharacterBody>(CharacterBody.readOnlyInstancesList.Count);
+
+            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
             {
-                CharacterBody body = CharacterBody.readOnlyInstancesList[i];
-                HealthComponent healthComponent = body.healthComponent;
-                CharacterMaster master = body.master;
-                if (!healthComponent ||
-                    body.isPlayerControlled ||
-                    body.teamComponent.teamIndex == TeamIndex.Player ||
-                    body.teamComponent.teamIndex == TeamIndex.None ||
-                    (master && master.isBoss))
+                if (canKillCharacter(body))
                 {
-                    continue;
+                    charactersToKill.Add(body);
                 }
+            }
 
+            bool hasSentInvincibleLemurianKillFailMessage = false;
+
+            foreach (CharacterBody body in charactersToKill)
+            {
                 Inventory inventory = body.inventory;
                 if (inventory)
                 {
                     if (inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
                     {
-                        sendInvincibleLemurianMessage = true;
+                        if (!hasSentInvincibleLemurianKillFailMessage)
+                        {
+                            Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                            {
+                                baseToken = "INVINCIBLE_LEMURIAN_KILL_FAIL_MESSAGE"
+                            });
+
+                            hasSentInvincibleLemurianKillFailMessage = true;
+                        }
+
                         continue;
                     }
                 }
 
-                if (master)
+                if (body.healthComponent)
                 {
-                    MinionOwnership minionOwnership = master.minionOwnership;
-                    if (minionOwnership)
+                    try
                     {
-                        CharacterMaster ownerMaster = minionOwnership.ownerMaster;
-                        if (ownerMaster && ownerMaster.playerCharacterMasterController)
-                            continue;
+                        body.healthComponent.Suicide();
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error_NoCallerPrefix($"Failed to kill {FormatUtils.GetBestBodyName(body)}: {e}");
                     }
                 }
-
-                healthComponent.Suicide();
-            }
-
-            if (sendInvincibleLemurianMessage)
-            {
-                Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-                {
-                    baseToken = "INVINCIBLE_LEMURIAN_KILL_FAIL_MESSAGE"
-                });
             }
         }
     }

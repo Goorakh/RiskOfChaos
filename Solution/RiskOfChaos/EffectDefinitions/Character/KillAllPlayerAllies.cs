@@ -1,10 +1,11 @@
 ﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -13,44 +14,62 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [ChaosEffect("kill_all_allies", DefaultSelectionWeight = 0.5f)]
     public sealed class KillAllPlayerAllies : MonoBehaviour
     {
-        static IEnumerable<HealthComponent> getCharactersToKill()
+        static bool canKillCharacter(CharacterBody body)
         {
-            for (int i = CharacterBody.readOnlyInstancesList.Count - 1; i >= 0; i--)
-            {
-                CharacterBody body = CharacterBody.readOnlyInstancesList[i];
-                CharacterMaster master = body.master;
-                HealthComponent healthComponent = body.healthComponent;
-                if ((master && master.isBoss) || body.isPlayerControlled || !healthComponent)
-                    continue;
+            if (body.isPlayerControlled || !body.IsPlayerOrPlayerAlly())
+                return false;
 
-                CharacterMaster ownerMaster = null;
-                if (master)
-                {
-                    MinionOwnership minionOwnership = master.minionOwnership;
-                    if (minionOwnership)
-                    {
-                        ownerMaster = minionOwnership.ownerMaster;
-                    }
-                }
+            if (body.master && body.master.isBoss)
+                return false;
 
-                if (body.teamComponent.teamIndex == TeamIndex.Player || (ownerMaster && ownerMaster.playerCharacterMasterController))
-                {
-                    yield return healthComponent;
-                }
-            }
+            return true;
         }
 
         [EffectCanActivate]
         static bool CanActivate(in EffectCanActivateContext context)
         {
-            return !context.IsNow || getCharactersToKill().Any();
+            if (!context.IsNow)
+                return true;
+
+            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
+            {
+                if (canKillCharacter(body))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         void Start()
         {
-            if (NetworkServer.active)
+            if (!NetworkServer.active)
+                return;
+            
+            List<CharacterBody> charactersToKill = new List<CharacterBody>(CharacterBody.readOnlyInstancesList.Count);
+
+            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
             {
-                getCharactersToKill().TryDo(healthComponent => healthComponent.Suicide());
+                if (canKillCharacter(body))
+                {
+                    charactersToKill.Add(body);
+                }
+            }
+
+            foreach (CharacterBody body in charactersToKill)
+            {
+                if (body.healthComponent)
+                {
+                    try
+                    {
+                        body.healthComponent.Suicide();
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error_NoCallerPrefix($"Failed to kill {FormatUtils.GetBestBodyName(body)}: {e}");
+                    }
+                }
             }
         }
     }

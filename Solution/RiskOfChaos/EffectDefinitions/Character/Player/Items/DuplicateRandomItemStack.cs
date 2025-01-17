@@ -12,7 +12,6 @@ using RiskOfChaos.Utilities.Pickup;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Networking;
 
@@ -47,36 +46,58 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         [EffectCanActivate]
         static bool CanActivate(in EffectCanActivateContext context)
         {
-            return !context.IsNow || PlayerUtils.GetAllPlayerMasters(false).Any(master => getAllDuplicatableItemStacks(master.inventory).Any());
+            if (!context.IsNow)
+                return true;
+
+            foreach (PlayerCharacterMasterController playerMasterController in PlayerCharacterMasterController.instances)
+            {
+                if (!playerMasterController.isConnected)
+                    continue;
+
+                CharacterMaster playerMaster = playerMasterController.master;
+                if (!playerMaster)
+                    continue;
+
+                Inventory inventory = playerMaster.inventory;
+                if (!inventory)
+                    continue;
+
+                foreach (ItemIndex item in inventory.itemAcquisitionOrder)
+                {
+                    if (canDuplicateItemStack(item, inventory))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
-        static IEnumerable<ItemStack> getAllDuplicatableItemStacks(Inventory inventory)
+        static bool canDuplicateItemStack(ItemIndex item, Inventory inventory)
         {
-            if (!inventory)
-                yield break;
+            ItemDef itemDef = ItemCatalog.GetItemDef(item);
+            if (!itemDef || itemDef.hidden)
+                return false;
 
-            foreach (ItemIndex item in inventory.itemAcquisitionOrder)
+            if (inventory.GetItemCount(item) <= 0)
+                return false;
+
+            if (_itemBlacklist.Contains(itemDef.itemIndex))
             {
-                ItemDef itemDef = ItemCatalog.GetItemDef(item);
-                if (!itemDef || itemDef.hidden)
-                    continue;
-
-                if (_itemBlacklist.Contains(itemDef.itemIndex))
-                {
-                    Log.Debug($"{itemDef} cannot be duplicated: config blacklist");
-                    continue;
-                }
-
-                int itemCount = inventory.GetItemCount(item);
-                int maxItemStacks = _maxItemStacksConfig.Value;
-                if (maxItemStacks > 0 && itemCount >= maxItemStacks)
-                {
-                    Log.Debug($"{itemDef} cannot be duplicated: max item stacks config is {maxItemStacks}, current: {itemCount}");
-                    continue;
-                }
-
-                yield return new ItemStack(item, itemCount);
+                Log.Debug($"{itemDef} cannot be duplicated: config blacklist");
+                return false;
             }
+
+            int itemCount = inventory.GetItemCount(item);
+            int maxItemStacks = _maxItemStacksConfig.Value;
+            if (maxItemStacks > 0 && itemCount >= maxItemStacks)
+            {
+                Log.Debug($"{itemDef} cannot be duplicated: max item stacks config is {maxItemStacks}, current: {itemCount}");
+                return false;
+            }
+
+            return true;
         }
 
         ChaosEffectComponent _effectComponent;
@@ -94,49 +115,52 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
-            _itemDuplicationOrder = [.. ItemCatalog.allItems];
+            _itemDuplicationOrder = new ItemIndex[ItemCatalog.itemCount];
+            for (int i = 0; i < _itemDuplicationOrder.Length; i++)
+            {
+                _itemDuplicationOrder[i] = (ItemIndex)i;
+            }
+
             Util.ShuffleArray(_itemDuplicationOrder, rng.Branch());
 
             Log.Debug($"Duplication order: [{string.Join(", ", _itemDuplicationOrder.Select(FormatUtils.GetBestItemDisplayName))}]");
         }
 
-        bool tryGetStackToDuplicate(ItemStack[] availableItemStacks, out ItemStack result)
-        {
-            for (int i = 0; i < _itemDuplicationOrder.Length; i++)
-            {
-                int itemStackIndex = Array.FindIndex(availableItemStacks, s => s.ItemIndex == _itemDuplicationOrder[i]);
-                if (itemStackIndex != -1)
-                {
-                    result = availableItemStacks[itemStackIndex];
-                    return true;
-                }
-            }
-
-            result = default;
-            return false;
-        }
-
         void Start()
         {
-            if (NetworkServer.active)
+            if (!NetworkServer.active)
+                return;
+            
+            foreach (CharacterMaster master in CharacterMaster.readOnlyInstancesList)
             {
-                PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
+                Inventory inventory = master.inventory;
+                if (!inventory)
+                    continue;
+
+                if (!master.IsPlayerOrPlayerAlly())
+                    continue;
+
+                foreach (ItemIndex item in _itemDuplicationOrder)
                 {
-                    Inventory inventory = playerMaster.inventory;
-                    if (!inventory)
-                        return;
-
-                    ItemStack[] duplicatableItemStacks = getAllDuplicatableItemStacks(inventory).ToArray();
-                    if (duplicatableItemStacks.Length <= 0)
-                        return;
-
-                    if (tryGetStackToDuplicate(duplicatableItemStacks, out ItemStack itemStack))
+                    if (canDuplicateItemStack(item, inventory))
                     {
-                        inventory.GiveItem(itemStack.ItemIndex, itemStack.ItemCount);
+                        try
+                        {
+                            inventory.GiveItem(item, inventory.GetItemCount(item));
 
-                        PickupUtils.QueuePickupMessage(playerMaster, PickupCatalog.FindPickupIndex(itemStack.ItemIndex));
+                            if (master.playerCharacterMasterController)
+                            {
+                                PickupUtils.QueuePickupMessage(master, PickupCatalog.FindPickupIndex(item));
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Error_NoCallerPrefix($"Failed to duplicate item '{FormatUtils.GetBestItemDisplayName(item)}' for '{Util.GetBestMasterName(master)}': {e}");
+                        }
+
+                        break;
                     }
-                }, Util.GetBestMasterName);
+                }
             }
         }
     }
