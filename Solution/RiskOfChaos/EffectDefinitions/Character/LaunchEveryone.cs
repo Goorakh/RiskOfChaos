@@ -83,19 +83,29 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 applyForceToBody(body, direction * (rng.RangeFloat(30f, 70f) * knockbackScale));
             }
 
-            if (NetworkServer.active && body.inventory)
+            if (NetworkServer.active)
+            {
+                Inventory inventory = body.inventory;
+                if (inventory)
             {
                 if (body.isPlayerControlled)
                 {
                     // Give players a chance to avoid fall damage
                     // Most relevant on characters without movement abilities (engi, captain)
 
-                    giveAirborneTemporaryItem(body, RoR2Content.Items.Feather, true, true);
+                        if (inventory.GetItemCount(RoR2Content.Items.Feather) == 0)
+                        {
+                            TemporaryItemController.AddTemporaryItem(inventory, RoR2Content.Items.Feather, TemporaryItemController.TemporaryItemCondition.Airborne, TemporaryItemController.TemporaryItemFlags.SuppressItemTransformation);
+                        }
                 }
 
-                if (body.inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
+                    if (inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
+                    {
+                        if (inventory.GetItemCount(RoR2Content.Items.TeleportWhenOob) == 0)
                 {
-                    giveAirborneTemporaryItem(body, RoR2Content.Items.TeleportWhenOob, true, false);
+                            TemporaryItemController.AddTemporaryItem(inventory, RoR2Content.Items.TeleportWhenOob, TemporaryItemController.TemporaryItemCondition.Airborne);
+                        }
+                    }
                 }
             }
         }
@@ -116,48 +126,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 rigidbody.AddForce(force, ForceMode.VelocityChange);
             }
-        }
-
-        static void giveAirborneTemporaryItem(CharacterBody body, ItemDef item, bool skipIfAlreadyPresent, bool notify)
-        {
-            Inventory inventory = body.inventory;
-            if (!inventory)
-                return;
-
-            if (skipIfAlreadyPresent && inventory.GetItemCount(item) > 0)
-                return;
-
-            CharacterMaster master = body.master;
-
-            if (notify && !item.hidden && master.playerCharacterMasterController)
-            {
-                PickupUtils.QueuePickupMessage(master, PickupCatalog.FindPickupIndex(item.itemIndex), PickupNotificationFlags.DisplayPushNotificationIfNoneQueued | PickupNotificationFlags.PlaySound);
-            }
-
-            // Ensure item doesn't get turned into a void item if a mod adds that
-            IgnoreItemTransformations.IgnoreTransformationsFor(inventory);
-            
-            inventory.GiveItem(item);
-
-            void onHitGroundServer(CharacterBody characterBody, in CharacterMotor.HitGroundInfo hitGroundInfo)
-            {
-                if (!body || characterBody == body)
-                {
-                    if (characterBody)
-                    {
-                        Inventory inventory = characterBody.inventory;
-                        if (inventory)
-                        {
-                            inventory.RemoveItem(item);
-                            IgnoreItemTransformations.ResumeTransformationsFor(inventory);
-                        }
-                    }
-
-                    OnCharacterHitGroundServerHook.OnCharacterHitGround -= onHitGroundServer;
-                }
-            }
-
-            OnCharacterHitGroundServerHook.OnCharacterHitGround += onHitGroundServer;
         }
     }
 }

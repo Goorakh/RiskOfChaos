@@ -4,10 +4,8 @@ using RiskOfChaos.Content;
 using RiskOfChaos.Networking;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Pickup;
 using RoR2;
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -92,56 +90,30 @@ namespace RiskOfChaos.Components
 
             CharacterMaster master = body.master;
 
-            List<ItemDef> removeOnLandItems = new List<ItemDef>(Items.Length);
-
             foreach (ConditionalItem item in Items)
             {
+                if (!item.ItemDef)
+                    continue;
+
                 if (item.IgnoreIfItemAlreadyPresent && inventory.GetItemCount(item.ItemDef) > 0)
                     continue;
 
                 if ((item.GrantToPlayers && body.isPlayerControlled) ||
                     (item.GrantToInvincibleLemurian && inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0))
                 {
-                    inventory.GiveItem(item.ItemDef);
+                    bool showNotification = item.NotifyPickupIfNoneActive && !CharacterMasterNotificationQueueUtils.IsAnyNotificationQueued(master);
 
-                    removeOnLandItems.Add(item.ItemDef);
+                    TemporaryItemController.TemporaryItemFlags temporaryItemFlags = TemporaryItemController.TemporaryItemFlags.SuppressItemTransformation;
 
-                    if (item.NotifyPickupIfNoneActive && !item.ItemDef.hidden && master && master.playerCharacterMasterController)
+                    if (!showNotification)
                     {
-                        PickupUtils.QueuePickupMessage(master, PickupCatalog.FindPickupIndex(item.ItemDef.itemIndex), PickupNotificationFlags.DisplayPushNotificationIfNoneQueued | PickupNotificationFlags.PlaySound);
+                        temporaryItemFlags |= TemporaryItemController.TemporaryItemFlags.Silent;
                     }
+
+                    TemporaryItemController.AddTemporaryItem(inventory, item.ItemDef, TemporaryItemController.TemporaryItemCondition.Airborne, temporaryItemFlags);
 
                     Log.Debug($"Gave jump item {FormatUtils.GetBestItemDisplayName(item.ItemDef)} to {FormatUtils.GetBestBodyName(body)}");
                 }
-            }
-
-            if (removeOnLandItems.Count > 0)
-            {
-                IgnoreItemTransformations.IgnoreTransformationsFor(inventory);
-
-                void onHitGroundServer(CharacterBody characterBody, in CharacterMotor.HitGroundInfo hitGroundInfo)
-                {
-                    if (!body || characterBody == body)
-                    {
-                        OnCharacterHitGroundServerHook.OnCharacterHitGround -= onHitGroundServer;
-
-                        if (characterBody)
-                        {
-                            Inventory inventory = characterBody.inventory;
-                            if (inventory)
-                            {
-                                foreach (ItemDef item in removeOnLandItems)
-                                {
-                                    inventory.RemoveItem(item);
-                                }
-
-                                IgnoreItemTransformations.ResumeTransformationsFor(inventory);
-                            }
-                        }
-                    }
-                }
-
-                OnCharacterHitGroundServerHook.OnCharacterHitGround += onHitGroundServer;
             }
         }
 

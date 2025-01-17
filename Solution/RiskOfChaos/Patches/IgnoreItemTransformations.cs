@@ -3,6 +3,7 @@ using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RoR2;
 using RoR2.Items;
+using RoR2BepInExPack.Utilities;
 using System.Collections.Generic;
 using UnityEngine.Networking;
 
@@ -10,47 +11,79 @@ namespace RiskOfChaos.Patches
 {
     static class IgnoreItemTransformations
     {
-        static readonly HashSet<Inventory> _ignoreTransformationsFor = [];
-
-        static IgnoreItemTransformations()
+        class IgnoreTransformationInfo
         {
-            RoR2Application.onFixedUpdate += () =>
-            {
-                if (_ignoreTransformationsFor.Count > 0 && (!NetworkServer.active || !Run.instance))
-                {
-                    _ignoreTransformationsFor.Clear();
-                }
-            };
-        }
+            public readonly HashSet<ItemIndex> IgnoreItems = [];
+            public int IgnoreAllTransformationsCount = 0;
 
-        public static void IgnoreTransformationsFor(Inventory inventory)
-        {
-            if (!NetworkServer.active)
-                return;
-
-            if (_ignoreTransformationsFor.Add(inventory))
+            public bool ShouldIgnoreTransformation(ItemIndex fromItemIndex)
             {
-                tryApplyPatches();
+                return IgnoreAllTransformationsCount > 0 || IgnoreItems.Contains(fromItemIndex);
             }
         }
 
-        public static void ResumeTransformationsFor(Inventory inventory)
+        static readonly FixedConditionalWeakTable<Inventory, IgnoreTransformationInfo> _ignoreTransformations = new FixedConditionalWeakTable<Inventory, IgnoreTransformationInfo>();
+
+        [SystemInitializer]
+        static void Init()
+        {
+            IL.RoR2.Items.ContagiousItemManager.ProcessPendingChanges += ContagiousItemManager_ProcessPendingChanges;
+        }
+
+        static bool tryGetIgnoreTransformations(Inventory inventory, out IgnoreTransformationInfo ignoreTransformations)
+        {
+            return _ignoreTransformations.TryGetValue(inventory, out ignoreTransformations);
+        }
+
+        static IgnoreTransformationInfo getOrAddIgnoreTransformations(Inventory inventory)
+        {
+            if (!tryGetIgnoreTransformations(inventory, out IgnoreTransformationInfo ignoreTransformations))
+            {
+                ignoreTransformations = new IgnoreTransformationInfo();
+                _ignoreTransformations.Add(inventory, ignoreTransformations);
+            }
+
+            return ignoreTransformations;
+        }
+
+        public static void IgnoreAllTransformationsFor(Inventory inventory)
         {
             if (!NetworkServer.active)
                 return;
 
-            _ignoreTransformationsFor.Remove(inventory);
+            IgnoreTransformationInfo ignoreTransformations = getOrAddIgnoreTransformations(inventory);
+            ignoreTransformations.IgnoreAllTransformationsCount++;
         }
 
-        static bool _hasAppliedPatches = false;
-        static void tryApplyPatches()
+        public static void IgnoreTransformationsFor(Inventory inventory, ItemIndex fromItemIndex)
         {
-            if (_hasAppliedPatches)
+            if (!NetworkServer.active)
                 return;
 
-            IL.RoR2.Items.ContagiousItemManager.ProcessPendingChanges += ContagiousItemManager_ProcessPendingChanges;
+            IgnoreTransformationInfo ignoreTransformations = getOrAddIgnoreTransformations(inventory);
+            ignoreTransformations.IgnoreItems.Add(fromItemIndex);
+        }
 
-            _hasAppliedPatches = true;
+        public static void ResumeAllTransformationsFor(Inventory inventory)
+        {
+            if (!NetworkServer.active)
+                return;
+
+            if (tryGetIgnoreTransformations(inventory, out IgnoreTransformationInfo ignoreTransformations))
+            {
+                ignoreTransformations.IgnoreAllTransformationsCount--;
+            }
+        }
+
+        public static void ResumeTransformationsFor(Inventory inventory, ItemIndex fromItemIndex)
+        {
+            if (!NetworkServer.active)
+                return;
+
+            if (tryGetIgnoreTransformations(inventory, out IgnoreTransformationInfo ignoreTransformations))
+            {
+                ignoreTransformations.IgnoreItems.Remove(fromItemIndex);
+            }
         }
 
         static void ContagiousItemManager_ProcessPendingChanges(ILContext il)
@@ -58,41 +91,41 @@ namespace RiskOfChaos.Patches
             ILCursor c = new ILCursor(il);
 
             int inventoryReplacementCandidateLocalIndex = -1;
-            if (c.TryGotoNext(MoveType.After,
-                              x => x.MatchLdloca(out inventoryReplacementCandidateLocalIndex),
-                              x => x.MatchLdflda<ContagiousItemManager.InventoryReplacementCandidate>(nameof(ContagiousItemManager.InventoryReplacementCandidate.time)),
-                              x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertyGetter(typeof(Run.FixedTimeStamp), nameof(Run.FixedTimeStamp.hasPassed)))))
-            {
-                ILLabel afterIfLabel = null;
-                if (c.TryGotoNext(MoveType.After,
-                                  x => x.MatchBrfalse(out afterIfLabel)))
-                {
-                    c.Emit(OpCodes.Ldloca, inventoryReplacementCandidateLocalIndex);
-                    c.EmitDelegate(canProcessReplacement);
-
-                    static bool canProcessReplacement(ref ContagiousItemManager.InventoryReplacementCandidate inventoryReplacementCandidate)
-                    {
-                        bool ignored = _ignoreTransformationsFor.Contains(inventoryReplacementCandidate.inventory);
-
-                        if (ignored)
-                        {
-                            inventoryReplacementCandidate.time += ContagiousItemManager.transformDelay;
-                        }
-
-                        return !ignored;
-                    }
-
-                    c.Emit(OpCodes.Brfalse, afterIfLabel);
-                }
-                else
-                {
-                    Log.Error("Failed to find patch location");
-                }
-            }
-            else
+            if (!c.TryGotoNext(MoveType.After,
+                               x => x.MatchLdloca(out inventoryReplacementCandidateLocalIndex),
+                               x => x.MatchLdflda<ContagiousItemManager.InventoryReplacementCandidate>(nameof(ContagiousItemManager.InventoryReplacementCandidate.time)),
+                               x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertyGetter(typeof(Run.FixedTimeStamp), nameof(Run.FixedTimeStamp.hasPassed)))))
             {
                 Log.Error("Failed to find inventory replacement local");
+                return;
             }
+
+            ILLabel afterIfLabel = null;
+            if (!c.TryGotoNext(MoveType.After,
+                               x => x.MatchBrfalse(out afterIfLabel)))
+            {
+                Log.Error("Failed to find patch location");
+                return;
+            }
+
+            c.Emit(OpCodes.Ldloca, inventoryReplacementCandidateLocalIndex);
+            c.EmitDelegate(canProcessReplacement);
+
+            static bool canProcessReplacement(ref ContagiousItemManager.InventoryReplacementCandidate inventoryReplacementCandidate)
+            {
+                Inventory inventory = inventoryReplacementCandidate.inventory;
+                bool ignored = tryGetIgnoreTransformations(inventory, out IgnoreTransformationInfo ignoreTransformations) &&
+                               ignoreTransformations.ShouldIgnoreTransformation(inventoryReplacementCandidate.originalItem);
+
+                if (ignored)
+                {
+                    inventoryReplacementCandidate.time += ContagiousItemManager.transformDelay;
+                }
+
+                return !ignored;
+            }
+
+            c.Emit(OpCodes.Brfalse, afterIfLabel);
         }
     }
 }

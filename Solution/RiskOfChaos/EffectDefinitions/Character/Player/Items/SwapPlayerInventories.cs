@@ -234,10 +234,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                             }
                         }
 
-                        IgnoreItemTransformations.IgnoreTransformationsFor(inventory);
+                        IgnoreItemTransformations.IgnoreAllTransformationsFor(inventory);
                         allItemsGivenAndReceivedWaiter.OnAllEventsInvoked += () =>
                         {
-                            IgnoreItemTransformations.ResumeTransformationsFor(inventory);
+                            IgnoreItemTransformations.ResumeAllTransformationsFor(inventory);
                         };
                     }
                 }

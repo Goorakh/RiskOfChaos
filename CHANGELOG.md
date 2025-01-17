@@ -15,6 +15,10 @@
 * Aspect Roulette:
   * Replacing an equipment with an aspect now drops the previous equipment on the ground instead of deleting it.
 
+* Launch Everyone in Random Directions & Spawn Jump Pad:
+  * Fixed being able to keep temporary feather by leaving the stage or respawning in any way before hitting the ground.
+  * Fixed void corruptions breaking for the rest of the run if you left the stage or respawned before hitting the ground.
+
 * Cleanse Random Item:
   * Now can only cleanse lunar items by default.
 
