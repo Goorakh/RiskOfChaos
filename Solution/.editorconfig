@@ -26,3 +26,6 @@ csharp_style_throw_expression = false
 
 # IDE0040: Add accessibility modifiers
 dotnet_style_require_accessibility_modifiers = omit_if_default
+
+# IDE1006: Naming Styles
+dotnet_diagnostic.IDE1006.severity = none
