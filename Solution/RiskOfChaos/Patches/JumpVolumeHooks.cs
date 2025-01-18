@@ -30,20 +30,19 @@ namespace RiskOfChaos.Patches
                 return;
             }
 
-            if (c.TryGotoNext(MoveType.After,
-                              x => x.MatchStfld<CharacterMotor>(nameof(CharacterMotor.velocity))))
-            {
-                c.Emit(OpCodes.Ldarg_0);
-                c.Emit(OpCodes.Ldloc, characterMotorLocalIndex);
-                c.EmitDelegate(onJump);
-                static void onJump(JumpVolume jumpVolume, CharacterMotor characterMotor)
-                {
-                    OnJumpVolumeJumpAuthority?.Invoke(jumpVolume, characterMotor);
-                }
-            }
-            else
+            if (!c.TryGotoNext(MoveType.After,
+                               x => x.MatchStfld<CharacterMotor>(nameof(CharacterMotor.velocity))))
             {
                 Log.Error("Failed to find patch location");
+                return;
+            }
+
+            c.Emit(OpCodes.Ldarg_0);
+            c.Emit(OpCodes.Ldloc, characterMotorLocalIndex);
+            c.EmitDelegate(onJump);
+            static void onJump(JumpVolume jumpVolume, CharacterMotor characterMotor)
+            {
+                OnJumpVolumeJumpAuthority?.Invoke(jumpVolume, characterMotor);
             }
         }
     }

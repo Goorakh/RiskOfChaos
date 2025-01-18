@@ -1,9 +1,8 @@
-﻿using Mono.Cecil;
-using Mono.Cecil.Cil;
+﻿using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using MonoMod.Utils;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using System.Linq;
 
 namespace RiskOfChaos.Patches
 {
@@ -16,10 +15,13 @@ namespace RiskOfChaos.Patches
         {
             if (UseExplicitOriginPosition != null)
             {
-                foreach (UseExplicitOriginPositionDelegate useExplicitPositionDelegate in UseExplicitOriginPosition.GetInvocationList())
+                foreach (UseExplicitOriginPositionDelegate useExplicitPositionDelegate in UseExplicitOriginPosition.GetInvocationList()
+                                                                                                                   .OfType<UseExplicitOriginPositionDelegate>())
                 {
                     if (useExplicitPositionDelegate(bulletAttack))
+                    {
                         return true;
+                    }
                 }
             }
 

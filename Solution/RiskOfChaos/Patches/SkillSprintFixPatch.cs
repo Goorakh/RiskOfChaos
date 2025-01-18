@@ -65,11 +65,11 @@ namespace RiskOfChaos.Patches
 
             if (patchCount == 0)
             {
-                Log.Error("Found 0 patch locations");
+                Log.Error($"{il.Method.FullName}: Found 0 patch locations");
             }
             else
             {
-                Log.Debug($"Found {patchCount} patch location(s)");
+                Log.Debug($"{il.Method.FullName}: Found {patchCount} patch location(s)");
             }
         }
     }

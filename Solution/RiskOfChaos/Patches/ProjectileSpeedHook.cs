@@ -24,8 +24,6 @@ namespace RiskOfChaos.Patches
             }
         }
 
-        static bool useSpeedMultiplier => currentSpeedMultiplier != 1f;
-
         [SystemInitializer]
         static void Init()
         {
@@ -51,16 +49,20 @@ namespace RiskOfChaos.Patches
                 // Hook the deprecated velocity setter, just in case some old mod is still using it
                 new Hook(projectileSimpleVelocitySetter, ProjectileSimple_set_velocity);
             }
+            else
+            {
+                Log.Warning("Failed to find ProjectileSimple.set_velocity MethodInfo");
+            }
         }
 
         static void ProjectileManager_InitializeProjectile(On.RoR2.Projectile.ProjectileManager.orig_InitializeProjectile orig, ProjectileController projectileController, FireProjectileInfo fireProjectileInfo)
         {
             orig(projectileController, fireProjectileInfo);
 
-            if (!useSpeedMultiplier)
+            float speedMultiplier = currentSpeedMultiplier;
+            if (speedMultiplier == 1f)
                 return;
 
-            float speedMultiplier = currentSpeedMultiplier;
             float durationMultiplier = speedMultiplier != 0f ? 1f / speedMultiplier : 1f;
             float durationMultiplierIncreaseOnly = Mathf.Max(durationMultiplier, 1f);
 
@@ -226,13 +228,11 @@ namespace RiskOfChaos.Patches
 
         static void ProjectileSimple_SetLifetime(On.RoR2.Projectile.ProjectileSimple.orig_SetLifetime orig, ProjectileSimple self, float newLifetime)
         {
-            if (useSpeedMultiplier)
-            {
-                float speedMultiplier = currentSpeedMultiplier;
-                float durationMultiplier = speedMultiplier != 0f ? 1f / speedMultiplier : 1f;
+            float speedMultiplier = currentSpeedMultiplier;
 
-                newLifetime *= durationMultiplier;
-            }
+            float durationMultiplier = speedMultiplier != 0f ? 1f / speedMultiplier : 1f;
+
+            newLifetime *= durationMultiplier;
 
             orig(self, newLifetime);
         }
@@ -240,7 +240,7 @@ namespace RiskOfChaos.Patches
         delegate void orig_Orb_set_duration(Orb self, float value);
         static void Orb_set_duration(orig_Orb_set_duration orig, Orb self, float value)
         {
-            if (self.distanceToTarget > 0f && useSpeedMultiplier)
+            if (self.distanceToTarget > 0f)
             {
                 float speedMultiplier = currentSpeedMultiplier;
                 float durationMultiplier = speedMultiplier != 0f ? 1f / speedMultiplier : 1f;
@@ -254,12 +254,7 @@ namespace RiskOfChaos.Patches
         delegate void orig_ProjectileSimple_set_velocity(ProjectileSimple self, float value);
         static void ProjectileSimple_set_velocity(orig_ProjectileSimple_set_velocity orig, ProjectileSimple self, float value)
         {
-            if (useSpeedMultiplier)
-            {
-                value *= currentSpeedMultiplier;
-            }
-
-            orig(self, value);
+            orig(self, value * currentSpeedMultiplier);
         }
     }
 }

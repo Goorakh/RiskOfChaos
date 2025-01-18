@@ -43,9 +43,15 @@ namespace RiskOfChaos.Patches
             IL.RoR2.CharacterAI.BaseAI.UpdateBodyInputs += hookPushInputState;
         }
 
-        static bool tryGetSkillSlotIndex(string fieldName, out SkillSlot slotIndex)
+        static bool tryGetSkillSlotFromField(FieldReference field, out SkillSlot slotIndex)
         {
-            switch (fieldName)
+            if (!field.DeclaringType.Is(typeof(InputBankTest)))
+            {
+                slotIndex = SkillSlot.None;
+                return false;
+            }
+
+            switch (field.Name)
             {
                 case nameof(InputBankTest.skill1):
                     slotIndex = SkillSlot.Primary;
@@ -73,7 +79,7 @@ namespace RiskOfChaos.Patches
 
             SkillSlot slotIndex = SkillSlot.None;
             while (c.TryFindNext(out ILCursor[] foundCursors,
-                                 x => x.MatchLdflda(out FieldReference field) && field.DeclaringType.Is(typeof(InputBankTest)) && tryGetSkillSlotIndex(field.Name, out slotIndex),
+                                 x => x.MatchLdflda(out FieldReference field) && tryGetSkillSlotFromField(field, out slotIndex),
                                  x => x.MatchCallOrCallvirt<InputBankTest.ButtonState>(nameof(InputBankTest.ButtonState.PushState))))
             {
                 ILCursor cursor = foundCursors[1];
@@ -118,11 +124,11 @@ namespace RiskOfChaos.Patches
 
             if (patchCount == 0)
             {
-                Log.Error("Found 0 patch locations");
+                Log.Error($"{il.Method.FullName}: Found 0 patch locations");
             }
             else
             {
-                Log.Debug($"Found {patchCount} patch location(s)");
+                Log.Debug($"{il.Method.FullName}: Found {patchCount} patch location(s)");
             }
         }
     }

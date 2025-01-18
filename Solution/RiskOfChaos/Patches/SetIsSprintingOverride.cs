@@ -14,13 +14,14 @@ namespace RiskOfChaos.Patches
         static void Init()
         {
             MethodInfo set_isSprinting_MI = AccessTools.DeclaredPropertySetter(typeof(CharacterBody), nameof(CharacterBody.isSprinting));
-            if (set_isSprinting_MI == null)
+            if (set_isSprinting_MI != null)
+            {
+                new Hook(set_isSprinting_MI, CharacterBody_set_isSprinting);
+            }
+            else
             {
                 Log.Error($"Failed to find {nameof(CharacterBody)}.set_{nameof(CharacterBody.isSprinting)}");
-                return;
             }
-
-            new Hook(set_isSprinting_MI, CharacterBody_set_isSprinting);
         }
 
         delegate void orig_set_isSprinting(CharacterBody self, bool value);

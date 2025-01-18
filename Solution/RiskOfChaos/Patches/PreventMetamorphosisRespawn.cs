@@ -23,21 +23,20 @@ namespace RiskOfChaos.Patches
 
             ILLabel afterIfLbl = null;
 
-            if (c.TryFindNext(out ILCursor[] foundCursors,
+            if (!c.TryFindNext(out ILCursor[] foundCursors,
                               x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertyGetter(typeof(RoR2Content.Artifacts), nameof(RoR2Content.Artifacts.randomSurvivorOnRespawnArtifactDef))),
                               x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<RunArtifactManager>(_ => _.IsArtifactEnabled(default(ArtifactDef)))),
                               x => x.MatchBrfalse(out afterIfLbl)))
             {
-                ILCursor cursor = foundCursors[2];
-                cursor.Index++;
-
-                cursor.Emit(OpCodes.Ldsfld, _preventionEnabled_FI);
-                cursor.Emit(OpCodes.Brtrue, afterIfLbl);
-            }
-            else
-            {
                 Log.Error("Unable to find patch location");
+                return;
             }
+
+            ILCursor cursor = foundCursors[2];
+            cursor.Index++;
+
+            cursor.Emit(OpCodes.Ldsfld, _preventionEnabled_FI);
+            cursor.Emit(OpCodes.Brtrue, afterIfLbl);
         }
     }
 }

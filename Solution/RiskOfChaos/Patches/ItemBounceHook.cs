@@ -1,7 +1,6 @@
 ﻿using RiskOfChaos.Components;
 using RiskOfChaos.ModificationController.Pickups;
 using RoR2;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 

@@ -32,26 +32,25 @@ namespace RiskOfChaos.Patches.Effects.World
         {
             ILCursor c = new ILCursor(il);
 
-            if (c.TryFindNext(out ILCursor[] foundCursors,
-                              x => x.MatchLdfld<HealthComponent.ItemCounts>(nameof(HealthComponent.ItemCounts.bear)),
-                              x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo(() => Util.CheckRoll(default, default, default)))))
-            {
-                ILCursor cursor = foundCursors[1];
-
-                FieldInfo isRollingTougherTimesProc = AccessTools.DeclaredField(typeof(GuaranteedChanceRollsHooks), nameof(_isRollingTougherTimesProc));
-
-                cursor.Emit(OpCodes.Ldc_I4_1);
-                cursor.Emit(OpCodes.Stsfld, isRollingTougherTimesProc);
-
-                cursor.Index++;
-
-                cursor.Emit(OpCodes.Ldc_I4_0);
-                cursor.Emit(OpCodes.Stsfld, isRollingTougherTimesProc);
-            }
-            else
+            if (!c.TryFindNext(out ILCursor[] foundCursors,
+                               x => x.MatchLdfld<HealthComponent.ItemCounts>(nameof(HealthComponent.ItemCounts.bear)),
+                               x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo(() => Util.CheckRoll(default, default, default)))))
             {
                 Log.Error("Failed to find Tougher Times patch location");
+                return;
             }
+
+            ILCursor cursor = foundCursors[1];
+
+            FieldInfo isRollingTougherTimesProc = AccessTools.DeclaredField(typeof(GuaranteedChanceRollsHooks), nameof(_isRollingTougherTimesProc));
+
+            cursor.Emit(OpCodes.Ldc_I4_1);
+            cursor.Emit(OpCodes.Stsfld, isRollingTougherTimesProc);
+
+            cursor.Index++;
+
+            cursor.Emit(OpCodes.Ldc_I4_0);
+            cursor.Emit(OpCodes.Stsfld, isRollingTougherTimesProc);
         }
     }
 }

@@ -14,31 +14,7 @@ namespace RiskOfChaos.Patches
         [SystemInitializer]
         static void Init()
         {
-            IL.RoR2.CameraTargetParams.AddRecoil += il =>
-            {
-                ILCursor c = new ILCursor(il);
-
-                if (c.TryGotoNext(MoveType.After, x => x.MatchNewobj<Vector2>()))
-                {
-                    c.EmitDelegate(modifyRecoil);
-                    static Vector2 modifyRecoil(Vector2 recoil)
-                    {
-                        CameraModificationManager modificationManager = CameraModificationManager.Instance;
-                        if (modificationManager && modificationManager.AnyModificationActive)
-                        {
-                            return Vector2.Scale(recoil, modificationManager.RecoilMultiplier);
-                        }
-                        else
-                        {
-                            return recoil;
-                        }
-                    }
-                }
-                else
-                {
-                    Log.Error("Failed to find AddRecoil patch location");
-                }
-            };
+            IL.RoR2.CameraTargetParams.AddRecoil += CameraTargetParams_AddRecoil;
 
             IL.RoR2.CameraRigController.SetCameraState += CameraRigController_SetCameraState;
 
@@ -47,6 +23,32 @@ namespace RiskOfChaos.Patches
             On.RoR2.CameraTargetParams.CalcParams += CameraTargetParams_CalcParams;
 
             PlayerInputHook.ModifyPlayerMoveInput += PlayerInputHook_ModifyPlayerMoveInput;
+        }
+
+        static void CameraTargetParams_AddRecoil(ILContext il)
+        {
+            ILCursor c = new ILCursor(il);
+
+            if (!c.TryGotoNext(MoveType.After,
+                               x => x.MatchNewobj<Vector2>()))
+            {
+                Log.Error("Failed to find AddRecoil patch location");
+                return;
+            }
+
+            c.EmitDelegate(modifyRecoil);
+            static Vector2 modifyRecoil(Vector2 recoil)
+            {
+                CameraModificationManager modificationManager = CameraModificationManager.Instance;
+                if (modificationManager && modificationManager.AnyModificationActive)
+                {
+                    return Vector2.Scale(recoil, modificationManager.RecoilMultiplier);
+                }
+                else
+                {
+                    return recoil;
+                }
+            }
         }
 
         static void CameraRigController_SetCameraState(ILContext il)

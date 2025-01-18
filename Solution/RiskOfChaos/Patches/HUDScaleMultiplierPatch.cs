@@ -1,8 +1,8 @@
 ﻿using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using MonoMod.Utils;
 using RiskOfChaos.ModificationController.UI;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.UI;
 using UnityEngine;
@@ -14,66 +14,48 @@ namespace RiskOfChaos.Patches
         [SystemInitializer]
         static void Init()
         {
-            On.RoR2.UI.HUDScaleController.Start += HUDScaleController_Start;
             IL.RoR2.UI.HUDScaleController.SetScale += HUDScaleController_SetScale;
+
+            UIModificationManager.OnHudScaleMultiplierChanged += onHudScaleMultiplierChanged;
         }
 
-        static void HUDScaleController_Start(On.RoR2.UI.HUDScaleController.orig_Start orig, HUDScaleController self)
+        static float getHudScaleMultiplier()
         {
-            orig(self);
+            if (!UIModificationManager.Instance)
+                return 1f;
 
-            HUDScaleMultiplierChangedListener multiplierChangedListener = self.gameObject.AddComponent<HUDScaleMultiplierChangedListener>();
-            multiplierChangedListener.ScaleController = self;
+            return UIModificationManager.Instance.HudScaleMultiplier;
         }
 
         static void HUDScaleController_SetScale(ILContext il)
         {
             ILCursor c = new ILCursor(il);
 
-            if (c.TryGotoNext(MoveType.After,
-                              x => x.MatchCall(AccessTools.DeclaredConstructor(typeof(Vector3), [typeof(float), typeof(float), typeof(float)]))))
-            {
-                int scaleLocalIndex = -1;
-                if (c.Clone().TryGotoPrev(x => x.MatchLdloca(out scaleLocalIndex) && il.Method.Body.Variables[scaleLocalIndex].VariableType.Is(typeof(Vector3))))
-                {
-                    c.Emit(OpCodes.Ldloca, scaleLocalIndex);
-                    c.EmitDelegate(modifyScale);
-                    static void modifyScale(ref Vector3 scale)
-                    {
-                        if (UIModificationManager.Instance)
-                        {
-                            scale *= UIModificationManager.Instance.HudScaleMultiplier;
-                        }
-                    }
-                }
-                else
-                {
-                    Log.Error("Failed to find scale local index");
-                }
-            }
-            else
+            if (!c.TryGotoNext(MoveType.Before,
+                               x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertySetter(typeof(Transform), nameof(Transform.localScale)))))
             {
                 Log.Error("Failed to find patch location");
+                return;
+            }
+
+            VariableDefinition transformVariable = il.AddVariable<Transform>();
+            VariableDefinition scaleVariable = il.AddVariable<Vector3>();
+
+            c.EmitStoreStack(transformVariable, scaleVariable);
+
+            c.Emit(OpCodes.Ldloc, transformVariable);
+            c.EmitDelegate(getScale);
+            static Vector3 getScale(Vector3 scale, Transform transform)
+            {
+                return scale * getHudScaleMultiplier();
             }
         }
 
-        class HUDScaleMultiplierChangedListener : MonoBehaviour
+        static void onHudScaleMultiplierChanged(float newScaleMultiplier)
         {
-            public HUDScaleController ScaleController { get; set; }
-
-            void OnEnable()
+            foreach (HUDScaleController hudScaleController in HUDScaleController.instancesList)
             {
-                UIModificationManager.OnHudScaleMultiplierChanged += UIModificationManager_OnHudScaleMultiplierChanged;
-            }
-
-            void OnDisable()
-            {
-                UIModificationManager.OnHudScaleMultiplierChanged -= UIModificationManager_OnHudScaleMultiplierChanged;
-            }
-
-            void UIModificationManager_OnHudScaleMultiplierChanged(float newScaleMultiplier)
-            {
-                ScaleController.SetScale();
+                hudScaleController.SetScale();
             }
         }
     }

@@ -40,32 +40,30 @@ namespace RiskOfChaos.Patches
         {
             ILCursor c = new ILCursor(il);
 
-            if (c.TryGotoNext(x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertyGetter(typeof(CharacterMaster), nameof(CharacterMaster.money)))))
-            {
-                ILLabel afterIfLabel = null;
-                if (c.TryGotoNext(MoveType.After,
-                                  x => x.MatchBleUn(out afterIfLabel)))
-                {
-                    c.MoveAfterLabels();
-
-                    c.Emit(OpCodes.Ldarg_0);
-                    c.EmitDelegate(isEquipmentDisabled);
-                    static bool isEquipmentDisabled(BaseGoldGatState state)
-                    {
-                        return state.bodyEquipmentSlot && state.bodyEquipmentSlot.stock <= 0;
-                    }
-
-                    c.Emit(OpCodes.Brtrue, afterIfLabel);
-                }
-                else
-                {
-                    Log.Error("[GoldGat equipment stock] Failed to find patch location");
-                }
-            }
-            else
+            if (!c.TryGotoNext(x => x.MatchCallOrCallvirt(AccessTools.DeclaredPropertyGetter(typeof(CharacterMaster), nameof(CharacterMaster.money)))))
             {
                 Log.Error("[GoldGat equipment stock] Failed to find get_money call");
+                return;
             }
+
+            ILLabel afterIfLabel = null;
+            if (!c.TryGotoNext(MoveType.After,
+                               x => x.MatchBleUn(out afterIfLabel)))
+            {
+                Log.Error("[GoldGat equipment stock] Failed to find patch location");
+                return;
+            }
+
+            c.MoveAfterLabels();
+
+            c.Emit(OpCodes.Ldarg_0);
+            c.EmitDelegate(isEquipmentDisabled);
+            static bool isEquipmentDisabled(BaseGoldGatState state)
+            {
+                return state.bodyEquipmentSlot && state.bodyEquipmentSlot.stock <= 0;
+            }
+
+            c.Emit(OpCodes.Brtrue, afterIfLabel);
         }
     }
 }

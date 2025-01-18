@@ -19,17 +19,16 @@ namespace RiskOfChaos.Patches
         {
             ILCursor c = new ILCursor(il);
 
-            if (c.TryGotoNext(MoveType.Before,
-                              x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<PickupDisplay>(_ => _.DestroyModel()))))
-            {
-                c.Emit(OpCodes.Ldarg_0);
-                c.Emit(OpCodes.Ldfld, AccessTools.DeclaredField(typeof(PickupDisplay), nameof(PickupDisplay.dontInstantiatePickupModel)));
-                c.EmitSkipMethodCall(OpCodes.Brtrue);
-            }
-            else
+            if (!c.TryGotoNext(MoveType.Before,
+                               x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<PickupDisplay>(_ => _.DestroyModel()))))
             {
                 Log.Error("Failed to find patch location");
+                return;
             }
+
+            c.Emit(OpCodes.Ldarg_0);
+            c.Emit(OpCodes.Ldfld, AccessTools.DeclaredField(typeof(PickupDisplay), nameof(PickupDisplay.dontInstantiatePickupModel)));
+            c.EmitSkipMethodCall(OpCodes.Brtrue);
         }
     }
 }

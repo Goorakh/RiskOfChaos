@@ -81,11 +81,7 @@ namespace RiskOfChaos.Patches
             tryTrackNewBaseGravity(ref _baseGravity, value, OnBaseGravityChanged);
         }
 
-        static void tryTrackNewBaseGravity(ref Vector3 baseGravity, Vector3 newGravity, OnBaseGravityChangedDelegate baseGravityChangedCallback
-#if DEBUG
-            , [CallerMemberName] string caller = null
-#endif
-            )
+        static void tryTrackNewBaseGravity(ref Vector3 baseGravity, Vector3 newGravity, OnBaseGravityChangedDelegate baseGravityChangedCallback, [CallerMemberName] string caller = null)
         {
             if (!shouldTrackBaseGravity)
                 return;

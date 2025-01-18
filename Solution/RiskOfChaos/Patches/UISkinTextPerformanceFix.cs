@@ -28,20 +28,19 @@ namespace RiskOfChaos.Patches
             }
 
             ILLabel afterSetFontSizeLabel = null;
-            if (c.TryFindNext(out ILCursor[] cursors,
+            if (!c.TryFindNext(out ILCursor[] cursors,
                               x => x.MatchLdfld<UISkinData.TextStyle>(nameof(UISkinData.TextStyle.fontSize)),
                               x => x.MatchBeq(out afterSetFontSizeLabel)))
             {
-                ILCursor cursor = cursors[1];
-                cursor.Index++;
-                cursor.Emit(OpCodes.Ldarg, textLabelParameter);
-                cursor.Emit(OpCodes.Callvirt, AccessTools.DeclaredPropertyGetter(typeof(TMP_Text), nameof(TMP_Text.enableAutoSizing)));
-                cursor.Emit(OpCodes.Brtrue, afterSetFontSizeLabel);
-            }
-            else
-            {
                 Log.Error("Failed to find patch location");
+                return;
             }
+
+            ILCursor cursor = cursors[1];
+            cursor.Index++;
+            cursor.Emit(OpCodes.Ldarg, textLabelParameter);
+            cursor.Emit(OpCodes.Callvirt, AccessTools.DeclaredPropertyGetter(typeof(TMP_Text), nameof(TMP_Text.enableAutoSizing)));
+            cursor.Emit(OpCodes.Brtrue, afterSetFontSizeLabel);
         }
     }
 }

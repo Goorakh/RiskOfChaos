@@ -27,43 +27,39 @@ namespace RiskOfChaos.Patches
                 return;
             }
 
-            if (c.TryGotoNext(x => x.MatchLdstr("PLAYER_DEATH_QUOTE_VOIDDEATH")))
-            {
-                int deathMessageTokenLocalIndex = -1;
-                if (c.TryGotoNext(x => x.MatchStloc(out deathMessageTokenLocalIndex)))
-                {
-                    Log.Debug($"Death message token local index: {deathMessageTokenLocalIndex}");
-
-                    ILLabel messageTokenDecidedLabel = null;
-                    if (c.TryGotoNext(x => x.MatchBr(out messageTokenDecidedLabel)))
-                    {
-                        c.GotoLabel(messageTokenDecidedLabel);
-                        c.Emit(OpCodes.Ldloca, deathMessageTokenLocalIndex);
-                        c.Emit(OpCodes.Ldarg, damageReportParameter);
-                        c.EmitDelegate(overrideMessageToken);
-                        static void overrideMessageToken(ref string messageToken, DamageReport damageReport)
-                        {
-                            if (OverridePlayerDeathMessageToken != null)
-                            {
-                                Log.Debug($"Overriding death message token: {messageToken}");
-
-                                OverridePlayerDeathMessageToken(damageReport, ref messageToken);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Log.Error("Failed to find patch location");
-                    }
-                }
-                else
-                {
-                    Log.Error("Failed to find death message token local index");
-                }
-            }
-            else
+            if (!c.TryGotoNext(x => x.MatchLdstr("PLAYER_DEATH_QUOTE_VOIDDEATH")))
             {
                 Log.Error("Failed to find death message token location");
+                return;
+            }
+
+            int deathMessageTokenLocalIndex = -1;
+            if (!c.TryGotoNext(x => x.MatchStloc(out deathMessageTokenLocalIndex)))
+            {
+                Log.Error("Failed to find death message token local index");
+                return;
+            }
+
+            Log.Debug($"Death message token local index: {deathMessageTokenLocalIndex}");
+
+            ILLabel messageTokenDecidedLabel = null;
+            if (!c.TryGotoNext(x => x.MatchBr(out messageTokenDecidedLabel)))
+            {
+                Log.Error("Failed to find patch location");
+            }
+
+            c.GotoLabel(messageTokenDecidedLabel);
+            c.Emit(OpCodes.Ldloca, deathMessageTokenLocalIndex);
+            c.Emit(OpCodes.Ldarg, damageReportParameter);
+            c.EmitDelegate(overrideMessageToken);
+            static void overrideMessageToken(ref string messageToken, DamageReport damageReport)
+            {
+                if (OverridePlayerDeathMessageToken != null)
+                {
+                    Log.Debug($"Overriding death message token: {messageToken}");
+
+                    OverridePlayerDeathMessageToken(damageReport, ref messageToken);
+                }
             }
         }
     }

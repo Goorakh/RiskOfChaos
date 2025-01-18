@@ -92,13 +92,26 @@ namespace RiskOfChaos.Patches
                 return true;
             }
 
+            int patchCount = 0;
+
             MethodDefinition invokeMethod = null;
             while (c.TryGotoNext(MoveType.Before, x => matchInvokeCharacterEvent(x, out invokeMethod)))
             {
                 emitGetIsHidden(c);
                 c.EmitSkipMethodCall(OpCodes.Brtrue, invokeMethod);
 
+                patchCount++;
+
                 c.SearchTarget = SearchTarget.Next;
+            }
+
+            if (patchCount == 0)
+            {
+                Log.Error($"{il.Method.FullName}: Failed to find any patch locations");
+            }
+            else
+            {
+                Log.Debug($"{il.Method.FullName}: Found {patchCount} patch location(s)");
             }
         }
     }

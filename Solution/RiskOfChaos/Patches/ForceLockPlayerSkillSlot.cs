@@ -33,12 +33,23 @@ namespace RiskOfChaos.Patches
             if (!skill)
                 return false;
 
+            SkillSlotModificationManager skillSlotModificationManager = SkillSlotModificationManager.Instance;
+            if (!skillSlotModificationManager)
+                return false;
+
             CharacterBody body = skill.characterBody;
             if (!body)
                 return false;
 
-            SkillSlotModificationManager skillSlotModificationManager = SkillSlotModificationManager.Instance;
-            return skillSlotModificationManager && skillSlotModificationManager.LockedSlots.Contains(body.skillLocator.FindSkillSlot(skill));
+            SkillLocator skillLocator = body.skillLocator;
+            if (!skillLocator)
+                return false;
+
+            SkillSlot skillSlot = skillLocator.FindSkillSlot(skill);
+            if (skillSlot == SkillSlot.None)
+                return false;
+
+            return skillSlotModificationManager.LockedSlots.Contains(skillSlot);
         }
 
         static bool GenericSkill_IsReady(On.RoR2.GenericSkill.orig_IsReady orig, GenericSkill self)

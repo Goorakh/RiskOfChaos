@@ -25,26 +25,24 @@ namespace RiskOfChaos.Patches.Effects.Character
         {
             ILCursor c = new ILCursor(il);
 
-            if (c.TryGotoNext(x => x.MatchLdsfld(typeof(RoR2Content.Buffs), nameof(RoR2Content.Buffs.Cripple))))
-            {
-                ILLabel afterIfLabel = null;
-                if (c.TryGotoPrev(MoveType.After,
-                                  x => x.MatchBrfalse(out afterIfLabel)))
-                {
-                    c.MoveAfterLabels();
-                    c.EmitDelegate(isEffectActive);
-
-                    c.Emit(OpCodes.Brtrue, afterIfLabel);
-                }
-                else
-                {
-                    Log.Error("Failed to find Cripple patch location");
-                }
-            }
-            else
+            if (!c.TryGotoNext(x => x.MatchLdsfld(typeof(RoR2Content.Buffs), nameof(RoR2Content.Buffs.Cripple))))
             {
                 Log.Error("Failed to find Cripple apply location");
+                return;
             }
+
+            ILLabel afterIfLabel = null;
+            if (!c.TryGotoPrev(MoveType.After,
+                               x => x.MatchBrfalse(out afterIfLabel)))
+            {
+                Log.Error("Failed to find Cripple patch location");
+                return;
+            }
+
+            c.MoveAfterLabels();
+            c.EmitDelegate(isEffectActive);
+
+            c.Emit(OpCodes.Brtrue, afterIfLabel);
         }
     }
 }

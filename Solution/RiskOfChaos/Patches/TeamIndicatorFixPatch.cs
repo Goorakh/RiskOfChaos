@@ -8,10 +8,10 @@ namespace RiskOfChaos.Patches
         [SystemInitializer]
         static void Init()
         {
-            TeamComponent.onLeaveTeamGlobal += onLeaveTeamGlobal;
+            TeamComponent.onJoinTeamGlobal += onJoinTeamGlobal;
         }
 
-        static void onLeaveTeamGlobal(TeamComponent teamComponent, TeamIndex oldTeam)
+        static void onJoinTeamGlobal(TeamComponent teamComponent, TeamIndex oldTeam)
         {
             if (teamComponent.indicator)
             {

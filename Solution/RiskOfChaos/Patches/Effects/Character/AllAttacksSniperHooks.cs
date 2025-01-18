@@ -1,10 +1,12 @@
 ﻿using EntityStates.Merc;
 using HarmonyLib;
+using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.Utils;
 using RiskOfChaos.EffectDefinitions.Character;
 using RiskOfChaos.EffectHandling.Controllers;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Orbs;
 using System.Collections.Generic;
@@ -53,8 +55,14 @@ namespace RiskOfChaos.Patches.Effects.Character
         {
             ILCursor c = new ILCursor(il);
 
+            if (!il.Method.TryFindParameter<BlastAttack.HitPoint[]>(out ParameterDefinition hitPointsParameter))
+            {
+                Log.Error("Failed to find hitPoints parameter");
+                return;
+            }
+
             int hitPointLocalIndex = -1;
-            if (!c.TryGotoNext(x => x.MatchLdarg(1), // HitPoint[] hitPoints
+            if (!c.TryGotoNext(x => x.MatchLdarg(hitPointsParameter.Index),
                                x => x.MatchLdloc(out _), // iterator variable
                                x => x.MatchLdelemAny<BlastAttack.HitPoint>(),
                                x => x.MatchStloc(out hitPointLocalIndex)))
@@ -64,52 +72,50 @@ namespace RiskOfChaos.Patches.Effects.Character
             }
 
             int constructingBlastAttackDamageInfoLocalIndex = -1;
-            if (c.TryGotoNext(MoveType.After,
-                              x => x.MatchLdloca(out constructingBlastAttackDamageInfoLocalIndex),
-                              x => x.MatchInitobj<BlastAttack.BlastAttackDamageInfo>()))
-            {
-                if (c.TryGotoNext(MoveType.Before,
-                                  x => x.MatchLdloc(constructingBlastAttackDamageInfoLocalIndex),
-                                  x => x.MatchStloc(out _)))
-                {
-                    c.Index++;
-                    c.Emit(OpCodes.Ldloc, hitPointLocalIndex);
-
-                    c.EmitDelegate(trySniperHit);
-                    static BlastAttack.BlastAttackDamageInfo trySniperHit(BlastAttack.BlastAttackDamageInfo blastDamageInfo, BlastAttack.HitPoint hitPoint)
-                    {
-                        if (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(AllAttacksSniper.EffectInfo))
-                        {
-                            if (hitPoint.hurtBox.isSniperTarget)
-                            {
-                                if (sniperTargetHitEffect)
-                                {
-                                    EffectData effectData = new EffectData
-                                    {
-                                        origin = hitPoint.hitPosition,
-                                        rotation = Util.QuaternionSafeLookRotation(hitPoint.hitNormal)
-                                    };
-                                    effectData.SetHurtBoxReference(hitPoint.hurtBox);
-
-                                    EffectManager.SpawnEffect(sniperTargetHitEffect, effectData, true);
-                                }
-
-                                blastDamageInfo.crit = true;
-                                blastDamageInfo.damageColorIndex = DamageColorIndex.Sniper;
-                            }
-                        }
-
-                        return blastDamageInfo;
-                    }
-                }
-                else
-                {
-                    Log.Error("Failed to find patch location");
-                }
-            }
-            else
+            if (!c.TryGotoNext(MoveType.After,
+                               x => x.MatchLdloca(out constructingBlastAttackDamageInfoLocalIndex),
+                               x => x.MatchInitobj<BlastAttack.BlastAttackDamageInfo>()))
             {
                 Log.Error("Failed to find blastDamageInfo local index");
+                return;
+            }
+
+            if (!c.TryGotoNext(MoveType.Before,
+                               x => x.MatchLdloc(constructingBlastAttackDamageInfoLocalIndex),
+                               x => x.MatchStloc(out _)))
+            {
+                Log.Error("Failed to find patch location");
+                return;
+            }
+
+            c.Index++;
+            c.Emit(OpCodes.Ldloc, hitPointLocalIndex);
+
+            c.EmitDelegate(trySniperHit);
+            static BlastAttack.BlastAttackDamageInfo trySniperHit(BlastAttack.BlastAttackDamageInfo blastDamageInfo, BlastAttack.HitPoint hitPoint)
+            {
+                if (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(AllAttacksSniper.EffectInfo))
+                {
+                    if (hitPoint.hurtBox && hitPoint.hurtBox.isSniperTarget)
+                    {
+                        if (sniperTargetHitEffect)
+                        {
+                            EffectData effectData = new EffectData
+                            {
+                                origin = hitPoint.hitPosition,
+                                rotation = Util.QuaternionSafeLookRotation(hitPoint.hitNormal)
+                            };
+                            effectData.SetHurtBoxReference(hitPoint.hurtBox);
+
+                            EffectManager.SpawnEffect(sniperTargetHitEffect, effectData, true);
+                        }
+
+                        blastDamageInfo.crit = true;
+                        blastDamageInfo.damageColorIndex = DamageColorIndex.Sniper;
+                    }
+                }
+
+                return blastDamageInfo;
             }
         }
 
@@ -125,34 +131,33 @@ namespace RiskOfChaos.Patches.Effects.Character
                 return;
             }
 
-            if (c.TryGotoNext(MoveType.Before,
-                              x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<HealthComponent>(_ => _.TakeDamage(default)))))
-            {
-                int damageInfoLocalIndex = -1;
-                if (!c.Clone().TryGotoPrev(x => x.MatchLdloc(out damageInfoLocalIndex)))
-                {
-                    Log.Error("Unable to find damageInfo local index");
-                    return;
-                }
-
-                c.Emit(OpCodes.Ldloc, overlapInfoLocalIndex);
-                c.Emit(OpCodes.Ldloc, damageInfoLocalIndex);
-                c.EmitDelegate(applySniperDamage);
-                void applySniperDamage(OverlapAttack.OverlapInfo overlapInfo, DamageInfo damageInfo)
-                {
-                    if (!overlapInfo.hurtBox || !overlapInfo.hurtBox.isSniperTarget)
-                        return;
-
-                    if (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(AllAttacksSniper.EffectInfo))
-                    {
-                        damageInfo.crit = true;
-                        damageInfo.damageColorIndex = DamageColorIndex.Sniper;
-                    }
-                }
-            }
-            else
+            if (!c.TryGotoNext(MoveType.Before,
+                               x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<HealthComponent>(_ => _.TakeDamage(default)))))
             {
                 Log.Error("Unable to find patch location");
+                return;
+            }
+
+            int damageInfoLocalIndex = -1;
+            if (!c.Clone().TryGotoPrev(x => x.MatchLdloc(out damageInfoLocalIndex)))
+            {
+                Log.Error("Unable to find damageInfo local index");
+                return;
+            }
+
+            c.Emit(OpCodes.Ldloc, overlapInfoLocalIndex);
+            c.Emit(OpCodes.Ldloc, damageInfoLocalIndex);
+            c.EmitDelegate(applySniperDamage);
+            void applySniperDamage(OverlapAttack.OverlapInfo overlapInfo, DamageInfo damageInfo)
+            {
+                if (!overlapInfo.hurtBox || !overlapInfo.hurtBox.isSniperTarget)
+                    return;
+
+                if (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(AllAttacksSniper.EffectInfo))
+                {
+                    damageInfo.crit = true;
+                    damageInfo.damageColorIndex = DamageColorIndex.Sniper;
+                }
             }
         }
 
@@ -201,44 +206,43 @@ namespace RiskOfChaos.Patches.Effects.Character
 
             c.Index = 0;
 
-            if (c.TryGotoNext(MoveType.Before,
-                              x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<HealthComponent>(_ => _.TakeDamage(default)))))
-            {
-                int damageInfoLocalIndex = -1;
-                if (!c.Clone().TryGotoPrev(x => x.MatchLdloc(out damageInfoLocalIndex) && il.Method.Body.Variables[damageInfoLocalIndex].VariableType.Is(typeof(DamageInfo))))
-                {
-                    Log.Error("Unable to find damageInfo local index");
-                    return;
-                }
-
-                c.Emit(OpCodes.Ldarg_0);
-                c.Emit(OpCodes.Ldloc, hurtBoxLocalIndex);
-                c.Emit(OpCodes.Ldloc, damageInfoLocalIndex);
-                c.EmitDelegate(applySniperDamage);
-                static void applySniperDamage(Evis evisState, HurtBox hurtBox, DamageInfo damageInfo)
-                {
-                    if (!hurtBox || !hurtBox.isSniperTarget)
-                        return;
-
-                    if (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(AllAttacksSniper.EffectInfo))
-                    {
-                        damageInfo.crit = true;
-                        damageInfo.damageColorIndex = DamageColorIndex.Sniper;
-
-                        EffectData effectData = new EffectData
-                        {
-                            origin = hurtBox.transform.position,
-                            rotation = Util.QuaternionSafeLookRotation(evisState.transform.position - hurtBox.transform.position)
-                        };
-                        effectData.SetHurtBoxReference(hurtBox);
-
-                        EffectManager.SpawnEffect(sniperTargetHitEffect, effectData, true);
-                    }
-                }
-            }
-            else
+            if (!c.TryGotoNext(MoveType.Before,
+                               x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<HealthComponent>(_ => _.TakeDamage(default)))))
             {
                 Log.Error("Unable to find patch location");
+                return;
+            }
+
+            int damageInfoLocalIndex = -1;
+            if (!c.Clone().TryGotoPrev(x => x.MatchLdloc(out damageInfoLocalIndex) && il.Method.Body.Variables[damageInfoLocalIndex].VariableType.Is(typeof(DamageInfo))))
+            {
+                Log.Error("Unable to find damageInfo local index");
+                return;
+            }
+
+            c.Emit(OpCodes.Ldarg_0);
+            c.Emit(OpCodes.Ldloc, hurtBoxLocalIndex);
+            c.Emit(OpCodes.Ldloc, damageInfoLocalIndex);
+            c.EmitDelegate(applySniperDamage);
+            static void applySniperDamage(Evis evisState, HurtBox hurtBox, DamageInfo damageInfo)
+            {
+                if (!hurtBox || !hurtBox.isSniperTarget)
+                    return;
+
+                if (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(AllAttacksSniper.EffectInfo))
+                {
+                    damageInfo.crit = true;
+                    damageInfo.damageColorIndex = DamageColorIndex.Sniper;
+
+                    EffectData effectData = new EffectData
+                    {
+                        origin = hurtBox.transform.position,
+                        rotation = Util.QuaternionSafeLookRotation(evisState.transform.position - hurtBox.transform.position)
+                    };
+                    effectData.SetHurtBoxReference(hurtBox);
+
+                    EffectManager.SpawnEffect(sniperTargetHitEffect, effectData, true);
+                }
             }
         }
 
@@ -246,43 +250,42 @@ namespace RiskOfChaos.Patches.Effects.Character
         {
             ILCursor c = new ILCursor(il);
 
-            if (c.TryGotoNext(MoveType.Before,
-                              x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<HealthComponent>(_ => _.TakeDamage(default)))))
-            {
-                int damageInfoLocalIndex = -1;
-                if (!c.Clone().TryGotoPrev(x => x.MatchLdloc(out damageInfoLocalIndex) && il.Method.Body.Variables[damageInfoLocalIndex].VariableType.Is(typeof(DamageInfo))))
-                {
-                    Log.Error($"({il.Method.FullName}) Unable to find damageInfo local index");
-                    return;
-                }
-
-                c.Emit(OpCodes.Ldarg_0);
-                c.Emit(OpCodes.Ldloc, damageInfoLocalIndex);
-                c.EmitDelegate(applySniperDamage);
-                static void applySniperDamage(Orb orbInstance, DamageInfo damageInfo)
-                {
-                    if (!orbInstance.target || !orbInstance.target.isSniperTarget)
-                        return;
-
-                    if (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(AllAttacksSniper.EffectInfo))
-                    {
-                        damageInfo.crit = true;
-                        damageInfo.damageColorIndex = DamageColorIndex.Sniper;
-
-                        EffectData effectData = new EffectData
-                        {
-                            origin = orbInstance.target.transform.position,
-                            rotation = Util.QuaternionSafeLookRotation(orbInstance.origin - orbInstance.target.transform.position)
-                        };
-                        effectData.SetHurtBoxReference(orbInstance.target);
-
-                        EffectManager.SpawnEffect(sniperTargetHitEffect, effectData, true);
-                    }
-                }
-            }
-            else
+            if (!c.TryGotoNext(MoveType.Before,
+                               x => x.MatchCallOrCallvirt(SymbolExtensions.GetMethodInfo<HealthComponent>(_ => _.TakeDamage(default)))))
             {
                 Log.Error($"({il.Method.FullName}) Unable to find patch location");
+                return;
+            }
+
+            int damageInfoLocalIndex = -1;
+            if (!c.Clone().TryGotoPrev(x => x.MatchLdloc(out damageInfoLocalIndex) && il.Method.Body.Variables[damageInfoLocalIndex].VariableType.Is(typeof(DamageInfo))))
+            {
+                Log.Error($"({il.Method.FullName}) Unable to find damageInfo local index");
+                return;
+            }
+
+            c.Emit(OpCodes.Ldarg_0);
+            c.Emit(OpCodes.Ldloc, damageInfoLocalIndex);
+            c.EmitDelegate(applySniperDamage);
+            static void applySniperDamage(Orb orbInstance, DamageInfo damageInfo)
+            {
+                if (!orbInstance.target || !orbInstance.target.isSniperTarget)
+                    return;
+
+                if (ChaosEffectTracker.Instance && ChaosEffectTracker.Instance.IsTimedEffectActive(AllAttacksSniper.EffectInfo))
+                {
+                    damageInfo.crit = true;
+                    damageInfo.damageColorIndex = DamageColorIndex.Sniper;
+
+                    EffectData effectData = new EffectData
+                    {
+                        origin = orbInstance.target.transform.position,
+                        rotation = Util.QuaternionSafeLookRotation(orbInstance.origin - orbInstance.target.transform.position)
+                    };
+                    effectData.SetHurtBoxReference(orbInstance.target);
+
+                    EffectManager.SpawnEffect(sniperTargetHitEffect, effectData, true);
+                }
             }
         }
     }

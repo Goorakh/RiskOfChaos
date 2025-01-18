@@ -33,7 +33,14 @@ namespace RiskOfChaos.Patches
 
             _lastModifiedDamageInfoReference.Target = damageInfo;
 
-            ModifyDamageInfo(damageInfo);
+            try
+            {
+                ModifyDamageInfo(damageInfo);
+            }
+            catch (Exception e)
+            {
+                Log.Error_NoCallerPrefix($"Failed to modify DamageInfo: {e}");
+            }
         }
 
         static void GlobalEventManager_OnHitAll(On.RoR2.GlobalEventManager.orig_OnHitAll orig, GlobalEventManager self, DamageInfo damageInfo, GameObject hitObject)
