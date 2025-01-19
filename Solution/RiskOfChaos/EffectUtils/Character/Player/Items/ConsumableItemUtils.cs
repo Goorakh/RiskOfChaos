@@ -58,7 +58,6 @@ namespace RiskOfChaos.EffectUtils.Character.Player.Items
                 Log.Debug($"Registered consumable item pair: {FormatUtils.GetBestItemDisplayName(item)} -> {FormatUtils.GetBestItemDisplayName(consumedItem)}");
             }
 
-
             static bool isValidEquipment(EquipmentDef equipmentDef)
             {
                 return equipmentDef && !Language.IsTokenInvalid(equipmentDef.nameToken);
