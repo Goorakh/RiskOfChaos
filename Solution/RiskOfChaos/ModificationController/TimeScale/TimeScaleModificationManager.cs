@@ -30,7 +30,22 @@ namespace RiskOfChaos.ModificationController.TimeScale
 
         public float CurrentTimeScale { get; private set; }
 
-        public float PlayerCompensatedTimeScale { get; private set; }
+        float _playerCompensatedTimeScale;
+        public float PlayerCompensatedTimeScale
+        {
+            get
+            {
+                return _playerCompensatedTimeScale;
+            }
+            private set
+            {
+                if (_playerCompensatedTimeScale == value)
+                    return;
+
+                _playerCompensatedTimeScale = value;
+                OnPlayerCompensatedTimeScaleChanged?.Invoke();
+            }
+        }
 
         void OnEnable()
         {
@@ -60,8 +75,6 @@ namespace RiskOfChaos.ModificationController.TimeScale
 
         void refreshValueModifications(IReadOnlyCollection<ITimeScaleModificationProvider> modificationProviders)
         {
-            float previousPlayerCompensatedTimeScale = PlayerCompensatedTimeScale;
-
             float baseTimeScale = 1f;
 
             float timeScale = baseTimeScale;
@@ -90,11 +103,6 @@ namespace RiskOfChaos.ModificationController.TimeScale
 
             CurrentTimeScale = timeScale;
             PlayerCompensatedTimeScale = playerCompensatedTimeScale;
-
-            if (PlayerCompensatedTimeScale != previousPlayerCompensatedTimeScale)
-            {
-                OnPlayerCompensatedTimeScaleChanged?.Invoke();
-            }
         }
     }
 }
