@@ -1,7 +1,8 @@
-﻿using RiskOfChaos.Utilities.Extensions;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.Navigation;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -12,11 +13,11 @@ namespace RiskOfChaos.EffectUtils.World.Spawn
     {
         public static InteractableSpawnCard iscGeodeFixed { get; private set; }
 
+        public static InteractableSpawnCard iscTimedChest { get; private set; }
+
         [SystemInitializer]
         static IEnumerator Init()
         {
-            List<AsyncOperationHandle> asyncOperations = new List<AsyncOperationHandle>(1);
-
             AsyncOperationHandle<InteractableSpawnCard> iscGeodeLoad = Addressables.LoadAssetAsync<InteractableSpawnCard>("RoR2/DLC2/iscGeode.asset");
             iscGeodeLoad.OnSuccess(iscGeode =>
             {
@@ -26,8 +27,19 @@ namespace RiskOfChaos.EffectUtils.World.Spawn
                 iscGeodeFixed.occupyPosition = true;
             });
 
-            asyncOperations.Add(iscGeodeLoad);
+            iscTimedChest = ScriptableObject.CreateInstance<InteractableSpawnCard>();
+            iscTimedChest.name = "iscTimedChest";
+            iscTimedChest.prefab = RoCContent.NetworkedPrefabs.TimedChestFixedOrigin;
+            iscTimedChest.sendOverNetwork = true;
+            iscTimedChest.hullSize = HullClassification.Golem;
+            iscTimedChest.nodeGraphType = MapNodeGroup.GraphType.Ground;
+            iscTimedChest.requiredFlags = NodeFlags.None;
+            iscTimedChest.forbiddenFlags = NodeFlags.NoChestSpawn;
+            iscTimedChest.occupyPosition = true;
+            iscTimedChest.orientToFloor = false;
+            iscTimedChest.slightlyRandomizeOrientation = false;
 
+            AsyncOperationHandle[] asyncOperations = [iscGeodeLoad];
             yield return asyncOperations.WaitForAllLoaded();
         }
     }

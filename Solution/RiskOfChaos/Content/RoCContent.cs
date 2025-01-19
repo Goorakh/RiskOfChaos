@@ -353,6 +353,8 @@ namespace RiskOfChaos.Content
             public static GameObject DirectorModificationProvider;
 
             public static GameObject BossCombatSquadNoReward;
+
+            public static GameObject TimedChestFixedOrigin;
         }
 
         public static class LocalPrefabs

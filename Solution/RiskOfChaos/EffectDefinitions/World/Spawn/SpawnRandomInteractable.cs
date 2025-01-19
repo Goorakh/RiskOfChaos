@@ -104,9 +104,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
                 loadSpawnCardEntry("RoR2/Base/CasinoChest/iscCasinoChest.asset", new SpawnPoolEntryParameters(1f)),
 
-                loadSpawnCardEntry("RoR2/DLC1/VoidChest/iscVoidChest.asset", new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry("RoR2/DLC1/VoidChest/iscVoidChest.asset", new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1)),
 
                 loadSpawnCardEntry("RoR2/CommandChest/iscCommandChest.asset", new SpawnPoolEntryParameters(1f)),
+
+                new SpawnPool<InteractableSpawnCard>.Entry(CustomSpawnCards.iscTimedChest, new SpawnPoolEntryParameters(1f)),
             ], 2f);
 
             // Multishops

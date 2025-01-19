@@ -2,6 +2,9 @@
 
 **-.-.- Changes:**
 
+* Spawn Random Interactable:
+  * Added Rallypoint Delta timed chest to interactable pool.
+
 * Increase Monster Spawnes:
   * Fixed effect not applying to teleporter events properly.
 

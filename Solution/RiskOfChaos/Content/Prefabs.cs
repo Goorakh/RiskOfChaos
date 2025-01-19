@@ -298,6 +298,34 @@ namespace RiskOfChaos.Content
                 asyncOperations.Add(newtStatueLoad);
             }
 
+            // TimedChestFixedOrigin
+            {
+                AsyncOperationHandle<GameObject> timedChestLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/TimedChest/TimedChest.prefab");
+                timedChestLoad.OnSuccess(timedChest =>
+                {
+                    GameObject prefab = timedChest.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.TimedChestFixedOrigin));
+
+                    if (prefab.TryGetComponent(out ModelLocator modelLocator))
+                    {
+                        Transform modelTransform = modelLocator.modelTransform;
+                        if (modelTransform)
+                        {
+                            Transform modelRoot = new GameObject("ModelRoot").transform;
+                            modelRoot.parent = prefab.transform;
+                            modelRoot.localPosition = new Vector3(0f, 0.75f, 0f);
+                            modelRoot.localRotation = Quaternion.identity;
+                            modelRoot.localScale = Vector3.one;
+
+                            modelTransform.SetParent(modelRoot, true);
+                        }
+                    }
+
+                    networkedPrefabs.Add(prefab);
+                });
+
+                asyncOperations.Add(timedChestLoad);
+            }
+
             // BossCombatSquadNoReward
             {
                 AsyncOperationHandle<GameObject> bossCombatSquadLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Core/BossCombatSquad.prefab");
