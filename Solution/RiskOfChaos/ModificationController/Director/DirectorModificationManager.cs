@@ -52,7 +52,7 @@ namespace RiskOfChaos.ModificationController.Director
                 combatDirectorCreditMultiplier *= modificationProvider.CombatDirectorCreditMultiplier;
             }
 
-            CombatDirectorCreditMultiplier = combatDirectorCreditMultiplier;
+            CombatDirectorCreditMultiplier = Mathf.Max(0f, combatDirectorCreditMultiplier);
         }
     }
 }

@@ -58,7 +58,7 @@ namespace RiskOfChaos.ModificationController.AttackDelay
             }
 
             AnyModificationActive = anyModificationActive;
-            TotalDelay = totalDelay;
+            TotalDelay = Mathf.Max(0f, totalDelay);
         }
     }
 }

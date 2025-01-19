@@ -76,9 +76,9 @@ namespace RiskOfChaos.ModificationController.Camera
 
             AnyModificationActive = anyModificationActive;
             RecoilMultiplier = recoilMultiplier;
-            FOVMultiplier = fovMultiplier;
+            FOVMultiplier = Mathf.Max(0f, fovMultiplier);
             RotationOffset = rotationOffset;
-            DistanceMultiplier = distanceMultiplier;
+            DistanceMultiplier = Mathf.Max(0f, distanceMultiplier);
         }
     }
 }

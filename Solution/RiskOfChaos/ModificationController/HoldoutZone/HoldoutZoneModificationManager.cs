@@ -75,7 +75,7 @@ namespace RiskOfChaos.ModificationController.HoldoutZone
                 totalModificationInfo.ChargeRateMultiplier *= modificationInfo.ChargeRateMultiplier;
             }
 
-            holdoutZoneModifier.RadiusMultiplier = totalModificationInfo.RadiusMultiplier;
+            holdoutZoneModifier.RadiusMultiplier = Mathf.Max(0f, totalModificationInfo.RadiusMultiplier);
             holdoutZoneModifier.ChargeRateMultiplier = totalModificationInfo.ChargeRateMultiplier;
         }
     }

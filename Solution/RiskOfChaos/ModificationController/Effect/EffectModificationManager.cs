@@ -73,7 +73,7 @@ namespace RiskOfChaos.ModificationController.Effect
                 durationMultiplier *= modificationProvider.DurationMultiplier;
             }
 
-            DurationMultiplier = durationMultiplier;
+            DurationMultiplier = Mathf.Max(0f, durationMultiplier);
         }
 
         public bool TryModifyDuration(TimedEffectInfo effectInfo, ref float duration)

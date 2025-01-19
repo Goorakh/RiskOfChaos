@@ -80,6 +80,9 @@ namespace RiskOfChaos.ModificationController.TimeScale
                 }
             }
 
+            timeScale = Mathf.Max(0.001f, timeScale);
+            playerCompensatedTimeScale = Mathf.Max(0.001f, playerCompensatedTimeScale);
+
             if (NetworkServer.active)
             {
                 TimeUtils.UnpausedTimeScale = timeScale;

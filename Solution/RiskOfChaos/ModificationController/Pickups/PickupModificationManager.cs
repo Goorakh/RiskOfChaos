@@ -56,7 +56,7 @@ namespace RiskOfChaos.ModificationController.Pickups
                 spawnCountMultiplier *= modificationProvider.SpawnCountMultiplier;
             }
 
-            BounceCount = bounceCount;
+            BounceCount = Mathf.Max(0, bounceCount);
             ExtraSpawnCount = Mathf.Clamp(Mathf.RoundToInt(spawnCountMultiplier - 1f), 0, 255);
         }
     }
