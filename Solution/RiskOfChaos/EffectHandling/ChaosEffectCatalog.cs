@@ -311,7 +311,7 @@ namespace RiskOfChaos.EffectHandling
             }
             else
             {
-                Log.Warning("No activatable effects, defaulting to Nothing");
+                Log.Error($"No activatable effects, defaulting to Nothing\n{new StackTrace()}");
 
                 effect = Nothing.EffectInfo;
             }
