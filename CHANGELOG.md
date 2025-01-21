@@ -8,6 +8,9 @@
 * Increase Monster Spawnes:
   * Fixed effect not applying to teleporter events properly.
 
+* Audio:
+  * Fixed effect activation sound playing twice.
+
 **2.5.1 Changes:**
 
 * Item Magnet & Item Repulsor:
