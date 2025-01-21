@@ -49,6 +49,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
                 List<Type> prefabComponentTypes = [
                     signalerComponentType,
+                    typeof(NetworkParent),
+                    typeof(DestroyOnRunEnd),
                     typeof(ObjectSerializationComponent)
                 ];
 
