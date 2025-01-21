@@ -2,6 +2,9 @@
 
 **-.-.- Changes:**
 
+* Combo:
+  * Added delay between each effect activation.
+
 * Spawn Random Interactable:
   * Added Rallypoint Delta timed chest to interactable pool.
 

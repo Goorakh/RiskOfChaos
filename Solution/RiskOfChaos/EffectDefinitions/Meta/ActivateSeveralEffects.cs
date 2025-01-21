@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -8,7 +9,9 @@ using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Meta
@@ -34,6 +37,15 @@ namespace RiskOfChaos.EffectDefinitions.Meta
                                .OptionConfig(new CheckBoxConfig())
                                .Build();
 
+        [PrefabInitializer]
+        static void InitPrefab(GameObject prefab)
+        {
+            if (prefab.TryGetComponent(out ChaosEffectComponent effectComponent))
+            {
+                effectComponent.EffectDestructionHandledByComponent = true;
+            }
+        }
+
         ChaosEffectComponent _effectComponent;
 
         Xoroshiro128Plus _rng;
@@ -50,10 +62,18 @@ namespace RiskOfChaos.EffectDefinitions.Meta
             _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
         }
 
-        void Start()
+        IEnumerator Start()
         {
             if (!NetworkServer.active)
-                return;
+                yield break;
+
+            const float INITIAL_DELAY = 0.2f;
+            const float EFFECT_DELAY = 0.3f;
+
+            float totalDelay = 0f;
+
+            totalDelay += INITIAL_DELAY;
+            yield return new WaitForSeconds(INITIAL_DELAY);
 
             RunTimeStamp effectStartTime = _effectComponent.TimeStarted;
 
@@ -68,9 +88,11 @@ namespace RiskOfChaos.EffectDefinitions.Meta
 
             for (int i = 0; i < _numEffectsToActivate.Value; i++)
             {
+                totalDelay += EFFECT_DELAY;
+                yield return new WaitForSeconds(EFFECT_DELAY);
+
                 ChaosEffectInfo effect = ChaosEffectActivationSignaler.PickEffect(_rng.Branch(), excludeEffects, out ChaosEffectDispatchArgs dispatchArgs);
-                dispatchArgs.OverrideStartTime = effectStartTime;
-                dispatchArgs.DispatchFlags |= EffectDispatchFlags.DontPlaySound;
+                dispatchArgs.OverrideStartTime = effectStartTime + Mathf.FloorToInt(totalDelay);
                 dispatchArgs.RNGSeed = _rng.nextUlong;
                 ChaosEffectDispatcher.Instance.DispatchEffectServer(effect, dispatchArgs);
 
@@ -79,6 +101,8 @@ namespace RiskOfChaos.EffectDefinitions.Meta
                     excludeEffects.Add(effect);
                 }
             }
+
+            _effectComponent.RetireEffect();
         }
     }
 }
