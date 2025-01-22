@@ -84,6 +84,8 @@ namespace RiskOfChaos.Content
 
                     grenadeReplacedProjectile.AddComponent<SetProjectileGhostTeam>();
 
+                    grenadeReplacedProjectile.AddComponent<ReplacedProjectileHookReferenceResolver>();
+
                     projectilePrefabs.Add(grenadeReplacedProjectile);
                 });
 

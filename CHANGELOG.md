@@ -5,6 +5,9 @@
 * Delayed Attacks, Repeating Projectiles, Knockback Recoil, & Grenade Bullets:
   * Fixed effects not applying to melee attacks properly.
 
+* Grenade Bullets:
+  * Fixed Loader getting permanently stuck in the grappling animation if her grapple is replaced by a grenade.
+
 * Combo:
   * Added delay between each effect activation.
 
