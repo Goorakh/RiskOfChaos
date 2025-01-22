@@ -2,6 +2,9 @@
 
 **-.-.- Changes:**
 
+* Delayed Attacks, Repeating Projectiles, Knockback Recoil, & Grenade Bullets:
+  * Fixed effects not applying to melee attacks properly.
+
 * Combo:
   * Added delay between each effect activation.
 

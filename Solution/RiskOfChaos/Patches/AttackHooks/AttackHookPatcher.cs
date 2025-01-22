@@ -24,7 +24,7 @@ namespace RiskOfChaos.Patches.AttackHooks
             On.RoR2.BulletAttack.FireSingle_ReturnHit += BulletAttack_FireSingle_ReturnHit;
 
             On.RoR2.BlastAttack.Fire += BlastAttack_Fire;
-            On.RoR2.OverlapAttack.Fire += OverlapAttack_Fire;
+            On.RoR2.OverlapAttack.ProcessHits += OverlapAttack_ProcessHits;
             On.RoR2.Projectile.ProjectileManager.FireProjectile_FireProjectileInfo += ProjectileManager_FireProjectile_FireProjectileInfo;
             On.RoR2.Orbs.OrbManager.AddOrb += OrbManager_AddOrb;
 
@@ -78,14 +78,17 @@ namespace RiskOfChaos.Patches.AttackHooks
             return orig(self);
         }
 
-        static bool OverlapAttack_Fire(On.RoR2.OverlapAttack.orig_Fire orig, OverlapAttack self, List<HurtBox> hitResults)
+        static void OverlapAttack_ProcessHits(On.RoR2.OverlapAttack.orig_ProcessHits orig, OverlapAttack self, object _hitList)
         {
-            AttackHookManager attackHookManager = new OverlapAttackHookManager(self);
-            AttackHookMask activatedHooks = attackHookManager.RunHooks();
-            if (shouldSkipOrig(activatedHooks))
-                return false;
+            if (_hitList is List<OverlapAttack.OverlapInfo> hitList)
+            {
+                AttackHookManager attackHookManager = new OverlapAttackHookManager(self, hitList);
+                AttackHookMask activatedHooks = attackHookManager.RunHooks();
+                if (shouldSkipOrig(activatedHooks))
+                    return;
+            }
 
-            return orig(self, hitResults);
+            orig(self, _hitList);
         }
 
         static void ProjectileManager_FireProjectile_FireProjectileInfo(On.RoR2.Projectile.ProjectileManager.orig_FireProjectile_FireProjectileInfo orig, ProjectileManager self, FireProjectileInfo fireProjectileInfo)

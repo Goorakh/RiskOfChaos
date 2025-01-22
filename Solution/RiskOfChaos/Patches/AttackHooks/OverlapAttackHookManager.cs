@@ -25,75 +25,45 @@ namespace RiskOfChaos.Patches.AttackHooks
         }
 
         readonly OverlapAttack _overlapAttack;
-        readonly HealthComponent[] _ignoredHealthComponentList;
-        readonly (HealthComponent, float)[] _ignoredRemovalList;
+        readonly OverlapAttack _overlapAttackTemplate;
+        readonly List<OverlapAttack.OverlapInfo> _hitList;
 
         protected override AttackInfo AttackInfo { get; }
 
-        public OverlapAttackHookManager(OverlapAttack overlapAttack)
+        public OverlapAttackHookManager(OverlapAttack overlapAttack, List<OverlapAttack.OverlapInfo> hitList)
         {
             _overlapAttack = overlapAttack;
-            _ignoredHealthComponentList = [.. _overlapAttack.ignoredHealthComponentList];
-            _ignoredRemovalList = [.. _overlapAttack.ignoredRemovalList];
+            _overlapAttackTemplate = AttackUtils.Clone(_overlapAttack);
+            _hitList = new List<OverlapAttack.OverlapInfo>(hitList ?? []);
 
-            AttackInfo = new AttackInfo(overlapAttack);
-        }
-
-        OverlapAttack getAttackInstance(AttackInfo attackInfo)
-        {
-            OverlapAttack overlapAttack = _overlapAttack;
-
-            if (attackInfo.ProcChainMask.HasModdedProc(CustomProcTypes.Repeated))
-            {
-                overlapAttack = AttackUtils.Clone(overlapAttack);
-                overlapAttack.ignoredHealthComponentList = [.. _ignoredHealthComponentList];
-                overlapAttack.ignoredRemovalList = new Queue<(HealthComponent, float)>(_ignoredRemovalList);
-            }
-
-            return overlapAttack;
+            AttackInfo = new AttackInfo(_overlapAttack);
         }
 
         protected override void fireAttackCopy(AttackInfo attackInfo)
         {
-            OverlapAttack overlapAttack = getAttackInstance(attackInfo);
+            OverlapAttack overlapAttack = AttackUtils.Clone(_overlapAttackTemplate);
             attackInfo.PopulateOverlapAttack(overlapAttack);
-            overlapAttack.Fire();
+            overlapAttack.ProcessHits(_hitList);
         }
 
         protected override bool tryFireDelayed()
         {
-            bool delayed = base.tryFireDelayed();
-
-            if (delayed)
-            {
-                _overlapAttack.procChainMask.AddModdedProc(CustomProcTypes.Delayed);
-            }
-
-            return delayed;
+            return _hitList.Count > 0 && base.tryFireDelayed();
         }
 
         protected override bool tryFireRepeating()
         {
-            bool repeated = base.tryFireRepeating();
-
-            if (repeated)
-            {
-                _overlapAttack.procChainMask.AddModdedProc(CustomProcTypes.Repeated);
-            }
-
-            return repeated;
+            return _hitList.Count > 0 && base.tryFireRepeating();
         }
 
         protected override bool tryReplace()
         {
-            bool replaced = base.tryReplace();
+            return _hitList.Count > 0 && base.tryReplace();
+        }
 
-            if (replaced)
-            {
-                _overlapAttack.procChainMask.AddModdedProc(CustomProcTypes.Replaced);
-            }
-
-            return replaced;
+        protected override bool tryKnockback()
+        {
+            return _hitList.Count > 0 && base.tryKnockback();
         }
     }
 }
