@@ -92,6 +92,8 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
             }
         }
 
+        public ChaosEffectDurationComponent DurationComponent { get; private set; }
+
         [Server]
         public void SetRngSeedServer(ulong seed)
         {
@@ -104,6 +106,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         {
             _hudVisibilityProviders = GetComponents<IEffectHUDVisibilityProvider>();
             _serializationComponent = GetComponent<ObjectSerializationComponent>();
+            DurationComponent = GetComponent<ChaosEffectDurationComponent>();
         }
 
         public override void OnStartServer()
@@ -178,6 +181,19 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
             NetworkServer.Destroy(gameObject);
 
             Log.Debug($"Retired effect controller {Util.GetGameObjectHierarchyName(gameObject)} (id={netId})");
+        }
+
+        public bool IsRelevantForContext(in EffectCanActivateContext context)
+        {
+            if (DurationComponent)
+            {
+                if (DurationComponent.TimedType == TimedEffectType.FixedDuration)
+                {
+                    return DurationComponent.Remaining >= context.ActivationTime.TimeUntilClamped;
+                }
+            }
+
+            return true;
         }
 
         public override bool OnSerialize(NetworkWriter writer, bool initialState)

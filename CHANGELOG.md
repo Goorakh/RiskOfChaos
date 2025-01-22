@@ -5,6 +5,9 @@
 * Combo:
   * Added delay between each effect activation.
 
+* End All Active Effects:
+  * Added config option to exclude permanent effects from being ended (enabled by default).
+
 * Spawn Random Interactable:
   * Added Rallypoint Delta timed chest to interactable pool.
 

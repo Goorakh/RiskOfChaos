@@ -214,15 +214,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         public bool IsAnyInstanceOfTimedEffectRelevantForContext(TimedEffectInfo effectInfo, in EffectCanActivateContext context)
         {
-            float timeUntilContext = context.ActivationTime.TimeUntilClamped;
-
             ref TimedEffectActivityInfo effectActivity = ref _timedEffectActivity[(int)effectInfo.EffectIndex];
             for (int i = 0; i < effectActivity.InstancesCount; i++)
             {
-                ChaosEffectDurationComponent durationComponent = effectActivity.Instances[i].DurationComponent;
-                if (!durationComponent ||
-                    durationComponent.TimedType != TimedEffectType.FixedDuration ||
-                    durationComponent.Remaining >= timeUntilContext)
+                if (effectActivity.Instances[i].EffectComponent.IsRelevantForContext(context))
                 {
                     return true;
                 }
