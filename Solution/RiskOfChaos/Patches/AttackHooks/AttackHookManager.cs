@@ -59,9 +59,12 @@ namespace RiskOfChaos.Patches.AttackHooks
                 }
             }
 
-            if (tryKnockback())
+            if (!procChainMask.HasModdedProc(CustomProcTypes.KnockbackApplied))
             {
-                activatedAttackHooks |= AttackHookMask.Knockback;
+                if (tryKnockback())
+                {
+                    activatedAttackHooks |= AttackHookMask.Knockback;
+                }
             }
 
             return activatedAttackHooks;

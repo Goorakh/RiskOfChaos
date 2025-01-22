@@ -16,6 +16,8 @@ namespace RiskOfChaos.Content
 
         public static ModdedProcType Replaced { get; private set; } = ModdedProcType.Invalid;
 
+        public static ModdedProcType KnockbackApplied { get; private set; } = ModdedProcType.Invalid;
+
         static ModdedProcType[] _markerProcTypes = [];
 
         public static bool IsMarkerProc(ModdedProcType moddedProcType)
@@ -31,13 +33,15 @@ namespace RiskOfChaos.Content
             BounceFinished = ProcTypeAPI.ReserveProcType();
             Delayed = ProcTypeAPI.ReserveProcType();
             Replaced = ProcTypeAPI.ReserveProcType();
+            KnockbackApplied = ProcTypeAPI.ReserveProcType();
 
             _markerProcTypes = [
                 Repeated,
                 Bouncing,
                 BounceFinished,
                 Delayed,
-                Replaced
+                Replaced,
+                KnockbackApplied,
             ];
 
             Array.Sort(_markerProcTypes);
