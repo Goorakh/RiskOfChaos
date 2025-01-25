@@ -1,7 +1,6 @@
 ﻿using RiskOfChaos.Collections.ParsedValue;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
-using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -102,9 +101,9 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         }
 
         [EffectCanActivate]
-        static bool CanActivate(in EffectCanActivateContext context)
+        static bool CanActivate()
         {
-            return _pearlDropTable && (!context.IsNow || PlayerUtils.GetAllPlayerMasters(false).Any(m => getAllCleansablePickups().Any(pickup => m.inventory.GetPickupCount(pickup) > 0)));
+            return _pearlDropTable && PlayerUtils.GetAllPlayerMasters(false).Any(m => getAllCleansablePickups().Any(pickup => m.inventory.GetPickupCount(pickup) > 0));
         }
 
         ChaosEffectComponent _effectComponent;

@@ -20,6 +20,9 @@
 * Increase Monster Spawnes:
   * Fixed effect not applying to teleporter events properly.
 
+* Cleanse Random Item:
+  * Fixed effect being selectable in effect voting if no player has any cleansable items.
+
 * Audio:
   * Fixed effect activation sound playing twice.
 
