@@ -58,6 +58,24 @@ namespace RiskOfChaos.Content
 
                     items.Add(minAllyRegen);
                 }
+
+                // PulseAway
+                {
+                    ItemDef pulseAway = ScriptableObject.CreateInstance<ItemDef>();
+                    pulseAway.name = nameof(PulseAway);
+
+#pragma warning disable CS0618 // Type or member is obsolete
+                    // Setting the tier property here will not work because the ItemTierCatalog is not yet initialized
+                    pulseAway.deprecatedTier = ItemTier.NoTier;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+                    pulseAway.hidden = true;
+                    pulseAway.canRemove = false;
+
+                    pulseAway.AutoPopulateTokens();
+
+                    items.Add(pulseAway);
+                }
             }
 
             [SystemInitializer]

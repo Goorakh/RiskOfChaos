@@ -3,6 +3,7 @@ using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.ScreenEffect;
 using RoR2;
 using RoR2.ContentManagement;
+using RoR2.Skills;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -64,6 +65,8 @@ namespace RiskOfChaos.Content
             NetworkedPrefabAssetCollection networkedPrefabs = getAssetCollection<NetworkedPrefabAssetCollection>();
             LocalPrefabAssetCollection localPrefabs = getAssetCollection<LocalPrefabAssetCollection>();
             ScreenEffectDefAssetCollection screenEffects = getAssetCollection<ScreenEffectDefAssetCollection>();
+            SkillDefAssetCollection skillDefs = getAssetCollection<SkillDefAssetCollection>();
+            SkillFamilyAssetCollection skillFamilies = getAssetCollection<SkillFamilyAssetCollection>();
 
             List<MethodInfo> contentInitializerMethods = ContentInitializerAttribute.GetContentInitializers();
             for (int i = 0; i < contentInitializerMethods.Count; i++)
@@ -153,6 +156,8 @@ namespace RiskOfChaos.Content
             entityStates.FlushAssets(_contentPack.entityStateTypes);
             projectilePrefabs.FlushAssets(_contentPack.projectilePrefabs);
             networkedPrefabs.FlushAssets(_contentPack.networkedObjectPrefabs);
+            skillDefs.FlushAssets(_contentPack.skillDefs);
+            skillFamilies.FlushAssets(_contentPack.skillFamilies);
 
             NamedAssetCollection<GameObject> localPrefabAssetCollection = new NamedAssetCollection<GameObject>(ContentPack.getGameObjectName);
             localPrefabs.FlushAssets(localPrefabAssetCollection);
@@ -237,6 +242,8 @@ namespace RiskOfChaos.Content
             public static ItemDef InvincibleLemurianMarker;
 
             public static ItemDef MinAllyRegen;
+
+            public static ItemDef PulseAway;
         }
 
         public static partial class Buffs
@@ -266,6 +273,8 @@ namespace RiskOfChaos.Content
         public static partial class ProjectilePrefabs
         {
             public static GameObject GrenadeReplacedProjectile;
+
+            public static GameObject PulseGolemHookProjectile;
         }
 
         public static class NetworkedPrefabs
