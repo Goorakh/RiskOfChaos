@@ -18,9 +18,8 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
-#if DEBUG
+    /*
     [ChaosEffect("spawn_pulse_golem")]
-#endif
     public sealed class SpawnPulseGolem : MonoBehaviour
     {
         static CharacterSpawnCard _cscPulseGolem;
@@ -116,13 +115,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [SystemInitializer]
         static void Init()
         {
-            _cscPulseGolem.itemsToGrant = [
-                new ItemCountPair
-                {
-                    itemDef = RoCContent.Items.PulseAway,
-                    count = 1
-                }
-            ];
+            if (_cscPulseGolem)
+            {
+                _cscPulseGolem.itemsToGrant = [
+                    new ItemCountPair
+                    {
+                        itemDef = RoCContent.Items.PulseAway,
+                        count = 1
+                    }
+                ];
+            }
         }
 
         [EffectCanActivate]
@@ -144,7 +146,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             {
                 Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
-                DirectorCore.GetMonsterSpawnDistance(DirectorCore.MonsterSpawnDistance.Standard, out float minDistance, out float maxDistance);
+                DirectorCore.GetMonsterSpawnDistance(DirectorCore.MonsterSpawnDistance.Far, out float minDistance, out float maxDistance);
 
                 DirectorPlacementRule placementRule = SpawnUtils.GetPlacementRule_AtRandomPlayerApproximate(rng, minDistance, maxDistance);
 
@@ -154,8 +156,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     ignoreTeamMemberLimit = true,
                 };
 
-                spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetPlacementRule_AtRandomPlayerNearestNode(rng, minDistance, float.PositiveInfinity));
+                spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetPlacementRule_AtRandomPlayerNearestNode(rng, minDistance, float.PositiveInfinity), SpawnUtils.GetBestValidRandomPlacementRule());
             }
         }
     }
+    */
 }
