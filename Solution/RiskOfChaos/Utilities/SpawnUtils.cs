@@ -324,17 +324,25 @@ namespace RiskOfChaos.Utilities
             return Vector3.up;
         }
 
-        public static GameObject SpawnWithFallbackPlacement(this DirectorSpawnRequest spawnRequest, DirectorPlacementRule fallbackPlacementRule)
+        public static GameObject SpawnWithFallbackPlacement(this DirectorSpawnRequest spawnRequest, params DirectorPlacementRule[] fallbackPlacementRules)
         {
             GameObject result = DirectorCore.instance.TrySpawnObject(spawnRequest);
             if (!result)
             {
-                DirectorPlacementRule previousPlacementRule = spawnRequest.placementRule;
+                DirectorPlacementRule originalPlacementRule = spawnRequest.placementRule;
 
-                spawnRequest.placementRule = fallbackPlacementRule;
-                result = DirectorCore.instance.TrySpawnObject(spawnRequest);
+                for (int i = 0; i < fallbackPlacementRules.Length; i++)
+                {
+                    spawnRequest.placementRule = fallbackPlacementRules[i];
+                    result = DirectorCore.instance.TrySpawnObject(spawnRequest);
 
-                spawnRequest.placementRule = previousPlacementRule;
+                    if (result)
+                    {
+                        break;
+                    }
+                }
+
+                spawnRequest.placementRule = originalPlacementRule;
             }
 
             return result;
