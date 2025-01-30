@@ -11,7 +11,7 @@ namespace RiskOfChaos.Utilities.Extensions
             if (procChain.mask != 0)
                 return true;
 
-            for (ModdedProcType moddedProcType = 0; moddedProcType < (ModdedProcType)ProcTypeAPI.ModdedProcTypeCount; moddedProcType++)
+            for (ModdedProcType moddedProcType = ModdedProcType.Invalid + 1; moddedProcType <= (ModdedProcType)ProcTypeAPI.ModdedProcTypeCount; moddedProcType++)
             {
                 if (CustomProcTypes.IsMarkerProc(moddedProcType))
                     continue;
@@ -35,7 +35,7 @@ namespace RiskOfChaos.Utilities.Extensions
                 }
             }
 
-            for (ModdedProcType moddedProcType = 0; moddedProcType < (ModdedProcType)ProcTypeAPI.ModdedProcTypeCount; moddedProcType++)
+            for (ModdedProcType moddedProcType = ModdedProcType.Invalid + 1; moddedProcType <= (ModdedProcType)ProcTypeAPI.ModdedProcTypeCount; moddedProcType++)
             {
                 if (src.HasModdedProc(moddedProcType))
                 {

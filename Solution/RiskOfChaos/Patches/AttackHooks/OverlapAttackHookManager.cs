@@ -15,7 +15,7 @@ namespace RiskOfChaos.Patches.AttackHooks
 
         static void onOverlapAttackResetIgnoredHealthComponents(OverlapAttack overlapAttack)
         {
-            for (ModdedProcType moddedProcType = 0; moddedProcType < (ModdedProcType)ProcTypeAPI.ModdedProcTypeCount; moddedProcType++)
+            for (ModdedProcType moddedProcType = ModdedProcType.Invalid + 1; moddedProcType <= (ModdedProcType)ProcTypeAPI.ModdedProcTypeCount; moddedProcType++)
             {
                 if (CustomProcTypes.IsMarkerProc(moddedProcType))
                 {
