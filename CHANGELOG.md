@@ -2,6 +2,9 @@
 
 **-.-.- Changes:**
 
+* Added 1 Effect:
+  * Skill Switch: Using a skill switches it to a different skill. Lasts 1 stage.
+
 * Delayed Attacks, Repeating Projectiles, Knockback Recoil, & Grenade Bullets:
   * Fixed effects not applying to melee attacks properly.
 
