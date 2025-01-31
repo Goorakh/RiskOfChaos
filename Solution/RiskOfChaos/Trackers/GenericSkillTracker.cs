@@ -1,4 +1,5 @@
 ﻿using RiskOfChaos.ModificationController.SkillSlots;
+using RiskOfChaos.Patches;
 using RoR2;
 using UnityEngine;
 
@@ -9,13 +10,13 @@ namespace RiskOfChaos.Trackers
         [SystemInitializer]
         static void Init()
         {
-            On.RoR2.GenericSkill.Awake += (orig, self) =>
-            {
-                orig(self);
+            GenericSkillHooks.OnGenericSkillAwakeGlobal += onGenericSkillAwakeGlobal;
+        }
 
-                GenericSkillTracker tracker = self.gameObject.AddComponent<GenericSkillTracker>();
-                tracker.Skill = self;
-            };
+        static void onGenericSkillAwakeGlobal(GenericSkill skill)
+        {
+            GenericSkillTracker tracker = skill.gameObject.AddComponent<GenericSkillTracker>();
+            tracker.Skill = skill;
         }
 
         public GenericSkill Skill { get; private set; }

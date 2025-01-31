@@ -8,6 +8,9 @@
 * Delayed Attacks, Repeating Projectiles, Knockback Recoil, & Grenade Bullets:
   * Fixed effects not applying to melee attacks properly.
 
+* Randomize Loadout:
+  * Fixed MUL-T primary and secondary skills for Retool and Power Mode not updating properly.
+
 * Grenade Bullets:
   * Fixed Loader getting permanently stuck in the grappling animation if her grapple is replaced by a grenade.
 
