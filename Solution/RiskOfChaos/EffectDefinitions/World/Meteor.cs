@@ -1,25 +1,17 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
     [ChaosEffect("meteor")]
     public sealed class Meteor : MonoBehaviour
     {
-        static GameObject _meteorStormPrefab;
-
-        [SystemInitializer]
-        static void Init()
-        {
-            AsyncOperationHandle<GameObject> meteorStormLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Meteor/MeteorStorm.prefab");
-            meteorStormLoad.OnSuccess(p => _meteorStormPrefab = p);
-        }
+        [AddressableReference("RoR2/Base/Meteor/MeteorStorm.prefab")]
+        static readonly GameObject _meteorStormPrefab;
 
         [EffectCanActivate]
         static bool CanActivate()

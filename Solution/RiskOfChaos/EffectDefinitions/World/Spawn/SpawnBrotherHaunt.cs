@@ -1,20 +1,18 @@
 ﻿using RiskOfChaos.Collections;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Trackers;
-using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.UI;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
@@ -23,7 +21,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
     {
         static GameObject _brotherHauntPrefab;
 
-        static GameObject _countdownTimerPrefab;
+        [AddressableReference("RoR2/Base/UI/HudCountdownPanel.prefab")]
+        static readonly GameObject _countdownTimerPrefab;
 
         [SystemInitializer(typeof(MasterCatalog))]
         static void Init()
@@ -33,9 +32,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             {
                 Log.Error("Failed to find brother haunt master prefab");
             }
-
-            AsyncOperationHandle<GameObject> hudCountdownPanelLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/HudCountdownPanel.prefab");
-            hudCountdownPanelLoad.OnSuccess(hudCountdownPanelPrefab => _countdownTimerPrefab = hudCountdownPanelPrefab);
         }
 
         [EffectConfig]

@@ -9,23 +9,15 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("explode_at_low_health", 90f, AllowDuplicates = false)]
     public sealed class ExplodeAtLowHealth : MonoBehaviour
     {
-        static GameObject _countDownVFXPrefab;
-
-        [SystemInitializer]
-        static void Init()
-        {
-            AsyncOperationHandle<GameObject> countdownVfxLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/QuestVolatileBattery/VolatileBatteryPreDetonation.prefab");
-            countdownVfxLoad.OnSuccess(vfx => _countDownVFXPrefab = vfx);
-        }
+        [AddressableReference("RoR2/Base/QuestVolatileBattery/VolatileBatteryPreDetonation.prefab")]
+        static readonly GameObject _countDownVFXPrefab;
 
         [ContentInitializer]
         static void LoadContent(NetworkedPrefabAssetCollection networkedPrefabs)

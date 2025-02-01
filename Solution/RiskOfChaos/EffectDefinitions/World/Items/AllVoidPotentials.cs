@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -6,16 +7,12 @@ using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.EffectUtils.World.Items;
 using RiskOfChaos.Patches;
 using RiskOfChaos.SaveHandling;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Items
 {
@@ -23,19 +20,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
     [EffectConfigBackwardsCompatibility("Effect: All Items Are Void Potentials (Lasts 1 stage)")]
     public sealed class AllVoidPotentials : NetworkBehaviour
     {
-        static GameObject _optionPickupPrefab;
+        [AddressableReference("RoR2/DLC1/OptionPickup/OptionPickup.prefab")]
+        static readonly GameObject _optionPickupPrefab;
 
         static PickupTransmutationDropTable[] _pickupTransmutationDropTables = [];
 
         [SystemInitializer(typeof(PickupCatalog), typeof(PickupTransmutationManager))]
         static void Init()
         {
-            AsyncOperationHandle<GameObject> optionPickupLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/OptionPickup/OptionPickup.prefab");
-            optionPickupLoad.OnSuccess(optionPickupPrefab =>
-            {
-                _optionPickupPrefab = optionPickupPrefab;
-            });
-
             Log.Debug("Creating transmutation drop tables...");
 
             int numCreatedTransmutationTables = 0;

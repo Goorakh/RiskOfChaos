@@ -1,12 +1,10 @@
 ﻿using EntityStates;
 using RiskOfChaos.Content;
 using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.UI;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.Components
@@ -15,16 +13,8 @@ namespace RiskOfChaos.Components
     {
         public static readonly SerializableEntityStateType IdleStateType = new SerializableEntityStateType(typeof(IdleState));
 
-        static GameObject _chargingPositionIndicatorPrefab;
-
-        [SystemInitializer]
-        static void Init()
-        {
-            Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Teleporters/TeleporterChargingPositionIndicator.prefab").OnSuccess(positionIndicatorPrefab =>
-            {
-                _chargingPositionIndicatorPrefab = positionIndicatorPrefab;
-            });
-        }
+        [AddressableReference("RoR2/Base/Teleporters/TeleporterChargingPositionIndicator.prefab")]
+        static readonly GameObject _chargingPositionIndicatorPrefab;
 
         public PerpetualBossController BossController;
 

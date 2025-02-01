@@ -15,9 +15,7 @@ using RoR2;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
@@ -25,8 +23,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [IncompatibleEffects(typeof(DisableRevives))]
     public sealed class ReviveDeadCharacters : MonoBehaviour
     {
-        static GameObject _reviveEffectPrefab;
-
         [EffectConfig]
         static readonly ConfigHolder<int> _maxTrackedCharactersCount =
             ConfigFactory<int>.CreateConfig("Max Characters to Revive", 30)
@@ -47,12 +43,12 @@ namespace RiskOfChaos.EffectDefinitions.Character
         static readonly MaxCapacityQueue<DeadCharacterInfo> _trackedDeadCharacters = new MaxCapacityQueue<DeadCharacterInfo>(_maxTrackedCharactersCount.Value);
         static readonly List<DeadCharacterInfo> _trackedDeadPlayers = [];
 
+        [AddressableReference("RoR2/Base/ExtraLife/HippoRezEffect.prefab")]
+        static readonly GameObject _reviveEffectPrefab;
+
         [SystemInitializer]
         static void Init()
         {
-            AsyncOperationHandle<GameObject> reviveEffectLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/ExtraLife/HippoRezEffect.prefab");
-            reviveEffectLoad.OnSuccess(reviveEffectPrefab => _reviveEffectPrefab = reviveEffectPrefab);
-
             GlobalEventManager.onCharacterDeathGlobal += damageReport =>
             {
                 if (!NetworkServer.active)

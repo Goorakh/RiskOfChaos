@@ -1,38 +1,27 @@
-﻿using RiskOfChaos.Utilities.Extensions;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.ExpansionManagement;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Utilities
 {
     public static class ExpansionUtils
     {
-        public static ExpansionDef DLC1 { get; private set; }
+        [AddressableReference("RoR2/DLC1/Common/DLC1.asset")]
+        public static readonly ExpansionDef DLC1;
 
-        public static ExpansionDef DLC2 { get; private set; }
+        [AddressableReference("RoR2/DLC2/Common/DLC2.asset")]
+        public static readonly ExpansionDef DLC2;
 
-        [SystemInitializer]
-        static IEnumerator Init()
+        public static ResourceAvailability Availability = new ResourceAvailability();
+
+        [SystemInitializer(typeof(AddressableReferenceAttribute))]
+        static void Init()
         {
-            List<AsyncOperationHandle> asyncOperations = new List<AsyncOperationHandle>(2);
-
-            AsyncOperationHandle<ExpansionDef> dlc1Load = Addressables.LoadAssetAsync<ExpansionDef>("RoR2/DLC1/Common/DLC1.asset");
-            dlc1Load.OnSuccess(dlc1 => DLC1 = dlc1);
-
-            asyncOperations.Add(dlc1Load);
-
-            AsyncOperationHandle<ExpansionDef> dlc2Load = Addressables.LoadAssetAsync<ExpansionDef>("RoR2/DLC2/Common/DLC2.asset");
-            dlc2Load.OnSuccess(dlc2 => DLC2 = dlc2);
-
-            asyncOperations.Add(dlc2Load);
-
-            yield return asyncOperations.WaitForAllLoaded();
+            Availability.MakeAvailable();
         }
 
         public static bool DLC1Enabled

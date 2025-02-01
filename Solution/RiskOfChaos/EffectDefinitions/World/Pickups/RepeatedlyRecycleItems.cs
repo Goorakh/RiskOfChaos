@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.Collections;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectComponents;
@@ -13,9 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Pickups
 {
@@ -242,14 +241,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                 new Keyframe(1f, 0f, 0f, 0f),
             ]);
 
-            static GameObject _recycleEffectPrefab;
-
-            [SystemInitializer]
-            static void Init()
-            {
-                AsyncOperationHandle<GameObject> recycleEffectLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Recycle/OmniRecycleEffect.prefab");
-                recycleEffectLoad.OnSuccess(recycleEffectPrefab => _recycleEffectPrefab = recycleEffectPrefab);
-            }
+            [AddressableReference("RoR2/Base/Recycle/OmniRecycleEffect.prefab")]
+            static readonly GameObject _recycleEffectPrefab;
 
             public RepeatedlyRecycleItems EffectInstance;
 

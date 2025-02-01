@@ -1,5 +1,6 @@
 ﻿using HG;
 using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -11,12 +12,10 @@ using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Trackers;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.DropTables;
-using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Items
@@ -43,7 +42,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
         [EffectConfig]
         static readonly ConfigurableDropTable _dropTable;
 
-        static GameObject _recycleEffectPrefab;
+        [AddressableReference("RoR2/Base/Recycle/OmniRecycleEffect.prefab")]
+        static readonly GameObject _recycleEffectPrefab;
 
         static ForceAllItemsIntoRandomItem()
         {
@@ -93,8 +93,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
         static void Init()
         {
             ForceAllItemsIntoRandomItemManager.OnNextOverridePickupChanged += onNextOverridePickupChanged;
-
-            Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Recycle/OmniRecycleEffect.prefab").OnSuccess(recycleEffect => _recycleEffectPrefab = recycleEffect);
         }
 
         static void onNextOverridePickupChanged()

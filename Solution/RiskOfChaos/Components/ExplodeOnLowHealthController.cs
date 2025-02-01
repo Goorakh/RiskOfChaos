@@ -1,24 +1,15 @@
 ﻿using R2API;
 using RiskOfChaos.Content;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Components
 {
     public class ExplodeOnLowHealthController : NetworkBehaviour
     {
-        static GameObject _explosionVFXPrefab;
-
-        [SystemInitializer]
-        static void Init()
-        {
-            AsyncOperationHandle<GameObject> explosionVfxLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/QuestVolatileBattery/VolatileBatteryExplosion.prefab");
-            explosionVfxLoad.OnSuccess(vfx => _explosionVFXPrefab = vfx);
-        }
+        [AddressableReference("RoR2/Base/QuestVolatileBattery/VolatileBatteryExplosion.prefab")]
+        static readonly GameObject _explosionVFXPrefab;
 
         GenericOwnership _ownership;
 

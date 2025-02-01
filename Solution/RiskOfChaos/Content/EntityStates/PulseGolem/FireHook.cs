@@ -1,25 +1,15 @@
 ﻿using EntityStates;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Projectile;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.Content.EntityStates.PulseGolem
 {
     [EntityStateType]
     public class FireHook : BaseState
     {
-        static GameObject _muzzleEffectPrefab;
-
-        [SystemInitializer]
-        static void Init()
-        {
-            Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Gravekeeper/MuzzleflashWinch.prefab").OnSuccess(muzzleEffectPrefab =>
-            {
-                _muzzleEffectPrefab = muzzleEffectPrefab;
-            });
-        }
+        [AddressableReference("RoR2/Base/Gravekeeper/MuzzleflashWinch.prefab")]
+        static readonly GameObject _muzzleEffectPrefab;
 
         static readonly float _baseDuration = 2f;
 

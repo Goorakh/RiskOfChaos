@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -11,9 +12,7 @@ using RoR2;
 using RoR2.Navigation;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
@@ -25,8 +24,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             RequiredExpansionsProvider = survivorDef => ExpansionUtils.GetObjectRequiredExpansions(survivorDef.bodyPrefab)
         };
 
-        static GameObject _podPrefab;
-
         [EffectConfig]
         static readonly ConfigHolder<int> _numPodSpawns =
             ConfigFactory<int>.CreateConfig("Pod Spawn Count", 10)
@@ -35,12 +32,12 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                               .OptionConfig(new IntFieldConfig { Min = 1 })
                               .Build();
 
+        [AddressableReference("RoR2/Base/SurvivorPod/SurvivorPod.prefab")]
+        static readonly GameObject _podPrefab;
+
         [SystemInitializer(typeof(SurvivorCatalog), typeof(MasterCatalog))]
         static void Init()
         {
-            AsyncOperationHandle<GameObject> survivorPodLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/SurvivorPod/SurvivorPod.prefab");
-            survivorPodLoad.OnSuccess(survivorPodPrefab => _podPrefab = survivorPodPrefab);
-
             _spawnPool.CalcIsEntryAvailable += survivor =>
             {
                 return !survivor.unlockableDef || (Run.instance && Run.instance.IsUnlockableUnlocked(survivor.unlockableDef));

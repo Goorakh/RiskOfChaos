@@ -1,6 +1,7 @@
 ﻿using RiskOfChaos.Collections.ParsedValue;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -13,7 +14,6 @@ using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
@@ -52,13 +52,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             ConfigHolder = _itemBlacklistConfig
         };
 
-        static PickupDropTable _pearlDropTable;
-
-        [SystemInitializer]
-        static void Init()
-        {
-            Addressables.LoadAssetAsync<ExplicitPickupDropTable>("RoR2/Base/ShrineCleanse/dtPearls.asset").OnSuccess(dropTable => _pearlDropTable = dropTable);
-        }
+        [AddressableReference("RoR2/Base/ShrineCleanse/dtPearls.asset")]
+        static readonly PickupDropTable _pearlDropTable;
 
         static IEnumerable<PickupDef> getAllCleansablePickups()
         {

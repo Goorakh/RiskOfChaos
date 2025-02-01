@@ -23,6 +23,7 @@ namespace RiskOfChaos.Trackers
 
         public static event Action<OptionPickupTracker> OnStartGlobal;
 
+        [SerializeField]
         PickupPickerController _pickupPickerController;
         public PickupPickerController PickupPickerController => _pickupPickerController;
 

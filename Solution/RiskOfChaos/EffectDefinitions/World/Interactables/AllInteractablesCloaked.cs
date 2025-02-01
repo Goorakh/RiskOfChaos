@@ -1,5 +1,6 @@
 ﻿using RiskOfChaos.Collections;
 using RiskOfChaos.Components;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Trackers;
@@ -8,22 +9,14 @@ using RoR2;
 using RoR2.Hologram;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Interactables
 {
     [ChaosTimedEffect("all_interactables_cloaked", 90f, AllowDuplicates = false)]
     public sealed class AllInteractablesCloaked : MonoBehaviour
     {
-        static Material _cloakedMaterial;
-
-        [SystemInitializer]
-        static void Init()
-        {
-            AsyncOperationHandle<Material> cloakedMaterialLoad = Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/matCloakedEffect.mat");
-            cloakedMaterialLoad.OnSuccess(material => _cloakedMaterial = material);
-        }
+        [AddressableReference("RoR2/Base/Common/matCloakedEffect.mat")]
+        static readonly Material _cloakedMaterial;
 
         readonly ClearingObjectList<CloakedInteractableController> _cloakControllers = [];
 

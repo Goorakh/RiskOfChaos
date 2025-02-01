@@ -24,7 +24,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             static readonly BoolConVar _enableDebugRangeIndicator = new BoolConVar("roc_lightning_strikes_debug_range_indicator", ConVarFlags.None, "0", "Enables debug visualization of the \"Risk of Thunder\" lightning strikes damage radius");
 
-            static GameObject _orbEffect;
+            [AddressableReference("RoR2/Base/Lightning/LightningStrikeOrbEffect.prefab")]
+            static readonly GameObject _orbEffect;
+
             static GameObject _strikeEffect;
 
             [ContentInitializer]
@@ -47,13 +49,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 asyncOperations.Add(strikeEffectLoad);
 
                 yield return asyncOperations.WaitForAllLoaded();
-            }
-
-            [SystemInitializer]
-            static void Init()
-            {
-                AsyncOperationHandle<GameObject> orbEffectLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Lightning/LightningStrikeOrbEffect.prefab");
-                orbEffectLoad.OnSuccess(orbEffectPrefab => _orbEffect = orbEffectPrefab);
             }
 
             public float Force;

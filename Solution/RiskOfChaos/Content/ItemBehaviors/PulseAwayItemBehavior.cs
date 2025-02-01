@@ -1,27 +1,16 @@
 ﻿using HG;
-using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Items;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.Content.ItemBehaviors
 {
     public sealed class PulseAwayItemBehavior : BaseItemBodyBehavior
     {
-        static GameObject _pulsePrefab;
-
-        [SystemInitializer]
-        static void LoadAssets()
-        {
-            Addressables.LoadAssetAsync<GameObject>("RoR2/Base/moon2/MoonBatteryDesignPulse.prefab").OnSuccess(pulsePrefab =>
-            {
-                _pulsePrefab = pulsePrefab;
-            });
-        }
+        [AddressableReference("RoR2/Base/moon2/MoonBatteryDesignPulse.prefab")]
+        static readonly GameObject _pulsePrefab;
 
         [ItemDefAssociation(useOnServer = true, useOnClient = false)]
         static ItemDef GetItemDef()
