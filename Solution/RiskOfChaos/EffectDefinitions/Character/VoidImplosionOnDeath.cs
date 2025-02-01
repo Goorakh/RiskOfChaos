@@ -1,18 +1,17 @@
 ﻿using HG;
 using Newtonsoft.Json;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Serialization.Converters;
 using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Projectile;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
@@ -25,16 +24,47 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         static readonly SpawnPool<GameObject> _projectileSelection = new SpawnPool<GameObject>();
 
-        [SystemInitializer(typeof(ExpansionUtils))]
+        [SystemInitializer(typeof(ExpansionUtils), typeof(ProjectileCatalog))]
         static void Init()
         {
             _projectileSelection.EnsureCapacity(3);
 
-            _projectileSelection.AddAssetEntry("RoR2/Base/Nullifier/NullifierDeathBombProjectile.prefab", new SpawnPoolEntryParameters(1f));
-            _projectileSelection.AddAssetEntry("RoR2/DLC1/VoidJailer/VoidJailerDeathBombProjectile.prefab", new SpawnPoolEntryParameters(0.3f, ExpansionUtils.DLC1));
-            _projectileSelection.AddAssetEntry("RoR2/DLC1/VoidMegaCrab/VoidMegaCrabDeathBombProjectile.prefab", new SpawnPoolEntryParameters(0.7f, ExpansionUtils.DLC1));
+            GameObject nullifierImplosionPrefab = ProjectileCatalog.GetProjectilePrefab(ProjectileCatalog.FindProjectileIndex("NullifierDeathBombProjectile"));
+            if (!nullifierImplosionPrefab)
+            {
+                Log.Error("Failed to find nullifier implosion projectile prefab");
+            }
 
-            Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Nullifier/NullifierDeathBombProjectile.prefab").OnSuccess(fallbackProjectilePrefab => _fallbackProjectilePrefab = fallbackProjectilePrefab);
+            GameObject jailerImplosionPrefab = ProjectileCatalog.GetProjectilePrefab(ProjectileCatalog.FindProjectileIndex("VoidJailerDeathBombProjectile"));
+            if (!jailerImplosionPrefab)
+            {
+                Log.Error("Failed to find jailer implosion projectile prefab");
+            }
+
+            GameObject devastatorImplosionPrefab = ProjectileCatalog.GetProjectilePrefab(ProjectileCatalog.FindProjectileIndex("VoidMegaCrabDeathBombProjectile"));
+            if (!devastatorImplosionPrefab)
+            {
+                Log.Error("Failed to find devastator implosion projectile prefab");
+            }
+
+            if (nullifierImplosionPrefab)
+            {
+                _projectileSelection.AddEntry(new SpawnPool<GameObject>.Entry(nullifierImplosionPrefab, new SpawnPoolEntryParameters(1f)));
+            }
+
+            if (jailerImplosionPrefab)
+            {
+                _projectileSelection.AddEntry(new SpawnPool<GameObject>.Entry(jailerImplosionPrefab, new SpawnPoolEntryParameters(0.3f, ExpansionUtils.DLC1)));
+            }
+
+            if (devastatorImplosionPrefab)
+            {
+                _projectileSelection.AddEntry(new SpawnPool<GameObject>.Entry(devastatorImplosionPrefab, new SpawnPoolEntryParameters(0.7f, ExpansionUtils.DLC1)));
+            }
+
+            _projectileSelection.TrimExcess();
+
+            _fallbackProjectilePrefab = nullifierImplosionPrefab;
         }
 
         [EffectCanActivate]

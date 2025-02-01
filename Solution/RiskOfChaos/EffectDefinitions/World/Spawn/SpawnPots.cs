@@ -5,15 +5,12 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
-using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
@@ -30,11 +27,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         static GameObject _potPrefab;
 
-        [SystemInitializer]
+        [SystemInitializer(typeof(BodyCatalog))]
         static void Init()
         {
-            AsyncOperationHandle<GameObject> potPrefabLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/ExplosivePotDestructible/ExplosivePotDestructibleBody.prefab");
-            potPrefabLoad.OnSuccess(p => _potPrefab = p);
+            _potPrefab = BodyCatalog.FindBodyPrefab("ExplosivePotDestructibleBody");
+            if (!_potPrefab)
+            {
+                Log.Error("Failed to find explosive pot body prefab");
+            }
         }
 
         [EffectCanActivate]

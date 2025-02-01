@@ -1,11 +1,9 @@
 ﻿using RiskOfChaos.Collections;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Projectile;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
@@ -14,13 +12,14 @@ namespace RiskOfChaos.EffectDefinitions.Character
     {
         static GameObject _poisonPoolPrefab;
 
-        [SystemInitializer]
+        [SystemInitializer(typeof(ProjectileCatalog))]
         static void Init()
         {
-            Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Croco/CrocoLeapAcid.prefab").OnSuccess(poisonPoolPrefab =>
+            _poisonPoolPrefab = ProjectileCatalog.GetProjectilePrefab(ProjectileCatalog.FindProjectileIndex("CrocoLeapAcid"));
+            if (!_poisonPoolPrefab)
             {
-                _poisonPoolPrefab = poisonPoolPrefab;
-            });
+                Log.Error("Failed to find poison pool projectile prefab");
+            }
         }
 
         readonly ClearingObjectList<PeriodicPoisonPoolPlacer> _poisonPoolPlacers = [];

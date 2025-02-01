@@ -3,13 +3,10 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Navigation;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
@@ -20,11 +17,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         static GameObject _sulfurPodPrefab;
 
-        [SystemInitializer]
+        [SystemInitializer(typeof(BodyCatalog))]
         static void Init()
         {
-            AsyncOperationHandle<GameObject> sulfurPodLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/SulfurPod/SulfurPodBody.prefab");
-            sulfurPodLoad.OnSuccess(sulfurPodPrefab => _sulfurPodPrefab = sulfurPodPrefab);
+            _sulfurPodPrefab = BodyCatalog.FindBodyPrefab("SulfurPodBody");
+            if (!_sulfurPodPrefab)
+            {
+                Log.Error("Failed to find sulfur pod body prefab");
+            }
         }
 
         [EffectCanActivate]

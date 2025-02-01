@@ -6,15 +6,12 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.Navigation;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
@@ -23,11 +20,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
     {
         static CharacterSpawnCard _equipmentDroneSpawnCard;
 
-        [SystemInitializer]
+        [SystemInitializer(typeof(MasterCatalog))]
         static void Init()
         {
-            AsyncOperationHandle<GameObject> equipmentDroneMasterLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Drones/EquipmentDroneMaster.prefab");
-            equipmentDroneMasterLoad.OnSuccess(equipmentDroneMasterPrefab =>
+            GameObject equipmentDroneMasterPrefab = MasterCatalog.FindMasterPrefab("EquipmentDroneMaster");
+            if (equipmentDroneMasterPrefab)
             {
                 _equipmentDroneSpawnCard = ScriptableObject.CreateInstance<CharacterSpawnCard>();
                 _equipmentDroneSpawnCard.name = "cscEquipmentDrone";
@@ -53,7 +50,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     Log.Error("Failed to get equipment drone hull size");
                     _equipmentDroneSpawnCard.hullSize = HullClassification.Human;
                 }
-            });
+            }
+            else
+            {
+                Log.Error("Failed to find equipment drone master prefab");
+            }
         }
 
         [EffectConfig]

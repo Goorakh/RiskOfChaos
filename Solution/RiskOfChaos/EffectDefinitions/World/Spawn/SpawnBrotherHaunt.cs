@@ -25,11 +25,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         static GameObject _countdownTimerPrefab;
 
-        [SystemInitializer]
+        [SystemInitializer(typeof(MasterCatalog))]
         static void Init()
         {
-            AsyncOperationHandle<GameObject> brotherHauntMasterLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/BrotherHaunt/BrotherHauntMaster.prefab");
-            brotherHauntMasterLoad.OnSuccess(brotherHauntMasterPrefab => _brotherHauntPrefab = brotherHauntMasterPrefab);
+            _brotherHauntPrefab = MasterCatalog.FindMasterPrefab("BrotherHauntMaster");
+            if (!_brotherHauntPrefab)
+            {
+                Log.Error("Failed to find brother haunt master prefab");
+            }
 
             AsyncOperationHandle<GameObject> hudCountdownPanelLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/HudCountdownPanel.prefab");
             hudCountdownPanelLoad.OnSuccess(hudCountdownPanelPrefab => _countdownTimerPrefab = hudCountdownPanelPrefab);

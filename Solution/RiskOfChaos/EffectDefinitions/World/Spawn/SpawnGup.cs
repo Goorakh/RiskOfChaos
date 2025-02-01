@@ -6,9 +6,7 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
@@ -17,11 +15,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
     {
         static GameObject _gupPrefab;
 
-        [SystemInitializer]
+        [SystemInitializer(typeof(MasterCatalog))]
         static void Init()
         {
-            AsyncOperationHandle<GameObject> gupMasterLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/Gup/GupMaster.prefab");
-            gupMasterLoad.OnSuccess(gupMasterPrefab => _gupPrefab = gupMasterPrefab);
+            _gupPrefab = MasterCatalog.FindMasterPrefab("GupMaster");
+            if (!_gupPrefab)
+            {
+                Log.Error("Failed to find gup master prefab");
+            }
         }
 
         [EffectCanActivate]

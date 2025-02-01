@@ -2,15 +2,12 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Navigation;
 using RoR2.Projectile;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
 {
@@ -22,14 +19,20 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
         static GameObject _diabloStrikePrefab;
         static GameObject _orbitalStrikePrefab;
 
-        [SystemInitializer]
+        [SystemInitializer(typeof(ProjectileCatalog))]
         static void Init()
         {
-            AsyncOperationHandle<GameObject> diabloStrikeLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Captain/CaptainAirstrikeAltProjectile.prefab");
-            diabloStrikeLoad.OnSuccess(diabloStrikePrefab => _diabloStrikePrefab = diabloStrikePrefab);
+            _diabloStrikePrefab = ProjectileCatalog.GetProjectilePrefab(ProjectileCatalog.FindProjectileIndex("CaptainAirstrikeAltProjectile"));
+            if (!_diabloStrikePrefab)
+            {
+                Log.Error("Failed to find diablo strike projectile prefab");
+            }
 
-            AsyncOperationHandle<GameObject> orbitalStrikeLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Captain/CaptainAirstrikeProjectile1.prefab");
-            orbitalStrikeLoad.OnSuccess(orbitalStrikePrefab => _orbitalStrikePrefab = orbitalStrikePrefab);
+            _orbitalStrikePrefab = ProjectileCatalog.GetProjectilePrefab(ProjectileCatalog.FindProjectileIndex("CaptainAirstrikeProjectile1"));
+            if (!_orbitalStrikePrefab)
+            {
+                Log.Error("Failed to find orbital strike projectile prefab");
+            }
         }
 
         [EffectCanActivate]

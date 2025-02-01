@@ -2,11 +2,9 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
@@ -21,10 +19,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             "BirdsharkBody"
         ]);
 
-        [SystemInitializer]
+        [SystemInitializer(typeof(MasterCatalog))]
         static void Init()
         {
-            Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/EliteEarth/AffixEarthHealerMaster.prefab").OnSuccess(m => _healingCoreMasterPrefab = m);
+            _healingCoreMasterPrefab = MasterCatalog.FindMasterPrefab("AffixEarthHealerMaster");
+            if (!_healingCoreMasterPrefab)
+            {
+                Log.Error("Failed to find healing core master prefab");
+            }
         }
 
         [EffectCanActivate]
