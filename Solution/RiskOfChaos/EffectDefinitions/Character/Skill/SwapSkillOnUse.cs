@@ -5,7 +5,6 @@ using R2API.Networking.Interfaces;
 using RiskOfChaos.Collections;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
-using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectComponents;
@@ -21,7 +20,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Skill
 {
-    [ChaosTimedEffect("swap_skill_on_use", TimedEffectType.UntilStageEnd)]
+    [ChaosTimedEffect("swap_skill_on_use", 90f)]
     public sealed class SwapSkillOnUse : NetworkBehaviour
     {
         [EffectConfig]

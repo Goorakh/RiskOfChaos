@@ -170,7 +170,7 @@
         "EFFECT_SPAWN_FAKE_TELEPORTER_NAME": "Spawn Fake Teleporter",
         "EFFECT_END_ALL_EFFECTS_NAME": "End All Active Effects",
         "EFFECT_DISABLE_REVIVES_NAME": "Disable Revives",
-        "EFFECT_SWAP_SKILL_ON_USE_NAME": "Skill Switch",
+        "EFFECT_SWAP_SKILL_ON_USE_NAME": "Cycle Skills on Use",
         "EFFECT_POISON_TRAIL_NAME": "Poison Trails",
     }
 }
