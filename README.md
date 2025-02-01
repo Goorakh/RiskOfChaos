@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 148 different effects.
+Currently features 149 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -157,6 +157,7 @@ Currently features 148 different effects.
 * End All Active Effects: Ends all currently active effects.
 * Disable Revives: Disables all means of reviving, lasts 1 stage.
 * Skill Switch: Using a skill switches it to a different skill. Lasts 1 stage.
+* Poison Trails: All characters leave a damaging trail. Lasts 90 seconds.
 </details>
 
 <hr>
