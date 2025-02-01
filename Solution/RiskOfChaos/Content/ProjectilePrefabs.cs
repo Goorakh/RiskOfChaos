@@ -48,12 +48,12 @@ namespace RiskOfChaos.Content
 
                                 trailTeamIndicator.TeamConfigurations = [
                                     new ProjectileGhostTeamIndicator.RenderTeamConfiguration(trailRenderer, [
-                                    new ProjectileGhostTeamIndicator.TeamMaterialPair(TeamIndex.Neutral, friendlyTrailMaterial),
-                                    new ProjectileGhostTeamIndicator.TeamMaterialPair(TeamIndex.Player, friendlyTrailMaterial),
-                                    new ProjectileGhostTeamIndicator.TeamMaterialPair(TeamIndex.Monster, enemyTrailMaterial),
-                                    new ProjectileGhostTeamIndicator.TeamMaterialPair(TeamIndex.Lunar, enemyTrailMaterial),
-                                    new ProjectileGhostTeamIndicator.TeamMaterialPair(TeamIndex.Void, enemyTrailMaterial)
-                                ])
+                                        new ProjectileGhostTeamIndicator.TeamMaterialPair(TeamIndex.Neutral, friendlyTrailMaterial),
+                                        new ProjectileGhostTeamIndicator.TeamMaterialPair(TeamIndex.Player, friendlyTrailMaterial),
+                                        new ProjectileGhostTeamIndicator.TeamMaterialPair(TeamIndex.Monster, enemyTrailMaterial),
+                                        new ProjectileGhostTeamIndicator.TeamMaterialPair(TeamIndex.Lunar, enemyTrailMaterial),
+                                        new ProjectileGhostTeamIndicator.TeamMaterialPair(TeamIndex.Void, enemyTrailMaterial)
+                                    ])
                                 ];
                             }
                             else
