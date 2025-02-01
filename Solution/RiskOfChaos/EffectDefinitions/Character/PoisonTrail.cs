@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosTimedEffect("poison_trail", 90f)]
+    [ChaosTimedEffect("poison_trail", 60f)]
     public class PoisonTrail : MonoBehaviour
     {
         static GameObject _poisonPoolPrefab;

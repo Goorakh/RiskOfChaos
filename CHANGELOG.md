@@ -4,7 +4,7 @@
 
 * Added 2 effects:
   * Cycle Skills on Use: Using a skill switches it to a different skill. Lasts 90 seconds.
-  * Poison Trails: All characters leave a damaging trail. Lasts 90 seconds.
+  * Poison Trails: All characters leave a damaging trail. Lasts 60 seconds.
 
 * Delayed Attacks, Repeating Projectiles, Knockback Recoil, & Grenade Bullets:
   * Fixed effects not applying to melee attacks properly.
