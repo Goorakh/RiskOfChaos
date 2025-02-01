@@ -1,25 +1,76 @@
 ﻿using RiskOfChaos.Collections;
+using RiskOfChaos.ConfigHandling;
+using RiskOfChaos.ConfigHandling.AcceptableValues;
+using RiskOfChaos.Content;
+using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
+using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.Projectile;
+using System.Collections;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.Events;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("poison_trail", 60f)]
     public class PoisonTrail : MonoBehaviour
     {
-        static GameObject _poisonPoolPrefab;
+        [EffectConfig]
+        static readonly ConfigHolder<int> _poisonTrailMaxSegmentCount =
+            ConfigFactory<int>.CreateConfig("Max Trail Length", 20)
+                              .Description("The maximum number of active trail segments per character.")
+                              .AcceptableValues(new AcceptableValueMin<int>(1))
+                              .OptionConfig(new IntFieldConfig { Min = 1 })
+                              .Build();
+
+        static GameObject _trailSegmentPrefab;
 
         [SystemInitializer(typeof(ProjectileCatalog))]
         static void Init()
         {
-            _poisonPoolPrefab = ProjectileCatalog.GetProjectilePrefab(ProjectileCatalog.FindProjectileIndex("CrocoLeapAcid"));
-            if (!_poisonPoolPrefab)
+            _trailSegmentPrefab = ProjectileCatalog.GetProjectilePrefab(ProjectileCatalog.FindProjectileIndex("PoisonTrailSegment"));
+            if (!_trailSegmentPrefab)
             {
-                Log.Error("Failed to find poison pool projectile prefab");
+                Log.Error("Failed to find poison trail segment projectile prefab");
             }
+        }
+
+        [ContentInitializer]
+        static IEnumerator LoadContent(ProjectilePrefabAssetCollection projectilePrefabs)
+        {
+            AsyncOperationHandle<GameObject> poisonPoolLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Croco/CrocoLeapAcid.prefab");
+            poisonPoolLoad.OnSuccess(poisonPoolPrefab =>
+            {
+                GameObject trailSegmentPrefab = poisonPoolPrefab.InstantiateNetworkedPrefab("PoisonTrailSegment");
+
+                Deployable deployable = trailSegmentPrefab.AddComponent<Deployable>();
+                deployable.onUndeploy = new UnityEvent();
+                deployable.onUndeploy.m_PersistentCalls.AddListener(new PersistentCall
+                {
+                    m_Target = deployable,
+                    m_MethodName = nameof(Deployable.DestroyGameObject),
+                    mode = PersistentListenerMode.Void
+                });
+
+                ProjectileDeployToOwner deployToOwner = trailSegmentPrefab.AddComponent<ProjectileDeployToOwner>();
+                deployToOwner.deployableSlot = DeployableSlots.PoisonTrailSegment;
+
+                projectilePrefabs.Add(trailSegmentPrefab);
+            });
+
+            AsyncOperationHandle[] asyncOperations = [poisonPoolLoad];
+            yield return asyncOperations.WaitForAllLoaded();
+        }
+
+        public static int GetPoisonTrailSegmentLimit(CharacterMaster master)
+        {
+            return _poisonTrailMaxSegmentCount.Value;
         }
 
         readonly ClearingObjectList<PeriodicPoisonPoolPlacer> _poisonPoolPlacers = [];
@@ -59,7 +110,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             Vector3 _lastSegmentPosition;
             float _lastSegmentTimer;
 
-            public float SegmentMaxDistance = 7f;
+            public float SegmentMaxDistance = 8f;
 
             public float SegmentMaxDuration = 9f;
 
@@ -94,14 +145,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
                         viewDirection = _body.characterDirection.forward;
                     }
 
-                    viewDirection.x = 0f;
-                    viewDirection.z = 0f;
-
                     ProjectileManager.instance.FireProjectile(new FireProjectileInfo
                     {
-                        projectilePrefab = _poisonPoolPrefab,
+                        projectilePrefab = _trailSegmentPrefab,
                         position = currentPlacementPosition,
-                        rotation = Util.QuaternionSafeLookRotation(viewDirection),
+                        rotation = Util.QuaternionSafeLookRotation(new Vector3(0f, viewDirection.y, 0f).normalized),
                         owner = _body.gameObject,
                         crit = _body.RollCrit(),
                         damage = _body.damage
