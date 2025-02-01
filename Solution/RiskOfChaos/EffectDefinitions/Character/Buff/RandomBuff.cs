@@ -1,5 +1,4 @@
-﻿using RiskOfChaos.Collections.CatalogIndex;
-using RiskOfChaos.ConfigHandling;
+﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
