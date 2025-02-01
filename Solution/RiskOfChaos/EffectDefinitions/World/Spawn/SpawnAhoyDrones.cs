@@ -181,55 +181,60 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 for (int i = 0; i < spawnPositions.Length; i++)
                 {
                     Vector3 spawnOffset = target.Rng.PointInUnitSphere() * 3.5f;
-                    if (Physics.SphereCast(new Ray(spawnOrigin, spawnOffset), bestFitRadius, out RaycastHit hit, spawnOffset.magnitude, LayerIndex.world.mask))
+                    Vector3 spawnPosition = spawnOrigin + spawnOffset;
+
+                    if (Physics.SphereCast(new Ray(spawnOrigin, spawnOffset), bestFitRadius, out RaycastHit hit, spawnOffset.magnitude, LayerIndex.world.mask, QueryTriggerInteraction.Ignore))
                     {
-                        spawnOffset = hit.point - spawnOrigin;
+                        spawnPosition = hit.point;
                     }
 
-                    spawnPositions[i] = spawnOrigin + spawnOffset;
+                    spawnPositions[i] = spawnPosition;
                 }
 
-                NodeGraph.NodeIndex startNode = spawnNodeGraph.FindClosestNode(spawnOrigin, _equipmentDroneSpawnCard.hullSize);
-                if (spawnNodeGraph && startNode != NodeGraph.NodeIndex.invalid)
+                if (spawnNodeGraph)
                 {
-                    NodeGraphSpider nodeGraphSpider = new NodeGraphSpider(spawnNodeGraph, (HullMask)(1 << (int)_equipmentDroneSpawnCard.hullSize));
-                    nodeGraphSpider.AddNodeForNextStep(startNode);
-
-                    int stepsRemaining = 16;
-                    while (nodeGraphSpider.PerformStep())
+                    NodeGraph.NodeIndex startNode = spawnNodeGraph.FindClosestNode(spawnOrigin, _equipmentDroneSpawnCard.hullSize);
+                    if (startNode != NodeGraph.NodeIndex.invalid)
                     {
-                        List<NodeGraphSpider.StepInfo> collectedSteps = nodeGraphSpider.collectedSteps;
-                        for (int i = collectedSteps.Count - 1; i >= 0; i--)
+                        NodeGraphSpider nodeGraphSpider = new NodeGraphSpider(spawnNodeGraph, (HullMask)(1 << (int)_equipmentDroneSpawnCard.hullSize));
+                        nodeGraphSpider.AddNodeForNextStep(startNode);
+
+                        int stepsRemaining = 16;
+                        while (nodeGraphSpider.PerformStep())
                         {
-                            if (usedSpawnNodes.Contains(collectedSteps[i].node) ||
-                                !spawnNodeGraph.GetNodeFlags(collectedSteps[i].node, out NodeFlags nodeFlags) ||
-                                (nodeFlags & _equipmentDroneSpawnCard.requiredFlags) != _equipmentDroneSpawnCard.requiredFlags ||
-                                (nodeFlags & _equipmentDroneSpawnCard.forbiddenFlags) != 0)
+                            List<NodeGraphSpider.StepInfo> collectedSteps = nodeGraphSpider.collectedSteps;
+                            for (int i = collectedSteps.Count - 1; i >= 0; i--)
                             {
-                                collectedSteps.RemoveAt(i);
+                                if (usedSpawnNodes.Contains(collectedSteps[i].node) ||
+                                    !spawnNodeGraph.GetNodeFlags(collectedSteps[i].node, out NodeFlags nodeFlags) ||
+                                    (nodeFlags & _equipmentDroneSpawnCard.requiredFlags) != _equipmentDroneSpawnCard.requiredFlags ||
+                                    (nodeFlags & _equipmentDroneSpawnCard.forbiddenFlags) != 0)
+                                {
+                                    collectedSteps.RemoveAt(i);
+                                }
                             }
+
+                            if (nodeGraphSpider.collectedSteps.Count >= spawnPositions.Length)
+                                break;
+
+                            stepsRemaining--;
+                            if (stepsRemaining <= 0)
+                                break;
                         }
 
-                        if (nodeGraphSpider.collectedSteps.Count >= spawnPositions.Length)
-                            break;
+                        List<NodeGraphSpider.StepInfo> collectedSpawnPositionSteps = nodeGraphSpider.collectedSteps;
+                        Util.ShuffleList(collectedSpawnPositionSteps, target.Rng);
 
-                        stepsRemaining--;
-                        if (stepsRemaining <= 0)
-                            break;
-                    }
-
-                    List<NodeGraphSpider.StepInfo> collectedSpawnPositionSteps = nodeGraphSpider.collectedSteps;
-                    Util.ShuffleList(collectedSpawnPositionSteps, target.Rng);
-
-                    int numAvailableSpawnPositions = Mathf.Min(spawnPositions.Length, collectedSpawnPositionSteps.Count);
-                    for (int i = 0; i < numAvailableSpawnPositions; i++)
-                    {
-                        NodeGraphSpider.StepInfo stepInfo = collectedSpawnPositionSteps[i];
-
-                        if (spawnNodeGraph.GetNodePosition(stepInfo.node, out Vector3 spawnPosition))
+                        int numAvailableSpawnPositions = Mathf.Min(spawnPositions.Length, collectedSpawnPositionSteps.Count);
+                        for (int i = 0; i < numAvailableSpawnPositions; i++)
                         {
-                            spawnPositions[i] = spawnPosition;
-                            usedSpawnNodes.Add(stepInfo.node);
+                            NodeGraphSpider.StepInfo stepInfo = collectedSpawnPositionSteps[i];
+
+                            if (spawnNodeGraph.GetNodePosition(stepInfo.node, out Vector3 spawnPosition))
+                            {
+                                spawnPositions[i] = spawnPosition;
+                                usedSpawnNodes.Add(stepInfo.node);
+                            }
                         }
                     }
                 }
