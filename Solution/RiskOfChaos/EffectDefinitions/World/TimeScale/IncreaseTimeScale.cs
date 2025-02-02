@@ -23,7 +23,7 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
                                 .AcceptableValues(new AcceptableValueMin<float>(0f))
                                 .OptionConfig(new FloatFieldConfig
                                 {
-                                    FormatString = "+{0:P0}",
+                                    FormatString = "+{0:0.##%}",
                                     Min = 0f
                                 })
                                 .Build();
@@ -37,7 +37,7 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
         {
-            return new EffectNameFormatter_GenericFloat(_timeScaleIncrease) { ValueFormat = "P0" };
+            return new EffectNameFormatter_GenericFloat(_timeScaleIncrease) { ValueFormat = "0.##%" };
         }
 
         ValueModificationController _timeScaleModificationController;

@@ -23,7 +23,7 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
                                 .AcceptableValues(new AcceptableValueRange<float>(0f, 1f))
                                 .OptionConfig(new StepSliderConfig
                                 {
-                                    FormatString = "-{0:P0}",
+                                    FormatString = "-{0:0.##%}",
                                     increment = 0.01f,
                                     min = 0f,
                                     max = 1f
@@ -39,7 +39,7 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
         {
-            return new EffectNameFormatter_GenericFloat(_radiusDecrease) { ValueFormat = "P0" };
+            return new EffectNameFormatter_GenericFloat(_radiusDecrease) { ValueFormat = "0.##%" };
         }
 
         ValueModificationController _holdoutZoneModificationController;

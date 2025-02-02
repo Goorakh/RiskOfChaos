@@ -26,14 +26,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Gravity
                                     min = 0f,
                                     max = 1f,
                                     increment = 0.01f,
-                                    FormatString = "-{0:P0}"
+                                    FormatString = "-{0:0.##%}"
                                 })
                                 .Build();
 
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
         {
-            return new EffectNameFormatter_GenericFloat(_gravityDecrease) { ValueFormat = "P0" };
+            return new EffectNameFormatter_GenericFloat(_gravityDecrease) { ValueFormat = "0.##%" };
         }
 
         ValueModificationController _gravityModificationController;

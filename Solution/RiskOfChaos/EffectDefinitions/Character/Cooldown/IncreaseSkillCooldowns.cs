@@ -24,7 +24,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Cooldown
                                 .AcceptableValues(new AcceptableValueMin<float>(0f))
                                 .OptionConfig(new FloatFieldConfig
                                 {
-                                    FormatString = "+{0:P0}",
+                                    FormatString = "+{0:0.##%}",
                                     Min = 0f
                                 })
                                 .Build();
@@ -38,7 +38,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Cooldown
         [GetEffectNameFormatter]
         static EffectNameFormatter GetEffectNameFormatter()
         {
-            return new EffectNameFormatter_GenericFloat(_cooldownIncrease) { ValueFormat = "P0" };
+            return new EffectNameFormatter_GenericFloat(_cooldownIncrease) { ValueFormat = "0.##%" };
         }
 
         ValueModificationController _skillSlotModificationController;

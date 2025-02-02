@@ -23,7 +23,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Projectile
                                 .AcceptableValues(new AcceptableValueRange<float>(0f, 1f))
                                 .OptionConfig(new StepSliderConfig
                                 {
-                                    FormatString = "-{0:P0}",
+                                    FormatString = "-{0:0.##%}",
                                     min = 0f,
                                     max = 1f,
                                     increment = 0.01f
@@ -39,7 +39,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Projectile
         [GetEffectNameFormatter]
         static EffectNameFormatter GetNameFormatter()
         {
-            return new EffectNameFormatter_GenericFloat(_projectileSpeedDecrease) { ValueFormat = "P0" };
+            return new EffectNameFormatter_GenericFloat(_projectileSpeedDecrease) { ValueFormat = "0.##%" };
         }
 
         ValueModificationController _projectileModificationController;

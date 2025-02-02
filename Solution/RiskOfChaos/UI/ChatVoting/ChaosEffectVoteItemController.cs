@@ -231,7 +231,7 @@ namespace RiskOfChaos.UI.ChatVoting
                 formatArgs = [
                     _voteOption.VoteNumber,
                     optionName,
-                    Mathf.RoundToInt(_voteOption.VotePercentage * 100f)
+                    _voteOption.VotePercentage
                 ];
             }
 
