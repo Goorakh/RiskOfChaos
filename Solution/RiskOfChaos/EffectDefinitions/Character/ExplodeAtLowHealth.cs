@@ -70,19 +70,22 @@ namespace RiskOfChaos.EffectDefinitions.Character
             // Catch "fake" death events (eg. FMP), begin countdown immediately in that case
             if (damageReport.victim && damageReport.victim.alive && damageReport.victimBody)
             {
-                GameObject explodeController = attachExploder(damageReport.victimBody);
+                GameObject explodeController = tryAttachExploder(damageReport.victimBody);
 
-                EntityStateMachine entityStateMachine = explodeController.GetComponent<EntityStateMachine>();
-                entityStateMachine.initialStateType = new SerializableEntityStateType(typeof(CountDownState));
+                if (explodeController)
+                {
+                    EntityStateMachine entityStateMachine = explodeController.GetComponent<EntityStateMachine>();
+                    entityStateMachine.initialStateType = new SerializableEntityStateType(typeof(CountDownState));
+                }
             }
         }
 
         void handleBody(CharacterBody body)
         {
-            attachExploder(body);
+            tryAttachExploder(body);
         }
 
-        GameObject attachExploder(CharacterBody body)
+        GameObject tryAttachExploder(CharacterBody body)
         {
             if (body.isPlayerControlled)
                 return null;
