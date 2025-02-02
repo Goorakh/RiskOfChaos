@@ -280,6 +280,19 @@ namespace RiskOfChaos.EffectDefinitions.Character
             }
         }
 
+        [ClientRpc]
+        void RpcOnAspectSwitched(GameObject masterObject)
+        {
+            if (masterObject && masterObject.TryGetComponent(out CharacterMaster master))
+            {
+                GameObject bodyObject = master.GetBodyObject();
+                if (bodyObject)
+                {
+                    Util.PlaySound("Play_UI_item_pickup", bodyObject);
+                }
+            }
+        }
+
         [RequireComponent(typeof(CharacterBody))]
         class RandomlySwapAspect : MonoBehaviour
         {
@@ -333,6 +346,12 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 }
 
                 inventory.SetEquipmentIndex(aspectEquipment);
+
+                GameObject masterObject = _body.masterObject;
+                if (masterObject)
+                {
+                    EffectInstance.RpcOnAspectSwitched(masterObject);
+                }
             }
         }
     }
