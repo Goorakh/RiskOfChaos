@@ -99,6 +99,11 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
                 effectActivity.Instances ??= [];
                 effectActivity.InstancesCount = 0;
+
+                for (int j = 0; j < effectActivity.Instances.Length; j++)
+                {
+                    effectActivity.Instances[j] = default;
+                }
             }
         }
 
