@@ -1,32 +1,25 @@
 ﻿using R2API;
-using RoR2;
 using System;
 
 namespace RiskOfChaos.Content
 {
     public static class CustomProcTypes
     {
-        public static ModdedProcType Repeated { get; private set; } = ModdedProcType.Invalid;
+        public static readonly ModdedProcType Repeated;
 
-        public static ModdedProcType Bouncing { get; private set; } = ModdedProcType.Invalid;
+        public static readonly ModdedProcType Bouncing;
 
-        public static ModdedProcType BounceFinished { get; private set; } = ModdedProcType.Invalid;
+        public static readonly ModdedProcType BounceFinished;
 
-        public static ModdedProcType Delayed { get; private set; } = ModdedProcType.Invalid;
+        public static readonly ModdedProcType Delayed;
 
-        public static ModdedProcType Replaced { get; private set; } = ModdedProcType.Invalid;
+        public static readonly ModdedProcType Replaced;
 
-        public static ModdedProcType KnockbackApplied { get; private set; } = ModdedProcType.Invalid;
+        public static readonly ModdedProcType KnockbackApplied;
 
-        static ModdedProcType[] _markerProcTypes = [];
+        static readonly ModdedProcType[] _markerProcTypes;
 
-        public static bool IsMarkerProc(ModdedProcType moddedProcType)
-        {
-            return Array.BinarySearch(_markerProcTypes, moddedProcType) >= 0;
-        }
-
-        [SystemInitializer]
-        static void Init()
+        static CustomProcTypes()
         {
             Repeated = ProcTypeAPI.ReserveProcType();
             Bouncing = ProcTypeAPI.ReserveProcType();
@@ -45,6 +38,11 @@ namespace RiskOfChaos.Content
             ];
 
             Array.Sort(_markerProcTypes);
+        }
+
+        public static bool IsMarkerProc(ModdedProcType moddedProcType)
+        {
+            return Array.BinarySearch(_markerProcTypes, moddedProcType) >= 0;
         }
     }
 }

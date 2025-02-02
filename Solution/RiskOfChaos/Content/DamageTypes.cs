@@ -10,31 +10,26 @@ namespace RiskOfChaos.Content
         /// <summary>
         /// Makes an instance of damage NonLethal for all players hit
         /// </summary>
-        public static DamageAPI.ModdedDamageType NonLethalToPlayers { get; private set; }
+        public static readonly DamageAPI.ModdedDamageType NonLethalToPlayers = DamageAPI.ReserveDamageType();
 
         /// <summary>
         /// Bypass armor if hitting yourself
         /// </summary>
-        public static DamageAPI.ModdedDamageType BypassArmorSelf { get; private set; }
+        public static readonly DamageAPI.ModdedDamageType BypassArmorSelf = DamageAPI.ReserveDamageType();
 
         /// <summary>
         /// Bypass block if hitting yourself
         /// </summary>
-        public static DamageAPI.ModdedDamageType BypassBlockSelf { get; private set; }
+        public static readonly DamageAPI.ModdedDamageType BypassBlockSelf = DamageAPI.ReserveDamageType();
 
         /// <summary>
         /// Bypass OSP if hitting yourself
         /// </summary>
-        public static DamageAPI.ModdedDamageType BypassOSPSelf { get; private set; }
+        public static readonly DamageAPI.ModdedDamageType BypassOSPSelf = DamageAPI.ReserveDamageType();
 
         [SystemInitializer]
         static void Init()
         {
-            NonLethalToPlayers = DamageAPI.ReserveDamageType();
-            BypassArmorSelf = DamageAPI.ReserveDamageType();
-            BypassBlockSelf = DamageAPI.ReserveDamageType();
-            BypassOSPSelf = DamageAPI.ReserveDamageType();
-
             HealthComponentHooks.PreTakeDamage += HealthComponentHooks_PreTakeDamage;
         }
 
