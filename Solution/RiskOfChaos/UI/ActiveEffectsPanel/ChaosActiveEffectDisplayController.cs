@@ -107,7 +107,6 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
         ChaosEffectComponent _displayingEffect;
         ChaosEffectNameComponent _displayingEffectNameComponent;
         ChaosEffectSubtitleComponent _displayingEffectSubtitleComponent;
-        ChaosEffectDurationComponent _displayingEffectDurationComponent;
 
         public ChaosEffectComponent DisplayingEffect
         {
@@ -135,19 +134,16 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
                 ChaosEffectInfo displayingEffectInfo = null;
                 ChaosEffectNameComponent displayingEffectNameComponent = null;
                 ChaosEffectSubtitleComponent displayingEffectSubtitleComponent = null;
-                ChaosEffectDurationComponent durationComponent = null;
                 if (_displayingEffect)
                 {
                     displayingEffectInfo = _displayingEffect.ChaosEffectInfo;
                     displayingEffectNameComponent = _displayingEffect.GetComponent<ChaosEffectNameComponent>();
                     displayingEffectSubtitleComponent = _displayingEffect.GetComponent<ChaosEffectSubtitleComponent>();
-                    durationComponent = _displayingEffect.GetComponent<ChaosEffectDurationComponent>();
                 }
 
                 _displayingEffectInfo = displayingEffectInfo;
                 _displayingEffectNameComponent = displayingEffectNameComponent;
                 _displayingEffectSubtitleComponent = displayingEffectSubtitleComponent;
-                _displayingEffectDurationComponent = durationComponent;
 
                 if (_displayingEffectNameComponent)
                 {
@@ -188,9 +184,9 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         void FixedUpdate()
         {
-            if (_displayingEffectDurationComponent)
+            if (_displayingEffect && _displayingEffect.DurationComponent)
             {
-                float timeRemaining = _displayingEffectDurationComponent.Remaining;
+                float timeRemaining = _displayingEffect.DurationComponent.Remaining;
                 if (timeRemaining != _currentlyDisplayedTimeRemaining)
                 {
                     markEffectLabelDirty();
@@ -266,11 +262,11 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             string token = "CHAOS_ACTIVE_EFFECT_FALLBACK_FORMAT";
             object[] formatArgs = [displayName];
 
-            if (_displayingEffectDurationComponent)
+            if (_displayingEffect && _displayingEffect.DurationComponent)
             {
-                timeRemaining = _displayingEffectDurationComponent.Remaining;
+                timeRemaining = _displayingEffect.DurationComponent.Remaining;
 
-                switch (_displayingEffectDurationComponent.TimedType)
+                switch (_displayingEffect.DurationComponent.TimedType)
                 {
                     case TimedEffectType.UntilStageEnd:
                         int stagesRemaining = Mathf.CeilToInt(timeRemaining);

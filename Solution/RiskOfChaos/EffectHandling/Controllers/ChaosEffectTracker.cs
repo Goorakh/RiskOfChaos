@@ -28,12 +28,10 @@ namespace RiskOfChaos.EffectHandling.Controllers
         readonly struct EffectInstanceInfo
         {
             public readonly ChaosEffectComponent EffectComponent;
-            public readonly ChaosEffectDurationComponent DurationComponent;
 
             public EffectInstanceInfo(ChaosEffectComponent effectComponent)
             {
                 EffectComponent = effectComponent;
-                DurationComponent = EffectComponent.GetComponent<ChaosEffectDurationComponent>();
             }
         }
 
@@ -115,7 +113,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 ref TimedEffectActivityInfo effectActivity = ref _timedEffectActivity[(int)effectInfo.EffectIndex];
                 if (effectActivity.InstancesCount > 0)
                 {
-                    ChaosEffectDurationComponent activeEffectDurationComponent = effectActivity.Instances[0].DurationComponent;
+                    ChaosEffectDurationComponent activeEffectDurationComponent = effectActivity.Instances[0].EffectComponent.DurationComponent;
                     if (activeEffectDurationComponent)
                     {
                         if (timedEffectInfo.GetCanStack(activeEffectDurationComponent.TimedType))
@@ -141,7 +139,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
                         for (int i = effectActivity.InstancesCount - 1; i >= 0; i--)
                         {
-                            ChaosEffectDurationComponent durationComponent = effectActivity.Instances[i].DurationComponent;
+                            ChaosEffectDurationComponent durationComponent = effectActivity.Instances[i].EffectComponent.DurationComponent;
                             if (durationComponent)
                             {
                                 durationComponent.EndEffect();
@@ -172,7 +170,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 return;
             }
 
-            if (!effectComponent.TryGetComponent(out ChaosEffectDurationComponent effectDurationComponent))
+            if (!effectComponent.DurationComponent)
                 return;
 
             ref TimedEffectActivityInfo effectActivity = ref _timedEffectActivity[(int)effectIndex];
@@ -193,7 +191,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 return;
             }
 
-            if (!effectComponent.TryGetComponent(out ChaosEffectDurationComponent effectDurationComponent))
+            if (!effectComponent.DurationComponent)
                 return;
 
             ref TimedEffectActivityInfo effectActivity = ref _timedEffectActivity[(int)effectIndex];
@@ -307,7 +305,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 {
                     ref EffectInstanceInfo effectInstanceInfo = ref effectActivity.Instances[j];
 
-                    ChaosEffectDurationComponent durationComponent = effectInstanceInfo.DurationComponent;
+                    ChaosEffectDurationComponent durationComponent = effectInstanceInfo.EffectComponent.DurationComponent;
                     if (durationComponent && durationComponent.TimedType != TimedEffectType.AlwaysActive)
                     {
                         durationComponent.EndEffect();

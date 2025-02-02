@@ -186,11 +186,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
             // Generate as many steps as needed for the fixed duration,
             // otherwise create a cycle long enough that the looping would hopefully not be noticeable
             float effectDuration = 120f;
-            if (TryGetComponent(out ChaosEffectDurationComponent durationComponent))
+            if (_effectComponent.DurationComponent)
             {
-                if (durationComponent.TimedType == TimedEffectType.FixedDuration)
+                if (_effectComponent.DurationComponent.TimedType == TimedEffectType.FixedDuration)
                 {
-                    effectDuration = durationComponent.Duration;
+                    effectDuration = _effectComponent.DurationComponent.Duration;
                 }
             }
 

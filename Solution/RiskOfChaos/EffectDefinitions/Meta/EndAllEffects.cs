@@ -25,12 +25,12 @@ namespace RiskOfChaos.EffectDefinitions.Meta
 
         static bool canEndEffect(ChaosEffectComponent effectComponent, in EffectCanActivateContext context)
         {
-            if (effectComponent.TryGetComponent(out ChaosEffectDurationComponent durationComponent))
+            if (effectComponent.DurationComponent)
             {
-                if (durationComponent.TimedType == TimedEffectType.AlwaysActive)
+                if (effectComponent.DurationComponent.TimedType == TimedEffectType.AlwaysActive)
                     return false;
 
-                if (durationComponent.TimedType == TimedEffectType.Permanent && _excludePermanentEffects.Value)
+                if (effectComponent.DurationComponent.TimedType == TimedEffectType.Permanent && _excludePermanentEffects.Value)
                     return false;
             }
 

@@ -64,7 +64,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         }
 
         ChaosEffectComponent _effectComponent;
-        ChaosEffectDurationComponent _durationComponent;
 
         float _masterRespawnTimer;
         CharacterMaster _spawnedMaster;
@@ -78,7 +77,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
-            _durationComponent = GetComponent<ChaosEffectDurationComponent>();
         }
 
         void OnDestroy()
@@ -131,7 +129,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         void updateClient()
         {
-            bool canShowCountdownTimer = _durationComponent && _durationComponent.TimedType == TimedEffectType.FixedDuration;
+            bool canShowCountdownTimer = _effectComponent.DurationComponent && _effectComponent.DurationComponent.TimedType == TimedEffectType.FixedDuration;
 
             if (canShowCountdownTimer && _showCountdownTimer.Value && isValidScene())
             {
@@ -170,9 +168,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             if (_countdownTimers.Count > 0)
             {
                 float timeRemaining = _effectComponent.TimeStarted.TimeSinceClamped;
-                if (_durationComponent && _durationComponent.TimedType == TimedEffectType.FixedDuration)
+                if (_effectComponent.DurationComponent && _effectComponent.DurationComponent.TimedType == TimedEffectType.FixedDuration)
                 {
-                    timeRemaining = _durationComponent.Remaining;
+                    timeRemaining = _effectComponent.DurationComponent.Remaining;
                 }
 
                 foreach (TimerText timerText in _countdownTimers)

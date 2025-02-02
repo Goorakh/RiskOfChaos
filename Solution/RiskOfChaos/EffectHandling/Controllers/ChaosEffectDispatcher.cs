@@ -193,13 +193,13 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
                 if (effect is TimedEffectInfo timedEffect)
                 {
-                    if (effectController.TryGetComponent(out ChaosEffectDurationComponent durationComponent))
+                    if (effectComponent.DurationComponent)
                     {
                         TimedEffectType timedType = args.OverrideDurationType ?? timedEffect.TimedType;
                         float duration = args.OverrideDuration ?? timedEffect.GetDuration(timedType);
 
-                        durationComponent.TimedType = timedType;
-                        durationComponent.Duration = duration;
+                        effectComponent.DurationComponent.TimedType = timedType;
+                        effectComponent.DurationComponent.Duration = duration;
                     }
                     else
                     {

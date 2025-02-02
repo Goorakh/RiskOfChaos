@@ -60,12 +60,12 @@ namespace RiskOfChaos.EffectDefinitions.Meta
                 {
                     foreach (ChaosEffectComponent effectComponent in ChaosEffectTracker.Instance.AllActiveTimedEffects)
                     {
-                        if (effectComponent != _effectComponent && effectComponent.TryGetComponent(out ChaosEffectDurationComponent durationComponent))
+                        if (effectComponent != _effectComponent && effectComponent.DurationComponent)
                         {
-                            TimedEffectInfo effectInfo = durationComponent.TimedEffectInfo;
+                            TimedEffectInfo effectInfo = effectComponent.DurationComponent.TimedEffectInfo;
                             if (effectInfo != null && !effectInfo.IgnoreDurationModifiers)
                             {
-                                durationComponent.Remaining *= DurationMultiplier;
+                                effectComponent.DurationComponent.Remaining *= DurationMultiplier;
                             }
                         }
                     }
