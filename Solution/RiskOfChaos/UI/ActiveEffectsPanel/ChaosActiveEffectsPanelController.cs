@@ -131,16 +131,32 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
         void OnEnable()
         {
-            ChaosEffectTracker.OnTimedEffectStartGlobal += onTimedEffectStartGlobal;
-            ChaosEffectTracker.OnTimedEffectEndGlobal += onTimedEffectEndGlobal;
+            ChaosEffectTracker.OnTimedEffectStartGlobal += trackTimedEffect;
+            ChaosEffectTracker.OnTimedEffectEndGlobal += untrackTimedEffect;
+
+            if (ChaosEffectTracker.Instance)
+            {
+                foreach (ChaosEffectComponent effectComponent in ChaosEffectTracker.Instance.AllActiveTimedEffects)
+                {
+                    trackTimedEffect(effectComponent);
+                }
+            }
 
             markActiveEffectsDirty();
         }
 
         void OnDisable()
         {
-            ChaosEffectTracker.OnTimedEffectStartGlobal -= onTimedEffectStartGlobal;
-            ChaosEffectTracker.OnTimedEffectEndGlobal -= onTimedEffectEndGlobal;
+            ChaosEffectTracker.OnTimedEffectStartGlobal -= trackTimedEffect;
+            ChaosEffectTracker.OnTimedEffectEndGlobal -= untrackTimedEffect;
+
+            if (ChaosEffectTracker.Instance)
+            {
+                foreach (ChaosEffectComponent effectComponent in ChaosEffectTracker.Instance.AllActiveTimedEffects)
+                {
+                    untrackTimedEffect(effectComponent);
+                }
+            }
 
             setDisplayedEffects([]);
         }
@@ -156,12 +172,21 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
             }
         }
 
-        void onTimedEffectStartGlobal(ChaosEffectComponent effectComponent)
+        void trackTimedEffect(ChaosEffectComponent effectComponent)
         {
             markActiveEffectsDirty();
+
+            effectComponent.OnShouldDisplayOnHUDChanged += onShouldDisplayOnHUDChanged;
         }
 
-        void onTimedEffectEndGlobal(ChaosEffectComponent effectComponent)
+        void untrackTimedEffect(ChaosEffectComponent effectComponent)
+        {
+            markActiveEffectsDirty();
+
+            effectComponent.OnShouldDisplayOnHUDChanged -= onShouldDisplayOnHUDChanged;
+        }
+
+        void onShouldDisplayOnHUDChanged(ChaosEffectComponent effectComponent)
         {
             markActiveEffectsDirty();
         }

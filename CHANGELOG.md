@@ -30,6 +30,9 @@
 * Cleanse Random Item:
   * Fixed effect being selectable in effect voting if no player has any cleansable items.
 
+* UI:
+  * Fixed permanently active effects displays not updating when 'Display Permanently Active Effects' setting was changed.
+
 * Audio:
   * Fixed effect activation sound playing twice.
 

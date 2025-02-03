@@ -40,6 +40,8 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
 
         bool _isInitialized;
 
+        float _shouldDisplayOnHUDRefreshTimer;
+
         [SerializedMember("ts")]
         public RunTimeStamp TimeStarted
         {
@@ -72,27 +74,26 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
             }
         }
 
+        bool _shouldDisplayOnHUD;
         public bool ShouldDisplayOnHUD
         {
             get
             {
-                if (!isActiveAndEnabled || ChaosEffectInfo == null)
-                    return false;
+                return _shouldDisplayOnHUD;
+            }
+            set
+            {
+                if (_shouldDisplayOnHUD == value)
+                    return;
 
-                foreach (IEffectHUDVisibilityProvider hudVisibilityProvider in _hudVisibilityProviders)
-                {
-                    MonoBehaviour hudVisibilityProviderComponent = hudVisibilityProvider as MonoBehaviour;
-                    if (hudVisibilityProviderComponent && hudVisibilityProviderComponent.isActiveAndEnabled && !hudVisibilityProvider.CanShowOnHUD)
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
+                _shouldDisplayOnHUD = value;
+                OnShouldDisplayOnHUDChanged?.Invoke(this);
             }
         }
 
         public ChaosEffectDurationComponent DurationComponent { get; private set; }
+
+        public event Action<ChaosEffectComponent> OnShouldDisplayOnHUDChanged;
 
         [Server]
         public void SetRngSeedServer(ulong seed)
@@ -107,6 +108,11 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
             _hudVisibilityProviders = GetComponents<IEffectHUDVisibilityProvider>();
             _serializationComponent = GetComponent<ObjectSerializationComponent>();
             DurationComponent = GetComponent<ChaosEffectDurationComponent>();
+        }
+
+        void OnEnable()
+        {
+            RefreshShouldDisplayOnHUD();
         }
 
         public override void OnStartServer()
@@ -160,6 +166,13 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
             {
                 fixedUpdateServer();
             }
+
+            _shouldDisplayOnHUDRefreshTimer -= Time.fixedDeltaTime;
+            if (_shouldDisplayOnHUDRefreshTimer <= 0f)
+            {
+                _shouldDisplayOnHUDRefreshTimer = 0.5f;
+                RefreshShouldDisplayOnHUD();
+            }
         }
 
         [Server]
@@ -173,6 +186,28 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
                     RetireEffect();
                 }
             }
+        }
+
+        public void RefreshShouldDisplayOnHUD()
+        {
+            ShouldDisplayOnHUD = calculateShouldDisplayOnHUD();
+        }
+
+        bool calculateShouldDisplayOnHUD()
+        {
+            if (!isActiveAndEnabled || ChaosEffectInfo == null)
+                return false;
+
+            foreach (IEffectHUDVisibilityProvider hudVisibilityProvider in _hudVisibilityProviders)
+            {
+                MonoBehaviour hudVisibilityProviderComponent = hudVisibilityProvider as MonoBehaviour;
+                if (hudVisibilityProviderComponent && hudVisibilityProviderComponent.isActiveAndEnabled && !hudVisibilityProvider.CanShowOnHUD)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         [Server]
