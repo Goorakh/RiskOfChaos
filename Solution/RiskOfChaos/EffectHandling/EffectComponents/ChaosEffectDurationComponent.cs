@@ -72,10 +72,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         {
             get
             {
-                if (TimedEffectInfo == null || !TimedEffectInfo.GetShouldDisplayOnHUD(TimedType))
-                    return false;
-
-                return true;
+                return TimedEffectInfo != null && TimedEffectInfo.GetShouldDisplayOnHUD(TimedType);
             }
         }
 
