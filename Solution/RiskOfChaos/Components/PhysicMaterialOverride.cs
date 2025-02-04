@@ -81,8 +81,7 @@ namespace RiskOfChaos.Components
 
             foreach (KeyValuePair<Collider, PhysicMaterial> kvp in _originalMaterials)
             {
-                Collider collider = kvp.Key;
-                PhysicMaterial originalMaterial = kvp.Value;
+                kvp.Deconstruct(out Collider collider, out PhysicMaterial originalMaterial);
 
                 if (collider)
                 {

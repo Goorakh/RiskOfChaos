@@ -14,6 +14,7 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.DropTables;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using System;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -201,7 +202,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
 
                         if (pickupPickerController.options != null)
                         {
-                            ArrayUtils.SetAll(pickupPickerController.options, new PickupPickerController.Option
+                            Array.Fill(pickupPickerController.options, new PickupPickerController.Option
                             {
                                 pickupIndex = OverridePickupIndex,
                                 available = true

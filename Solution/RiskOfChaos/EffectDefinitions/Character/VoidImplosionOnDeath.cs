@@ -169,8 +169,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 List<SerializedProjectileBodyPairing> pairings = new List<SerializedProjectileBodyPairing>(bodyIndicesByProjectilePrefab.Count);
                 foreach (KeyValuePair<GameObject, List<BodyIndex>> kvp in bodyIndicesByProjectilePrefab)
                 {
-                    GameObject projectilePrefab = kvp.Key;
-                    List<BodyIndex> bodyIndices = kvp.Value;
+                    kvp.Deconstruct(out GameObject projectilePrefab, out List<BodyIndex> bodyIndices);
 
                     pairings.Add(new SerializedProjectileBodyPairing
                     {

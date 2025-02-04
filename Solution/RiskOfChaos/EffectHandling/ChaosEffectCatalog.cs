@@ -180,8 +180,10 @@ namespace RiskOfChaos.EffectHandling
                 incompatibleEffectsDict[effectIndex] = incompatibleEffects;
             }
 
-            foreach ((ChaosEffectIndex effectIndex, HashSet<ChaosEffectIndex> incompatibleEffects) in incompatibleEffectsDict)
+            foreach (KeyValuePair<ChaosEffectIndex, HashSet<ChaosEffectIndex>> kvp in incompatibleEffectsDict)
             {
+                kvp.Deconstruct(out ChaosEffectIndex effectIndex, out HashSet<ChaosEffectIndex> incompatibleEffects);
+
                 if (incompatibleEffects.Count > 0)
                 {
                     ChaosEffectInfo effectInfo = GetEffectInfo(effectIndex);

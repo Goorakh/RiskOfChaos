@@ -131,8 +131,7 @@ namespace RiskOfChaos.SaveHandling
 
             foreach (KeyValuePair<Type, ComponentSerializationInfo> kvp in _serializationInfoByComponentType)
             {
-                Type componentType = kvp.Key;
-                ComponentSerializationInfo serializationInfo = kvp.Value;
+                kvp.Deconstruct(out Type componentType, out ComponentSerializationInfo serializationInfo);
 
                 List<SerializableObjectField> fields = new List<SerializableObjectField>(serializationInfo.SerializableMembers.Length);
 

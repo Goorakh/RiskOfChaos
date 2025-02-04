@@ -1,4 +1,5 @@
 ﻿using HG;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -30,7 +31,7 @@ namespace RiskOfChaos.Components
                 _originalMaterials.Add(renderer, originalMaterials);
 
                 Material[] materials = new Material[originalMaterials.Length];
-                ArrayUtils.SetAll(materials, OverrideMaterial);
+                Array.Fill(materials, OverrideMaterial);
                 renderer.sharedMaterials = materials;
             }
         }
@@ -39,8 +40,7 @@ namespace RiskOfChaos.Components
         {
             foreach (KeyValuePair<Renderer, Material[]> kvp in _originalMaterials)
             {
-                Renderer renderer = kvp.Key;
-                Material[] originalMaterials = kvp.Value;
+                kvp.Deconstruct(out Renderer renderer, out Material[] originalMaterials);
 
                 if (renderer)
                 {

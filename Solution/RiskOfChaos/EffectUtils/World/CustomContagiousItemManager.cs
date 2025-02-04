@@ -79,10 +79,12 @@ namespace RiskOfChaos.EffectUtils.World
 
             foreach (KeyValuePair<ItemIndex, ItemIndex> kvp in _customItemTransformations)
             {
+                kvp.Deconstruct(out ItemIndex originalItemIndex, out ItemIndex transformedItemIndex);
+
                 _contaigousItemPairs[itemPairIndex] = new ItemDef.Pair
                 {
-                    itemDef1 = ItemCatalog.GetItemDef(kvp.Key),
-                    itemDef2 = ItemCatalog.GetItemDef(kvp.Value)
+                    itemDef1 = ItemCatalog.GetItemDef(originalItemIndex),
+                    itemDef2 = ItemCatalog.GetItemDef(transformedItemIndex)
                 };
 
                 itemPairIndex++;
@@ -124,7 +126,7 @@ namespace RiskOfChaos.EffectUtils.World
                 c.EmitDelegate(appendCustomItemPairs);
                 static ReadOnlyArray<ItemDef.Pair> appendCustomItemPairs(ReadOnlyArray<ItemDef.Pair> itemPairs)
                 {
-                    if (_customItemTransformations.Count > 0)
+                    if (_contaigousItemPairs.Length > 0)
                     {
                         itemPairs = new ReadOnlyArray<ItemDef.Pair>([.. itemPairs.src, .. _contaigousItemPairs]);
                     }
@@ -187,10 +189,9 @@ namespace RiskOfChaos.EffectUtils.World
 
                 foreach (KeyValuePair<ItemIndex, List<ItemIndex>> kvp in transformedToOriginalList)
                 {
-                    ItemIndex transformedItemIndex = kvp.Key;
-                    ItemDef transformedItem = ItemCatalog.GetItemDef(transformedItemIndex);
+                    kvp.Deconstruct(out ItemIndex transformedItemIndex, out List<ItemIndex> originalItemIndices);
 
-                    List<ItemIndex> originalItemIndices = kvp.Value;
+                    ItemDef transformedItem = ItemCatalog.GetItemDef(transformedItemIndex);
 
                     itemNameListBuilder.Clear();
                     for (int i = 0; i < originalItemIndices.Count; i++)

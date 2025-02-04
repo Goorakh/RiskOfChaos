@@ -3,6 +3,7 @@ using RiskOfChaos.EffectDefinitions.World.Items;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RoR2;
+using System;
 using System.Collections.Generic;
 
 namespace RiskOfChaos.Patches.Effects.World.Items
@@ -53,7 +54,7 @@ namespace RiskOfChaos.Patches.Effects.World.Items
             PickupIndex overridePickup = currentOverridePickup;
             if (overridePickup.isValid)
             {
-                ArrayUtils.SetAll(result, overridePickup);
+                Array.Fill(result, overridePickup);
             }
 
             return result;
@@ -80,7 +81,7 @@ namespace RiskOfChaos.Patches.Effects.World.Items
             {
                 if (pickupIndex == overridePickup)
                 {
-                    ArrayUtils.SetAll(options, new PickupPickerController.Option
+                    Array.Fill(options, new PickupPickerController.Option
                     {
                         pickupIndex = overridePickup,
                         available = true
