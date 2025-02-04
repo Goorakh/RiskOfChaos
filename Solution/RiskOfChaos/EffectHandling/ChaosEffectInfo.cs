@@ -43,7 +43,9 @@ namespace RiskOfChaos.EffectHandling
 
         readonly ChaosEffectCanActivateMethod[] _canActivateMethods = [];
 
-        public readonly ReadOnlyCollection<TimedEffectInfo> IncompatibleEffects = Empty<TimedEffectInfo>.ReadOnlyCollection;
+        public readonly ReadOnlyCollection<Type> IncompatibleEffectComponentTypes = Empty<Type>.ReadOnlyCollection;
+
+        public ReadOnlyArray<ChaosEffectIndex> IncompatibleEffects { get; private set; } = new ReadOnlyArray<ChaosEffectIndex>([]);
 
         public readonly ConfigHolder<bool> IsEnabledConfig;
         readonly ConfigHolder<float> _selectionWeightConfig;
@@ -157,31 +159,7 @@ namespace RiskOfChaos.EffectHandling
 
             StaticDisplayNameFormatterProvider = new EffectNameFormatterProvider(GetDefaultNameFormatter(), true);
 
-            if (incompatibleEffectTypes.Count > 0)
-            {
-                List<TimedEffectInfo> incompatibleEffects = new List<TimedEffectInfo>(incompatibleEffectTypes.Count);
-                IncompatibleEffects = new ReadOnlyCollection<TimedEffectInfo>(incompatibleEffects);
-
-                ChaosEffectCatalog.Availability.CallWhenAvailable(() =>
-                {
-                    foreach (TimedEffectInfo timedEffect in ChaosEffectCatalog.AllTimedEffects)
-                    {
-                        if (timedEffect == this)
-                            continue;
-
-                        foreach (Type componentType in timedEffect.ControllerComponentTypes)
-                        {
-                            if (incompatibleEffectTypes.Any(t => t.IsAssignableFrom(componentType)))
-                            {
-                                incompatibleEffects.Add(timedEffect);
-                                break;
-                            }
-                        }
-                    }
-
-                    Log.Debug($"Initialized incompatibility list for {this}: [{string.Join(", ", incompatibleEffects)}]");
-                });
-            }
+            IncompatibleEffectComponentTypes = new ReadOnlyCollection<Type>(incompatibleEffectTypes.ToArray());
 
             ConfigSectionName = "Effect: " + (attribute.ConfigName ?? Language.GetString(NameToken, "en").FilterConfigKey());
 
@@ -273,6 +251,18 @@ namespace RiskOfChaos.EffectHandling
             }
         }
 
+        public void SetIncompatibleEffects(ChaosEffectIndex[] incompatibleEffectIndices)
+        {
+            ChaosEffectIndex[] incompatibleEffects = ArrayUtils.Clone(incompatibleEffectIndices);
+            Array.Sort(incompatibleEffects);
+            IncompatibleEffects = incompatibleEffects;
+        }
+
+        public bool IsIncompatibleWith(ChaosEffectIndex otherEffectIndex)
+        {
+            return ReadOnlyArray<ChaosEffectIndex>.BinarySearch(IncompatibleEffects, otherEffectIndex) >= 0;
+        }
+
         public virtual void BindConfigs()
         {
             IsEnabledConfig?.Bind(this);
@@ -326,8 +316,9 @@ namespace RiskOfChaos.EffectHandling
 
             if (!Configs.EffectSelection.SeededEffectSelection.Value && ChaosEffectTracker.Instance)
             {
-                foreach (TimedEffectInfo incompatibleEffect in IncompatibleEffects)
+                for (int i = 0; i < IncompatibleEffects.Length; i++)
                 {
+                    ChaosEffectIndex incompatibleEffect = IncompatibleEffects[i];
                     if (ChaosEffectTracker.Instance.IsAnyInstanceOfTimedEffectRelevantForContext(incompatibleEffect, context))
                     {
                         Log.Debug($"Effect {this} cannot activate: incompatible effect {incompatibleEffect} is active");

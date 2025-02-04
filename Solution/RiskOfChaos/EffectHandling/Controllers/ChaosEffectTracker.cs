@@ -138,7 +138,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 if (effectActivity.InstancesCount > 0)
                 {
                     ChaosEffectInfo activeEffectInfo = ChaosEffectCatalog.GetEffectInfo(effectIndex);
-                    if (effectInfo.IncompatibleEffects.Contains(activeEffectInfo) || activeEffectInfo.IncompatibleEffects.Contains(effectInfo))
+                    if (activeEffectInfo.IsIncompatibleWith(effectInfo.EffectIndex))
                     {
                         Log.Debug($"Ending {effectActivity.InstancesCount} timed effect(s) {activeEffectInfo} due to: incompatible effect about to start ({effectInfo})");
 
@@ -217,7 +217,12 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
         public bool IsAnyInstanceOfTimedEffectRelevantForContext(TimedEffectInfo effectInfo, in EffectCanActivateContext context)
         {
-            ref TimedEffectActivityInfo effectActivity = ref _timedEffectActivity[(int)effectInfo.EffectIndex];
+            return IsAnyInstanceOfTimedEffectRelevantForContext(effectInfo.EffectIndex, context);
+        }
+
+        public bool IsAnyInstanceOfTimedEffectRelevantForContext(ChaosEffectIndex effectIndex, in EffectCanActivateContext context)
+        {
+            ref TimedEffectActivityInfo effectActivity = ref _timedEffectActivity[(int)effectIndex];
             for (int i = 0; i < effectActivity.InstancesCount; i++)
             {
                 if (effectActivity.Instances[i].EffectComponent.IsRelevantForContext(context))

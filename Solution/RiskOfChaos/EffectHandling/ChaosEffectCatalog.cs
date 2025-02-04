@@ -40,8 +40,7 @@ namespace RiskOfChaos.EffectHandling
         static readonly Dictionary<string, ChaosEffectIndex> _effectIndexByNameToken = [];
         static readonly Dictionary<Type, ChaosEffectIndex> _effectIndexByType = [];
 
-        static int _effectCount;
-        public static int EffectCount => _effectCount;
+        public static int EffectCount => _effects.Length;
 
         static readonly WeightedSelection<ChaosEffectInfo> _pickNextEffectSelection = new WeightedSelection<ChaosEffectInfo>();
 
@@ -112,13 +111,11 @@ namespace RiskOfChaos.EffectHandling
                 }
             }
 
-            _effectCount = _effects.Length;
-
-            _pickNextEffectSelection.EnsureCapacity(_effectCount);
+            _pickNextEffectSelection.EnsureCapacity(EffectCount);
 
             checkFindEffectIndex();
 
-            ChaosEffectInfo[] effectsByConfigName = new ChaosEffectInfo[_effectCount];
+            ChaosEffectInfo[] effectsByConfigName = new ChaosEffectInfo[EffectCount];
             _effects.CopyTo(effectsByConfigName, 0);
             Array.Sort(effectsByConfigName, (a, b) => StringComparer.OrdinalIgnoreCase.Compare(a.ConfigSectionName, b.ConfigSectionName));
 
@@ -128,7 +125,7 @@ namespace RiskOfChaos.EffectHandling
                 effectInfo.BindConfigs();
             }
 
-            Log.Info($"Registered {_effectCount} effects");
+            Log.Info($"Registered {EffectCount} effects");
 
             foreach (ChaosEffectInfo effectInfo in effectsByConfigName)
             {
@@ -144,6 +141,56 @@ namespace RiskOfChaos.EffectHandling
                 }
             }
 
+            Dictionary<ChaosEffectIndex, HashSet<ChaosEffectIndex>> incompatibleEffectsDict = new Dictionary<ChaosEffectIndex, HashSet<ChaosEffectIndex>>(EffectCount);
+
+            for (ChaosEffectIndex effectIndex = 0; effectIndex < (ChaosEffectIndex)EffectCount; effectIndex++)
+            {
+                ChaosEffectInfo effectInfo = GetEffectInfo(effectIndex);
+
+                if (effectInfo.IncompatibleEffectComponentTypes.Count <= 0)
+                    continue;
+
+                HashSet<ChaosEffectIndex> incompatibleEffects = incompatibleEffectsDict.GetOrAddNew(effectIndex);
+                incompatibleEffects.EnsureCapacity(effectInfo.IncompatibleEffectComponentTypes.Count);
+
+                foreach (TimedEffectInfo timedEffect in AllTimedEffects)
+                {
+                    if (timedEffect == effectInfo)
+                        continue;
+
+                    if (incompatibleEffects.Contains(timedEffect.EffectIndex))
+                        continue;
+
+                    foreach (Type componentType in timedEffect.ControllerComponentTypes)
+                    {
+                        if (effectInfo.IncompatibleEffectComponentTypes.Any(t => t.IsAssignableFrom(componentType)))
+                        {
+                            incompatibleEffects.Add(timedEffect.EffectIndex);
+                            break;
+                        }
+                    }
+                }
+
+                foreach (ChaosEffectIndex incompatibleEffectIndex in incompatibleEffects)
+                {
+                    HashSet<ChaosEffectIndex> otherIncompatibleEffects = incompatibleEffectsDict.GetOrAddNew(incompatibleEffectIndex);
+                    otherIncompatibleEffects.Add(effectIndex);
+                }
+
+                incompatibleEffectsDict[effectIndex] = incompatibleEffects;
+            }
+
+            foreach ((ChaosEffectIndex effectIndex, HashSet<ChaosEffectIndex> incompatibleEffects) in incompatibleEffectsDict)
+            {
+                if (incompatibleEffects.Count > 0)
+                {
+                    ChaosEffectInfo effectInfo = GetEffectInfo(effectIndex);
+                    effectInfo.SetIncompatibleEffects([.. incompatibleEffects]);
+
+                    Log.Debug($"Initialized incompatibility list for {effectInfo}: [{string.Join(", ", incompatibleEffects.Select(GetEffectInfo))}]");
+                }
+            }
+
             Availability.MakeAvailable();
 
             stopwatch.Stop();
@@ -152,7 +199,7 @@ namespace RiskOfChaos.EffectHandling
 
         static void checkFindEffectIndex()
         {
-            for (ChaosEffectIndex effectIndex = 0; effectIndex < (ChaosEffectIndex)_effectCount; effectIndex++)
+            for (ChaosEffectIndex effectIndex = 0; effectIndex < (ChaosEffectIndex)EffectCount; effectIndex++)
             {
                 ChaosEffectInfo effectInfo = GetEffectInfo(effectIndex);
 
