@@ -77,12 +77,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     }
                 }
 
-                if (!reverseItemCorruptionMap.TryGetValue(transformedItem, out List<ItemIndex> originalItems))
-                {
-                    originalItems = [];
-                    reverseItemCorruptionMap.Add(transformedItem, originalItems);
-                }
-
+                List<ItemIndex> originalItems = reverseItemCorruptionMap.GetOrAddNew(transformedItem);
                 originalItems.Add(originalItem);
             }
 
