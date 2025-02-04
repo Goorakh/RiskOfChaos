@@ -164,7 +164,7 @@ namespace RiskOfChaos.Patches.AttackHooks
 
         static void tryBounceOrb(Orb orbInstance)
         {
-            if (orbInstance == null)
+            if (orbInstance == null || !orbInstance.target)
                 return;
 
             if (!_orbBounceChains.TryGetValue(orbInstance, out OrbBounceChain bounceChain))
