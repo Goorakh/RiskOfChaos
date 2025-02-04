@@ -5,14 +5,12 @@ using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectComponents;
-using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.ModificationController.Effect;
 using RiskOfChaos.SaveHandling;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace RiskOfChaos.EffectHandling
 {
