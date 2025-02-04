@@ -321,7 +321,7 @@ namespace RiskOfChaos.EffectHandling
                     ChaosEffectIndex incompatibleEffect = IncompatibleEffects[i];
                     if (ChaosEffectTracker.Instance.IsAnyInstanceOfTimedEffectRelevantForContext(incompatibleEffect, context))
                     {
-                        Log.Debug($"Effect {this} cannot activate: incompatible effect {incompatibleEffect} is active");
+                        Log.Debug($"Effect {this} cannot activate: incompatible effect {ChaosEffectCatalog.GetEffectInfo(incompatibleEffect)} is active");
 
                         return false;
                     }
