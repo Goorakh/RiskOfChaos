@@ -1,6 +1,6 @@
 ## Changelog
 
-**-.-.- Changes:**
+**2.6.0 Changes:**
 
 * Added 2 effects:
   * Cycle Skills on Use: Using a skill switches it to a different skill. Lasts 90 seconds.
@@ -36,7 +36,8 @@
 * Audio:
   * Fixed effect activation sound playing twice.
 
-**2.5.1 Changes:**
+<details>
+  <summary>2.5.1 Changes:</summary>
 
 * Item Magnet & Item Repulsor:
   * Tweaked item physics to be more consistent.
@@ -78,7 +79,10 @@
 * Inventory Swap:
   * Fixed effect being able to activate in singleplayer if seeded effect mode was enabled.
 
-**2.5.0 Changes:**
+</details>
+
+<details>
+  <summary>2.5.0 Changes:</summary>
 
 * Added 1 effect:
   * Disable Revives: Disables all means of reviving, lasts 1 stage.
@@ -116,6 +120,8 @@
 
 * Explosive Deaths:
   * Removed explosion proc coefficient
+
+</details>
 
 <details>
   <summary>2.4.1 Changes:</summary>
