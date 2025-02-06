@@ -54,8 +54,9 @@ namespace RiskOfChaos.Patches
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void onSingleMonsterTypeChanged()
         {
-            OnSingleMonsterTypeChanged?.Invoke();
             EnemyInfoPanel.MarkDirty();
+
+            OnSingleMonsterTypeChanged?.Invoke();
         }
     }
 }

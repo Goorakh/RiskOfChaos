@@ -1,11 +1,9 @@
 ﻿using RiskOfChaos.Content;
-using RiskOfChaos.Patches;
 using RiskOfChaos.Trackers;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Artifacts;
-using RoR2.UI;
 using System.Collections.Generic;
 using UnityEngine.Networking;
 
@@ -21,9 +19,6 @@ namespace RiskOfChaos
         {
             RunArtifactManager.onArtifactEnabledGlobal += RunArtifactManager_onArtifactEnabledGlobal;
             RunArtifactManager.onArtifactDisabledGlobal += RunArtifactManager_onArtifactDisabledGlobal;
-
-            // Enabling/Disabling an artifact doesn't refresh the info panel, so Artifact of Kin display doesn't update if it's enabled or disabled mid-run
-            SingleMonsterTypeChangedHook.OnSingleMonsterTypeChanged += EnemyInfoPanel.MarkDirty;
         }
 
         static void RunArtifactManager_onArtifactEnabledGlobal(RunArtifactManager runArtifactManager, ArtifactDef artifactDef)
