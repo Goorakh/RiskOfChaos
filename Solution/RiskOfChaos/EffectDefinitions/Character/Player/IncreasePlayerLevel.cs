@@ -37,13 +37,22 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
 
         void Start()
         {
-            if (NetworkServer.active)
+            if (!NetworkServer.active)
+                return;
+            
+            if (TeamManager.instance)
             {
-                TeamManager teamManager = TeamManager.instance;
-                if (teamManager)
+                uint currentLevel = TeamManager.instance.GetTeamLevel(TeamIndex.Player);
+                uint targetLevel = currentLevel + ClampedConversion.UInt32(_levelsToAdd.Value);
+
+                ulong currentLevelExperience = TeamManager.GetExperienceForLevel(currentLevel);
+                ulong targetLevelExperience = TeamManager.GetExperienceForLevel(targetLevel);
+
+                if (targetLevelExperience > currentLevelExperience)
                 {
-                    uint newLevel = teamManager.GetTeamLevel(TeamIndex.Player) + ClampedConversion.UInt32(_levelsToAdd.Value);
-                    teamManager.SetTeamLevel(TeamIndex.Player, newLevel);
+                    ulong experienceToGive = targetLevelExperience - currentLevelExperience;
+
+                    TeamManager.instance.GiveTeamExperience(TeamIndex.Player, experienceToGive);
                 }
             }
         }

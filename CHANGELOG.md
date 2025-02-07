@@ -1,5 +1,10 @@
 ## Changelog
 
+**-.-.- Changes:**
+
+* Increase Player Level:
+  * Fixed gained levels not counting towards Prayer Beads level.
+
 **2.6.0 Changes:**
 
 * Added 2 effects:
