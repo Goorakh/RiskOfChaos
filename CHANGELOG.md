@@ -1,6 +1,6 @@
 ## Changelog
 
-**-.-.- Changes:**
+**2.6.1 Changes:**
 
 * Fixed an incompatibility with old versions of ProcTypeAPI
 
