@@ -1,5 +1,6 @@
 ﻿using R2API;
 using RiskOfChaos.Content;
+using RiskOfChaos.ModCompatibility;
 using RiskOfChaos.Utilities;
 using RoR2;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ namespace RiskOfChaos.Patches.AttackHooks
 
         static void onOverlapAttackResetIgnoredHealthComponents(OverlapAttack overlapAttack)
         {
-            for (ModdedProcType moddedProcType = ModdedProcType.Invalid + 1; moddedProcType <= (ModdedProcType)ProcTypeAPI.ModdedProcTypeCount; moddedProcType++)
+            for (ModdedProcType moddedProcType = ProcTypeAPICompat.MinProcType; moddedProcType <= ProcTypeAPICompat.MaxProcType; moddedProcType++)
             {
                 if (CustomProcTypes.IsMarkerProc(moddedProcType))
                 {

@@ -2,6 +2,8 @@
 
 **-.-.- Changes:**
 
+* Fixed an incompatibility with old versions of ProcTypeAPI
+
 * Increase Player Level:
   * Fixed gained levels not counting towards Prayer Beads level.
 

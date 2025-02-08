@@ -65,6 +65,8 @@ namespace RiskOfChaos
                 ProperSaveCompat.Init();
             }
 
+            ProcTypeAPICompat.Init();
+
             _harmonyInstance = new Harmony("com." + PluginGUID);
             _harmonyInstance.PatchAll(Assembly.GetExecutingAssembly());
 

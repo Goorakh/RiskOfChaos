@@ -1,5 +1,6 @@
 ﻿using R2API;
 using RiskOfChaos.Content;
+using RiskOfChaos.ModCompatibility;
 using RoR2;
 
 namespace RiskOfChaos.Utilities.Extensions
@@ -11,7 +12,7 @@ namespace RiskOfChaos.Utilities.Extensions
             if (procChain.mask != 0)
                 return true;
 
-            for (ModdedProcType moddedProcType = ModdedProcType.Invalid + 1; moddedProcType <= (ModdedProcType)ProcTypeAPI.ModdedProcTypeCount; moddedProcType++)
+            for (ModdedProcType moddedProcType = ProcTypeAPICompat.MinProcType; moddedProcType <= ProcTypeAPICompat.MaxProcType; moddedProcType++)
             {
                 if (CustomProcTypes.IsMarkerProc(moddedProcType))
                     continue;
@@ -35,7 +36,7 @@ namespace RiskOfChaos.Utilities.Extensions
                 }
             }
 
-            for (ModdedProcType moddedProcType = ModdedProcType.Invalid + 1; moddedProcType <= (ModdedProcType)ProcTypeAPI.ModdedProcTypeCount; moddedProcType++)
+            for (ModdedProcType moddedProcType = ProcTypeAPICompat.MinProcType; moddedProcType <= ProcTypeAPICompat.MaxProcType; moddedProcType++)
             {
                 if (src.HasModdedProc(moddedProcType))
                 {
