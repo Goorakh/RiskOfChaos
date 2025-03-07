@@ -1,14 +1,10 @@
 ﻿using RiskOfChaos.Components;
 using RoR2;
-using System.Collections.Generic;
-using UnityEngine;
 
 namespace RiskOfChaos.Patches
 {
     static class MinCharacterBuffCountPatch
     {
-        static readonly List<KeepBuff> _keepBuffComponentsBuffer = [];
-
         [SystemInitializer]
         static void Init()
         {
@@ -17,26 +13,15 @@ namespace RiskOfChaos.Patches
 
         static void CharacterBody_SetBuffCount(On.RoR2.CharacterBody.orig_SetBuffCount orig, CharacterBody self, BuffIndex buffType, int newCount)
         {
-            int totalMinBuffCount = 0;
-
             if (self)
             {
-                self.GetComponents(_keepBuffComponentsBuffer);
-                foreach (KeepBuff keepBuff in _keepBuffComponentsBuffer)
+                foreach (KeepBuff keepBuff in KeepBuff.Instances)
                 {
-                    if (keepBuff.enabled && keepBuff.BuffIndex == buffType)
+                    if (keepBuff.Body == self)
                     {
-                        if (keepBuff.MinBuffCount >= 0)
-                        {
-                            totalMinBuffCount += keepBuff.MinBuffCount;
-                        }
+                        keepBuff.EnsureValidBuffCount(buffType, ref newCount);
                     }
                 }
-            }
-
-            if (totalMinBuffCount > 0)
-            {
-                newCount = Mathf.Max(totalMinBuffCount, newCount);
             }
 
             orig(self, buffType, newCount);

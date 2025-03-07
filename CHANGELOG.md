@@ -4,6 +4,9 @@
 
 * Fixed for SotS phase 2 patch update.
 
+* Everyone is Invisible:
+  * Fixed Bandit turning invisible permanently if Smoke Bomb was activated (and exited) while the effect was active.
+
 **2.6.1 Changes:**
 
 * Fixed an incompatibility with old versions of ProcTypeAPI

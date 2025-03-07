@@ -1,4 +1,6 @@
 ﻿using RoR2;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -7,49 +9,23 @@ namespace RiskOfChaos.Components
     [RequireComponent(typeof(CharacterBody))]
     public sealed class KeepBuff : MonoBehaviour
     {
+        static readonly List<KeepBuff> _instances = [];
+        public static readonly ReadOnlyCollection<KeepBuff> Instances = new ReadOnlyCollection<KeepBuff>(_instances);
+
         [SerializeField]
         BuffIndex _buffIndex = BuffIndex.None;
         public BuffIndex BuffIndex
         {
-            get
-            {
-                return _buffIndex;
-            }
-            set
-            {
-                if (_buffIndex == value)
-                    return;
-
-                _buffIndex = value;
-
-                markBuffsDirty();
-            }
+            get => _buffIndex;
+            private set => _buffIndex = value;
         }
 
-        [SerializeField]
-        int _minBuffCount = -1;
-        public int MinBuffCount
-        {
-            get
-            {
-                return _minBuffCount;
-            }
-            set
-            {
-                if (_minBuffCount == value)
-                    return;
-
-                _minBuffCount = value;
-                markBuffsDirty();
-            }
-        }
-
-        CharacterBody _body;
+        public int MinBuffCount;
 
         BuffIndex _appliedBuffIndex = BuffIndex.None;
         int _appliedBuffCount;
 
-        bool _buffsDirty;
+        public CharacterBody Body { get; private set; }
 
         void Awake()
         {
@@ -60,69 +36,125 @@ namespace RiskOfChaos.Components
                 return;
             }
 
-            _body = GetComponent<CharacterBody>();
+            Body = GetComponent<CharacterBody>();
         }
 
         void OnEnable()
         {
-            refreshBuffs();
+            _instances.Add(this);
         }
 
         void OnDisable()
         {
-            removeAppliedBuffs();
+            _instances.Remove(this);
+            removeAllAppliedBuffs();
         }
 
-        void markBuffsDirty()
+        void FixedUpdate()
         {
             if (!NetworkServer.active)
             {
-                Log.Warning("Called on client");
+                Destroy(this);
                 return;
             }
 
-            if (_buffsDirty)
-                return;
-
-            _buffsDirty = true;
-
-            RoR2Application.onNextUpdate += refreshBuffs;
-        }
-
-        void refreshBuffs()
-        {
-            _buffsDirty = false;
-
-            if (!NetworkServer.active)
+            if (BuffIndex == BuffIndex.None || MinBuffCount <= 0)
             {
-                Log.Warning("Called on client");
+                Destroy(this);
                 return;
             }
 
-            removeAppliedBuffs();
-
-            _appliedBuffIndex = _buffIndex;
-            _appliedBuffCount = 0;
-
-            if (_appliedBuffIndex != BuffIndex.None)
+            if (BuffIndex != _appliedBuffIndex)
             {
-                // Kinda ugly, but it does work, all that's needed is a call to SetBuffCount for the right buff
-                int oldBuffCount = _body.GetBuffCount(_appliedBuffIndex);
+                if (_appliedBuffIndex != BuffIndex.None)
+                {
+                    removeAllAppliedBuffs();
+                }
 
-                _body.SetBuffCount(_appliedBuffIndex, oldBuffCount);
-                _appliedBuffCount = _body.GetBuffCount(_appliedBuffIndex) - oldBuffCount;
+                _appliedBuffIndex = BuffIndex;
+            }
+
+            if (_appliedBuffCount > MinBuffCount)
+            {
+                removeAppliedBuffs(_appliedBuffCount - MinBuffCount);
+            }
+            else if (_appliedBuffCount < MinBuffCount)
+            {
+                addAppliedBuffs(MinBuffCount - _appliedBuffCount);
             }
         }
 
-        void removeAppliedBuffs()
+        void removeAllAppliedBuffs()
         {
-            if (_appliedBuffIndex != BuffIndex.None && _appliedBuffCount != 0)
-            {
-                _body.SetBuffCount(_appliedBuffIndex, _body.GetBuffCount(_appliedBuffIndex) - _appliedBuffCount);
-            }
-
+            removeAppliedBuffs(_appliedBuffCount);
             _appliedBuffIndex = BuffIndex.None;
             _appliedBuffCount = 0;
+        }
+
+        void removeAppliedBuffs(int count)
+        {
+            if (_appliedBuffIndex != BuffIndex.None)
+            {
+                count = Mathf.Min(count, _appliedBuffCount);
+                if (count > 0)
+                {
+                    _appliedBuffCount -= count;
+
+                    if (NetworkServer.active && Body)
+                    {
+                        Body.SetBuffCount(_appliedBuffIndex, Mathf.Max(0, Body.GetBuffCount(_appliedBuffIndex) - count));
+                    }
+                }
+            }
+        }
+
+        void addAppliedBuffs(int count)
+        {
+            if (_appliedBuffIndex != BuffIndex.None && count > 0)
+            {
+                _appliedBuffCount += count;
+
+                if (NetworkServer.active && Body)
+                {
+                    Body.SetBuffCount(_appliedBuffIndex, Body.GetBuffCount(_appliedBuffIndex) + count);
+                }
+            }
+        }
+
+        public void EnsureValidBuffCount(BuffIndex buffIndex, ref int buffCount)
+        {
+            if (!NetworkServer.active)
+                return;
+
+            if (buffIndex != _appliedBuffIndex)
+                return;
+            
+            buffCount = Mathf.Max(buffCount, _appliedBuffCount);
+        }
+
+        public static KeepBuff FindKeepBuffComponent(CharacterBody body, BuffIndex buffIndex)
+        {
+            foreach (KeepBuff keepBuff in Instances)
+            {
+                if (keepBuff && keepBuff.Body == body && keepBuff.BuffIndex == buffIndex)
+                {
+                    return keepBuff;
+                }
+            }
+
+            return null;
+        }
+
+        public static KeepBuff GetOrAddBuffComponent(CharacterBody body, BuffIndex buffIndex)
+        {
+            KeepBuff keepBuff = FindKeepBuffComponent(body, buffIndex);
+            if (!keepBuff)
+            {
+                keepBuff = body.gameObject.AddComponent<KeepBuff>();
+                keepBuff.BuffIndex = buffIndex;
+            }
+
+            return keepBuff;
         }
     }
 }
