@@ -83,7 +83,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             _availableBuffs.AddEntry(DLC2Content.Buffs.HealAndReviveRegenBuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
             _availableBuffs.AddEntry(DLC2Content.Buffs.IncreaseDamageBuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
             _availableBuffs.AddEntry(DLC2Content.Buffs.IncreasePrimaryDamageBuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
-            _availableBuffs.AddEntry(DLC2Content.Buffs.LowerHealthHigherDamageBuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
+            _availableBuffs.AddEntry(DLC2Content.Buffs.AttackSpeedPerNearbyAllyOrEnemyBuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
 
             _availableBuffs.TrimExcess();
 

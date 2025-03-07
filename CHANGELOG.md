@@ -1,5 +1,9 @@
 ## Changelog
 
+**-.-.- Changes:**
+
+* Fixed for SotS phase 2 patch update.
+
 **2.6.1 Changes:**
 
 * Fixed an incompatibility with old versions of ProcTypeAPI

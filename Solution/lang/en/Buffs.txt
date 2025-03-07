@@ -104,7 +104,7 @@
         "ROC_BUFF_KNOCK_BACK_AVAILABLE_NAME": "Breaching Fin Ready",
         "ROC_BUFF_KNOCK_BACK_UNAVAILABLE_NAME": "Breaching Fin Cooldown",
         "ROC_BUFF_KNOCK_UP_HIT_ENEMIES_NAME": "Breaching Fin Juggle",
-        "ROC_BUFF_LOWER_HEALTH_HIGHER_DAMAGE_BUFF_NAME": "Bolstering Lantern",
+        "ROC_BUFF_ATTACK_SPEED_PER_NEARBY_ALLY_OR_ENEMY_BUFF_NAME": "Bolstering Lantern",
         "ROC_BUFF_LUNARRUIN_NAME": "Lunar Ruin",
         "ROC_BUFF_REVITALIZE_BUFF_NAME": "Revitalize",
         "ROC_BUFF_SOUL_COST_NAME": "Soul Cost",
