@@ -4,6 +4,9 @@
 
 * Fixed for StoS phase 3 patch update.
 
+* Removed 1 effect:
+  * Poison Trails: Had way too many performance issues that I don't care enough to fix.
+
 **2.6.2 Changes:**
 
 * Fixed for SotS phase 2 patch update.

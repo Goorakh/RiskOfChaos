@@ -17,7 +17,6 @@ namespace RiskOfChaos
     [BepInDependency(R2API.Networking.NetworkingAPI.PluginGUID)]
     [BepInDependency(R2API.DamageAPI.PluginGUID)]
     [BepInDependency(R2API.ProcTypeAPI.PluginGUID)]
-    [BepInDependency(R2API.DeployableAPI.PluginGUID)]
     [BepInDependency(RiskOfOptions.PluginInfo.PLUGIN_GUID)]
     [BepInDependency(ProperSave.ProperSavePlugin.GUID, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
