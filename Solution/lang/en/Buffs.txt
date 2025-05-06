@@ -90,6 +90,7 @@
         "ROC_BUFF_COOKING_OILED_NAME": "Oiled",
         "ROC_BUFF_COOKING_ROASTED_NAME": "Roasted",
         "ROC_BUFF_COOKING_ROLLED_NAME": "Rolled",
+        "ROC_BUFF_COOKING_CHILLED_NAME": "Chilled",
         "ROC_BUFF_DELAYED_DAMAGE_BUFF_NAME": "Warped Echo Ready",
         "ROC_BUFF_DELAYED_DAMAGE_DEBUFF_NAME": "Warped Echo Cooldown",
         "ROC_BUFF_DISABLE_ALL_SKILLS_NAME": "Skills Disabled",
@@ -109,5 +110,7 @@
         "ROC_BUFF_REVITALIZE_BUFF_NAME": "Revitalize",
         "ROC_BUFF_SOUL_COST_NAME": "Soul Cost",
         "ROC_BUFF_TELEPORT_ON_LOW_HEALTH_NAME": "Unstable Transmitter Ready",
+        "ROC_BUFF_OILED_NAME": "Oiled",
+        "ROC_BUFF_SEEKER_REVIVED_ONCE_NAME": "Seeker Revive Used",
     }
 }

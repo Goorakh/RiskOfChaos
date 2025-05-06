@@ -73,6 +73,7 @@ namespace RiskOfChaos.Patches
             MissileController missileController = projectileController.GetComponent<MissileController>();
             ProjectileCharacterController projectileCharacterController = projectileController.GetComponent<ProjectileCharacterController>();
             SoulSearchController soulSearchController = projectileController.GetComponent<SoulSearchController>();
+            PalmBlastProjectileController palmBlastProjectileController = projectileController.GetComponent<PalmBlastProjectileController>();
 
             bool isMovingProjectile = (projectileSimple && projectileSimple.desiredForwardSpeed > 0f) ||
                                       (boomerangProjectile && boomerangProjectile.travelSpeed > 0f) ||
@@ -80,7 +81,8 @@ namespace RiskOfChaos.Patches
                                       (daggerController && daggerController.acceleration > 0f) ||
                                       (missileController && missileController.maxVelocity > 0f && missileController.acceleration > 0f) ||
                                       (projectileCharacterController && projectileCharacterController.velocity > 0f) ||
-                                      (soulSearchController && soulSearchController.maxVelocity > 0f && soulSearchController.acceleration > 0f);
+                                      (soulSearchController && soulSearchController.maxVelocity > 0f && soulSearchController.acceleration > 0f) ||
+                                      (palmBlastProjectileController && palmBlastProjectileController.projectileSpeed > 0f);
 
             if (boomerangProjectile)
             {
@@ -95,7 +97,6 @@ namespace RiskOfChaos.Patches
                 cleaverProjectile.travelSpeed *= speedMultiplier;
 
                 cleaverProjectile.transitionDuration *= durationMultiplier;
-                cleaverProjectile.maxFlyStopwatch *= durationMultiplier;
             }
 
             if (daggerController)
@@ -223,6 +224,12 @@ namespace RiskOfChaos.Patches
             {
                 rotateAroundAxis.slowRotationSpeed *= speedMultiplier;
                 rotateAroundAxis.fastRotationSpeed *= speedMultiplier;
+            }
+
+            if (palmBlastProjectileController)
+            {
+                palmBlastProjectileController.projectileSpeed *= speedMultiplier;
+                palmBlastProjectileController.finalProjectileSpeed *= speedMultiplier;
             }
         }
 

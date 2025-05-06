@@ -1,5 +1,9 @@
 ## Changelog
 
+**-.-.- Changes:**
+
+* Fixed for StoS phase 3 patch update.
+
 **2.6.2 Changes:**
 
 * Fixed for SotS phase 2 patch update.

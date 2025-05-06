@@ -17,7 +17,7 @@ namespace RiskOfChaos.Patches
         {
             IL.RoR2.CharacterMaster.OnBodyDeath += CharacterMaster_OnBodyDeath;
             IL.RoR2.EquipmentSlot.FireHealAndRevive += EquipmentSlot_FireHealAndRevive;
-            IL.RoR2.SeekerController.CmdUnlockGateEffects += SeekerController_CmdUnlockGateEffects;
+            IL.RoR2.SeekerController.UnlockGateEffects += SeekerController_UnlockGateEffects;
             IL.RoR2.ShrineColossusAccessBehavior.ReviveAlliedPlayers += ShrineColossusAccessBehavior_ReviveAlliedPlayers;
         }
 
@@ -97,7 +97,7 @@ namespace RiskOfChaos.Patches
                   .Emit(OpCodes.Brfalse, skipReviveLabel);
         }
 
-        static void SeekerController_CmdUnlockGateEffects(ILContext il)
+        static void SeekerController_UnlockGateEffects(ILContext il)
         {
             ILCursor c = new ILCursor(il);
 
