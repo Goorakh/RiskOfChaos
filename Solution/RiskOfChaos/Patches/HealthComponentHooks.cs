@@ -1,4 +1,5 @@
 ﻿using RoR2;
+using System;
 
 namespace RiskOfChaos.Patches
 {
@@ -17,9 +18,25 @@ namespace RiskOfChaos.Patches
 
         static void HealthComponent_TakeDamageProcess(On.RoR2.HealthComponent.orig_TakeDamageProcess orig, HealthComponent self, DamageInfo damageInfo)
         {
-            PreTakeDamage?.Invoke(self, damageInfo);
+            try
+            {
+                PreTakeDamage?.Invoke(self, damageInfo);
+            }
+            catch (Exception e)
+            {
+                Log.Error_NoCallerPrefix(e);
+            }
+
             orig(self, damageInfo);
-            PostTakeDamage?.Invoke(self, damageInfo);
+
+            try
+            {
+                PostTakeDamage?.Invoke(self, damageInfo);
+            }
+            catch (Exception e)
+            {
+                Log.Error_NoCallerPrefix(e);
+            }
         }
     }
 }

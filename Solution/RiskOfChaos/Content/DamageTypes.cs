@@ -35,6 +35,9 @@ namespace RiskOfChaos.Content
 
         static void HealthComponentHooks_PreTakeDamage(HealthComponent healthComponent, DamageInfo damageInfo)
         {
+            if (!healthComponent)
+                return;
+
             GameObject attacker = damageInfo.attacker;
             if (damageInfo.inflictor && damageInfo.inflictor.TryGetComponent(out GenericOwnership ownership))
             {
