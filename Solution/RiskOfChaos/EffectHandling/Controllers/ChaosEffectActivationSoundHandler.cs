@@ -68,9 +68,25 @@ namespace RiskOfChaos.EffectHandling.Controllers
             if (_effectActivationSoundEvent == 0)
                 return;
 
-            foreach (AkAudioListener audioListener in AkAudioListener.DefaultListeners.ListenerList)
+            bool playedSound = false;
+            foreach (CameraRigController cameraRigController in CameraRigController.readOnlyInstancesList)
             {
-                AkSoundEngine.PostEvent(_effectActivationSoundEvent, audioListener.gameObject);
+                if (cameraRigController && cameraRigController.localUserViewer != null)
+                {
+                    AkSoundEngine.PostEvent(_effectActivationSoundEvent, cameraRigController.gameObject);
+                    playedSound = true;
+                }
+            }
+
+            if (!playedSound)
+            {
+                foreach (AkAudioListener audioListener in AkAudioListener.DefaultListeners.ListenerList)
+                {
+                    if (audioListener.GetComponent<MusicController>())
+                        continue;
+
+                    AkSoundEngine.PostEvent(_effectActivationSoundEvent, audioListener.gameObject);
+                }
             }
         }
         
