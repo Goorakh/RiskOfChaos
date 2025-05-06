@@ -1,8 +1,12 @@
 ## Changelog
 
+**-.-.- Changes:**
+
+* Fixed typo.....
+
 **2.6.3 Changes:**
 
-* Fixed for StoS phase 3 patch update.
+* Fixed for SotS phase 3 patch update.
 
 * Removed 1 effect:
   * Poison Trails: Had way too many performance issues that I don't care enough to fix.
