@@ -1,6 +1,4 @@
-﻿using HG;
-using RiskOfChaos.ConfigHandling;
-using RiskOfChaos.Content;
+﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -12,12 +10,16 @@ using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Trackers;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.DropTables;
+using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using RoR2.ContentManagement;
 using System;
+using System.Collections;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Items
 {
@@ -43,8 +45,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
         [EffectConfig]
         static readonly ConfigurableDropTable _dropTable;
 
-        [AddressableReference("RoR2/Base/Recycle/OmniRecycleEffect.prefab")]
-        static readonly GameObject _recycleEffectPrefab;
+        static EffectIndex _recycleEffectIndex = EffectIndex.Invalid;
 
         static ForceAllItemsIntoRandomItem()
         {
@@ -90,10 +91,22 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
             };
         }
 
-        [SystemInitializer]
-        static void Init()
+        [SystemInitializer(typeof(EffectCatalog))]
+        static IEnumerator Init()
         {
             ForceAllItemsIntoRandomItemManager.OnNextOverridePickupChanged += onNextOverridePickupChanged;
+
+            AsyncOperationHandle<GameObject> recycleEffectLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Recycle_OmniRecycleEffect_prefab, AsyncReferenceHandleUnloadType.OnSceneUnload);
+            recycleEffectLoad.OnSuccess(recycleEffectPrefab =>
+            {
+                _recycleEffectIndex = EffectCatalog.FindEffectIndexFromPrefab(recycleEffectPrefab);
+                if (_recycleEffectIndex == EffectIndex.Invalid)
+                {
+                    Log.Error($"Failed to find recycle effect index from {recycleEffectPrefab}");
+                }
+            });
+
+            yield return recycleEffectLoad;
         }
 
         static void onNextOverridePickupChanged()
@@ -187,9 +200,12 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
                         {
                             pickupController.NetworkpickupIndex = OverridePickupIndex;
 
-                            if (_recycleEffectPrefab && pickupController.pickupDisplay)
+                            if (_recycleEffectIndex != EffectIndex.Invalid && pickupController.pickupDisplay)
                             {
-                                EffectManager.SimpleEffect(_recycleEffectPrefab, pickupController.pickupDisplay.transform.position, Quaternion.identity, true);
+                                EffectManager.SpawnEffect(_recycleEffectIndex, new EffectData
+                                {
+                                    origin = pickupController.pickupDisplay.transform.position
+                                }, true);
                             }
                         }
                     }

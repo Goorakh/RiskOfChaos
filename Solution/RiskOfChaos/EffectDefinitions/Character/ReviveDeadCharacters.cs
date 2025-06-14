@@ -12,10 +12,12 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using RoR2.ContentManagement;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
@@ -43,11 +45,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
         static readonly MaxCapacityQueue<DeadCharacterInfo> _trackedDeadCharacters = new MaxCapacityQueue<DeadCharacterInfo>(_maxTrackedCharactersCount.Value);
         static readonly List<DeadCharacterInfo> _trackedDeadPlayers = [];
 
-        [AddressableReference("RoR2/Base/ExtraLife/HippoRezEffect.prefab")]
-        static readonly GameObject _reviveEffectPrefab;
+        static EffectIndex _reviveEffectIndex = EffectIndex.Invalid;
 
-        [SystemInitializer]
-        static void Init()
+        [SystemInitializer(typeof(EffectCatalog))]
+        static IEnumerator Init()
         {
             GlobalEventManager.onCharacterDeathGlobal += damageReport =>
             {
@@ -107,6 +108,18 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 clearTrackedDeaths();
             };
+
+            AsyncOperationHandle<GameObject> reviveEffectPrefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_ExtraLife_HippoRezEffect_prefab, AsyncReferenceHandleUnloadType.OnSceneUnload);
+            reviveEffectPrefabLoad.OnSuccess(reviveEffectPrefab =>
+            {
+                _reviveEffectIndex = EffectCatalog.FindEffectIndexFromPrefab(reviveEffectPrefab);
+                if (_reviveEffectIndex == EffectIndex.Invalid)
+                {
+                    Log.Error($"Failed to find revive effect index from {reviveEffectPrefab}");
+                }
+            });
+
+            yield return reviveEffectPrefabLoad;
         }
 
         static void clearTrackedDeaths()
@@ -304,7 +317,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                 CharacterBody newBody = master.GetBody();
 
-                if (_reviveEffectPrefab)
+                if (_reviveEffectIndex != EffectIndex.Invalid)
                 {
                     Vector3 reviveEffectPosition = _bodyPosition;
                     if (newBody)
@@ -312,7 +325,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                         reviveEffectPosition = newBody.footPosition;
                     }
 
-                    EffectManager.SpawnEffect(_reviveEffectPrefab, new EffectData
+                    EffectManager.SpawnEffect(_reviveEffectIndex, new EffectData
                     {
                         origin = reviveEffectPosition,
                         rotation = bodyRotation

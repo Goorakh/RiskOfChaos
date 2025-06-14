@@ -161,30 +161,27 @@ namespace RiskOfChaos.Patches.Effects.Character
             }
         }
 
-        static void OverlapAttack_ProcessHits(On.RoR2.OverlapAttack.orig_ProcessHits orig, OverlapAttack self, object boxedHitList)
+        static void OverlapAttack_ProcessHits(On.RoR2.OverlapAttack.orig_ProcessHits orig, OverlapAttack self, List<OverlapAttack.OverlapInfo> hitList)
         {
-            orig(self, boxedHitList);
+            orig(self, hitList);
 
             if (!ChaosEffectTracker.Instance || !ChaosEffectTracker.Instance.IsTimedEffectActive(AllAttacksSniper.EffectInfo))
                 return;
 
-            if (boxedHitList is List<OverlapAttack.OverlapInfo> hitList)
+            if (sniperTargetHitEffect)
             {
-                if (sniperTargetHitEffect)
+                foreach (OverlapAttack.OverlapInfo overlapInfo in hitList)
                 {
-                    foreach (OverlapAttack.OverlapInfo overlapInfo in hitList)
+                    if (overlapInfo.hurtBox && overlapInfo.hurtBox.isSniperTarget)
                     {
-                        if (overlapInfo.hurtBox && overlapInfo.hurtBox.isSniperTarget)
+                        EffectData effectData = new EffectData
                         {
-                            EffectData effectData = new EffectData
-                            {
-                                origin = overlapInfo.hitPosition,
-                                rotation = Util.QuaternionSafeLookRotation(-overlapInfo.pushDirection)
-                            };
-                            effectData.SetHurtBoxReference(overlapInfo.hurtBox);
+                            origin = overlapInfo.hitPosition,
+                            rotation = Util.QuaternionSafeLookRotation(-overlapInfo.pushDirection)
+                        };
+                        effectData.SetHurtBoxReference(overlapInfo.hurtBox);
 
-                            EffectManager.SpawnEffect(sniperTargetHitEffect, effectData, true);
-                        }
+                        EffectManager.SpawnEffect(sniperTargetHitEffect, effectData, true);
                     }
                 }
             }

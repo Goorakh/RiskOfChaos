@@ -1,24 +1,33 @@
 ﻿using RiskOfChaos.Collections;
 using RiskOfChaos.Components;
-using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Trackers;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.Hologram;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.EffectDefinitions.World.Interactables
 {
     [ChaosTimedEffect("all_interactables_cloaked", 90f, AllowDuplicates = false)]
     public sealed class AllInteractablesCloaked : MonoBehaviour
     {
-        [AddressableReference("RoR2/Base/Common/matCloakedEffect.mat")]
-        static readonly Material _cloakedMaterial;
+        AssetOrDirectReference<Material> _cloakedMaterialReference;
 
         readonly ClearingObjectList<CloakedInteractableController> _cloakControllers = [];
+
+        void Awake()
+        {
+            _cloakedMaterialReference = new AssetOrDirectReference<Material>
+            {
+                unloadType = AsyncReferenceHandleUnloadType.AtWill,
+                address = new AssetReferenceT<Material>(AddressableGuids.RoR2_Base_Common_matCloakedEffect_mat)
+            };
+        }
 
         void Start()
         {
@@ -49,6 +58,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
             PurchaseInteractionHooks.OnPurchaseInteractionStartGlobal -= tryCloakPurchaseInteraction;
 
             _cloakControllers.ClearAndDispose(true);
+
+            _cloakedMaterialReference?.Reset();
         }
 
         void SpawnCard_onSpawnedServerGlobal(SpawnCard.SpawnResult result)
@@ -76,7 +87,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
             if (!obj)
                 return;
 
-            IList<CloakedInteractableController> cloakControllers = CloakedInteractableController.TryAddTo(obj);
+            IList<CloakedInteractableController> cloakControllers = CloakedInteractableController.TryAddTo(obj, this);
             if (cloakControllers.Count > 0)
             {
                 _cloakControllers.AddRange(cloakControllers);
@@ -85,14 +96,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
 
         class CloakedInteractableController : MonoBehaviour
         {
+            AllInteractablesCloaked _owner;
+
             MaterialOverride _materialOverride;
 
             HologramProjector _hologramProjector;
             bool _hologramProjectorWasEnabled;
 
-            Light[] _enabledLights;
+            Light[] _enabledLights = [];
 
-            void Awake()
+            void Start()
             {
                 GameObject modelRoot = gameObject;
                 if (TryGetComponent(out ModelLocator modelLocator))
@@ -107,7 +120,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
 
                 _materialOverride = modelRoot.AddComponent<MaterialOverride>();
                 _materialOverride.IgnoreDecals = true;
-                _materialOverride.OverrideMaterial = _cloakedMaterial;
+                _materialOverride.OverrideMaterial = _owner._cloakedMaterialReference.WaitForCompletion();
 
                 Light[] lights = modelRoot.GetComponentsInChildren<Light>();
                 List<Light> enabledLights = new List<Light>(lights.Length);
@@ -120,7 +133,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
                     }
                 }
 
-                _enabledLights = [.. enabledLights];
+                if (enabledLights.Count > 0)
+                {
+                    _enabledLights = [.. enabledLights];
+                }
 
                 _hologramProjector = GetComponent<HologramProjector>();
                 if (_hologramProjector)
@@ -156,7 +172,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
                 }
             }
 
-            public static IList<CloakedInteractableController> TryAddTo(GameObject obj)
+            static CloakedInteractableController addTo(GameObject obj, AllInteractablesCloaked owner)
+            {
+                CloakedInteractableController cloakedInteractableController = obj.AddComponent<CloakedInteractableController>();
+                cloakedInteractableController._owner = owner;
+                return cloakedInteractableController;
+            }
+
+            public static IList<CloakedInteractableController> TryAddTo(GameObject obj, AllInteractablesCloaked owner)
             {
                 if (!obj)
                     return [];
@@ -164,14 +187,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
                 if (obj.GetComponent<CloakedInteractableController>())
                     return [];
 
-                List<CloakedInteractableController> cloakControllers = [obj.AddComponent<CloakedInteractableController>()];
+                List<CloakedInteractableController> cloakControllers = [addTo(obj, owner)];
 
                 if (obj.TryGetComponent(out MultiShopController multiShopController))
                 {
                     cloakControllers.EnsureCapacity(cloakControllers.Count + multiShopController.terminalGameObjects.Length);
                     for (int i = 0; i < multiShopController.terminalGameObjects.Length; i++)
                     {
-                        cloakControllers.AddRange(TryAddTo(multiShopController.terminalGameObjects[i]));
+                        cloakControllers.AddRange(TryAddTo(multiShopController.terminalGameObjects[i], owner));
                     }
                 }
 

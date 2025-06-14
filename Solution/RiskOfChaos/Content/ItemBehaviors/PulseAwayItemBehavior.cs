@@ -1,17 +1,16 @@
 ﻿using HG;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.Items;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.Content.ItemBehaviors
 {
     public sealed class PulseAwayItemBehavior : BaseItemBodyBehavior
     {
-        [AddressableReference("RoR2/Base/moon2/MoonBatteryDesignPulse.prefab")]
-        static readonly GameObject _pulsePrefab;
-
         [ItemDefAssociation(useOnServer = true, useOnClient = false)]
         static ItemDef GetItemDef()
         {
@@ -19,6 +18,8 @@ namespace RiskOfChaos.Content.ItemBehaviors
         }
 
         const float PULSE_INTERVAL = 1f;
+
+        AssetOrDirectReference<GameObject> _pulsePrefabReference;
 
         IPhysMotor _bodyMotor;
 
@@ -29,6 +30,18 @@ namespace RiskOfChaos.Content.ItemBehaviors
             _bodyMotor = GetComponent<IPhysMotor>();
 
             _pulseSpawnTimer = 0f;
+
+            _pulsePrefabReference ??= new AssetOrDirectReference<GameObject>
+            {
+                unloadType = AsyncReferenceHandleUnloadType.AtWill,
+                address = new AssetReferenceGameObject(AddressableGuids.RoR2_Base_moon2_MoonBatteryDesignPulse_prefab)
+            };
+        }
+
+        void OnDestroy()
+        {
+            _pulsePrefabReference?.Reset();
+            _pulsePrefabReference = null;
         }
 
         void FixedUpdate()
@@ -53,7 +66,7 @@ namespace RiskOfChaos.Content.ItemBehaviors
                 return;
             }
 
-            GameObject pulseControllerObj = Instantiate(_pulsePrefab, body.footPosition, Quaternion.identity);
+            GameObject pulseControllerObj = Instantiate(_pulsePrefabReference.WaitForCompletion(), body.footPosition, Quaternion.identity);
             if (!pulseControllerObj)
                 return;
 
@@ -77,7 +90,7 @@ namespace RiskOfChaos.Content.ItemBehaviors
                 pulseSearch.OrderCandidatesByDistance();
                 pulseSearch.FilterCandidatesByDistinctHurtBoxEntities();
 
-                List<HurtBox> hurtBoxes = CollectionPool<HurtBox, List<HurtBox>>.RentCollection();
+                List<HurtBox> hurtBoxes = ListPool<HurtBox>.RentCollection();
                 try
                 {
                     pulseSearch.GetHurtBoxes(hurtBoxes);
@@ -98,7 +111,7 @@ namespace RiskOfChaos.Content.ItemBehaviors
                 }
                 finally
                 {
-                    CollectionPool<HurtBox, List<HurtBox>>.ReturnCollection(hurtBoxes);
+                    ListPool<HurtBox>.ReturnCollection(hurtBoxes);
                 }
             }
 

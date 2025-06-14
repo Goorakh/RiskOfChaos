@@ -1,13 +1,14 @@
 ﻿using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.UI;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UI;
@@ -22,7 +23,7 @@ namespace RiskOfChaos.EffectDefinitions.UI
         {
             List<AsyncOperationHandle> asyncOperations = [];
 
-            AsyncOperationHandle<GameObject> creditsPanelLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/CreditsPanel.prefab");
+            AsyncOperationHandle<GameObject> creditsPanelLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_UI_CreditsPanel_prefab, AsyncReferenceHandleUnloadType.Preload);
             creditsPanelLoad.OnSuccess(creditsPanelPrefab =>
             {
                 GameObject prefab = creditsPanelPrefab.InstantiatePrefab(nameof(RoCContent.LocalPrefabs.CreditsPanelNoBackground));

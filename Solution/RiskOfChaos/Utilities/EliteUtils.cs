@@ -43,10 +43,20 @@ namespace RiskOfChaos.Utilities
                 if (eliteDef.name.EndsWith("Honor", StringComparison.OrdinalIgnoreCase))
                     continue;
 
-                if (!equipmentDef.pickupModelPrefab || string.Equals(equipmentDef.pickupModelPrefab.name, "NullModel", StringComparison.OrdinalIgnoreCase))
+                bool isNullModel;
+                if (equipmentDef.pickupModelReference != null && equipmentDef.pickupModelReference.RuntimeKeyIsValid())
                 {
-                    continue;
+                    isNullModel = equipmentDef.pickupModelReference.AssetGUID == AddressableGuids.RoR2_Base_Core_NullModel_prefab;
                 }
+                else
+                {
+#pragma warning disable CS0618 // Type or member is obsolete
+                    isNullModel = !equipmentDef.pickupModelPrefab || equipmentDef.pickupModelPrefab.name == "NullModel";
+#pragma warning restore CS0618 // Type or member is obsolete
+                }
+
+                if (isNullModel)
+                    continue;
 
                 if (validEliteEquipmentIndices.Add(equipmentDef.equipmentIndex))
                 {

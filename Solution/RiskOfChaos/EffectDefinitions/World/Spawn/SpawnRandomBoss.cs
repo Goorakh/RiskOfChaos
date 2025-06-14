@@ -29,32 +29,32 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             _spawnPool.EnsureCapacity(25);
 
-            _spawnPool.AddAssetEntry("RoR2/Base/Beetle/cscBeetleQueen.asset", new SpawnPoolEntryParameters(1f));
-            _spawnPool.AddAssetEntry("RoR2/Base/Brother/cscBrother.asset", new SpawnPoolEntryParameters(0.7f));
-            _spawnPool.AddAssetEntry("RoR2/Base/Brother/cscBrotherHurt.asset", new SpawnPoolEntryParameters(0.5f));
-            _spawnPool.AddAssetEntry("RoR2/Base/ClayBoss/cscClayBoss.asset", new SpawnPoolEntryParameters(1f));
-            _spawnPool.AddAssetEntry("RoR2/Base/ElectricWorm/cscElectricWorm.asset", new SpawnPoolEntryParameters(0.75f));
-            _spawnPool.AddAssetEntry("RoR2/Base/Grandparent/cscGrandparent.asset", new SpawnPoolEntryParameters(1f));
-            _spawnPool.AddAssetEntry("RoR2/Base/Gravekeeper/cscGravekeeper.asset", new SpawnPoolEntryParameters(1f));
-            _spawnPool.AddAssetEntry("RoR2/Base/ImpBoss/cscImpBoss.asset", new SpawnPoolEntryParameters(1f));
-            _spawnPool.AddAssetEntry("RoR2/Base/MagmaWorm/cscMagmaWorm.asset", new SpawnPoolEntryParameters(0.85f));
-            _spawnPool.AddAssetEntry("RoR2/Base/RoboBallBoss/cscRoboBallBoss.asset", new SpawnPoolEntryParameters(1f));
-            _spawnPool.AddAssetEntry("RoR2/Base/RoboBallBoss/cscSuperRoboBallBoss.asset", new SpawnPoolEntryParameters(1f));
-            _spawnPool.AddAssetEntry("RoR2/Base/Scav/cscScavBoss.asset", new SpawnPoolEntryParameters(0.9f));
-            _spawnPool.AddAssetEntry("RoR2/Base/ScavLunar/cscScavLunar.asset", new SpawnPoolEntryParameters(0.7f));
-            _spawnPool.AddAssetEntry("RoR2/Base/Titan/cscTitanBlackBeach.asset", new SpawnPoolEntryParameters(1f));
-            _spawnPool.AddAssetEntry("RoR2/Base/Titan/cscTitanGold.asset", new SpawnPoolEntryParameters(0.9f));
-            _spawnPool.AddAssetEntry("RoR2/Base/Vagrant/cscVagrant.asset", new SpawnPoolEntryParameters(1f));
-            _spawnPool.AddAssetEntry("RoR2/Junk/BrotherGlass/cscBrotherGlass.asset", new SpawnPoolEntryParameters(0.8f));
-            _spawnPool.AddAssetEntry("RoR2/DLC1/MajorAndMinorConstruct/cscMegaConstruct.asset", new SpawnPoolEntryParameters(1f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_BeetleQueen_cscBeetleQueen_asset, new SpawnPoolEntryParameters(1f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_Brother_cscBrother_asset, new SpawnPoolEntryParameters(0.7f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_Brother_cscBrotherHurt_asset, new SpawnPoolEntryParameters(0.5f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_ClayBoss_cscClayBoss_asset, new SpawnPoolEntryParameters(1f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_ElectricWorm_cscElectricWorm_asset, new SpawnPoolEntryParameters(0.75f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_Grandparent_cscGrandparent_asset, new SpawnPoolEntryParameters(1f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_Gravekeeper_cscGravekeeper_asset, new SpawnPoolEntryParameters(1f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_ImpBoss_cscImpBoss_asset, new SpawnPoolEntryParameters(1f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_MagmaWorm_cscMagmaWorm_asset, new SpawnPoolEntryParameters(0.85f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_RoboBallBoss_cscRoboBallBoss_asset, new SpawnPoolEntryParameters(1f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_RoboBallBoss_cscSuperRoboBallBoss_asset, new SpawnPoolEntryParameters(1f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_Scav_cscScavBoss_asset, new SpawnPoolEntryParameters(0.9f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_ScavLunar_cscScavLunar_asset, new SpawnPoolEntryParameters(0.7f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_Titan_cscTitanBlackBeach_asset, new SpawnPoolEntryParameters(1f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_Titan_cscTitanGold_asset, new SpawnPoolEntryParameters(0.9f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_Vagrant_cscVagrant_asset, new SpawnPoolEntryParameters(1f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Junk_BrotherGlass_cscBrotherGlass_asset, new SpawnPoolEntryParameters(0.8f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_DLC1_MajorAndMinorConstruct_cscMegaConstruct_asset, new SpawnPoolEntryParameters(1f));
 
             _spawnPool.AddGroupedEntries([
-                _spawnPool.LoadEntry("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase1.asset", new SpawnPoolEntryParameters(1f)),
-                _spawnPool.LoadEntry("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase2.asset", new SpawnPoolEntryParameters(0.9f)),
-                _spawnPool.LoadEntry("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase3.asset", new SpawnPoolEntryParameters(0.75f)),
+                _spawnPool.LoadEntry(AddressableGuids.RoR2_DLC1_VoidRaidCrab_cscMiniVoidRaidCrabPhase1_asset, new SpawnPoolEntryParameters(1f)),
+                _spawnPool.LoadEntry(AddressableGuids.RoR2_DLC1_VoidRaidCrab_cscMiniVoidRaidCrabPhase2_asset, new SpawnPoolEntryParameters(0.9f)),
+                _spawnPool.LoadEntry(AddressableGuids.RoR2_DLC1_VoidRaidCrab_cscMiniVoidRaidCrabPhase3_asset, new SpawnPoolEntryParameters(0.75f)),
             ], 0.85f);
 
-            _spawnPool.AddAssetEntry("RoR2/DLC1/VoidMegaCrab/cscVoidMegaCrab.asset", new SpawnPoolEntryParameters(0.6f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_DLC1_VoidMegaCrab_cscVoidMegaCrab_asset, new SpawnPoolEntryParameters(0.6f));
 
             _spawnPool.TrimExcess();
         }

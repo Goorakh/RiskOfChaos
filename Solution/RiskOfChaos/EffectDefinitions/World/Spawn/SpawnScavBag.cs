@@ -22,8 +22,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             _spawnPool.EnsureCapacity(2);
 
-            _spawnPool.AddAssetEntry("RoR2/Base/Scav/iscScavBackpack.asset", new SpawnPoolEntryParameters(0.8f));
-            _spawnPool.AddAssetEntry("RoR2/Base/Scav/iscScavLunarBackpack.asset", new SpawnPoolEntryParameters(0.2f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_Scav_iscScavBackpack_asset, new SpawnPoolEntryParameters(0.8f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_Scav_iscScavLunarBackpack_asset, new SpawnPoolEntryParameters(0.2f));
         }
 
         [EffectCanActivate]

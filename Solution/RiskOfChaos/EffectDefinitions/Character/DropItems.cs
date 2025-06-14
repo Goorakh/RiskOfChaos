@@ -43,7 +43,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 {
                     case ItemPickupInfo itemPickup:
                         ItemDef itemDef = ItemCatalog.GetItemDef(itemPickup.ItemIndex);
-                        return !itemDef.hidden && itemDef.canRemove && itemDef.pickupModelPrefab;
+                        return !itemDef.hidden && itemDef.canRemove;
                     case EquipmentPickupInfo:
                         return true;
                     default:

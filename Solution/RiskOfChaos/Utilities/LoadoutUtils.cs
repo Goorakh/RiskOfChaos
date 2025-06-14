@@ -44,7 +44,7 @@ namespace RiskOfChaos.Utilities
 
             if ((flags & GeneratorFlags.Skin) != 0)
             {
-                int bodySkinCount = BodyCatalog.GetBodySkins(bodyIndex).Length;
+                int bodySkinCount = SkinCatalog.GetBodySkinCount(bodyIndex);
                 if (bodySkinCount > 0)
                 {
                     try

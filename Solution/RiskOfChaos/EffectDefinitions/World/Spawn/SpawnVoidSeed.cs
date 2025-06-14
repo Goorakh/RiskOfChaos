@@ -5,9 +5,9 @@ using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.Navigation;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
@@ -21,7 +21,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [SystemInitializer]
         static void Init()
         {
-            AsyncOperationHandle<InteractableSpawnCard> iscVoidCampLoad = Addressables.LoadAssetAsync<InteractableSpawnCard>("RoR2/DLC1/VoidCamp/iscVoidCamp.asset");
+            AsyncOperationHandle<InteractableSpawnCard> iscVoidCampLoad = AddressableUtil.LoadAssetAsync<InteractableSpawnCard>(AddressableGuids.RoR2_DLC1_VoidCamp_iscVoidCamp_asset, AsyncReferenceHandleUnloadType.Preload);
             iscVoidCampLoad.OnSuccess(iscVoidCamp =>
             {
                 _iscVoidCamp = Instantiate(iscVoidCamp);

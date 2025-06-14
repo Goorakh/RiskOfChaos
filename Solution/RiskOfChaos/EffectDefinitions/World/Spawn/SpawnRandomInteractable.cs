@@ -38,14 +38,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 return spawnCard;
             }
 
-            static SpawnPool<InteractableSpawnCard>.Entry loadSpawnCardEntry(string assetPath, SpawnPoolEntryParameters parameters)
+            static SpawnPool<InteractableSpawnCard>.Entry loadSpawnCardEntry(string assetGuid, SpawnPoolEntryParameters parameters)
             {
-                return _spawnPool.LoadEntry(assetPath, parameters, ensureUnrestrictedSpawn);
+                return _spawnPool.LoadEntry(assetGuid, parameters, ensureUnrestrictedSpawn);
             }
 
-            static SpawnPool<InteractableSpawnCard>.Entry loadCauldronSpawnCardEntry(string assetPath, SpawnPoolEntryParameters parameters)
+            static SpawnPool<InteractableSpawnCard>.Entry loadCauldronSpawnCardEntry(string assetGuid, SpawnPoolEntryParameters parameters)
             {
-                return _spawnPool.LoadEntry<GameObject>(assetPath, parameters, cauldronPrefab =>
+                return _spawnPool.LoadEntry<GameObject>(assetGuid, parameters, cauldronPrefab =>
                 {
                     InteractableSpawnCard spawnCard = ScriptableObject.CreateInstance<InteractableSpawnCard>();
                     spawnCard.name = $"isc{cauldronPrefab.name}";
@@ -65,118 +65,118 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
             // Drones
             _spawnPool.AddGroupedEntries([
-                loadSpawnCardEntry("RoR2/Base/Drones/iscBrokenDrone1.asset", new SpawnPoolEntryParameters(1f)),
-                loadSpawnCardEntry("RoR2/Base/Drones/iscBrokenDrone2.asset", new SpawnPoolEntryParameters(1f)),
-                loadSpawnCardEntry("RoR2/Base/Drones/iscBrokenEmergencyDrone.asset", new SpawnPoolEntryParameters(1f)),
-                loadSpawnCardEntry("RoR2/Base/Drones/iscBrokenEquipmentDrone.asset", new SpawnPoolEntryParameters(1f)),
-                loadSpawnCardEntry("RoR2/Base/Drones/iscBrokenFlameDrone.asset", new SpawnPoolEntryParameters(1f)),
-                loadSpawnCardEntry("RoR2/Base/Drones/iscBrokenMegaDrone.asset", new SpawnPoolEntryParameters(1f)),
-                loadSpawnCardEntry("RoR2/Base/Drones/iscBrokenMissileDrone.asset", new SpawnPoolEntryParameters(1f)),
-                loadSpawnCardEntry("RoR2/Base/Drones/iscBrokenTurret1.asset", new SpawnPoolEntryParameters(1f)),
-                loadSpawnCardEntry("RoR2/CU8/LemurianEgg/iscLemurianEgg.asset", new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_Drones_iscBrokenDrone1_asset, new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_Drones_iscBrokenDrone2_asset, new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_Drones_iscBrokenEmergencyDrone_asset, new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_Drones_iscBrokenEquipmentDrone_asset, new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_Drones_iscBrokenFlameDrone_asset, new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_Drones_iscBrokenMegaDrone_asset, new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_Drones_iscBrokenMissileDrone_asset, new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_Drones_iscBrokenTurret1_asset, new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_CU8_LemurianEgg_iscLemurianEgg_asset, new SpawnPoolEntryParameters(1f)),
             ], 1f);
 
             // Barrels
             _spawnPool.AddGroupedEntries([
-                loadSpawnCardEntry("RoR2/Base/Barrel1/iscBarrel1.asset", new SpawnPoolEntryParameters(1f)),
-                loadSpawnCardEntry("RoR2/DLC1/VoidCoinBarrel/iscVoidCoinBarrel.asset", new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_Barrel1_iscBarrel1_asset, new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_DLC1_VoidCoinBarrel_iscVoidCoinBarrel_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1)),
             ]);
 
             // Chests
             _spawnPool.AddGroupedEntries([
-                loadSpawnCardEntry("RoR2/Base/Chest1/iscChest1.asset", new SpawnPoolEntryParameters(1f)),
-                loadSpawnCardEntry("RoR2/Base/Chest2/iscChest2.asset", new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_Chest1_iscChest1_asset, new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_Chest2_iscChest2_asset, new SpawnPoolEntryParameters(1f)),
 
-                loadSpawnCardEntry("RoR2/Base/EquipmentBarrel/iscEquipmentBarrel.asset", new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_EquipmentBarrel_iscEquipmentBarrel_asset, new SpawnPoolEntryParameters(1f)),
 
-                loadSpawnCardEntry("RoR2/Base/LunarChest/iscLunarChest.asset", new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_LunarChest_iscLunarChest_asset, new SpawnPoolEntryParameters(1f)),
 
-                loadSpawnCardEntry("RoR2/Base/GoldChest/iscGoldChest.asset", new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_GoldChest_iscGoldChest_asset, new SpawnPoolEntryParameters(1f)),
 
-                loadSpawnCardEntry("RoR2/Base/CategoryChest/iscCategoryChestDamage.asset", new SpawnPoolEntryParameters(1f)),
-                loadSpawnCardEntry("RoR2/DLC1/CategoryChest2/iscCategoryChest2Damage.asset", new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_CategoryChest_iscCategoryChestDamage_asset, new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_DLC1_CategoryChest2_iscCategoryChest2Damage_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1)),
 
-                loadSpawnCardEntry("RoR2/Base/CategoryChest/iscCategoryChestHealing.asset", new SpawnPoolEntryParameters(1f)),
-                loadSpawnCardEntry("RoR2/DLC1/CategoryChest2/iscCategoryChest2Healing.asset", new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_CategoryChest_iscCategoryChestHealing_asset, new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_DLC1_CategoryChest2_iscCategoryChest2Healing_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1)),
 
-                loadSpawnCardEntry("RoR2/Base/CategoryChest/iscCategoryChestUtility.asset", new SpawnPoolEntryParameters(1f)),
-                loadSpawnCardEntry("RoR2/DLC1/CategoryChest2/iscCategoryChest2Utility.asset", new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_CategoryChest_iscCategoryChestUtility_asset, new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_DLC1_CategoryChest2_iscCategoryChest2Utility_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1)),
 
-                loadSpawnCardEntry("RoR2/Base/CasinoChest/iscCasinoChest.asset", new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_CasinoChest_iscCasinoChest_asset, new SpawnPoolEntryParameters(1f)),
 
-                loadSpawnCardEntry("RoR2/DLC1/VoidChest/iscVoidChest.asset", new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_DLC1_VoidChest_iscVoidChest_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1)),
 
-                loadSpawnCardEntry("RoR2/CommandChest/iscCommandChest.asset", new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_CommandChest_iscCommandChest_asset, new SpawnPoolEntryParameters(1f)),
 
                 new SpawnPool<InteractableSpawnCard>.Entry(CustomSpawnCards.iscTimedChest, new SpawnPoolEntryParameters(1f)),
             ], 2f);
 
             // Multishops
             _spawnPool.AddGroupedEntries([
-                loadSpawnCardEntry("RoR2/Base/TripleShop/iscTripleShop.asset", new SpawnPoolEntryParameters(1f)),
-                loadSpawnCardEntry("RoR2/Base/TripleShopEquipment/iscTripleShopEquipment.asset", new SpawnPoolEntryParameters(1f)),
-                loadSpawnCardEntry("RoR2/Base/TripleShopLarge/iscTripleShopLarge.asset", new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_TripleShop_iscTripleShop_asset, new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_TripleShopEquipment_iscTripleShopEquipment_asset, new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_TripleShopLarge_iscTripleShopLarge_asset, new SpawnPoolEntryParameters(1f)),
 
-                loadSpawnCardEntry("RoR2/DLC1/FreeChest/iscFreeChest.asset", new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_DLC1_FreeChest_iscFreeChest_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1)),
 
-                loadSpawnCardEntry("RoR2/DLC1/VoidTriple/iscVoidTriple.asset", new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_DLC1_VoidTriple_iscVoidTriple_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1)),
             ], 1.5f);
 
             // Printers
             _spawnPool.AddGroupedEntries([
-                loadSpawnCardEntry("RoR2/Base/Duplicator/iscDuplicator.asset", new SpawnPoolEntryParameters(1f)),
-                loadSpawnCardEntry("RoR2/Base/DuplicatorLarge/iscDuplicatorLarge.asset", new SpawnPoolEntryParameters(1f)),
-                loadSpawnCardEntry("RoR2/Base/DuplicatorMilitary/iscDuplicatorMilitary.asset", new SpawnPoolEntryParameters(1f)),
-                loadSpawnCardEntry("RoR2/Base/DuplicatorWild/iscDuplicatorWild.asset", new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_Duplicator_iscDuplicator_asset, new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_DuplicatorLarge_iscDuplicatorLarge_asset, new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_DuplicatorMilitary_iscDuplicatorMilitary_asset, new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_DuplicatorWild_iscDuplicatorWild_asset, new SpawnPoolEntryParameters(1f)),
             ], 1.5f);
 
             // Lockboxes
             _spawnPool.AddGroupedEntries([
-                loadSpawnCardEntry("RoR2/DLC1/TreasureCacheVoid/iscLockboxVoid.asset", new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1)),
-                loadSpawnCardEntry("RoR2/Junk/TreasureCache/iscLockbox.asset", new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_DLC1_TreasureCacheVoid_iscLockboxVoid_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Junk_TreasureCache_iscLockbox_asset, new SpawnPoolEntryParameters(1f)),
             ], 1f);
 
             // Cauldrons
             _spawnPool.AddGroupedEntries([
-                loadCauldronSpawnCardEntry("RoR2/Base/LunarCauldrons/LunarCauldron, GreenToRed Variant.prefab", new SpawnPoolEntryParameters(1f)),
-                loadCauldronSpawnCardEntry("RoR2/Base/LunarCauldrons/LunarCauldron, RedToWhite Variant.prefab", new SpawnPoolEntryParameters(1f)),
-                loadCauldronSpawnCardEntry("RoR2/Base/LunarCauldrons/LunarCauldron, WhiteToGreen.prefab", new SpawnPoolEntryParameters(1f)),
+                loadCauldronSpawnCardEntry(AddressableGuids.RoR2_Base_LunarCauldrons_LunarCauldron_GreenToRed_Variant_prefab, new SpawnPoolEntryParameters(1f)),
+                loadCauldronSpawnCardEntry(AddressableGuids.RoR2_Base_LunarCauldrons_LunarCauldron_RedToWhite_Variant_prefab, new SpawnPoolEntryParameters(1f)),
+                loadCauldronSpawnCardEntry(AddressableGuids.RoR2_Base_LunarCauldrons_LunarCauldron_WhiteToGreen_prefab, new SpawnPoolEntryParameters(1f)),
             ], 1.5f);
 
             // Shrines
             _spawnPool.AddGroupedEntries([
                 .. _spawnPool.GroupEntries([
-                    loadSpawnCardEntry("RoR2/Base/ShrineBlood/iscShrineBlood.asset", new SpawnPoolEntryParameters(1f)),
-                    loadSpawnCardEntry("RoR2/Base/ShrineBlood/iscShrineBloodSandy.asset", new SpawnPoolEntryParameters(1f)),
-                    loadSpawnCardEntry("RoR2/Base/ShrineBlood/iscShrineBloodSnowy.asset", new SpawnPoolEntryParameters(1f)),
+                    loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineBlood_iscShrineBlood_asset, new SpawnPoolEntryParameters(1f)),
+                    loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineBlood_iscShrineBloodSandy_asset, new SpawnPoolEntryParameters(1f)),
+                    loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineBlood_iscShrineBloodSnowy_asset, new SpawnPoolEntryParameters(1f)),
                 ]),
                 .. _spawnPool.GroupEntries([
-                    loadSpawnCardEntry("RoR2/Base/ShrineBoss/iscShrineBoss.asset", new SpawnPoolEntryParameters(1f)),
-                    loadSpawnCardEntry("RoR2/Base/ShrineBoss/iscShrineBossSandy.asset", new SpawnPoolEntryParameters(1f)),
-                    loadSpawnCardEntry("RoR2/Base/ShrineBoss/iscShrineBossSnowy.asset", new SpawnPoolEntryParameters(1f)),
+                    loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineBoss_iscShrineBoss_asset, new SpawnPoolEntryParameters(1f)),
+                    loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineBoss_iscShrineBossSandy_asset, new SpawnPoolEntryParameters(1f)),
+                    loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineBoss_iscShrineBossSnowy_asset, new SpawnPoolEntryParameters(1f)),
                 ]),
                 .. _spawnPool.GroupEntries([
-                    loadSpawnCardEntry("RoR2/Base/ShrineChance/iscShrineChance.asset", new SpawnPoolEntryParameters(1f)),
-                    loadSpawnCardEntry("RoR2/Base/ShrineChance/iscShrineChanceSandy.asset", new SpawnPoolEntryParameters(1f)),
-                    loadSpawnCardEntry("RoR2/Base/ShrineChance/iscShrineChanceSnowy.asset", new SpawnPoolEntryParameters(1f)),
+                    loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineChance_iscShrineChance_asset, new SpawnPoolEntryParameters(1f)),
+                    loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineChance_iscShrineChanceSandy_asset, new SpawnPoolEntryParameters(1f)),
+                    loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineChance_iscShrineChanceSnowy_asset, new SpawnPoolEntryParameters(1f)),
                 ]),
                 .. _spawnPool.GroupEntries([
-                    loadSpawnCardEntry("RoR2/Base/ShrineCleanse/iscShrineCleanse.asset", new SpawnPoolEntryParameters(1f)),
-                    loadSpawnCardEntry("RoR2/Base/ShrineCleanse/iscShrineCleanseSandy.asset", new SpawnPoolEntryParameters(1f)),
-                    loadSpawnCardEntry("RoR2/Base/ShrineCleanse/iscShrineCleanseSnowy.asset", new SpawnPoolEntryParameters(1f)),
+                    loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineCleanse_iscShrineCleanse_asset, new SpawnPoolEntryParameters(1f)),
+                    loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineCleanse_iscShrineCleanseSandy_asset, new SpawnPoolEntryParameters(1f)),
+                    loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineCleanse_iscShrineCleanseSnowy_asset, new SpawnPoolEntryParameters(1f)),
                 ]),
                 .. _spawnPool.GroupEntries([
-                    loadSpawnCardEntry("RoR2/Base/ShrineCombat/iscShrineCombat.asset", new SpawnPoolEntryParameters(1f)),
-                    loadSpawnCardEntry("RoR2/Base/ShrineCombat/iscShrineCombatSandy.asset", new SpawnPoolEntryParameters(1f)),
-                    loadSpawnCardEntry("RoR2/Base/ShrineCombat/iscShrineCombatSnowy.asset", new SpawnPoolEntryParameters(1f)),
+                    loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineCombat_iscShrineCombat_asset, new SpawnPoolEntryParameters(1f)),
+                    loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineCombat_iscShrineCombatSandy_asset, new SpawnPoolEntryParameters(1f)),
+                    loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineCombat_iscShrineCombatSnowy_asset, new SpawnPoolEntryParameters(1f)),
                 ]),
                 .. _spawnPool.GroupEntries([
-                    loadSpawnCardEntry("RoR2/Base/ShrineRestack/iscShrineRestack.asset", new SpawnPoolEntryParameters(1f)),
-                    loadSpawnCardEntry("RoR2/Base/ShrineRestack/iscShrineRestackSandy.asset", new SpawnPoolEntryParameters(1f)),
-                    loadSpawnCardEntry("RoR2/Base/ShrineRestack/iscShrineRestackSnowy.asset", new SpawnPoolEntryParameters(1f)),
+                    loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineRestack_iscShrineRestack_asset, new SpawnPoolEntryParameters(1f)),
+                    loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineRestack_iscShrineRestackSandy_asset, new SpawnPoolEntryParameters(1f)),
+                    loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineRestack_iscShrineRestackSnowy_asset, new SpawnPoolEntryParameters(1f)),
                 ]),
-                loadSpawnCardEntry("RoR2/Base/ShrineHealing/iscShrineHealing.asset", new SpawnPoolEntryParameters(1f)),
-                loadSpawnCardEntry("RoR2/DLC2/iscShrineColossusAccess.asset", new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineHealing_iscShrineHealing_asset, new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_DLC2_iscShrineColossusAccess_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
                 new SpawnPool<InteractableSpawnCard>.Entry(CustomSpawnCards.iscGeodeFixed, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
             ]);
 
@@ -192,16 +192,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
             // Portal
             _spawnPool.AddGroupedEntries([
-                loadSpawnCardEntry("RoR2/Base/ShrineGoldshoresAccess/iscShrineGoldshoresAccess.asset", new SpawnPoolEntryParameters(1f)),
-                loadSpawnCardEntry("RoR2/DLC2/iscShrineHalcyonite.asset", new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineGoldshoresAccess_iscShrineGoldshoresAccess_asset, new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_DLC2_iscShrineHalcyonite_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
                 new SpawnPool<InteractableSpawnCard>.Entry(iscNewtStatue, new SpawnPoolEntryParameters(1f)),
             ]);
 
             // Misc
-            _spawnPool.AddEntry(loadSpawnCardEntry("RoR2/Base/RadarTower/iscRadarTower.asset", new SpawnPoolEntryParameters(0.7f)));
-            _spawnPool.AddEntry(loadSpawnCardEntry("RoR2/Base/goldshores/iscGoldshoresBeacon.asset", new SpawnPoolEntryParameters(0.8f)));
-            _spawnPool.AddEntry(loadSpawnCardEntry("RoR2/Base/Scrapper/iscScrapper.asset", new SpawnPoolEntryParameters(1f)));
-            _spawnPool.AddEntry(loadSpawnCardEntry("RoR2/DLC1/VoidSuppressor/iscVoidSuppressor.asset", new SpawnPoolEntryParameters(0.7f, ExpansionUtils.DLC1)));
+            _spawnPool.AddEntry(loadSpawnCardEntry(AddressableGuids.RoR2_Base_RadarTower_iscRadarTower_asset, new SpawnPoolEntryParameters(0.7f)));
+            _spawnPool.AddEntry(loadSpawnCardEntry(AddressableGuids.RoR2_Base_goldshores_iscGoldshoresBeacon_asset, new SpawnPoolEntryParameters(0.8f)));
+            _spawnPool.AddEntry(loadSpawnCardEntry(AddressableGuids.RoR2_Base_Scrapper_iscScrapper_asset, new SpawnPoolEntryParameters(1f)));
+            _spawnPool.AddEntry(loadSpawnCardEntry(AddressableGuids.RoR2_DLC1_VoidSuppressor_iscVoidSuppressor_asset, new SpawnPoolEntryParameters(0.7f, ExpansionUtils.DLC1)));
 
             _spawnPool.TrimExcess();
         }

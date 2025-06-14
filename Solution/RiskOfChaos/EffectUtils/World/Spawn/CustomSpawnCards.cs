@@ -1,10 +1,11 @@
 ﻿using RiskOfChaos.Content;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.Navigation;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectUtils.World.Spawn
@@ -18,7 +19,7 @@ namespace RiskOfChaos.EffectUtils.World.Spawn
         [SystemInitializer]
         static IEnumerator Init()
         {
-            AsyncOperationHandle<InteractableSpawnCard> iscGeodeLoad = Addressables.LoadAssetAsync<InteractableSpawnCard>("RoR2/DLC2/iscGeode.asset");
+            AsyncOperationHandle<InteractableSpawnCard> iscGeodeLoad = AddressableUtil.LoadAssetAsync<InteractableSpawnCard>(AddressableGuids.RoR2_DLC2_iscGeode_asset, AsyncReferenceHandleUnloadType.Preload);
             iscGeodeLoad.OnSuccess(iscGeode =>
             {
                 iscGeodeFixed = ScriptableObject.Instantiate(iscGeode);

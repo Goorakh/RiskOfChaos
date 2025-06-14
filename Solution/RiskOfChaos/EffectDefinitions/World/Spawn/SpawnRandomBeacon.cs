@@ -20,11 +20,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             _beaconPool.EnsureCapacity(5);
 
-            _beaconPool.AddAssetEntry("RoR2/Base/Captain/CaptainSupplyDrop, EquipmentRestock.prefab", new SpawnPoolEntryParameters(1f));
-            _beaconPool.AddAssetEntry("RoR2/Base/Captain/CaptainSupplyDrop, Hacking.prefab", new SpawnPoolEntryParameters(1f));
-            _beaconPool.AddAssetEntry("RoR2/Base/Captain/CaptainSupplyDrop, Healing.prefab", new SpawnPoolEntryParameters(1f));
-            _beaconPool.AddAssetEntry("RoR2/Base/Captain/CaptainSupplyDrop, Plating.prefab", new SpawnPoolEntryParameters(1f));
-            _beaconPool.AddAssetEntry("RoR2/Base/Captain/CaptainSupplyDrop, Shocking.prefab", new SpawnPoolEntryParameters(1f));
+            _beaconPool.AddAssetEntry(AddressableGuids.RoR2_Base_Captain_CaptainSupplyDrop_EquipmentRestock_prefab, new SpawnPoolEntryParameters(1f));
+            _beaconPool.AddAssetEntry(AddressableGuids.RoR2_Base_Captain_CaptainSupplyDrop_Hacking_prefab, new SpawnPoolEntryParameters(1f));
+            _beaconPool.AddAssetEntry(AddressableGuids.RoR2_Base_Captain_CaptainSupplyDrop_Healing_prefab, new SpawnPoolEntryParameters(1f));
+            _beaconPool.AddAssetEntry(AddressableGuids.RoR2_Base_Captain_CaptainSupplyDrop_Plating_prefab, new SpawnPoolEntryParameters(1f));
+            _beaconPool.AddAssetEntry(AddressableGuids.RoR2_Base_Captain_CaptainSupplyDrop_Shocking_prefab, new SpawnPoolEntryParameters(1f));
         }
 
         [EffectCanActivate]

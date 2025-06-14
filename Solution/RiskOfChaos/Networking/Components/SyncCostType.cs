@@ -1,7 +1,10 @@
-﻿using RiskOfChaos.Components.CostProviders;
+﻿using HG;
+using RiskOfChaos.Components.CostProviders;
 using RiskOfChaos.Patches;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -28,17 +31,17 @@ namespace RiskOfChaos.Networking.Components
                 }
             };
 
-            static void addComponentToPrefab(string prefabAssetPath)
+            static void addComponentToPrefab(string prefabAssetGuid)
             {
-                AsyncOperationHandle<GameObject> prefabLoad = Addressables.LoadAssetAsync<GameObject>(prefabAssetPath);
+                AsyncOperationHandle<GameObject> prefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(prefabAssetGuid, AsyncReferenceHandleUnloadType.Preload);
                 prefabLoad.OnSuccess(prefab => prefab.EnsureComponent<SyncCostType>());
             }
 
-            addComponentToPrefab("RoR2/Base/TripleShop/TripleShop.prefab");
-            addComponentToPrefab("RoR2/Base/TripleShopEquipment/TripleShopEquipment.prefab");
-            addComponentToPrefab("RoR2/Base/TripleShopLarge/TripleShopLarge.prefab");
-            addComponentToPrefab("RoR2/DLC1/FreeChestMultiShop/FreeChestMultiShop.prefab");
-            addComponentToPrefab("RoR2/Junk/SingleLunarShop.prefab");
+            addComponentToPrefab(AddressableGuids.RoR2_Base_TripleShop_TripleShop_prefab);
+            addComponentToPrefab(AddressableGuids.RoR2_Base_TripleShopEquipment_TripleShopEquipment_prefab);
+            addComponentToPrefab(AddressableGuids.RoR2_Base_TripleShopLarge_TripleShopLarge_prefab);
+            addComponentToPrefab(AddressableGuids.RoR2_DLC1_FreeChestMultiShop_FreeChestMultiShop_prefab);
+            addComponentToPrefab(AddressableGuids.RoR2_Junk_SingleLunarShop_prefab);
         }
 
         ICostProvider _costProvider;

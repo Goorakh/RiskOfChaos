@@ -1,7 +1,6 @@
 ﻿using RiskOfChaos.Collections.ParsedValue;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
-using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -12,8 +11,10 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.Pickup;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using RoR2.ContentManagement;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
@@ -51,9 +52,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         {
             ConfigHolder = _itemBlacklistConfig
         };
-
-        [AddressableReference("RoR2/Base/ShrineCleanse/dtPearls.asset")]
-        static readonly PickupDropTable _pearlDropTable;
 
         static IEnumerable<PickupDef> getAllCleansablePickups()
         {
@@ -98,8 +96,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return _pearlDropTable && PlayerUtils.GetAllPlayerMasters(false).Any(m => getAllCleansablePickups().Any(pickup => m.inventory.GetPickupCount(pickup) > 0));
+            return PlayerUtils.GetAllPlayerMasters(false).Any(m => getAllCleansablePickups().Any(pickup => m.inventory.GetPickupCount(pickup) > 0));
         }
+
+        AssetOrDirectReference<PickupDropTable> _pearlDropTableReference;
 
         ChaosEffectComponent _effectComponent;
 
@@ -109,6 +109,15 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
+
+            if (NetworkServer.active)
+            {
+                _pearlDropTableReference = new AssetOrDirectReference<PickupDropTable>
+                {
+                    unloadType = AsyncReferenceHandleUnloadType.AtWill,
+                    address = new AssetReferenceT<PickupDropTable>(AddressableGuids.RoR2_Base_ShrineCleanse_dtPearls_asset)
+                };
+            }
         }
 
         public override void OnStartServer()
@@ -165,16 +174,24 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             }
         }
 
+        void OnDestroy()
+        {
+            _pearlDropTableReference?.Reset();
+        }
+
+        [Server]
         void tryCleanseRandomItem(CharacterMaster master, Xoroshiro128Plus rng)
         {
             Inventory inventory = master.inventory;
             if (!inventory)
                 return;
 
+            PickupDropTable pearlDropTable = _pearlDropTableReference.WaitForCompletion();
+
             int cleanseCount = _cleanseOrder.GetLength(0);
             int cleansablesCount = _cleanseOrder.GetLength(1);
 
-            HashSet<PickupIndex> grantedPickups = new HashSet<PickupIndex>(_pearlDropTable.GetPickupCount());
+            HashSet<PickupIndex> grantedPickups = new HashSet<PickupIndex>(pearlDropTable.GetPickupCount());
 
             for (int i = 0; i < cleanseCount; i++)
             {
@@ -195,7 +212,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                 if (inventory.TryRemove(pickupToCleanse))
                 {
-                    PickupIndex pearlPickupIndex = _pearlDropTable.GenerateDrop(rng.Branch());
+                    PickupIndex pearlPickupIndex = pearlDropTable.GenerateDrop(rng.Branch());
 
                     if (inventory.TryGrant(pearlPickupIndex, InventoryExtensions.EquipmentReplacementRule.DropExisting))
                     {

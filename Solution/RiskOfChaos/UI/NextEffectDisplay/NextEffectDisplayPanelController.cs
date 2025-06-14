@@ -4,13 +4,14 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.Trackers;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
+using RoR2.ContentManagement;
 using RoR2.UI;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UI;
 
@@ -23,7 +24,7 @@ namespace RiskOfChaos.UI.NextEffectDisplay
         {
             List<AsyncOperationHandle> asyncOperations = new List<AsyncOperationHandle>(1);
 
-            AsyncOperationHandle<GameObject> notificationPanelLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/NotificationPanel2.prefab");
+            AsyncOperationHandle<GameObject> notificationPanelLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_UI_NotificationPanel2_prefab, AsyncReferenceHandleUnloadType.Preload);
             notificationPanelLoad.OnSuccess(notificationPanelPrefab =>
             {
                 // TODO: Construct panel prefab instead of Frankensteining existing prefabs

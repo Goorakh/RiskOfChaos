@@ -5,12 +5,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Utilities
 {
-    public sealed class SpawnPool<T> : IReadOnlyCollection<T>
+    public sealed class SpawnPool<T> : IReadOnlyCollection<T> where T : UnityEngine.Object
     {
         static readonly WeightedSelection<T> _sharedSpawnSelection = new WeightedSelection<T>();
 
@@ -89,7 +88,7 @@ namespace RiskOfChaos.Utilities
             bool customIsAvailable = true;
             if (CalcIsEntryAvailable != null)
             {
-                foreach (IsEntryAvailableDelegate isAvailableDelegate in CalcIsEntryAvailable.GetInvocationList())
+                foreach (IsEntryAvailableDelegate isAvailableDelegate in CalcIsEntryAvailable.GetInvocationList().Cast<IsEntryAvailableDelegate>())
                 {
                     if (!isAvailableDelegate(entry.Asset))
                     {
@@ -203,34 +202,34 @@ namespace RiskOfChaos.Utilities
             AddEntry(new Entry(asset, parameters));
         }
 
-        public Entry LoadEntry(string assetPath, SpawnPoolEntryParameters parameters)
+        public Entry LoadEntry(string assetGuid, SpawnPoolEntryParameters parameters)
         {
-            return Entry.LoadAsync(assetPath, parameters);
+            return Entry.LoadAsync(assetGuid, parameters);
         }
 
-        public void AddAssetEntry(string assetPath, SpawnPoolEntryParameters parameters)
+        public void AddAssetEntry(string assetGuid, SpawnPoolEntryParameters parameters)
         {
-            AddEntry(LoadEntry(assetPath, parameters));
+            AddEntry(LoadEntry(assetGuid, parameters));
         }
 
-        public Entry LoadEntry<TAsset>(string assetPath, SpawnPoolEntryParameters parameters, Converter<TAsset, T> assetConverter)
+        public Entry LoadEntry<TAsset>(string assetGuid, SpawnPoolEntryParameters parameters, Converter<TAsset, T> assetConverter) where TAsset : UnityEngine.Object
         {
-            return Entry.LoadAsync(assetPath, parameters, assetConverter);
+            return Entry.LoadAsync(assetGuid, parameters, assetConverter);
         }
 
-        public void AddAssetEntry<TAsset>(string assetPath, SpawnPoolEntryParameters parameters, Converter<TAsset, T> assetConverter)
+        public void AddAssetEntry<TAsset>(string assetGuid, SpawnPoolEntryParameters parameters, Converter<TAsset, T> assetConverter) where TAsset : UnityEngine.Object
         {
-            AddEntry(LoadEntry(assetPath, parameters, assetConverter));
+            AddEntry(LoadEntry(assetGuid, parameters, assetConverter));
         }
 
-        public Entry LoadEntry(string assetPath, SpawnPoolEntryParameters parameters, Converter<T, T> assetConverter)
+        public Entry LoadEntry(string assetGuid, SpawnPoolEntryParameters parameters, Converter<T, T> assetConverter)
         {
-            return LoadEntry<T>(assetPath, parameters, assetConverter);
+            return LoadEntry<T>(assetGuid, parameters, assetConverter);
         }
 
-        public void AddAssetEntry(string assetPath, SpawnPoolEntryParameters parameters, Converter<T, T> assetConverter)
+        public void AddAssetEntry(string assetGuid, SpawnPoolEntryParameters parameters, Converter<T, T> assetConverter)
         {
-            AddAssetEntry<T>(assetPath, parameters, assetConverter);
+            AddAssetEntry<T>(assetGuid, parameters, assetConverter);
         }
 
         public Entry[] GroupEntries(Entry[] entries, float weightMultiplier = 1f)
@@ -338,11 +337,11 @@ namespace RiskOfChaos.Utilities
                 return $"{Asset}: {Weight} ({string.Join(", ", RequiredExpansions)})";
             }
 
-            public static Entry LoadAsync<TAsset>(string path, SpawnPoolEntryParameters parameters, Converter<TAsset, T> converter)
+            public static Entry LoadAsync<TAsset>(string assetGuid, SpawnPoolEntryParameters parameters, Converter<TAsset, T> converter) where TAsset : UnityEngine.Object
             {
                 Entry entry = new Entry(default, parameters, false);
 
-                AsyncOperationHandle<TAsset> assetLoad = Addressables.LoadAssetAsync<TAsset>(path);
+                AsyncOperationHandle<TAsset> assetLoad = AddressableUtil.LoadAssetAsync<TAsset>(assetGuid);
                 assetLoad.OnSuccess(asset =>
                 {
                     entry.Asset = converter(asset);
@@ -352,9 +351,9 @@ namespace RiskOfChaos.Utilities
                 return entry;
             }
 
-            public static Entry LoadAsync(string path, SpawnPoolEntryParameters parameters)
+            public static Entry LoadAsync(string assetGuid, SpawnPoolEntryParameters parameters)
             {
-                return LoadAsync<T>(path, parameters, v => v);
+                return LoadAsync<T>(assetGuid, parameters, v => v);
             }
 
             void onFullyLoaded()

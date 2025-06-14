@@ -1,5 +1,9 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* Updated for memory optimization patch.
+
 **2.6.4 Changes:**
 
 * Fixed typo.....

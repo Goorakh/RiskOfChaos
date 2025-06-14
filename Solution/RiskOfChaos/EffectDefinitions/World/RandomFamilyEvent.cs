@@ -3,6 +3,7 @@ using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.ExpansionManagement;
 using System.Collections.Generic;
 using UnityEngine;
@@ -28,9 +29,9 @@ namespace RiskOfChaos.EffectDefinitions.World
             ExpansionDef dlc1 = ExpansionUtils.DLC1;
             ExpansionDef[] dlc1Expansions = [dlc1];
 
-            static void loadAndSetPoolEntryDccs(DccsPool.PoolEntry poolEntry, string assetKey)
+            static void loadAndSetPoolEntryDccs(DccsPool.PoolEntry poolEntry, string assetGuid)
             {
-                AsyncOperationHandle<FamilyDirectorCardCategorySelection> loadAssetHandle = Addressables.LoadAssetAsync<FamilyDirectorCardCategorySelection>(assetKey);
+                AsyncOperationHandle<FamilyDirectorCardCategorySelection> loadAssetHandle = AddressableUtil.LoadAssetAsync<FamilyDirectorCardCategorySelection>(assetGuid);
                 loadAssetHandle.OnSuccess(familyDccs =>
                 {
                     string name = familyDccs.name;
@@ -46,33 +47,33 @@ namespace RiskOfChaos.EffectDefinitions.World
                 });
             }
 
-            static DccsPool.PoolEntry getPoolEntry(string assetKey, float weight = 1f)
+            static DccsPool.PoolEntry getPoolEntry(string assetGuid, float weight = 1f)
             {
                 DccsPool.PoolEntry poolEntry = new DccsPool.PoolEntry
                 {
                     weight = weight
                 };
 
-                loadAndSetPoolEntryDccs(poolEntry, assetKey);
+                loadAndSetPoolEntryDccs(poolEntry, assetGuid);
 
                 return poolEntry;
             }
 
-            static DccsPool.PoolEntry[] getGroupedPoolEntries(string[] assetKeys, float totalWeight = 1f)
+            static DccsPool.PoolEntry[] getGroupedPoolEntries(string[] assetGuids, float totalWeight = 1f)
             {
-                int entryCount = assetKeys.Length;
+                int entryCount = assetGuids.Length;
                 float entryWeight = totalWeight / entryCount;
 
                 DccsPool.PoolEntry[] entries = new DccsPool.PoolEntry[entryCount];
                 for (int i = 0; i < entryCount; i++)
                 {
-                    entries[i] = getPoolEntry(assetKeys[i], entryWeight);
+                    entries[i] = getPoolEntry(assetGuids[i], entryWeight);
                 }
 
                 return entries;
             }
 
-            static DccsPool.ConditionalPoolEntry getConditionalPoolEntry(string assetKey, ExpansionDef[] requiredExpansions, float weight = 1f)
+            static DccsPool.ConditionalPoolEntry getConditionalPoolEntry(string assetGuid, ExpansionDef[] requiredExpansions, float weight = 1f)
             {
                 DccsPool.ConditionalPoolEntry poolEntry = new DccsPool.ConditionalPoolEntry
                 {
@@ -80,7 +81,7 @@ namespace RiskOfChaos.EffectDefinitions.World
                     requiredExpansions = requiredExpansions
                 };
 
-                loadAndSetPoolEntryDccs(poolEntry, assetKey);
+                loadAndSetPoolEntryDccs(poolEntry, assetGuid);
 
                 return poolEntry;
             }
@@ -90,21 +91,29 @@ namespace RiskOfChaos.EffectDefinitions.World
                 name = "AllFamilies",
                 categoryWeight = 1f,
                 alwaysIncluded = [
-                    .. getGroupedPoolEntries(["RoR2/Base/Common/dccsBeetleFamily.asset", "RoR2/Base/Common/dccsBeetleFamilySulfur.asset"]),
-                    .. getGroupedPoolEntries(["RoR2/Base/Common/dccsGolemFamily.asset", "RoR2/Base/Common/dccsGolemFamilyNature.asset", "RoR2/Base/Common/dccsGolemFamilySandy.asset", "RoR2/Base/Common/dccsGolemFamilySnowy.asset"]),
-                    getPoolEntry("RoR2/Base/Common/dccsImpFamily.asset"),
-                    getPoolEntry("RoR2/Base/Common/dccsJellyfishFamily.asset"),
-                    getPoolEntry("RoR2/Base/Common/dccsLemurianFamily.asset"),
-                    getPoolEntry("RoR2/Base/Common/dccsLunarFamily.asset"),
-                    getPoolEntry("RoR2/Base/Common/dccsMushroomFamily.asset"),
-                    getPoolEntry("RoR2/Base/Common/dccsParentFamily.asset"),
-                    getPoolEntry("RoR2/Base/Common/dccsWispFamily.asset")
+                    .. getGroupedPoolEntries([
+                        AddressableGuids.RoR2_Base_Common_dccsBeetleFamily_asset,
+                        AddressableGuids.RoR2_Base_Common_dccsBeetleFamilySulfur_asset
+                    ]),
+                    .. getGroupedPoolEntries([
+                        AddressableGuids.RoR2_Base_Common_dccsGolemFamily_asset,
+                        AddressableGuids.RoR2_Base_Common_dccsGolemFamilyNature_asset,
+                        AddressableGuids.RoR2_Base_Common_dccsGolemFamilySandy_asset,
+                        AddressableGuids.RoR2_Base_Common_dccsGolemFamilySnowy_asset
+                    ]),
+                    getPoolEntry(AddressableGuids.RoR2_Base_Common_dccsImpFamily_asset),
+                    getPoolEntry(AddressableGuids.RoR2_Base_Common_dccsJellyfishFamily_asset),
+                    getPoolEntry(AddressableGuids.RoR2_Base_Common_dccsLemurianFamily_asset),
+                    getPoolEntry(AddressableGuids.RoR2_Base_Common_dccsLunarFamily_asset),
+                    getPoolEntry(AddressableGuids.RoR2_Base_Common_dccsMushroomFamily_asset),
+                    getPoolEntry(AddressableGuids.RoR2_Base_Common_dccsParentFamily_asset),
+                    getPoolEntry(AddressableGuids.RoR2_Base_Common_dccsWispFamily_asset)
                 ],
                 includedIfConditionsMet = [
-                    getConditionalPoolEntry("RoR2/Base/Common/dccsGupFamily.asset", dlc1Expansions),
-                    getConditionalPoolEntry("RoR2/DLC1/Common/dccsAcidLarvaFamily.asset", dlc1Expansions),
-                    getConditionalPoolEntry("RoR2/DLC1/Common/dccsConstructFamily.asset", dlc1Expansions),
-                    getConditionalPoolEntry("RoR2/DLC1/Common/dccsVoidFamily.asset", dlc1Expansions)
+                    getConditionalPoolEntry(AddressableGuids.RoR2_Base_Common_dccsGupFamily_asset, dlc1Expansions),
+                    getConditionalPoolEntry(AddressableGuids.RoR2_DLC1_Common_dccsAcidLarvaFamily_asset, dlc1Expansions),
+                    getConditionalPoolEntry(AddressableGuids.RoR2_DLC1_Common_dccsConstructFamily_asset, dlc1Expansions),
+                    getConditionalPoolEntry(AddressableGuids.RoR2_DLC1_Common_dccsVoidFamily_asset, dlc1Expansions)
                 ],
                 includedIfNoConditionsMet = []
             };

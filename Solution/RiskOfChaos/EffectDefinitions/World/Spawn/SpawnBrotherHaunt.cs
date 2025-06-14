@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.Collections;
 using RiskOfChaos.ConfigHandling;
-using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -9,9 +8,11 @@ using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Trackers;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.UI;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
@@ -20,9 +21,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
     public sealed class SpawnBrotherHaunt : MonoBehaviour
     {
         static GameObject _brotherHauntPrefab;
-
-        [AddressableReference("RoR2/Base/UI/HudCountdownPanel.prefab")]
-        static readonly GameObject _countdownTimerPrefab;
 
         [SystemInitializer(typeof(MasterCatalog))]
         static void Init()
@@ -63,6 +61,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             return true;
         }
 
+        AssetOrDirectReference<GameObject> _countdownTimerPrefabReference;
+
         ChaosEffectComponent _effectComponent;
 
         float _masterRespawnTimer;
@@ -77,6 +77,15 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
+
+            if (NetworkClient.active)
+            {
+                _countdownTimerPrefabReference = new AssetOrDirectReference<GameObject>()
+                {
+                    unloadType = AsyncReferenceHandleUnloadType.AtWill,
+                    address = new AssetReferenceGameObject(AddressableGuids.RoR2_Base_UI_HudCountdownPanel_prefab)
+                };
+            }
         }
 
         void OnDestroy()
@@ -87,6 +96,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             {
                 _spawnedMaster.TrueKill();
             }
+
+            _countdownTimerPrefabReference?.Reset();
+            _countdownTimerPrefabReference = null;
         }
 
         void FixedUpdate()
@@ -135,25 +147,30 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             {
                 if (_countdownTimers.Count < HUD.readOnlyInstanceList.Count)
                 {
-                    _countdownTimers.EnsureCapacity(HUD.readOnlyInstanceList.Count);
-                    foreach (HUD hud in HUD.readOnlyInstanceList)
+                    if (_countdownTimerPrefabReference != null && _countdownTimerPrefabReference.IsLoaded())
                     {
-                        if (InstanceTracker.GetInstancesList<HudCountdownPanelTracker>().Any(p => p.HUD == hud))
-                            continue;
+                        GameObject countdownTimerPrefab = _countdownTimerPrefabReference.Result;
 
-                        if (!hud.TryGetComponent(out ChildLocator childLocator))
-                            continue;
+                        _countdownTimers.EnsureCapacity(HUD.readOnlyInstanceList.Count);
+                        foreach (HUD hud in HUD.readOnlyInstanceList)
+                        {
+                            if (InstanceTracker.GetInstancesList<HudCountdownPanelTracker>().Any(p => p.HUD == hud))
+                                continue;
 
-                        RectTransform topCenterCluster = childLocator.FindChild("TopCenterCluster") as RectTransform;
-                        if (!topCenterCluster)
-                            continue;
+                            if (!hud.TryGetComponent(out ChildLocator childLocator))
+                                continue;
 
-                        GameObject countdownPanel = GameObject.Instantiate(_countdownTimerPrefab, topCenterCluster);
-                        TimerText timerText = countdownPanel.GetComponent<TimerText>();
+                            RectTransform topCenterCluster = childLocator.FindChild("TopCenterCluster") as RectTransform;
+                            if (!topCenterCluster)
+                                continue;
 
-                        _countdownTimers.Add(timerText);
+                            GameObject countdownPanel = GameObject.Instantiate(countdownTimerPrefab, topCenterCluster);
+                            TimerText timerText = countdownPanel.GetComponent<TimerText>();
 
-                        Log.Debug($"Created countdown timer for local user {hud.localUserViewer?.id}");
+                            _countdownTimers.Add(timerText);
+
+                            Log.Debug($"Created countdown timer for local user {hud.localUserViewer?.id}");
+                        }
                     }
                 }
             }

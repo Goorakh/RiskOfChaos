@@ -1,20 +1,23 @@
 ﻿using RiskOfChaos.Collections;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
-using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Patches;
 using RiskOfChaos.SaveHandling;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using RoR2.ContentManagement;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Pickups
 {
@@ -23,8 +26,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
     {
         static PickupIndex[] _allAvailablePickupIndices = [];
 
-        [SystemInitializer(typeof(PickupCatalog))]
-        static void Init()
+        static EffectIndex _recycleEffectIndex = EffectIndex.Invalid;
+
+        [SystemInitializer(typeof(PickupCatalog), typeof(EffectCatalog))]
+        static IEnumerator Init()
         {
             _allAvailablePickupIndices = PickupCatalog.allPickupIndices.Where(i =>
             {
@@ -54,6 +59,18 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
 
                 return true;
             }).ToArray();
+
+            AsyncOperationHandle<GameObject> recycleEffectLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Recycle_OmniRecycleEffect_prefab, AsyncReferenceHandleUnloadType.OnSceneUnload);
+            recycleEffectLoad.OnSuccess(recycleEffectPrefab =>
+            {
+                _recycleEffectIndex = EffectCatalog.FindEffectIndexFromPrefab(recycleEffectPrefab);
+                if (_recycleEffectIndex == EffectIndex.Invalid)
+                {
+                    Log.Error($"Failed to find recycle effect index from {recycleEffectPrefab}");
+                }
+            });
+
+            yield return recycleEffectLoad;
         }
 
         [EffectConfig]
@@ -241,9 +258,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                 new Keyframe(1f, 0f, 0f, 0f),
             ]);
 
-            [AddressableReference("RoR2/Base/Recycle/OmniRecycleEffect.prefab")]
-            static readonly GameObject _recycleEffectPrefab;
-
             public RepeatedlyRecycleItems EffectInstance;
 
             public GenericPickupController PickupController { get; private set; }
@@ -285,7 +299,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                     return;
 
                 PickupController.NetworkpickupIndex = nextPickup;
-                EffectManager.SimpleEffect(_recycleEffectPrefab, PickupController.pickupDisplay.transform.position, Quaternion.identity, true);
+
+                if (_recycleEffectIndex != EffectIndex.Invalid)
+                {
+                    EffectManager.SpawnEffect(_recycleEffectIndex, new EffectData
+                    {
+                        origin = PickupController.pickupDisplay.transform.position
+                    }, true);
+                }
 
                 _numTimesRecycled++;
                 

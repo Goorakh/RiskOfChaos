@@ -1,6 +1,6 @@
-﻿using RiskOfChaos.Patches;
+﻿using HG;
+using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.Pickup;
 using RoR2;
 using System;

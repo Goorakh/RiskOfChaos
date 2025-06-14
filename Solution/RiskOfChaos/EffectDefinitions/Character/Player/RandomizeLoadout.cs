@@ -8,6 +8,7 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.Skills;
 using System;
 using System.Collections.Generic;
@@ -217,7 +218,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
                 {
                     if (modelSkinController.currentSkinIndex != skinIndex)
                     {
-                        modelSkinController.ApplySkin(ClampedConversion.Int32(skinIndex));
+                        modelSkinController.StartCoroutine(modelSkinController.ApplySkinAsync(ClampedConversion.Int32(skinIndex), AsyncReferenceHandleUnloadType.OnRunEnd));
                     }
                 }
             }

@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
+using HG;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.UI;
 using UnityEngine;

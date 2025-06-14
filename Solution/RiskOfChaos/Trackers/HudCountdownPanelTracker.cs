@@ -1,8 +1,10 @@
-﻿using RiskOfChaos.Utilities.Extensions;
+﻿using HG;
+using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.UI;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.Trackers
 {
@@ -11,9 +13,9 @@ namespace RiskOfChaos.Trackers
         [SystemInitializer]
         static void Init()
         {
-            Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/HudCountdownPanel.prefab").OnSuccess(hudCountdownPanel =>
+            AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_UI_HudCountdownPanel_prefab, AsyncReferenceHandleUnloadType.Preload).OnSuccess(hudCountdownPanel =>
             {
-                hudCountdownPanel.AddComponent<HudCountdownPanelTracker>();
+                hudCountdownPanel.EnsureComponent<HudCountdownPanelTracker>();
             });
         }
 

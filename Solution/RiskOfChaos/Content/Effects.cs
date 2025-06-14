@@ -1,12 +1,13 @@
 ﻿using RiskOfChaos.Components;
 using RiskOfChaos.Content.AssetCollections;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.Orbs;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Content
@@ -22,7 +23,7 @@ namespace RiskOfChaos.Content
 
                 // EquipmentTransferOrb
                 {
-                    AsyncOperationHandle<GameObject> transferOrbEffectLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Common/VFX/ItemTransferOrbEffect.prefab");
+                    AsyncOperationHandle<GameObject> transferOrbEffectLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Common_VFX_ItemTransferOrbEffect_prefab, AsyncReferenceHandleUnloadType.Preload);
                     transferOrbEffectLoad.OnSuccess(itemTransferOrbEffectPrefab =>
                     {
                         GameObject prefab = itemTransferOrbEffectPrefab.InstantiatePrefab(nameof(EquipmentTransferOrbEffect));

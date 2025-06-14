@@ -1,5 +1,5 @@
-﻿using RiskOfChaos.Patches;
-using RiskOfChaos.Utilities.Extensions;
+﻿using HG;
+using RiskOfChaos.Patches;
 using RoR2;
 using RoR2.UI;
 using UnityEngine;
@@ -18,7 +18,7 @@ namespace RiskOfChaos.Trackers
                 orig(self);
 
                 CurrentDifficultyIconControllerTracker tracker = self.gameObject.EnsureComponent<CurrentDifficultyIconControllerTracker>();
-                tracker.IconController = (CurrentDifficultyIconController)self;
+                tracker.IconController = self;
             };
         }
 

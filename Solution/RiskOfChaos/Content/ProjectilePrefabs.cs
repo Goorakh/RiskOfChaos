@@ -1,11 +1,12 @@
 ﻿using RiskOfChaos.Components;
 using RiskOfChaos.Content.AssetCollections;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.Projectile;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Content
@@ -19,7 +20,7 @@ namespace RiskOfChaos.Content
             {
                 static IEnumerator loadReplacedGrenade(ProjectilePrefabAssetCollection projectilePrefabs, LocalPrefabAssetCollection localPrefabs)
                 {
-                    AsyncOperationHandle<GameObject> commandoGrenadeGhostLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Commando/CommandoGrenadeGhost.prefab");
+                    AsyncOperationHandle<GameObject> commandoGrenadeGhostLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Commando_CommandoGrenadeGhost_prefab, AsyncReferenceHandleUnloadType.Preload);
                     while (!commandoGrenadeGhostLoad.IsDone)
                     {
                         yield return null;
@@ -44,7 +45,7 @@ namespace RiskOfChaos.Content
                                 trailTeamIndicator.TeamProvider = teamProvider;
 
                                 Material friendlyTrailMaterial = trailRenderer.sharedMaterial;
-                                Material enemyTrailMaterial = Addressables.LoadAssetAsync<Material>("RoR2/Base/Huntress/matHuntressFlurryArrowCritTrail.mat").WaitForCompletion();
+                                Material enemyTrailMaterial = AddressableUtil.LoadAssetAsync<Material>(AddressableGuids.RoR2_Base_Huntress_matHuntressFlurryArrowCritTrail_mat).WaitForCompletion();
 
                                 trailTeamIndicator.TeamConfigurations = [
                                     new ProjectileGhostTeamIndicator.RenderTeamConfiguration(trailRenderer, [
@@ -69,7 +70,7 @@ namespace RiskOfChaos.Content
                         localPrefabs.Add(grenadeReplacedGhost);
                     }
 
-                    AsyncOperationHandle<GameObject> commandoGrenadeProjectileLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Commando/CommandoGrenadeProjectile.prefab");
+                    AsyncOperationHandle<GameObject> commandoGrenadeProjectileLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Commando_CommandoGrenadeProjectile_prefab, AsyncReferenceHandleUnloadType.Preload);
                     commandoGrenadeProjectileLoad.OnSuccess(commandoGrenadeProjectile =>
                     {
                         GameObject grenadeReplacedProjectile = commandoGrenadeProjectile.InstantiateNetworkedPrefab(nameof(GrenadeReplacedProjectile));
@@ -98,8 +99,8 @@ namespace RiskOfChaos.Content
 
                 static IEnumerator loadPulseGolemHookProjectile(ProjectilePrefabAssetCollection projectilePrefabs, LocalPrefabAssetCollection localPrefabs)
                 {
-                    AsyncOperationHandle<GameObject> hookProjectileLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Gravekeeper/GravekeeperHookProjectileSimple.prefab");
-                    AsyncOperationHandle<GameObject> hookGhostLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Gravekeeper/GravekeeperHookGhost.prefab");
+                    AsyncOperationHandle<GameObject> hookProjectileLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Gravekeeper_GravekeeperHookProjectileSimple_prefab, AsyncReferenceHandleUnloadType.Preload);
+                    AsyncOperationHandle<GameObject> hookGhostLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Gravekeeper_GravekeeperHookGhost_prefab, AsyncReferenceHandleUnloadType.Preload);
 
                     AsyncOperationHandle[] loadOperations = [hookProjectileLoad, hookGhostLoad];
                     yield return loadOperations.WaitForAllLoaded();
@@ -138,7 +139,10 @@ namespace RiskOfChaos.Content
                     hookProjectileHookController.ReelSpeed = 100f;
                     hookProjectileHookController.PullOriginChildName = "MuzzleLaser";
                     hookProjectileHookController.PullTargetDistance = 15f;
-                    hookProjectileHookController.HookCharacterEffectPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Common/VFX/OmniImpactVFXSlash.prefab").WaitForCompletion();
+                    AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Common_VFX_OmniImpactVFXSlash_prefab).OnSuccess(impactEffectPrefab =>
+                    {
+                        hookProjectileHookController.HookCharacterEffectPrefab = impactEffectPrefab;
+                    });
 
                     GameObject.Destroy(hookProjectilePrefab.GetComponent<ProjectileSingleTargetImpact>());
 

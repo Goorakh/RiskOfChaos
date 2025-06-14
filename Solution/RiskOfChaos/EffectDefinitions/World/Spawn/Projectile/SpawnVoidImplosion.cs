@@ -19,9 +19,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
         {
             _implosionProjectiles.EnsureCapacity(3);
 
-            _implosionProjectiles.AddAssetEntry("RoR2/Base/Nullifier/NullifierDeathBombProjectile.prefab", new SpawnPoolEntryParameters(1f));
-            _implosionProjectiles.AddAssetEntry("RoR2/DLC1/VoidJailer/VoidJailerDeathBombProjectile.prefab", new SpawnPoolEntryParameters(0.4f, ExpansionUtils.DLC1));
-            _implosionProjectiles.AddAssetEntry("RoR2/DLC1/VoidMegaCrab/VoidMegaCrabDeathBombProjectile.prefab", new SpawnPoolEntryParameters(0.4f, ExpansionUtils.DLC1));
+            _implosionProjectiles.AddAssetEntry(AddressableGuids.RoR2_Base_Nullifier_NullifierDeathBombProjectile_prefab, new SpawnPoolEntryParameters(1f));
+            _implosionProjectiles.AddAssetEntry(AddressableGuids.RoR2_DLC1_VoidJailer_VoidJailerDeathBombProjectile_prefab, new SpawnPoolEntryParameters(0.4f, ExpansionUtils.DLC1));
+            _implosionProjectiles.AddAssetEntry(AddressableGuids.RoR2_DLC1_VoidMegaCrab_VoidMegaCrabDeathBombProjectile_prefab, new SpawnPoolEntryParameters(0.4f, ExpansionUtils.DLC1));
         }
 
         [EffectCanActivate]

@@ -1,9 +1,9 @@
-﻿using RiskOfChaos.Content;
-using RiskOfChaos.Trackers;
+﻿using RiskOfChaos.Trackers;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Artifacts;
+using RoR2.ContentManagement;
 using System.Collections.Generic;
 using UnityEngine.Networking;
 
@@ -11,9 +11,6 @@ namespace RiskOfChaos
 {
     static class MidRunArtifactsHandler
     {
-        [AddressableReference("RoR2/CU8/LemurianEgg/iscLemurianEgg.asset")]
-        static readonly InteractableSpawnCard _lemurianEggSpawnCard;
-
         [SystemInitializer]
         static void Init()
         {
@@ -180,7 +177,7 @@ namespace RiskOfChaos
 
                 lemurianEggSpawnCard = new DirectorCard
                 {
-                    spawnCard = _lemurianEggSpawnCard
+                    spawnCard = AddressableUtil.LoadAssetAsync<InteractableSpawnCard>(AddressableGuids.RoR2_CU8_LemurianEgg_iscLemurianEgg_asset, AsyncReferenceHandleUnloadType.OnSceneUnload).WaitForCompletion()
                 };
             }
 

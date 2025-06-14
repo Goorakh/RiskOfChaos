@@ -3,14 +3,15 @@ using RiskOfChaos.Components;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Trackers;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.Projectile;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
@@ -22,27 +23,27 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
         [SystemInitializer]
         static void Init()
         {
-            static void addNetworkTransform(string prefabAssetPath)
+            static void addNetworkTransform(string prefabAssetGuid)
             {
-                AsyncOperationHandle<GameObject> prefabAssetLoad = Addressables.LoadAssetAsync<GameObject>(prefabAssetPath);
+                AsyncOperationHandle<GameObject> prefabAssetLoad = AddressableUtil.LoadAssetAsync<GameObject>(prefabAssetGuid, AsyncReferenceHandleUnloadType.Preload);
                 prefabAssetLoad.OnSuccess(prefab =>
                 {
                     ProjectileNetworkTransform networkTransform = prefab.GetComponent<ProjectileNetworkTransform>();
                     if (networkTransform || prefab.GetComponent<NetworkTransform>())
                     {
-                        Log.Info($"{prefab.name} ({prefabAssetPath}) already has NetworkTransform component, skipping");
+                        Log.Info($"{prefab.name} ({prefabAssetGuid}) already has NetworkTransform component, skipping");
                         return;
                     }
 
                     if (!prefab.GetComponent<NetworkIdentity>())
                     {
-                        Log.Error($"{prefab.name} ({prefabAssetPath}) is not a networked object");
+                        Log.Error($"{prefab.name} ({prefabAssetGuid}) is not a networked object");
                         return;
                     }
 
                     if (!AttractToPlayers.CanAddComponent(prefab))
                     {
-                        Log.Error($"{prefab.name} ({prefabAssetPath}) is invalid for component");
+                        Log.Error($"{prefab.name} ({prefabAssetGuid}) is invalid for component");
                         return;
                     }
 
@@ -50,16 +51,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                     networkTransform.positionTransmitInterval = 1f / 15f;
                     networkTransform.allowClientsideCollision = true;
 
-                    Log.Debug($"Added network transform component to {prefab.name} ({prefabAssetPath})");
+                    Log.Debug($"Added network transform component to {prefab.name} ({prefabAssetGuid})");
                 });
             }
 
-            addNetworkTransform("RoR2/Base/Common/GenericPickup.prefab");
-            addNetworkTransform("RoR2/Base/Command/CommandCube.prefab");
+            addNetworkTransform(AddressableGuids.RoR2_Base_Common_GenericPickup_prefab);
+            addNetworkTransform(AddressableGuids.RoR2_Base_Command_CommandCube_prefab);
 
-            addNetworkTransform("RoR2/DLC1/OptionPickup/OptionPickup.prefab");
+            addNetworkTransform(AddressableGuids.RoR2_DLC1_OptionPickup_OptionPickup_prefab);
 
-            addNetworkTransform("RoR2/DLC2/FragmentPotentialPickup.prefab");
+            addNetworkTransform(AddressableGuids.RoR2_DLC2_FragmentPotentialPickup_prefab);
         }
 
         readonly ClearingObjectList<AttractToPlayers> _attractComponents = [];

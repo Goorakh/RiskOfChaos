@@ -20,15 +20,15 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             _spawnPool.EnsureCapacity(10);
 
-            _spawnPool.AddAssetEntry("RoR2/Base/PortalGoldshores/iscGoldshoresPortal.asset", new SpawnPoolEntryParameters(1.2f));
-            _spawnPool.AddAssetEntry("RoR2/Base/PortalMS/iscMSPortal.asset", new SpawnPoolEntryParameters(1.2f));
-            _spawnPool.AddAssetEntry("RoR2/Base/PortalShop/iscShopPortal.asset", new SpawnPoolEntryParameters(1.2f));
-            _spawnPool.AddAssetEntry("RoR2/DLC1/GameModes/InfiniteTowerRun/InfiniteTowerAssets/iscInfiniteTowerPortal.asset", new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1));
-            _spawnPool.AddAssetEntry("RoR2/DLC1/DeepVoidPortal/iscDeepVoidPortal.asset", new SpawnPoolEntryParameters(0.8f, ExpansionUtils.DLC1));
-            _spawnPool.AddAssetEntry("RoR2/DLC1/PortalVoid/iscVoidPortal.asset", new SpawnPoolEntryParameters(0.8f, ExpansionUtils.DLC1));
-            _spawnPool.AddAssetEntry("RoR2/DLC1/VoidOutroPortal/iscVoidOutroPortal.asset", new SpawnPoolEntryParameters(0.8f, ExpansionUtils.DLC1));
-            _spawnPool.AddAssetEntry("RoR2/DLC2/iscDestinationPortal.asset", new SpawnPoolEntryParameters(0.8f, ExpansionUtils.DLC2));
-            _spawnPool.AddAssetEntry("RoR2/DLC2/iscColossusPortal.asset", new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_PortalGoldshores_iscGoldshoresPortal_asset, new SpawnPoolEntryParameters(1.2f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_PortalMS_iscMSPortal_asset, new SpawnPoolEntryParameters(1.2f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_PortalShop_iscShopPortal_asset, new SpawnPoolEntryParameters(1.2f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_DLC1_GameModes_InfiniteTowerRun_InfiniteTowerAssets_iscInfiniteTowerPortal_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_DLC1_DeepVoidPortal_iscDeepVoidPortal_asset, new SpawnPoolEntryParameters(0.8f, ExpansionUtils.DLC1));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_DLC1_PortalVoid_iscVoidPortal_asset, new SpawnPoolEntryParameters(0.8f, ExpansionUtils.DLC1));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_DLC1_VoidOutroPortal_iscVoidOutroPortal_asset, new SpawnPoolEntryParameters(0.8f, ExpansionUtils.DLC1));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_DLC2_iscDestinationPortal_asset, new SpawnPoolEntryParameters(0.8f, ExpansionUtils.DLC2));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_DLC2_iscColossusPortal_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
         }
 
         [EffectCanActivate]

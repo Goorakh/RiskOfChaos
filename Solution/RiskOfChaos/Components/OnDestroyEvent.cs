@@ -1,4 +1,4 @@
-﻿using RiskOfChaos.Utilities.Extensions;
+﻿using HG;
 using RoR2;
 using UnityEngine;
 

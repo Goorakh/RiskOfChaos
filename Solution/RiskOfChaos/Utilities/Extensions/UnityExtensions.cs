@@ -1,4 +1,5 @@
-﻿using R2API.Networking;
+﻿using HG;
+using R2API.Networking;
 using R2API.Networking.Interfaces;
 using RiskOfChaos.Networking;
 using RoR2;
@@ -36,16 +37,6 @@ namespace RiskOfChaos.Utilities.Extensions
 
                 new SetObjectDontDestroyOnLoadMessage(obj, dontDestroyOnLoad).Send(NetworkDestination.Clients);
             }
-        }
-
-        public static T EnsureComponent<T>(this GameObject obj) where T : Component
-        {
-            if (!obj.TryGetComponent(out T component))
-            {
-                component = obj.AddComponent<T>();
-            }
-
-            return component;
         }
 
         public static Component EnsureComponent(this GameObject obj, Type componentType)

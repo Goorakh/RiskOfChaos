@@ -1,15 +1,35 @@
 ﻿using EntityStates;
+using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.Projectile;
+using System.Collections;
 using UnityEngine;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Content.EntityStates.PulseGolem
 {
     [EntityStateType]
     public class FireHook : BaseState
     {
-        [AddressableReference("RoR2/Base/Gravekeeper/MuzzleflashWinch.prefab")]
-        static readonly GameObject _muzzleEffectPrefab;
+        static EffectIndex _muzzleEffectIndex = EffectIndex.Invalid;
+
+        [SystemInitializer(typeof(EffectCatalog))]
+        static IEnumerator Init()
+        {
+            AsyncOperationHandle<GameObject> muzzleFlashWinchLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Gravekeeper_MuzzleflashWinch_prefab, AsyncReferenceHandleUnloadType.OnSceneUnload);
+            muzzleFlashWinchLoad.OnSuccess(muzzleFlashPrefab =>
+            {
+                _muzzleEffectIndex = EffectCatalog.FindEffectIndexFromPrefab(muzzleFlashPrefab);
+                if (_muzzleEffectIndex == EffectIndex.Invalid)
+                {
+                    Log.Error($"Failed to find muzzle flash effect index from {muzzleFlashPrefab}");
+                }
+            });
+
+            yield return muzzleFlashWinchLoad;
+        }
 
         static readonly float _baseDuration = 2f;
 
@@ -42,9 +62,25 @@ namespace RiskOfChaos.Content.EntityStates.PulseGolem
 
             string laserMuzzleName = "MuzzleLaser";
 
-            if (_muzzleEffectPrefab)
+            if (_muzzleEffectIndex != EffectIndex.Invalid)
             {
-                EffectManager.SimpleMuzzleFlash(_muzzleEffectPrefab, gameObject, laserMuzzleName, false);
+                ChildLocator modelChildLocator = GetModelChildLocator();
+                if (modelChildLocator)
+                {
+                    int muzzleChildIndex = modelChildLocator.FindChildIndex(laserMuzzleName);
+                    Transform muzzleTransform = modelChildLocator.FindChild(muzzleChildIndex);
+                    if (muzzleTransform)
+                    {
+                        EffectData muzzleEffectData = new EffectData
+                        {
+                            origin = muzzleTransform.position,
+                        };
+
+                        muzzleEffectData.SetChildLocatorTransformReference(gameObject, muzzleChildIndex);
+
+                        EffectManager.SpawnEffect(_muzzleEffectIndex, muzzleEffectData, false);
+                    }
+                }
             }
 
             if (isAuthority)

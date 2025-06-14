@@ -8,11 +8,11 @@ using RiskOfChaos.Networking.Components;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.Navigation;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
@@ -28,20 +28,20 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             List<AsyncOperationHandle> asyncOperations = [];
 
-            string[] geyserPrefabPaths = [
-                "RoR2/Base/artifactworld/AWGeyser.prefab",
-                "RoR2/Base/Common/Props/Geyser.prefab",
+            string[] geyserPrefabGuids = [
+                AddressableGuids.RoR2_Base_artifactworld_AWGeyser_prefab,
+                AddressableGuids.RoR2_Base_Common_Props_Geyser_prefab,
                 //"RoR2/Base/frozenwall/FW_HumanFan.prefab",
-                "RoR2/Base/moon/MoonGeyser.prefab",
+                AddressableGuids.RoR2_Base_moon_MoonGeyser_prefab,
                 //"RoR2/Base/moon2/MoonElevator.prefab",
-                "RoR2/Base/rootjungle/RJ_BounceShroom.prefab",
-                "RoR2/DLC1/ancientloft/AL_Geyser.prefab",
-                "RoR2/DLC1/snowyforest/SFGeyser.prefab",
-                "RoR2/DLC1/voidstage/mdlVoidGravityGeyser.prefab",
-                "RoR2/DLC2/meridian/PMLaunchPad.prefab"
+                AddressableGuids.RoR2_Base_rootjungle_RJ_BounceShroom_prefab,
+                AddressableGuids.RoR2_DLC1_ancientloft_AL_Geyser_prefab,
+                AddressableGuids.RoR2_DLC1_snowyforest_SFGeyser_prefab,
+                AddressableGuids.RoR2_DLC1_voidstage_mdlVoidGravityGeyser_prefab,
+                AddressableGuids.RoR2_DLC2_meridian_PMLaunchPad_prefab
             ];
 
-            int geyserCount = geyserPrefabPaths.Length;
+            int geyserCount = geyserPrefabGuids.Length;
 
             asyncOperations.EnsureCapacity(asyncOperations.Count + geyserCount);
 
@@ -50,7 +50,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             {
                 int prefabIndex = i;
 
-                AsyncOperationHandle<GameObject> geyserLoad = Addressables.LoadAssetAsync<GameObject>(geyserPrefabPaths[i]);
+                AsyncOperationHandle<GameObject> geyserLoad = AddressableUtil.LoadAssetAsync<GameObject>(geyserPrefabGuids[i], AsyncReferenceHandleUnloadType.Preload);
                 geyserLoad.OnSuccess(geyserPrefab =>
                 {
                     GameObject geyserHolder = Prefabs.CreateNetworkedPrefab("Networked" + geyserPrefab.name, [
@@ -71,14 +71,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     grantItemsOnJump.Items = [
                         new GrantTemporaryItemsOnJump.ConditionalItem
                         {
-                            ItemDef = Addressables.LoadAssetAsync<ItemDef>("RoR2/Base/Feather/Feather.asset").WaitForCompletion(),
+                            ItemDef = AddressableUtil.LoadAssetAsync<ItemDef>(AddressableGuids.RoR2_Base_Feather_Feather_asset).WaitForCompletion(),
                             GrantToPlayers = true,
                             IgnoreIfItemAlreadyPresent = true,
                             NotifyPickupIfNoneActive = true,
                         },
                         new GrantTemporaryItemsOnJump.ConditionalItem
                         {
-                            ItemDef = Addressables.LoadAssetAsync<ItemDef>("RoR2/Base/TeleportWhenOob/TeleportWhenOob.asset").WaitForCompletion(),
+                            ItemDef = AddressableUtil.LoadAssetAsync<ItemDef>(AddressableGuids.RoR2_Base_TeleportWhenOob_TeleportWhenOob_asset).WaitForCompletion(),
                             GrantToInvincibleLemurian = true,
                             IgnoreIfItemAlreadyPresent = true,
                         }

@@ -3,8 +3,11 @@ using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.Controllers.ChatVoting;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
+using RoR2.ContentManagement;
 using RoR2.UI;
+using RoR2BepInExPack.GameAssetPaths;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -22,7 +25,7 @@ namespace RiskOfChaos.UI.ChatVoting
         {
             List<AsyncOperationHandle> asyncOperations = [];
 
-            AsyncOperationHandle<GameObject> notificationPanelLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/NotificationPanel2.prefab");
+            AsyncOperationHandle<GameObject> notificationPanelLoad = AddressableUtil.LoadAssetAsync<GameObject>(RoR2_Base_UI.NotificationPanel2_prefab, AsyncReferenceHandleUnloadType.Preload);
             notificationPanelLoad.OnSuccess(notificationPanel =>
             {
                 // TODO: Construct panel prefab instead of Frankensteining existing prefabs

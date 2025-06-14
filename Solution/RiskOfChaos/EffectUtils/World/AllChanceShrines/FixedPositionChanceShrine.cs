@@ -1,11 +1,12 @@
 ﻿using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
 {
@@ -16,7 +17,7 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
         [SystemInitializer]
         static void Init()
         {
-            Addressables.LoadAssetAsync<InteractableSpawnCard>("RoR2/Base/ShrineChance/iscShrineChance.asset").OnSuccess(iscChanceShrine =>
+            AddressableUtil.LoadAssetAsync<InteractableSpawnCard>(AddressableGuids.RoR2_Base_ShrineChance_iscShrineChance_asset, AsyncReferenceHandleUnloadType.Preload).OnSuccess(iscChanceShrine =>
             {
                 // Make new instance of the spawn card so that settings can safely be changed without messing with the original behavior
                 SpawnCard = ScriptableObject.Instantiate(iscChanceShrine);

@@ -128,22 +128,20 @@ namespace RiskOfChaos.Patches
             }
         }
 
-        static void PlayerFireProjectileMessage_Serialize(On.RoR2.Projectile.ProjectileManager.PlayerFireProjectileMessage.orig_Serialize orig, MessageBase self, NetworkWriter writer)
+        static void PlayerFireProjectileMessage_Serialize(On.RoR2.Projectile.ProjectileManager.PlayerFireProjectileMessage.orig_Serialize orig, ProjectileManager.PlayerFireProjectileMessage self, NetworkWriter writer)
         {
             orig(self, writer);
 
-            ProjectileManager.PlayerFireProjectileMessage fireProjectileMessage = (ProjectileManager.PlayerFireProjectileMessage)self;
-            writer.Write(fireProjectileMessage.GetProcCoefficientOverridePlusOne());
-            writer.Write(fireProjectileMessage.GetProcChainMask());
+            writer.Write(self.GetProcCoefficientOverridePlusOne());
+            writer.Write(self.GetProcChainMask());
         }
 
-        static void PlayerFireProjectileMessage_Deserialize(On.RoR2.Projectile.ProjectileManager.PlayerFireProjectileMessage.orig_Deserialize orig, MessageBase self, NetworkReader reader)
+        static void PlayerFireProjectileMessage_Deserialize(On.RoR2.Projectile.ProjectileManager.PlayerFireProjectileMessage.orig_Deserialize orig, ProjectileManager.PlayerFireProjectileMessage self, NetworkReader reader)
         {
             orig(self, reader);
 
-            ProjectileManager.PlayerFireProjectileMessage fireProjectileMessage = (ProjectileManager.PlayerFireProjectileMessage)self;
-            fireProjectileMessage.SetProcCoefficientOverridePlusOne(reader.ReadSingle());
-            fireProjectileMessage.SetProcChainMask(reader.ReadProcChainMask());
+            self.SetProcCoefficientOverridePlusOne(reader.ReadSingle());
+            self.SetProcChainMask(reader.ReadProcChainMask());
         }
     }
 }

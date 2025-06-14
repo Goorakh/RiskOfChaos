@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Utilities.Extensions;
+﻿using HG;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using System;
 using System.Collections.Generic;

@@ -1,8 +1,10 @@
-﻿using RiskOfChaos.Utilities.Extensions;
+﻿using HG;
+using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using System;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.Trackers
 {
@@ -11,14 +13,17 @@ namespace RiskOfChaos.Trackers
         [SystemInitializer]
         static void Init()
         {
-            static void addTracker(GameObject prefab)
+            static void addTracker(string prefabAssetGuid)
             {
-                OptionPickupTracker optionPickupTracker = prefab.AddComponent<OptionPickupTracker>();
-                optionPickupTracker._pickupPickerController = prefab.GetComponent<PickupPickerController>();
+                AddressableUtil.LoadAssetAsync<GameObject>(prefabAssetGuid, AsyncReferenceHandleUnloadType.Preload).OnSuccess(prefab =>
+                {
+                    OptionPickupTracker optionPickupTracker = prefab.EnsureComponent<OptionPickupTracker>();
+                    optionPickupTracker._pickupPickerController = prefab.GetComponent<PickupPickerController>();
+                });
             }
 
-            Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/OptionPickup/OptionPickup.prefab").OnSuccess(addTracker);
-            Addressables.LoadAssetAsync<GameObject>("RoR2/DLC2/FragmentPotentialPickup.prefab").OnSuccess(addTracker);
+            addTracker(AddressableGuids.RoR2_DLC1_OptionPickup_OptionPickup_prefab);
+            addTracker(AddressableGuids.RoR2_DLC2_FragmentPotentialPickup_prefab);
         }
 
         public static event Action<OptionPickupTracker> OnStartGlobal;

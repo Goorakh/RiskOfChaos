@@ -6,12 +6,12 @@ using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.ConVar;
 using RoR2.Orbs;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
@@ -24,8 +24,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             static readonly BoolConVar _enableDebugRangeIndicator = new BoolConVar("roc_lightning_strikes_debug_range_indicator", ConVarFlags.None, "0", "Enables debug visualization of the \"Risk of Thunder\" lightning strikes damage radius");
 
-            [AddressableReference("RoR2/Base/Lightning/LightningStrikeOrbEffect.prefab")]
-            static readonly GameObject _orbEffect;
+            static EffectIndex _orbEffectIndex = EffectIndex.Invalid;
 
             static GameObject _strikeEffect;
 
@@ -34,7 +33,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             {
                 List<AsyncOperationHandle> asyncOperations = new List<AsyncOperationHandle>(1);
 
-                AsyncOperationHandle<GameObject> strikeEffectLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Lightning/LightningStrikeImpact.prefab");
+                AsyncOperationHandle<GameObject> strikeEffectLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Lightning_LightningStrikeImpact_prefab, AsyncReferenceHandleUnloadType.Preload);
                 strikeEffectLoad.OnSuccess(strikeEffectPrefab =>
                 {
                     GameObject prefab = strikeEffectPrefab.InstantiatePrefab("LightningStrikeImpact_SoundFixed");
@@ -51,13 +50,29 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 yield return asyncOperations.WaitForAllLoaded();
             }
 
+            [SystemInitializer(typeof(EffectCatalog))]
+            static IEnumerator Init()
+            {
+                AsyncOperationHandle<GameObject> orbEffectPrefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Lightning_LightningStrikeOrbEffect_prefab, AsyncReferenceHandleUnloadType.OnSceneUnload);
+                orbEffectPrefabLoad.OnSuccess(orbEffectPrefab =>
+                {
+                    _orbEffectIndex = EffectCatalog.FindEffectIndexFromPrefab(orbEffectPrefab);
+                    if (_orbEffectIndex == EffectIndex.Invalid)
+                    {
+                        Log.Error($"Failed to find orb effect index from {orbEffectPrefab}");
+                    }
+                });
+
+                yield return orbEffectPrefabLoad;
+            }
+
             public float Force;
 
             GameObject _debugRangeIndicator;
 
             public override GameObject GetOrbEffect()
             {
-                return _orbEffect;
+                return EffectCatalog.GetEffectDef(_orbEffectIndex)?.prefab;
             }
 
             public override void Begin()
@@ -65,10 +80,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 duration = 1f;
                 scale = 6f;
 
-                GameObject orbEffect = GetOrbEffect();
-                if (orbEffect)
+                if (_orbEffectIndex != EffectIndex.Invalid)
                 {
-                    EffectManager.SpawnEffect(orbEffect, new EffectData
+                    EffectManager.SpawnEffect(_orbEffectIndex, new EffectData
                     {
                         scale = scale / 3f,
                         origin = origin,

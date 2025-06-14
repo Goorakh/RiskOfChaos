@@ -1,7 +1,9 @@
 ﻿using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -22,7 +24,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
 
             List<AsyncOperationHandle> asyncOperations = [];
 
-            AsyncOperationHandle<GameObject> purchaseLockLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Teleporters/PurchaseLock.prefab");
+            AsyncOperationHandle<GameObject> purchaseLockLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Teleporters_PurchaseLock_prefab);
             purchaseLockLoad.OnSuccess(p => outsideInteractableLocker.lockPrefab = p);
             asyncOperations.Add(purchaseLockLoad);
 

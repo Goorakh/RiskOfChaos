@@ -1,7 +1,8 @@
-﻿using RiskOfChaos.Content;
-using RiskOfChaos.EffectHandling.EffectClassAttributes;
-using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
+﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -10,21 +11,17 @@ namespace RiskOfChaos.EffectDefinitions.World
     [ChaosEffect("meteor")]
     public sealed class Meteor : MonoBehaviour
     {
-        [AddressableReference("RoR2/Base/Meteor/MeteorStorm.prefab")]
-        static readonly GameObject _meteorStormPrefab;
-
-        [EffectCanActivate]
-        static bool CanActivate()
-        {
-            return _meteorStormPrefab;
-        }
-
         void Start()
         {
-            if (!NetworkServer.active)
-                return;
+            if (NetworkServer.active)
+            {
+                AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Meteor_MeteorStorm_prefab, AsyncReferenceHandleUnloadType.OnSceneUnload).OnSuccess(spawnMeteor);
+            }
+        }
 
-            MeteorStormController meteorController = Instantiate(_meteorStormPrefab).GetComponent<MeteorStormController>();
+        static void spawnMeteor(GameObject meteorStormPrefab)
+        {
+            MeteorStormController meteorController = Instantiate(meteorStormPrefab).GetComponent<MeteorStormController>();
             meteorController.ownerDamage = 40f * Run.instance.teamlessDamageCoefficient;
             meteorController.isCrit = false;
             NetworkServer.Spawn(meteorController.gameObject);

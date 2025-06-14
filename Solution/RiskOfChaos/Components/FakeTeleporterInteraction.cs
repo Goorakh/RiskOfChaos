@@ -2,9 +2,11 @@
 using RiskOfChaos.Content;
 using RiskOfChaos.Utilities;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.UI;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.Components
@@ -12,9 +14,6 @@ namespace RiskOfChaos.Components
     public class FakeTeleporterInteraction : NetworkBehaviour, IInteractable, ICustomPingBehavior
     {
         public static readonly SerializableEntityStateType IdleStateType = new SerializableEntityStateType(typeof(IdleState));
-
-        [AddressableReference("RoR2/Base/Teleporters/TeleporterChargingPositionIndicator.prefab")]
-        static readonly GameObject _chargingPositionIndicatorPrefab;
 
         public PerpetualBossController BossController;
 
@@ -27,6 +26,8 @@ namespace RiskOfChaos.Components
         public string[] SyncTeleporterChildActivations = [];
 
         public float SyncChildActivationsInterval = 0.5f;
+
+        AssetOrDirectReference<GameObject> _chargingPositionIndicatorPrefabReference;
 
         float _syncChildActivationsTimer;
 
@@ -67,9 +68,17 @@ namespace RiskOfChaos.Components
                 }
             }
 
-            if (_chargingPositionIndicatorPrefab)
+            _chargingPositionIndicatorPrefabReference = new AssetOrDirectReference<GameObject>
             {
-                GameObject positionIndicator = Instantiate(_chargingPositionIndicatorPrefab, transform.position, Quaternion.identity);
+                unloadType = AsyncReferenceHandleUnloadType.AtWill,
+                address = new AssetReferenceGameObject(AddressableGuids.RoR2_Base_Teleporters_TeleporterChargingPositionIndicator_prefab)
+            };
+
+            GameObject chargingPositionIndicatorPrefab = _chargingPositionIndicatorPrefabReference.WaitForCompletion();
+
+            if (chargingPositionIndicatorPrefab)
+            {
+                GameObject positionIndicator = Instantiate(chargingPositionIndicatorPrefab, transform.position, Quaternion.identity);
                 _positionIndicator = positionIndicator.GetComponent<PositionIndicator>();
                 if (_positionIndicator)
                 {
@@ -88,6 +97,8 @@ namespace RiskOfChaos.Components
             {
                 Destroy(_positionIndicator.gameObject);
             }
+
+            _chargingPositionIndicatorPrefabReference?.Reset();
         }
 
         void OnEnable()

@@ -78,17 +78,14 @@ namespace RiskOfChaos.Patches.AttackHooks
             return orig(self);
         }
 
-        static void OverlapAttack_ProcessHits(On.RoR2.OverlapAttack.orig_ProcessHits orig, OverlapAttack self, object _hitList)
+        static void OverlapAttack_ProcessHits(On.RoR2.OverlapAttack.orig_ProcessHits orig, OverlapAttack self, List<OverlapAttack.OverlapInfo> hitList)
         {
-            if (_hitList is List<OverlapAttack.OverlapInfo> hitList)
-            {
-                AttackHookManager attackHookManager = new OverlapAttackHookManager(self, hitList);
-                AttackHookMask activatedHooks = attackHookManager.RunHooks();
-                if (shouldSkipOrig(activatedHooks))
-                    return;
-            }
+            AttackHookManager attackHookManager = new OverlapAttackHookManager(self, hitList);
+            AttackHookMask activatedHooks = attackHookManager.RunHooks();
+            if (shouldSkipOrig(activatedHooks))
+                return;
 
-            orig(self, _hitList);
+            orig(self, hitList);
         }
 
         static void ProjectileManager_FireProjectile_FireProjectileInfo(On.RoR2.Projectile.ProjectileManager.orig_FireProjectile_FireProjectileInfo orig, ProjectileManager self, FireProjectileInfo fireProjectileInfo)

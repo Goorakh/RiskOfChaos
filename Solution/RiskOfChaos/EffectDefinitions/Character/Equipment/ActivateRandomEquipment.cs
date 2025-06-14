@@ -105,7 +105,19 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
                 return false;
             }
 
-            if (!equipment.pickupModelPrefab || equipment.pickupModelPrefab.name == "NullModel")
+            bool isNullModel;
+            if (equipment.pickupModelReference != null && equipment.pickupModelReference.RuntimeKeyIsValid())
+            {
+                isNullModel = equipment.pickupModelReference.AssetGUID == AddressableGuids.RoR2_Base_Core_NullModel_prefab;
+            }
+            else
+            {
+#pragma warning disable CS0618 // Type or member is obsolete
+                isNullModel = !equipment.pickupModelPrefab || equipment.pickupModelPrefab.name == "NullModel";
+#pragma warning restore CS0618 // Type or member is obsolete
+            }
+
+            if (isNullModel)
             {
                 Log.Debug($"excluding equipment {equipment.name} ({Language.GetString(equipment.nameToken)}): null model");
                 return false;

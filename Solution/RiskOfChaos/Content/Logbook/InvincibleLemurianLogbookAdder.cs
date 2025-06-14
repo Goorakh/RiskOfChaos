@@ -1,8 +1,10 @@
 ﻿using HG;
 using RiskOfChaos.Components;
 using RiskOfChaos.Content.AssetCollections;
+using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.ExpansionManagement;
 using RoR2.Stats;
 using RoR2.UI;
@@ -102,12 +104,12 @@ namespace RiskOfChaos.Content.Logbook
                 GameObject glowModelPrefab = modelPrefab.gameObject.InstantiatePrefab(modelPrefab.name + "Glow");
 
                 PersistentOverlayController overlayController = glowModelPrefab.AddComponent<PersistentOverlayController>();
-                overlayController.Overlay = CharacterModel.immuneMaterial;
+                overlayController.OverlayMaterialReference = new AssetReferenceT<Material>(AddressableGuids.RoR2_Base_Common_matImmune_mat);
 
                 return glowModelPrefab;
             }
 
-            AsyncOperationHandle<GameObject> lemurianBodyLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Lemurian/LemurianBody.prefab");
+            AsyncOperationHandle<GameObject> lemurianBodyLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Lemurian_LemurianBody_prefab, AsyncReferenceHandleUnloadType.Preload);
             lemurianBodyLoad.OnSuccess(lemurianBody =>
             {
                 _lemurianBodyPrefab = lemurianBody.GetComponent<CharacterBody>();
@@ -119,7 +121,7 @@ namespace RiskOfChaos.Content.Logbook
 
             asyncOperations.Add(lemurianBodyLoad);
 
-            AsyncOperationHandle<GameObject> elderLemurianBodyLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/LemurianBruiser/LemurianBruiserBody.prefab");
+            AsyncOperationHandle<GameObject> elderLemurianBodyLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_LemurianBruiser_LemurianBruiserBody_prefab, AsyncReferenceHandleUnloadType.Preload);
             elderLemurianBodyLoad.OnSuccess(elderLemurianBody =>
             {
                 _lemurianBruiserBodyPrefab = elderLemurianBody.GetComponent<CharacterBody>();
@@ -254,6 +256,7 @@ namespace RiskOfChaos.Content.Logbook
                     }
                 }
 
+#pragma warning disable CS0618 // Type or member is obsolete
                 Entry entry = new Entry
                 {
                     nameToken = invincibleLemurianPrefab.baseNameToken,
@@ -264,8 +267,9 @@ namespace RiskOfChaos.Content.Logbook
                     getStatusImplementation = getStatus,
                     pageBuilderMethod = pageBuilder,
                     getTooltipContentImplementation = getTooltipContent,
-                    bgTexture = Addressables.LoadAssetAsync<Texture2D>("RoR2/Base/Common/texBossBGIcon.png").WaitForCompletion()
+                    bgTexture = AddressableUtil.LoadAssetAsync<Texture2D>(AddressableGuids.RoR2_Base_Common_texBossBGIcon_png).WaitForCompletion()
                 };
+#pragma warning restore CS0618 // Type or member is obsolete
 
                 ArrayUtils.ArrayInsert(ref entries, invincibleLemurianInsertIndex, entry);
 

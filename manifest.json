@@ -1,7 +1,6 @@
 ﻿{
 	"name": "RiskOfChaos",
-	"authorName": "Gorakh",
-	"displayName": "Risk of Chaos",
+	"author": "Gorakh",
 	"version_number": "2.6.4",
 	"website_url": "https://github.com/Goorakh/RiskOfChaos",
 	"description": "Every minute, a random effect happens. Heavily inspired by the \"Chaos Mod\" series of GTA games.\nNow with Twitch Integration!",
@@ -10,7 +9,7 @@
 		"RiskofThunder-HookGenPatcher-1.2.5",
 		"RiskofThunder-R2API_Core-5.1.5",
 		"RiskofThunder-R2API_Networking-1.0.3",
-		"RiskofThunder-R2API_RecalculateStats-1.5.0",
+		"RiskofThunder-R2API_RecalculateStats-1.6.0",
 		"RiskofThunder-R2API_DamageType-1.1.7",
 		"RiskofThunder-R2API_ProcType-1.0.2",
 		"Rune580-Risk_Of_Options-2.8.2"

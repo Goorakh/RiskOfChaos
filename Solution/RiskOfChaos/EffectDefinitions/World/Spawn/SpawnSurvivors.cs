@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
-using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -9,9 +8,11 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.Navigation;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
@@ -31,9 +32,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                               .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntFieldConfig { Min = 1 })
                               .Build();
-
-        [AddressableReference("RoR2/Base/SurvivorPod/SurvivorPod.prefab")]
-        static readonly GameObject _podPrefab;
 
         [SystemInitializer(typeof(SurvivorCatalog), typeof(MasterCatalog))]
         static void Init()
@@ -63,6 +61,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             return _spawnPool.AnyAvailable;
         }
 
+        AssetOrDirectReference<GameObject> _podPrefabReference;
+
         ChaosEffectComponent _effectComponent;
 
         Xoroshiro128Plus _rng;
@@ -85,15 +85,37 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             if (!NetworkServer.active)
                 yield break;
 
+            _podPrefabReference = new AssetOrDirectReference<GameObject>
+            {
+                unloadType = AsyncReferenceHandleUnloadType.AtWill,
+                address = new AssetReferenceGameObject(AddressableGuids.RoR2_Base_SurvivorPod_SurvivorPod_prefab)
+            };
+
+            while (!_podPrefabReference.IsLoaded())
+            {
+                yield return null;
+            }
+
             for (int i = _numPodSpawns.Value - 1; i >= 0; i--)
             {
                 spawnSurvivor(_spawnPool.PickRandomEntry(_rng), _rng.Branch());
 
-                yield return new WaitForSeconds(_rng.RangeFloat(0.1f, 0.3f));
+                if (i > 0)
+                {
+                    yield return new WaitForSeconds(_rng.RangeFloat(0.1f, 0.3f));
+                }
             }
+
+            _effectComponent.EffectDestructionHandledByComponent = false;
         }
 
-        static void spawnSurvivor(SurvivorDef survivor, Xoroshiro128Plus rng)
+        void OnDestroy()
+        {
+            _podPrefabReference?.Reset();
+            _podPrefabReference = null;
+        }
+
+        void spawnSurvivor(SurvivorDef survivor, Xoroshiro128Plus rng)
         {
             MasterCatalog.MasterIndex masterIndex = MasterCatalog.FindAiMasterIndexForBody(BodyCatalog.FindBodyIndex(survivor.bodyPrefab));
             if (masterIndex.isValid)
@@ -129,7 +151,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             }
         }
 
-        static void spawnSurvivorPodFor(CharacterBody survivorBody, Vector3 spawnPosition, Xoroshiro128Plus rng)
+        void spawnSurvivorPodFor(CharacterBody survivorBody, Vector3 spawnPosition, Xoroshiro128Plus rng)
         {
             Vector3 podPosition = spawnPosition + new Vector3(0f, 0.75f, 0f);
 
@@ -137,7 +159,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             Quaternion podRotation = Quaternion.AngleAxis(rng.RangeFloat(-180f, 180f), environmentNormal) *
                                      QuaternionUtils.PointLocalDirectionAt(Vector3.up, environmentNormal);
 
-            GameObject podObject = Instantiate(_podPrefab, podPosition, podRotation);
+            GameObject podObject = Instantiate(_podPrefabReference.WaitForCompletion(), podPosition, podRotation);
 
             if (!podObject.TryGetComponent(out VehicleSeat vehicleSeat))
             {

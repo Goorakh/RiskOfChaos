@@ -1,6 +1,9 @@
 ﻿using R2API;
 using RiskOfChaos.Content;
+using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -8,8 +11,21 @@ namespace RiskOfChaos.Components
 {
     public class ExplodeOnLowHealthController : NetworkBehaviour
     {
-        [AddressableReference("RoR2/Base/QuestVolatileBattery/VolatileBatteryExplosion.prefab")]
-        static readonly GameObject _explosionVFXPrefab;
+        static EffectIndex _explosionVFXEffectIndex = EffectIndex.Invalid;
+
+        [SystemInitializer(typeof(EffectCatalog))]
+        static void Init()
+        {
+            AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_QuestVolatileBattery_VolatileBatteryExplosion_prefab, AsyncReferenceHandleUnloadType.Preload).OnSuccess(explosionPrefab =>
+            {
+                _explosionVFXEffectIndex = EffectCatalog.FindEffectIndexFromPrefab(explosionPrefab);
+
+                if (_explosionVFXEffectIndex == EffectIndex.Invalid)
+                {
+                    Log.Error("Failed to find explosion vfx effect index");
+                }
+            });
+        }
 
         GenericOwnership _ownership;
 
@@ -131,9 +147,9 @@ namespace RiskOfChaos.Components
 
             Vector3 blastCenter = transform.position;
 
-            if (_explosionVFXPrefab)
+            if (_explosionVFXEffectIndex != EffectIndex.Invalid)
             {
-                EffectManager.SpawnEffect(_explosionVFXPrefab, new EffectData
+                EffectManager.SpawnEffect(_explosionVFXEffectIndex, new EffectData
                 {
                     origin = blastCenter,
                     scale = blastRadius

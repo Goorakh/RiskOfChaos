@@ -1,11 +1,11 @@
-﻿using RiskOfChaos.Utilities.Extensions;
+﻿using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.UI;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.UI
@@ -25,7 +25,7 @@ namespace RiskOfChaos.UI
         {
             List<AsyncOperationHandle> asyncOperations = [];
 
-            AsyncOperationHandle<Sprite> texUICutOffCornerLoad = Addressables.LoadAssetAsync<Sprite>("RoR2/Base/UI/texUICutOffCorner.png");
+            AsyncOperationHandle<Sprite> texUICutOffCornerLoad = AddressableUtil.LoadAssetAsync<Sprite>(AddressableGuids.RoR2_Base_UI_texUICutOffCorner_png);
             texUICutOffCornerLoad.OnSuccess(texUICutOffCorner =>
             {
                 ActiveEffectsPanel.mainPanelStyle = new UISkinData.PanelStyle

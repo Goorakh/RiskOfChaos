@@ -1,9 +1,9 @@
 ﻿using HarmonyLib;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.ScreenEffect;
+using RiskOfChaos.Utilities;
 using RoR2;
 using RoR2.ContentManagement;
-using RoR2.Skills;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,6 +11,7 @@ using System.Collections.ObjectModel;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Content
 {
@@ -120,10 +121,22 @@ namespace RiskOfChaos.Content
 
             foreach (ItemDef itemDef in itemDefs)
             {
-                if (itemDef.pickupModelPrefab)
+                if (itemDef.pickupModelReference != null && itemDef.pickupModelReference.RuntimeKeyIsValid())
+                {
+                    AsyncOperationHandle<GameObject> pickupModelLoad = AddressableUtil.LoadAssetAsync(itemDef.pickupModelReference, AsyncReferenceHandleUnloadType.Preload);
+                    while (!pickupModelLoad.IsDone)
+                    {
+                        yield return null;
+                    }
+
+                    allPrefabs.Add(pickupModelLoad.Result);
+                }
+#pragma warning disable CS0618 // Type or member is obsolete
+                else if (itemDef.pickupModelPrefab)
                 {
                     allPrefabs.Add(itemDef.pickupModelPrefab);
                 }
+#pragma warning restore CS0618 // Type or member is obsolete
             }
 
             foreach (EffectDef effectDef in effectDefs)

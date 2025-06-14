@@ -1,16 +1,20 @@
 ﻿using RiskOfChaos.Components;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
-using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
+using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using RoR2.ContentManagement;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Interactables
 {
@@ -25,8 +29,23 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
                               .OptionConfig(new IntFieldConfig { Min = 1 })
                               .Build();
 
-        [AddressableReference("RoR2/Base/Common/VFX/ShrineUseEffect.prefab")]
-        static readonly GameObject _shrineUseEffectPrefab;
+        static EffectIndex _shrineUseEffectIndex = EffectIndex.Invalid;
+
+        [SystemInitializer(typeof(EffectCatalog))]
+        static IEnumerator Init()
+        {
+            AsyncOperationHandle<GameObject> shrineUseEffectPrefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Common_VFX_ShrineUseEffect_prefab, AsyncReferenceHandleUnloadType.OnSceneUnload);
+            shrineUseEffectPrefabLoad.OnSuccess(shrineUseEffectPrefab =>
+            {
+                _shrineUseEffectIndex = EffectCatalog.FindEffectIndexFromPrefab(shrineUseEffectPrefab);
+                if (_shrineUseEffectIndex == EffectIndex.Invalid)
+                {
+                    Log.Error($"Failed to find EffectIndex for prefab {shrineUseEffectPrefab}");
+                }
+            });
+
+            yield return shrineUseEffectPrefabLoad;
+        }
 
         [EffectCanActivate]
         static bool CanActivate(in EffectCanActivateContext context)
@@ -59,7 +78,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
                 baseToken = "SHRINE_BOSS_USE_MESSAGE"
             });
 
-            if (_shrineUseEffectPrefab)
+            if (_shrineUseEffectIndex != EffectIndex.Invalid)
             {
                 foreach (PlayerCharacterMasterController playerMaster in PlayerCharacterMasterController.instances)
                 {
@@ -74,7 +93,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
                     if (!body)
                         continue;
 
-                    EffectManager.SpawnEffect(_shrineUseEffectPrefab, new EffectData
+                    EffectManager.SpawnEffect(_shrineUseEffectIndex, new EffectData
                     {
                         origin = body.corePosition,
                         rotation = Quaternion.identity,

@@ -1,5 +1,5 @@
-﻿using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
+﻿using HG;
+using RiskOfChaos.Utilities;
 using RoR2;
 using UnityEngine;
 

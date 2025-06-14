@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -8,10 +7,12 @@ using RiskOfChaos.EffectUtils.World.Items;
 using RiskOfChaos.Patches;
 using RiskOfChaos.SaveHandling;
 using RoR2;
+using RoR2.ContentManagement;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Items
@@ -20,9 +21,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
     [EffectConfigBackwardsCompatibility("Effect: All Items Are Void Potentials (Lasts 1 stage)")]
     public sealed class AllVoidPotentials : NetworkBehaviour
     {
-        [AddressableReference("RoR2/DLC1/OptionPickup/OptionPickup.prefab")]
-        static readonly GameObject _optionPickupPrefab;
-
         static PickupTransmutationDropTable[] _pickupTransmutationDropTables = [];
 
         [SystemInitializer(typeof(PickupCatalog), typeof(PickupTransmutationManager))]
@@ -77,8 +75,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return _optionPickupPrefab && _pickupTransmutationDropTables.Length > 0 && (!RunArtifactManager.instance || !RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.Command));
+            return _pickupTransmutationDropTables.Length > 0 && (!RunArtifactManager.instance || !RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.Command));
         }
+
+        AssetOrDirectReference<GameObject> _optionPickupPrefabReference;
 
         ChaosEffectComponent _effectComponent;
 
@@ -112,6 +112,15 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
+
+            if (NetworkServer.active)
+            {
+                _optionPickupPrefabReference = new AssetOrDirectReference<GameObject>
+                {
+                    unloadType = AsyncReferenceHandleUnloadType.AtWill,
+                    address = new AssetReferenceGameObject(AddressableGuids.RoR2_DLC1_OptionPickup_OptionPickup_prefab)
+                };
+            }
         }
 
         public override void OnStartServer()
@@ -157,6 +166,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
             PickupDropletControllerHooks.ModifyCreatePickup -= modifyPickupInfo;
 
             _pickupOptionGenerators.Clear();
+
+            _optionPickupPrefabReference?.Reset();
         }
 
         bool tryGetAvailableOptionsFor(PickupIndex sourcePickup, int maxOptionCount, out PickupIndex[] options)
@@ -221,7 +232,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
                 return;
 
             createPickupInfo.pickerOptions = getPickableOptions(pickupIndex);
-            createPickupInfo.prefabOverride = _optionPickupPrefab;
+            createPickupInfo.prefabOverride = _optionPickupPrefabReference.WaitForCompletion();
         }
 
         [Serializable]

@@ -8,7 +8,9 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
@@ -16,9 +18,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [ChaosTimedEffect("explode_at_low_health", 90f, AllowDuplicates = false)]
     public sealed class ExplodeAtLowHealth : MonoBehaviour
     {
-        [AddressableReference("RoR2/Base/QuestVolatileBattery/VolatileBatteryPreDetonation.prefab")]
-        static readonly GameObject _countDownVFXPrefab;
-
         [ContentInitializer]
         static void LoadContent(NetworkedPrefabAssetCollection networkedPrefabs)
         {
@@ -210,18 +209,38 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             GameObject _countDownVFXInstance;
 
+            AssetOrDirectReference<GameObject> _countDownVFXPrefabReference;
+
             public override void OnEnter()
             {
                 base.OnEnter();
 
+                _countDownVFXPrefabReference = new AssetOrDirectReference<GameObject>();
+                _countDownVFXPrefabReference.onValidReferenceDiscovered += onCountDownVFXPrefabDiscovered;
+                _countDownVFXPrefabReference.unloadType = AsyncReferenceHandleUnloadType.OnSceneUnload;
+                _countDownVFXPrefabReference.address = new AssetReferenceGameObject(AddressableGuids.RoR2_Base_QuestVolatileBattery_VolatileBatteryPreDetonation_prefab);
+
                 CharacterBody attachedBody = explodeOnLowHealthController.AttachedBody;
 
-                if (_countDownVFXPrefab)
+                float countDownDuration = 2f;
+                if (attachedBody && attachedBody.isChampion)
+                {
+                    countDownDuration = 3.5f;
+                }
+                
+                _countDownDuration = countDownDuration;
+            }
+
+            void onCountDownVFXPrefabDiscovered(GameObject countDownVFXPrefab)
+            {
+                CharacterBody attachedBody = explodeOnLowHealthController.AttachedBody;
+
+                if (countDownVFXPrefab)
                 {
                     Transform vfxParent = transform;
                     if (vfxParent)
                     {
-                        _countDownVFXInstance = GameObject.Instantiate(_countDownVFXPrefab, vfxParent);
+                        _countDownVFXInstance = GameObject.Instantiate(countDownVFXPrefab, vfxParent);
 
                         Transform vfxTransform = _countDownVFXInstance.transform;
                         vfxTransform.localPosition = Vector3.zero;
@@ -236,19 +255,17 @@ namespace RiskOfChaos.EffectDefinitions.Character
                         vfxTransform.localScale *= (radius / vfxParent.lossyScale.ComponentMax()) * 2f;
                     }
                 }
-
-                float countDownDuration = 2f;
-                if (attachedBody && attachedBody.isChampion)
-                {
-                    countDownDuration = 3.5f;
-                }
-                
-                _countDownDuration = countDownDuration;
             }
 
             public override void OnExit()
             {
                 base.OnExit();
+
+                if (_countDownVFXPrefabReference != null)
+                {
+                    _countDownVFXPrefabReference.onValidReferenceDiscovered -= onCountDownVFXPrefabDiscovered;
+                    _countDownVFXPrefabReference?.Reset();
+                }
 
                 if (_countDownVFXInstance)
                 {
