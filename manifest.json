@@ -1,7 +1,7 @@
 ﻿{
 	"name": "RiskOfChaos",
 	"author": "Gorakh",
-	"version_number": "2.6.5",
+	"version_number": "2.6.6",
 	"website_url": "https://github.com/Goorakh/RiskOfChaos",
 	"description": "Every minute, a random effect happens. Heavily inspired by the \"Chaos Mod\" series of GTA games.\nNow with Twitch Integration!",
 	"dependencies": [

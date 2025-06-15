@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**2.6.6 Changes:**
 
 * Grenade Bullets:
   * Fixed grenades not playing any sound
