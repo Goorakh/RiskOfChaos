@@ -1,5 +1,16 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* Grenade Bullets:
+  * Fixed grenades not playing any sound
+
+* Enable Weak Points for All Damage:
+  * Fixed weak spot impact sound not playing
+
+* Orbital Bombardment:
+  * Fixed spawned airstrikes and diablos not playing any sound
+
 **2.6.5 Changes:**
 
 * Updated for memory optimization patch.

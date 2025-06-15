@@ -1,20 +1,43 @@
-﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.Content;
+using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.Navigation;
 using RoR2.Projectile;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
 {
     [ChaosEffect("spawn_airstrikes")]
     public sealed class SpawnAirstrikes : NetworkBehaviour
     {
-        static readonly SpawnUtils.NodeSelectionRules _strikePositionSelectorRules = new SpawnUtils.NodeSelectionRules(SpawnUtils.NodeGraphFlags.Ground, false, HullMask.Human, NodeFlags.None, NodeFlags.None);
+        [PrefabInitializer]
+        static IEnumerator InitPrefab(GameObject prefab)
+        {
+            AsyncOperationHandle<GameObject> captainBodyLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Captain_CaptainBody_prefab, AsyncReferenceHandleUnloadType.Preload);
+            yield return captainBodyLoad;
+
+            GameObject captainBodyPrefab = captainBodyLoad.Result;
+            if (captainBodyPrefab && captainBodyPrefab.TryGetComponent(out AkBank captainBank) && captainBank.data?.ObjectReference)
+            {
+                AkBank effectBank = prefab.AddComponent<AkBank>();
+                effectBank.data = captainBank.data;
+                effectBank.triggerList = [AkTriggerHandler.START_TRIGGER_ID];
+                effectBank.unloadTriggerList = [AkTriggerHandler.DESTROY_TRIGGER_ID];
+            }
+            else
+            {
+                Log.Error("Failed to find captain sound bank");
+            }
+        }
+
+        static readonly SpawnUtils.NodeSelectionRules _strikePositionSelectorRules = new SpawnUtils.NodeSelectionRules(SpawnUtils.NodeGraphFlags.Ground, false, HullMask.Human | HullMask.Golem | HullMask.BeetleQueen, NodeFlags.None, NodeFlags.None);
 
         static GameObject _diabloStrikePrefab;
         static GameObject _orbitalStrikePrefab;
@@ -99,7 +122,12 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
                 yield return new WaitForSeconds(rng.RangeFloat(0.05f, 0.25f));
             }
 
+            // Wait for all projectiles to land
+            yield return new WaitForSeconds(25f);
+
             _diaboStrikesFinished = true;
+
+            Log.Debug("All diablo strikes finished");
         }
 
         IEnumerator fireOrbitalStrikes(Xoroshiro128Plus rng)
@@ -121,7 +149,12 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
                 yield return new WaitForSeconds(rng.RangeFloat(0f, 0.1f));
             }
 
+            // Wait for all projectiles to land
+            yield return new WaitForSeconds(5f);
+
             _orbitalStrikesFinished = true;
+
+            Log.Debug("All orbital strikes finished");
         }
     }
 }
