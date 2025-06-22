@@ -112,5 +112,6 @@
         "ROC_BUFF_TELEPORT_ON_LOW_HEALTH_NAME": "Unstable Transmitter Ready",
         "ROC_BUFF_OILED_NAME": "Oiled",
         "ROC_BUFF_SEEKER_REVIVED_ONCE_NAME": "Seeker Revive Used",
+        "ROC_BUFF_FROST_NAME": "Frost",
     }
 }

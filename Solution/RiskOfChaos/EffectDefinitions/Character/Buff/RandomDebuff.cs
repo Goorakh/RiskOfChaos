@@ -72,6 +72,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             _availableDebuffs.AddEntry(DLC2Content.Buffs.SoulCost, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
             _availableDebuffs.AddEntry(DLC2Content.Buffs.Oiled, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
             _availableDebuffs.AddEntry(DLC2Content.Buffs.SeekerRevivedOnce, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
+            _availableDebuffs.AddEntry(DLC2Content.Buffs.Frost, new SpawnPoolEntryParameters(0.8f, ExpansionUtils.DLC2));
 
             _availableDebuffs.TrimExcess();
 

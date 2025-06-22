@@ -1,5 +1,10 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* Give Everyone a Random Debuff:
+  * Added CHEF frost
+
 **2.6.6 Changes:**
 
 * Grenade Bullets:
