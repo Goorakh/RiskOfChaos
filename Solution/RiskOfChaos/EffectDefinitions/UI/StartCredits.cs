@@ -7,7 +7,6 @@ using RoR2;
 using RoR2.ContentManagement;
 using RoR2.UI;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -21,8 +20,6 @@ namespace RiskOfChaos.EffectDefinitions.UI
         [ContentInitializer]
         static IEnumerator LoadContent(LocalPrefabAssetCollection localPrefabs)
         {
-            List<AsyncOperationHandle> asyncOperations = [];
-
             AsyncOperationHandle<GameObject> creditsPanelLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_UI_CreditsPanel_prefab, AsyncReferenceHandleUnloadType.Preload);
             creditsPanelLoad.OnSuccess(creditsPanelPrefab =>
             {
@@ -80,9 +77,7 @@ namespace RiskOfChaos.EffectDefinitions.UI
                 localPrefabs.Add(prefab);
             });
 
-            asyncOperations.Add(creditsPanelLoad);
-
-            yield return asyncOperations.WaitForAllLoaded();
+            return creditsPanelLoad;
         }
 
         GameObject _creditsPanelObject;

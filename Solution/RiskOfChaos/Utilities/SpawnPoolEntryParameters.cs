@@ -1,19 +1,21 @@
 ﻿using RoR2.ExpansionManagement;
+using System;
 
 namespace RiskOfChaos.Utilities
 {
     public struct SpawnPoolEntryParameters
     {
         public float Weight;
-        public ExpansionDef[] RequiredExpansions;
+        public ExpansionIndex[] RequiredExpansions;
+        public Func<bool> IsAvailableFunc;
 
-        public SpawnPoolEntryParameters(float weight, ExpansionDef[] requiredExpansions)
+        public SpawnPoolEntryParameters(float weight, ExpansionIndex[] requiredExpansions)
         {
             Weight = weight;
             RequiredExpansions = requiredExpansions ?? [];
         }
 
-        public SpawnPoolEntryParameters(float weight, ExpansionDef requiredExpansion) : this(weight, [requiredExpansion])
+        public SpawnPoolEntryParameters(float weight, ExpansionIndex requiredExpansion) : this(weight, [requiredExpansion])
         {
         }
 

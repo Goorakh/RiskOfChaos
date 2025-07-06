@@ -14,6 +14,7 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.Pickup;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using RoR2.ExpansionManagement;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -69,10 +70,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             _dropTable.OnPreGenerate += () =>
             {
-                List<ItemTag> bannedItemTags = [];
+                HashSet<ItemTag> bannedItemTags = [];
                 if (_applyAIBlacklist.Value)
                 {
-                    bannedItemTags.AddRange([
+                    bannedItemTags.UnionWith([
                         ItemTag.AIBlacklist,
                         ItemTag.Scrap,
                         ItemTag.CannotCopy,
@@ -80,7 +81,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     ]);
                 }
 
-                _dropTable.bannedItemTags = bannedItemTags.Distinct().ToArray();
+                _dropTable.bannedItemTags = [.. bannedItemTags];
 
 #if DEBUG
                 IEnumerable<ItemIndex> blacklistedItems = bannedItemTags.SelectMany(t => ItemCatalog.GetItemsWithTag(t))
@@ -93,11 +94,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             _dropTable.AddDrops += (List<ExplicitDrop> drops) =>
             {
-                drops.Add(new ExplicitDrop(RoR2Content.Items.ArtifactKey.itemIndex, DropType.Boss, null));
-                drops.Add(new ExplicitDrop(RoR2Content.Items.CaptainDefenseMatrix.itemIndex, DropType.Tier3, null));
-                drops.Add(new ExplicitDrop(RoR2Content.Items.Pearl.itemIndex, DropType.Boss, null));
-                drops.Add(new ExplicitDrop(RoR2Content.Items.ShinyPearl.itemIndex, DropType.Boss, null));
-                drops.Add(new ExplicitDrop(RoR2Content.Items.TonicAffliction.itemIndex, DropType.LunarItem, null));
+                drops.Add(new ExplicitDrop(RoR2Content.Items.ArtifactKey.itemIndex, DropType.Boss, ExpansionIndex.None));
+                drops.Add(new ExplicitDrop(RoR2Content.Items.CaptainDefenseMatrix.itemIndex, DropType.Tier3, ExpansionIndex.None));
+                drops.Add(new ExplicitDrop(RoR2Content.Items.Pearl.itemIndex, DropType.Boss, ExpansionIndex.None));
+                drops.Add(new ExplicitDrop(RoR2Content.Items.ShinyPearl.itemIndex, DropType.Boss, ExpansionIndex.None));
+                drops.Add(new ExplicitDrop(RoR2Content.Items.TonicAffliction.itemIndex, DropType.LunarItem, ExpansionIndex.None));
             };
 
             _dropTable.RemoveDrops += (List<PickupIndex> removeDrops) =>

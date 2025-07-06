@@ -3,7 +3,6 @@ using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.UI;
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -23,9 +22,7 @@ namespace RiskOfChaos.UI
         [SystemInitializer]
         static IEnumerator Init()
         {
-            List<AsyncOperationHandle> asyncOperations = [];
-
-            AsyncOperationHandle<Sprite> texUICutOffCornerLoad = AddressableUtil.LoadAssetAsync<Sprite>(AddressableGuids.RoR2_Base_UI_texUICutOffCorner_png);
+            AsyncOperationHandle<Sprite> texUICutOffCornerLoad = AddressableUtil.LoadAssetAsync<Sprite>(AddressableGuids.RoR2_Base_UI_texUICutOffCorner_png, RoR2.ContentManagement.AsyncReferenceHandleUnloadType.Preload);
             texUICutOffCornerLoad.OnSuccess(texUICutOffCorner =>
             {
                 ActiveEffectsPanel.mainPanelStyle = new UISkinData.PanelStyle
@@ -63,9 +60,7 @@ namespace RiskOfChaos.UI
                 };
             });
 
-            asyncOperations.Add(texUICutOffCornerLoad);
-
-            yield return asyncOperations.WaitForAllLoaded();
+            return texUICutOffCornerLoad;
         }
     }
 }

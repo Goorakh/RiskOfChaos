@@ -15,7 +15,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         {
             if (NetworkServer.active)
             {
-                AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Meteor_MeteorStorm_prefab, AsyncReferenceHandleUnloadType.OnSceneUnload).OnSuccess(spawnMeteor);
+                AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Meteor_MeteorStorm_prefab, AsyncReferenceHandleUnloadType.OnSceneUnload).OnSuccess(spawnMeteor);
             }
         }
 

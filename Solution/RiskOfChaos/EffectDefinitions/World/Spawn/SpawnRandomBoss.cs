@@ -8,8 +8,10 @@ using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.EffectUtils.World.Spawn;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using RoR2.ContentManagement;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -19,12 +21,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
     [ChaosEffect("spawn_random_boss", DefaultSelectionWeight = 0.8f)]
     public sealed class SpawnRandomBoss : NetworkBehaviour
     {
-        static readonly SpawnPool<CharacterSpawnCard> _spawnPool = new SpawnPool<CharacterSpawnCard>
-        {
-            RequiredExpansionsProvider = SpawnPoolUtils.CharacterSpawnCardExpansionsProvider
-        };
+        static readonly SpawnPool<CharacterSpawnCard> _spawnPool = new SpawnPool<CharacterSpawnCard>();
 
-        [SystemInitializer(typeof(CharacterExpansionRequirementFix))]
+        [SystemInitializer(typeof(CharacterExpansionRequirementFix), typeof(ExpansionUtils))]
         static void Init()
         {
             _spawnPool.EnsureCapacity(25);
@@ -46,15 +45,15 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_Titan_cscTitanGold_asset, new SpawnPoolEntryParameters(0.9f));
             _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_Vagrant_cscVagrant_asset, new SpawnPoolEntryParameters(1f));
             _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Junk_BrotherGlass_cscBrotherGlass_asset, new SpawnPoolEntryParameters(0.8f));
-            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_DLC1_MajorAndMinorConstruct_cscMegaConstruct_asset, new SpawnPoolEntryParameters(1f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_DLC1_MajorAndMinorConstruct_cscMegaConstruct_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1));
 
             _spawnPool.AddGroupedEntries([
-                _spawnPool.LoadEntry(AddressableGuids.RoR2_DLC1_VoidRaidCrab_cscMiniVoidRaidCrabPhase1_asset, new SpawnPoolEntryParameters(1f)),
-                _spawnPool.LoadEntry(AddressableGuids.RoR2_DLC1_VoidRaidCrab_cscMiniVoidRaidCrabPhase2_asset, new SpawnPoolEntryParameters(0.9f)),
-                _spawnPool.LoadEntry(AddressableGuids.RoR2_DLC1_VoidRaidCrab_cscMiniVoidRaidCrabPhase3_asset, new SpawnPoolEntryParameters(0.75f)),
+                _spawnPool.LoadEntry(AddressableGuids.RoR2_DLC1_VoidRaidCrab_cscMiniVoidRaidCrabPhase1_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1)),
+                _spawnPool.LoadEntry(AddressableGuids.RoR2_DLC1_VoidRaidCrab_cscMiniVoidRaidCrabPhase2_asset, new SpawnPoolEntryParameters(0.9f, ExpansionUtils.DLC1)),
+                _spawnPool.LoadEntry(AddressableGuids.RoR2_DLC1_VoidRaidCrab_cscMiniVoidRaidCrabPhase3_asset, new SpawnPoolEntryParameters(0.75f, ExpansionUtils.DLC1)),
             ], 0.85f);
 
-            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_DLC1_VoidMegaCrab_cscVoidMegaCrab_asset, new SpawnPoolEntryParameters(0.6f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_DLC1_VoidMegaCrab_cscVoidMegaCrab_asset, new SpawnPoolEntryParameters(0.6f, ExpansionUtils.DLC1));
 
             _spawnPool.TrimExcess();
         }
@@ -90,11 +89,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         Xoroshiro128Plus _rng;
 
-        CharacterSpawnCard _selectedSpawnCard;
+        AssetOrDirectReference<CharacterSpawnCard> _bossSpawnCardRef;
 
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        void OnDestroy()
+        {
+            _bossSpawnCardRef?.Reset();
         }
 
         public override void OnStartServer()
@@ -103,17 +107,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
             _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
-            _selectedSpawnCard = _spawnPool.PickRandomEntry(_rng);
+            _bossSpawnCardRef = _spawnPool.PickRandomEntry(_rng);
+            _bossSpawnCardRef.CallOnLoaded(onSpawnCardLoaded);
         }
 
-        void Start()
+        [Server]
+        void onSpawnCardLoaded(CharacterSpawnCard spawnCard)
         {
-            if (!NetworkServer.active)
-                return;
-
             DirectorPlacementRule placementRule = SpawnUtils.GetPlacementRule_AtRandomPlayerNearestNode(_rng, 30f, float.PositiveInfinity);
 
-            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_selectedSpawnCard, placementRule, _rng)
+            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(spawnCard, placementRule, _rng)
             {
                 teamIndexOverride = TeamIndex.Monster,
                 ignoreTeamMemberLimit = true

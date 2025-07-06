@@ -23,10 +23,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
         [SystemInitializer]
         static void Init()
         {
-            static void addNetworkTransform(string prefabAssetGuid)
+            static void addNetworkTransformAsync(string prefabAssetGuid)
             {
-                AsyncOperationHandle<GameObject> prefabAssetLoad = AddressableUtil.LoadAssetAsync<GameObject>(prefabAssetGuid, AsyncReferenceHandleUnloadType.Preload);
-                prefabAssetLoad.OnSuccess(prefab =>
+                AsyncOperationHandle<GameObject> prefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(prefabAssetGuid, AsyncReferenceHandleUnloadType.Preload);
+                prefabLoad.OnSuccess(prefab =>
                 {
                     ProjectileNetworkTransform networkTransform = prefab.GetComponent<ProjectileNetworkTransform>();
                     if (networkTransform || prefab.GetComponent<NetworkTransform>())
@@ -55,12 +55,12 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                 });
             }
 
-            addNetworkTransform(AddressableGuids.RoR2_Base_Common_GenericPickup_prefab);
-            addNetworkTransform(AddressableGuids.RoR2_Base_Command_CommandCube_prefab);
+            addNetworkTransformAsync(AddressableGuids.RoR2_Base_Common_GenericPickup_prefab);
+            addNetworkTransformAsync(AddressableGuids.RoR2_Base_Command_CommandCube_prefab);
 
-            addNetworkTransform(AddressableGuids.RoR2_DLC1_OptionPickup_OptionPickup_prefab);
+            addNetworkTransformAsync(AddressableGuids.RoR2_DLC1_OptionPickup_OptionPickup_prefab);
 
-            addNetworkTransform(AddressableGuids.RoR2_DLC2_FragmentPotentialPickup_prefab);
+            addNetworkTransformAsync(AddressableGuids.RoR2_DLC2_FragmentPotentialPickup_prefab);
         }
 
         readonly ClearingObjectList<AttractToPlayers> _attractComponents = [];

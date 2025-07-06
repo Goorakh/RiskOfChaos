@@ -60,7 +60,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                 return true;
             }).ToArray();
 
-            AsyncOperationHandle<GameObject> recycleEffectLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Recycle_OmniRecycleEffect_prefab, AsyncReferenceHandleUnloadType.OnSceneUnload);
+            AsyncOperationHandle<GameObject> recycleEffectLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Recycle_OmniRecycleEffect_prefab, AsyncReferenceHandleUnloadType.Preload);
             recycleEffectLoad.OnSuccess(recycleEffectPrefab =>
             {
                 _recycleEffectIndex = EffectCatalog.FindEffectIndexFromPrefab(recycleEffectPrefab);
@@ -70,7 +70,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                 }
             });
 
-            yield return recycleEffectLoad;
+            return recycleEffectLoad;
         }
 
         [EffectConfig]

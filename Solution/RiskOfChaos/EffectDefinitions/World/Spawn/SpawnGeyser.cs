@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Components;
+﻿using HG.Coroutines;
+using RiskOfChaos.Components;
 using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -11,7 +12,6 @@ using RoR2;
 using RoR2.ContentManagement;
 using RoR2.Navigation;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -26,7 +26,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [ContentInitializer]
         static IEnumerator LoadContent(NetworkedPrefabAssetCollection prefabs)
         {
-            List<AsyncOperationHandle> asyncOperations = [];
+            ParallelCoroutine parallelCoroutine = new ParallelCoroutine();
 
             string[] geyserPrefabGuids = [
                 AddressableGuids.RoR2_Base_artifactworld_AWGeyser_prefab,
@@ -42,8 +42,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             ];
 
             int geyserCount = geyserPrefabGuids.Length;
-
-            asyncOperations.EnsureCapacity(asyncOperations.Count + geyserCount);
 
             GameObject[] geyserPrefabs = new GameObject[geyserCount];
             for (int i = 0; i < geyserCount; i++)
@@ -71,14 +69,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     grantItemsOnJump.Items = [
                         new GrantTemporaryItemsOnJump.ConditionalItem
                         {
-                            ItemDef = AddressableUtil.LoadAssetAsync<ItemDef>(AddressableGuids.RoR2_Base_Feather_Feather_asset).WaitForCompletion(),
+                            ItemDef = AddressableUtil.LoadAssetAsync<ItemDef>(AddressableGuids.RoR2_Base_Feather_Feather_asset, AsyncReferenceHandleUnloadType.Preload).WaitForCompletion(),
                             GrantToPlayers = true,
                             IgnoreIfItemAlreadyPresent = true,
                             NotifyPickupIfNoneActive = true,
                         },
                         new GrantTemporaryItemsOnJump.ConditionalItem
                         {
-                            ItemDef = AddressableUtil.LoadAssetAsync<ItemDef>(AddressableGuids.RoR2_Base_TeleportWhenOob_TeleportWhenOob_asset).WaitForCompletion(),
+                            ItemDef = AddressableUtil.LoadAssetAsync<ItemDef>(AddressableGuids.RoR2_Base_TeleportWhenOob_TeleportWhenOob_asset, AsyncReferenceHandleUnloadType.Preload).WaitForCompletion(),
                             GrantToInvincibleLemurian = true,
                             IgnoreIfItemAlreadyPresent = true,
                         }
@@ -89,10 +87,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     prefabs.Add(geyserHolder);
                 });
 
-                asyncOperations.Add(geyserLoad);
+                parallelCoroutine.Add(geyserLoad);
             }
 
-            yield return asyncOperations.WaitForAllLoaded();
+            yield return parallelCoroutine;
 
             _spawnPool.EnsureCapacity(geyserPrefabs.Length);
 
@@ -125,10 +123,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         ChaosEffectComponent _effectComponent;
 
         Xoroshiro128Plus _rng;
+        AssetOrDirectReference<SpawnCard> _geyserSpawnCardRef;
 
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        void OnDestroy()
+        {
+            _geyserSpawnCardRef?.Reset();
         }
 
         public override void OnStartServer()
@@ -136,15 +140,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             base.OnStartServer();
 
             _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
+
+            _geyserSpawnCardRef = _spawnPool.PickRandomEntry(_rng);
+            _geyserSpawnCardRef.CallOnLoaded(onGeyserSpawnCardLoaded);
         }
 
-        void Start()
+        [Server]
+        void onGeyserSpawnCardLoaded(SpawnCard geyserSpawnCard)
         {
-            if (!NetworkServer.active)
-                return;
-
-            SpawnCard geyserSpawnCard = _spawnPool.PickRandomEntry(_rng);
-
             foreach (PlayerCharacterMasterController playerMaster in PlayerCharacterMasterController.instances)
             {
                 if (!playerMaster.isConnected)

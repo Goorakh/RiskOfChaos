@@ -19,15 +19,6 @@ namespace RiskOfChaos.EffectUtils.World.Spawn
         [SystemInitializer]
         static IEnumerator Init()
         {
-            AsyncOperationHandle<InteractableSpawnCard> iscGeodeLoad = AddressableUtil.LoadAssetAsync<InteractableSpawnCard>(AddressableGuids.RoR2_DLC2_iscGeode_asset, AsyncReferenceHandleUnloadType.Preload);
-            iscGeodeLoad.OnSuccess(iscGeode =>
-            {
-                iscGeodeFixed = ScriptableObject.Instantiate(iscGeode);
-                iscGeodeFixed.name = "iscGeodeFixed";
-                iscGeodeFixed.orientToFloor = false; // causes it to have really strange rotation since the raycast to find the floor normal hits itself
-                iscGeodeFixed.occupyPosition = true;
-            });
-
             iscTimedChest = ScriptableObject.CreateInstance<InteractableSpawnCard>();
             iscTimedChest.name = "iscTimedChest";
             iscTimedChest.prefab = RoCContent.NetworkedPrefabs.TimedChestFixedOrigin;
@@ -40,8 +31,16 @@ namespace RiskOfChaos.EffectUtils.World.Spawn
             iscTimedChest.orientToFloor = false;
             iscTimedChest.slightlyRandomizeOrientation = false;
 
-            AsyncOperationHandle[] asyncOperations = [iscGeodeLoad];
-            yield return asyncOperations.WaitForAllLoaded();
+            AsyncOperationHandle<InteractableSpawnCard> iscGeodeLoad = AddressableUtil.LoadAssetAsync<InteractableSpawnCard>(AddressableGuids.RoR2_DLC2_iscGeode_asset, AsyncReferenceHandleUnloadType.Preload);
+            iscGeodeLoad.OnSuccess(iscGeode =>
+            {
+                iscGeodeFixed = ScriptableObject.Instantiate(iscGeode);
+                iscGeodeFixed.name = "iscGeodeFixed";
+                iscGeodeFixed.orientToFloor = false; // causes it to have really strange rotation since the raycast to find the floor normal hits itself
+                iscGeodeFixed.occupyPosition = true;
+            });
+
+            return iscGeodeLoad;
         }
     }
 }

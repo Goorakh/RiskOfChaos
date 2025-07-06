@@ -7,8 +7,10 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.EffectHandling.EffectComponents.SubtitleProviders;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using RoR2.ContentManagement;
 using System.Linq;
 using UnityEngine.Networking;
 
@@ -27,56 +29,65 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                               .OptionConfig(new IntFieldConfig { Min = 1 })
                               .Build();
 
-        static readonly SpawnPool<BuffDef> _availableDebuffs = new SpawnPool<BuffDef>
-        {
-            RequiredExpansionsProvider = SpawnPoolUtils.BuffExpansionsProvider
-        };
+        static readonly SpawnPool<BuffDef> _availableDebuffs = new SpawnPool<BuffDef>();
 
         [SystemInitializer(typeof(BuffCatalog), typeof(DotController), typeof(ExpansionUtils))]
         static void InitAvailableBuffs()
         {
             _availableDebuffs.EnsureCapacity(BuffCatalog.buffCount);
 
-            _availableDebuffs.CalcIsEntryAvailable += ApplyBuffEffect.CanSelectBuff;
+            static void addBuffEntry(BuffDef buff, SpawnPoolEntryParameters parameters)
+            {
+                _availableDebuffs.AddEntry(getBuffEntry(buff, parameters));
+            }
 
-            _availableDebuffs.AddEntry(RoR2Content.Buffs.BeetleJuice, new SpawnPoolEntryParameters(1f));
-            _availableDebuffs.AddEntry(RoR2Content.Buffs.ClayGoo, new SpawnPoolEntryParameters(1f));
-            _availableDebuffs.AddEntry(RoR2Content.Buffs.Cripple, new SpawnPoolEntryParameters(1f));
-            _availableDebuffs.AddEntry(RoR2Content.Buffs.DeathMark, new SpawnPoolEntryParameters(1f));
-            _availableDebuffs.AddEntry(RoR2Content.Buffs.Fruiting, new SpawnPoolEntryParameters(1f));
-            _availableDebuffs.AddEntry(RoR2Content.Buffs.HealingDisabled, new SpawnPoolEntryParameters(1f));
-            _availableDebuffs.AddEntry(RoR2Content.Buffs.LunarDetonationCharge, new SpawnPoolEntryParameters(0.7f));
-            _availableDebuffs.AddEntry(RoR2Content.Buffs.MercExpose, new SpawnPoolEntryParameters(0.7f));
-            _availableDebuffs.AddEntry(RoR2Content.Buffs.PermanentCurse, new SpawnPoolEntryParameters(1f));
-            _availableDebuffs.AddEntry(RoR2Content.Buffs.Pulverized, new SpawnPoolEntryParameters(1f));
-            _availableDebuffs.AddEntry(RoR2Content.Buffs.Slow50, new SpawnPoolEntryParameters(0.8f));
-            _availableDebuffs.AddEntry(RoR2Content.Buffs.Slow60, new SpawnPoolEntryParameters(0.8f));
-            _availableDebuffs.AddEntry(RoR2Content.Buffs.Slow80, new SpawnPoolEntryParameters(0.8f));
-            _availableDebuffs.AddEntry(RoR2Content.Buffs.Weak, new SpawnPoolEntryParameters(1f));
+            static SpawnPoolEntry<BuffDef> getBuffEntry(BuffDef buff, SpawnPoolEntryParameters parameters)
+            {
+                BuffIndex buffIndex = buff.buffIndex;
+                parameters.IsAvailableFunc = () => ApplyBuffEffect.CanSelectBuff(buffIndex);
+                return _availableDebuffs.CreateEntry(buff, parameters);
+            }
 
-            _availableDebuffs.AddEntry(JunkContent.Buffs.Slow30, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.BeetleJuice, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.ClayGoo, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.Cripple, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.DeathMark, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.Fruiting, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.HealingDisabled, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.LunarDetonationCharge, new SpawnPoolEntryParameters(0.7f));
+            addBuffEntry(RoR2Content.Buffs.MercExpose, new SpawnPoolEntryParameters(0.7f));
+            addBuffEntry(RoR2Content.Buffs.PermanentCurse, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.Pulverized, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.Slow50, new SpawnPoolEntryParameters(0.8f));
+            addBuffEntry(RoR2Content.Buffs.Slow60, new SpawnPoolEntryParameters(0.8f));
+            addBuffEntry(RoR2Content.Buffs.Slow80, new SpawnPoolEntryParameters(0.8f));
+            addBuffEntry(RoR2Content.Buffs.Weak, new SpawnPoolEntryParameters(1f));
 
-            _availableDebuffs.AddEntry(DLC1Content.Buffs.Blinded, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1));
-            _availableDebuffs.AddEntry(DLC1Content.Buffs.JailerSlow, new SpawnPoolEntryParameters(0.8f, ExpansionUtils.DLC1));
-            _availableDebuffs.AddEntry(DLC1Content.Buffs.PermanentDebuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1));
+            addBuffEntry(JunkContent.Buffs.Slow30, new SpawnPoolEntryParameters(1f));
+
+            addBuffEntry(DLC1Content.Buffs.Blinded, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1));
+            addBuffEntry(DLC1Content.Buffs.JailerSlow, new SpawnPoolEntryParameters(0.8f, ExpansionUtils.DLC1));
+            addBuffEntry(DLC1Content.Buffs.PermanentDebuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1));
 
             _availableDebuffs.AddGroupedEntries([
-                new SpawnPool<BuffDef>.Entry(DLC2Content.Buffs.CookingChopped, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
-                new SpawnPool<BuffDef>.Entry(DLC2Content.Buffs.CookingOiled, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
-                new SpawnPool<BuffDef>.Entry(DLC2Content.Buffs.CookingRoasted, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
-                new SpawnPool<BuffDef>.Entry(DLC2Content.Buffs.CookingRolled, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
-                new SpawnPool<BuffDef>.Entry(DLC2Content.Buffs.CookingChilled, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
+                getBuffEntry(DLC2Content.Buffs.CookingChopped, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
+                getBuffEntry(DLC2Content.Buffs.CookingOiled, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
+                getBuffEntry(DLC2Content.Buffs.CookingRoasted, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
+                getBuffEntry(DLC2Content.Buffs.CookingRolled, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
+                getBuffEntry(DLC2Content.Buffs.CookingChilled, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
             ], 0.7f);
 
-            _availableDebuffs.AddEntry(DLC2Content.Buffs.KnockUpHitEnemies, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
-            _availableDebuffs.AddEntry(DLC2Content.Buffs.SoulCost, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
-            _availableDebuffs.AddEntry(DLC2Content.Buffs.Oiled, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
-            _availableDebuffs.AddEntry(DLC2Content.Buffs.SeekerRevivedOnce, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
-            _availableDebuffs.AddEntry(DLC2Content.Buffs.Frost, new SpawnPoolEntryParameters(0.8f, ExpansionUtils.DLC2));
+            addBuffEntry(DLC2Content.Buffs.KnockUpHitEnemies, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
+            addBuffEntry(DLC2Content.Buffs.SoulCost, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
+            addBuffEntry(DLC2Content.Buffs.Oiled, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
+            addBuffEntry(DLC2Content.Buffs.SeekerRevivedOnce, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
+            addBuffEntry(DLC2Content.Buffs.Frost, new SpawnPoolEntryParameters(0.8f, ExpansionUtils.DLC2));
 
             _availableDebuffs.TrimExcess();
 
 #if DEBUG
+            AssetOrDirectReference<BuffDef>[] availableDebuffReferences = [.. _availableDebuffs];
+
             for (int i = 0; i < BuffCatalog.buffCount; i++)
             {
                 BuffIndex buffIndex = (BuffIndex)i;
@@ -84,10 +95,15 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                 if (!buffDef || buffDef.isHidden || buffDef.isCooldown || DotController.GetDotDefIndex(buffDef) != DotController.DotIndex.None)
                     continue;
 
-                if (!_availableDebuffs.Contains(buffDef))
+                if (!availableDebuffReferences.Any(r => r.WaitForAsset() == buffDef))
                 {
                     Log.Debug($"Not including {buffDef.name} as debuff");
                 }
+            }
+
+            foreach (AssetOrDirectReference<BuffDef> debuffRef in availableDebuffReferences)
+            {
+                debuffRef.Reset();
             }
 #endif
         }
@@ -113,7 +129,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 
             Xoroshiro128Plus rng = new Xoroshiro128Plus(_chaosEffect.Rng.nextUlong);
 
-            BuffDef buff = _availableDebuffs.PickRandomEntry(rng);
+            AssetOrDirectReference<BuffDef> buffRef = _availableDebuffs.PickRandomEntry(rng);
+            BuffDef buff = buffRef.WaitForAsset();
             if (buff)
             {
                 Log.Debug($"Applying debuff {buff}");
@@ -125,6 +142,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             {
                 Log.Error("No debuff selected");
             }
+
+            buffRef.Reset();
         }
     }
 }

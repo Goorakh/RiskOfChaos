@@ -31,8 +31,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             [ContentInitializer]
             static IEnumerator LoadContent(EffectDefAssetCollection effectDefs)
             {
-                List<AsyncOperationHandle> asyncOperations = new List<AsyncOperationHandle>(1);
-
                 AsyncOperationHandle<GameObject> strikeEffectLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Lightning_LightningStrikeImpact_prefab, AsyncReferenceHandleUnloadType.Preload);
                 strikeEffectLoad.OnSuccess(strikeEffectPrefab =>
                 {
@@ -45,15 +43,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     _strikeEffect = prefab;
                 });
 
-                asyncOperations.Add(strikeEffectLoad);
-
-                yield return asyncOperations.WaitForAllLoaded();
+                return strikeEffectLoad;
             }
 
             [SystemInitializer(typeof(EffectCatalog))]
             static IEnumerator Init()
             {
-                AsyncOperationHandle<GameObject> orbEffectPrefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Lightning_LightningStrikeOrbEffect_prefab, AsyncReferenceHandleUnloadType.OnSceneUnload);
+                AsyncOperationHandle<GameObject> orbEffectPrefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Lightning_LightningStrikeOrbEffect_prefab, AsyncReferenceHandleUnloadType.Preload);
                 orbEffectPrefabLoad.OnSuccess(orbEffectPrefab =>
                 {
                     _orbEffectIndex = EffectCatalog.FindEffectIndexFromPrefab(orbEffectPrefab);
@@ -63,7 +59,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     }
                 });
 
-                yield return orbEffectPrefabLoad;
+                return orbEffectPrefabLoad;
             }
 
             public float Force;

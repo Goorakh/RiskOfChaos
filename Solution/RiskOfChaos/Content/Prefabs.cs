@@ -1,4 +1,5 @@
 ﻿using HG;
+using HG.Coroutines;
 using RiskOfChaos.Components;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.Networking.Components;
@@ -187,7 +188,7 @@ namespace RiskOfChaos.Content
         [ContentInitializer]
         static IEnumerator InitContent(NetworkedPrefabAssetCollection networkedPrefabs, LocalPrefabAssetCollection localPrefabs)
         {
-            List<AsyncOperationHandle> asyncOperations = new List<AsyncOperationHandle>(10);
+            ParallelCoroutine parallelCoroutine = new ParallelCoroutine();
 
             // GenericTeamInventory
             {
@@ -222,7 +223,7 @@ namespace RiskOfChaos.Content
                     networkedPrefabs.Add(prefab);
                 });
 
-                asyncOperations.Add(itemStealControllerLoad);
+                parallelCoroutine.Add(itemStealControllerLoad);
             }
 
             // ItemStealerPositionIndicator
@@ -253,7 +254,7 @@ namespace RiskOfChaos.Content
                     localPrefabs.Add(prefab);
                 });
 
-                asyncOperations.Add(positionIndicatorLoad);
+                parallelCoroutine.Add(positionIndicatorLoad);
             }
 
             // NetworkedSulfurPodBase
@@ -266,7 +267,7 @@ namespace RiskOfChaos.Content
                     networkedPrefabs.Add(prefab);
                 });
 
-                asyncOperations.Add(sulfurPodBaseLoad);
+                parallelCoroutine.Add(sulfurPodBaseLoad);
             }
 
             // ConfigNetworker
@@ -296,7 +297,7 @@ namespace RiskOfChaos.Content
                     networkedPrefabs.Add(prefab);
                 });
 
-                asyncOperations.Add(newtStatueLoad);
+                parallelCoroutine.Add(newtStatueLoad);
             }
 
             // TimedChestFixedOrigin
@@ -324,7 +325,7 @@ namespace RiskOfChaos.Content
                     networkedPrefabs.Add(prefab);
                 });
 
-                asyncOperations.Add(timedChestLoad);
+                parallelCoroutine.Add(timedChestLoad);
             }
 
             // BossCombatSquadNoReward
@@ -343,10 +344,10 @@ namespace RiskOfChaos.Content
                     networkedPrefabs.Add(prefab);
                 });
 
-                asyncOperations.Add(bossCombatSquadLoad);
+                parallelCoroutine.Add(bossCombatSquadLoad);
             }
 
-            yield return asyncOperations.WaitForAllLoaded();
+            return parallelCoroutine;
         }
     }
 }

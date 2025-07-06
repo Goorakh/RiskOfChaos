@@ -6,7 +6,6 @@ using RoR2;
 using RoR2.ContentManagement;
 using RoR2.Orbs;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
@@ -19,8 +18,6 @@ namespace RiskOfChaos.Content
             [ContentInitializer]
             static IEnumerator LoadContent(EffectDefAssetCollection effectDefs)
             {
-                List<AsyncOperationHandle> asyncOperations = [];
-
                 // EquipmentTransferOrb
                 {
                     AsyncOperationHandle<GameObject> transferOrbEffectLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Common_VFX_ItemTransferOrbEffect_prefab, AsyncReferenceHandleUnloadType.Preload);
@@ -42,10 +39,8 @@ namespace RiskOfChaos.Content
                         effectDefs.Add(new EffectDef(prefab));
                     });
 
-                    asyncOperations.Add(transferOrbEffectLoad);
+                    return transferOrbEffectLoad;
                 }
-
-                yield return asyncOperations.WaitForAllLoaded();
             }
         }
     }

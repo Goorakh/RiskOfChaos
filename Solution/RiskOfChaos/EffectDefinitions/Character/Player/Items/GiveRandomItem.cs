@@ -9,6 +9,7 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.Pickup;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using RoR2.ExpansionManagement;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -51,12 +52,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             _dropTable.AddDrops += (List<ExplicitDrop> drops) =>
             {
-                drops.Add(new ExplicitDrop(RoR2Content.Items.ArtifactKey.itemIndex, DropType.Boss, null));
-                drops.Add(new ExplicitDrop(RoR2Content.Items.CaptainDefenseMatrix.itemIndex, DropType.Tier3, null));
-                drops.Add(new ExplicitDrop(RoR2Content.Items.Pearl.itemIndex, DropType.Boss, null));
-                drops.Add(new ExplicitDrop(RoR2Content.Items.ShinyPearl.itemIndex, DropType.Boss, null));
+                drops.Add(new ExplicitDrop(RoR2Content.Items.ArtifactKey.itemIndex, DropType.Boss, ExpansionIndex.None));
+                drops.Add(new ExplicitDrop(RoR2Content.Items.CaptainDefenseMatrix.itemIndex, DropType.Tier3, ExpansionIndex.None));
+                drops.Add(new ExplicitDrop(RoR2Content.Items.Pearl.itemIndex, DropType.Boss, ExpansionIndex.None));
+                drops.Add(new ExplicitDrop(RoR2Content.Items.ShinyPearl.itemIndex, DropType.Boss, ExpansionIndex.None));
 
-                drops.Add(new ExplicitDrop(RoR2Content.Equipment.QuestVolatileBattery.equipmentIndex, DropType.Equipment, null));
+                drops.Add(new ExplicitDrop(RoR2Content.Equipment.QuestVolatileBattery.equipmentIndex, DropType.Equipment, ExpansionIndex.None));
 
                 drops.Add(new ExplicitDrop(DLC1Content.Equipment.BossHunterConsumed.equipmentIndex, DropType.Equipment, ExpansionUtils.DLC1));
                 drops.Add(new ExplicitDrop(DLC1Content.Equipment.LunarPortalOnUse.equipmentIndex, DropType.Equipment, ExpansionUtils.DLC1));

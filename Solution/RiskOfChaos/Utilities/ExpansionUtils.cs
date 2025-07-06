@@ -1,37 +1,36 @@
-﻿using HG.Coroutines;
-using RiskOfChaos.Utilities.Extensions;
+﻿using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.ExpansionManagement;
-using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Utilities
 {
     public static class ExpansionUtils
     {
-        public static ExpansionDef DLC1 { get; private set; }
+        public static ExpansionIndex DLC1 { get; private set; } = ExpansionIndex.None;
 
-        public static ExpansionDef DLC2 { get; private set; }
+        public static ExpansionIndex DLC2 { get; private set; } = ExpansionIndex.None;
 
         public static ResourceAvailability Availability = new ResourceAvailability();
 
-        [SystemInitializer]
-        static IEnumerator Init()
+        [SystemInitializer(typeof(ExpansionCatalog))]
+        static void Init()
         {
-            ParallelCoroutine parallelCoroutine = new ParallelCoroutine();
-
-            AsyncOperationHandle<ExpansionDef> dlc1Load = AddressableUtil.LoadAssetAsync<ExpansionDef>(AddressableGuids.RoR2_DLC1_Common_DLC1_asset);
-            dlc1Load.OnSuccess(dlc1 => DLC1 = dlc1);
-            parallelCoroutine.Add(dlc1Load);
-
-            AsyncOperationHandle<ExpansionDef> dlc2Load = AddressableUtil.LoadAssetAsync<ExpansionDef>(AddressableGuids.RoR2_DLC2_Common_DLC2_asset);
-            dlc2Load.OnSuccess(dlc2 => DLC2 = dlc2);
-            parallelCoroutine.Add(dlc2Load);
-
-            yield return parallelCoroutine;
+            for (int i = 0; i < ExpansionCatalog.expansionDefs.Length; i++)
+            {
+                ExpansionDef expansionDef = ExpansionCatalog.expansionDefs[i];
+                switch (expansionDef.name)
+                {
+                    case "DLC1":
+                        DLC1 = expansionDef.expansionIndex;
+                        break;
+                    case "DLC2":
+                        DLC2 = expansionDef.expansionIndex;
+                        break;
+                }
+            }
 
             Availability.MakeAvailable();
         }
@@ -39,18 +38,44 @@ namespace RiskOfChaos.Utilities
         public static bool DLC1Enabled
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => DLC1 && IsExpansionEnabled(DLC1);
+            get => IsExpansionEnabled(DLC1);
         }
 
         public static bool DLC2Enabled
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => DLC2 && IsExpansionEnabled(DLC2);
+            get => IsExpansionEnabled(DLC2);
+        }
+
+        public static ExpansionDef GetExpansionDef(ExpansionIndex index)
+        {
+            if ((uint)index >= ExpansionCatalog.expansionDefs.Length)
+                return null;
+
+            return ExpansionCatalog.expansionDefs[(int)index];
+        }
+
+        public static bool IsExpansionEnabled(ExpansionIndex expansionIndex)
+        {
+            return IsExpansionEnabled(GetExpansionDef(expansionIndex));
         }
 
         public static bool IsExpansionEnabled(ExpansionDef expansionDef)
         {
             return !expansionDef || (Run.instance && Run.instance.IsExpansionEnabled(expansionDef));
+        }
+
+        public static bool AllExpansionsEnabled(IEnumerable<ExpansionIndex> expansions)
+        {
+            foreach (ExpansionIndex expansion in expansions)
+            {
+                if (!IsExpansionEnabled(expansion))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public static bool AllExpansionsEnabled(IEnumerable<ExpansionDef> expansions)
@@ -100,6 +125,25 @@ namespace RiskOfChaos.Utilities
             requiredExpansions.TrimExcess();
 
             return requiredExpansions.AsReadOnly();
+        }
+
+        public static IReadOnlyList<ExpansionIndex> GetObjectRequiredExpansionIndices(GameObject obj)
+        {
+            if (!obj)
+                return [];
+
+            List<ExpansionDef> requiredExpansionDefs = [];
+            addAllRequiredExpansions(obj, requiredExpansionDefs);
+            if (requiredExpansionDefs.Count <= 0)
+                return [];
+
+            ExpansionIndex[] requiredExpansions = new ExpansionIndex[requiredExpansionDefs.Count];
+            for (int i = 0; i < requiredExpansions.Length; i++)
+            {
+                requiredExpansions[i] = requiredExpansionDefs[i].expansionIndex;
+            }
+
+            return requiredExpansions;
         }
 
         public static bool IsObjectExpansionAvailable(GameObject obj)

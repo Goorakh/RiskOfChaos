@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Components;
+﻿using HG.Coroutines;
+using RiskOfChaos.Components;
 using RiskOfChaos.Content;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -13,7 +14,6 @@ using RoR2.Navigation;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
@@ -28,21 +28,21 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [ContentInitializer]
         static IEnumerator LoadContent(MasterPrefabAssetCollection masterPrefabs, BodyPrefabAssetCollection bodyPrefabs)
         {
-            List<AsyncOperationHandle> asyncOperations = new List<AsyncOperationHandle>(4);
+            ParallelCoroutine parallelCoroutine = new ParallelCoroutine();
 
             AsyncOperationHandle<GameObject> lemurianBodyPrefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Lemurian_LemurianBody_prefab, AsyncReferenceHandleUnloadType.Preload);
-            asyncOperations.Add(lemurianBodyPrefabLoad);
+            parallelCoroutine.Add(lemurianBodyPrefabLoad);
 
             AsyncOperationHandle<GameObject> lemurianMasterPrefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Lemurian_LemurianMaster_prefab, AsyncReferenceHandleUnloadType.Preload);
-            asyncOperations.Add(lemurianMasterPrefabLoad);
+            parallelCoroutine.Add(lemurianMasterPrefabLoad);
 
             AsyncOperationHandle<GameObject> lemurianBruiserBodyPrefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_LemurianBruiser_LemurianBruiserBody_prefab, AsyncReferenceHandleUnloadType.Preload);
-            asyncOperations.Add(lemurianBruiserBodyPrefabLoad);
+            parallelCoroutine.Add(lemurianBruiserBodyPrefabLoad);
 
             AsyncOperationHandle<GameObject> lemurianBruiserMasterPrefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_LemurianBruiser_LemurianBruiserMaster_prefab, AsyncReferenceHandleUnloadType.Preload);
-            asyncOperations.Add(lemurianBruiserMasterPrefabLoad);
+            parallelCoroutine.Add(lemurianBruiserMasterPrefabLoad);
 
-            yield return asyncOperations.WaitForAllLoaded();
+            yield return parallelCoroutine;
 
             const CharacterBody.BodyFlags INVINCIBLE_LEMURIAN_BODY_FLAGS = CharacterBody.BodyFlags.IgnoreFallDamage | CharacterBody.BodyFlags.ImmuneToExecutes | CharacterBody.BodyFlags.ImmuneToVoidDeath | CharacterBody.BodyFlags.ImmuneToLava;
 
@@ -130,10 +130,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             }
         }
 
-        static readonly SpawnPool<CharacterSpawnCard> _spawnPool = new SpawnPool<CharacterSpawnCard>
-        {
-            RequiredExpansionsProvider = SpawnPoolUtils.CharacterSpawnCardExpansionsProvider
-        };
+        static readonly SpawnPool<CharacterSpawnCard> _spawnPool = new SpawnPool<CharacterSpawnCard>();
 
         [SystemInitializer]
         static void Init()
@@ -154,11 +151,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         Xoroshiro128Plus _rng;
 
-        CharacterSpawnCard _selectedSpawnCard;
+        AssetOrDirectReference<CharacterSpawnCard> _lemurianSpawnCardRef;
 
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        void OnDestroy()
+        {
+            _lemurianSpawnCardRef?.Reset();
         }
 
         public override void OnStartServer()
@@ -167,15 +169,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
             _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
-            _selectedSpawnCard = _spawnPool.PickRandomEntry(_rng);
+            _lemurianSpawnCardRef = _spawnPool.PickRandomEntry(_rng);
+            _lemurianSpawnCardRef.CallOnLoaded(onSpawnCardLoadedServer);
         }
 
-        void Start()
+        [Server]
+        void onSpawnCardLoadedServer(CharacterSpawnCard spawnCard)
         {
-            if (!NetworkServer.active)
-                return;
-
-            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_selectedSpawnCard, SpawnUtils.GetBestValidRandomPlacementRule(), _rng)
+            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(spawnCard, SpawnUtils.GetBestValidRandomPlacementRule(), _rng)
             {
                 teamIndexOverride = TeamIndex.Monster,
                 ignoreTeamMemberLimit = true

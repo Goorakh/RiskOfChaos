@@ -26,10 +26,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         [ContentInitializer]
         static IEnumerator LoadContent(NetworkedPrefabAssetCollection networkedPrefabs)
         {
-            List<AsyncOperationHandle> asyncOperations = [];
-
             AsyncOperationHandle<InteractableSpawnCard> teleporterSpawnCardLoad = AddressableUtil.LoadAssetAsync<InteractableSpawnCard>(AddressableGuids.RoR2_Base_Teleporters_iscTeleporter_asset, AsyncReferenceHandleUnloadType.Preload);
-            asyncOperations.Add(teleporterSpawnCardLoad);
             teleporterSpawnCardLoad.OnSuccess(teleporterSpawnCard =>
             {
                 GameObject teleporterPrefab = teleporterSpawnCard.prefab;
@@ -195,7 +192,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 fakeTeleporterInteraction.SyncTeleporterChildActivations = ["BossShrineSymbol", "TimeCrystalProps", "TimeCrystalBeaconBlocker", .. portalIndicatorChildNames];
 
                 PingInfoProvider fakeTpPingInfoProvider = fakeTeleporterPrefab.GetComponent<PingInfoProvider>();
-                AddressableUtil.LoadAssetAsync<Sprite>(AddressableGuids.RoR2_Base_Common_MiscIcons_texTeleporterIconOutlined_png).OnSuccess(tpIcon =>
+                AddressableUtil.LoadAssetAsync<Sprite>(AddressableGuids.RoR2_Base_Common_MiscIcons_texTeleporterIconOutlined_png, AsyncReferenceHandleUnloadType.Preload).OnSuccess(tpIcon =>
                 {
                     fakeTpPingInfoProvider.pingIconOverride = tpIcon;
                 });
@@ -207,7 +204,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 _fakeTeleporterSpawnCard.prefab = fakeTeleporterPrefab;
             });
 
-            yield return asyncOperations.WaitForAllLoaded();
+            return teleporterSpawnCardLoad;
         }
 
         [EffectCanActivate]

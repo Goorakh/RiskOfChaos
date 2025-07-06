@@ -3,6 +3,7 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2.ContentManagement;
 using System.Collections;
 using UnityEngine;
@@ -20,20 +21,22 @@ namespace RiskOfChaos.EffectDefinitions.Character
         static IEnumerator InitPrefab(GameObject prefab)
         {
             AsyncOperationHandle<GameObject> railgunnerBodyLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_DLC1_Railgunner_RailgunnerBody_prefab, AsyncReferenceHandleUnloadType.Preload);
-            yield return railgunnerBodyLoad;
+            railgunnerBodyLoad.OnSuccess(railgunnerBodyPrefab =>
+            {
+                if (railgunnerBodyPrefab && railgunnerBodyPrefab.TryGetComponent(out AkBank railgunnerBank) && railgunnerBank.data?.ObjectReference)
+                {
+                    AkBank effectBank = prefab.AddComponent<AkBank>();
+                    effectBank.data = railgunnerBank.data;
+                    effectBank.triggerList = [AkTriggerHandler.START_TRIGGER_ID];
+                    effectBank.unloadTriggerList = [AkTriggerHandler.DESTROY_TRIGGER_ID];
+                }
+                else
+                {
+                    Log.Error("Failed to find railgunner sound bank");
+                }
+            });
 
-            GameObject railgunnerBodyPrefab = railgunnerBodyLoad.Result;
-            if (railgunnerBodyPrefab && railgunnerBodyPrefab.TryGetComponent(out AkBank railgunnerBank) && railgunnerBank.data?.ObjectReference)
-            {
-                AkBank effectBank = prefab.AddComponent<AkBank>();
-                effectBank.data = railgunnerBank.data;
-                effectBank.triggerList = [AkTriggerHandler.START_TRIGGER_ID];
-                effectBank.unloadTriggerList = [AkTriggerHandler.DESTROY_TRIGGER_ID];
-            }
-            else
-            {
-                Log.Error("Failed to find railgunner sound bank");
-            }
+            return railgunnerBodyLoad;
         }
     }
 }

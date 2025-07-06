@@ -12,6 +12,8 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using RoR2.ContentManagement;
+using RoR2.ExpansionManagement;
 using RoR2.Navigation;
 using System;
 using System.Collections.Generic;
@@ -23,29 +25,15 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
     [ChaosEffect("spawn_random_ally")]
     public sealed class SpawnRandomAlly : NetworkBehaviour
     {
-        static readonly SpawnPool<CharacterSpawnCard> _spawnPool = new SpawnPool<CharacterSpawnCard>
-        {
-            RequiredExpansionsProvider = SpawnPoolUtils.CharacterSpawnCardExpansionsProvider
-        };
+        static readonly SpawnPool<CharacterSpawnCard> _spawnPool = new SpawnPool<CharacterSpawnCard>();
 
-        [SystemInitializer(typeof(MasterCatalog), typeof(CharacterExpansionRequirementFix))]
+        [SystemInitializer(typeof(MasterCatalog), typeof(BodyCatalog), typeof(UnlockableCatalog), typeof(CharacterExpansionRequirementFix), typeof(ExpansionCatalog))]
         static void Init()
         {
             List<CharacterMaster> validCombatCharacters = [];
             CombatCharacterSpawnHelper.GetAllValidCombatCharacters(validCombatCharacters);
 
             _spawnPool.EnsureCapacity(validCombatCharacters.Count);
-
-            _spawnPool.CalcIsEntryAvailable += entry =>
-            {
-                CharacterBody bodyPrefab = null;
-                if (entry && entry.prefab && entry.prefab.TryGetComponent(out CharacterMaster masterPrefab) && masterPrefab.bodyPrefab)
-                {
-                    bodyPrefab = masterPrefab.bodyPrefab.GetComponent<CharacterBody>();
-                }
-
-                return bodyPrefab && !_allyBlacklist.Contains(bodyPrefab.bodyIndex);
-            };
 
             for (int i = 0; i < validCombatCharacters.Count; i++)
             {
@@ -74,10 +62,22 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 
                 CharacterBody bodyPrefab = master.bodyPrefab.GetComponent<CharacterBody>();
 
+                BodyIndex bodyIndex = bodyPrefab.bodyIndex;
+                UnlockableIndex requiredUnlockableIndex = UnlockableIndex.None;
+
                 float weight = 1f;
                 if (bodyPrefab.isChampion)
                 {
                     weight *= 0.7f;
+                }
+
+                SurvivorDef survivorDef = SurvivorCatalog.FindSurvivorDefFromBody(master.bodyPrefab);
+                if (survivorDef)
+                {
+                    if (survivorDef.unlockableDef)
+                    {
+                        requiredUnlockableIndex = survivorDef.unlockableDef.index;
+                    }
                 }
 
                 CharacterSpawnCard spawnCard = ScriptableObject.CreateInstance<CharacterSpawnCard>();
@@ -97,7 +97,25 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                     }
                 ];
 
-                _spawnPool.AddEntry(spawnCard, new SpawnPoolEntryParameters(weight));
+                IReadOnlyList<ExpansionIndex> requiredExpansions = ExpansionUtils.GetObjectRequiredExpansionIndices(master.gameObject);
+
+                _spawnPool.AddEntry(spawnCard, new SpawnPoolEntryParameters(weight, [.. requiredExpansions])
+                {
+                    IsAvailableFunc = () =>
+                    {
+                        if (_allyBlacklist.Contains(bodyIndex))
+                            return false;
+
+                        if (requiredUnlockableIndex != UnlockableIndex.None &&
+                            Run.instance &&
+                            Run.instance.IsUnlockableUnlocked(UnlockableCatalog.GetUnlockableDef(requiredUnlockableIndex)))
+                        {
+                            return false;
+                        }
+
+                        return true;
+                    }
+                });
             }
 
             _spawnPool.TrimExcess();
@@ -145,11 +163,17 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
         ChaosEffectComponent _effectComponent;
 
         Xoroshiro128Plus _rng;
-        CharacterSpawnCard _allySpawnCard;
+
+        AssetOrDirectReference<CharacterSpawnCard> _allySpawnCardRef;
 
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        void OnDestroy()
+        {
+            _allySpawnCardRef?.Reset();
         }
 
         public override void OnStartServer()
@@ -158,14 +182,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 
             _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
-            _allySpawnCard = _spawnPool.PickRandomEntry(_rng);
+            _allySpawnCardRef = _spawnPool.PickRandomEntry(_rng);
+            _allySpawnCardRef.CallOnLoaded(onAllySpawnCardLoadedServer);
         }
 
-        void Start()
+        [Server]
+        void onAllySpawnCardLoadedServer(CharacterSpawnCard spawnCard)
         {
-            if (!NetworkServer.active)
-                return;
-
             foreach (PlayerCharacterMasterController playerMaster in PlayerCharacterMasterController.instances)
             {
                 if (!playerMaster.isConnected)
@@ -176,6 +199,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                 if (!body || !master || master.IsDeadAndOutOfLivesServer())
                     continue;
 
+                Xoroshiro128Plus spawnRng = new Xoroshiro128Plus(_rng.nextUlong);
+
                 DirectorPlacementRule placementRule = new DirectorPlacementRule
                 {
                     placementMode = DirectorPlacementRule.PlacementMode.NearestNode,
@@ -183,7 +208,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                     preventOverhead = true
                 };
 
-                DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_allySpawnCard, placementRule, _rng)
+                DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(spawnCard, placementRule, spawnRng)
                 {
                     ignoreTeamMemberLimit = true,
                     summonerBodyObject = body.gameObject,
@@ -191,25 +216,25 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                     onSpawnedServer = onAllySpawnedServer
                 };
 
-                spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());
-            }
-        }
-
-        void onAllySpawnedServer(SpawnCard.SpawnResult result)
-        {
-            if (!result.success)
-                return;
-
-            if (result.spawnedInstance.TryGetComponent(out CharacterMaster master))
-            {
-                CombatCharacterSpawnHelper.SetupSpawnedCombatCharacter(master, _rng);
-
-                if (_rng.nextNormalizedFloat <= _eliteChance.Value)
+                void onAllySpawnedServer(SpawnCard.SpawnResult result)
                 {
-                    CombatCharacterSpawnHelper.GrantRandomEliteAspect(master, _rng, _allowDirectorUnavailableElites.Value);
+                    if (!result.success)
+                        return;
+
+                    if (result.spawnedInstance.TryGetComponent(out CharacterMaster master))
+                    {
+                        CombatCharacterSpawnHelper.SetupSpawnedCombatCharacter(master, spawnRng);
+
+                        if (spawnRng.nextNormalizedFloat <= _eliteChance.Value)
+                        {
+                            CombatCharacterSpawnHelper.GrantRandomEliteAspect(master, spawnRng, _allowDirectorUnavailableElites.Value);
+                        }
+
+                        master.gameObject.SetDontDestroyOnLoad(true);
+                    }
                 }
 
-                master.gameObject.SetDontDestroyOnLoad(true);
+                spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());
             }
         }
     }

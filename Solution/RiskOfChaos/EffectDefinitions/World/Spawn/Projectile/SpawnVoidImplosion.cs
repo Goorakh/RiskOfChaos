@@ -2,7 +2,9 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.Projectile;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -32,11 +34,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
 
         ChaosEffectComponent _effectComponent;
 
-        GameObject _projectilePrefab;
+        AssetOrDirectReference<GameObject> _implosionProjectileRef;
 
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        void OnDestroy()
+        {
+            _implosionProjectileRef?.Reset();
         }
 
         public override void OnStartServer()
@@ -45,19 +52,18 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
 
             Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
-            _projectilePrefab = _implosionProjectiles.PickRandomEntry(rng);
+            _implosionProjectileRef = _implosionProjectiles.PickRandomEntry(rng);
+            _implosionProjectileRef.CallOnLoaded(onImplosionProjectileLoaded);
         }
 
-        void Start()
+        [Server]
+        void onImplosionProjectileLoaded(GameObject projectilePrefab)
         {
-            if (!NetworkServer.active)
-                return;
-
             foreach (CharacterBody playerBody in PlayerUtils.GetAllPlayerBodies(true))
             {
                 ProjectileManager.instance.FireProjectile(new FireProjectileInfo
                 {
-                    projectilePrefab = _projectilePrefab,
+                    projectilePrefab = projectilePrefab,
                     position = playerBody.corePosition + new Vector3(0f, 5f, 0f),
                     rotation = Quaternion.identity
                 });

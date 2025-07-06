@@ -1,7 +1,7 @@
-﻿using System;
+﻿using HG.Coroutines;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Utilities.Extensions
@@ -46,27 +46,18 @@ namespace RiskOfChaos.Utilities.Extensions
             }
         }
 
-        public static void OnSuccess<T>(this in AsyncOperationHandle<T> handle, Action<T> onSuccess)
+        public static void AddRange<T>(this ParallelCoroutine parallelCoroutine, IEnumerable<T> coroutines) where T : IEnumerator
         {
-#if DEBUG
-            StackTrace stackTrace = new StackTrace();
-#endif
+            if (parallelCoroutine is null)
+                throw new ArgumentNullException(nameof(parallelCoroutine));
 
-            handle.Completed += handle =>
+            if (coroutines is null)
+                throw new ArgumentNullException(nameof(coroutines));
+
+            foreach (T coroutine in coroutines)
             {
-                if (handle.Status == AsyncOperationStatus.Failed)
-                {
-                    Log.Error($"Failed to load asset '{handle.LocationName}'"
-#if DEBUG
-                        + $". at {stackTrace}"
-#endif
-                        );
-
-                    return;
-                }
-
-                onSuccess(handle.Result);
-            };
+                parallelCoroutine.Add(coroutine);
+            }
         }
     }
 }

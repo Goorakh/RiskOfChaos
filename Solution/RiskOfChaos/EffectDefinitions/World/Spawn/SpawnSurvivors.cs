@@ -9,8 +9,10 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.ContentManagement;
+using RoR2.ExpansionManagement;
 using RoR2.Navigation;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -20,10 +22,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
     [ChaosEffect("spawn_survivors")]
     public sealed class SpawnSurvivors : NetworkBehaviour
     {
-        static readonly SpawnPool<SurvivorDef> _spawnPool = new SpawnPool<SurvivorDef>
-        {
-            RequiredExpansionsProvider = survivorDef => ExpansionUtils.GetObjectRequiredExpansions(survivorDef.bodyPrefab)
-        };
+        static readonly SpawnPool<SurvivorDef> _spawnPool = new SpawnPool<SurvivorDef>();
 
         [EffectConfig]
         static readonly ConfigHolder<int> _numPodSpawns =
@@ -33,14 +32,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                               .OptionConfig(new IntFieldConfig { Min = 1 })
                               .Build();
 
-        [SystemInitializer(typeof(SurvivorCatalog), typeof(MasterCatalog))]
+        [SystemInitializer(typeof(SurvivorCatalog), typeof(MasterCatalog), typeof(UnlockableCatalog), typeof(ExpansionUtils))]
         static void Init()
         {
-            _spawnPool.CalcIsEntryAvailable += survivor =>
-            {
-                return !survivor.unlockableDef || (Run.instance && Run.instance.IsUnlockableUnlocked(survivor.unlockableDef));
-            };
-
             _spawnPool.EnsureCapacity(SurvivorCatalog.survivorCount);
 
             foreach (SurvivorDef survivorDef in SurvivorCatalog.allSurvivorDefs)
@@ -49,7 +43,22 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 if (!aiMasterIndex.isValid)
                     continue;
 
-                _spawnPool.AddEntry(new SpawnPool<SurvivorDef>.Entry(survivorDef, new SpawnPoolEntryParameters(1f)));
+                UnlockableIndex requiredUnlockableIndex = UnlockableIndex.None;
+                if (survivorDef.unlockableDef)
+                {
+                    requiredUnlockableIndex = survivorDef.unlockableDef.index;
+                }
+
+                IReadOnlyList<ExpansionIndex> requiredExpansions = ExpansionUtils.GetObjectRequiredExpansionIndices(survivorDef.bodyPrefab);
+
+                SpawnPoolEntryParameters entryParameters = new SpawnPoolEntryParameters(1f, [.. requiredExpansions]);
+
+                if (requiredUnlockableIndex != UnlockableIndex.None)
+                {
+                    entryParameters.IsAvailableFunc = () => !Run.instance || Run.instance.IsUnlockableUnlocked(UnlockableCatalog.GetUnlockableDef(requiredUnlockableIndex));
+                }
+
+                _spawnPool.AddEntry(survivorDef, entryParameters);
             }
 
             _spawnPool.TrimExcess();
@@ -66,6 +75,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         ChaosEffectComponent _effectComponent;
 
         Xoroshiro128Plus _rng;
+
+        List<AssetOrDirectReference<SurvivorDef>> _survivorReferences = [];
 
         void Awake()
         {
@@ -98,7 +109,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
             for (int i = _numPodSpawns.Value - 1; i >= 0; i--)
             {
-                spawnSurvivor(_spawnPool.PickRandomEntry(_rng), _rng.Branch());
+                AssetOrDirectReference<SurvivorDef> survivorRef = _spawnPool.PickRandomEntry(_rng);
+                spawnSurvivor(survivorRef, _rng.Branch());
+                _survivorReferences.Add(survivorRef);
 
                 if (i > 0)
                 {
@@ -113,42 +126,54 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             _podPrefabReference?.Reset();
             _podPrefabReference = null;
+
+            foreach (AssetOrDirectReference<SurvivorDef> survivorRef in _survivorReferences)
+            {
+                survivorRef?.Reset();
+            }
+
+            _survivorReferences.Clear();
         }
 
-        void spawnSurvivor(SurvivorDef survivor, Xoroshiro128Plus rng)
+        [Server]
+        void spawnSurvivor(AssetOrDirectReference<SurvivorDef> survivorReference, Xoroshiro128Plus rng)
         {
-            MasterCatalog.MasterIndex masterIndex = MasterCatalog.FindAiMasterIndexForBody(BodyCatalog.FindBodyIndex(survivor.bodyPrefab));
-            if (masterIndex.isValid)
+            Xoroshiro128Plus spawnRng = new Xoroshiro128Plus(rng.nextUlong);
+            survivorReference.CallOnLoaded(survivor =>
             {
-                GameObject masterPrefabObj = MasterCatalog.GetMasterPrefab(masterIndex);
-
-                CharacterMaster master = new MasterSummon
+                MasterCatalog.MasterIndex masterIndex = MasterCatalog.FindAiMasterIndexForBody(BodyCatalog.FindBodyIndex(survivor.bodyPrefab));
+                if (masterIndex.isValid)
                 {
-                    masterPrefab = masterPrefabObj,
-                    position = Vector3.zero,
-                    rotation = Quaternion.identity,
-                    ignoreTeamMemberLimit = true,
-                    teamIndexOverride = TeamIndex.Player,
-                    useAmbientLevel = true,
-                    loadout = LoadoutUtils.GetRandomLoadoutFor(masterPrefabObj.GetComponent<CharacterMaster>(), rng.Branch())
-                }.Perform();
+                    GameObject masterPrefabObj = MasterCatalog.GetMasterPrefab(masterIndex);
 
-                if (!master.hasBody)
-                {
-                    master.SpawnBodyHere();
+                    CharacterMaster master = new MasterSummon
+                    {
+                        masterPrefab = masterPrefabObj,
+                        position = Vector3.zero,
+                        rotation = Quaternion.identity,
+                        ignoreTeamMemberLimit = true,
+                        teamIndexOverride = TeamIndex.Player,
+                        useAmbientLevel = true,
+                        loadout = LoadoutUtils.GetRandomLoadoutFor(masterPrefabObj.GetComponent<CharacterMaster>(), spawnRng.Branch())
+                    }.Perform();
+
+                    if (!master.hasBody)
+                    {
+                        master.SpawnBodyHere();
+                    }
+
+                    CharacterBody characterBody = master.GetBody();
+
+                    DirectorPlacementRule placementRule = SpawnUtils.GetBestValidRandomPlacementRule();
+                    Vector3 spawnPosition = placementRule.EvaluateToPosition(spawnRng.Branch(), HullClassification.Golem, MapNodeGroup.GraphType.Ground, NodeFlags.None, NodeFlags.NoCharacterSpawn);
+
+                    spawnSurvivorPodFor(characterBody, spawnPosition, spawnRng.Branch());
                 }
-
-                CharacterBody characterBody = master.GetBody();
-
-                DirectorPlacementRule placementRule = SpawnUtils.GetBestValidRandomPlacementRule();
-                Vector3 spawnPosition = placementRule.EvaluateToPosition(rng.Branch(), HullClassification.Golem, MapNodeGroup.GraphType.Ground, NodeFlags.None, NodeFlags.NoCharacterSpawn);
-
-                spawnSurvivorPodFor(characterBody, spawnPosition, rng.Branch());
-            }
-            else
-            {
-                Log.Warning($"No AI master found for survivor: {survivor.cachedName}, bodyPrefab={survivor.bodyPrefab}");
-            }
+                else
+                {
+                    Log.Warning($"No AI master found for survivor: {survivor.cachedName}, bodyPrefab={survivor.bodyPrefab}");
+                }
+            });
         }
 
         void spawnSurvivorPodFor(CharacterBody survivorBody, Vector3 spawnPosition, Xoroshiro128Plus rng)

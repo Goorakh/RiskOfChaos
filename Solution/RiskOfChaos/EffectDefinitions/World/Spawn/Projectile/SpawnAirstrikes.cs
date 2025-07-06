@@ -3,6 +3,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.ContentManagement;
 using RoR2.Navigation;
@@ -21,20 +22,22 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
         static IEnumerator InitPrefab(GameObject prefab)
         {
             AsyncOperationHandle<GameObject> captainBodyLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Captain_CaptainBody_prefab, AsyncReferenceHandleUnloadType.Preload);
-            yield return captainBodyLoad;
+            captainBodyLoad.OnSuccess(captainBodyPrefab =>
+            {
+                if (captainBodyPrefab && captainBodyPrefab.TryGetComponent(out AkBank captainBank) && captainBank.data?.ObjectReference)
+                {
+                    AkBank effectBank = prefab.AddComponent<AkBank>();
+                    effectBank.data = captainBank.data;
+                    effectBank.triggerList = [AkTriggerHandler.START_TRIGGER_ID];
+                    effectBank.unloadTriggerList = [AkTriggerHandler.DESTROY_TRIGGER_ID];
+                }
+                else
+                {
+                    Log.Error("Failed to find captain sound bank");
+                }
+            });
 
-            GameObject captainBodyPrefab = captainBodyLoad.Result;
-            if (captainBodyPrefab && captainBodyPrefab.TryGetComponent(out AkBank captainBank) && captainBank.data?.ObjectReference)
-            {
-                AkBank effectBank = prefab.AddComponent<AkBank>();
-                effectBank.data = captainBank.data;
-                effectBank.triggerList = [AkTriggerHandler.START_TRIGGER_ID];
-                effectBank.unloadTriggerList = [AkTriggerHandler.DESTROY_TRIGGER_ID];
-            }
-            else
-            {
-                Log.Error("Failed to find captain sound bank");
-            }
+            return captainBodyLoad;
         }
 
         static readonly SpawnUtils.NodeSelectionRules _strikePositionSelectorRules = new SpawnUtils.NodeSelectionRules(SpawnUtils.NodeGraphFlags.Ground, false, HullMask.Human | HullMask.Golem | HullMask.BeetleQueen, NodeFlags.None, NodeFlags.None);

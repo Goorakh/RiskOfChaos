@@ -7,6 +7,7 @@ using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.Navigation;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -16,10 +17,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
     [ChaosEffect("spawn_random_interactable")]
     public sealed class SpawnRandomInteractable : NetworkBehaviour
     {
-        static readonly SpawnPool<InteractableSpawnCard> _spawnPool = new SpawnPool<InteractableSpawnCard>
-        {
-            RequiredExpansionsProvider = SpawnPoolUtils.InteractableSpawnCardExpansionsProvider
-        };
+        static readonly SpawnPool<InteractableSpawnCard> _spawnPool = new SpawnPool<InteractableSpawnCard>();
 
         [SystemInitializer(typeof(CustomSpawnCards), typeof(ExpansionUtils))]
         static void Init()
@@ -38,12 +36,12 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 return spawnCard;
             }
 
-            static SpawnPool<InteractableSpawnCard>.Entry loadSpawnCardEntry(string assetGuid, SpawnPoolEntryParameters parameters)
+            static SpawnPoolEntry<InteractableSpawnCard> loadSpawnCardEntry(string assetGuid, SpawnPoolEntryParameters parameters)
             {
                 return _spawnPool.LoadEntry(assetGuid, parameters, ensureUnrestrictedSpawn);
             }
 
-            static SpawnPool<InteractableSpawnCard>.Entry loadCauldronSpawnCardEntry(string assetGuid, SpawnPoolEntryParameters parameters)
+            static SpawnPoolEntry<InteractableSpawnCard> loadCauldronSpawnCardEntry(string assetGuid, SpawnPoolEntryParameters parameters)
             {
                 return _spawnPool.LoadEntry<GameObject>(assetGuid, parameters, cauldronPrefab =>
                 {
@@ -108,7 +106,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
                 loadSpawnCardEntry(AddressableGuids.RoR2_CommandChest_iscCommandChest_asset, new SpawnPoolEntryParameters(1f)),
 
-                new SpawnPool<InteractableSpawnCard>.Entry(CustomSpawnCards.iscTimedChest, new SpawnPoolEntryParameters(1f)),
+                _spawnPool.CreateEntry(CustomSpawnCards.iscTimedChest, new SpawnPoolEntryParameters(1f)),
             ], 2f);
 
             // Multishops
@@ -177,7 +175,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 ]),
                 loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineHealing_iscShrineHealing_asset, new SpawnPoolEntryParameters(1f)),
                 loadSpawnCardEntry(AddressableGuids.RoR2_DLC2_iscShrineColossusAccess_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
-                new SpawnPool<InteractableSpawnCard>.Entry(CustomSpawnCards.iscGeodeFixed, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
+                _spawnPool.CreateEntry(CustomSpawnCards.iscGeodeFixed, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
             ]);
 
             InteractableSpawnCard iscNewtStatue = ScriptableObject.CreateInstance<InteractableSpawnCard>();
@@ -194,7 +192,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             _spawnPool.AddGroupedEntries([
                 loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineGoldshoresAccess_iscShrineGoldshoresAccess_asset, new SpawnPoolEntryParameters(1f)),
                 loadSpawnCardEntry(AddressableGuids.RoR2_DLC2_iscShrineHalcyonite_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
-                new SpawnPool<InteractableSpawnCard>.Entry(iscNewtStatue, new SpawnPoolEntryParameters(1f)),
+                _spawnPool.CreateEntry(iscNewtStatue, new SpawnPoolEntryParameters(1f)),
             ]);
 
             // Misc
@@ -216,11 +214,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         Xoroshiro128Plus _rng;
 
-        InteractableSpawnCard _selectedSpawnCard;
+        AssetOrDirectReference<InteractableSpawnCard> _interactableSpawnCardRef;
 
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        void OnDestroy()
+        {
+            _interactableSpawnCardRef?.Reset();
         }
 
         public override void OnStartServer()
@@ -229,14 +232,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
             _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
-            _selectedSpawnCard = _spawnPool.PickRandomEntry(_rng);
+            _interactableSpawnCardRef = _spawnPool.PickRandomEntry(_rng);
+            _interactableSpawnCardRef.CallOnLoaded(onSpawnCardLoaded);
         }
 
-        void Start()
+        [Server]
+        void onSpawnCardLoaded(InteractableSpawnCard spawnCard)
         {
-            if (!NetworkServer.active)
-                return;
-
             foreach (PlayerCharacterMasterController playerMaster in PlayerCharacterMasterController.instances)
             {
                 if (!playerMaster.isConnected)
@@ -249,7 +251,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 if (!master.TryGetBodyPosition(out Vector3 bodyPosition))
                     continue;
 
-                spawnInteractable(_selectedSpawnCard, bodyPosition, _rng);
+                Xoroshiro128Plus spawnRng = new Xoroshiro128Plus(_rng.nextUlong);
+                spawnInteractable(spawnCard, bodyPosition, spawnRng);
             }
         }
 
@@ -263,26 +266,37 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 maxDistance = float.PositiveInfinity,
             };
 
-            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(spawnCard, placementRule, rng);
-
-            GameObject spawnedObject = spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());
-            if (spawnedObject)
+            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(spawnCard, placementRule, rng)
             {
-                Run run = Run.instance;
-                Stage stage = Stage.instance;
-                if (run && stage)
-                {
-                    if (spawnedObject.TryGetComponent(out PurchaseInteraction purchaseInteraction) &&
-                        purchaseInteraction.costType == CostTypeIndex.Money &&
-                        !purchaseInteraction.automaticallyScaleCostWithDifficulty)
-                    {
-                        purchaseInteraction.Networkcost = run.GetDifficultyScaledCost(purchaseInteraction.cost, stage.entryDifficultyCoefficient);
-                    }
-                }
+                onSpawnedServer = onInteractableSpawnedServer
+            };
 
-                if (Configs.EffectSelection.SeededEffectSelection.Value)
+            spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());
+
+            void onInteractableSpawnedServer(SpawnCard.SpawnResult spawnResult)
+            {
+                if (!spawnResult.success)
+                    return;
+
+                GameObject spawnedObject = spawnResult.spawnedInstance;
+                if (spawnedObject)
                 {
-                    RNGOverridePatch.OverrideRNG(spawnedObject, new Xoroshiro128Plus(rng.nextUlong));
+                    Run run = Run.instance;
+                    Stage stage = Stage.instance;
+                    if (run && stage)
+                    {
+                        if (spawnedObject.TryGetComponent(out PurchaseInteraction purchaseInteraction) &&
+                            purchaseInteraction.costType == CostTypeIndex.Money &&
+                            !purchaseInteraction.automaticallyScaleCostWithDifficulty)
+                        {
+                            purchaseInteraction.Networkcost = run.GetDifficultyScaledCost(purchaseInteraction.cost, stage.entryDifficultyCoefficient);
+                        }
+                    }
+
+                    if (Configs.EffectSelection.SeededEffectSelection.Value)
+                    {
+                        RNGOverridePatch.OverrideRNG(spawnedObject, new Xoroshiro128Plus(rng.nextUlong));
+                    }
                 }
             }
         }

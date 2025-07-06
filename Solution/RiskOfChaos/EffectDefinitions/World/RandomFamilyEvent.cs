@@ -7,7 +7,6 @@ using RoR2.ContentManagement;
 using RoR2.ExpansionManagement;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
@@ -26,12 +25,12 @@ namespace RiskOfChaos.EffectDefinitions.World
             _allFamilyEventsPool = ScriptableObject.CreateInstance<DccsPool>();
             _allFamilyEventsPool.name = "dpAllMonsterFamilies";
 
-            ExpansionDef dlc1 = ExpansionUtils.DLC1;
+            ExpansionDef dlc1 = ExpansionUtils.GetExpansionDef(ExpansionUtils.DLC1);
             ExpansionDef[] dlc1Expansions = [dlc1];
 
             static void loadAndSetPoolEntryDccs(DccsPool.PoolEntry poolEntry, string assetGuid)
             {
-                AsyncOperationHandle<FamilyDirectorCardCategorySelection> loadAssetHandle = AddressableUtil.LoadAssetAsync<FamilyDirectorCardCategorySelection>(assetGuid);
+                AsyncOperationHandle<FamilyDirectorCardCategorySelection> loadAssetHandle = AddressableUtil.LoadAssetAsync<FamilyDirectorCardCategorySelection>(assetGuid, AsyncReferenceHandleUnloadType.Preload);
                 loadAssetHandle.OnSuccess(familyDccs =>
                 {
                     string name = familyDccs.name;

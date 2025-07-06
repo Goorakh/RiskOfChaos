@@ -124,12 +124,12 @@ namespace RiskOfChaos.Content
                 if (itemDef.pickupModelReference != null && itemDef.pickupModelReference.RuntimeKeyIsValid())
                 {
                     AsyncOperationHandle<GameObject> pickupModelLoad = AddressableUtil.LoadAssetAsync(itemDef.pickupModelReference, AsyncReferenceHandleUnloadType.Preload);
-                    while (!pickupModelLoad.IsDone)
-                    {
-                        yield return null;
-                    }
+                    yield return pickupModelLoad;
 
-                    allPrefabs.Add(pickupModelLoad.Result);
+                    if (pickupModelLoad.Status == AsyncOperationStatus.Succeeded)
+                    {
+                        allPrefabs.Add(pickupModelLoad.Result);
+                    }
                 }
 #pragma warning disable CS0618 // Type or member is obsolete
                 else if (itemDef.pickupModelPrefab)

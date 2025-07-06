@@ -3,7 +3,9 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.Projectile;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -37,11 +39,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         Xoroshiro128Plus _rng;
 
-        GameObject _selectedBeaconPrefab;
+        AssetOrDirectReference<GameObject> _beaconRef;
 
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        void OnDestroy()
+        {
+            _beaconRef?.Reset();
         }
 
         public override void OnStartServer()
@@ -50,14 +57,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
             _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
-            _selectedBeaconPrefab = _beaconPool.PickRandomEntry(_rng);
+            _beaconRef = _beaconPool.PickRandomEntry(_rng);
+            _beaconRef.CallOnLoaded(onBeaconPrefabLoaded);
         }
 
-        void Start()
+        [Server]
+        void onBeaconPrefabLoaded(GameObject beaconPrefab)
         {
-            if (!NetworkServer.active)
-                return;
-
             foreach (PlayerCharacterMasterController playerMaster in PlayerCharacterMasterController.instances)
             {
                 if (!playerMaster.isConnected)
@@ -77,7 +83,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
                 Quaternion rotation = QuaternionUtils.PointLocalDirectionAt(Vector3.up, up);
 
-                GameObject beacon = Instantiate(_selectedBeaconPrefab, spawnPosition, rotation);
+                GameObject beacon = Instantiate(beaconPrefab, spawnPosition, rotation);
 
                 TeamFilter teamFilter = beacon.GetComponent<TeamFilter>();
                 teamFilter.teamIndex = body.teamComponent.teamIndex;

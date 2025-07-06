@@ -5,9 +5,7 @@ using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.ContentManagement;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Interactables
@@ -22,13 +20,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
             OutsideInteractableLocker outsideInteractableLocker = prefab.GetComponent<OutsideInteractableLocker>();
             outsideInteractableLocker.radius = 0f;
 
-            List<AsyncOperationHandle> asyncOperations = [];
-
-            AsyncOperationHandle<GameObject> purchaseLockLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Teleporters_PurchaseLock_prefab);
+            AsyncOperationHandle<GameObject> purchaseLockLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Teleporters_PurchaseLock_prefab, AsyncReferenceHandleUnloadType.Preload);
             purchaseLockLoad.OnSuccess(p => outsideInteractableLocker.lockPrefab = p);
-            asyncOperations.Add(purchaseLockLoad);
 
-            yield return asyncOperations.WaitForAllLoaded();
+            return purchaseLockLoad;
         }
 
         void Start()

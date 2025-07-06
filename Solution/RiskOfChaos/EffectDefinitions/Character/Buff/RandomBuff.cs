@@ -7,8 +7,10 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.EffectHandling.EffectComponents.SubtitleProviders;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using RoR2.ContentManagement;
 using System.Linq;
 using UnityEngine.Networking;
 
@@ -27,67 +29,71 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                               .OptionConfig(new IntFieldConfig { Min = 1 })
                               .Build();
 
-        static readonly SpawnPool<BuffDef> _availableBuffs = new SpawnPool<BuffDef>
-        {
-            RequiredExpansionsProvider = SpawnPoolUtils.BuffExpansionsProvider
-        };
+        static readonly SpawnPool<BuffDef> _availableBuffs = new SpawnPool<BuffDef>();
 
         [SystemInitializer(typeof(BuffCatalog), typeof(DotController), typeof(ExpansionUtils))]
         static void InitAvailableBuffs()
         {
             _availableBuffs.EnsureCapacity(BuffCatalog.buffCount);
 
-            _availableBuffs.CalcIsEntryAvailable += ApplyBuffEffect.CanSelectBuff;
-
             const float ELITE_WEIGHT = 0.8f;
 
-            _availableBuffs.AddEntry(RoR2Content.Buffs.AffixRed, new SpawnPoolEntryParameters(ELITE_WEIGHT)); // EliteFire
-            _availableBuffs.AddEntry(RoR2Content.Buffs.AffixHaunted, new SpawnPoolEntryParameters(ELITE_WEIGHT)); // EliteHaunted
-            _availableBuffs.AddEntry(RoR2Content.Buffs.AffixWhite, new SpawnPoolEntryParameters(ELITE_WEIGHT)); // EliteIce
-            _availableBuffs.AddEntry(RoR2Content.Buffs.AffixBlue, new SpawnPoolEntryParameters(ELITE_WEIGHT)); // EliteLightning
-            _availableBuffs.AddEntry(RoR2Content.Buffs.AffixLunar, new SpawnPoolEntryParameters(ELITE_WEIGHT)); // EliteLunar
-            _availableBuffs.AddEntry(RoR2Content.Buffs.AffixPoison, new SpawnPoolEntryParameters(ELITE_WEIGHT)); // ElitePoison
-            _availableBuffs.AddEntry(RoR2Content.Buffs.ArmorBoost, new SpawnPoolEntryParameters(1f));
-            _availableBuffs.AddEntry(RoR2Content.Buffs.AttackSpeedOnCrit, new SpawnPoolEntryParameters(1f));
-            _availableBuffs.AddEntry(RoR2Content.Buffs.BanditSkull, new SpawnPoolEntryParameters(1f));
-            _availableBuffs.AddEntry(RoR2Content.Buffs.BugWings, new SpawnPoolEntryParameters(1f));
-            _availableBuffs.AddEntry(RoR2Content.Buffs.CloakSpeed, new SpawnPoolEntryParameters(1f));
-            _availableBuffs.AddEntry(RoR2Content.Buffs.CrocoRegen, new SpawnPoolEntryParameters(1f));
-            _availableBuffs.AddEntry(RoR2Content.Buffs.ElephantArmorBoost, new SpawnPoolEntryParameters(1f));
-            _availableBuffs.AddEntry(RoR2Content.Buffs.Energized, new SpawnPoolEntryParameters(1f));
-            _availableBuffs.AddEntry(RoR2Content.Buffs.EngiShield, new SpawnPoolEntryParameters(1f));
-            _availableBuffs.AddEntry(RoR2Content.Buffs.FullCrit, new SpawnPoolEntryParameters(1f));
-            _availableBuffs.AddEntry(RoR2Content.Buffs.LifeSteal, new SpawnPoolEntryParameters(1f));
-            _availableBuffs.AddEntry(RoR2Content.Buffs.LunarShell, new SpawnPoolEntryParameters(1f));
-            _availableBuffs.AddEntry(RoR2Content.Buffs.NoCooldowns, new SpawnPoolEntryParameters(1f));
-            _availableBuffs.AddEntry(RoR2Content.Buffs.PowerBuff, new SpawnPoolEntryParameters(1f));
-            _availableBuffs.AddEntry(RoR2Content.Buffs.SmallArmorBoost, new SpawnPoolEntryParameters(1f));
-            _availableBuffs.AddEntry(RoR2Content.Buffs.TeamWarCry, new SpawnPoolEntryParameters(1f));
-            _availableBuffs.AddEntry(RoR2Content.Buffs.TonicBuff, new SpawnPoolEntryParameters(1f));
-            _availableBuffs.AddEntry(RoR2Content.Buffs.Warbanner, new SpawnPoolEntryParameters(1f));
-            _availableBuffs.AddEntry(RoR2Content.Buffs.WarCryBuff, new SpawnPoolEntryParameters(1f));
-            _availableBuffs.AddEntry(RoR2Content.Buffs.WhipBoost, new SpawnPoolEntryParameters(1f));
+            static void addBuffEntry(BuffDef buff, SpawnPoolEntryParameters parameters)
+            {
+                BuffIndex buffIndex = buff.buffIndex;
+                parameters.IsAvailableFunc = () => ApplyBuffEffect.CanSelectBuff(buffIndex);
+                _availableBuffs.AddEntry(buff, parameters);
+            }
+
+            addBuffEntry(RoR2Content.Buffs.AffixRed, new SpawnPoolEntryParameters(ELITE_WEIGHT)); // EliteFire
+            addBuffEntry(RoR2Content.Buffs.AffixHaunted, new SpawnPoolEntryParameters(ELITE_WEIGHT)); // EliteHaunted
+            addBuffEntry(RoR2Content.Buffs.AffixWhite, new SpawnPoolEntryParameters(ELITE_WEIGHT)); // EliteIce
+            addBuffEntry(RoR2Content.Buffs.AffixBlue, new SpawnPoolEntryParameters(ELITE_WEIGHT)); // EliteLightning
+            addBuffEntry(RoR2Content.Buffs.AffixLunar, new SpawnPoolEntryParameters(ELITE_WEIGHT)); // EliteLunar
+            addBuffEntry(RoR2Content.Buffs.AffixPoison, new SpawnPoolEntryParameters(ELITE_WEIGHT)); // ElitePoison
+            addBuffEntry(RoR2Content.Buffs.ArmorBoost, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.AttackSpeedOnCrit, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.BanditSkull, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.BugWings, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.CloakSpeed, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.CrocoRegen, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.ElephantArmorBoost, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.Energized, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.EngiShield, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.FullCrit, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.LifeSteal, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.LunarShell, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.NoCooldowns, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.PowerBuff, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.SmallArmorBoost, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.TeamWarCry, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.TonicBuff, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.Warbanner, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.WarCryBuff, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(RoR2Content.Buffs.WhipBoost, new SpawnPoolEntryParameters(1f));
             
-            _availableBuffs.AddEntry(JunkContent.Buffs.EngiTeamShield, new SpawnPoolEntryParameters(1f));
-            _availableBuffs.AddEntry(JunkContent.Buffs.EnrageAncientWisp, new SpawnPoolEntryParameters(1f));
-            _availableBuffs.AddEntry(JunkContent.Buffs.LoaderPylonPowered, new SpawnPoolEntryParameters(1f));
-            _availableBuffs.AddEntry(JunkContent.Buffs.MeatRegenBoost, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(JunkContent.Buffs.EngiTeamShield, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(JunkContent.Buffs.EnrageAncientWisp, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(JunkContent.Buffs.LoaderPylonPowered, new SpawnPoolEntryParameters(1f));
+            addBuffEntry(JunkContent.Buffs.MeatRegenBoost, new SpawnPoolEntryParameters(1f));
 
-            _availableBuffs.AddEntry(DLC1Content.Buffs.EliteEarth, new SpawnPoolEntryParameters(ELITE_WEIGHT, ExpansionUtils.DLC1));
-            _availableBuffs.AddEntry(DLC1Content.Buffs.EliteVoid, new SpawnPoolEntryParameters(ELITE_WEIGHT, ExpansionUtils.DLC1));
-            _availableBuffs.AddEntry(DLC1Content.Buffs.KillMoveSpeed, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1));
-            _availableBuffs.AddEntry(DLC1Content.Buffs.VoidSurvivorCorruptMode, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1));
+            addBuffEntry(DLC1Content.Buffs.EliteEarth, new SpawnPoolEntryParameters(ELITE_WEIGHT, ExpansionUtils.DLC1));
+            addBuffEntry(DLC1Content.Buffs.EliteVoid, new SpawnPoolEntryParameters(ELITE_WEIGHT, ExpansionUtils.DLC1));
+            addBuffEntry(DLC1Content.Buffs.KillMoveSpeed, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1));
+            addBuffEntry(DLC1Content.Buffs.VoidSurvivorCorruptMode, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1));
 
-            _availableBuffs.AddEntry(DLC2Content.Buffs.EliteAurelionite, new SpawnPoolEntryParameters(ELITE_WEIGHT, ExpansionUtils.DLC2));
-            _availableBuffs.AddEntry(DLC2Content.Buffs.ElusiveAntlersBuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
-            _availableBuffs.AddEntry(DLC2Content.Buffs.HealAndReviveRegenBuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
-            _availableBuffs.AddEntry(DLC2Content.Buffs.IncreaseDamageBuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
-            _availableBuffs.AddEntry(DLC2Content.Buffs.IncreasePrimaryDamageBuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
-            _availableBuffs.AddEntry(DLC2Content.Buffs.AttackSpeedPerNearbyAllyOrEnemyBuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
+            addBuffEntry(DLC2Content.Buffs.EliteAurelionite, new SpawnPoolEntryParameters(ELITE_WEIGHT, ExpansionUtils.DLC2));
+            addBuffEntry(DLC2Content.Buffs.ElusiveAntlersBuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
+            addBuffEntry(DLC2Content.Buffs.HealAndReviveRegenBuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
+            addBuffEntry(DLC2Content.Buffs.IncreaseDamageBuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
+            addBuffEntry(DLC2Content.Buffs.IncreasePrimaryDamageBuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
+            addBuffEntry(DLC2Content.Buffs.AttackSpeedPerNearbyAllyOrEnemyBuff, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
 
             _availableBuffs.TrimExcess();
 
 #if DEBUG
+            AssetOrDirectReference<BuffDef>[] availableBuffReferences = [.. _availableBuffs];
+
             for (int i = 0; i < BuffCatalog.buffCount; i++)
             {
                 BuffIndex buffIndex = (BuffIndex)i;
@@ -95,10 +101,15 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                 if (!buffDef || buffDef.isHidden || buffDef.isCooldown || DotController.GetDotDefIndex(buffDef) != DotController.DotIndex.None)
                     continue;
 
-                if (!_availableBuffs.Contains(buffDef))
+                if (!availableBuffReferences.Any(r => r.WaitForAsset() == buffDef))
                 {
                     Log.Debug($"Not including {buffDef.name} as buff");
                 }
+            }
+
+            foreach (AssetOrDirectReference<BuffDef> buffRef in availableBuffReferences)
+            {
+                buffRef.Reset();
             }
 #endif
         }
@@ -124,7 +135,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 
             Xoroshiro128Plus rng = new Xoroshiro128Plus(_chaosEffect.Rng.nextUlong);
 
-            BuffDef buff = _availableBuffs.PickRandomEntry(rng);
+            AssetOrDirectReference<BuffDef> buffRef = _availableBuffs.PickRandomEntry(rng);
+            BuffDef buff = buffRef.WaitForAsset();
             if (buff)
             {
                 Log.Debug($"Applying buff {buff}");
@@ -136,6 +148,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             {
                 Log.Error("No buff selected");
             }
+
+            buffRef.Reset();
         }
     }
 }

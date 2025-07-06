@@ -34,7 +34,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
         [SystemInitializer(typeof(EffectCatalog))]
         static IEnumerator Init()
         {
-            AsyncOperationHandle<GameObject> shrineUseEffectPrefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Common_VFX_ShrineUseEffect_prefab, AsyncReferenceHandleUnloadType.OnSceneUnload);
+            AsyncOperationHandle<GameObject> shrineUseEffectPrefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Common_VFX_ShrineUseEffect_prefab, AsyncReferenceHandleUnloadType.Preload);
             shrineUseEffectPrefabLoad.OnSuccess(shrineUseEffectPrefab =>
             {
                 _shrineUseEffectIndex = EffectCatalog.FindEffectIndexFromPrefab(shrineUseEffectPrefab);
@@ -44,7 +44,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
                 }
             });
 
-            yield return shrineUseEffectPrefabLoad;
+            return shrineUseEffectPrefabLoad;
         }
 
         [EffectCanActivate]

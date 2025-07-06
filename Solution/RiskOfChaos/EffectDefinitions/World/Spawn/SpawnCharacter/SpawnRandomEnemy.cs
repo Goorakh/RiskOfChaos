@@ -12,6 +12,8 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using RoR2.ContentManagement;
+using RoR2.ExpansionManagement;
 using RoR2.Navigation;
 using System.Collections.Generic;
 using UnityEngine;
@@ -22,12 +24,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
     [ChaosEffect("spawn_random_enemy")]
     public sealed class SpawnRandomEnemy : NetworkBehaviour
     {
-        static readonly SpawnPool<CharacterSpawnCard> _spawnPool = new SpawnPool<CharacterSpawnCard>
-        {
-            RequiredExpansionsProvider = SpawnPoolUtils.CharacterSpawnCardExpansionsProvider
-        };
+        static readonly SpawnPool<CharacterSpawnCard> _spawnPool = new SpawnPool<CharacterSpawnCard>();
 
-        [SystemInitializer(typeof(MasterCatalog), typeof(CharacterExpansionRequirementFix))]
+        [SystemInitializer(typeof(MasterCatalog), typeof(UnlockableCatalog), typeof(CharacterExpansionRequirementFix), typeof(ExpansionUtils))]
         static void Init()
         {
             List<CharacterMaster> validCombatCharacters = [];
@@ -35,29 +34,30 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 
             _spawnPool.EnsureCapacity(validCombatCharacters.Count);
 
-            _spawnPool.CalcIsEntryAvailable += entry =>
-            {
-                CharacterBody bodyPrefab = null;
-                if (entry && entry.prefab && entry.prefab.TryGetComponent(out CharacterMaster masterPrefab) && masterPrefab.bodyPrefab)
-                {
-                    bodyPrefab = masterPrefab.bodyPrefab.GetComponent<CharacterBody>();
-                }
-
-                return bodyPrefab && !_enemyBlacklist.Contains(bodyPrefab.bodyIndex);
-            };
-
             foreach (CharacterMaster master in validCombatCharacters)
             {
                 CharacterBody bodyPrefab = master.bodyPrefab.GetComponent<CharacterBody>();
                 if (bodyPrefab.isChampion)
                     continue;
 
+                BodyIndex bodyIndex = bodyPrefab.bodyIndex;
+                UnlockableIndex requiredUnlockableIndex = UnlockableIndex.None;
+
                 float weight = 1f;
 
-                SurvivorIndex survivorIndex = SurvivorCatalog.GetSurvivorIndexFromBodyIndex(bodyPrefab.bodyIndex);
+                SurvivorIndex survivorIndex = SurvivorCatalog.GetSurvivorIndexFromBodyIndex(bodyIndex);
                 if (survivorIndex != SurvivorIndex.None)
                 {
                     weight *= 0.75f;
+
+                    SurvivorDef survivorDef = SurvivorCatalog.GetSurvivorDef(survivorIndex);
+                    if (survivorDef)
+                    {
+                        if (survivorDef.unlockableDef)
+                        {
+                            requiredUnlockableIndex = survivorDef.unlockableDef.index;
+                        }
+                    }
                 }
 
                 if ((bodyPrefab.bodyFlags & CharacterBody.BodyFlags.Mechanical) != 0)
@@ -74,7 +74,25 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                 spawnCard.requiredFlags = NodeFlags.None;
                 spawnCard.forbiddenFlags = NodeFlags.NoCharacterSpawn;
 
-                _spawnPool.AddEntry(spawnCard, new SpawnPoolEntryParameters(weight));
+                IReadOnlyList<ExpansionIndex> requiredExpansions = ExpansionUtils.GetObjectRequiredExpansionIndices(master.gameObject);
+
+                _spawnPool.AddEntry(spawnCard, new SpawnPoolEntryParameters(weight, [.. requiredExpansions])
+                {
+                    IsAvailableFunc = () =>
+                    {
+                        if (_enemyBlacklist.Contains(bodyIndex))
+                            return false;
+
+                        if (requiredUnlockableIndex != UnlockableIndex.None &&
+                            Run.instance &&
+                            Run.instance.IsUnlockableUnlocked(UnlockableCatalog.GetUnlockableDef(requiredUnlockableIndex)))
+                        {
+                            return false;
+                        }
+
+                        return true;
+                    }
+                });
             }
 
             _spawnPool.TrimExcess();
@@ -123,11 +141,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 
         Xoroshiro128Plus _rng;
 
-        CharacterSpawnCard _enemySpawnCard;
+        AssetOrDirectReference<CharacterSpawnCard> _enemySpawnCardRef;
 
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        void OnDestroy()
+        {
+            _enemySpawnCardRef?.Reset();
         }
 
         public override void OnStartServer()
@@ -136,14 +159,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
 
             _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
-            _enemySpawnCard = _spawnPool.PickRandomEntry(_rng);
+            _enemySpawnCardRef = _spawnPool.PickRandomEntry(_rng);
+            _enemySpawnCardRef.CallOnLoaded(onSpawnCardLoadedServer);
         }
 
-        void Start()
+        [Server]
+        void onSpawnCardLoadedServer(CharacterSpawnCard enemySpawnCard)
         {
-            if (!NetworkServer.active)
-                return;
-
             List<CharacterMaster> spawnedMasters = new List<CharacterMaster>(PlayerCharacterMasterController.instances.Count);
 
             foreach (PlayerCharacterMasterController playerMaster in PlayerCharacterMasterController.instances)
@@ -169,7 +191,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                     maxDistance = 50f
                 };
 
-                DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_enemySpawnCard, placementRule, spawnRng)
+                DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(enemySpawnCard, placementRule, spawnRng)
                 {
                     ignoreTeamMemberLimit = true,
                     teamIndexOverride = TeamIndex.Monster,
@@ -220,7 +242,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                         SubjectAsCharacterBody = spawnedBody,
                         SubjectNameOverrideColor = Color.white,
                     });
-                };   
+                };
             }
         }
     }

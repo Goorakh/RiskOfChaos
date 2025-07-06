@@ -45,7 +45,7 @@ namespace RiskOfChaos.Content
                                 trailTeamIndicator.TeamProvider = teamProvider;
 
                                 Material friendlyTrailMaterial = trailRenderer.sharedMaterial;
-                                Material enemyTrailMaterial = AddressableUtil.LoadAssetAsync<Material>(AddressableGuids.RoR2_Base_Huntress_matHuntressFlurryArrowCritTrail_mat).WaitForCompletion();
+                                Material enemyTrailMaterial = AddressableUtil.LoadAssetAsync<Material>(AddressableGuids.RoR2_Base_Huntress_matHuntressFlurryArrowCritTrail_mat, AsyncReferenceHandleUnloadType.Preload).WaitForCompletion();
 
                                 trailTeamIndicator.TeamConfigurations = [
                                     new ProjectileGhostTeamIndicator.RenderTeamConfiguration(trailRenderer, [
@@ -139,7 +139,7 @@ namespace RiskOfChaos.Content
                     hookProjectileHookController.ReelSpeed = 100f;
                     hookProjectileHookController.PullOriginChildName = "MuzzleLaser";
                     hookProjectileHookController.PullTargetDistance = 15f;
-                    AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Common_VFX_OmniImpactVFXSlash_prefab).OnSuccess(impactEffectPrefab =>
+                    AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Common_VFX_OmniImpactVFXSlash_prefab, AsyncReferenceHandleUnloadType.Preload).OnSuccess(impactEffectPrefab =>
                     {
                         hookProjectileHookController.HookCharacterEffectPrefab = impactEffectPrefab;
                     });

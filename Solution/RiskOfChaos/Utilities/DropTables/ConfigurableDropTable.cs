@@ -5,6 +5,7 @@ using RiskOfChaos.Utilities.Comparers;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using RoR2.ExpansionManagement;
 using System;
 using System.Collections.Generic;
 
@@ -150,7 +151,8 @@ namespace RiskOfChaos.Utilities.DropTables
             AddDrops?.Invoke(additionalDrops);
             foreach (ExplicitDrop drop in additionalDrops)
             {
-                if ((!IsFilterRequired() || PassesFilter(drop.PickupIndex)) && (!drop.RequiredExpansion || run.IsExpansionEnabled(drop.RequiredExpansion)))
+                if ((!IsFilterRequired() || PassesFilter(drop.PickupIndex)) &&
+                    (drop.RequiredExpansion == ExpansionIndex.None || ExpansionUtils.IsExpansionEnabled(drop.RequiredExpansion)))
                 {
                     selector.AddOrModifyWeight(drop.PickupIndex, GetWeight(drop.DropType));
                 }

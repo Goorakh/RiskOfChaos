@@ -2,7 +2,9 @@
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
@@ -10,10 +12,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
     [ChaosEffect("spawn_random_portal")]
     public sealed class SpawnRandomPortal : NetworkBehaviour
     {
-        static readonly SpawnPool<InteractableSpawnCard> _spawnPool = new SpawnPool<InteractableSpawnCard>
-        {
-            RequiredExpansionsProvider = SpawnPoolUtils.InteractableSpawnCardExpansionsProvider
-        };
+        static readonly SpawnPool<InteractableSpawnCard> _spawnPool = new SpawnPool<InteractableSpawnCard>();
 
         [SystemInitializer(typeof(ExpansionUtils))]
         static void Init()
@@ -41,11 +40,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         Xoroshiro128Plus _rng;
 
-        InteractableSpawnCard _selectedSpawnCard;
+        AssetOrDirectReference<InteractableSpawnCard> _portalSpawnCardRef;
 
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
+
+        void OnDestroy()
+        {
+            _portalSpawnCardRef?.Reset();
         }
 
         public override void OnStartServer()
@@ -54,16 +58,15 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
             _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
-            _selectedSpawnCard = _spawnPool.PickRandomEntry(_rng);
+            _portalSpawnCardRef = _spawnPool.PickRandomEntry(_rng);
+            _portalSpawnCardRef.CallOnLoaded(onSpawnCardLoaded);
         }
 
-        void Start()
+        [Server]
+        void onSpawnCardLoaded(InteractableSpawnCard spawnCard)
         {
-            if (!NetworkServer.active)
-                return;
-
             DirectorPlacementRule placementRule = SpawnUtils.GetPlacementRule_AtRandomPlayerNearestNode(_rng);
-            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(_selectedSpawnCard, placementRule, _rng);
+            DirectorSpawnRequest spawnRequest = new DirectorSpawnRequest(spawnCard, placementRule, _rng);
 
             spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());
         }

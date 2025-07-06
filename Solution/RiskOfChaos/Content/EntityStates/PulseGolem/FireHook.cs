@@ -18,7 +18,7 @@ namespace RiskOfChaos.Content.EntityStates.PulseGolem
         [SystemInitializer(typeof(EffectCatalog))]
         static IEnumerator Init()
         {
-            AsyncOperationHandle<GameObject> muzzleFlashWinchLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Gravekeeper_MuzzleflashWinch_prefab, AsyncReferenceHandleUnloadType.OnSceneUnload);
+            AsyncOperationHandle<GameObject> muzzleFlashWinchLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Gravekeeper_MuzzleflashWinch_prefab, AsyncReferenceHandleUnloadType.Preload);
             muzzleFlashWinchLoad.OnSuccess(muzzleFlashPrefab =>
             {
                 _muzzleEffectIndex = EffectCatalog.FindEffectIndexFromPrefab(muzzleFlashPrefab);
@@ -28,7 +28,7 @@ namespace RiskOfChaos.Content.EntityStates.PulseGolem
                 }
             });
 
-            yield return muzzleFlashWinchLoad;
+            return muzzleFlashWinchLoad;
         }
 
         static readonly float _baseDuration = 2f;

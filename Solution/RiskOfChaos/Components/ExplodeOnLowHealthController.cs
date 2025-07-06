@@ -4,8 +4,10 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.ContentManagement;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Components
 {
@@ -14,9 +16,10 @@ namespace RiskOfChaos.Components
         static EffectIndex _explosionVFXEffectIndex = EffectIndex.Invalid;
 
         [SystemInitializer(typeof(EffectCatalog))]
-        static void Init()
+        static IEnumerator Init()
         {
-            AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_QuestVolatileBattery_VolatileBatteryExplosion_prefab, AsyncReferenceHandleUnloadType.Preload).OnSuccess(explosionPrefab =>
+            AsyncOperationHandle<GameObject> explosionVfxPrefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_QuestVolatileBattery_VolatileBatteryExplosion_prefab, AsyncReferenceHandleUnloadType.Preload);
+            explosionVfxPrefabLoad.OnSuccess(explosionPrefab =>
             {
                 _explosionVFXEffectIndex = EffectCatalog.FindEffectIndexFromPrefab(explosionPrefab);
 
@@ -25,6 +28,8 @@ namespace RiskOfChaos.Components
                     Log.Error("Failed to find explosion vfx effect index");
                 }
             });
+
+            return explosionVfxPrefabLoad;
         }
 
         GenericOwnership _ownership;

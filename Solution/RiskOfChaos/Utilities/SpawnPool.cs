@@ -1,51 +1,32 @@
 ﻿using HG;
 using RiskOfChaos.Utilities.Extensions;
+using RoR2.ContentManagement;
 using RoR2.ExpansionManagement;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Utilities
 {
-    public sealed class SpawnPool<T> : IReadOnlyCollection<T> where T : UnityEngine.Object
+    public sealed class SpawnPool<T> : IReadOnlyCollection<AssetOrDirectReference<T>> where T : UnityEngine.Object
     {
-        static readonly WeightedSelection<T> _sharedSpawnSelection = new WeightedSelection<T>();
+        static readonly WeightedSelection<AssetOrDirectReference<T>> _sharedSpawnSelection = new WeightedSelection<AssetOrDirectReference<T>>();
 
-        readonly List<Entry> _entries = [];
+        readonly List<SpawnPoolEntry<T>> _entries = [];
 
 #if DEBUG
         public bool DebugTest;
         int _debugTestIndex = 0;
 #endif
 
-        public delegate IReadOnlyList<ExpansionDef> RequiredExpansionsProviderDelegate(T entry);
-
-        RequiredExpansionsProviderDelegate _requiredExpansionsProvider = entry => [];
-        public RequiredExpansionsProviderDelegate RequiredExpansionsProvider
-        {
-            get
-            {
-                return _requiredExpansionsProvider;
-            }
-            set
-            {
-                _requiredExpansionsProvider = value;
-                refreshAllRequiredExpansions();
-            }
-        }
-
-        public delegate bool IsEntryAvailableDelegate(T entry);
-        public event IsEntryAvailableDelegate CalcIsEntryAvailable;
-
         public bool AnyAvailable
         {
             get
             {
-                foreach (Entry entry in _entries)
+                foreach (SpawnPoolEntry<T> entry in _entries)
                 {
-                    if (IsAvailable(entry))
+                    if (entry.IsAvailable)
                     {
                         return true;
                     }
@@ -63,69 +44,47 @@ namespace RiskOfChaos.Utilities
             set => _entries.Capacity = value;
         }
 
-        void generateSpawnSelection(WeightedSelection<T> weightedSelection)
+        void generateSpawnSelection(WeightedSelection<AssetOrDirectReference<T>> weightedSelection)
         {
             weightedSelection.Clear();
             weightedSelection.EnsureCapacity(_entries.Count);
 
-            foreach (Entry entry in _entries)
+            foreach (SpawnPoolEntry<T> entry in _entries)
             {
-                if (IsAvailable(entry))
+                if (entry.IsAvailable)
                 {
-                    weightedSelection.AddChoice(entry.Asset, entry.Weight);
+                    weightedSelection.AddChoice(entry.GetAssetReference(false), entry.Weight);
                 }
             }
         }
 
-        public bool IsAvailable(Entry entry)
+        public AssetOrDirectReference<T> PickRandomEntry(Xoroshiro128Plus rng)
         {
-            if (!entry.IsValid)
-                return false;
+            // Always take the next float from the rng, so the caller can have deterministic results with the same rng instance
+            float normalizedIndex = rng.nextNormalizedFloat;
 
-            if (!ExpansionUtils.AllExpansionsEnabled(entry.RequiredExpansions))
-                return false;
-
-            bool customIsAvailable = true;
-            if (CalcIsEntryAvailable != null)
-            {
-                foreach (IsEntryAvailableDelegate isAvailableDelegate in CalcIsEntryAvailable.GetInvocationList().Cast<IsEntryAvailableDelegate>())
-                {
-                    if (!isAvailableDelegate(entry.Asset))
-                    {
-                        customIsAvailable = false;
-                        break;
-                    }
-                }
-            }
-
-            if (!customIsAvailable)
-                return false;
-
-            return true;
-        }
-
-        public T PickRandomEntry(Xoroshiro128Plus rng)
-        {
 #if DEBUG
             if (DebugTest)
             {
-                Entry entry;
+                SpawnPoolEntry<T> entry;
                 do
                 {
                     entry = _entries[_debugTestIndex++ % _entries.Count];
-                } while (!IsAvailable(entry));
+                } while (!entry.IsAvailable);
 
-                return entry.Asset;
+                return entry.GetAssetReference();
             }
 #endif
 
             generateSpawnSelection(_sharedSpawnSelection);
-            return _sharedSpawnSelection.Evaluate(rng.nextNormalizedFloat);
+            AssetOrDirectReference<T> assetReference = _sharedSpawnSelection.Evaluate(normalizedIndex);
+            assetReference.LoadAsync();
+            return assetReference;
         }
 
-        public WeightedSelection<T> GetSpawnSelection()
+        public WeightedSelection<AssetOrDirectReference<T>> GetSpawnSelection()
         {
-            WeightedSelection<T> spawnSelection = new WeightedSelection<T>();
+            WeightedSelection<AssetOrDirectReference<T>> spawnSelection = new WeightedSelection<AssetOrDirectReference<T>>();
             generateSpawnSelection(spawnSelection);
             return spawnSelection;
         }
@@ -141,30 +100,14 @@ namespace RiskOfChaos.Utilities
             _entries.TrimExcess();
         }
 
-        void refreshAllRequiredExpansions()
-        {
-            foreach (Entry entry in _entries)
-            {
-                if (entry.IsFullyLoaded)
-                {
-                    refreshRequiredExpansions(entry);
-                }
-            }
-        }
-
-        void refreshRequiredExpansions(Entry entry)
-        {
-            entry.SetRequiredExpansions(_requiredExpansionsProvider(entry.Asset));
-        }
-
 #if DEBUG
         public void DebugPrintEntries()
         {
-            List<Entry> entries = new List<Entry>(_entries);
-            entries.Sort((a, b) =>
+            SpawnPoolEntry<T>[] entries = [.. _entries];
+            Array.Sort(entries, (a, b) =>
             {
-                ReadOnlyArray<ExpansionDef> expansionsA = a.RequiredExpansions;
-                ReadOnlyArray<ExpansionDef> expansionsB = b.RequiredExpansions;
+                ReadOnlyArray<ExpansionIndex> expansionsA = a.RequiredExpansions;
+                ReadOnlyArray<ExpansionIndex> expansionsB = b.RequiredExpansions;
 
                 if (expansionsA.Length != expansionsB.Length)
                 {
@@ -173,7 +116,9 @@ namespace RiskOfChaos.Utilities
 
                 for (int i = 0; i < expansionsA.Length; i++)
                 {
-                    int compare = string.Compare(expansionsA[i].name, expansionsB[i].name, true);
+                    ExpansionDef expansionDefA = ExpansionUtils.GetExpansionDef(expansionsA[i]);
+                    ExpansionDef expansionDefB = ExpansionUtils.GetExpansionDef(expansionsB[i]);
+                    int compare = string.Compare(expansionDefA?.name, expansionDefB?.name, true);
                     if (compare != 0)
                     {
                         return compare;
@@ -183,28 +128,31 @@ namespace RiskOfChaos.Utilities
                 return 0;
             });
 
-            foreach (Entry entry in entries)
+            foreach (SpawnPoolEntry<T> entry in entries)
             {
                 Log.Debug_NoCallerPrefix(entry);
             }
         }
 #endif
 
-        public void AddEntry(Entry entry)
+        public void AddEntry(SpawnPoolEntry<T> entry)
         {
             _entries.Add(entry);
-
-            entry.OnEntryLoaded += refreshRequiredExpansions;
         }
 
         public void AddEntry(T asset, SpawnPoolEntryParameters parameters)
         {
-            AddEntry(new Entry(asset, parameters));
+            AddEntry(new SpawnPoolEntry<T>(asset, parameters));
         }
 
-        public Entry LoadEntry(string assetGuid, SpawnPoolEntryParameters parameters)
+        public SpawnPoolEntry<T> CreateEntry(T asset, SpawnPoolEntryParameters parameters)
         {
-            return Entry.LoadAsync(assetGuid, parameters);
+            return new SpawnPoolEntry<T>(asset, parameters);
+        }
+
+        public SpawnPoolEntry<T> LoadEntry(string assetGuid, SpawnPoolEntryParameters parameters)
+        {
+            return new SpawnPoolEntry<T>(assetGuid, parameters);
         }
 
         public void AddAssetEntry(string assetGuid, SpawnPoolEntryParameters parameters)
@@ -212,9 +160,9 @@ namespace RiskOfChaos.Utilities
             AddEntry(LoadEntry(assetGuid, parameters));
         }
 
-        public Entry LoadEntry<TAsset>(string assetGuid, SpawnPoolEntryParameters parameters, Converter<TAsset, T> assetConverter) where TAsset : UnityEngine.Object
+        public SpawnPoolEntry<T> LoadEntry<TAsset>(string assetGuid, SpawnPoolEntryParameters parameters, Converter<TAsset, T> assetConverter) where TAsset : UnityEngine.Object
         {
-            return Entry.LoadAsync(assetGuid, parameters, assetConverter);
+            return SpawnPoolEntry<T>.CreateConvertedAssetEntry(assetGuid, assetConverter, parameters);
         }
 
         public void AddAssetEntry<TAsset>(string assetGuid, SpawnPoolEntryParameters parameters, Converter<TAsset, T> assetConverter) where TAsset : UnityEngine.Object
@@ -222,7 +170,7 @@ namespace RiskOfChaos.Utilities
             AddEntry(LoadEntry(assetGuid, parameters, assetConverter));
         }
 
-        public Entry LoadEntry(string assetGuid, SpawnPoolEntryParameters parameters, Converter<T, T> assetConverter)
+        public SpawnPoolEntry<T> LoadEntry(string assetGuid, SpawnPoolEntryParameters parameters, Converter<T, T> assetConverter)
         {
             return LoadEntry<T>(assetGuid, parameters, assetConverter);
         }
@@ -232,9 +180,9 @@ namespace RiskOfChaos.Utilities
             AddAssetEntry<T>(assetGuid, parameters, assetConverter);
         }
 
-        public Entry[] GroupEntries(Entry[] entries, float weightMultiplier = 1f)
+        public SpawnPoolEntry<T>[] GroupEntries(SpawnPoolEntry<T>[] entries, float weightMultiplier = 1f)
         {
-            foreach (Entry entry in entries)
+            foreach (SpawnPoolEntry<T> entry in entries)
             {
                 entry.Weight *= weightMultiplier / entries.Length;
             }
@@ -242,126 +190,24 @@ namespace RiskOfChaos.Utilities
             return entries;
         }
 
-        public void AddGroupedEntries(Entry[] entries, float weightMultiplier = 1f)
+        public void AddGroupedEntries(SpawnPoolEntry<T>[] entries, float weightMultiplier = 1f)
         {
             EnsureCapacity(Count + entries.Length);
 
-            foreach (Entry entry in GroupEntries(entries, weightMultiplier))
+            foreach (SpawnPoolEntry<T> entry in GroupEntries(entries, weightMultiplier))
             {
                 AddEntry(entry);
             }
         }
 
-        public IEnumerator<T> GetEnumerator()
+        public IEnumerator<AssetOrDirectReference<T>> GetEnumerator()
         {
-            return _entries.Select(e => e.Asset).GetEnumerator();
+            return _entries.Select(e => e.GetAssetReference(false)).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
-        }
-
-        public sealed class Entry
-        {
-            public delegate void OnEntryLoadedDelegate(Entry entry);
-
-            public T Asset { get; private set; }
-
-            public float Weight { get; set; }
-
-            public bool IsValid
-            {
-                get
-                {
-                    return IsFullyLoaded && Asset != null && Weight > 0f;
-                }
-            }
-
-            readonly ExpansionDef[] _baseRequiredExpansions = [];
-
-            public ReadOnlyArray<ExpansionDef> RequiredExpansions { get; private set; }
-
-            public bool IsFullyLoaded { get; private set; }
-
-            public event OnEntryLoadedDelegate OnEntryLoaded
-            {
-                add
-                {
-                    if (IsFullyLoaded)
-                    {
-                        value(this);
-                        return;
-                    }
-
-                    _onEntryLoaded += value;
-                }
-                remove
-                {
-                    _onEntryLoaded -= value;
-                }
-            }
-
-            event OnEntryLoadedDelegate _onEntryLoaded;
-
-            Entry(T asset, SpawnPoolEntryParameters parameters, bool fullyLoaded)
-            {
-                Asset = asset;
-                Weight = parameters.Weight;
-                _baseRequiredExpansions = parameters.RequiredExpansions;
-                IsFullyLoaded = fullyLoaded;
-
-                RequiredExpansions = new ReadOnlyArray<ExpansionDef>(_baseRequiredExpansions);
-            }
-
-            public Entry(T asset, SpawnPoolEntryParameters parameters) : this(asset, parameters, true)
-            {
-            }
-
-            public void SetRequiredExpansions(IReadOnlyCollection<ExpansionDef> requiredExpansions)
-            {
-                List<ExpansionDef> distinctExpansions = new List<ExpansionDef>(requiredExpansions.Count);
-                foreach (ExpansionDef expansionDef in requiredExpansions)
-                {
-                    if (Array.IndexOf(_baseRequiredExpansions, expansionDef) == -1)
-                    {
-                        distinctExpansions.Add(expansionDef);
-                    }
-                }
-
-                RequiredExpansions = new ReadOnlyArray<ExpansionDef>([.. _baseRequiredExpansions, .. distinctExpansions]);
-            }
-
-            public override string ToString()
-            {
-                return $"{Asset}: {Weight} ({string.Join(", ", RequiredExpansions)})";
-            }
-
-            public static Entry LoadAsync<TAsset>(string assetGuid, SpawnPoolEntryParameters parameters, Converter<TAsset, T> converter) where TAsset : UnityEngine.Object
-            {
-                Entry entry = new Entry(default, parameters, false);
-
-                AsyncOperationHandle<TAsset> assetLoad = AddressableUtil.LoadAssetAsync<TAsset>(assetGuid);
-                assetLoad.OnSuccess(asset =>
-                {
-                    entry.Asset = converter(asset);
-                    entry.onFullyLoaded();
-                });
-
-                return entry;
-            }
-
-            public static Entry LoadAsync(string assetGuid, SpawnPoolEntryParameters parameters)
-            {
-                return LoadAsync<T>(assetGuid, parameters, v => v);
-            }
-
-            void onFullyLoaded()
-            {
-                IsFullyLoaded = true;
-                _onEntryLoaded?.Invoke(this);
-                _onEntryLoaded = null;
-            }
         }
     }
 }

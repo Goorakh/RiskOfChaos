@@ -9,7 +9,6 @@ using RiskOfChaos.Utilities.Extensions;
 using RoR2.ContentManagement;
 using RoR2.UI;
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -22,8 +21,6 @@ namespace RiskOfChaos.UI.NextEffectDisplay
         [ContentInitializer]
         static IEnumerator LoadContent(LocalPrefabAssetCollection localPrefabs)
         {
-            List<AsyncOperationHandle> asyncOperations = new List<AsyncOperationHandle>(1);
-
             AsyncOperationHandle<GameObject> notificationPanelLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_UI_NotificationPanel2_prefab, AsyncReferenceHandleUnloadType.Preload);
             notificationPanelLoad.OnSuccess(notificationPanelPrefab =>
             {
@@ -88,9 +85,7 @@ namespace RiskOfChaos.UI.NextEffectDisplay
                 localPrefabs.Add(prefab);
             });
 
-            asyncOperations.Add(notificationPanelLoad);
-
-            yield return asyncOperations.WaitForAllLoaded();
+            return notificationPanelLoad;
         }
 
         internal static NextEffectDisplayPanelController Create(ChaosUIController chaosUIController)

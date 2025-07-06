@@ -109,7 +109,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 clearTrackedDeaths();
             };
 
-            AsyncOperationHandle<GameObject> reviveEffectPrefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_ExtraLife_HippoRezEffect_prefab, AsyncReferenceHandleUnloadType.OnSceneUnload);
+            AsyncOperationHandle<GameObject> reviveEffectPrefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_ExtraLife_HippoRezEffect_prefab, AsyncReferenceHandleUnloadType.Preload);
             reviveEffectPrefabLoad.OnSuccess(reviveEffectPrefab =>
             {
                 _reviveEffectIndex = EffectCatalog.FindEffectIndexFromPrefab(reviveEffectPrefab);
@@ -119,7 +119,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 }
             });
 
-            yield return reviveEffectPrefabLoad;
+            return reviveEffectPrefabLoad;
         }
 
         static void clearTrackedDeaths()

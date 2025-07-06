@@ -177,7 +177,7 @@ namespace RiskOfChaos
 
                 lemurianEggSpawnCard = new DirectorCard
                 {
-                    spawnCard = AddressableUtil.LoadAssetAsync<InteractableSpawnCard>(AddressableGuids.RoR2_CU8_LemurianEgg_iscLemurianEgg_asset, AsyncReferenceHandleUnloadType.OnSceneUnload).WaitForCompletion()
+                    spawnCard = AddressableUtil.LoadTempAssetAsync<InteractableSpawnCard>(AddressableGuids.RoR2_CU8_LemurianEgg_iscLemurianEgg_asset, AsyncReferenceHandleUnloadType.OnSceneUnload).WaitForCompletion()
                 };
             }
 

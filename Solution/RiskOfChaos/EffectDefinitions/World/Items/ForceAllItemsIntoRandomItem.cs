@@ -14,6 +14,7 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.ContentManagement;
+using RoR2.ExpansionManagement;
 using System;
 using System.Collections;
 using System.Runtime.CompilerServices;
@@ -69,9 +70,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
 
             _dropTable.AddDrops += (drops) =>
             {
-                drops.Add(new ExplicitDrop(RoR2Content.Items.CaptainDefenseMatrix.itemIndex, DropType.Tier3, null));
-                drops.Add(new ExplicitDrop(RoR2Content.Items.Pearl.itemIndex, DropType.Boss, null));
-                drops.Add(new ExplicitDrop(RoR2Content.Items.ShinyPearl.itemIndex, DropType.Boss, null));
+                drops.Add(new ExplicitDrop(RoR2Content.Items.CaptainDefenseMatrix.itemIndex, DropType.Tier3, ExpansionIndex.None));
+                drops.Add(new ExplicitDrop(RoR2Content.Items.Pearl.itemIndex, DropType.Boss, ExpansionIndex.None));
+                drops.Add(new ExplicitDrop(RoR2Content.Items.ShinyPearl.itemIndex, DropType.Boss, ExpansionIndex.None));
 
                 if (_allowEliteEquipments.Value)
                 {
@@ -85,7 +86,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
                         if (!eliteEquipmentDef)
                             continue;
 
-                        drops.Add(new ExplicitDrop(eliteEquipmentDef.equipmentIndex, DropType.Equipment, eliteEquipmentDef.requiredExpansion));
+                        ExpansionIndex requiredExpansionIndex = ExpansionIndex.None;
+                        if (eliteEquipmentDef.requiredExpansion)
+                        {
+                            requiredExpansionIndex = eliteEquipmentDef.requiredExpansion.expansionIndex;
+                        }
+
+                        drops.Add(new ExplicitDrop(eliteEquipmentDef.equipmentIndex, DropType.Equipment, requiredExpansionIndex));
                     }
                 }
             };
@@ -96,7 +103,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
         {
             ForceAllItemsIntoRandomItemManager.OnNextOverridePickupChanged += onNextOverridePickupChanged;
 
-            AsyncOperationHandle<GameObject> recycleEffectLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Recycle_OmniRecycleEffect_prefab, AsyncReferenceHandleUnloadType.OnSceneUnload);
+            AsyncOperationHandle<GameObject> recycleEffectLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Recycle_OmniRecycleEffect_prefab, AsyncReferenceHandleUnloadType.Preload);
             recycleEffectLoad.OnSuccess(recycleEffectPrefab =>
             {
                 _recycleEffectIndex = EffectCatalog.FindEffectIndexFromPrefab(recycleEffectPrefab);
@@ -106,7 +113,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
                 }
             });
 
-            yield return recycleEffectLoad;
+            return recycleEffectLoad;
         }
 
         static void onNextOverridePickupChanged()

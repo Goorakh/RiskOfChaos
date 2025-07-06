@@ -4,6 +4,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.ModificationController;
 using RiskOfChaos.ModificationController.Projectile;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.ContentManagement;
 using System.Collections;
@@ -20,20 +21,22 @@ namespace RiskOfChaos.EffectDefinitions.Character
         static IEnumerator InitPrefab(GameObject prefab)
         {
             AsyncOperationHandle<GameObject> commandoBodyLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Commando_CommandoBody_prefab, AsyncReferenceHandleUnloadType.Preload);
-            yield return commandoBodyLoad;
+            commandoBodyLoad.OnSuccess(commandoBodyPrefab =>
+            {
+                if (commandoBodyPrefab && commandoBodyPrefab.TryGetComponent(out AkBank commandoBank) && commandoBank.data?.ObjectReference)
+                {
+                    AkBank effectBank = prefab.AddComponent<AkBank>();
+                    effectBank.data = commandoBank.data;
+                    effectBank.triggerList = [AkTriggerHandler.START_TRIGGER_ID];
+                    effectBank.unloadTriggerList = [AkTriggerHandler.DESTROY_TRIGGER_ID];
+                }
+                else
+                {
+                    Log.Error("Failed to find commando sound bank");
+                }
+            });
 
-            GameObject commandoBodyPrefab = commandoBodyLoad.Result;
-            if (commandoBodyPrefab && commandoBodyPrefab.TryGetComponent(out AkBank commandoBank) && commandoBank.data?.ObjectReference)
-            {
-                AkBank effectBank = prefab.AddComponent<AkBank>();
-                effectBank.data = commandoBank.data;
-                effectBank.triggerList = [AkTriggerHandler.START_TRIGGER_ID];
-                effectBank.unloadTriggerList = [AkTriggerHandler.DESTROY_TRIGGER_ID];
-            }
-            else
-            {
-                Log.Error("Failed to find commando sound bank");
-            }
+            return commandoBodyLoad;
         }
 
         [EffectCanActivate]

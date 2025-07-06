@@ -1,4 +1,5 @@
 ﻿using HG;
+using HG.Coroutines;
 using RiskOfChaos.Components;
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.Utilities;
@@ -20,6 +21,8 @@ namespace RiskOfChaos.Content.Logbook
 {
     public static class InvincibleLemurianLogbookAdder
     {
+        static Texture2D _invincibleLemurianLogbookEntryBackgroundTexture;
+
         static CharacterBody _lemurianBodyPrefab;
         static GameObject _lemurianGlowModelPrefab;
 
@@ -87,7 +90,7 @@ namespace RiskOfChaos.Content.Logbook
         [ContentInitializer]
         static IEnumerator LoadContent(LocalPrefabAssetCollection localPrefabs)
         {
-            List<AsyncOperationHandle> asyncOperations = new List<AsyncOperationHandle>(2);
+            ParallelCoroutine parallelCoroutine = new ParallelCoroutine();
 
             static GameObject createGlowModel(CharacterBody bodyPrefab)
             {
@@ -119,7 +122,7 @@ namespace RiskOfChaos.Content.Logbook
                 localPrefabs.Add(_lemurianGlowModelPrefab);
             });
 
-            asyncOperations.Add(lemurianBodyLoad);
+            parallelCoroutine.Add(lemurianBodyLoad);
 
             AsyncOperationHandle<GameObject> elderLemurianBodyLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_LemurianBruiser_LemurianBruiserBody_prefab, AsyncReferenceHandleUnloadType.Preload);
             elderLemurianBodyLoad.OnSuccess(elderLemurianBody =>
@@ -131,9 +134,9 @@ namespace RiskOfChaos.Content.Logbook
                 localPrefabs.Add(_lemurianBruiserGlowModelPrefab);
             });
 
-            asyncOperations.Add(elderLemurianBodyLoad);
+            parallelCoroutine.Add(elderLemurianBodyLoad);
 
-            yield return asyncOperations.WaitForAllLoaded();
+            return parallelCoroutine;
         }
 
         [SystemInitializer]
@@ -256,6 +259,11 @@ namespace RiskOfChaos.Content.Logbook
                     }
                 }
 
+                if (!_invincibleLemurianLogbookEntryBackgroundTexture)
+                {
+                    _invincibleLemurianLogbookEntryBackgroundTexture = AddressableUtil.LoadAssetAsync<Texture2D>(AddressableGuids.RoR2_Base_Common_texBossBGIcon_png).WaitForCompletion();
+                }
+
 #pragma warning disable CS0618 // Type or member is obsolete
                 Entry entry = new Entry
                 {
@@ -267,7 +275,7 @@ namespace RiskOfChaos.Content.Logbook
                     getStatusImplementation = getStatus,
                     pageBuilderMethod = pageBuilder,
                     getTooltipContentImplementation = getTooltipContent,
-                    bgTexture = AddressableUtil.LoadAssetAsync<Texture2D>(AddressableGuids.RoR2_Base_Common_texBossBGIcon_png).WaitForCompletion()
+                    bgTexture = _invincibleLemurianLogbookEntryBackgroundTexture
                 };
 #pragma warning restore CS0618 // Type or member is obsolete
 

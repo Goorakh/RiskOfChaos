@@ -5,8 +5,10 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.ContentManagement;
+using System.Collections;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
 {
@@ -15,9 +17,10 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
         public static InteractableSpawnCard SpawnCard { get; private set; }
 
         [SystemInitializer]
-        static void Init()
+        static IEnumerator Init()
         {
-            AddressableUtil.LoadAssetAsync<InteractableSpawnCard>(AddressableGuids.RoR2_Base_ShrineChance_iscShrineChance_asset, AsyncReferenceHandleUnloadType.Preload).OnSuccess(iscChanceShrine =>
+            AsyncOperationHandle<InteractableSpawnCard> iscShrineChanceLoad = AddressableUtil.LoadAssetAsync<InteractableSpawnCard>(AddressableGuids.RoR2_Base_ShrineChance_iscShrineChance_asset, AsyncReferenceHandleUnloadType.Preload);
+            iscShrineChanceLoad.OnSuccess(iscChanceShrine =>
             {
                 // Make new instance of the spawn card so that settings can safely be changed without messing with the original behavior
                 SpawnCard = ScriptableObject.Instantiate(iscChanceShrine);
@@ -72,6 +75,8 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
                     }
                 };
             });
+
+            return iscShrineChanceLoad;
         }
     }
 }
