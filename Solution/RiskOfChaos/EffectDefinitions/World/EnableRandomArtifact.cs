@@ -41,10 +41,21 @@ namespace RiskOfChaos.EffectDefinitions.World
                     return;
                 }
 
-                ArtifactName = Language.GetString(artifact.nameToken, "en");
+                string artifactName = Language.GetString(artifact.nameToken, "en");
+                if (string.IsNullOrWhiteSpace(artifactName))
+                {
+                    artifactName = artifact.cachedName;
+                }
+
+                if (string.IsNullOrWhiteSpace(artifactName))
+                {
+                    artifactName = artifactIndex.ToString();
+                }
+
+                ArtifactName = artifactName;
 
                 SelectionWeight =
-                    ConfigFactory<float>.CreateConfig($"{ArtifactName} Weight", 1f)
+                    ConfigFactory<float>.CreateConfig($"{ArtifactName} Weight".Trim(), 1f)
                                         .Description($"""
                                          How likely the {ArtifactName} is to be picked, higher value means more likely, lower value means less likely.
 

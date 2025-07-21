@@ -5,6 +5,8 @@
 * Give Everyone a Random Debuff:
   * Added CHEF frost
 
+* Fixed compatibility issues with certain mods adding equipment, aspects, or artifacts with special characters in their name
+
 **2.6.6 Changes:**
 
 * Grenade Bullets:

@@ -47,9 +47,28 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                 Language language = Language.english;
                 string equipmentName = language.GetLocalizedStringByToken(eliteDef.eliteEquipmentDef.nameToken);
-                string eliteName = language.GetLocalizedFormattedStringByToken(eliteDef.modifierToken, string.Empty).Trim();
+                if (string.IsNullOrWhiteSpace(equipmentName))
+                {
+                    equipmentName = eliteDef.eliteEquipmentDef.name;
+                }
 
-                string combinedEliteName = $"{equipmentName} ({eliteName})";
+                if (string.IsNullOrWhiteSpace(equipmentName))
+                {
+                    equipmentName = eliteDef.eliteEquipmentDef.equipmentIndex.ToString();
+                }
+
+                string eliteName = language.GetLocalizedFormattedStringByToken(eliteDef.modifierToken, string.Empty).Trim();
+                if (string.IsNullOrWhiteSpace(eliteName))
+                {
+                    eliteName = eliteDef.name;
+                }
+
+                if (string.IsNullOrWhiteSpace(eliteName))
+                {
+                    eliteName = eliteDef.eliteIndex.ToString();
+                }
+
+                string combinedEliteName = $"{equipmentName} ({eliteName})".Trim();
 
                 WeightConfig =
                     ConfigFactory<float>.CreateConfig($"{combinedEliteName} Weight", 1f)
@@ -81,7 +100,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             return 0f;
         }
 
-        [SystemInitializer(typeof(ChaosEffectCatalog), typeof(EliteCatalog))]
+        [SystemInitializer(typeof(ChaosEffectCatalog), typeof(EliteCatalog), typeof(EquipmentCatalog))]
         static void Init()
         {
             _aspectConfigs = new AspectConfig[EliteCatalog.eliteList.Count];

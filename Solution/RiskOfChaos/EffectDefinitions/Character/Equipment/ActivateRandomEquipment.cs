@@ -51,9 +51,22 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
             {
                 _equipmentDef = equipmentDef;
 
-                EquipmentName = Language.GetString(equipmentDef.nameToken, "en");
+                string equipmentName = Language.GetString(equipmentDef.nameToken, "en");
+                if (string.IsNullOrWhiteSpace(equipmentName))
+                {
+                    equipmentName = equipmentDef.name;
+                }
 
-                _equipmentWeightConfig = ConfigFactory<float>.CreateConfig($"{EquipmentName} Weight", 1f)
+                if (string.IsNullOrWhiteSpace(equipmentName))
+                {
+                    equipmentName = equipmentDef.equipmentIndex.ToString();
+                }
+
+                EquipmentName = equipmentName;
+
+                string configKey = $"{EquipmentName.FilterConfigKey()} Weight";
+
+                _equipmentWeightConfig = ConfigFactory<float>.CreateConfig(configKey.Trim(), 1f)
                                                              .Description($"How likely {EquipmentName} is to be selected, set to 0 to exclude from the effect")
                                                              .AcceptableValues(new AcceptableValueMin<float>(0f))
                                                              .OptionConfig(new FloatFieldConfig { Min = 0f })
