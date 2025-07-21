@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**2.6.7 Changes:**
 
 * Give Everyone a Random Debuff:
   * Added CHEF frost
