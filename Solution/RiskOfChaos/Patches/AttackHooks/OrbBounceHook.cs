@@ -386,7 +386,7 @@ namespace RiskOfChaos.Patches.AttackHooks
                 }
 
                 const float MIN_DISTANCE_MULTIPLIER = 0.25f;
-                float distanceWeightMultiplier = Mathf.Pow(1f - normalizedSqrDistance, 2f) * (1f - MIN_DISTANCE_MULTIPLIER) + MIN_DISTANCE_MULTIPLIER;
+                float distanceWeightMultiplier = (Mathf.Pow(1f - normalizedSqrDistance, 2f) * (1f - MIN_DISTANCE_MULTIPLIER)) + MIN_DISTANCE_MULTIPLIER;
 
                 float duplicateBounceWeightMultiplier = Mathf.Pow(2f, -effectiveTimesBouncedOnCandidate / 2f);
 

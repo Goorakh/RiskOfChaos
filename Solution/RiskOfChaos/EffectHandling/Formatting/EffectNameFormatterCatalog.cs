@@ -33,7 +33,7 @@ namespace RiskOfChaos.EffectHandling.Formatting
                 effectNameFormatterTypes.Add(type);
             }
 
-            _effectNameFormatterTypes = effectNameFormatterTypes.ToArray();
+            _effectNameFormatterTypes = [.. effectNameFormatterTypes];
             Array.Sort(_effectNameFormatterTypes, (a, b) => a.FullName.CompareTo(b.FullName));
 
             for (int i = _effectNameFormatterTypes.Length - 1; i >= 0; i--)

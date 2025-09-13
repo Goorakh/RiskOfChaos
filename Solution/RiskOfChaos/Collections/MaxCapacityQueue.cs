@@ -96,7 +96,7 @@ namespace RiskOfChaos.Collections
 
         public T[] ToArray()
         {
-            return _queue.ToArray();
+            return [.. _queue];
         }
 
         public void Clear()

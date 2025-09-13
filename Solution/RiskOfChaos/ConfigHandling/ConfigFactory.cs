@@ -130,8 +130,8 @@ namespace RiskOfChaos.ConfigHandling
                                                                description,
                                                                _equalityComparer,
                                                                _optionConfig,
-                                                               _previousKeys.ToArray(),
-                                                               _previousSections.ToArray(),
+                                                               [.. _previousKeys],
+                                                               [.. _previousSections],
                                                                _flags);
 
             foreach (EventHandler<ConfigChangedArgs<T>> listener in _configChangedListeners)

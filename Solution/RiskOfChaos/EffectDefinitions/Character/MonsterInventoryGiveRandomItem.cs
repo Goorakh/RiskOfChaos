@@ -92,7 +92,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 #endif
             };
 
-            _dropTable.AddDrops += (List<ExplicitDrop> drops) =>
+            _dropTable.AddDrops += drops =>
             {
                 drops.Add(new ExplicitDrop(RoR2Content.Items.ArtifactKey.itemIndex, DropType.Boss, ExpansionIndex.None));
                 drops.Add(new ExplicitDrop(RoR2Content.Items.CaptainDefenseMatrix.itemIndex, DropType.Tier3, ExpansionIndex.None));
@@ -101,7 +101,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 drops.Add(new ExplicitDrop(RoR2Content.Items.TonicAffliction.itemIndex, DropType.LunarItem, ExpansionIndex.None));
             };
 
-            _dropTable.RemoveDrops += (List<PickupIndex> removeDrops) =>
+            _dropTable.RemoveDrops += removeDrops =>
             {
                 if (_applyAIBlacklist.Value)
                 {

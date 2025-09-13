@@ -20,7 +20,7 @@ namespace RiskOfChaos.EffectHandling
                 switch (methodParameters.Length)
                 {
                     case 0:
-                        canActivateDelegate = (in EffectCanActivateContext context) =>
+                        canActivateDelegate = (in context) =>
                         {
                             return (bool)method.Invoke(null, null);
                         };
@@ -28,7 +28,7 @@ namespace RiskOfChaos.EffectHandling
                     case 1:
                         if (methodParameters[0].ParameterType == typeof(EffectCanActivateContext))
                         {
-                            canActivateDelegate = (in EffectCanActivateContext context) =>
+                            canActivateDelegate = (in context) =>
                             {
                                 return (bool)method.Invoke(null, [context]);
                             };

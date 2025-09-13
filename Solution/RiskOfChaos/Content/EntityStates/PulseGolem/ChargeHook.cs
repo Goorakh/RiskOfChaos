@@ -145,7 +145,7 @@ namespace RiskOfChaos.Content.EntityStates.PulseGolem
                 _laserEffectLineRenderer.SetPosition(0, laserStartPosition);
                 _laserEffectLineRenderer.SetPosition(1, laserEndPosition);
 
-                float laserWidth = 0f;
+                float laserWidth;
                 if (_duration - age > 0.5f)
                 {
                     laserWidth = age / _duration;

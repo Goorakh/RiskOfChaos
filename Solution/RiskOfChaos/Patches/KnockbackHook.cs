@@ -10,31 +10,35 @@ namespace RiskOfChaos.Patches
         [SystemInitializer]
         static void Init()
         {
-            On.RoR2.CharacterMotor.ApplyForceImpulse += (On.RoR2.CharacterMotor.orig_ApplyForceImpulse orig, CharacterMotor self, ref PhysForceInfo forceInfo) =>
-            {
-                tryMultiplyForce(self.hasEffectiveAuthority, ref forceInfo);
+            On.RoR2.CharacterMotor.ApplyForceImpulse += CharacterMotor_ApplyForceImpulse;
+            On.RoR2.CharacterMotor.AddDisplacement += CharacterMotor_AddDisplacement;
 
-                orig(self, ref forceInfo);
-            };
+            On.RoR2.RigidbodyMotor.ApplyForceImpulse += RigidbodyMotor_ApplyForceImpulse;
+            On.RoR2.RigidbodyMotor.AddDisplacement += RigidbodyMotor_AddDisplacement;
+        }
 
-            On.RoR2.RigidbodyMotor.ApplyForceImpulse += (On.RoR2.RigidbodyMotor.orig_ApplyForceImpulse orig, RigidbodyMotor self, ref PhysForceInfo forceInfo) =>
-            {
-                tryMultiplyForce(self.hasEffectiveAuthority, ref forceInfo);
+        static void CharacterMotor_ApplyForceImpulse(On.RoR2.CharacterMotor.orig_ApplyForceImpulse orig, CharacterMotor self, ref PhysForceInfo forceInfo)
+        {
+            tryMultiplyForce(self.hasEffectiveAuthority, ref forceInfo);
+            orig(self, ref forceInfo);
+        }
 
-                orig(self, ref forceInfo);
-            };
+        static void CharacterMotor_AddDisplacement(On.RoR2.CharacterMotor.orig_AddDisplacement orig, CharacterMotor self, Vector3 displacement)
+        {
+            tryMultiplyForce(self.hasEffectiveAuthority, ref displacement);
+            orig(self, displacement);
+        }
 
-            On.RoR2.CharacterMotor.AddDisplacement += (orig, self, displacement) =>
-            {
-                tryMultiplyForce(self.hasEffectiveAuthority, ref displacement);
-                orig(self, displacement);
-            };
+        static void RigidbodyMotor_ApplyForceImpulse(On.RoR2.RigidbodyMotor.orig_ApplyForceImpulse orig, RigidbodyMotor self, ref PhysForceInfo forceInfo)
+        {
+            tryMultiplyForce(self.hasEffectiveAuthority, ref forceInfo);
+            orig(self, ref forceInfo);
+        }
 
-            On.RoR2.RigidbodyMotor.AddDisplacement += (orig, self, displacement) =>
-            {
-                tryMultiplyForce(self.hasEffectiveAuthority, ref displacement);
-                orig(self, displacement);
-            };
+        static void RigidbodyMotor_AddDisplacement(On.RoR2.RigidbodyMotor.orig_AddDisplacement orig, RigidbodyMotor self, Vector3 displacement)
+        {
+            tryMultiplyForce(self.hasEffectiveAuthority, ref displacement);
+            orig(self, displacement);
         }
 
         static void tryMultiplyForce(bool hasAuthority, ref PhysForceInfo forceInfo)

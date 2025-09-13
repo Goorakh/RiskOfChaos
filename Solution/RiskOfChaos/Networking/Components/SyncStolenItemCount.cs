@@ -41,8 +41,8 @@ namespace RiskOfChaos.Networking.Components
         [Server]
         void refreshInventories()
         {
-            List<InventoryInfo> previousInventoryInfos = _inventoryInfos.ToList();
-            List<InventoryInfo> newInventoryInfos = _itemStealController.stolenInventoryInfos.Select(i => new InventoryInfo(i.victimInventory.gameObject, i.stolenItemCount)).ToList();
+            List<InventoryInfo> previousInventoryInfos = [.. _inventoryInfos];
+            List<InventoryInfo> newInventoryInfos = [.. _itemStealController.stolenInventoryInfos.Select(i => new InventoryInfo(i.victimInventory.gameObject, i.stolenItemCount))];
 
             for (int i = newInventoryInfos.Count - 1; i >= 0; i--)
             {

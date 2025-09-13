@@ -74,7 +74,7 @@ namespace RiskOfChaos.SaveHandling
                     serializableMembersList.Add(new SerializableMemberInfo(member, serializedMemberAttribute));
                 }
 
-                serializableMembers = serializableMembersList.ToArray();
+                serializableMembers = [.. serializableMembersList];
                 _cachedSerializableMembersByType.Add(componentType, serializableMembers);
             }
 
@@ -168,12 +168,12 @@ namespace RiskOfChaos.SaveHandling
                     serializedComponents.Add(new SerializableObjectComponent
                     {
                         ComponentType = componentType,
-                        Fields = fields.ToArray()
+                        Fields = [.. fields]
                     });
                 }
             }
 
-            serializedObject.Components = serializedComponents.ToArray();
+            serializedObject.Components = [.. serializedComponents];
         }
 
         public void DeserializeFrom(SerializableGameObject serializedObject, JsonSerializer serializer)

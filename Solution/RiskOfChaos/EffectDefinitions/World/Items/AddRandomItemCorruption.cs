@@ -119,7 +119,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
                 }
             }
 
-            return transformableItems.ToArray();
+            return [.. transformableItems];
         }
 
         static ItemIndex[] getAllTransformableFromItems()

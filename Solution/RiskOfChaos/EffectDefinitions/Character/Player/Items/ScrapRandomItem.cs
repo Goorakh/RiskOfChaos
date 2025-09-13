@@ -132,7 +132,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
-            _itemScrapOrder = getAllScrappableItems().ToArray();
+            _itemScrapOrder = [.. getAllScrappableItems()];
             Util.ShuffleArray(_itemScrapOrder, rng);
 
             Log.Debug($"Scrap order: [{string.Join(", ", _itemScrapOrder.Select(FormatUtils.GetBestItemDisplayName))}]");

@@ -102,7 +102,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             _rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
-            _itemUncorruptionOrder = getReverseItemCorruptionMap().Select(kvp => new ItemUncorruptionInfo(kvp.Key, kvp.Value.ToArray())).ToArray();
+            _itemUncorruptionOrder = [.. getReverseItemCorruptionMap().Select(kvp => new ItemUncorruptionInfo(kvp.Key, [.. kvp.Value]))];
             Util.ShuffleArray(_itemUncorruptionOrder, _rng.Branch());
 
             Log.Debug($"Uncorruption order: [{string.Join(", ", _itemUncorruptionOrder.Select(u => FormatUtils.GetBestItemDisplayName(u.CorruptedItem)))}]");

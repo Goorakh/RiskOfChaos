@@ -84,7 +84,7 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
                 {
                     serializedVotes[i] = new SerializedEffectVoteInfo
                     {
-                        UserVotes = _effectVoteSelection.GetVoteKeys(i).ToArray(),
+                        UserVotes = [.. _effectVoteSelection.GetVoteKeys(i)],
                         Effect = voteOptions[i].EffectInfo?.EffectIndex ?? ChaosEffectIndex.Invalid,
                         IsRandom = voteOptions[i].IsRandom
                     };

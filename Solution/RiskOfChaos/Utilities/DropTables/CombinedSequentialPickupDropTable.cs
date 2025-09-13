@@ -82,7 +82,7 @@ namespace RiskOfChaos.Utilities.DropTables
                 _currentDropCount += remainingTableDrops;
             }
 
-            return result.ToArray();
+            return [.. result];
         }
 
         public override int GetPickupCount()

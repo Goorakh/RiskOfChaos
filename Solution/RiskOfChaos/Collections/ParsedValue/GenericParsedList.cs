@@ -73,7 +73,7 @@ namespace RiskOfChaos.Collections.ParsedValue
                 return Array.Empty<T>();
             }
 
-            T[] result = parseList(input, _itemParseFailReasons).ToArray();
+            T[] result = [.. parseList(input, _itemParseFailReasons)];
 
             if (_comparer != null)
             {

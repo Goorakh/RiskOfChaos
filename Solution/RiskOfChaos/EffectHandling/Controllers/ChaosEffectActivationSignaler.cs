@@ -84,7 +84,8 @@ namespace RiskOfChaos.EffectHandling.Controllers
 
                 if (CanDispatchEffectsOverride != null)
                 {
-                    foreach (CanDispatchEffectsOverrideDelegate canDispatchEffectsDelegate in CanDispatchEffectsOverride.GetInvocationList())
+                    foreach (CanDispatchEffectsOverrideDelegate canDispatchEffectsDelegate in CanDispatchEffectsOverride.GetInvocationList()
+                                                                                                                        .OfType<CanDispatchEffectsOverrideDelegate>())
                     {
                         if (!canDispatchEffectsDelegate())
                         {
@@ -163,7 +164,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 pickableEffects = pickableEffects.Where(e => e.CanActivate(EffectCanActivateContext.Now));
             }
 
-            List<ChaosEffectInfo> pickableEffectsList = pickableEffects.ToList();
+            List<ChaosEffectInfo> pickableEffectsList = [.. pickableEffects];
 
             if (pickableEffectsList.Count > 0)
             {
@@ -199,7 +200,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 overrideEffects = overrideEffects.Where(e => e.Effect.CanActivate(EffectCanActivateContext.Now));
             }
 
-            List<OverrideEffect> overrideEffectsList = overrideEffects.ToList();
+            List<OverrideEffect> overrideEffectsList = [.. overrideEffects];
 
             if (overrideEffectsList.Count > 0)
             {

@@ -53,7 +53,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
 
             Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
-            List<ItemIndex> suppressableItems = getAllSuppressableItems().ToList();
+            List<ItemIndex> suppressableItems = [.. getAllSuppressableItems()];
             _itemToSuppress = rng.NextElementUniform(suppressableItems);
         }
 

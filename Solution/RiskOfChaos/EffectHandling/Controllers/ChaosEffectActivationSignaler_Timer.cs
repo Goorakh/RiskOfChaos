@@ -150,7 +150,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                 _overrideAvailableEffects = null;
             }
 
-            ChaosEffectInfo[] enabledEffects = ChaosEffectCatalog.AllEffects.Where(e => e.IsEnabled()).ToArray();
+            ChaosEffectInfo[] enabledEffects = [.. ChaosEffectCatalog.AllEffects.Where(e => e.IsEnabled())];
             if (enabledEffects.Length <= 0)
             {
                 Log.Warning("No effects enabled, per-stage effect list cannot be generated");

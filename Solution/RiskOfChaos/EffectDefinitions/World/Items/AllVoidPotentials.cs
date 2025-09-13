@@ -89,7 +89,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
         {
             get
             {
-                return _pickupOptionGenerators.Values.ToArray();
+                return [.. _pickupOptionGenerators.Values];
             }
             set
             {

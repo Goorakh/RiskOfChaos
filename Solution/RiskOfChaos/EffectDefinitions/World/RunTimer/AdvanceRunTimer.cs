@@ -35,7 +35,7 @@ namespace RiskOfChaos.EffectDefinitions.World.RunTimer
                 return;
 
             Run run = Run.instance;
-            run.SetRunStopwatch(run.GetRunStopwatch() + _numMinutesToAdd.Value * 60);
+            run.SetRunStopwatch(run.GetRunStopwatch() + (_numMinutesToAdd.Value * 60));
 
             foreach (ChaosEffectActivationSignaler effectActivationSignaler in ChaosEffectActivationSignaler.InstancesList)
             {

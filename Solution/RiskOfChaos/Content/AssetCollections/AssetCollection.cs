@@ -69,7 +69,7 @@ namespace RiskOfChaos.Content.AssetCollections
 
         public T[] ToArray()
         {
-            return _assets.ToArray();
+            return [.. _assets];
         }
 
         public void EnsureCapacity(int capacity)

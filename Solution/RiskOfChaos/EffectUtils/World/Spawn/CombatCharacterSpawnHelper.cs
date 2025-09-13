@@ -49,7 +49,7 @@ namespace RiskOfChaos.EffectUtils.World.Spawn
 
         public static void GetAllValidCombatCharacters(List<CharacterMaster> dest)
         {
-            List<CharacterMaster> aiMasters = MasterCatalog.allAiMasters.ToList();
+            List<CharacterMaster> aiMasters = [.. MasterCatalog.allAiMasters];
 
             dest.EnsureCapacity(aiMasters.Count);
 

@@ -60,7 +60,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     prefabComponentTypes.Add(typeof(ChaosEffectActivationSignalerEnableRequirements));
                 }
 
-                GameObject signalerPrefab = Prefabs.CreateNetworkedPrefab(signalerComponentType.Name, prefabComponentTypes.ToArray());
+                GameObject signalerPrefab = Prefabs.CreateNetworkedPrefab(signalerComponentType.Name, [.. prefabComponentTypes]);
 
                 if (signalerPrefab.TryGetComponent(out ChaosEffectActivationSignalerEnableRequirements enableRequirements))
                 {

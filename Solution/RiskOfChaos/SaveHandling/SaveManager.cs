@@ -65,7 +65,7 @@ namespace RiskOfChaos.SaveHandling
                 serializedObjects.Add(serializedObject);
             }
 
-            container.Objects = serializedObjects.ToArray();
+            container.Objects = [.. serializedObjects];
 
             using StringWriter stringWriter = new StringWriter(CultureInfo.InvariantCulture);
             using (JsonTextWriter jsonWriter = new JsonTextWriter(stringWriter))

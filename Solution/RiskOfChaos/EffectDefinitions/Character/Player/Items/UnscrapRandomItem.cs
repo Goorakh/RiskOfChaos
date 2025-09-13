@@ -139,7 +139,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             {
                 if (_scrapItemsByTier.TryGetValue(kvp.Key, out ItemIndex[] scrapItems) && scrapItems.Length > 0)
                 {
-                    ItemIndex[] printableItems = kvp.Value.Where(canUnscrapToItem).ToArray();
+                    ItemIndex[] printableItems = [.. kvp.Value.Where(canUnscrapToItem)];
                     if (printableItems.Length > 0)
                     {
                         return scrapItems.Select(i => new UnscrapInfo(i, printableItems));

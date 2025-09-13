@@ -95,7 +95,7 @@ namespace RiskOfChaos.Content
             }
 #endif
 
-            return allRequiredComponentTypes.ToArray();
+            return [.. allRequiredComponentTypes];
         }
     }
 }

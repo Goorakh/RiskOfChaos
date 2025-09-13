@@ -50,7 +50,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             _dropTable.CreateItemBlacklistConfig("Item Blacklist", "A comma-separated list of items and equipment that should not be included for the effect. Both internal and English display names are accepted, with spaces and commas removed.");
 
-            _dropTable.AddDrops += (List<ExplicitDrop> drops) =>
+            _dropTable.AddDrops += drops =>
             {
                 drops.Add(new ExplicitDrop(RoR2Content.Items.ArtifactKey.itemIndex, DropType.Boss, ExpansionIndex.None));
                 drops.Add(new ExplicitDrop(RoR2Content.Items.CaptainDefenseMatrix.itemIndex, DropType.Tier3, ExpansionIndex.None));
