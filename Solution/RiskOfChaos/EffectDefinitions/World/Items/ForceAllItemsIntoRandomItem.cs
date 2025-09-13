@@ -10,17 +10,13 @@ using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Trackers;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.DropTables;
-using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using RoR2.ContentManagement;
 using RoR2.ExpansionManagement;
 using System;
-using System.Collections;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Items
 {
@@ -98,22 +94,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
             };
         }
 
-        [SystemInitializer(typeof(EffectCatalog))]
-        static IEnumerator Init()
+        [SystemInitializer(typeof(EffectCatalogUtils))]
+        static void Init()
         {
             ForceAllItemsIntoRandomItemManager.OnNextOverridePickupChanged += onNextOverridePickupChanged;
 
-            AsyncOperationHandle<GameObject> recycleEffectLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Recycle_OmniRecycleEffect_prefab, AsyncReferenceHandleUnloadType.Preload);
-            recycleEffectLoad.OnSuccess(recycleEffectPrefab =>
+            _recycleEffectIndex = EffectCatalogUtils.FindEffectIndex("OmniRecycleEffect");
+            if (_recycleEffectIndex == EffectIndex.Invalid)
             {
-                _recycleEffectIndex = EffectCatalog.FindEffectIndexFromPrefab(recycleEffectPrefab);
-                if (_recycleEffectIndex == EffectIndex.Invalid)
-                {
-                    Log.Error($"Failed to find recycle effect index from {recycleEffectPrefab}");
-                }
-            });
-
-            return recycleEffectLoad;
+                Log.Error($"Failed to find recycle effect index");
+            }
         }
 
         static void onNextOverridePickupChanged()

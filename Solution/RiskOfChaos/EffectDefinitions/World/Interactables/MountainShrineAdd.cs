@@ -7,14 +7,10 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.Formatting;
 using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using RoR2.ContentManagement;
-using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Interactables
 {
@@ -31,20 +27,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
 
         static EffectIndex _shrineUseEffectIndex = EffectIndex.Invalid;
 
-        [SystemInitializer(typeof(EffectCatalog))]
-        static IEnumerator Init()
+        [SystemInitializer(typeof(EffectCatalogUtils))]
+        static void Init()
         {
-            AsyncOperationHandle<GameObject> shrineUseEffectPrefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Common_VFX_ShrineUseEffect_prefab, AsyncReferenceHandleUnloadType.Preload);
-            shrineUseEffectPrefabLoad.OnSuccess(shrineUseEffectPrefab =>
+            _shrineUseEffectIndex = EffectCatalogUtils.FindEffectIndex("ShrineUseEffect");
+            if (_shrineUseEffectIndex == EffectIndex.Invalid)
             {
-                _shrineUseEffectIndex = EffectCatalog.FindEffectIndexFromPrefab(shrineUseEffectPrefab);
-                if (_shrineUseEffectIndex == EffectIndex.Invalid)
-                {
-                    Log.Error($"Failed to find EffectIndex for prefab {shrineUseEffectPrefab}");
-                }
-            });
-
-            return shrineUseEffectPrefabLoad;
+                Log.Error($"Failed to find shrine use effect index");
+            }
         }
 
         [EffectCanActivate]

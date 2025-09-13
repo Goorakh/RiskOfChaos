@@ -12,12 +12,10 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using RoR2.ContentManagement;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
@@ -47,8 +45,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         static EffectIndex _reviveEffectIndex = EffectIndex.Invalid;
 
-        [SystemInitializer(typeof(EffectCatalog))]
-        static IEnumerator Init()
+        [SystemInitializer(typeof(EffectCatalogUtils))]
+        static void Init()
         {
             GlobalEventManager.onCharacterDeathGlobal += damageReport =>
             {
@@ -109,17 +107,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 clearTrackedDeaths();
             };
 
-            AsyncOperationHandle<GameObject> reviveEffectPrefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_ExtraLife_HippoRezEffect_prefab, AsyncReferenceHandleUnloadType.Preload);
-            reviveEffectPrefabLoad.OnSuccess(reviveEffectPrefab =>
+            _reviveEffectIndex = EffectCatalogUtils.FindEffectIndex("HippoRezEffect");
+            if (_reviveEffectIndex == EffectIndex.Invalid)
             {
-                _reviveEffectIndex = EffectCatalog.FindEffectIndexFromPrefab(reviveEffectPrefab);
-                if (_reviveEffectIndex == EffectIndex.Invalid)
-                {
-                    Log.Error($"Failed to find revive effect index from {reviveEffectPrefab}");
-                }
-            });
-
-            return reviveEffectPrefabLoad;
+                Log.Error($"Failed to find revive effect index");
+            }
         }
 
         static void clearTrackedDeaths()

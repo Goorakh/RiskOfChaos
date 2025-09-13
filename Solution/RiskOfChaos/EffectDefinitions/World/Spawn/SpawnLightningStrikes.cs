@@ -46,20 +46,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 return strikeEffectLoad;
             }
 
-            [SystemInitializer(typeof(EffectCatalog))]
-            static IEnumerator Init()
+            [SystemInitializer(typeof(EffectCatalogUtils))]
+            static void Init()
             {
-                AsyncOperationHandle<GameObject> orbEffectPrefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Lightning_LightningStrikeOrbEffect_prefab, AsyncReferenceHandleUnloadType.Preload);
-                orbEffectPrefabLoad.OnSuccess(orbEffectPrefab =>
+                _orbEffectIndex = EffectCatalogUtils.FindEffectIndex("LightningStrikeOrbEffect");
+                if (_orbEffectIndex == EffectIndex.Invalid)
                 {
-                    _orbEffectIndex = EffectCatalog.FindEffectIndexFromPrefab(orbEffectPrefab);
-                    if (_orbEffectIndex == EffectIndex.Invalid)
-                    {
-                        Log.Error($"Failed to find orb effect index from {orbEffectPrefab}");
-                    }
-                });
-
-                return orbEffectPrefabLoad;
+                    Log.Error($"Failed to find orb effect index");
+                }
             }
 
             public float Force;

@@ -1,12 +1,8 @@
 ﻿using EntityStates;
 using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using RoR2.ContentManagement;
 using RoR2.Projectile;
-using System.Collections;
 using UnityEngine;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Content.EntityStates.PulseGolem
 {
@@ -15,20 +11,14 @@ namespace RiskOfChaos.Content.EntityStates.PulseGolem
     {
         static EffectIndex _muzzleEffectIndex = EffectIndex.Invalid;
 
-        [SystemInitializer(typeof(EffectCatalog))]
-        static IEnumerator Init()
+        [SystemInitializer(typeof(EffectCatalogUtils))]
+        static void Init()
         {
-            AsyncOperationHandle<GameObject> muzzleFlashWinchLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Gravekeeper_MuzzleflashWinch_prefab, AsyncReferenceHandleUnloadType.Preload);
-            muzzleFlashWinchLoad.OnSuccess(muzzleFlashPrefab =>
+            _muzzleEffectIndex = EffectCatalogUtils.FindEffectIndex("MuzzleflashWinch");
+            if (_muzzleEffectIndex == EffectIndex.Invalid)
             {
-                _muzzleEffectIndex = EffectCatalog.FindEffectIndexFromPrefab(muzzleFlashPrefab);
-                if (_muzzleEffectIndex == EffectIndex.Invalid)
-                {
-                    Log.Error($"Failed to find muzzle flash effect index from {muzzleFlashPrefab}");
-                }
-            });
-
-            return muzzleFlashWinchLoad;
+                Log.Error($"Failed to find muzzle flash effect index");
+            }
         }
 
         static readonly float _baseDuration = 2f;
