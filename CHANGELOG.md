@@ -1,5 +1,10 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* Adaptive Recycling:
+  * Fixed 'Recycle Timer Scale' config value not being applied properly
+
 **2.6.7 Changes:**
 
 * Give Everyone a Random Debuff:

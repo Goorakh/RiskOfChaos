@@ -290,6 +290,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
             void startRecycleTimer()
             {
                 _recycleTimer = 0.2f + (1.3f * _recycleTimeCurve.Evaluate(_numTimesRecycled / (float)MAX_RECYCLES));
+                _recycleTimer *= _recycleTimerScale.Value;
             }
 
             void stepRecycle()
