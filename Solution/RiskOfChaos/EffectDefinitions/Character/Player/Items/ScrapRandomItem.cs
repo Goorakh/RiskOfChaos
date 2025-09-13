@@ -20,7 +20,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
-    [ChaosEffect("scrap_random_item", DefaultSelectionWeight = 0.8f)]
+    [ChaosEffect("scrap_random_item", DefaultSelectionWeight = 0.5f)]
     public sealed class ScrapRandomItem : NetworkBehaviour
     {
         static PickupIndex[] _scrapPickupByItemTier = [];

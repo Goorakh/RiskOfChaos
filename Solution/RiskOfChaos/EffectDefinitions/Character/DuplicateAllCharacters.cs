@@ -14,7 +14,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    [ChaosEffect("duplicate_all_characters")]
+    [ChaosEffect("duplicate_all_characters", DefaultSelectionWeight = 0.5f)]
     public sealed class DuplicateAllCharacters : MonoBehaviour
     {
         [EffectConfig]

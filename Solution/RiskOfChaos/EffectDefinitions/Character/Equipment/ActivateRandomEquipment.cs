@@ -17,6 +17,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Equipment
 {
+    /*
     [ChaosEffect("activate_random_equipment")]
     [IncompatibleEffects(typeof(DisableEquipmentActivation))]
     public sealed class ActivateRandomEquipment : NetworkBehaviour
@@ -260,4 +261,5 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
             Log.Warning($"no equipment was activatable for {FormatUtils.GetBestBodyName(body)}");
         }
     }
+    */
 }

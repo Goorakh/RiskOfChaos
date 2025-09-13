@@ -21,7 +21,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
-    [ChaosEffect("monster_item_steal", DefaultSelectionWeight = 0.6f)]
+    [ChaosEffect("monster_item_steal", DefaultSelectionWeight = 0.5f)]
     [EffectConfigBackwardsCompatibility("Effect: Steal All Player Items")]
     public sealed class MonsterItemSteal : MonoBehaviour
     {

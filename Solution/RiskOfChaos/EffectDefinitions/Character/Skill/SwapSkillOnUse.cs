@@ -20,6 +20,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Skill
 {
+    /*
     [ChaosTimedEffect("swap_skill_on_use", 90f)]
     public sealed class SwapSkillOnUse : NetworkBehaviour
     {
@@ -340,4 +341,5 @@ namespace RiskOfChaos.EffectDefinitions.Character.Skill
             }
         }
     }
+    */
 }

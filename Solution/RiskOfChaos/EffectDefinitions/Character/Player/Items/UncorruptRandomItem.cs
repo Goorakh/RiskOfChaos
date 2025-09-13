@@ -19,7 +19,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
-    [ChaosEffect("uncorrupt_random_item", DefaultSelectionWeight = 0.6f)]
+    [ChaosEffect("uncorrupt_random_item", DefaultSelectionWeight = 0.5f)]
     public sealed class UncorruptRandomItem : NetworkBehaviour
     {
         [EffectConfig]

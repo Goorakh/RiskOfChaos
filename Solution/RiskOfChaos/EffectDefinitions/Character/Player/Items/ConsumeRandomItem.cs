@@ -17,7 +17,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
-    [ChaosEffect("consume_random_item", DefaultSelectionWeight = 0.6f)]
+    [ChaosEffect("consume_random_item", DefaultSelectionWeight = 0.5f)]
     public sealed class ConsumeRandomItem : NetworkBehaviour
     {
         [EffectConfig]

@@ -10,6 +10,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
+    /*
     [ChaosTimedEffect("delay_camera_position", 45f, AllowDuplicates = false)]
     public sealed class DelayCameraPosition : MonoBehaviour
     {
@@ -89,4 +90,5 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
             _trackedObjectDestroyed = true;
         }
     }
+    */
 }

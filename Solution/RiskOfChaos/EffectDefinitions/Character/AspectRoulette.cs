@@ -21,6 +21,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
+    /*
     [ChaosTimedEffect("aspect_roulette", 60f, AllowDuplicates = false)]
     public sealed class AspectRoulette : NetworkBehaviour
     {
@@ -374,4 +375,5 @@ namespace RiskOfChaos.EffectDefinitions.Character
             }
         }
     }
+    */
 }

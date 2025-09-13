@@ -14,7 +14,7 @@ using UnityEngine.UI;
 
 namespace RiskOfChaos.EffectDefinitions.UI
 {
-    [ChaosTimedEffect("start_credits", 120f, AllowDuplicates = false)]
+    [ChaosTimedEffect("start_credits", 120f, DefaultSelectionWeight = 0.8f, AllowDuplicates = false)]
     public sealed class StartCredits : MonoBehaviour
     {
         [ContentInitializer]

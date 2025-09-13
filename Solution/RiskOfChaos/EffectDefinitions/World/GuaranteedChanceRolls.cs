@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World
 {
-    [ChaosTimedEffect("guaranteed_chance_rolls", 60f, AllowDuplicates = false, DefaultSelectionWeight = 0.9f)]
+    [ChaosTimedEffect("guaranteed_chance_rolls", 30f, AllowDuplicates = false, DefaultSelectionWeight = 0.9f)]
     [EffectConfigBackwardsCompatibility("Effect: Guaranteed Chance Effects (Lasts 1 stage)")]
     public sealed class GuaranteedChanceRolls : MonoBehaviour
     {

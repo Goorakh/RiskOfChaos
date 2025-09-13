@@ -6,6 +6,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Buff
 {
+    /*
     [ChaosTimedEffect("everyone_invisible", 30f, AllowDuplicates = false)]
     [RequiredComponents(typeof(ApplyBuffEffect))]
     public sealed class EveryoneInvisible : NetworkBehaviour
@@ -31,4 +32,5 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             _applyBuffEffect.BuffStackCount = 1;
         }
     }
+    */
 }

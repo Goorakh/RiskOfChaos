@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
-    [ChaosEffect("spawn_scav_bag", DefaultSelectionWeight = 0.6f)]
+    [ChaosEffect("spawn_scav_bag", DefaultSelectionWeight = 0.5f)]
     public sealed class SpawnScavBag : NetworkBehaviour
     {
         static readonly SpawnPool<InteractableSpawnCard> _spawnPool = new SpawnPool<InteractableSpawnCard>();
@@ -21,8 +21,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             _spawnPool.EnsureCapacity(2);
 
-            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_Scav_iscScavBackpack_asset, new SpawnPoolEntryParameters(0.8f));
-            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_Scav_iscScavLunarBackpack_asset, new SpawnPoolEntryParameters(0.2f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_Scav_iscScavBackpack_asset, new SpawnPoolEntryParameters(0.85f));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_Scav_iscScavLunarBackpack_asset, new SpawnPoolEntryParameters(0.15f));
         }
 
         [EffectCanActivate]

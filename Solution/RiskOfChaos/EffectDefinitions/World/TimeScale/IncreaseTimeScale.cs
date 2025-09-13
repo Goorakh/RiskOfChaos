@@ -14,6 +14,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 {
+    /*
     [ChaosTimedEffect("increase_time_scale", 120f, ConfigName = "Increase World Speed")]
     public sealed class IncreaseTimeScale : MonoBehaviour
     {
@@ -67,4 +68,5 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
             }
         }
     }
+    */
 }

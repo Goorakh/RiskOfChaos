@@ -16,7 +16,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 {
-    [ChaosTimedEffect("repeat_screen", 45f)]
+    [ChaosTimedEffect("repeat_screen", 45f, DefaultSelectionWeight = 0.5f)]
     public sealed class RepeatScreen : MonoBehaviour
     {
         [EffectConfig]

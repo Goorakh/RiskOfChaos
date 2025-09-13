@@ -2,8 +2,65 @@
 
 **?.?.? Changes:**
 
+* Removed 15 effects:
+  * All Skills are Agile
+    * Just became a less untuitive version of the 'Always Sprinting' effect
+  * Heal Everyone
+  * Cycle Skills On Use
+  * Sluggish Camera
+  * Delayed Attacks
+  * Everyone is Invisible
+  * Aspect Roulette
+  * Force Activate Random Skill
+  * Blood Money
+  * Increase World Speed
+  * Decrease World Speed
+  * Max All Cooldowns
+  * Activate Random Equipment
+  * Give Random Elite Aspect
+  * Randomize Loadout
+    * These were either unfun/boring on their own or messed with the balance too much to the point where the game was no longer fun.
+
 * Adaptive Recycling:
   * Fixed 'Recycle Timer Scale' config value not being applied properly
+
+* Reinforcements:
+  * Reduced default number of spawned survivors: 10 -> 5
+
+* Increase Skill Cooldowns:
+  * Default increase: +50% -> +25%
+  * Default weight: 1.0 -> 0.8
+
+* Guaranteed Chance Effects:
+  * Default Duration: 60s -> 30s 
+  * No longer gives guaranteed aspect drops when active, instead grants additional luck during an elite kill for a significantly higher chance of an aspect drop
+
+* Spawn Scavenger Bag:
+  * Default weight: 0.6 -> 0.5
+  * Lunar scav bag chance: 20% -> 15%
+
+* Splitscreen:
+  * Default weight: 1.0 -> 0.5
+
+* Give Tonic Affliction
+  * Default weight: 0.4 -> 0.6
+
+* Mitosis:
+  * Default weight: 1.0 -> 0.5
+
+* Roll Credits:
+  * Default weight: 1.0 -> 0.8
+
+* Reduced default weight of item-taking effects:
+  * Cleanse Random Item: 0.6 -> 0.5
+  * Consume Random Item: 0.6 -> 0.5
+  * Corrupt Random Item: 0.6 -> 0.5
+  * Uncorrupt Random Item: 0.6 -> 0.5
+  * Scrap Random Item: 0.8 -> 0.5
+  * Unscrap Random Item: 1.0 -> 0.5
+  * Benthic Transform Random Item: 0.6 -> 0.5
+  * Steal Player Items: 0.6 -> 0.5
+  * Inventory Swap: 1.0 -> 0.5
 
 **2.6.7 Changes:**
 

@@ -15,6 +15,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Skill
 {
+    /*
     [ChaosTimedEffect("force_activate_random_skill", 90f, DefaultSelectionWeight = 0.6f)]
     [EffectConfigBackwardsCompatibility("Effect: Force Activate Random Skill (Lasts 1 stage)")]
     [RequiredComponents(typeof(SkillSlotSubtitleProvider))]
@@ -148,4 +149,5 @@ namespace RiskOfChaos.EffectDefinitions.Character.Skill
             }
         }
     }
+    */
 }

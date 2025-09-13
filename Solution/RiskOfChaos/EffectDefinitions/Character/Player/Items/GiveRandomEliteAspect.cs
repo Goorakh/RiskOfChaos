@@ -11,6 +11,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
+    /*
     [ChaosEffect("give_random_elite_aspect", DefaultSelectionWeight = 0.6f)]
     public sealed class GiveRandomEliteAspect : NetworkBehaviour
     {
@@ -87,4 +88,5 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             }
         }
     }
+    */
 }

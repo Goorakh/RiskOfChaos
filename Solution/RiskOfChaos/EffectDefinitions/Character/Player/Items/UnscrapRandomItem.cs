@@ -19,7 +19,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
-    [ChaosEffect("unscrap_random_item")]
+    [ChaosEffect("unscrap_random_item", DefaultSelectionWeight = 0.5f)]
     public sealed class UnscrapRandomItem : NetworkBehaviour
     {
         [EffectConfig]

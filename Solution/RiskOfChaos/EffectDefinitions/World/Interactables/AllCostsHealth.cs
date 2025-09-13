@@ -17,6 +17,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Interactables
 {
+    /*
     [ChaosTimedEffect("all_costs_health", TimedEffectType.UntilStageEnd, AllowDuplicates = false, DefaultSelectionWeight = 0.8f)]
     [EffectConfigBackwardsCompatibility("Effect: Blood Money (Lasts 1 stage)")]
     public sealed class AllCostsHealth : MonoBehaviour
@@ -168,4 +169,5 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
             }
         }
     }
+    */
 }

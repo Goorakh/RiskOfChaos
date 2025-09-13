@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
-    [ChaosEffect("give_tonic_affliction", DefaultSelectionWeight = 0.4f)]
+    [ChaosEffect("give_tonic_affliction", DefaultSelectionWeight = 0.6f)]
     public sealed class GiveTonicAffliction : MonoBehaviour
     {
         [EffectConfig]

@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
+    /*
     [ChaosTimedEffect("all_skills_agile", TimedEffectType.UntilStageEnd, AllowDuplicates = false)]
     [EffectConfigBackwardsCompatibility("Effect: All Skills are Agile (Lasts 1 stage)")]
     public sealed class AllSkillsAgile : MonoBehaviour
@@ -19,4 +20,5 @@ namespace RiskOfChaos.EffectDefinitions.Character
             OverrideSkillsAgile.AllSkillsAgileCount--;
         }
     }
+    */
 }

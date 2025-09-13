@@ -7,6 +7,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Cooldown
 {
+    /*
     [ChaosEffect("max_cooldowns")]
     public sealed class MaxCooldowns : MonoBehaviour
     {
@@ -74,4 +75,5 @@ namespace RiskOfChaos.EffectDefinitions.Character.Cooldown
             }, FormatUtils.GetBestBodyName);
         }
     }
+    */
 }

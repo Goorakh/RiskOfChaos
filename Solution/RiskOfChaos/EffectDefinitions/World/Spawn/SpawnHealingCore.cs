@@ -9,6 +9,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
+    /*
     [ChaosEffect("spawn_healing_core")]
     public sealed class SpawnHealingCore : MonoBehaviour
     {
@@ -83,4 +84,5 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             }
         }
     }
+    */
 }

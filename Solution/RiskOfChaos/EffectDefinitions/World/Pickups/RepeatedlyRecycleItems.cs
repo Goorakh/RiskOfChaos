@@ -108,7 +108,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
             }
             set
             {
-                List<PickupIndex> recycleSteps = new List<PickupIndex>(value ?? []);
+                List<PickupIndex> recycleSteps = value != null ? [.. value] : [];
 
                 for (int i = recycleSteps.Count - 1; i >= 0; i--)
                 {
@@ -118,7 +118,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                     }
                 }
 
-                _recycleSteps = recycleSteps.ToArray();
+                _recycleSteps = [.. recycleSteps];
             }
         }
 

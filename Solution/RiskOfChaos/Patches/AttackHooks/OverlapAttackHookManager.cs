@@ -35,7 +35,7 @@ namespace RiskOfChaos.Patches.AttackHooks
         {
             _overlapAttack = overlapAttack;
             _overlapAttackTemplate = AttackUtils.Clone(_overlapAttack);
-            _hitList = new List<OverlapAttack.OverlapInfo>(hitList ?? []);
+            _hitList = hitList != null ? [.. hitList] : [];
 
             AttackInfo = new AttackInfo(_overlapAttack);
         }

@@ -14,12 +14,12 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Cooldown
 {
-    [ChaosTimedEffect("increase_skill_cooldown", TimedEffectType.UntilStageEnd, ConfigName = "Increase Skill Cooldowns")]
+    [ChaosTimedEffect("increase_skill_cooldown", TimedEffectType.UntilStageEnd, DefaultSelectionWeight = 0.8f, ConfigName = "Increase Skill Cooldowns")]
     public sealed class IncreaseSkillCooldowns : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<float> _cooldownIncrease =
-            ConfigFactory<float>.CreateConfig("Cooldown Increase", 0.5f)
+            ConfigFactory<float>.CreateConfig("Cooldown Increase", 0.25f)
                                 .Description("How much to increase skill cooldowns by")
                                 .AcceptableValues(new AcceptableValueMin<float>(0f))
                                 .OptionConfig(new FloatFieldConfig

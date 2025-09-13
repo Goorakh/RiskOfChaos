@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 148 different effects.
+Currently features 133 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -21,17 +21,15 @@ Currently features 148 different effects.
 * Spawn Scavenger Bag: Spawns a scavenger bag near a random player
 * Loose Pockets: Drops a random item from everyone's inventory every 0.9 seconds
 * Meteor Shower: Activates the glowing meteorite equipment
-* Randomize Loadout: Randomizes all player's loadouts (skills and skins)
 * You and a super intelligent Lemurian...: Spawns an invincible Lemurian in a random location on the map with an infinite damage stat (instantly die if you touch it)
 * Mitosis: Duplicates every character on the map
 * Scrap Random Item: Turns a random scrappable item in every players inventory into the corresponding scrap
 * Increase Gravity: Increases gravity by a configurable amount (default +50%), lasts until the end of the current stage
 * Decrease Gravity: Decreases gravity by a configurable amount (default -50%), lasts until the end of the current stage
-* Give Random Elite Aspect: Gives all players a random elite aspect (drops on the ground if they don't have any empty equipment slots)
 * Corrupt Random Item: Converts a random item in every player's inventory to the void variant
 * Spawn Doppelganger: Triggers the Artifact of Vengeance event
 * Potrolling: Spawns a bunch of nice pots for you to roll
-* Wet Floor: Every surface is slippery. Lasts until end of current stage
+* Wet Floor: Every surface is slippery. Lasts 1 stage
 * Increase Chest Prices: Increases the cost of all interactables by a configurable amount (default +25%)
 * Decrease Chest Prices: Decreases the cost of all interactables by a configurable amount (default -25%)
 * Spawn Void Implosion: Spawns a random void implosion on every player
@@ -39,13 +37,11 @@ Currently features 148 different effects.
 * Voidtouch Everyone: Makes every non-player on the stage into a voidtouched elite (including allies)
 * Duplicate Random Item Stack: Duplicates a random item stack for every player
 * Teleport to Random Location: Teleports every player to a random location on the current stage
-* Activate Random Equipment: Activates a random activatable equipment on all characters
-* Change Difficulty: Sets the current difficulty to a random one for the rest of the run
+* Change Difficulty: Sets the current difficulty to a random one, lasts 1 stage
 * Combo: Activates 2 other random effects
 * Gambling Addiction: Replaces every source of loot on the map with a chance shrine
 * Give Tonic Affliction: Gives all players one Tonic Affliction
 * Spawn Random Boss: Spawns a random boss
-* Max All Cooldowns: Sets all skill and equipment cooldowns to their maximum value (as if you just used them)
 * Uncorrupt Random Item: Converts all of a random item into its non-void variant
 * Poverty: Converts all players' money into experience
 * +5 Minutes: Adds 5 minutes to the run timer
@@ -61,20 +57,15 @@ Currently features 148 different effects.
 * Add Random Item to Monster Inventory: Permanently adds a random item to all enemies
 * Spawn Void Seed: Spawns a void seed somewhere on the map
 * All Items Are Void Potentials: All dropped items become Void Potentials. The original item is always guaranteed to be an option to prevent potential softlocks. Lasts 1 stage
-* All Skills are Agile: Allows every skill to be used while sprinting. Lasts 1 stage
-* Give Everyone a Random Buff: Gives every character on the map a random buff for the rest of the current stage.
-* Give Everyone a Random Debuff: Gives every character on the map a random debuff for the rest of the current stage.
+* Give Everyone a Random Buff: Gives every character on the map a random buff, lasts 90 seconds.
+* Give Everyone a Random Debuff: Gives every character on the map a random debuff, lasts 60 seconds.
 * Moon Detonation: Starts the moon escape sequence. Lasts 45 seconds (configurable)
 * Spawn Random Interactable: Spawns a random interactable at every player
 * Spawn Random Portal: Spawns a random portal at a random player
 * Increase Proc Coefficients: Multiplies all proc coefficients by 2 (configurable)
-* Guaranteed Chance Effects: All percent-chance effects are guaranteed to happen (effectively infinite luck stat on everything), lasts 1 stage
+* Guaranteed Chance Effects: All percent-chance effects are guaranteed to happen (effectively infinite luck stat on everything), lasts 30 seconds
 * Increase Projectile Speed: Increases the speed of all projectiles, lasts 1 stage (+50% by default, configurable)
 * Decrease Projectile Speed: Decreases the speed of all projectiles, lasts 1 stage (-50% by default, configurable)
-* Increase World Speed: Increases the game speed, but compensates all players to be slower, gives the illusion of everything else being faster, lasts 1 stage (+50% by default, configurable)
-* Decrease World Speed: Decreases the game speed, but compensates all players to be faster, gives the illusion of everything else being slower, lasts 1 stage (-50% by default, configurable)
-* Blood Money: All interactable prices are converted into percent health cost, lasts 1 stage
-* Force Activate Random Skill: Forces a random skill to constantly activate, lasts 90 seconds
 * Spawn Random Enemy: Spawns a random enemy for every player
 * Spawn Random Ally: Spawns a random ally for every player
 * Steal Player Items: Steals items from every player and distributes them among enemies, damage the enemy that took items to gain them back (leaving the stage will also give all the items back)
@@ -91,17 +82,14 @@ Currently features 148 different effects.
 * Superhot: Time moves when players move
 * Gupscare: Spawns a Gup above every player
 * Roll Credits: Starts the game credits
-* Aspect Roulette: Randomly switches the elite aspect of all characters (only affects players if they already have an aspect equipment)
 * Unscrap Random Item: Converts a random stack of scrap into a random item of the same tier
 * Disable Procs: Disables all proc effects. Lasts 45 seconds
 * Item Magnet: All pickups move towards players. Lasts 90 seconds
 * Item Repulsor: All pickups move away from players. Lasts 90 seconds
 * Kill All Player Allies: Kills all player allies
 * No sprinting: Disables sprinting for all characters, lasts 30 seconds
-* Everyone is Invisible: Every character on the stage becomes invisible, lasts 30 seconds
 * Revive Dead Characters: Revives all recently killed characters
 * Lock All Chests: Locks all chests as if the teleporter has started, lasts 45 seconds
-* Delayed Attacks: All attacks have a 0.5 second delay before happening, lasts 90 seconds
 * Recruit Random Enemy: Converts a random enemy on the stage to the player team
 * Adaptive Recycling: Repeatedly recycles all items on the stage, lasts 90 seconds
 * Decrease Teleporter Charge Rate: Decreases charge rate for all holdout zones, lasts 1 stage
@@ -123,7 +111,6 @@ Currently features 148 different effects.
 * Increase Skill Charges: Adds 1 charge to every skill, lasts 1 stage
 * Decrease Skill Charges: Removes 1 charge from every skill (cannot reduce below 1), lasts 1 stage
 * Focused Teleporter Charging: Holdout zone radius decreases with charge percentage, lasts 1 stage
-* Sluggish Camera: Delays camera position by a small amount, lasts 45 seconds
 * No Recoil: Disables all recoil, lasts 90 seconds
 * High FOV: Increases camera Field of View, lasts 90 seconds
 * Low FOV: Decreases camera Field of View, lasts 45 seconds
@@ -150,13 +137,11 @@ Currently features 148 different effects.
 * All Interactables are Cloaked: Turns all interactables into cloaked variants, lasts 90 seconds
 * Consume Random Item: Turns a random consumable item from every player into its consumed variant
 * Repair Random Item: Turns a random consumed item from every player into its regular variant
-* Heal Everyone: Spawns Healing Cores on every character
 * Grenade Bullets: All attacks are replaced with grenades, lasts 90 seconds
 * Enable Backstabs for All Damage: Enables Bandit's backstab passive for all damage, lasts 90 seconds
 * Spawn Fake Teleporter: Spawns a fake teleporter somewhere on the stage.
 * End All Active Effects: Ends all currently active effects.
 * Disable Revives: Disables all means of reviving, lasts 1 stage.
-* Cycle Skills on Use: Using a skill switches it to a different skill. Lasts 90 seconds.
 </details>
 
 <hr>

@@ -15,7 +15,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 {
-    [ChaosEffect("swap_player_inventories", EnabledInSingleplayer = false)]
+    [ChaosEffect("swap_player_inventories", EnabledInSingleplayer = false, DefaultSelectionWeight = 0.5f)]
     public sealed class SwapPlayerInventories : NetworkBehaviour
     {
         [RequireComponent(typeof(CharacterBody))]

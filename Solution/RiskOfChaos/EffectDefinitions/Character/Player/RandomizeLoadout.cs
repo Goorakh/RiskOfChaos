@@ -17,6 +17,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character.Player
 {
+    /*
     [ChaosEffect("randomize_loadout", DefaultSelectionWeight = 0.7f)]
     public sealed class RandomizeLoadout : NetworkBehaviour
     {
@@ -428,4 +429,5 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player
             }
         }
     }
+    */
 }

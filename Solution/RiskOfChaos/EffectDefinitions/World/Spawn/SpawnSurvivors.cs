@@ -26,7 +26,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         [EffectConfig]
         static readonly ConfigHolder<int> _numPodSpawns =
-            ConfigFactory<int>.CreateConfig("Pod Spawn Count", 10)
+            ConfigFactory<int>.CreateConfig("Pod Spawn Count", 5)
                               .Description("The amount of pods to spawn")
                               .AcceptableValues(new AcceptableValueMin<int>(1))
                               .OptionConfig(new IntFieldConfig { Min = 1 })
