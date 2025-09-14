@@ -2,7 +2,6 @@
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using RoR2.ContentManagement;
 using System;
 using UnityEngine;
 
@@ -15,7 +14,7 @@ namespace RiskOfChaos.Trackers
         {
             static void addTracker(string prefabAssetGuid)
             {
-                AddressableUtil.LoadAssetAsync<GameObject>(prefabAssetGuid, AsyncReferenceHandleUnloadType.Preload).OnSuccess(prefab =>
+                AddressableUtil.LoadTempAssetAsync<GameObject>(prefabAssetGuid).OnSuccess(prefab =>
                 {
                     OptionPickupTracker optionPickupTracker = prefab.EnsureComponent<OptionPickupTracker>();
                     optionPickupTracker._pickupPickerController = prefab.GetComponent<PickupPickerController>();

@@ -6,7 +6,6 @@ using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using RoR2.ContentManagement;
 using RoR2.ConVar;
 using RoR2.Orbs;
 using System.Collections;
@@ -31,7 +30,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             [ContentInitializer]
             static IEnumerator LoadContent(EffectDefAssetCollection effectDefs)
             {
-                AsyncOperationHandle<GameObject> strikeEffectLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Lightning_LightningStrikeImpact_prefab, AsyncReferenceHandleUnloadType.Preload);
+                AsyncOperationHandle<GameObject> strikeEffectLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Lightning_LightningStrikeImpact_prefab);
                 strikeEffectLoad.OnSuccess(strikeEffectPrefab =>
                 {
                     GameObject prefab = strikeEffectPrefab.InstantiatePrefab("LightningStrikeImpact_SoundFixed");

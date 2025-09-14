@@ -4,8 +4,6 @@ using RiskOfChaos.ModificationController.SkillSlots;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using RoR2.ContentManagement;
-using RoR2.Skills;
 using RoR2.UI;
 using UnityEngine;
 
@@ -18,7 +16,7 @@ namespace RiskOfChaos.Patches
         [SystemInitializer]
         static void Init()
         {
-            AddressableUtil.LoadAssetAsync<CaptainSupplyDropSkillDef>(AddressableGuids.RoR2_Base_Captain_PrepSupplyDrop_asset, AsyncReferenceHandleUnloadType.Preload).OnSuccess(s => _lockedSkillIcon = s.exhaustedIcon);
+            AddressableUtil.LoadTempAssetAsync<Sprite>($"{AddressableGuids.RoR2_Base_UI_texGenericSkillIcons_png}[texGenericSkillIcons_0]").OnSuccess(s => _lockedSkillIcon = s);
 
             On.RoR2.GenericSkill.CanExecute += GenericSkill_CanExecute;
             On.RoR2.GenericSkill.IsReady += GenericSkill_IsReady;

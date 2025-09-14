@@ -2,7 +2,6 @@
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using RoR2.ContentManagement;
 using RoR2.ExpansionManagement;
 using System.Collections;
 using System.Collections.Generic;
@@ -28,7 +27,7 @@ namespace RiskOfChaos.Patches
                     return;
                 }
 
-                AsyncOperationHandle<GameObject> loadHandle = AddressableUtil.LoadAssetAsync<GameObject>(prefabAssetGuid, AsyncReferenceHandleUnloadType.Preload);
+                AsyncOperationHandle<GameObject> loadHandle = AddressableUtil.LoadTempAssetAsync<GameObject>(prefabAssetGuid);
                 loadHandle.OnSuccess(prefab =>
                 {
                     ExpansionDef expansionDef = ExpansionUtils.GetExpansionDef(expansionIndex);

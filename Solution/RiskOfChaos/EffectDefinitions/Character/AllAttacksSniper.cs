@@ -4,7 +4,6 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
-using RoR2.ContentManagement;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -20,7 +19,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         [PrefabInitializer]
         static IEnumerator InitPrefab(GameObject prefab)
         {
-            AsyncOperationHandle<GameObject> railgunnerBodyLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_DLC1_Railgunner_RailgunnerBody_prefab, AsyncReferenceHandleUnloadType.Preload);
+            AsyncOperationHandle<GameObject> railgunnerBodyLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_DLC1_Railgunner_RailgunnerBody_prefab);
             railgunnerBodyLoad.OnSuccess(railgunnerBodyPrefab =>
             {
                 if (railgunnerBodyPrefab && railgunnerBodyPrefab.TryGetComponent(out AkBank railgunnerBank) && railgunnerBank.data?.ObjectReference)

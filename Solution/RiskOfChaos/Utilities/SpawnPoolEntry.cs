@@ -127,33 +127,29 @@ namespace RiskOfChaos.Utilities
         {
             SpawnPoolEntry<T> entry = new SpawnPoolEntry<T>(parameters);
 
-            AssetReferenceT<TAsset> assetReference = new AssetReferenceT<TAsset>(assetGuid);
-            AsyncOperationHandle<TAsset> assetLoadHandle = AddressableUtil.LoadAssetAsync(assetReference, AsyncReferenceHandleUnloadType.Preload);
+            AsyncOperationHandle<TAsset> assetLoadHandle = AddressableUtil.LoadTempAssetAsync<TAsset>(assetGuid);
             assetLoadHandle.Completed += handle =>
             {
-                if (handle.Result)
+                if (handle.Status != AsyncOperationStatus.Succeeded || !handle.Result)
                 {
-                    T convertedAsset = assetConverter(handle.Result);
+                    Log.Error($"Failed to load converted asset '{assetGuid}': {handle.OperationException}");
+                    return;
+                }
 
-                    if (typeof(T) == typeof(TAsset) && handle.Result == convertedAsset)
-                    {
-                        entry._assetGuid = assetGuid;
-                    }
-                    else
-                    {
-                        entry._directReference = convertedAsset;
-                    }
+                T convertedAsset = assetConverter(handle.Result);
 
-                    // Regardless if the converted asset is different or not,
-                    // we can still confidently cache the name here since it's already loaded
-                    entry._cachedAssetName = convertedAsset.ToString();
+                if (typeof(T) == typeof(TAsset) && handle.Result == convertedAsset)
+                {
+                    entry._assetGuid = assetGuid;
                 }
                 else
                 {
-                    Log.Error($"Failed to load converted asset '{assetGuid}': {handle.OperationException}");
+                    entry._directReference = convertedAsset;
                 }
 
-                AddressableUtil.UnloadAsset(assetReference);
+                // Regardless if the converted asset is different or not,
+                // we can still confidently cache the name here since it's already loaded
+                entry._cachedAssetName = convertedAsset.ToString();
             };
 
             entry._assetConversionLoadHandle = assetLoadHandle;

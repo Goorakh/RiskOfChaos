@@ -3,7 +3,6 @@ using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using RoR2.ContentManagement;
 using RoR2.ExpansionManagement;
 using System.Collections.Generic;
 using UnityEngine;
@@ -30,7 +29,7 @@ namespace RiskOfChaos.EffectDefinitions.World
 
             static void loadAndSetPoolEntryDccs(DccsPool.PoolEntry poolEntry, string assetGuid)
             {
-                AsyncOperationHandle<FamilyDirectorCardCategorySelection> loadAssetHandle = AddressableUtil.LoadAssetAsync<FamilyDirectorCardCategorySelection>(assetGuid, AsyncReferenceHandleUnloadType.Preload);
+                AsyncOperationHandle<FamilyDirectorCardCategorySelection> loadAssetHandle = AddressableUtil.LoadTempAssetAsync<FamilyDirectorCardCategorySelection>(assetGuid);
                 loadAssetHandle.OnSuccess(familyDccs =>
                 {
                     string name = familyDccs.name;

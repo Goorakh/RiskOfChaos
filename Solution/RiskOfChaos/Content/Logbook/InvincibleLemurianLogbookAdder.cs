@@ -5,7 +5,6 @@ using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using RoR2.ContentManagement;
 using RoR2.ExpansionManagement;
 using RoR2.Stats;
 using RoR2.UI;
@@ -112,7 +111,7 @@ namespace RiskOfChaos.Content.Logbook
                 return glowModelPrefab;
             }
 
-            AsyncOperationHandle<GameObject> lemurianBodyLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Lemurian_LemurianBody_prefab, AsyncReferenceHandleUnloadType.Preload);
+            AsyncOperationHandle<GameObject> lemurianBodyLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Lemurian_LemurianBody_prefab);
             lemurianBodyLoad.OnSuccess(lemurianBody =>
             {
                 _lemurianBodyPrefab = lemurianBody.GetComponent<CharacterBody>();
@@ -124,7 +123,7 @@ namespace RiskOfChaos.Content.Logbook
 
             parallelCoroutine.Add(lemurianBodyLoad);
 
-            AsyncOperationHandle<GameObject> elderLemurianBodyLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_LemurianBruiser_LemurianBruiserBody_prefab, AsyncReferenceHandleUnloadType.Preload);
+            AsyncOperationHandle<GameObject> elderLemurianBodyLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_LemurianBruiser_LemurianBruiserBody_prefab);
             elderLemurianBodyLoad.OnSuccess(elderLemurianBody =>
             {
                 _lemurianBruiserBodyPrefab = elderLemurianBody.GetComponent<CharacterBody>();
@@ -261,7 +260,7 @@ namespace RiskOfChaos.Content.Logbook
 
                 if (!_invincibleLemurianLogbookEntryBackgroundTexture)
                 {
-                    _invincibleLemurianLogbookEntryBackgroundTexture = AddressableUtil.LoadAssetAsync<Texture2D>(AddressableGuids.RoR2_Base_Common_texBossBGIcon_png).WaitForCompletion();
+                    _invincibleLemurianLogbookEntryBackgroundTexture = Addressables.LoadAssetAsync<Texture2D>(AddressableGuids.RoR2_Base_Common_texBossBGIcon_png).WaitForCompletion();
                 }
 
 #pragma warning disable CS0618 // Type or member is obsolete

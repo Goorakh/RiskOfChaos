@@ -22,7 +22,7 @@ namespace RiskOfChaos.UI
         [SystemInitializer]
         static IEnumerator Init()
         {
-            AsyncOperationHandle<Sprite> texUICutOffCornerLoad = AddressableUtil.LoadAssetAsync<Sprite>(AddressableGuids.RoR2_Base_UI_texUICutOffCorner_png, RoR2.ContentManagement.AsyncReferenceHandleUnloadType.Preload);
+            AsyncOperationHandle<Sprite> texUICutOffCornerLoad = AddressableUtil.LoadTempAssetAsync<Sprite>($"{AddressableGuids.RoR2_Base_UI_texUICutOffCorner_png}[texUICutOffCorner]");
             texUICutOffCornerLoad.OnSuccess(texUICutOffCorner =>
             {
                 ActiveEffectsPanel.mainPanelStyle = new UISkinData.PanelStyle

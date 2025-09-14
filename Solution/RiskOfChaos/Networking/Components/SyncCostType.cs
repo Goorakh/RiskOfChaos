@@ -4,10 +4,8 @@ using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using RoR2.ContentManagement;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
@@ -33,7 +31,7 @@ namespace RiskOfChaos.Networking.Components
 
             static void addComponentToPrefab(string prefabAssetGuid)
             {
-                AsyncOperationHandle<GameObject> prefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(prefabAssetGuid, AsyncReferenceHandleUnloadType.Preload);
+                AsyncOperationHandle<GameObject> prefabLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(prefabAssetGuid);
                 prefabLoad.OnSuccess(prefab => prefab.EnsureComponent<SyncCostType>());
             }
 

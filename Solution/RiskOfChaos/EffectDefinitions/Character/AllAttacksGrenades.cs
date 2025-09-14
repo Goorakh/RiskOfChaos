@@ -6,7 +6,6 @@ using RiskOfChaos.ModificationController.Projectile;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using RoR2.ContentManagement;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -20,7 +19,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         [PrefabInitializer]
         static IEnumerator InitPrefab(GameObject prefab)
         {
-            AsyncOperationHandle<GameObject> commandoBodyLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Commando_CommandoBody_prefab, AsyncReferenceHandleUnloadType.Preload);
+            AsyncOperationHandle<GameObject> commandoBodyLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Commando_CommandoBody_prefab);
             commandoBodyLoad.OnSuccess(commandoBodyPrefab =>
             {
                 if (commandoBodyPrefab && commandoBodyPrefab.TryGetComponent(out AkBank commandoBank) && commandoBank.data?.ObjectReference)

@@ -6,7 +6,6 @@ using RiskOfChaos.Trackers;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using RoR2.ContentManagement;
 using RoR2.Projectile;
 using System;
 using System.Collections.Generic;
@@ -25,7 +24,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
         {
             static void addNetworkTransformAsync(string prefabAssetGuid)
             {
-                AsyncOperationHandle<GameObject> prefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(prefabAssetGuid, AsyncReferenceHandleUnloadType.Preload);
+                AsyncOperationHandle<GameObject> prefabLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(prefabAssetGuid);
                 prefabLoad.OnSuccess(prefab =>
                 {
                     ProjectileNetworkTransform networkTransform = prefab.GetComponent<ProjectileNetworkTransform>();

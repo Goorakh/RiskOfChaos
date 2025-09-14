@@ -2,7 +2,6 @@
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using RoR2.ContentManagement;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -15,7 +14,7 @@ namespace RiskOfChaos.EffectDefinitions.World
         {
             if (NetworkServer.active)
             {
-                AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Meteor_MeteorStorm_prefab, AsyncReferenceHandleUnloadType.OnSceneUnload).OnSuccess(spawnMeteor);
+                AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Meteor_MeteorStorm_prefab).OnSuccess(spawnMeteor);
             }
         }
 

@@ -31,9 +31,7 @@ namespace RiskOfChaos.Utilities
 
                 EquipmentDef equipmentDef = eliteDef.eliteEquipmentDef;
                 if (!equipmentDef || equipmentDef.equipmentIndex == EquipmentIndex.None)
-                {
                     continue;
-                }
 
                 allEliteEquipmentIndices.Add(equipmentDef.equipmentIndex);
 
@@ -46,7 +44,7 @@ namespace RiskOfChaos.Utilities
                 bool isNullModel;
                 if (equipmentDef.pickupModelReference != null && equipmentDef.pickupModelReference.RuntimeKeyIsValid())
                 {
-                    isNullModel = equipmentDef.pickupModelReference.AssetGUID == AddressableGuids.RoR2_Base_Core_NullModel_prefab;
+                    isNullModel = (equipmentDef.pickupModelReference.RuntimeKey as string) == AddressableGuids.RoR2_Base_Core_NullModel_prefab;
                 }
                 else
                 {

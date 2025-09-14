@@ -4,7 +4,6 @@ using MonoMod.Cil;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using RoR2.ContentManagement;
 using System.Collections;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -19,7 +18,7 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
         [SystemInitializer]
         static IEnumerator Init()
         {
-            AsyncOperationHandle<InteractableSpawnCard> iscShrineChanceLoad = AddressableUtil.LoadAssetAsync<InteractableSpawnCard>(AddressableGuids.RoR2_Base_ShrineChance_iscShrineChance_asset, AsyncReferenceHandleUnloadType.Preload);
+            AsyncOperationHandle<InteractableSpawnCard> iscShrineChanceLoad = AddressableUtil.LoadTempAssetAsync<InteractableSpawnCard>(AddressableGuids.RoR2_Base_ShrineChance_iscShrineChance_asset);
             iscShrineChanceLoad.OnSuccess(iscChanceShrine =>
             {
                 // Make new instance of the spawn card so that settings can safely be changed without messing with the original behavior

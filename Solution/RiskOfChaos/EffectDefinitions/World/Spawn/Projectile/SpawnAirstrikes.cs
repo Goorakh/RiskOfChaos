@@ -5,7 +5,6 @@ using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using RoR2.ContentManagement;
 using RoR2.Navigation;
 using RoR2.Projectile;
 using System.Collections;
@@ -21,7 +20,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
         [PrefabInitializer]
         static IEnumerator InitPrefab(GameObject prefab)
         {
-            AsyncOperationHandle<GameObject> captainBodyLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Captain_CaptainBody_prefab, AsyncReferenceHandleUnloadType.Preload);
+            AsyncOperationHandle<GameObject> captainBodyLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Captain_CaptainBody_prefab);
             captainBodyLoad.OnSuccess(captainBodyPrefab =>
             {
                 if (captainBodyPrefab && captainBodyPrefab.TryGetComponent(out AkBank captainBank) && captainBank.data?.ObjectReference)

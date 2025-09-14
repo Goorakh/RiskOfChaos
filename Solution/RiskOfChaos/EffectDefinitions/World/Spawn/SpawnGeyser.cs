@@ -48,7 +48,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             {
                 int prefabIndex = i;
 
-                AsyncOperationHandle<GameObject> geyserLoad = AddressableUtil.LoadAssetAsync<GameObject>(geyserPrefabGuids[i], AsyncReferenceHandleUnloadType.Preload);
+                AsyncOperationHandle<GameObject> geyserLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(geyserPrefabGuids[i]);
                 geyserLoad.OnSuccess(geyserPrefab =>
                 {
                     GameObject geyserHolder = Prefabs.CreateNetworkedPrefab("Networked" + geyserPrefab.name, [
@@ -69,14 +69,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     grantItemsOnJump.Items = [
                         new GrantTemporaryItemsOnJump.ConditionalItem
                         {
-                            ItemDef = AddressableUtil.LoadAssetAsync<ItemDef>(AddressableGuids.RoR2_Base_Feather_Feather_asset, AsyncReferenceHandleUnloadType.Preload).WaitForCompletion(),
+                            ItemDef = AddressableUtil.LoadTempAssetAsync<ItemDef>(AddressableGuids.RoR2_Base_Feather_Feather_asset).WaitForCompletion(),
                             GrantToPlayers = true,
                             IgnoreIfItemAlreadyPresent = true,
                             NotifyPickupIfNoneActive = true,
                         },
                         new GrantTemporaryItemsOnJump.ConditionalItem
                         {
-                            ItemDef = AddressableUtil.LoadAssetAsync<ItemDef>(AddressableGuids.RoR2_Base_TeleportWhenOob_TeleportWhenOob_asset, AsyncReferenceHandleUnloadType.Preload).WaitForCompletion(),
+                            ItemDef = AddressableUtil.LoadTempAssetAsync<ItemDef>(AddressableGuids.RoR2_Base_TeleportWhenOob_TeleportWhenOob_asset).WaitForCompletion(),
                             GrantToInvincibleLemurian = true,
                             IgnoreIfItemAlreadyPresent = true,
                         }

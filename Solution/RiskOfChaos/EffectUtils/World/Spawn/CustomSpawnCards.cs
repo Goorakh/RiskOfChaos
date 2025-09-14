@@ -2,7 +2,6 @@
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using RoR2.ContentManagement;
 using RoR2.Navigation;
 using System.Collections;
 using UnityEngine;
@@ -31,7 +30,7 @@ namespace RiskOfChaos.EffectUtils.World.Spawn
             iscTimedChest.orientToFloor = false;
             iscTimedChest.slightlyRandomizeOrientation = false;
 
-            AsyncOperationHandle<InteractableSpawnCard> iscGeodeLoad = AddressableUtil.LoadAssetAsync<InteractableSpawnCard>(AddressableGuids.RoR2_DLC2_iscGeode_asset, AsyncReferenceHandleUnloadType.Preload);
+            AsyncOperationHandle<InteractableSpawnCard> iscGeodeLoad = AddressableUtil.LoadTempAssetAsync<InteractableSpawnCard>(AddressableGuids.RoR2_DLC2_iscGeode_asset);
             iscGeodeLoad.OnSuccess(iscGeode =>
             {
                 iscGeodeFixed = ScriptableObject.Instantiate(iscGeode);

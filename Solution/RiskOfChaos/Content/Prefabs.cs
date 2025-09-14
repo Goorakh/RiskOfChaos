@@ -6,7 +6,6 @@ using RiskOfChaos.Networking.Components;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
-using RoR2.ContentManagement;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -205,7 +204,7 @@ namespace RiskOfChaos.Content
 
             // MonsterItemStealController
             {
-                AsyncOperationHandle<GameObject> itemStealControllerLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Brother_ItemStealController_prefab, AsyncReferenceHandleUnloadType.Preload);
+                AsyncOperationHandle<GameObject> itemStealControllerLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Brother_ItemStealController_prefab);
                 itemStealControllerLoad.OnSuccess(itemStealControllerPrefab =>
                 {
                     GameObject prefab = itemStealControllerPrefab.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.MonsterItemStealController));
@@ -228,7 +227,7 @@ namespace RiskOfChaos.Content
 
             // ItemStealerPositionIndicator
             {
-                AsyncOperationHandle<GameObject> positionIndicatorLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Common_BossPositionIndicator_prefab, AsyncReferenceHandleUnloadType.Preload);
+                AsyncOperationHandle<GameObject> positionIndicatorLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Common_BossPositionIndicator_prefab);
                 positionIndicatorLoad.OnSuccess(positionIndicatorPrefab =>
                 {
                     GameObject prefab = positionIndicatorPrefab.InstantiatePrefab(nameof(RoCContent.LocalPrefabs.ItemStealerPositionIndicator));
@@ -259,7 +258,7 @@ namespace RiskOfChaos.Content
 
             // NetworkedSulfurPodBase
             {
-                AsyncOperationHandle<GameObject> sulfurPodBaseLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_DLC1_sulfurpools_SPSulfurPodBase_prefab, AsyncReferenceHandleUnloadType.Preload);
+                AsyncOperationHandle<GameObject> sulfurPodBaseLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_DLC1_sulfurpools_SPSulfurPodBase_prefab);
                 sulfurPodBaseLoad.OnSuccess(sulfurPodBasePrefab =>
                 {
                     GameObject prefab = sulfurPodBasePrefab.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.NetworkedSulfurPodBase));
@@ -283,7 +282,7 @@ namespace RiskOfChaos.Content
 
             // NewtStatueFixedOrigin
             {
-                AsyncOperationHandle<GameObject> newtStatueLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_NewtStatue_NewtStatue_prefab, AsyncReferenceHandleUnloadType.Preload);
+                AsyncOperationHandle<GameObject> newtStatueLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_NewtStatue_NewtStatue_prefab);
                 newtStatueLoad.OnSuccess(newtStatuePrefab =>
                 {
                     GameObject prefab = newtStatuePrefab.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.NewtStatueFixedOrigin));
@@ -302,7 +301,7 @@ namespace RiskOfChaos.Content
 
             // TimedChestFixedOrigin
             {
-                AsyncOperationHandle<GameObject> timedChestLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_TimedChest_TimedChest_prefab, AsyncReferenceHandleUnloadType.Preload);
+                AsyncOperationHandle<GameObject> timedChestLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_TimedChest_TimedChest_prefab);
                 timedChestLoad.OnSuccess(timedChest =>
                 {
                     GameObject prefab = timedChest.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.TimedChestFixedOrigin));
@@ -330,7 +329,7 @@ namespace RiskOfChaos.Content
 
             // BossCombatSquadNoReward
             {
-                AsyncOperationHandle<GameObject> bossCombatSquadLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Core_BossCombatSquad_prefab, AsyncReferenceHandleUnloadType.Preload);
+                AsyncOperationHandle<GameObject> bossCombatSquadLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Core_BossCombatSquad_prefab);
                 bossCombatSquadLoad.OnSuccess(bossCombatSquad =>
                 {
                     GameObject prefab = bossCombatSquad.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.BossCombatSquadNoReward));

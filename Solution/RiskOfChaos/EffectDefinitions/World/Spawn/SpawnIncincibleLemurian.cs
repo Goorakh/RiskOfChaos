@@ -12,7 +12,6 @@ using RoR2.CharacterAI;
 using RoR2.ContentManagement;
 using RoR2.Navigation;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -30,16 +29,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             ParallelCoroutine parallelCoroutine = new ParallelCoroutine();
 
-            AsyncOperationHandle<GameObject> lemurianBodyPrefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Lemurian_LemurianBody_prefab, AsyncReferenceHandleUnloadType.Preload);
+            AsyncOperationHandle<GameObject> lemurianBodyPrefabLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Lemurian_LemurianBody_prefab);
             parallelCoroutine.Add(lemurianBodyPrefabLoad);
 
-            AsyncOperationHandle<GameObject> lemurianMasterPrefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Lemurian_LemurianMaster_prefab, AsyncReferenceHandleUnloadType.Preload);
+            AsyncOperationHandle<GameObject> lemurianMasterPrefabLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Lemurian_LemurianMaster_prefab);
             parallelCoroutine.Add(lemurianMasterPrefabLoad);
 
-            AsyncOperationHandle<GameObject> lemurianBruiserBodyPrefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_LemurianBruiser_LemurianBruiserBody_prefab, AsyncReferenceHandleUnloadType.Preload);
+            AsyncOperationHandle<GameObject> lemurianBruiserBodyPrefabLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_LemurianBruiser_LemurianBruiserBody_prefab);
             parallelCoroutine.Add(lemurianBruiserBodyPrefabLoad);
 
-            AsyncOperationHandle<GameObject> lemurianBruiserMasterPrefabLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_LemurianBruiser_LemurianBruiserMaster_prefab, AsyncReferenceHandleUnloadType.Preload);
+            AsyncOperationHandle<GameObject> lemurianBruiserMasterPrefabLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_LemurianBruiser_LemurianBruiserMaster_prefab);
             parallelCoroutine.Add(lemurianBruiserMasterPrefabLoad);
 
             yield return parallelCoroutine;
