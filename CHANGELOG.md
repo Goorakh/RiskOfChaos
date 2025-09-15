@@ -24,6 +24,9 @@
 * Aspect Roulette:
   * No longer affects players' aspect.
 
+* One Hit KO:
+  * No longer affects bosses.
+
 * Adaptive Recycling:
   * Fixed 'Recycle Timer Scale' config value not being applied properly
 

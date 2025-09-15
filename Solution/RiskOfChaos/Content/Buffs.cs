@@ -31,26 +31,26 @@ namespace RiskOfChaos.Content
             {
                 RecalculateStatsAPI.GetStatCoefficients += getCharacterStatCoefficients;
 
-                CharacterBodyEvents.PostRecalculateStats += CharacterBodyRecalculateStatsHook_PostRecalculateStats;
+                CharacterBodyEvents.PostRecalculateStats += CharacterBody_PostRecalculateStats;
                 CharacterBodyEvents.OnBuffFirstStackGained += CharacterBody_OnBuffFirstStackGained;
             }
 
             static void getCharacterStatCoefficients(CharacterBody body, RecalculateStatsAPI.StatHookEventArgs args)
             {
-                if (body.HasBuff(SetTo1Hp))
+                if (body.HasBuff(SetTo1Hp) && !body.isBoss && !body.isChampion)
                 {
                     args.baseCurseAdd += 1e15f;
                 }
             }
 
-            static void CharacterBodyRecalculateStatsHook_PostRecalculateStats(CharacterBody body)
+            static void CharacterBody_PostRecalculateStats(CharacterBody body)
             {
-                if (body.HasBuff(SetTo1Hp))
+                if (body.HasBuff(SetTo1Hp) && !body.isBoss && !body.isChampion)
                 {
                     body.isGlass = true;
 
                     // Make sure barrier still decays, default behaviour makes barrier decay so small it basically never decays
-                    body.barrierDecayRate = body.maxBarrier;
+                    body.barrierDecayRate = Mathf.Max(body.barrierDecayRate, body.maxBarrier);
                 }
             }
 
