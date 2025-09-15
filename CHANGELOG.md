@@ -45,9 +45,6 @@
   * Default weight: 0.6 -> 0.5
   * Lunar scav bag chance: 20% -> 15%
 
-* Splitscreen:
-  * Default weight: 1.0 -> 0.5
-
 * Give Tonic Affliction
   * Default weight: 0.4 -> 0.6
 
