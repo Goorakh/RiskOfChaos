@@ -2,7 +2,7 @@
 
 **?.?.? Changes:**
 
-* Removed 14 effects:
+* Removed 15 effects:
   * All Skills are Agile
     * Just became a less untuitive version of the 'Always Sprinting' effect
   * Heal Everyone
@@ -18,6 +18,7 @@
   * Activate Random Equipment
   * Give Random Elite Aspect
   * Randomize Loadout
+  * Splitscreen
     * These were either unfun/boring on their own or messed with the balance too much to the point where the game was no longer fun.
 
 * Aspect Roulette:

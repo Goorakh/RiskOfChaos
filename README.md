@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 134 different effects.
+Currently features 133 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -130,7 +130,6 @@ Currently features 134 different effects.
 * Repeating Projectiles: All projectiles spawn an additional 5 copies after a delay, lasts 90 seconds
 * Swap Health & Shield: Swaps health and shield values for all characters, lasts 60 seconds
 * Cleanse Random Item: Turns a random item or equipment (lunars prioritized) from every player into a random pearl
-* Splitscreen: Splits the screen into 9 copies of the game view, lasts 45 seconds
 * Distant Camera: Moves the camera further away from the player, lasts 90 seconds
 * No Healthbars: Hides all health bars, lasts 60 seconds
 * Add Random Item Corruption Rule: Gives the "corruption" behaviour of void items to a random pair of items. Lasts for the rest of the run.
