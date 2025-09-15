@@ -4,7 +4,7 @@
 
 * Removed 15 effects:
   * All Skills are Agile
-    * Just became a less untuitive version of the 'Always Sprinting' effect
+    * Just became a less intuitive version of the 'Always Sprinting' effect
   * Heal Everyone
   * Cycle Skills On Use
   * Sluggish Camera
@@ -34,7 +34,7 @@
   * Reduced default number of spawned survivors: 10 -> 5
 
 * Increase Skill Cooldowns:
-  * Default increase: +50% -> +25%
+  * Default cooldown increase: +50% -> +25%
   * Default weight: 1.0 -> 0.8
 
 * Guaranteed Chance Effects:
