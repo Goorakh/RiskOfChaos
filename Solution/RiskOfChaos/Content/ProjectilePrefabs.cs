@@ -95,12 +95,12 @@ namespace RiskOfChaos.Content
                     yield return commandoGrenadeProjectileLoad;
                 }
 
-                yield return loadReplacedGrenade(projectilePrefabs, localPrefabs);
+                return loadReplacedGrenade(projectilePrefabs, localPrefabs);
 
                 static IEnumerator loadPulseGolemHookProjectile(ProjectilePrefabAssetCollection projectilePrefabs, LocalPrefabAssetCollection localPrefabs)
                 {
-                    AsyncOperationHandle<GameObject> hookProjectileLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Gravekeeper_GravekeeperHookProjectileSimple_prefab, AsyncReferenceHandleUnloadType.Preload);
-                    AsyncOperationHandle<GameObject> hookGhostLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Gravekeeper_GravekeeperHookGhost_prefab, AsyncReferenceHandleUnloadType.Preload);
+                    AsyncOperationHandle<GameObject> hookProjectileLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Gravekeeper_GravekeeperHookProjectileSimple_prefab);
+                    AsyncOperationHandle<GameObject> hookGhostLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Gravekeeper_GravekeeperHookGhost_prefab);
 
                     AsyncOperationHandle[] loadOperations = [hookProjectileLoad, hookGhostLoad];
                     yield return loadOperations.WaitForAllLoaded();
@@ -139,7 +139,7 @@ namespace RiskOfChaos.Content
                     hookProjectileHookController.ReelSpeed = 100f;
                     hookProjectileHookController.PullOriginChildName = "MuzzleLaser";
                     hookProjectileHookController.PullTargetDistance = 15f;
-                    AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Common_VFX_OmniImpactVFXSlash_prefab, AsyncReferenceHandleUnloadType.Preload).OnSuccess(impactEffectPrefab =>
+                    AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Common_VFX_OmniImpactVFXSlash_prefab).OnSuccess(impactEffectPrefab =>
                     {
                         hookProjectileHookController.HookCharacterEffectPrefab = impactEffectPrefab;
                     });
@@ -149,7 +149,7 @@ namespace RiskOfChaos.Content
                     projectilePrefabs.Add(hookProjectilePrefab);
                 }
 
-                yield return loadPulseGolemHookProjectile(projectilePrefabs, localPrefabs);
+                // yield return loadPulseGolemHookProjectile(projectilePrefabs, localPrefabs);
             }
         }
     }

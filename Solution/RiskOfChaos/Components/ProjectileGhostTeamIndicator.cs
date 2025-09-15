@@ -1,6 +1,7 @@
 ﻿using RoR2;
-using System;
+using RoR2.ContentManagement;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.Components
 {
@@ -8,13 +9,48 @@ namespace RiskOfChaos.Components
     {
         public ProjectileGhostTeamProvider TeamProvider;
 
-        public RenderTeamConfiguration[] TeamConfigurations;
+        public Renderer TargetRenderer;
+
+        public AssetReferenceT<Material> AllyMaterialAddress = new AssetReferenceT<Material>(string.Empty);
+        public AssetReferenceT<Material> EnemyMaterialAddress = new AssetReferenceT<Material>(string.Empty);
+
+        AssetOrDirectReference<Material> _allyMaterialReference;
+        AssetOrDirectReference<Material> _enemyMaterialReference;
+
+        bool _useAllyMaterial;
+        bool _useEnemyMaterial;
 
         void Awake()
         {
             if (!TeamProvider)
             {
                 TeamProvider = GetComponentInParent<ProjectileGhostTeamProvider>();
+            }
+
+            if (AllyMaterialAddress != null && AllyMaterialAddress.RuntimeKeyIsValid())
+            {
+                _allyMaterialReference = new AssetOrDirectReference<Material>
+                {
+                    unloadType = AsyncReferenceHandleUnloadType.AtWill,
+                };
+
+                _allyMaterialReference.onValidReferenceDiscovered += onAllyMaterialDiscovered;
+                _allyMaterialReference.onValidReferenceLost += onAllyMaterialLost;
+
+                _allyMaterialReference.address = AllyMaterialAddress;
+            }
+
+            if (EnemyMaterialAddress != null && EnemyMaterialAddress.RuntimeKeyIsValid())
+            {
+                _enemyMaterialReference = new AssetOrDirectReference<Material>
+                {
+                    unloadType = AsyncReferenceHandleUnloadType.AtWill,
+                };
+
+                _enemyMaterialReference.onValidReferenceDiscovered += onEnemyMaterialDiscovered;
+                _enemyMaterialReference.onValidReferenceLost += onEnemyMaterialLost;
+
+                _enemyMaterialReference.address = EnemyMaterialAddress;
             }
         }
 
@@ -36,6 +72,12 @@ namespace RiskOfChaos.Components
             }
         }
 
+        void OnDestroy()
+        {
+            _allyMaterialReference?.Reset();
+            _enemyMaterialReference?.Reset();
+        }
+
         void onTeamChanged()
         {
             refreshIndicators();
@@ -53,59 +95,69 @@ namespace RiskOfChaos.Components
                 Log.Warning("Missing TeamProvider component");
             }
 
-            foreach (RenderTeamConfiguration teamConfiguration in TeamConfigurations)
+            bool isEnemyTeam;
+            switch (teamIndex)
             {
-                Renderer renderer = teamConfiguration.TargetRenderer;
-                if (!renderer)
-                    continue;
+                case TeamIndex.Neutral:
+                case TeamIndex.Player:
+                    isEnemyTeam = false;
+                    break;
+                default:
+                    isEnemyTeam = true;
+                    break;
+            }
 
-                Material[] materials = teamConfiguration.FallbackMaterials;
-                foreach (TeamMaterialPair teamMaterial in teamConfiguration.TeamMaterials)
-                {
-                    if (teamMaterial.TeamIndex == teamIndex)
-                    {
-                        materials = teamMaterial.Materials;
-                        break;
-                    }
-                }
+            _useEnemyMaterial = isEnemyTeam;
+            _useAllyMaterial = !isEnemyTeam;
 
-                renderer.sharedMaterials = materials;
+            Material resolvedMaterial = null;
+
+            if (_useEnemyMaterial)
+            {
+                resolvedMaterial = _enemyMaterialReference?.Result;
+            }
+            else if (_useAllyMaterial)
+            {
+                resolvedMaterial = _allyMaterialReference?.Result;
+            }
+
+            TargetRenderer.sharedMaterial = resolvedMaterial;
+            TargetRenderer.enabled = resolvedMaterial;
+        }
+
+        void onAllyMaterialDiscovered(Material material)
+        {
+            if (_useAllyMaterial)
+            {
+                TargetRenderer.sharedMaterial = material;
+                TargetRenderer.enabled = true;
             }
         }
 
-        [Serializable]
-        public struct RenderTeamConfiguration
+        void onAllyMaterialLost(Material material)
         {
-            public Renderer TargetRenderer;
-            public Material[] FallbackMaterials;
-            public TeamMaterialPair[] TeamMaterials;
-
-            public RenderTeamConfiguration(Renderer targetRenderer, Material[] fallbackMaterials, TeamMaterialPair[] teamMaterials)
+            if (_useAllyMaterial)
             {
-                TargetRenderer = targetRenderer;
-                FallbackMaterials = fallbackMaterials;
-                TeamMaterials = teamMaterials;
-            }
-
-            public RenderTeamConfiguration(Renderer targetRenderer, TeamMaterialPair[] teamMaterials) : this(targetRenderer, targetRenderer.sharedMaterials, teamMaterials)
-            {
+                TargetRenderer.sharedMaterial = null;
+                TargetRenderer.enabled = false;
             }
         }
 
-        [Serializable]
-        public struct TeamMaterialPair
+        void onEnemyMaterialDiscovered(Material material)
         {
-            public TeamIndex TeamIndex;
-            public Material[] Materials;
-
-            public TeamMaterialPair(TeamIndex teamIndex, Material[] materials)
+            if (_useEnemyMaterial)
             {
-                TeamIndex = teamIndex;
-                Materials = materials;
+                TargetRenderer.sharedMaterial = material;
+                TargetRenderer.enabled = true;
             }
+        }
 
-            public TeamMaterialPair(TeamIndex teamIndex, Material material) : this(teamIndex, [material])
+        void onEnemyMaterialLost(Material material)
+        {
+            if (_useEnemyMaterial)
             {
+                TargetRenderer.sharedMaterial = null;
+                TargetRenderer.enabled = false;
             }
         }
     }
