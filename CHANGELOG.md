@@ -2,7 +2,7 @@
 
 **?.?.? Changes:**
 
-* Removed 15 effects:
+* Removed 14 effects:
   * All Skills are Agile
     * Just became a less untuitive version of the 'Always Sprinting' effect
   * Heal Everyone
@@ -10,7 +10,6 @@
   * Sluggish Camera
   * Delayed Attacks
   * Everyone is Invisible
-  * Aspect Roulette
   * Force Activate Random Skill
   * Blood Money
   * Increase World Speed
@@ -20,6 +19,9 @@
   * Give Random Elite Aspect
   * Randomize Loadout
     * These were either unfun/boring on their own or messed with the balance too much to the point where the game was no longer fun.
+
+* Aspect Roulette:
+  * No longer affects players' aspect.
 
 * Adaptive Recycling:
   * Fixed 'Recycle Timer Scale' config value not being applied properly

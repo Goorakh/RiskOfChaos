@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 133 different effects.
+Currently features 134 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -82,6 +82,7 @@ Currently features 133 different effects.
 * Superhot: Time moves when players move
 * Gupscare: Spawns a Gup above every player
 * Roll Credits: Starts the game credits
+* Aspect Roulette: Randomly switches the elite aspect of all non-player characters
 * Unscrap Random Item: Converts a random stack of scrap into a random item of the same tier
 * Disable Procs: Disables all proc effects. Lasts 45 seconds
 * Item Magnet: All pickups move towards players. Lasts 90 seconds

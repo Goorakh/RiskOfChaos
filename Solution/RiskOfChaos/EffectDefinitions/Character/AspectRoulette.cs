@@ -8,7 +8,6 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectComponents;
-using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
@@ -21,7 +20,6 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectDefinitions.Character
 {
-    /*
     [ChaosTimedEffect("aspect_roulette", 60f, AllowDuplicates = false)]
     public sealed class AspectRoulette : NetworkBehaviour
     {
@@ -34,7 +32,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                .Description("If the effect should ignore normal elite selection rules. If enabled, any elite type can be selected, if disabled, only the elite types that can currently be spawned on the stage can be selected")
                                .OptionConfig(new CheckBoxConfig())
                                .Build();
-
 
         readonly struct AspectConfig
         {
@@ -58,6 +55,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     equipmentName = eliteDef.eliteEquipmentDef.equipmentIndex.ToString();
                 }
 
+                equipmentName = equipmentName.FilterConfigKey();
+
                 string eliteName = language.GetLocalizedFormattedStringByToken(eliteDef.modifierToken, string.Empty).Trim();
                 if (string.IsNullOrWhiteSpace(eliteName))
                 {
@@ -68,6 +67,8 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 {
                     eliteName = eliteDef.eliteIndex.ToString();
                 }
+
+                eliteName = eliteName.FilterConfigKey();
 
                 string combinedEliteName = $"{equipmentName} ({eliteName})".Trim();
 
@@ -165,30 +166,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         Xoroshiro128Plus _aspectStepRng;
 
-        AspectStep[] _playerAspectSteps;
-        float _totalAspectStepsDuration;
-
         readonly ClearingObjectList<RandomlySwapAspect> _swapAspectComponents = [];
-
-        [SerializedMember("s")]
-        AspectStep[] serializedPlayerAspectSteps
-        {
-            get => _playerAspectSteps;
-            set
-            {
-                _playerAspectSteps = value;
-
-                _totalAspectStepsDuration = 0f;
-
-                if (_playerAspectSteps != null)
-                {
-                    foreach (AspectStep step in _playerAspectSteps)
-                    {
-                        _totalAspectStepsDuration += step.Duration;
-                    }
-                }
-            }
-        }
 
         void Awake()
         {
@@ -200,69 +178,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
             base.OnStartServer();
 
             _aspectStepRng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
-
-            _totalAspectStepsDuration = 0f;
-
-            // Generate as many steps as needed for the fixed duration,
-            // otherwise create a cycle long enough that the looping would hopefully not be noticeable
-            float effectDuration = 120f;
-            if (_effectComponent.DurationComponent)
-            {
-                if (_effectComponent.DurationComponent.TimedType == TimedEffectType.FixedDuration)
-                {
-                    effectDuration = _effectComponent.DurationComponent.Duration;
-                }
-            }
-
-            List<AspectStep> aspectSteps = new List<AspectStep>(Mathf.CeilToInt(effectDuration / MIN_ASPECT_DURATION));
-
-            while (effectDuration > 0f)
-            {
-                AspectStep step = generateStep(_aspectStepRng);
-
-                bool isDuplicateStep = false;
-
-                // Save a tiny bit of space by collapsing together neighboring steps with the same aspect
-                if (aspectSteps.Count > 0)
-                {
-                    AspectStep previousStep = aspectSteps[aspectSteps.Count - 1];
-                    if (previousStep.AspectEquipmentIndex == step.AspectEquipmentIndex)
-                    {
-                        aspectSteps[aspectSteps.Count - 1] = new AspectStep(previousStep.AspectEquipmentIndex, previousStep.Duration + step.Duration);
-                        isDuplicateStep = true;
-                    }
-                }
-
-                if (!isDuplicateStep)
-                {
-                    aspectSteps.Add(step);
-                }
-
-                effectDuration -= step.Duration;
-                _totalAspectStepsDuration += step.Duration;
-            }
-
-            _playerAspectSteps = [.. aspectSteps];
         }
 
         AspectStep getCurrentAspectStep(CharacterBody body)
         {
-            if (_playerAspectSteps != null && body && body.isPlayerControlled)
-            {
-                float time = _effectComponent.TimeStarted.TimeSinceClamped % _totalAspectStepsDuration;
-                foreach (AspectStep step in _playerAspectSteps)
-                {
-                    if (time < step.Duration)
-                    {
-                        return new AspectStep(step.AspectEquipmentIndex, step.Duration - time);
-                    }
-
-                    time -= step.Duration;
-                }
-
-                Log.Error($"Effect time out of bounds for {FormatUtils.GetBestBodyName(body)}");
-            }
-
             return generateStep(_aspectStepRng);
         }
 
@@ -287,6 +206,9 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         void tryAddComponentToBody(CharacterBody body)
         {
+            if (!body || body.isPlayerControlled)
+                return;
+
             try
             {
                 RandomlySwapAspect randomlySwapAspect = body.gameObject.AddComponent<RandomlySwapAspect>();
@@ -359,9 +281,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                 if (currentEquipment != EquipmentIndex.None && !EliteUtils.IsEliteEquipment(currentEquipment))
                 {
-                    if (_body.isPlayerControlled)
-                        return;
-
                     PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(currentEquipment), _body.corePosition, Vector3.up * 15f);
                 }
 
@@ -375,5 +294,4 @@ namespace RiskOfChaos.EffectDefinitions.Character
             }
         }
     }
-    */
 }
