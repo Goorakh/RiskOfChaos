@@ -2,11 +2,10 @@
 using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
-using RoR2;
-using RoR2.ContentManagement;
 using RoR2.Projectile;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Content
@@ -20,7 +19,7 @@ namespace RiskOfChaos.Content
             {
                 static IEnumerator loadReplacedGrenade(ProjectilePrefabAssetCollection projectilePrefabs, LocalPrefabAssetCollection localPrefabs)
                 {
-                    AsyncOperationHandle<GameObject> commandoGrenadeGhostLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Commando_CommandoGrenadeGhost_prefab, AsyncReferenceHandleUnloadType.Preload);
+                    AsyncOperationHandle<GameObject> commandoGrenadeGhostLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Commando_CommandoGrenadeGhost_prefab);
                     while (!commandoGrenadeGhostLoad.IsDone)
                     {
                         yield return null;
@@ -44,18 +43,12 @@ namespace RiskOfChaos.Content
                                 ProjectileGhostTeamIndicator trailTeamIndicator = trailRendererTransform.gameObject.AddComponent<ProjectileGhostTeamIndicator>();
                                 trailTeamIndicator.TeamProvider = teamProvider;
 
-                                Material friendlyTrailMaterial = trailRenderer.sharedMaterial;
-                                Material enemyTrailMaterial = AddressableUtil.LoadAssetAsync<Material>(AddressableGuids.RoR2_Base_Huntress_matHuntressFlurryArrowCritTrail_mat, AsyncReferenceHandleUnloadType.Preload).WaitForCompletion();
+                                trailTeamIndicator.TargetRenderer = trailRenderer;
 
-                                trailTeamIndicator.TeamConfigurations = [
-                                    new ProjectileGhostTeamIndicator.RenderTeamConfiguration(trailRenderer, [
-                                        new ProjectileGhostTeamIndicator.TeamMaterialPair(TeamIndex.Neutral, friendlyTrailMaterial),
-                                        new ProjectileGhostTeamIndicator.TeamMaterialPair(TeamIndex.Player, friendlyTrailMaterial),
-                                        new ProjectileGhostTeamIndicator.TeamMaterialPair(TeamIndex.Monster, enemyTrailMaterial),
-                                        new ProjectileGhostTeamIndicator.TeamMaterialPair(TeamIndex.Lunar, enemyTrailMaterial),
-                                        new ProjectileGhostTeamIndicator.TeamMaterialPair(TeamIndex.Void, enemyTrailMaterial)
-                                    ])
-                                ];
+                                trailTeamIndicator.AllyMaterialAddress = new AssetReferenceT<Material>(AddressableGuids.RoR2_Base_Huntress_matHuntressArrowTrail_mat);
+                                trailTeamIndicator.EnemyMaterialAddress = new AssetReferenceT<Material>(AddressableGuids.RoR2_Base_Huntress_matHuntressFlurryArrowCritTrail_mat);
+
+                                trailRenderer.sharedMaterials = [];
                             }
                             else
                             {
@@ -70,7 +63,7 @@ namespace RiskOfChaos.Content
                         localPrefabs.Add(grenadeReplacedGhost);
                     }
 
-                    AsyncOperationHandle<GameObject> commandoGrenadeProjectileLoad = AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Commando_CommandoGrenadeProjectile_prefab, AsyncReferenceHandleUnloadType.Preload);
+                    AsyncOperationHandle<GameObject> commandoGrenadeProjectileLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Commando_CommandoGrenadeProjectile_prefab);
                     commandoGrenadeProjectileLoad.OnSuccess(commandoGrenadeProjectile =>
                     {
                         GameObject grenadeReplacedProjectile = commandoGrenadeProjectile.InstantiateNetworkedPrefab(nameof(GrenadeReplacedProjectile));
