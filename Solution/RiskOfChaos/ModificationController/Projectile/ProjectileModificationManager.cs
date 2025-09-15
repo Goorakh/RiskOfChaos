@@ -1,5 +1,4 @@
 ﻿using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,13 +10,13 @@ namespace RiskOfChaos.ModificationController.Projectile
         public static ProjectileModificationManager Instance => _instance;
 
         [ContentInitializer]
-        static void LoadContent(NetworkedPrefabAssetCollection networkPrefabs)
+        static void LoadContent(ContentIntializerArgs args)
         {
             // ProjectileModificationProvider
             {
                 GameObject prefab = Prefabs.CreateNetworkedValueModificationProviderPrefab(typeof(ProjectileModificationProvider), nameof(RoCContent.NetworkedPrefabs.ProjectileModificationProvider), false);
 
-                networkPrefabs.Add(prefab);
+                args.ContentPack.networkedObjectPrefabs.Add([prefab]);
             }
         }
 

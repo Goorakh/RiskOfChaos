@@ -1,5 +1,4 @@
 ﻿using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.Formatting;
@@ -18,7 +17,7 @@ namespace RiskOfChaos.UI.NextEffectDisplay
     public class NextEffectDisplayPanelController : MonoBehaviour
     {
         [ContentInitializer]
-        static IEnumerator LoadContent(LocalPrefabAssetCollection localPrefabs)
+        static IEnumerator LoadContent(ContentIntializerArgs args)
         {
             AsyncOperationHandle<GameObject> notificationPanelLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_UI_NotificationPanel2_prefab);
             notificationPanelLoad.OnSuccess(notificationPanelPrefab =>
@@ -81,10 +80,10 @@ namespace RiskOfChaos.UI.NextEffectDisplay
                     displayController.FlashController = flashTransform.GetComponent<AnimateUIAlpha>();
                 }
 
-                localPrefabs.Add(prefab);
+                args.ContentPack.prefabs.Add([prefab]);
             });
 
-            return notificationPanelLoad;
+            return notificationPanelLoad.AsProgressCoroutine(args.ProgressReceiver);
         }
 
         internal static NextEffectDisplayPanelController Create(ChaosUIController chaosUIController)

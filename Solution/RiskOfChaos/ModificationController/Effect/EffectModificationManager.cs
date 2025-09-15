@@ -1,5 +1,4 @@
 ﻿using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling;
 using System;
 using System.Collections.Generic;
@@ -13,13 +12,13 @@ namespace RiskOfChaos.ModificationController.Effect
         public static EffectModificationManager Instance => _instance;
 
         [ContentInitializer]
-        static void LoadContent(NetworkedPrefabAssetCollection networkedPrefabs)
+        static void LoadContent(ContentIntializerArgs args)
         {
             // EffectModificationProvider
             {
                 GameObject prefab = Prefabs.CreateNetworkedValueModificationProviderPrefab(typeof(EffectModificationProvider), nameof(RoCContent.NetworkedPrefabs.EffectModificationProvider), false);
 
-                networkedPrefabs.Add(prefab);
+                args.ContentPack.networkedObjectPrefabs.Add([prefab]);
             }
         }
 

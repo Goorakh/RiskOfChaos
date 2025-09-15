@@ -96,7 +96,7 @@ namespace RiskOfChaos.Patches.AttackHooks
             }
         }
 
-        static readonly FixedConditionalWeakTable<Orb, OrbBounceChain> _orbBounceChains = new FixedConditionalWeakTable<Orb, OrbBounceChain>();
+        static readonly FixedConditionalWeakTable<Orb, OrbBounceChain> _orbBounceChains = [];
 
         public static bool IsBouncedOrb(Orb orb)
         {

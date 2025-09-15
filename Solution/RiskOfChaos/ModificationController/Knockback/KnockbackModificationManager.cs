@@ -1,5 +1,4 @@
 ﻿using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,13 +10,13 @@ namespace RiskOfChaos.ModificationController.Knockback
         public static KnockbackModificationManager Instance => _instance;
 
         [ContentInitializer]
-        static void LoadContent(NetworkedPrefabAssetCollection networkPrefabs)
+        static void LoadContent(ContentIntializerArgs args)
         {
             // KnockbackModificationProvider
             {
                 GameObject prefab = Prefabs.CreateNetworkedValueModificationProviderPrefab(typeof(KnockbackModificationProvider), nameof(RoCContent.NetworkedPrefabs.KnockbackModificationProvider), true);
 
-                networkPrefabs.Add(prefab);
+                args.ContentPack.networkedObjectPrefabs.Add([prefab]);
             }
         }
 

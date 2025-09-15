@@ -14,15 +14,19 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
     public sealed class LockAllInteractables : MonoBehaviour
     {
         [PrefabInitializer]
-        static IEnumerator InitPrefab(GameObject prefab)
+        static IEnumerator InitPrefab(PrefabInitializerArgs args)
         {
-            OutsideInteractableLocker outsideInteractableLocker = prefab.GetComponent<OutsideInteractableLocker>();
+            OutsideInteractableLocker outsideInteractableLocker = args.Prefab.GetComponent<OutsideInteractableLocker>();
             outsideInteractableLocker.radius = 0f;
 
             AsyncOperationHandle<GameObject> purchaseLockLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Teleporters_PurchaseLock_prefab);
             purchaseLockLoad.OnSuccess(p => outsideInteractableLocker.lockPrefab = p);
 
-            return purchaseLockLoad;
+            while (!purchaseLockLoad.IsDone)
+            {
+                args.ProgressReceiver.Report(purchaseLockLoad.PercentComplete);
+                yield return null;
+            }
         }
 
         void Start()

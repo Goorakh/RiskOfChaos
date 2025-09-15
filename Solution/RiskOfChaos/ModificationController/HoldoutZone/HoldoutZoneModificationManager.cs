@@ -1,5 +1,4 @@
 ﻿using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.Networking.Components;
 using RiskOfChaos.Trackers;
 using RoR2;
@@ -14,13 +13,13 @@ namespace RiskOfChaos.ModificationController.HoldoutZone
         public static HoldoutZoneModificationManager Instance => _instance;
 
         [ContentInitializer]
-        static void LoadContent(NetworkedPrefabAssetCollection networkPrefabs)
+        static void LoadContent(ContentIntializerArgs args)
         {
             // SimpleHoldoutZoneModificationProvider
             {
                 GameObject prefab = Prefabs.CreateNetworkedValueModificationProviderPrefab(typeof(SimpleHoldoutZoneModificationProvider), nameof(RoCContent.NetworkedPrefabs.SimpleHoldoutZoneModificationProvider), false);
 
-                networkPrefabs.Add(prefab);
+                args.ContentPack.networkedObjectPrefabs.Add([prefab]);
             }
         }
 

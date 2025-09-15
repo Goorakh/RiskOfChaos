@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.Components.CostProviders;
 using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.Utilities;
 using RoR2;
 using System.Collections.Generic;
@@ -12,20 +11,20 @@ namespace RiskOfChaos.ModificationController.Cost
     public sealed class CostModificationManager : MonoBehaviour
     {
         [ContentInitializer]
-        static void LoadContent(NetworkedPrefabAssetCollection networkPrefabs)
+        static void LoadContent(ContentIntializerArgs args)
         {
             // CostModificationProvider
             {
                 GameObject prefab = Prefabs.CreateNetworkedValueModificationProviderPrefab(typeof(CostModificationProvider), nameof(RoCContent.NetworkedPrefabs.CostModificationProvider), false);
 
-                networkPrefabs.Add(prefab);
+                args.ContentPack.networkedObjectPrefabs.Add([prefab]);
             }
 
             // CostConversionProvider
             {
                 GameObject prefab = Prefabs.CreateNetworkedValueModificationProviderPrefab(typeof(CostConversionProvider), nameof(RoCContent.NetworkedPrefabs.CostConversionProvider), false);
 
-                networkPrefabs.Add(prefab);
+                args.ContentPack.networkedObjectPrefabs.Add([prefab]);
             }
         }
 

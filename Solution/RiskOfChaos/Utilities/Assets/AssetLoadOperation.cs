@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Utilities.Assets
 {
-    public class AssetLoadOperation<T> : IEnumerator where T : UnityEngine.Object
+    public class AssetLoadOperation<T> : IAsyncOperationCoroutine where T : UnityEngine.Object
     {
         readonly AssetBundleRequest _assetBundleRequest;
 
@@ -15,15 +15,35 @@ namespace RiskOfChaos.Utilities.Assets
 
         public T Result => _assetBundleRequest.asset as T;
 
+        public float Progress => _assetBundleRequest.progress;
+
         public bool IsDone => _assetBundleRequest.isDone;
 
         public delegate void AssetLoadCompleteDelegate(T asset);
-        public event AssetLoadCompleteDelegate OnComplete;
+        event AssetLoadCompleteDelegate onComplete;
+        public event AssetLoadCompleteDelegate OnComplete
+        {
+            add
+            {
+                if (IsDone)
+                {
+                    value?.Invoke(Result);
+                }
+                else
+                {
+                    onComplete += value;
+                }
+            }
+            remove
+            {
+                onComplete -= value;
+            }
+        }
 
         void onCompleted(AsyncOperation _)
         {
             _assetBundleRequest.completed -= onCompleted;
-            OnComplete?.Invoke(Result);
+            onComplete?.Invoke(Result);
         }
 
         object IEnumerator.Current => null;

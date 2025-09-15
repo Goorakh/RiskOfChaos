@@ -1,5 +1,4 @@
 ﻿using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RoR2;
 using System;
 using System.Collections.Generic;
@@ -13,13 +12,13 @@ namespace RiskOfChaos.ModificationController.SkillSlots
         public static SkillSlotModificationManager Instance => _instance;
 
         [ContentInitializer]
-        static void LoadContent(NetworkedPrefabAssetCollection networkPrefabs)
+        static void LoadContent(ContentIntializerArgs args)
         {
             // SkillSlotModificationProvider
             {
                 GameObject prefab = Prefabs.CreateNetworkedValueModificationProviderPrefab(typeof(SkillSlotModificationProvider), nameof(RoCContent.NetworkedPrefabs.SkillSlotModificationProvider), false);
 
-                networkPrefabs.Add(prefab);
+                args.ContentPack.networkedObjectPrefabs.Add([prefab]);
             }
         }
 

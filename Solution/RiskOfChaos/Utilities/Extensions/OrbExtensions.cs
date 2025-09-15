@@ -90,7 +90,7 @@ namespace RiskOfChaos.Utilities.Extensions
             public ProcChainMask? ProcChainMask;
         }
 
-        static readonly FixedConditionalWeakTable<Orb, AdditionalOrbFields> _additionalOrbFields = new FixedConditionalWeakTable<Orb, AdditionalOrbFields>();
+        static readonly FixedConditionalWeakTable<Orb, AdditionalOrbFields> _additionalOrbFields = [];
 
         static CachedOrbFields getOrCreateOrbFields(Type orbType)
         {

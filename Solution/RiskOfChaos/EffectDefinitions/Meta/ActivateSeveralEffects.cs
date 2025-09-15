@@ -38,9 +38,9 @@ namespace RiskOfChaos.EffectDefinitions.Meta
                                .Build();
 
         [PrefabInitializer]
-        static void InitPrefab(GameObject prefab)
+        static void InitPrefab(PrefabInitializerArgs args)
         {
-            if (prefab.TryGetComponent(out ChaosEffectComponent effectComponent))
+            if (args.Prefab.TryGetComponent(out ChaosEffectComponent effectComponent))
             {
                 effectComponent.EffectDestructionHandledByComponent = true;
             }

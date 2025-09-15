@@ -1,5 +1,4 @@
 ﻿using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.SaveHandling;
@@ -25,10 +24,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
             static EffectIndex _orbEffectIndex = EffectIndex.Invalid;
 
-            static GameObject _strikeEffect;
+            static EffectIndex _impactEffectIndex = EffectIndex.Invalid;
 
             [ContentInitializer]
-            static IEnumerator LoadContent(EffectDefAssetCollection effectDefs)
+            static IEnumerator LoadContent(ContentIntializerArgs args)
             {
                 AsyncOperationHandle<GameObject> strikeEffectLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Lightning_LightningStrikeImpact_prefab);
                 strikeEffectLoad.OnSuccess(strikeEffectPrefab =>
@@ -38,11 +37,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     EffectComponent effectComponent = prefab.GetComponent<EffectComponent>();
                     effectComponent.soundName = "Play_item_use_lighningArm";
 
-                    effectDefs.Add(new EffectDef(prefab));
-                    _strikeEffect = prefab;
+                    args.ContentPack.effectDefs.Add([new EffectDef(prefab)]);
                 });
 
-                return strikeEffectLoad;
+                return strikeEffectLoad.AsProgressCoroutine(args.ProgressReceiver);
             }
 
             [SystemInitializer(typeof(EffectCatalogUtils))]
@@ -52,6 +50,12 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 if (_orbEffectIndex == EffectIndex.Invalid)
                 {
                     Log.Error($"Failed to find orb effect index");
+                }
+
+                _impactEffectIndex = EffectCatalogUtils.FindEffectIndex("LightningStrikeImpact_SoundFixed");
+                if (_impactEffectIndex == EffectIndex.Invalid)
+                {
+                    Log.Error("Failed to find impact effect index");
                 }
             }
 
@@ -93,9 +97,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             {
                 base.OnArrival();
 
-                if (_strikeEffect)
+                if (_impactEffectIndex != EffectIndex.Invalid)
                 {
-                    EffectManager.SpawnEffect(_strikeEffect, new EffectData
+                    EffectManager.SpawnEffect(_impactEffectIndex, new EffectData
                     {
                         origin = origin,
                         scale = scale / 3f,

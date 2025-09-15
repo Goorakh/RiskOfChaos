@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.EffectHandling.EffectComponents.SubtitleProviders;
@@ -19,7 +18,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
     public class ChaosActiveEffectDisplayController : MonoBehaviour
     {
         [ContentInitializer]
-        static void LoadContent(LocalPrefabAssetCollection localPrefabs)
+        static void LoadContent(ContentIntializerArgs args)
         {
             UISkinData uiSkin = UISkins.ActiveEffectsPanel;
 
@@ -91,7 +90,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
             activeEffectItemObject.layer = LayerIndex.ui.intVal;
 
-            localPrefabs.Add(activeEffectItemObject);
+            args.ContentPack.prefabs.Add([activeEffectItemObject]);
         }
 
         [SerializeField]

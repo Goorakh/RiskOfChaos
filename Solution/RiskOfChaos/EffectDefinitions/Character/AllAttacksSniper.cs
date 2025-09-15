@@ -17,14 +17,14 @@ namespace RiskOfChaos.EffectDefinitions.Character
         public static readonly TimedEffectInfo EffectInfo;
 
         [PrefabInitializer]
-        static IEnumerator InitPrefab(GameObject prefab)
+        static IEnumerator InitPrefab(PrefabInitializerArgs args)
         {
             AsyncOperationHandle<GameObject> railgunnerBodyLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_DLC1_Railgunner_RailgunnerBody_prefab);
             railgunnerBodyLoad.OnSuccess(railgunnerBodyPrefab =>
             {
                 if (railgunnerBodyPrefab && railgunnerBodyPrefab.TryGetComponent(out AkBank railgunnerBank) && railgunnerBank.data?.ObjectReference)
                 {
-                    AkBank effectBank = prefab.AddComponent<AkBank>();
+                    AkBank effectBank = args.Prefab.AddComponent<AkBank>();
                     effectBank.data = railgunnerBank.data;
                     effectBank.triggerList = [AkTriggerHandler.START_TRIGGER_ID];
                     effectBank.unloadTriggerList = [AkTriggerHandler.DESTROY_TRIGGER_ID];
@@ -35,7 +35,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 }
             });
 
-            return railgunnerBodyLoad;
+            while (!railgunnerBodyLoad.IsDone)
+            {
+                args.ProgressReceiver.Report(railgunnerBodyLoad.PercentComplete);
+                yield return null;
+            }
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using EntityStates;
 using HG.Reflection;
-using RiskOfChaos.Content.AssetCollections;
 using System;
 using System.Collections.Generic;
 
@@ -10,10 +9,13 @@ namespace RiskOfChaos.Content
     internal sealed class EntityStateTypeAttribute : SearchableAttribute
     {
         [ContentInitializer]
-        static void InitContent(EntityStateAssetCollection entityStates)
+        static void InitContent(ContentIntializerArgs args)
         {
             List<EntityStateTypeAttribute> attributes = [];
             GetInstances(attributes);
+
+            List<Type> entityStateTypes = new List<Type>(attributes.Count);
+
             foreach (EntityStateTypeAttribute attribute in attributes)
             {
                 if (attribute.target is not Type entityStateType)
@@ -28,8 +30,10 @@ namespace RiskOfChaos.Content
                     continue;
                 }
 
-                entityStates.Add(entityStateType);
+                entityStateTypes.Add(entityStateType);
             }
+
+            args.ContentPack.entityStateTypes.Add([.. entityStateTypes]);
         }
     }
 }

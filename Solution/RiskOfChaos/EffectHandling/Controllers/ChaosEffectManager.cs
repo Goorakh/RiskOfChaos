@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.Components;
 using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.Controllers.ChatVoting.Twitch;
 using RiskOfChaos.SaveHandling;
 using RoR2;
@@ -17,7 +16,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
         static GameObject[] _effectActivationSignalerPrefabs = [];
 
         [ContentInitializer]
-        static void LoadContent(NetworkedPrefabAssetCollection networkPrefabs)
+        static void LoadContent(ContentIntializerArgs args)
         {
             // ChaosEffectManager
             {
@@ -40,7 +39,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     serializationComponent.IsSingleton = true;
                 }
 
-                networkPrefabs.Add(prefab);
+                args.ContentPack.networkedObjectPrefabs.Add([prefab]);
             }
 
             GameObject createBasicEffectActivationSignaler<TSignalerComponent>(Configs.ChatVoting.ChatVotingMode? requiredVotingMode) where TSignalerComponent : ChaosEffectActivationSignaler
@@ -82,7 +81,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
                     serializationComponent.IsSingleton = true;
                 }
 
-                networkPrefabs.Add(signalerPrefab);
+                args.ContentPack.networkedObjectPrefabs.Add([signalerPrefab]);
 
                 return signalerPrefab;
             }

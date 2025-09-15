@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.Components;
 using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectDefinitions.World.Items;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.Controllers;
@@ -16,7 +15,7 @@ namespace RiskOfChaos.EffectUtils.World
     public sealed class ForceAllItemsIntoRandomItemManager : NetworkBehaviour
     {
         [ContentInitializer]
-        static void LoadContent(NetworkedPrefabAssetCollection networkPrefabs)
+        static void LoadContent(ContentIntializerArgs args)
         {
             GameObject prefab = Prefabs.CreateNetworkedPrefab("ForceAllItemsIntoRandomItemManager", [
                 typeof(SetDontDestroyOnLoad),
@@ -29,7 +28,7 @@ namespace RiskOfChaos.EffectUtils.World
             ObjectSerializationComponent serializationComponent = prefab.GetComponent<ObjectSerializationComponent>();
             serializationComponent.IsSingleton = true;
 
-            networkPrefabs.Add(prefab);
+            args.ContentPack.networkedObjectPrefabs.Add([prefab]);
         }
 
         static ForceAllItemsIntoRandomItemManager _instance;

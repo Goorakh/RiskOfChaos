@@ -89,9 +89,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
         }
 
         [PrefabInitializer]
-        static void SetupPrefab(GameObject prefab)
+        static void SetupPrefab(PrefabInitializerArgs args)
         {
-            if (prefab.TryGetComponent(out PickupPairListSubtitleProvider pickupPairListSubtitleProvider))
+            if (args.Prefab.TryGetComponent(out PickupPairListSubtitleProvider pickupPairListSubtitleProvider))
             {
                 pickupPairListSubtitleProvider.PairFormatToken = "EFFECT_ADD_RANDOM_ITEM_CORRUPTION_SUBTITLE_FORMAT";
             }

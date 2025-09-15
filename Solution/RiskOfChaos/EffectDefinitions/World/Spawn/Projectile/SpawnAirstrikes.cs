@@ -18,14 +18,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
     public sealed class SpawnAirstrikes : NetworkBehaviour
     {
         [PrefabInitializer]
-        static IEnumerator InitPrefab(GameObject prefab)
+        static IEnumerator InitPrefab(PrefabInitializerArgs args)
         {
             AsyncOperationHandle<GameObject> captainBodyLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Captain_CaptainBody_prefab);
             captainBodyLoad.OnSuccess(captainBodyPrefab =>
             {
                 if (captainBodyPrefab && captainBodyPrefab.TryGetComponent(out AkBank captainBank) && captainBank.data?.ObjectReference)
                 {
-                    AkBank effectBank = prefab.AddComponent<AkBank>();
+                    AkBank effectBank = args.Prefab.AddComponent<AkBank>();
                     effectBank.data = captainBank.data;
                     effectBank.triggerList = [AkTriggerHandler.START_TRIGGER_ID];
                     effectBank.unloadTriggerList = [AkTriggerHandler.DESTROY_TRIGGER_ID];
@@ -36,7 +36,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.Projectile
                 }
             });
 
-            return captainBodyLoad;
+            while (!captainBodyLoad.IsDone)
+            {
+                args.ProgressReceiver.Report(captainBodyLoad.PercentComplete);
+                yield return null;
+            }
         }
 
         static readonly SpawnUtils.NodeSelectionRules _strikePositionSelectorRules = new SpawnUtils.NodeSelectionRules(SpawnUtils.NodeGraphFlags.Ground, false, HullMask.Human | HullMask.Golem | HullMask.BeetleQueen, NodeFlags.None, NodeFlags.None);

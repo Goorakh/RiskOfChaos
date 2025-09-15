@@ -17,14 +17,14 @@ namespace RiskOfChaos.EffectDefinitions.Character
     public sealed class AllAttacksGrenades : MonoBehaviour
     {
         [PrefabInitializer]
-        static IEnumerator InitPrefab(GameObject prefab)
+        static IEnumerator InitPrefab(PrefabInitializerArgs args)
         {
             AsyncOperationHandle<GameObject> commandoBodyLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Commando_CommandoBody_prefab);
             commandoBodyLoad.OnSuccess(commandoBodyPrefab =>
             {
                 if (commandoBodyPrefab && commandoBodyPrefab.TryGetComponent(out AkBank commandoBank) && commandoBank.data?.ObjectReference)
                 {
-                    AkBank effectBank = prefab.AddComponent<AkBank>();
+                    AkBank effectBank = args.Prefab.AddComponent<AkBank>();
                     effectBank.data = commandoBank.data;
                     effectBank.triggerList = [AkTriggerHandler.START_TRIGGER_ID];
                     effectBank.unloadTriggerList = [AkTriggerHandler.DESTROY_TRIGGER_ID];
@@ -35,7 +35,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 }
             });
 
-            return commandoBodyLoad;
+            while (!commandoBodyLoad.IsDone)
+            {
+                args.ProgressReceiver.Report(commandoBodyLoad.PercentComplete);
+                yield return null;
+            }
         }
 
         [EffectCanActivate]

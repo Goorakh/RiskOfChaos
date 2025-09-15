@@ -1,5 +1,4 @@
 ﻿using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,13 +10,13 @@ namespace RiskOfChaos.ModificationController.UI
         public static UIModificationManager Instance => _instance;
 
         [ContentInitializer]
-        static void LoadContent(LocalPrefabAssetCollection localPrefabs)
+        static void LoadContent(ContentIntializerArgs args)
         {
             // UIModificationProvider
             {
                 GameObject prefab = Prefabs.CreateLocalValueModificationProviderPrefab(typeof(UIModificationProvider), nameof(RoCContent.LocalPrefabs.UIModificationProvider), true);
 
-                localPrefabs.Add(prefab);
+                args.ContentPack.prefabs.Add([prefab]);
             }
         }
 

@@ -1,7 +1,6 @@
 ﻿using HG.Coroutines;
 using RiskOfChaos.Components;
 using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
@@ -24,9 +23,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         static readonly SpawnPool<SpawnCard> _spawnPool = new SpawnPool<SpawnCard>();
 
         [ContentInitializer]
-        static IEnumerator LoadContent(NetworkedPrefabAssetCollection prefabs)
+        static IEnumerator LoadContent(ContentIntializerArgs args)
         {
-            ParallelCoroutine parallelCoroutine = new ParallelCoroutine();
+            ParallelProgressCoroutine parallelCoroutine = new ParallelProgressCoroutine(args.ProgressReceiver);
 
             string[] geyserPrefabGuids = [
                 AddressableGuids.RoR2_Base_artifactworld_AWGeyser_prefab,
@@ -84,7 +83,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
                     geyserPrefabs[prefabIndex] = geyserHolder;
 
-                    prefabs.Add(geyserHolder);
+                    args.ContentPack.networkedObjectPrefabs.Add([geyserHolder]);
                 });
 
                 parallelCoroutine.Add(geyserLoad);

@@ -32,7 +32,7 @@ namespace RiskOfChaos.Patches.AttackHooks
             }
         }
 
-        static readonly FixedConditionalWeakTable<BulletAttack, BulletBounceInfo> _bulletBounceInfos = new FixedConditionalWeakTable<BulletAttack, BulletBounceInfo>();
+        static readonly FixedConditionalWeakTable<BulletAttack, BulletBounceInfo> _bulletBounceInfos = [];
 
         public static bool TryStartBounce(BulletAttack bulletAttack, in AttackInfo attackInfo, BulletBounceDelegate onBounceHit = null)
         {

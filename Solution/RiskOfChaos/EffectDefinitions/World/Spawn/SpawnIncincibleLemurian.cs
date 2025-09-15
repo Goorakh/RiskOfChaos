@@ -1,7 +1,6 @@
 ﻿using HG.Coroutines;
 using RiskOfChaos.Components;
 using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
@@ -25,9 +24,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         static CharacterSpawnCard _cscInvincibleLemurianBruiser;
 
         [ContentInitializer]
-        static IEnumerator LoadContent(MasterPrefabAssetCollection masterPrefabs, BodyPrefabAssetCollection bodyPrefabs)
+        static IEnumerator LoadContent(ContentIntializerArgs args)
         {
-            ParallelCoroutine parallelCoroutine = new ParallelCoroutine();
+            ParallelProgressCoroutine parallelCoroutine = new ParallelProgressCoroutine(args.ProgressReceiver);
 
             AsyncOperationHandle<GameObject> lemurianBodyPrefabLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Lemurian_LemurianBody_prefab);
             parallelCoroutine.Add(lemurianBodyPrefabLoad);
@@ -48,24 +47,23 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             const float MOVE_SPEED_MULT = 1f / 2f;
             const float ATTACK_SPEED_MULT = 1f / 1.5f;
 
-            // InvincibleLemurian
+            GameObject invincibleLemurianBody;
+            GameObject invincibleLemurianMaster;
             {
-                GameObject bodyPrefabObj = lemurianBodyPrefabLoad.Result.InstantiateNetworkedPrefab("InvincibleLemurianBody");
-                CharacterBody bodyPrefab = bodyPrefabObj.GetComponent<CharacterBody>();
+                invincibleLemurianBody = lemurianBodyPrefabLoad.Result.InstantiateNetworkedPrefab("InvincibleLemurianBody");
+                CharacterBody bodyPrefab = invincibleLemurianBody.GetComponent<CharacterBody>();
                 bodyPrefab.baseNameToken = "INVINCIBLE_LEMURIAN_BODY_NAME";
                 bodyPrefab.bodyFlags = INVINCIBLE_LEMURIAN_BODY_FLAGS;
                 bodyPrefab.baseMoveSpeed *= MOVE_SPEED_MULT;
                 bodyPrefab.baseAttackSpeed *= ATTACK_SPEED_MULT;
 
-                Destroy(bodyPrefabObj.GetComponent<DeathRewards>());
+                Destroy(invincibleLemurianBody.GetComponent<DeathRewards>());
 
-                InvincibleLemurianController invincibleLemurianController = bodyPrefabObj.AddComponent<InvincibleLemurianController>();
+                InvincibleLemurianController invincibleLemurianController = invincibleLemurianBody.AddComponent<InvincibleLemurianController>();
 
-                bodyPrefabs.Add(bodyPrefabObj);
-
-                GameObject masterPrefabObj = lemurianMasterPrefabLoad.Result.InstantiateNetworkedPrefab("InvincibleLemurianMaster");
-                CharacterMaster masterPrefab = masterPrefabObj.GetComponent<CharacterMaster>();
-                masterPrefab.bodyPrefab = bodyPrefabObj;
+                invincibleLemurianMaster = lemurianMasterPrefabLoad.Result.InstantiateNetworkedPrefab("InvincibleLemurianMaster");
+                CharacterMaster masterPrefab = invincibleLemurianMaster.GetComponent<CharacterMaster>();
+                masterPrefab.bodyPrefab = invincibleLemurianBody;
 
                 foreach (BaseAI baseAI in masterPrefab.GetComponents<BaseAI>())
                 {
@@ -76,11 +74,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     }
                 }
 
-                masterPrefabs.Add(masterPrefabObj);
-
                 _cscInvincibleLemurian = ScriptableObject.CreateInstance<CharacterSpawnCard>();
                 _cscInvincibleLemurian.name = "cscInvincibleLemurian";
-                _cscInvincibleLemurian.prefab = masterPrefabObj;
+                _cscInvincibleLemurian.prefab = invincibleLemurianMaster;
                 _cscInvincibleLemurian.sendOverNetwork = true;
                 _cscInvincibleLemurian.hullSize = bodyPrefab.hullClassification;
                 _cscInvincibleLemurian.nodeGraphType = MapNodeGroup.GraphType.Ground;
@@ -88,24 +84,23 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 _cscInvincibleLemurian.forbiddenFlags = NodeFlags.NoCharacterSpawn;
             }
 
-            // InvincibleLemurianBruiser
+            GameObject invincibleLemurianBruiserBody;
+            GameObject invincibleLemurianBruiserMaster;
             {
-                GameObject bodyPrefabObj = lemurianBruiserBodyPrefabLoad.Result.InstantiateNetworkedPrefab("InvincibleLemurianBruiserBody");
-                CharacterBody bodyPrefab = bodyPrefabObj.GetComponent<CharacterBody>();
+                invincibleLemurianBruiserBody = lemurianBruiserBodyPrefabLoad.Result.InstantiateNetworkedPrefab("InvincibleLemurianBruiserBody");
+                CharacterBody bodyPrefab = invincibleLemurianBruiserBody.GetComponent<CharacterBody>();
                 bodyPrefab.baseNameToken = "INVINCIBLE_LEMURIAN_ELDER_BODY_NAME";
                 bodyPrefab.bodyFlags = INVINCIBLE_LEMURIAN_BODY_FLAGS;
                 bodyPrefab.baseMoveSpeed *= MOVE_SPEED_MULT;
                 bodyPrefab.baseAttackSpeed *= ATTACK_SPEED_MULT;
 
-                Destroy(bodyPrefabObj.GetComponent<DeathRewards>());
+                Destroy(invincibleLemurianBruiserBody.GetComponent<DeathRewards>());
 
-                InvincibleLemurianController invincibleLemurianController = bodyPrefabObj.AddComponent<InvincibleLemurianController>();
+                InvincibleLemurianController invincibleLemurianController = invincibleLemurianBruiserBody.AddComponent<InvincibleLemurianController>();
 
-                bodyPrefabs.Add(bodyPrefabObj);
-
-                GameObject masterPrefabObj = lemurianBruiserMasterPrefabLoad.Result.InstantiateNetworkedPrefab("InvincibleLemurianBruiserMaster");
-                CharacterMaster masterPrefab = masterPrefabObj.GetComponent<CharacterMaster>();
-                masterPrefab.bodyPrefab = bodyPrefabObj;
+                invincibleLemurianBruiserMaster = lemurianBruiserMasterPrefabLoad.Result.InstantiateNetworkedPrefab("InvincibleLemurianBruiserMaster");
+                CharacterMaster masterPrefab = invincibleLemurianBruiserMaster.GetComponent<CharacterMaster>();
+                masterPrefab.bodyPrefab = invincibleLemurianBruiserBody;
 
                 foreach (BaseAI baseAI in masterPrefab.GetComponents<BaseAI>())
                 {
@@ -116,17 +111,25 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     }
                 }
 
-                masterPrefabs.Add(masterPrefabObj);
-
                 _cscInvincibleLemurianBruiser = ScriptableObject.CreateInstance<CharacterSpawnCard>();
                 _cscInvincibleLemurianBruiser.name = "cscInvincibleLemurianBruiser";
-                _cscInvincibleLemurianBruiser.prefab = masterPrefabObj;
+                _cscInvincibleLemurianBruiser.prefab = invincibleLemurianBruiserMaster;
                 _cscInvincibleLemurianBruiser.sendOverNetwork = true;
                 _cscInvincibleLemurianBruiser.hullSize = bodyPrefab.hullClassification;
                 _cscInvincibleLemurianBruiser.nodeGraphType = MapNodeGroup.GraphType.Ground;
                 _cscInvincibleLemurianBruiser.requiredFlags = NodeFlags.None;
                 _cscInvincibleLemurianBruiser.forbiddenFlags = NodeFlags.NoCharacterSpawn;
             }
+
+            args.ContentPack.bodyPrefabs.Add([
+                invincibleLemurianBody,
+                invincibleLemurianBruiserBody,
+            ]);
+
+            args.ContentPack.masterPrefabs.Add([
+                invincibleLemurianMaster,
+                invincibleLemurianBruiserMaster,
+            ]);
         }
 
         static readonly SpawnPool<CharacterSpawnCard> _spawnPool = new SpawnPool<CharacterSpawnCard>();

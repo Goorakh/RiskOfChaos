@@ -22,7 +22,7 @@ namespace RiskOfChaos.Patches
             }
         }
 
-        static readonly FixedConditionalWeakTable<Inventory, IgnoreTransformationInfo> _ignoreTransformations = new FixedConditionalWeakTable<Inventory, IgnoreTransformationInfo>();
+        static readonly FixedConditionalWeakTable<Inventory, IgnoreTransformationInfo> _ignoreTransformations = [];
 
         [SystemInitializer]
         static void Init()

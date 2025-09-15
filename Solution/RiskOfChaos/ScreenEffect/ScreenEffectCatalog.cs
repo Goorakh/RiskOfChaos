@@ -1,6 +1,6 @@
 ﻿using HG;
+using HG.Coroutines;
 using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.Utilities.Assets;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -17,32 +17,41 @@ namespace RiskOfChaos.ScreenEffect
 
         static readonly Dictionary<string, ScreenEffectIndex> _screenEffectNameToIndex = [];
 
-        [ContentInitializer]
-        static IEnumerator LoadContent(ScreenEffectDefAssetCollection screenEffects)
+        [ContentInitializer(typeof(AssetLoader))]
+        static IEnumerator LoadContent(ContentIntializerArgs args)
         {
-            List<IEnumerator> asyncOperations = [];
+            ParallelProgressCoroutine parallelCoroutine = new ParallelProgressCoroutine(args.ProgressReceiver);
 
             AssetLoadOperation<Material> screenMaterialLoad = AssetLoader.LoadAssetAsync<Material>("RepeatScreen");
-            screenMaterialLoad.OnComplete += screenMaterial =>
+            if (screenMaterialLoad != null)
             {
-                if (!screenMaterial)
+                screenMaterialLoad.OnComplete += screenMaterial =>
                 {
-                    Log.Error("Failed to load RepeatScreen material");
-                    return;
-                }
+                    if (!screenMaterial)
+                    {
+                        Log.Error("Failed to load RepeatScreen material");
+                        return;
+                    }
 
-                screenEffects.Add(new ScreenEffectDef
-                {
-                    EffectIndex = ScreenEffectIndex.Invalid,
-                    Name = "RepeatScreen",
-                    EffectMaterial = screenMaterial,
-                    EffectType = ScreenEffectType.UIAndWorld
-                });
-            };
+                    args.ContentPack.screenEffectDefs.Add([
+                        new ScreenEffectDef
+                        {
+                            EffectIndex = ScreenEffectIndex.Invalid,
+                            Name = "RepeatScreen",
+                            EffectMaterial = screenMaterial,
+                            EffectType = ScreenEffectType.UIAndWorld
+                        }
+                    ]);
+                };
 
-            asyncOperations.Add(screenMaterialLoad);
+                parallelCoroutine.Add(screenMaterialLoad);
+            }
+            else
+            {
+                Log.Error("Failed to start load operation for RepeatScreen material");
+            }
 
-            yield return asyncOperations.WaitForAllComplete();
+            return parallelCoroutine;
         }
 
         [SystemInitializer]

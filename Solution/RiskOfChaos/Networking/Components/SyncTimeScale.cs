@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.Components;
 using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.Utilities;
 using RoR2;
 using UnityEngine;
@@ -11,7 +10,7 @@ namespace RiskOfChaos.Networking.Components
     public class SyncTimeScale : NetworkBehaviour
     {
         [ContentInitializer]
-        static void LoadContent(NetworkedPrefabAssetCollection networkPrefabs)
+        static void LoadContent(ContentIntializerArgs args)
         {
             // TimeScaleNetworker
             {
@@ -22,7 +21,7 @@ namespace RiskOfChaos.Networking.Components
                     typeof(SyncTimeScale)
                 ]);
 
-                networkPrefabs.Add(prefab);
+                args.ContentPack.networkedObjectPrefabs.Add([prefab]);
             }
         }
 

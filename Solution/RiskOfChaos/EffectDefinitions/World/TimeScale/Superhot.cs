@@ -1,7 +1,6 @@
 ﻿using RiskOfChaos.Collections;
 using RiskOfChaos.Components;
 using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Networking.Components;
 using RiskOfChaos.Utilities.Interpolation;
@@ -15,25 +14,26 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
     public sealed class Superhot : MonoBehaviour
     {
         [ContentInitializer]
-        static void LoadContent(NetworkedPrefabAssetCollection networkedPrefabs)
+        static void LoadContent(ContentIntializerArgs args)
         {
-            // SuperhotController
+            GameObject superhotController;
             {
-                GameObject prefab = Prefabs.CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.SuperhotController), [
+                superhotController = Prefabs.CreateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.SuperhotController), [
                     typeof(NetworkedBodyAttachment),
                     typeof(NetworkedInterpolationComponent),
                     typeof(SuperhotPlayerController)
                 ]);
 
-                NetworkIdentity networkIdentity = prefab.GetComponent<NetworkIdentity>();
+                NetworkIdentity networkIdentity = superhotController.GetComponent<NetworkIdentity>();
                 networkIdentity.localPlayerAuthority = true;
 
-                NetworkedBodyAttachment networkedBodyAttachment = prefab.GetComponent<NetworkedBodyAttachment>();
+                NetworkedBodyAttachment networkedBodyAttachment = superhotController.GetComponent<NetworkedBodyAttachment>();
                 networkedBodyAttachment.shouldParentToAttachedBody = true;
                 networkedBodyAttachment.forceHostAuthority = false;
 
-                networkedPrefabs.Add(prefab);
             }
+
+            args.ContentPack.networkedObjectPrefabs.Add([superhotController]);
         }
 
         readonly ClearingObjectList<SuperhotPlayerController> _superhotControllers = new ClearingObjectList<SuperhotPlayerController>()

@@ -3,7 +3,6 @@ using HG;
 using RiskOfChaos.Collections;
 using RiskOfChaos.Components;
 using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
@@ -19,7 +18,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
     public sealed class ExplodeAtLowHealth : MonoBehaviour
     {
         [ContentInitializer]
-        static void LoadContent(NetworkedPrefabAssetCollection networkedPrefabs)
+        static void LoadContent(ContentIntializerArgs args)
         {
             // ExplodeAtLowHealthController
             {
@@ -37,7 +36,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 NetworkStateMachine networkStateMachine = prefab.GetComponent<NetworkStateMachine>();
                 networkStateMachine.stateMachines = [stateMachine];
 
-                networkedPrefabs.Add(prefab);
+                args.ContentPack.networkedObjectPrefabs.Add([prefab]);
             }
         }
 

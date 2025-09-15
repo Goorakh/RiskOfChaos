@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.Components;
 using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.ModificationController.AttackDelay;
 using RiskOfChaos.ModificationController.Camera;
 using RiskOfChaos.ModificationController.Cost;
@@ -25,7 +24,7 @@ namespace RiskOfChaos.ModificationController
         public static ValueModificationManager Instance => _instance;
 
         [ContentInitializer]
-        static void LoadContent(LocalPrefabAssetCollection localPrefabs)
+        static void LoadContent(ContentIntializerArgs args)
         {
             GameObject prefab = Prefabs.CreatePrefab(nameof(RoCContent.LocalPrefabs.ValueModificationManager), [
                 typeof(SetDontDestroyOnLoad),
@@ -47,7 +46,7 @@ namespace RiskOfChaos.ModificationController
                 typeof(UIModificationManager),
             ]);
 
-            localPrefabs.Add(prefab);
+            args.ContentPack.prefabs.Add([prefab]);
         }
 
         void OnEnable()

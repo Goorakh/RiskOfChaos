@@ -1,8 +1,8 @@
 ﻿using RiskOfChaos.Components;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2.Projectile;
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -15,19 +15,25 @@ namespace RiskOfChaos.Content
         partial class ProjectilePrefabs
         {
             [ContentInitializer]
-            static IEnumerator LoadContent(ProjectilePrefabAssetCollection projectilePrefabs, LocalPrefabAssetCollection localPrefabs)
+            static IEnumerator LoadContent(ContentIntializerArgs args)
             {
-                static IEnumerator loadReplacedGrenade(ProjectilePrefabAssetCollection projectilePrefabs, LocalPrefabAssetCollection localPrefabs)
+                static IEnumerator loadReplacedGrenade(ExtendedContentPack contentPack, IProgress<float> progressReceiver)
                 {
+                    using PartitionedProgress totalProgress = new PartitionedProgress(progressReceiver);
+                    IProgress<float> ghostLoadProgress = totalProgress.AddPartition();
+                    IProgress<float> projectileLoadProgress = totalProgress.AddPartition();
+
                     AsyncOperationHandle<GameObject> commandoGrenadeGhostLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Commando_CommandoGrenadeGhost_prefab);
                     while (!commandoGrenadeGhostLoad.IsDone)
                     {
+                        ghostLoadProgress.Report(commandoGrenadeGhostLoad.PercentComplete);
                         yield return null;
                     }
 
                     if (commandoGrenadeGhostLoad.Status != AsyncOperationStatus.Succeeded)
                     {
                         Log.Error($"Failed to load commando grenade ghost prefab: {commandoGrenadeGhostLoad.OperationException}");
+                        progressReceiver.Report(1f);
                         yield break;
                     }
 
@@ -60,7 +66,7 @@ namespace RiskOfChaos.Content
                             Log.Error("Failed to find grenade trail renderer");
                         }
 
-                        localPrefabs.Add(grenadeReplacedGhost);
+                        contentPack.prefabs.Add([grenadeReplacedGhost]);
                     }
 
                     AsyncOperationHandle<GameObject> commandoGrenadeProjectileLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Commando_CommandoGrenadeProjectile_prefab);
@@ -82,14 +88,19 @@ namespace RiskOfChaos.Content
 
                         grenadeReplacedProjectile.AddComponent<ReplacedProjectileHookReferenceResolver>();
 
-                        projectilePrefabs.Add(grenadeReplacedProjectile);
+                        contentPack.projectilePrefabs.Add([grenadeReplacedProjectile]);
                     });
 
-                    yield return commandoGrenadeProjectileLoad;
+                    while (!commandoGrenadeProjectileLoad.IsDone)
+                    {
+                        projectileLoadProgress.Report(commandoGrenadeProjectileLoad.PercentComplete);
+                        yield return null;
+                    }
                 }
 
-                return loadReplacedGrenade(projectilePrefabs, localPrefabs);
+                return loadReplacedGrenade(args.ContentPack, args.ProgressReceiver);
 
+                /*
                 static IEnumerator loadPulseGolemHookProjectile(ProjectilePrefabAssetCollection projectilePrefabs, LocalPrefabAssetCollection localPrefabs)
                 {
                     AsyncOperationHandle<GameObject> hookProjectileLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Gravekeeper_GravekeeperHookProjectileSimple_prefab);
@@ -143,6 +154,7 @@ namespace RiskOfChaos.Content
                 }
 
                 // yield return loadPulseGolemHookProjectile(projectilePrefabs, localPrefabs);
+                */
             }
         }
     }

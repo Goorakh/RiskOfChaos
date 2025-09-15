@@ -1,5 +1,4 @@
-﻿using RiskOfChaos.Content.AssetCollections;
-using RoR2;
+﻿using RoR2;
 using UnityEngine;
 
 namespace RiskOfChaos.Content
@@ -9,23 +8,26 @@ namespace RiskOfChaos.Content
         partial class Unlockables
         {
             [ContentInitializer]
-            static void LoadContent(UnlockableDefAssetCollection unlockableDefs)
+            static void LoadContent(ContentIntializerArgs args)
             {
+                UnlockableDef invincibleLemurianLogbook;
                 {
-                    UnlockableDef invincibleLemurianLogbook = ScriptableObject.CreateInstance<UnlockableDef>();
+                    invincibleLemurianLogbook = ScriptableObject.CreateInstance<UnlockableDef>();
                     invincibleLemurianLogbook.cachedName = "Logs.InvincibleLemurian";
                     invincibleLemurianLogbook.nameToken = "UNLOCKABLE_LOG_INVINCIBLE_LEMURIAN";
-
-                    unlockableDefs.Add(invincibleLemurianLogbook);
                 }
 
+                UnlockableDef invincibleLemurianElderLogbook;
                 {
-                    UnlockableDef invincibleLemurianElderLogbook = ScriptableObject.CreateInstance<UnlockableDef>();
+                    invincibleLemurianElderLogbook = ScriptableObject.CreateInstance<UnlockableDef>();
                     invincibleLemurianElderLogbook.cachedName = "Logs.InvincibleLemurianElder";
                     invincibleLemurianElderLogbook.nameToken = "UNLOCKABLE_LOG_INVINCIBLE_LEMURIAN_ELDER";
-
-                    unlockableDefs.Add(invincibleLemurianElderLogbook);
                 }
+
+                args.ContentPack.unlockableDefs.Add([
+                    invincibleLemurianLogbook,
+                    invincibleLemurianElderLogbook,
+                ]);
             }
         }
     }

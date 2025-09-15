@@ -1,5 +1,4 @@
 ﻿using R2API;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.Patches;
 using RoR2;
 using UnityEngine;
@@ -12,18 +11,18 @@ namespace RiskOfChaos.Content
         partial class Buffs
         {
             [ContentInitializer]
-            static void LoadContent(BuffDefAssetCollection buffs)
+            static void LoadContent(ContentIntializerArgs args)
             {
-                // SetTo1Hp
+                BuffDef setTo1Hp;
                 {
-                    BuffDef setTo1Hp = ScriptableObject.CreateInstance<BuffDef>();
+                    setTo1Hp = ScriptableObject.CreateInstance<BuffDef>();
                     setTo1Hp.name = "bd" + nameof(SetTo1Hp);
                     setTo1Hp.isHidden = true;
                     setTo1Hp.isDebuff = false;
                     setTo1Hp.canStack = false;
-
-                    buffs.Add(setTo1Hp);
                 }
+
+                args.ContentPack.buffDefs.Add([setTo1Hp]);
             }
 
             [SystemInitializer]

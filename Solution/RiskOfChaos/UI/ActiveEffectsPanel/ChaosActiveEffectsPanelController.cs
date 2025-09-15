@@ -1,6 +1,5 @@
 ﻿using HG;
 using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RoR2;
@@ -15,7 +14,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
     public class ChaosActiveEffectsPanelController : MonoBehaviour
     {
         [ContentInitializer]
-        static void LoadContent(LocalPrefabAssetCollection localPrefabs)
+        static void LoadContent(ContentIntializerArgs args)
         {
             UISkinData uiSkin = UISkins.ActiveEffectsPanel;
 
@@ -86,7 +85,7 @@ namespace RiskOfChaos.UI.ActiveEffectsPanel
 
             activeEffectsPanelPrefab.layer = LayerIndex.ui.intVal;
 
-            localPrefabs.Add(activeEffectsPanelPrefab);
+            args.ContentPack.prefabs.Add([activeEffectsPanelPrefab]);
         }
 
         public static ChaosActiveEffectsPanelController Create(ChaosUIController chaosUIController)

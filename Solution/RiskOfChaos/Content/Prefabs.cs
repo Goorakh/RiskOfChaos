@@ -1,7 +1,6 @@
 ﻿using HG;
 using HG.Coroutines;
 using RiskOfChaos.Components;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.Networking.Components;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
@@ -185,9 +184,9 @@ namespace RiskOfChaos.Content
         }
 
         [ContentInitializer]
-        static IEnumerator InitContent(NetworkedPrefabAssetCollection networkedPrefabs, LocalPrefabAssetCollection localPrefabs)
+        static IEnumerator InitContent(ContentIntializerArgs args)
         {
-            ParallelCoroutine parallelCoroutine = new ParallelCoroutine();
+            ParallelProgressCoroutine parallelCoroutine = new ParallelProgressCoroutine(args.ProgressReceiver);
 
             // GenericTeamInventory
             {
@@ -199,7 +198,7 @@ namespace RiskOfChaos.Content
                     typeof(DestroyOnRunEnd)
                 ]);
 
-                networkedPrefabs.Add(prefab);
+                args.ContentPack.networkedObjectPrefabs.Add([prefab]);
             }
 
             // MonsterItemStealController
@@ -219,7 +218,7 @@ namespace RiskOfChaos.Content
                     prefab.AddComponent<SyncStolenItemCount>();
                     prefab.AddComponent<ShowStolenItemsPositionIndicator>();
 
-                    networkedPrefabs.Add(prefab);
+                    args.ContentPack.networkedObjectPrefabs.Add([prefab]);
                 });
 
                 parallelCoroutine.Add(itemStealControllerLoad);
@@ -250,7 +249,7 @@ namespace RiskOfChaos.Content
                         }
                     }
 
-                    localPrefabs.Add(prefab);
+                    args.ContentPack.prefabs.Add([prefab]);
                 });
 
                 parallelCoroutine.Add(positionIndicatorLoad);
@@ -263,7 +262,7 @@ namespace RiskOfChaos.Content
                 {
                     GameObject prefab = sulfurPodBasePrefab.InstantiateNetworkedPrefab(nameof(RoCContent.NetworkedPrefabs.NetworkedSulfurPodBase));
 
-                    networkedPrefabs.Add(prefab);
+                    args.ContentPack.networkedObjectPrefabs.Add([prefab]);
                 });
 
                 parallelCoroutine.Add(sulfurPodBaseLoad);
@@ -277,7 +276,7 @@ namespace RiskOfChaos.Content
                     typeof(SyncConfigValue)
                 ]);
 
-                networkedPrefabs.Add(prefab);
+                args.ContentPack.networkedObjectPrefabs.Add([prefab]);
             }
 
             // NewtStatueFixedOrigin
@@ -293,7 +292,7 @@ namespace RiskOfChaos.Content
                         transform.GetChild(i).Translate(new Vector3(0f, 1.25f, 0f), Space.World);
                     }
 
-                    networkedPrefabs.Add(prefab);
+                    args.ContentPack.networkedObjectPrefabs.Add([prefab]);
                 });
 
                 parallelCoroutine.Add(newtStatueLoad);
@@ -321,7 +320,7 @@ namespace RiskOfChaos.Content
                         }
                     }
 
-                    networkedPrefabs.Add(prefab);
+                    args.ContentPack.networkedObjectPrefabs.Add([prefab]);
                 });
 
                 parallelCoroutine.Add(timedChestLoad);
@@ -340,7 +339,7 @@ namespace RiskOfChaos.Content
                         bossGroup.dropTable = null;
                     }
 
-                    networkedPrefabs.Add(prefab);
+                    args.ContentPack.networkedObjectPrefabs.Add([prefab]);
                 });
 
                 parallelCoroutine.Add(bossCombatSquadLoad);

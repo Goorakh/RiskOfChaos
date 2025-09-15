@@ -2,7 +2,6 @@
 using RiskOfChaos.Components;
 using RiskOfChaos.Components.MaterialInterpolation;
 using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.Networking.Components;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -15,7 +14,7 @@ namespace RiskOfChaos.ScreenEffect
     public sealed class ScreenEffectManager : MonoBehaviour
     {
         [ContentInitializer]
-        static void LoadContent(LocalPrefabAssetCollection localPrefabs, NetworkedPrefabAssetCollection networkPrefabs)
+        static void LoadContent(ContentIntializerArgs args)
         {
             // ScreenEffectManager
             {
@@ -26,7 +25,7 @@ namespace RiskOfChaos.ScreenEffect
                     typeof(ScreenEffectManager)
                 ]);
 
-                localPrefabs.Add(prefab);
+                args.ContentPack.prefabs.Add([prefab]);
             }
 
             // InterpolatedScreenEffect
@@ -40,7 +39,7 @@ namespace RiskOfChaos.ScreenEffect
                     typeof(ScreenEffectComponent)
                 ]);
 
-                networkPrefabs.Add(prefab);
+                args.ContentPack.networkedObjectPrefabs.Add([prefab]);
             }
         }
 

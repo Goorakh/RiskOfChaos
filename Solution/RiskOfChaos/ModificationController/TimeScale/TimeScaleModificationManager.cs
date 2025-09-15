@@ -1,5 +1,4 @@
 ﻿using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.Utilities;
 using System;
 using System.Collections.Generic;
@@ -14,13 +13,13 @@ namespace RiskOfChaos.ModificationController.TimeScale
         public static TimeScaleModificationManager Instance => _instance;
 
         [ContentInitializer]
-        static void LoadContent(NetworkedPrefabAssetCollection networkPrefabs)
+        static void LoadContent(ContentIntializerArgs args)
         {
             // GenericTimeScaleModificationProvider
             {
                 GameObject prefab = Prefabs.CreateNetworkedValueModificationProviderPrefab(typeof(GenericTimeScaleModificationProvider), nameof(RoCContent.NetworkedPrefabs.GenericTimeScaleModificationProvider), true);
 
-                networkPrefabs.Add(prefab);
+                args.ContentPack.networkedObjectPrefabs.Add([prefab]);
             }
         }
 

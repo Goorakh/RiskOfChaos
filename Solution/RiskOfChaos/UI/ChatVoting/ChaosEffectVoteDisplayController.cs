@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.Controllers;
 using RiskOfChaos.EffectHandling.Controllers.ChatVoting;
 using RiskOfChaos.Utilities;
@@ -17,7 +16,7 @@ namespace RiskOfChaos.UI.ChatVoting
     public class ChaosEffectVoteDisplayController : MonoBehaviour
     {
         [ContentInitializer]
-        static IEnumerator LoadContent(LocalPrefabAssetCollection localPrefabs)
+        static IEnumerator LoadContent(ContentIntializerArgs args)
         {
             AsyncOperationHandle<GameObject> notificationPanelLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_UI_NotificationPanel2_prefab);
             notificationPanelLoad.OnSuccess(notificationPanel =>
@@ -80,10 +79,10 @@ namespace RiskOfChaos.UI.ChatVoting
                     chaosEffectVoteItem.BackdropImage = backdropTransform.GetComponent<Image>();
                 }
 
-                localPrefabs.Add(prefab);
+                args.ContentPack.prefabs.Add([prefab]);
             });
 
-            return notificationPanelLoad;
+            return notificationPanelLoad.AsProgressCoroutine(args.ProgressReceiver);
         }
 
         internal static ChaosEffectVoteDisplayController Create(ChaosUIController chaosUIController)

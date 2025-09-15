@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using RiskOfChaos.Components;
 using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.SaveHandling;
 using RiskOfChaos.Utilities;
 using RoR2;
@@ -15,7 +14,7 @@ namespace RiskOfChaos.EffectUtils.World
     public sealed class DifficultyModificationManager : MonoBehaviour
     {
         [ContentInitializer]
-        static void LoadContent(NetworkedPrefabAssetCollection networkPrefabs)
+        static void LoadContent(ContentIntializerArgs args)
         {
             GameObject prefab = Prefabs.CreateNetworkedPrefab("DifficultyModificationManager", [
                 typeof(SetDontDestroyOnLoad),
@@ -28,7 +27,7 @@ namespace RiskOfChaos.EffectUtils.World
             ObjectSerializationComponent serializationComponent = prefab.GetComponent<ObjectSerializationComponent>();
             serializationComponent.IsSingleton = true;
 
-            networkPrefabs.Add(prefab);
+            args.ContentPack.networkedObjectPrefabs.Add([prefab]);
         }
 
         static DifficultyModificationManager _instance;

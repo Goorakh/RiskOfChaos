@@ -1,5 +1,4 @@
 ﻿using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
@@ -17,7 +16,7 @@ namespace RiskOfChaos.EffectDefinitions.UI
     public sealed class StartCredits : MonoBehaviour
     {
         [ContentInitializer]
-        static IEnumerator LoadContent(LocalPrefabAssetCollection localPrefabs)
+        static IEnumerator LoadContent(ContentIntializerArgs args)
         {
             AsyncOperationHandle<GameObject> creditsPanelLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_UI_CreditsPanel_prefab);
             creditsPanelLoad.OnSuccess(creditsPanelPrefab =>
@@ -73,10 +72,10 @@ namespace RiskOfChaos.EffectDefinitions.UI
                 creditsPanelController.scrollDuration = 118f;
                 creditsPanelController.outroDuration = 5f;
 
-                localPrefabs.Add(prefab);
+                args.ContentPack.prefabs.Add([prefab]);
             });
 
-            return creditsPanelLoad;
+            return creditsPanelLoad.AsProgressCoroutine(args.ProgressReceiver);
         }
 
         GameObject _creditsPanelObject;

@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.Components;
 using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.Patches;
 using RoR2;
 using UnityEngine;
@@ -11,7 +10,7 @@ namespace RiskOfChaos.Networking.Components.Gravity
     public class GravitySync : NetworkBehaviour
     {
         [ContentInitializer]
-        static void LoadContent(NetworkedPrefabAssetCollection networkPrefabs)
+        static void LoadContent(ContentIntializerArgs args)
         {
             // GravityNetworker
             {
@@ -22,7 +21,7 @@ namespace RiskOfChaos.Networking.Components.Gravity
                     typeof(GravitySync)
                 ]);
 
-                networkPrefabs.Add(prefab);
+                args.ContentPack.networkedObjectPrefabs.Add([prefab]);
             }
         }
 

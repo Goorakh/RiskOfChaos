@@ -1,5 +1,5 @@
-﻿using RiskOfChaos.Components;
-using RiskOfChaos.Content.AssetCollections;
+﻿using HG.Coroutines;
+using RiskOfChaos.Components;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -15,8 +15,10 @@ namespace RiskOfChaos.Content
         partial class Effects
         {
             [ContentInitializer]
-            static IEnumerator LoadContent(EffectDefAssetCollection effectDefs)
+            static IEnumerator LoadContent(ContentIntializerArgs args)
             {
+                ParallelProgressCoroutine coroutines = new ParallelProgressCoroutine(args.ProgressReceiver);
+
                 // EquipmentTransferOrb
                 {
                     AsyncOperationHandle<GameObject> transferOrbEffectLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_Common_VFX_ItemTransferOrbEffect_prefab);
@@ -35,11 +37,13 @@ namespace RiskOfChaos.Content
 
                         GameObject.Destroy(itemTakenEffect);
 
-                        effectDefs.Add(new EffectDef(prefab));
+                        args.ContentPack.effectDefs.Add([new EffectDef(prefab)]);
                     });
 
-                    return transferOrbEffectLoad;
+                    coroutines.Add(transferOrbEffectLoad);
                 }
+
+                return coroutines;
             }
         }
     }

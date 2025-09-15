@@ -1,7 +1,7 @@
 ﻿using BepInEx.Configuration;
 using HG;
+using HG.Reflection;
 using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -10,7 +10,6 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions;
 using RoR2;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -57,28 +56,22 @@ namespace RiskOfChaos.EffectHandling
         }
 
         [ContentInitializer]
-        static IEnumerator LoadContent(NetworkedPrefabAssetCollection networkedPrefabs)
+        static void LoadContent(ContentIntializerArgs args)
         {
-            _effects = HG.Reflection.SearchableAttribute.GetInstances<ChaosEffectAttribute>()
-                                                        .Cast<ChaosEffectAttribute>()
-                                                        .Where(attr => attr.Validate())
-                                                        .OrderBy(e => e.Identifier, StringComparer.OrdinalIgnoreCase)
-                                                        .Select((e, i) => e.BuildEffectInfo((ChaosEffectIndex)i, _effectConfigFile))
-                                                        .ToArray();
+            _effects = SearchableAttribute.GetInstances<ChaosEffectAttribute>()
+                                          .Cast<ChaosEffectAttribute>()
+                                          .Where(attr => attr.Validate())
+                                          .OrderBy(e => e.Identifier, StringComparer.OrdinalIgnoreCase)
+                                          .Select((e, i) => e.BuildEffectInfo((ChaosEffectIndex)i, _effectConfigFile))
+                                          .ToArray();
 
-            for (int i = 0; i < _effects.Length; i++)
+            HashSet<GameObject> effectControllerPrefabs = new HashSet<GameObject>(_effects.Length);
+            foreach (ChaosEffectInfo effectInfo in _effects)
             {
-                ChaosEffectInfo effect = _effects[i];
-                if (!networkedPrefabs.Contains(effect.ControllerPrefab))
-                {
-                    networkedPrefabs.Add(effect.ControllerPrefab);
-                }
-
-                if (i > 0 && i % 25 == 0)
-                {
-                    yield return null;
-                }
+                effectControllerPrefabs.Add(effectInfo.ControllerPrefab);
             }
+
+            args.ContentPack.networkedObjectPrefabs.Add([.. effectControllerPrefabs]);
         }
 
         [SystemInitializer]

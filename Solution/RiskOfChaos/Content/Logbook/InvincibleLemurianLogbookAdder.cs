@@ -1,7 +1,6 @@
 ﻿using HG;
 using HG.Coroutines;
 using RiskOfChaos.Components;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -87,9 +86,9 @@ namespace RiskOfChaos.Content.Logbook
         }
 
         [ContentInitializer]
-        static IEnumerator LoadContent(LocalPrefabAssetCollection localPrefabs)
+        static IEnumerator LoadContent(ContentIntializerArgs args)
         {
-            ParallelCoroutine parallelCoroutine = new ParallelCoroutine();
+            ParallelProgressCoroutine parallelCoroutine = new ParallelProgressCoroutine(args.ProgressReceiver);
 
             static GameObject createGlowModel(CharacterBody bodyPrefab)
             {
@@ -118,7 +117,7 @@ namespace RiskOfChaos.Content.Logbook
 
                 _lemurianGlowModelPrefab = createGlowModel(_lemurianBodyPrefab);
 
-                localPrefabs.Add(_lemurianGlowModelPrefab);
+                args.ContentPack.prefabs.Add([_lemurianGlowModelPrefab]);
             });
 
             parallelCoroutine.Add(lemurianBodyLoad);
@@ -130,7 +129,7 @@ namespace RiskOfChaos.Content.Logbook
 
                 _lemurianBruiserGlowModelPrefab = createGlowModel(_lemurianBruiserBodyPrefab);
 
-                localPrefabs.Add(_lemurianBruiserGlowModelPrefab);
+                args.ContentPack.prefabs.Add([_lemurianBruiserGlowModelPrefab]);
             });
 
             parallelCoroutine.Add(elderLemurianBodyLoad);

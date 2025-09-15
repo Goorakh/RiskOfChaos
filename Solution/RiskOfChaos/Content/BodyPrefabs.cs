@@ -1,5 +1,4 @@
 ﻿using RiskOfChaos.Components;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.Patches;
 using RoR2;
 using UnityEngine;
@@ -12,11 +11,11 @@ namespace RiskOfChaos.Content
         partial class BodyPrefabs
         {
             [ContentInitializer]
-            static void LoadContent(BodyPrefabAssetCollection bodyPrefabs)
+            static void LoadContent(ContentIntializerArgs args)
             {
-                // ChaosFakeInteractorBody
+                GameObject chaosFakeInteractorBody;
                 {
-                    GameObject bodyPrefab = Prefabs.CreateNetworkedPrefab(nameof(ChaosFakeInteractorBody), [
+                    chaosFakeInteractorBody = Prefabs.CreateNetworkedPrefab(nameof(ChaosFakeInteractorBody), [
                         typeof(SetDontDestroyOnLoad),
                         typeof(DestroyOnRunEnd),
                         typeof(CharacterBody),
@@ -26,29 +25,29 @@ namespace RiskOfChaos.Content
                         typeof(ChaosInteractor)
                     ]);
 
-                    CharacterBody body = bodyPrefab.GetComponent<CharacterBody>();
+                    CharacterBody body = chaosFakeInteractorBody.GetComponent<CharacterBody>();
                     body.baseNameToken = "CHAOS_FAKE_INTERACTOR_BODY_NAME";
                     body.baseMaxHealth = 1e9F; // 10^9
                     body.baseRegen = 1e9F; // 10^9
                     body.bodyFlags = CharacterBody.BodyFlags.Masterless;
 
                     Transform modelBase = new GameObject("ModelBase").transform;
-                    modelBase.SetParent(bodyPrefab.transform);
+                    modelBase.SetParent(chaosFakeInteractorBody.transform);
                     modelBase.localPosition = Vector3.zero;
                     modelBase.localRotation = Quaternion.identity;
 
-                    ModelLocator modelLocator = bodyPrefab.GetComponent<ModelLocator>();
+                    ModelLocator modelLocator = chaosFakeInteractorBody.GetComponent<ModelLocator>();
                     modelLocator._modelTransform = modelBase;
                     modelLocator.autoUpdateModelTransform = false;
                     modelLocator.dontDetatchFromParent = true;
 
-                    TeamComponent teamComponent = bodyPrefab.GetComponent<TeamComponent>();
+                    TeamComponent teamComponent = chaosFakeInteractorBody.GetComponent<TeamComponent>();
                     teamComponent._teamIndex = TeamIndex.None;
 
-                    bodyPrefabs.Add(bodyPrefab);
-
-                    HiddenCharacterBodiesPatch.HideBody(bodyPrefab);
+                    HiddenCharacterBodiesPatch.HideBody(chaosFakeInteractorBody);
                 }
+
+                args.ContentPack.bodyPrefabs.Add([chaosFakeInteractorBody]);
             }
 
             [SystemInitializer]

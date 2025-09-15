@@ -1,7 +1,9 @@
-﻿using HG.Coroutines;
+﻿using HG;
+using HG.Coroutines;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Utilities.Extensions
@@ -10,7 +12,7 @@ namespace RiskOfChaos.Utilities.Extensions
     {
         public static IEnumerator WaitForAllLoaded(this IEnumerable<AsyncOperationHandle> operations)
         {
-            List<AsyncOperationHandle> operationHandles = new List<AsyncOperationHandle>(operations);
+            List<AsyncOperationHandle> operationHandles = [.. operations];
 
             while (operationHandles.Count > 0)
             {
@@ -58,6 +60,29 @@ namespace RiskOfChaos.Utilities.Extensions
             {
                 parallelCoroutine.Add(coroutine);
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static AsyncOperationCoroutineProgressReporter AsProgressCoroutine<T>(this AsyncOperationHandle<T> asyncOperationHandle, IProgress<float> progressReceiver)
+        {
+            return AsProgressCoroutine((AsyncOperationHandle)asyncOperationHandle, progressReceiver);
+        }
+
+        public static AsyncOperationCoroutineProgressReporter AsProgressCoroutine(this AsyncOperationHandle asyncOperationHandle, IProgress<float> progressReceiver)
+        {
+            return new AsyncOperationCoroutineProgressReporter(new AsyncOperationCoroutineWrapper(asyncOperationHandle), progressReceiver);
+        }
+
+        public static void Add(this ParallelProgressCoroutine parallelProgressCoroutine, AsyncOperationHandle asyncOperationHandle)
+        {
+            ReadableProgress<float> progress = new ReadableProgress<float>();
+            parallelProgressCoroutine.Add(asyncOperationHandle.AsProgressCoroutine(progress), progress);
+        }
+
+        public static void Add(this ParallelProgressCoroutine parallelProgressCoroutine, IAsyncOperationCoroutine asyncCoroutine)
+        {
+            ReadableProgress<float> progress = new ReadableProgress<float>();
+            parallelProgressCoroutine.Add(new AsyncOperationCoroutineProgressReporter(asyncCoroutine, progress), progress);
         }
     }
 }

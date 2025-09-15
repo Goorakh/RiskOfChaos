@@ -12,11 +12,15 @@ namespace RiskOfChaos.Utilities.Assets
         static AssetBundle _assetBundle;
 
         [ContentInitializer]
-        static IEnumerator LoadContent()
+        static IEnumerator LoadContent(ContentIntializerArgs args)
         {
             string assetBundlePath = Path.Combine(Main.ModDirectory, ASSET_BUNDLE_NAME);
             AssetBundleCreateRequest assetBundleLoad = AssetBundle.LoadFromFileAsync(assetBundlePath);
-            yield return assetBundleLoad;
+            while (!assetBundleLoad.isDone)
+            {
+                args.ProgressReceiver.Report(assetBundleLoad.progress);
+                yield return null;
+            }
 
             AssetBundle assetBundle = assetBundleLoad.assetBundle;
             if (assetBundle)

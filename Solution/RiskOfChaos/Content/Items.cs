@@ -2,7 +2,6 @@
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using R2API;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
@@ -21,11 +20,11 @@ namespace RiskOfChaos.Content
         partial class Items
         {
             [ContentInitializer]
-            static void LoadContent(ItemDefAssetCollection items)
+            static void LoadContent(ContentIntializerArgs args)
             {
-                // InvincibleLemurianMarker
+                ItemDef invincibleLemurianMarker;
                 {
-                    ItemDef invincibleLemurianMarker = ScriptableObject.CreateInstance<ItemDef>();
+                    invincibleLemurianMarker = ScriptableObject.CreateInstance<ItemDef>();
                     invincibleLemurianMarker.name = nameof(InvincibleLemurianMarker);
 
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -37,13 +36,11 @@ namespace RiskOfChaos.Content
                     invincibleLemurianMarker.canRemove = false;
 
                     invincibleLemurianMarker.AutoPopulateTokens();
-
-                    items.Add(invincibleLemurianMarker);
                 }
 
-                // MinAllyRegen
+                ItemDef minAllyRegen;
                 {
-                    ItemDef minAllyRegen = ScriptableObject.CreateInstance<ItemDef>();
+                    minAllyRegen = ScriptableObject.CreateInstance<ItemDef>();
                     minAllyRegen.name = nameof(MinAllyRegen);
 
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -55,13 +52,11 @@ namespace RiskOfChaos.Content
                     minAllyRegen.canRemove = false;
 
                     minAllyRegen.AutoPopulateTokens();
-
-                    items.Add(minAllyRegen);
                 }
 
-                // PulseAway
+                ItemDef pulseAway;
                 {
-                    ItemDef pulseAway = ScriptableObject.CreateInstance<ItemDef>();
+                    pulseAway = ScriptableObject.CreateInstance<ItemDef>();
                     pulseAway.name = nameof(PulseAway);
 
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -73,9 +68,13 @@ namespace RiskOfChaos.Content
                     pulseAway.canRemove = false;
 
                     pulseAway.AutoPopulateTokens();
-
-                    items.Add(pulseAway);
                 }
+
+                args.ContentPack.itemDefs.Add([
+                    invincibleLemurianMarker,
+                    minAllyRegen,
+                    pulseAway,
+                ]);
             }
 
             [SystemInitializer]

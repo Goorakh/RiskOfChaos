@@ -76,7 +76,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         Xoroshiro128Plus _rng;
 
-        List<AssetOrDirectReference<SurvivorDef>> _survivorReferences = [];
+        readonly List<AssetOrDirectReference<SurvivorDef>> _survivorReferences = [];
 
         void Awake()
         {

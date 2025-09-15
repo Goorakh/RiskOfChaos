@@ -1,6 +1,5 @@
 ﻿using RiskOfChaos.Components;
 using RiskOfChaos.Content;
-using RiskOfChaos.Content.AssetCollections;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
@@ -23,7 +22,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         static InteractableSpawnCard _fakeTeleporterSpawnCard;
 
         [ContentInitializer]
-        static IEnumerator LoadContent(NetworkedPrefabAssetCollection networkedPrefabs)
+        static IEnumerator LoadContent(ContentIntializerArgs args)
         {
             AsyncOperationHandle<InteractableSpawnCard> teleporterSpawnCardLoad = AddressableUtil.LoadTempAssetAsync<InteractableSpawnCard>(AddressableGuids.RoR2_Base_Teleporters_iscTeleporter_asset);
             teleporterSpawnCardLoad.OnSuccess(teleporterSpawnCard =>
@@ -196,14 +195,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     fakeTpPingInfoProvider.pingIconOverride = tpIcon;
                 });
 
-                networkedPrefabs.Add(fakeTeleporterPrefab);
+                args.ContentPack.networkedObjectPrefabs.Add([fakeTeleporterPrefab]);
 
                 _fakeTeleporterSpawnCard = Instantiate(teleporterSpawnCard);
                 _fakeTeleporterSpawnCard.name = "iscFakeTeleporter";
                 _fakeTeleporterSpawnCard.prefab = fakeTeleporterPrefab;
             });
 
-            return teleporterSpawnCardLoad;
+            return teleporterSpawnCardLoad.AsProgressCoroutine(args.ProgressReceiver);
         }
 
         [EffectCanActivate]
