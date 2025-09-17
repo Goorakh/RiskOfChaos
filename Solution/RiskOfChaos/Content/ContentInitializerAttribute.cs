@@ -43,6 +43,15 @@ namespace RiskOfChaos.Content
                 {
                     ContentInitializerAttribute attribute = attributes[i];
 
+                    MethodInfo method = attribute.target;
+                    ParameterInfo[] methodParameters = method.GetParameters();
+                    if (methodParameters.Length != 1 || methodParameters[0].ParameterType != typeof(ContentIntializerArgs))
+                    {
+                        Log.Error($"Invalid parameters for Content Initializer method {method.FullDescription()}");
+                        attributes.RemoveAt(i);
+                        continue;
+                    }
+
                     int highestGroupDependencyIndex = -1;
                     List<Type> initializerDependencies = [.. attribute.Dependencies];
                     if (initializerDependencies.Count > 0)
@@ -64,8 +73,6 @@ namespace RiskOfChaos.Content
 
                     if (initializerDependencies.Count == 0)
                     {
-                        MethodInfo method = attribute.target;
-
                         ReadableProgress<float> contentInitializerProgress = new ReadableProgress<float>();
                         ContentIntializerArgs contentIntializerArgs = new ContentIntializerArgs(contentPack, contentInitializerProgress);
 
