@@ -19,14 +19,14 @@ namespace RiskOfChaos.Content
             RequiredComponentTypes = requiredComponentTypes;
         }
 
-        public static Type[] ResolveRequiredComponentTypes(Type[] definedComponentTypes)
+        public static void ResolveRequiredComponentTypes(IList<Type> definedComponentTypes)
         {
-            if (definedComponentTypes == null || definedComponentTypes.Length == 0)
-                return definedComponentTypes;
+            if (definedComponentTypes == null || definedComponentTypes.Count == 0)
+                return;
 
-            static void addRequiredComponentsFor(Type type, IList<Type> destination)
+            static int insertRequiredComponentsFor(Type type, IList<Type> destination, int index)
             {
-                void addRequiredComponentType(Type requiredComponentType, IList<Type> destination)
+                int insertRequiredComponentType(Type requiredComponentType, IList<Type> destination, int index)
                 {
                     if (requiredComponentType == null ||
                         requiredComponentType.IsInterface ||
@@ -34,68 +34,73 @@ namespace RiskOfChaos.Content
                         !typeof(Component).IsAssignableFrom(requiredComponentType))
                     {
                         Log.Error($"Invalid required component type. type={type.FullName} requiredType={requiredComponentType?.FullName}");
-                        return;
+                        return 0;
                     }
 
-                    addRequiredComponentsFor(requiredComponentType, destination);
-                    destination.Add(requiredComponentType);
+                    int numInsertedComponents = 0;
+
+                    if (!destination.Contains(requiredComponentType))
+                    {
+                        destination.Insert(index, requiredComponentType);
+                        numInsertedComponents++;
+                    }
+
+                    numInsertedComponents += insertRequiredComponentsFor(requiredComponentType, destination, index);
+
+                    return numInsertedComponents;
                 }
+
+                int numInsertedComponents = 0;
 
                 foreach (RequiredComponentsAttribute requiredComponentsAttribute in type.GetCustomAttributes<RequiredComponentsAttribute>(true))
                 {
                     foreach (Type requiredComponentType in requiredComponentsAttribute.RequiredComponentTypes)
                     {
-                        addRequiredComponentType(requiredComponentType, destination);
+                        numInsertedComponents += insertRequiredComponentType(requiredComponentType, destination, index);
                     }
                 }
 
                 foreach (RequireComponent requireComponentAttribute in type.GetCustomAttributes<RequireComponent>(true))
                 {
                     if (requireComponentAttribute.m_Type0 != null)
-                        addRequiredComponentType(requireComponentAttribute.m_Type0, destination);
+                    {
+                        numInsertedComponents += insertRequiredComponentType(requireComponentAttribute.m_Type0, destination, index);
+                    }
 
                     if (requireComponentAttribute.m_Type1 != null)
-                        addRequiredComponentType(requireComponentAttribute.m_Type1, destination);
+                    {
+                        numInsertedComponents += insertRequiredComponentType(requireComponentAttribute.m_Type1, destination, index);
+                    }
 
                     if (requireComponentAttribute.m_Type2 != null)
-                        addRequiredComponentType(requireComponentAttribute.m_Type2, destination);
-                }
-            }
-
-            List<Type> allRequiredComponentTypes = new List<Type>(definedComponentTypes.Length * 2);
-            foreach (Type componentType in definedComponentTypes)
-            {
-                addRequiredComponentsFor(componentType, allRequiredComponentTypes);
-                allRequiredComponentTypes.Add(componentType);
-            }
-
-            for (int i = 0; i < allRequiredComponentTypes.Count; i++)
-            {
-                Type pinnedComponentType = allRequiredComponentTypes[i];
-
-                for (int j = allRequiredComponentTypes.Count - 1; j > i; j--)
-                {
-                    Type componentType = allRequiredComponentTypes[j];
-
-                    if (componentType == pinnedComponentType)
                     {
-                        allRequiredComponentTypes.RemoveAt(j);
+                        numInsertedComponents += insertRequiredComponentType(requireComponentAttribute.m_Type2, destination, index);
                     }
                 }
+
+                return numInsertedComponents;
             }
 
 #if DEBUG
-            if (!allRequiredComponentTypes.SequenceEqual(definedComponentTypes))
+            Type[] baseComponentTypes = [.. definedComponentTypes];
+#endif
+
+            for (int i = 0; i < definedComponentTypes.Count; i++)
+            {
+                int numInsertedComponents = insertRequiredComponentsFor(definedComponentTypes[i], definedComponentTypes, i);
+                i += numInsertedComponents;
+            }
+
+#if DEBUG
+            if (!definedComponentTypes.SequenceEqual(baseComponentTypes))
             {
                 Log.Debug($"""
                     Resolved required component types:
-                    [{string.Join<Type>(", ", definedComponentTypes)}] to:
-                    [{string.Join(", ", allRequiredComponentTypes)}]
+                    [{string.Join<Type>(", ", baseComponentTypes)}] to:
+                    [{string.Join(", ", definedComponentTypes)}]
                     """);
             }
 #endif
-
-            return [.. allRequiredComponentTypes];
         }
     }
 }

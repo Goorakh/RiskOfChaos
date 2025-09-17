@@ -8,6 +8,7 @@ using RoR2;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -49,25 +50,22 @@ namespace RiskOfChaos.Content
             };
         }
 
-        static GameObject createPrefab(string name, Type[] componentTypes, bool isNetworked)
+        static GameObject createPrefab(string name, IList<Type> componentTypes, bool isNetworked)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException($"'{nameof(name)}' cannot be null or whitespace.", nameof(name));
 
             if (componentTypes is null)
                 throw new ArgumentNullException(nameof(componentTypes));
-            
-            if (componentTypes.Length > 0)
-            {
-                componentTypes = RequiredComponentsAttribute.ResolveRequiredComponentTypes(componentTypes);
-            }
+
+            RequiredComponentsAttribute.ResolveRequiredComponentTypes(componentTypes);
 
             NetworkHash128 assetId = default;
             if (isNetworked)
             {
-                if (Array.FindIndex(componentTypes, t => t == typeof(NetworkIdentity)) == -1)
+                if (!componentTypes.Any(t => t == typeof(NetworkIdentity)))
                 {
-                    ArrayUtils.ArrayInsert(ref componentTypes, 0, typeof(NetworkIdentity));
+                    componentTypes.Insert(0, typeof(NetworkIdentity));
                 }
 
                 assetId = getNetworkedObjectAssetId(name);
@@ -121,12 +119,12 @@ namespace RiskOfChaos.Content
             return prefab;
         }
 
-        public static GameObject CreateNetworkedPrefab(string name, Type[] componentTypes)
+        public static GameObject CreateNetworkedPrefab(string name, IList<Type> componentTypes)
         {
             return createPrefab(name, componentTypes, true);
         }
 
-        public static GameObject CreateNetworkedValueModificationProviderPrefab(Type providerComponentType, string name, bool canInterpolate, Type[] additionalComponents = null)
+        public static GameObject CreateNetworkedValueModificationProviderPrefab(Type providerComponentType, string name, bool canInterpolate, IList<Type> additionalComponents = null)
         {
             List<Type> componentTypes = [
                 typeof(SetDontDestroyOnLoad),
@@ -144,7 +142,7 @@ namespace RiskOfChaos.Content
                 componentTypes.AddRange(additionalComponents);
             }
 
-            return CreateNetworkedPrefab(name, [.. componentTypes]);
+            return CreateNetworkedPrefab(name, componentTypes);
         }
 
         public static GameObject InstantiateNetworkedPrefab(this GameObject original, string name)
@@ -152,12 +150,12 @@ namespace RiskOfChaos.Content
             return instantiatePrefab(original, name, true);
         }
 
-        public static GameObject CreatePrefab(string name, Type[] componentTypes)
+        public static GameObject CreatePrefab(string name, IList<Type> componentTypes)
         {
             return createPrefab(name, componentTypes, false);
         }
 
-        public static GameObject CreateLocalValueModificationProviderPrefab(Type providerComponentType, string name, bool canInterpolate, Type[] additionalComponents = null)
+        public static GameObject CreateLocalValueModificationProviderPrefab(Type providerComponentType, string name, bool canInterpolate, IList<Type> additionalComponents = null)
         {
             List<Type> componentTypes = [
                 typeof(SetDontDestroyOnLoad),
@@ -175,7 +173,7 @@ namespace RiskOfChaos.Content
                 componentTypes.AddRange(additionalComponents);
             }
 
-            return CreatePrefab(name, [.. componentTypes]);
+            return CreatePrefab(name, componentTypes);
         }
 
         public static GameObject InstantiatePrefab(this GameObject original, string name)
