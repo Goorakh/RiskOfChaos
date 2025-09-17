@@ -2,16 +2,19 @@
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.Utils;
+using RiskOfChaos.PatcherInterop;
 using RiskOfChaos.Utilities.Extensions;
-using RiskOfChaos_PatcherInterop;
 using RoR2;
 using RoR2.Projectile;
+using RoR2BepInExPack.Utilities;
 using UnityEngine.Networking;
 
 namespace RiskOfChaos.Patches
 {
     static class ProjectileInteropPatches
     {
+        static readonly FixedConditionalWeakTable<ProjectileManager.PlayerFireProjectileMessage, FireProjectileMessagePatcherData> _fireProjectileMessagePatcherDataTable = [];
+
         [SystemInitializer]
         static void Init()
         {
@@ -87,8 +90,10 @@ namespace RiskOfChaos.Patches
 
             static void setFireMsgProcCoefficientOverride(ProjectileManager projectileManager, FireProjectileInfo fireProjectileInfo)
             {
-                projectileManager.fireMsg.SetProcCoefficientOverridePlusOne(fireProjectileInfo.GetProcCoefficientOverridePlusOne());
-                projectileManager.fireMsg.SetProcChainMask(fireProjectileInfo.procChainMask);
+                FireProjectileMessagePatcherData fireMessageData = _fireProjectileMessagePatcherDataTable.GetOrCreateValue(projectileManager.fireMsg);
+
+                fireMessageData.ProcCoefficientOverride = fireProjectileInfo.GetProcCoefficientOverride();
+                fireMessageData.ProcChainMask = fireProjectileInfo.procChainMask;
             }
         }
 
@@ -116,14 +121,17 @@ namespace RiskOfChaos.Patches
 
             static void setProjectileInfoProcCoefficientOverrideFromFireMsg(ProjectileManager projectileManager, ref FireProjectileInfo fireProjectileInfo)
             {
-                fireProjectileInfo.SetProcCoefficientOverridePlusOne(projectileManager.fireMsg.GetProcCoefficientOverridePlusOne());
-
-                ProcChainMask fireMsgProcChainMask = projectileManager.fireMsg.GetProcChainMask();
-                if (fireMsgProcChainMask.HasAnyProc())
+                if (_fireProjectileMessagePatcherDataTable.TryGetValue(projectileManager.fireMsg, out FireProjectileMessagePatcherData fireProjectileMessageData))
                 {
-                    fireProjectileInfo.procChainMask.AddProcsFrom(fireMsgProcChainMask);
+                    fireProjectileInfo.SetProcCoefficientOverride(fireProjectileMessageData.ProcCoefficientOverride);
 
-                    Log.Debug($"Added procs {fireMsgProcChainMask} to fireProjectileInfo {fireProjectileInfo.projectilePrefab} from client message (resulting: {fireProjectileInfo.procChainMask})");
+                    ProcChainMask fireMsgProcChainMask = fireProjectileMessageData.ProcChainMask;
+                    if (fireMsgProcChainMask.HasAnyProc())
+                    {
+                        fireProjectileInfo.procChainMask.AddProcsFrom(fireMsgProcChainMask);
+
+                        Log.Debug($"Added procs {fireMsgProcChainMask} to fireProjectileInfo {fireProjectileInfo.projectilePrefab} from client message (resulting: {fireProjectileInfo.procChainMask})");
+                    }
                 }
             }
         }
@@ -132,16 +140,32 @@ namespace RiskOfChaos.Patches
         {
             orig(self, writer);
 
-            writer.Write(self.GetProcCoefficientOverridePlusOne());
-            writer.Write(self.GetProcChainMask());
+            float? procCoefficientOverride = null;
+            ProcChainMask procChainMask = default;
+            if (_fireProjectileMessagePatcherDataTable.TryGetValue(self, out FireProjectileMessagePatcherData fireProjectileMessageData))
+            {
+                procCoefficientOverride = fireProjectileMessageData.ProcCoefficientOverride;
+                procChainMask = fireProjectileMessageData.ProcChainMask;
+            }
+
+            writer.Write(InteropUtils.EncodePackedOverrideValue(procCoefficientOverride));
+            writer.Write(procChainMask);
         }
 
         static void PlayerFireProjectileMessage_Deserialize(On.RoR2.Projectile.ProjectileManager.PlayerFireProjectileMessage.orig_Deserialize orig, ProjectileManager.PlayerFireProjectileMessage self, NetworkReader reader)
         {
             orig(self, reader);
 
-            self.SetProcCoefficientOverridePlusOne(reader.ReadSingle());
-            self.SetProcChainMask(reader.ReadProcChainMask());
+            FireProjectileMessagePatcherData fireProjectileMessageData = _fireProjectileMessagePatcherDataTable.GetOrCreateValue(self);
+
+            fireProjectileMessageData.ProcCoefficientOverride = InteropUtils.DecodePackedOverrideValue(reader.ReadSingle());
+            fireProjectileMessageData.ProcChainMask = reader.ReadProcChainMask();
+        }
+
+        class FireProjectileMessagePatcherData
+        {
+            public ProcChainMask ProcChainMask;
+            public float? ProcCoefficientOverride;
         }
     }
 }

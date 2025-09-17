@@ -4,6 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>preview</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	  <RootNamespace>RiskOfChaos.PatcherInterop</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,9 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="RoR2">
-      <HintPath>libs\RoR2.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\RoR2.Patched\RoR2.Patched.csproj" Private="false" PrivateAssets="all" />
   </ItemGroup>
 
   <PropertyGroup>

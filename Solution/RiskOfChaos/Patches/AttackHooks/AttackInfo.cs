@@ -1,5 +1,5 @@
-﻿using RiskOfChaos.Utilities.Extensions;
-using RiskOfChaos_PatcherInterop;
+﻿using RiskOfChaos.PatcherInterop;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Orbs;
 using RoR2.Projectile;
