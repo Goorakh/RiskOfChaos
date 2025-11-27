@@ -2,7 +2,7 @@
 
 namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 {
-    public class EffectVoteInfo
+    public sealed class EffectVoteInfo
     {
         public static EffectVoteInfo Random(int voteNumber)
         {

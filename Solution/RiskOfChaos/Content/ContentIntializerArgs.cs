@@ -2,7 +2,7 @@
 
 namespace RiskOfChaos.Content
 {
-    public class ContentIntializerArgs
+    public sealed class ContentIntializerArgs
     {
         public ExtendedContentPack ContentPack { get; }
 

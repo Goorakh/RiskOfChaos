@@ -8,7 +8,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectHandling.EffectComponents.SubtitleProviders
 {
     [RequiredComponents(typeof(ChaosEffectSubtitleComponent))]
-    public class SkillSlotSubtitleProvider : NetworkBehaviour, IEffectSubtitleProvider
+    public sealed class SkillSlotSubtitleProvider : NetworkBehaviour, IEffectSubtitleProvider
     {
         [SyncVar(hook = nameof(hookSetSkillSlot))]
         int _skillSlotInternal;

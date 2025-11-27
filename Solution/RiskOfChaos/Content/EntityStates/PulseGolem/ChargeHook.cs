@@ -6,7 +6,7 @@ using UnityEngine;
 namespace RiskOfChaos.Content.EntityStates.PulseGolem
 {
     [EntityStateType]
-    public class ChargeHook : BaseState
+    public sealed class ChargeHook : BaseState
     {
         static float baseDuration => ChargeLaser.baseDuration;
 

@@ -6,7 +6,7 @@ using UnityEngine.AddressableAssets;
 namespace RiskOfChaos.Components
 {
 #if DEBUG
-    public class DebugAddressableSpawner : MonoBehaviour
+    public sealed class DebugAddressableSpawner : MonoBehaviour
     {
         [SystemInitializer]
         static void Init()

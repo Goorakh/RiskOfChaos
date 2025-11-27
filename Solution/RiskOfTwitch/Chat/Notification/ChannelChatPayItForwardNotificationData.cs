@@ -2,7 +2,7 @@
 
 namespace RiskOfTwitch.Chat.Notification
 {
-    public class ChannelChatPayItForwardNotificationData
+    public sealed class ChannelChatPayItForwardNotificationData
     {
         [JsonProperty("gifter_is_anonymous")]
         public bool GifterIsAnonymous { get; set; }

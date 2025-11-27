@@ -14,7 +14,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectDefinitions.Meta
 {
     [ChaosEffect("end_all_effects", DefaultSelectionWeight = 0.7f)]
-    public class EndAllEffects : MonoBehaviour
+    public sealed class EndAllEffects : MonoBehaviour
     {
         [EffectConfig]
         static readonly ConfigHolder<bool> _excludePermanentEffects =

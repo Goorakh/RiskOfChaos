@@ -193,13 +193,10 @@ namespace RiskOfChaos.Utilities.Extensions
         /// <param name="cursor"></param>
         /// <param name="variables">The variables to store the stack's values in, defined in the order the values should be pushed onto the stack</param>
         /// <exception cref="ArgumentNullException"></exception>
-        public static void EmitStoreStack(this ILCursor cursor, params VariableDefinition[] variables)
+        public static void EmitStoreStack(this ILCursor cursor, params ReadOnlySpan<VariableDefinition> variables)
         {
             if (cursor is null)
                 throw new ArgumentNullException(nameof(cursor));
-
-            if (variables is null)
-                throw new ArgumentNullException(nameof(variables));
 
             if (variables.Length == 0)
                 return;

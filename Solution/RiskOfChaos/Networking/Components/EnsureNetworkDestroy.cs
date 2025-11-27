@@ -7,9 +7,9 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.Networking.Components
 {
-    public class EnsureNetworkDestroy : MonoBehaviour
+    public sealed class EnsureNetworkDestroy : MonoBehaviour
     {
-        class NetworkObjectInfo
+        sealed class NetworkObjectInfo
         {
             public readonly NetworkInstanceId NetId;
             public readonly string ObjectIdentifier;

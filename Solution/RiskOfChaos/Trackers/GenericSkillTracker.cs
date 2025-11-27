@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Trackers
 {
-    public class GenericSkillTracker : MonoBehaviour
+    public sealed class GenericSkillTracker : MonoBehaviour
     {
         [SystemInitializer]
         static void Init()

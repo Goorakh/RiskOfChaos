@@ -5,7 +5,7 @@ using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.Components
 {
-    public class ProjectileGhostTeamIndicator : MonoBehaviour
+    public sealed class ProjectileGhostTeamIndicator : MonoBehaviour
     {
         public ProjectileGhostTeamProvider TeamProvider;
 

@@ -6,7 +6,7 @@ using UnityEngine;
 namespace RiskOfChaos.Trackers
 {
     [DisallowMultipleComponent]
-    public class RunTimerUITracker : MonoBehaviour
+    public sealed class RunTimerUITracker : MonoBehaviour
     {
         [SystemInitializer]
         static void Init()

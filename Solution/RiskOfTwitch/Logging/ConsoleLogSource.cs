@@ -2,7 +2,7 @@
 
 namespace RiskOfTwitch.Logging
 {
-    internal class ConsoleLogSource : ILogSource
+    internal sealed class ConsoleLogSource : ILogSource
     {
         public void Log(object message, LogType type)
         {

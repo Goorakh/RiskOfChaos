@@ -5,7 +5,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.Networking
 {
-    public class SetObjectDontDestroyOnLoadMessage : INetMessage
+    public sealed class SetObjectDontDestroyOnLoadMessage : INetMessage
     {
         GameObject _obj;
         bool _dontDestroyOnLoad;

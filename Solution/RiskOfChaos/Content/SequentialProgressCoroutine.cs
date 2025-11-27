@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Content
 {
-    public class SequentialProgressCoroutine : IAsyncOperationCoroutine
+    public sealed class SequentialProgressCoroutine : IAsyncOperationCoroutine
     {
         readonly IProgress<float> _progressReceiver;
 

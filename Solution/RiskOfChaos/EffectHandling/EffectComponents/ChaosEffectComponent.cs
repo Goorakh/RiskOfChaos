@@ -93,7 +93,9 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
 
         public ChaosEffectDurationComponent DurationComponent { get; private set; }
 
-        public event Action<ChaosEffectComponent> OnShouldDisplayOnHUDChanged;
+        public event EffectDelegate OnShouldDisplayOnHUDChanged;
+        public event EffectDelegate OnEffectStart;
+        public event EffectDelegate OnEffectEnd;
 
         [Server]
         public void SetRngSeedServer(ulong seed)
@@ -149,6 +151,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
             }
 
             _instances.Add(this);
+            OnEffectStart?.Invoke(this);
             OnEffectStartGlobal?.Invoke(this);
         }
 
@@ -156,6 +159,7 @@ namespace RiskOfChaos.EffectHandling.EffectComponents
         {
             if (_instances.Remove(this))
             {
+                OnEffectEnd?.Invoke(this);
                 OnEffectEndGlobal?.Invoke(this);
             }
         }

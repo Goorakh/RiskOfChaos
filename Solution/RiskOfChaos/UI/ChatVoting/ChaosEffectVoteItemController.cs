@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace RiskOfChaos.UI.ChatVoting
 {
-    public class ChaosEffectVoteItemController : MonoBehaviour
+    public sealed class ChaosEffectVoteItemController : MonoBehaviour
     {
         public CanvasGroup CanvasGroup;
         public Image BackdropImage;

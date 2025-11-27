@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RiskOfChaos.Utilities
 {
-    class UnityUpdateTaskScheduler : TaskScheduler, IDisposable
+    sealed class UnityUpdateTaskScheduler : TaskScheduler, IDisposable
     {
         public static UnityUpdateTaskScheduler Instance { get; } = new UnityUpdateTaskScheduler();
 
@@ -84,7 +84,7 @@ namespace RiskOfChaos.Utilities
             }
         }
 
-        protected virtual void dispose()
+        void dispose()
         {
             if (!_disposed)
             {

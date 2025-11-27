@@ -6,7 +6,7 @@ using UnityEngine;
 namespace RiskOfChaos.Trackers
 {
     [DisallowMultipleComponent]
-    public class NotificationUIControllerTracker : MonoBehaviour
+    public sealed class NotificationUIControllerTracker : MonoBehaviour
     {
         [SystemInitializer]
         static void Init()

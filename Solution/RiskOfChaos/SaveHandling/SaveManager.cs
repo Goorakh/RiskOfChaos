@@ -171,7 +171,7 @@ namespace RiskOfChaos.SaveHandling
             }
         }
 
-        class SerializationTraceWriter : ITraceWriter
+        sealed class SerializationTraceWriter : ITraceWriter
         {
             readonly StringBuilder _stringBuilder = new StringBuilder();
             readonly object _stringBuilderLock = new object();

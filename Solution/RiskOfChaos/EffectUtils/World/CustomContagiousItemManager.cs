@@ -140,7 +140,7 @@ namespace RiskOfChaos.EffectUtils.World
             }
         }
 
-        class CustomContagiousItemTokenModifier : IDisposable
+        sealed class CustomContagiousItemTokenModifier : IDisposable
         {
             readonly Dictionary<string, string> _cachedTokenSuffixes = [];
 

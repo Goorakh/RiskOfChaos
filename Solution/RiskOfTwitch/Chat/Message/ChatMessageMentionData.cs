@@ -2,7 +2,7 @@
 
 namespace RiskOfTwitch.Chat.Message
 {
-    public class ChatMessageMentionData
+    public sealed class ChatMessageMentionData
     {
         [JsonProperty("user_id")]
         public string MentionedUserID { get; set; }

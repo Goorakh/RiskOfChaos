@@ -51,7 +51,7 @@ namespace RiskOfChaos.Networking
                     {
                         if (pickupDef.itemIndex != ItemIndex.None)
                         {
-                            pickupQuantity = (uint)inventory.GetItemCount(pickupDef.itemIndex);
+                            pickupQuantity = (uint)inventory.CalculateEffectiveItemStacks(pickupDef.itemIndex);
                         }
                     }
                 }

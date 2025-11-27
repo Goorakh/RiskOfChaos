@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Patches.AttackHooks
 {
-    class FireGolemLaserAttackHookManager : AttackHookManager
+    sealed class FireGolemLaserAttackHookManager : AttackHookManager
     {
         const float MAX_DISTANCE = 1000f;
 

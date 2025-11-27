@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Trackers
 {
-    public class StageCountDisplayTracker : MonoBehaviour
+    public sealed class StageCountDisplayTracker : MonoBehaviour
     {
         [SystemInitializer]
         static void Init()

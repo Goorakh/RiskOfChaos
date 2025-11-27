@@ -2,7 +2,7 @@
 
 namespace RiskOfTwitch.Emotes
 {
-    public class EmoteSetEmoteImageData
+    public sealed class EmoteSetEmoteImageData
     {
         [JsonProperty("url_1x")]
         public string SmallUrl { get; set; }

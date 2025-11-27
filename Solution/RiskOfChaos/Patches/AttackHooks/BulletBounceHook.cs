@@ -12,7 +12,7 @@ namespace RiskOfChaos.Patches.AttackHooks
 {
     static class BulletBounceHook
     {
-        public record class BulletBounceInfo(AttackInfo AttackInfo, BulletAttack.BulletHit LastHit, int MaxBounces, int BouncesCompleted, BulletBounceDelegate OnBounceHit)
+        public sealed record class BulletBounceInfo(AttackInfo AttackInfo, BulletAttack.BulletHit LastHit, int MaxBounces, int BouncesCompleted, BulletBounceDelegate OnBounceHit)
         {
             public int BouncesRemaining => Mathf.Max(0, MaxBounces - BouncesCompleted);
         }
@@ -189,7 +189,11 @@ namespace RiskOfChaos.Patches.AttackHooks
 
             bulletAttack.aimVector = bounceDirection;
 
-            bulletAttack.FireSingle(bounceDirection, -1);
+            bulletAttack.FireSingle(new BulletAttack.FireSingleArgs
+            {
+                ray = new Ray(bulletAttack.origin, bounceDirection),
+                muzzleIndex = -1
+            });
         }
     }
 }

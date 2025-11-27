@@ -49,7 +49,7 @@ namespace RiskOfChaos.Patches
             IL.RoR2.CampDirector.Start += replaceStageRNG;
 
             IL.RoR2.ChestBehavior.Start += replaceTreasureRNG;
-            IL.RoR2.MultiShopController.Start += replaceTreasureRNG;
+            IL.RoR2.MultiShopController.Awake += replaceTreasureRNG;
             IL.RoR2.OptionChestBehavior.Start += replaceTreasureRNG;
             IL.RoR2.RouletteChestController.Start += replaceTreasureRNG;
             IL.RoR2.ShopTerminalBehavior.Start += replaceTreasureRNG;
@@ -112,7 +112,7 @@ namespace RiskOfChaos.Patches
             rngTracker.RNG = overrideRNG;
         }
 
-        class RNGOverrideTracker : MonoBehaviour
+        sealed class RNGOverrideTracker : MonoBehaviour
         {
             public Xoroshiro128Plus RNG;
 

@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using HG;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -47,6 +48,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             _dropTable.RegisterDrop(DropType.VoidTier2, 0.25f);
             _dropTable.RegisterDrop(DropType.VoidTier3, 0.3f);
             _dropTable.RegisterDrop(DropType.VoidBoss, 0.3f);
+            _dropTable.RegisterDrop(DropType.PowerShape, 0.15f);
+            _dropTable.RegisterDrop(DropType.FoodTier, 0.4f);
 
             _dropTable.CreateItemBlacklistConfig("Item Blacklist", "A comma-separated list of items and equipment that should not be included for the effect. Both internal and English display names are accepted, with spaces and commas removed.");
 
@@ -68,7 +71,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
         ChaosEffectComponent _effectComponent;
 
-        PickupDef[] _pickupsToGive;
+        UniquePickup[] _pickupsToGive = [];
 
         void Awake()
         {
@@ -83,10 +86,10 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             
             _dropTable.RegenerateIfNeeded();
 
-            _pickupsToGive = new PickupDef[_itemCount.Value];
+            _pickupsToGive = new UniquePickup[_itemCount.Value];
             for (int i = 0; i < _pickupsToGive.Length; i++)
             {
-                _pickupsToGive[i] = PickupCatalog.GetPickupDef(_dropTable.GenerateDrop(rng));
+                _pickupsToGive[i] = _dropTable.GeneratePickup(rng);
             }
         }
 
@@ -96,19 +99,36 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             {
                 PlayerUtils.GetAllPlayerMasters(false).TryDo(playerMaster =>
                 {
-                    HashSet<PickupIndex> givenPickups = new HashSet<PickupIndex>(_pickupsToGive.Length);
-
-                    foreach (PickupDef pickupDef in _pickupsToGive)
+                    using (SetPool<PickupIndex>.RentCollection(out HashSet<PickupIndex> givenPickups))
                     {
-                        if (playerMaster.inventory.TryGrant(pickupDef, InventoryExtensions.EquipmentReplacementRule.DropExisting))
+                        givenPickups.EnsureCapacity(_pickupsToGive.Length);
+
+                        foreach (UniquePickup pickup in _pickupsToGive)
                         {
-                            givenPickups.Add(pickupDef.pickupIndex);
-                        }
-                    }
+                            Inventory.ItemStackValues grantStackValues = new Inventory.ItemStackValues
+                            {
+                                temporaryStacksValue = pickup.isTempItem ? 1 : 0,
+                                permanentStacks = !pickup.isTempItem ? 1 : 0,
+                                totalStacks = 1,
+                            };
 
-                    if (givenPickups.Count > 0)
-                    {
-                        PickupUtils.QueuePickupsMessage(playerMaster, [.. givenPickups]);
+                            InventoryExtensions.PickupGrantParameters grantParameters = new InventoryExtensions.PickupGrantParameters
+                            {
+                                PickupToGrant = new PickupStack(pickup.pickupIndex, grantStackValues),
+                                ReplacementRule = InventoryExtensions.PickupReplacementRule.DropExisting,
+                                NotificationFlags = PickupNotificationFlags.None,
+                            };
+
+                            if (grantParameters.AttemptGrant(playerMaster.inventory))
+                            {
+                                givenPickups.Add(pickup.pickupIndex);
+                            }
+                        }
+
+                        if (givenPickups.Count > 0)
+                        {
+                            PickupUtils.QueuePickupsMessage(playerMaster, [.. givenPickups]);
+                        }
                     }
                 }, Util.GetBestMasterName);
             }

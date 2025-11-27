@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace RiskOfChaos.Content
 {
-    public class PartitionedProgress : IDisposable
+    public sealed class PartitionedProgress : IDisposable
     {
         readonly IProgress<float> _progressReceiver;
 
@@ -72,7 +72,7 @@ namespace RiskOfChaos.Content
             _progressReceiver.Report(Progress);
         }
 
-        class ProgressPartition : IProgress<float>
+        sealed class ProgressPartition : IProgress<float>
         {
             public event Action<float> OnReport;
 

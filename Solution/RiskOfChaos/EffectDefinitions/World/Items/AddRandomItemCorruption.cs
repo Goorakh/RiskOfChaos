@@ -287,7 +287,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
             }
         }
 
-        class SyncListItemTransformationPair : SyncListStruct<ItemTransformationPair>
+        sealed class SyncListItemTransformationPair : SyncListStruct<ItemTransformationPair>
         {
             public override void SerializeItem(NetworkWriter writer, ItemTransformationPair item)
             {

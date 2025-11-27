@@ -1,14 +1,13 @@
-﻿using RiskOfChaos.Collections;
-using RiskOfChaos.ConfigHandling;
+﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.Pickup;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -25,10 +24,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                 .OptionConfig(new FloatFieldConfig { Min = 0f, FormatString = "{0:F}s" })
                                 .Build();
 
-        [RequireComponent(typeof(CharacterBody))]
-        class DropItemsOnTimer : MonoBehaviour
+        sealed class DropItemsOnTimer : MonoBehaviour
         {
             static readonly Vector3 _baseDropVelocity = new Vector3(0f, 25f, 10f);
+
+            public ChaosEffectComponent OwnerEffect;
 
             CharacterBody _body;
             Inventory _inventory;
@@ -48,6 +48,22 @@ namespace RiskOfChaos.EffectDefinitions.Character
                         return true;
                     default:
                         return false;
+                }
+            }
+
+            void Start()
+            {
+                if (OwnerEffect)
+                {
+                    OwnerEffect.OnEffectEnd += onEffectEnd;
+                }
+            }
+
+            void OnDestroy()
+            {
+                if (OwnerEffect)
+                {
+                    OwnerEffect.OnEffectEnd -= onEffectEnd;
                 }
             }
 
@@ -72,6 +88,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 }
             }
 
+            void onEffectEnd(ChaosEffectComponent effectComponent)
+            {
+                Destroy(this);
+            }
+
             void scheduleNextDrop()
             {
                 _dropItemTimer = _itemDropFrequency.Value;
@@ -85,27 +106,36 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 int equipmentSlotCount = _inventory.GetEquipmentSlotCount();
 
                 WeightedSelection<PickupInfo> droppableItemSelection = new WeightedSelection<PickupInfo>();
-                droppableItemSelection.EnsureCapacity(_inventory.itemAcquisitionOrder.Count + equipmentSlotCount);
+                droppableItemSelection.EnsureCapacity(_inventory.itemAcquisitionOrder.Count + (equipmentSlotCount * 2));
 
                 foreach (ItemIndex item in _inventory.itemAcquisitionOrder)
                 {
-                    ItemPickupInfo pickupInfo = new ItemPickupInfo(_inventory, item, 1);
-                    if (ItemDropFilter(pickupInfo))
+                    int droppableItemCount = _inventory.GetItemCountPermanent(item);
+                    if (droppableItemCount > 0)
                     {
-                        droppableItemSelection.AddChoice(pickupInfo, _inventory.GetItemCount(item));
+                        ItemPickupInfo pickupInfo = new ItemPickupInfo(_inventory, item, 1);
+                        if (ItemDropFilter(pickupInfo))
+                        {
+                            droppableItemSelection.AddChoice(pickupInfo, droppableItemCount);
+                        }
                     }
                 }
 
-                for (uint i = 0; i < equipmentSlotCount; i++)
+                for (uint slot = 0; slot < equipmentSlotCount; slot++)
                 {
-                    EquipmentIndex equipmentIndex = _inventory.GetEquipment(i).equipmentIndex;
-                    if (equipmentIndex == EquipmentIndex.None)
-                        continue;
+                    int equipmentSetCount = _inventory.GetEquipmentSetCount(slot);
 
-                    EquipmentPickupInfo pickupInfo = new EquipmentPickupInfo(_inventory, equipmentIndex, i);
-                    if (ItemDropFilter(pickupInfo))
+                    for (uint set = 0; set < equipmentSetCount; set++)
                     {
-                        droppableItemSelection.AddChoice(pickupInfo, 1f);
+                        EquipmentIndex equipmentIndex = _inventory.GetEquipment(slot, set).equipmentIndex;
+                        if (equipmentIndex == EquipmentIndex.None)
+                            continue;
+
+                        EquipmentPickupInfo pickupInfo = new EquipmentPickupInfo(_inventory, equipmentIndex, slot, set);
+                        if (ItemDropFilter(pickupInfo))
+                        {
+                            droppableItemSelection.AddChoice(pickupInfo, 1f);
+                        }
                     }
                 }
 
@@ -121,24 +151,25 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                 for (int i = itemToDrop.PickupDropletCount - 1; i >= 0; i--)
                 {
-                    PickupDropletController.CreatePickupDroplet(itemToDrop.PickupIndex, _body.corePosition, dropVelocity);
+                    PickupDropletController.CreatePickupDroplet(new UniquePickup(itemToDrop.PickupIndex), _body.corePosition, dropVelocity, false, false);
 
                     dropVelocity = rotationPerDrop * dropVelocity;
                 }
             }
         }
 
-        readonly ClearingObjectList<DropItemsOnTimer> _itemDropControllers = [];
+        ChaosEffectComponent _effectComponent;
+
+        void Awake()
+        {
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
 
         void Start()
         {
             if (NetworkServer.active)
             {
-                ReadOnlyCollection<CharacterBody> characterBodies = CharacterBody.readOnlyInstancesList;
-
-                _itemDropControllers.EnsureCapacity(characterBodies.Count);
-
-                characterBodies.TryDo(addComponentTo, FormatUtils.GetBestBodyName);
+                CharacterBody.readOnlyInstancesList.TryDo(addComponentTo, FormatUtils.GetBestBodyName);
                 CharacterBody.onBodyStartGlobal += addComponentTo;
             }
         }
@@ -146,15 +177,12 @@ namespace RiskOfChaos.EffectDefinitions.Character
         void OnDestroy()
         {
             CharacterBody.onBodyStartGlobal -= addComponentTo;
-
-            _itemDropControllers.ClearAndDispose(true);
         }
 
         void addComponentTo(CharacterBody body)
         {
             DropItemsOnTimer dropComponent = body.gameObject.AddComponent<DropItemsOnTimer>();
-
-            _itemDropControllers.Add(dropComponent);
+            dropComponent.OwnerEffect = _effectComponent;
         }
     }
 }

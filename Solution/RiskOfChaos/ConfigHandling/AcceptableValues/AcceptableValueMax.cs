@@ -3,7 +3,7 @@ using System;
 
 namespace RiskOfChaos.ConfigHandling.AcceptableValues
 {
-    public class AcceptableValueMax<T> : AcceptableValueBase where T : IComparable
+    public sealed class AcceptableValueMax<T> : AcceptableValueBase where T : IComparable
     {
         public T MaxValue { get; }
 

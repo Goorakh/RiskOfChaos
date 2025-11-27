@@ -2,7 +2,7 @@
 
 namespace RiskOfChaos.ConfigHandling
 {
-    public class ConfigChangedArgs<T> : EventArgs
+    public sealed class ConfigChangedArgs<T> : EventArgs
     {
         public readonly ConfigHolder<T> Holder;
         public readonly T NewValue;
@@ -17,7 +17,7 @@ namespace RiskOfChaos.ConfigHandling
         }
     }
 
-    public class ConfigChangedArgs : EventArgs
+    public sealed class ConfigChangedArgs : EventArgs
     {
         public readonly ConfigHolderBase Holder;
         public readonly object NewValue;

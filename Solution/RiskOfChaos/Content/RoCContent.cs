@@ -12,11 +12,11 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.Content
 {
-    public partial class RoCContent : IContentPackProvider
+    public sealed partial class RoCContent : IContentPackProvider
     {
         readonly ExtendedContentPack _contentPack = new ExtendedContentPack(new ContentPack());
 
-        public string identifier => Main.PluginGUID;
+        public string identifier => RiskOfChaosPlugin.PluginGUID;
 
         bool _isRegistered;
 

@@ -13,7 +13,7 @@ namespace RiskOfChaos.Patches
         {
             IL.RoR2.CombatDirector.AttemptSpawnOnTarget += CombatDirector_ApplyCreditMultiplier;
             IL.RoR2.CombatDirector.PrepareNewMonsterWave += CombatDirector_ApplyCreditMultiplier;
-            IL.RoR2.CombatDirector.SpendAllCreditsOnMapSpawns += CombatDirector_ApplyCreditMultiplier;
+            IL.RoR2.CombatDirector.SpendAllCreditsOnMapSpawns_Transform_WeightedSelection1 += CombatDirector_ApplyCreditMultiplier;
         }
 
         static float getCombatDirectorCreditMultiplier()

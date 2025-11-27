@@ -7,7 +7,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectDefinitions.Character
 {
     [ChaosTimedEffect("disable_revives", TimedEffectType.UntilStageEnd, AllowDuplicates = false)]
-    public class DisableRevives : MonoBehaviour
+    public sealed class DisableRevives : MonoBehaviour
     {
         void Start()
         {

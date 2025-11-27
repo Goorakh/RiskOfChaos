@@ -13,7 +13,7 @@ namespace RiskOfChaos.Components
 {
     public sealed class GrantTemporaryItemsOnJump : NetworkBehaviour
     {
-        public ConditionalItem[] Items;
+        public ConditionalItem[] Items = [];
 
         public JumpVolume JumpVolume;
 
@@ -95,11 +95,11 @@ namespace RiskOfChaos.Components
                 if (!item.ItemDef)
                     continue;
 
-                if (item.IgnoreIfItemAlreadyPresent && inventory.GetItemCount(item.ItemDef) > 0)
+                if (item.IgnoreIfItemAlreadyPresent && inventory.GetItemCountEffective(item.ItemDef) > 0)
                     continue;
 
                 if ((item.GrantToPlayers && body.isPlayerControlled) ||
-                    (item.GrantToInvincibleLemurian && inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0))
+                    (item.GrantToInvincibleLemurian && inventory.GetItemCountPermanent(RoCContent.Items.InvincibleLemurianMarker) > 0))
                 {
                     bool showNotification = item.NotifyPickupIfNoneActive && !CharacterMasterNotificationQueueUtils.IsAnyNotificationQueued(master);
 

@@ -2,7 +2,7 @@
 
 namespace RiskOfChaos.Components.MaterialInterpolation
 {
-    public class SyncListMaterialPropertyInterpolationData : SyncListStruct<MaterialPropertyInterpolationData>
+    public sealed class SyncListMaterialPropertyInterpolationData : SyncListStruct<MaterialPropertyInterpolationData>
     {
         public override void SerializeItem(NetworkWriter writer, MaterialPropertyInterpolationData item)
         {

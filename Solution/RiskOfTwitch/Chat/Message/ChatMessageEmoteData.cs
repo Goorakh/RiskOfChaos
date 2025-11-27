@@ -2,7 +2,7 @@
 
 namespace RiskOfTwitch.Chat.Message
 {
-    public class ChatMessageEmoteData
+    public sealed class ChatMessageEmoteData
     {
         static readonly string[] _emoteModificationSuffixes = [
             "_BW", // Black and white

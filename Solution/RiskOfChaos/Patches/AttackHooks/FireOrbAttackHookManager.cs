@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Patches.AttackHooks
 {
-    class FireOrbAttackHookManager : AttackHookManager
+    sealed class FireOrbAttackHookManager : AttackHookManager
     {
         readonly OrbManager _orbManager;
         readonly Orb _originalOrb;

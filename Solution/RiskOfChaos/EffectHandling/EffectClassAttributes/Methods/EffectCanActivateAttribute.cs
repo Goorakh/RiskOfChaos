@@ -3,7 +3,7 @@
 namespace RiskOfChaos.EffectHandling.EffectClassAttributes.Methods
 {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public class EffectCanActivateAttribute : Attribute
+    public sealed class EffectCanActivateAttribute : Attribute
     {
     }
 }

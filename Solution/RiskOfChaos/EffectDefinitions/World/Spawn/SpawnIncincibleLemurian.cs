@@ -56,6 +56,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 bodyPrefab.bodyFlags = INVINCIBLE_LEMURIAN_BODY_FLAGS;
                 bodyPrefab.baseMoveSpeed *= MOVE_SPEED_MULT;
                 bodyPrefab.baseAttackSpeed *= ATTACK_SPEED_MULT;
+                bodyPrefab.bodyFlags |= CharacterBody.BodyFlags.Ungrabbable;
 
                 Destroy(invincibleLemurianBody.GetComponent<DeathRewards>());
 
@@ -71,6 +72,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     {
                         baseAI.fullVision = true;
                         baseAI.neverRetaliateFriendlies = true;
+                        baseAI.fullVision = true;
+                        baseAI.xrayVision = true;
                     }
                 }
 
@@ -93,6 +96,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 bodyPrefab.bodyFlags = INVINCIBLE_LEMURIAN_BODY_FLAGS;
                 bodyPrefab.baseMoveSpeed *= MOVE_SPEED_MULT;
                 bodyPrefab.baseAttackSpeed *= ATTACK_SPEED_MULT;
+                bodyPrefab.bodyFlags |= CharacterBody.BodyFlags.Ungrabbable;
 
                 Destroy(invincibleLemurianBruiserBody.GetComponent<DeathRewards>());
 
@@ -108,6 +112,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     {
                         baseAI.fullVision = true;
                         baseAI.neverRetaliateFriendlies = true;
+                        baseAI.fullVision = true;
+                        baseAI.xrayVision = true;
                     }
                 }
 

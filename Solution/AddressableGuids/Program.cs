@@ -1,11 +1,14 @@
 ﻿using Microsoft.Win32;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
-class Program
+sealed class Program
 {
     const string SteamRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Valve\Steam";
 
@@ -103,41 +106,107 @@ class Program
 
         StringBuilder outputBuilder = new StringBuilder();
 
-        outputBuilder.AppendLine("public static class AddressableGuids");
-        outputBuilder.AppendLine("{");
-
-        foreach (string line in File.ReadAllLines(addressablesListFilePath))
+        using (TextReader textReader = new StreamReader(addressablesListFilePath))
+        using (JsonReader reader = new JsonTextReader(textReader))
         {
-            Match match = Regex.Match(line, "\"(.+?)\"\\s*:\\s*\"(.+?)\"");
-            if (!match.Success)
-                continue;
+            JObject jObject = (JObject)JToken.ReadFrom(reader);
 
-            string assetName = match.Groups[1].Value;
-            string assetGuid = match.Groups[2].Value;
+            outputBuilder.AppendLine("public static class AddressableGuids");
+            outputBuilder.AppendLine("{");
 
-            StringBuilder fieldNameBuilder = new StringBuilder();
-            foreach (char c in assetName)
+            foreach ((string propertyName, JToken propertyValue) in jObject)
             {
-                if (char.IsLetterOrDigit(c) || c == '_')
+                if (propertyValue is JValue value)
                 {
-                    if (fieldNameBuilder.Length == 0 && char.IsDigit(c))
+                    if (value.Type == JTokenType.String)
                     {
-                        fieldNameBuilder.Append('_');
+                        outputBuilder.AppendLine($"\t/// <summary>");
+                        outputBuilder.AppendLine($"\t/// {propertyName}");
+                        outputBuilder.AppendLine($"\t/// </summary>");
+                        outputBuilder.AppendLine($"\tpublic const string {filterFieldName(propertyName)} = \"{(string)propertyValue}\";");
                     }
-
-                    fieldNameBuilder.Append(c);
-                }
-                else if (fieldNameBuilder[fieldNameBuilder.Length - 1] != '_')
-                {
-                    fieldNameBuilder.Append('_');
+                    else
+                    {
+                        throw new NotImplementedException($"Value type {value.Type} is not implemented");
+                    }
                 }
             }
 
-            outputBuilder.AppendLine($"\tpublic const string {fieldNameBuilder} = \"{assetGuid}\";");
+            outputBuilder.AppendLine("}");
+
+            outputBuilder.AppendLine("public static class WwiseData");
+            outputBuilder.AppendLine("{");
+
+            HashSet<string> addedWwiseNames = new HashSet<string>();
+
+            foreach ((string propertyName, JToken propertyValue) in jObject)
+            {
+                if (!propertyName.StartsWith("Wwise/") || !propertyName.EndsWith("_data"))
+                    continue;
+
+                string eventPropertyName = propertyName.Remove(propertyName.Length - 5);
+                if (!(jObject[eventPropertyName] is JValue eventGuid) || eventGuid.Type != JTokenType.String)
+                    throw new Exception("this shit is wrong");
+
+                if (!(propertyValue is JObject obj))
+                    throw new Exception("Unexpected json token type");
+
+                JValue name = obj["name"] as JValue;
+                JValue wwiseId = obj["WWiseID"] as JValue;
+                if (name == null || name.Type != JTokenType.String || wwiseId == null || wwiseId.Type != JTokenType.Integer)
+                    throw new Exception("missing wwise object properties");
+
+                string className = filterFieldName((string)name);
+                if (!addedWwiseNames.Add(className))
+                {
+                    Console.WriteLine($"WARN: Duplicate wwise event class name {(string)name} ({className})");
+                    continue;
+                }
+
+                outputBuilder.AppendLine($"\tpublic static class {className}");
+                outputBuilder.AppendLine("\t{");
+
+                outputBuilder.AppendLine($"\t\tpublic const string AddressableGuid = \"{(string)eventGuid}\";");
+                outputBuilder.AppendLine($"\t\tpublic const uint WWiseID = {(uint)wwiseId};");
+
+                outputBuilder.AppendLine("\t}");
+            }
+
+            outputBuilder.AppendLine("}");
         }
 
-        outputBuilder.AppendLine("}");
-
         File.WriteAllText(destinationFile, outputBuilder.ToString());
+    }
+
+    static string filterFieldName(string name)
+    {
+        StringBuilder fieldNameBuilder = new StringBuilder();
+        foreach (char c in name)
+        {
+            if (char.IsLetterOrDigit(c) || c == '_')
+            {
+                if (fieldNameBuilder.Length == 0 && char.IsDigit(c))
+                {
+                    fieldNameBuilder.Append('_');
+                }
+
+                fieldNameBuilder.Append(c);
+            }
+            else if (fieldNameBuilder[fieldNameBuilder.Length - 1] != '_')
+            {
+                fieldNameBuilder.Append('_');
+            }
+        }
+
+        return fieldNameBuilder.ToString();
+    }
+}
+
+static class Extensions
+{
+    public static void Deconstruct<TKey, TValue>(this in KeyValuePair<TKey, TValue> kvp, out TKey key, out TValue value)
+    {
+        key = kvp.Key;
+        value = kvp.Value;
     }
 }

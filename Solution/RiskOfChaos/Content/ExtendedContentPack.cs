@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Content
 {
-    public class ExtendedContentPack
+    public sealed class ExtendedContentPack
     {
         readonly ContentPack _innerContentPack;
 
@@ -83,6 +83,10 @@ namespace RiskOfChaos.Content
         public NamedAssetCollection<EntitlementDef> entitlementDefs => _innerContentPack.entitlementDefs;
 
         public NamedAssetCollection<MiscPickupDef> miscPickupDefs => _innerContentPack.miscPickupDefs;
+
+        public NamedAssetCollection<DroneDef> droneDefs => _innerContentPack.droneDefs;
+
+        public NamedAssetCollection<CraftableDef> craftableDefs => _innerContentPack.craftableDefs;
 
         public NamedAssetCollection<Type> entityStateTypes => _innerContentPack.entityStateTypes;
 

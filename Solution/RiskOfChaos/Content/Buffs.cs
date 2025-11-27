@@ -47,9 +47,6 @@ namespace RiskOfChaos.Content
                 if (body.HasBuff(SetTo1Hp) && !body.isBoss && !body.isChampion)
                 {
                     body.isGlass = true;
-
-                    // Make sure barrier still decays, default behaviour makes barrier decay so small it basically never decays
-                    body.barrierDecayRate = Mathf.Max(body.barrierDecayRate, body.maxBarrier);
                 }
             }
 
@@ -69,7 +66,10 @@ namespace RiskOfChaos.Content
                         {
                             body.AddTimedBuff(RoR2Content.Buffs.HiddenInvincibility, 1f);
 
-                            Util.CleanseBody(body, false, false, false, true, false, false);
+                            CleanseSystem.CleanseBodyServer(body, new CleanseSystem.CleanseArgs
+                            {
+                                removeDots = true
+                            });
                         }
                     }
                 }

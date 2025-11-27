@@ -57,7 +57,7 @@ namespace RiskOfChaos.ScreenEffect
         [SystemInitializer]
         static void Init()
         {
-            ArrayUtils.CloneTo(Main.Instance.ContentPackProvider.ScreenEffectDefs, ref _screenEffectDefs);
+            ArrayUtils.CloneTo(RiskOfChaosPlugin.Instance.ContentPackProvider.ScreenEffectDefs, ref _screenEffectDefs);
 
             Array.Sort(_screenEffectDefs, (a, b) => string.CompareOrdinal(a.Name, b.Name));
 

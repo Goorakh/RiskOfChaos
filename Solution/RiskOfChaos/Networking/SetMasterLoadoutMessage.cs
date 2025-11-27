@@ -6,7 +6,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.Networking
 {
-    public class SetMasterLoadoutMessage : INetMessage
+    public sealed class SetMasterLoadoutMessage : INetMessage
     {
         GameObject _masterObject;
         Loadout _loadout;

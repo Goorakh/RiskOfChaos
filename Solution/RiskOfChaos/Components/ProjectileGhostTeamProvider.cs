@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Components
 {
-    public class ProjectileGhostTeamProvider : MonoBehaviour
+    public sealed class ProjectileGhostTeamProvider : MonoBehaviour
     {
         [SerializeField]
         TeamIndex _teamIndex = TeamIndex.None;

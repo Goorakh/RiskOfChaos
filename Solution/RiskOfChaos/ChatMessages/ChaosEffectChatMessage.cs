@@ -6,7 +6,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.ChatMessages
 {
-    public class ChaosEffectChatMessage : ChatMessageBase
+    public sealed class ChaosEffectChatMessage : ChatMessageBase
     {
         public string TokenFormat;
         public ChaosEffectIndex EffectIndex;

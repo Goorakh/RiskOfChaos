@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace RiskOfChaos.Utilities
 {
-    public sealed class SpawnPool<T> : IReadOnlyCollection<AssetOrDirectReference<T>> where T : UnityEngine.Object
+    public sealed class SpawnPool<T> : ICollection<AssetOrDirectReference<T>>, IReadOnlyCollection<AssetOrDirectReference<T>> where T : UnityEngine.Object
     {
         static readonly WeightedSelection<AssetOrDirectReference<T>> _sharedSpawnSelection = new WeightedSelection<AssetOrDirectReference<T>>();
 
@@ -43,6 +43,8 @@ namespace RiskOfChaos.Utilities
             get => _entries.Capacity;
             set => _entries.Capacity = value;
         }
+
+        bool ICollection<AssetOrDirectReference<T>>.IsReadOnly => true;
 
         void generateSpawnSelection(WeightedSelection<AssetOrDirectReference<T>> weightedSelection)
         {
@@ -198,6 +200,43 @@ namespace RiskOfChaos.Utilities
             {
                 AddEntry(entry);
             }
+        }
+
+        void ICollection<AssetOrDirectReference<T>>.Add(AssetOrDirectReference<T> item)
+        {
+            throw new NotSupportedException("Collection is read-only");
+        }
+
+        void ICollection<AssetOrDirectReference<T>>.Clear()
+        {
+            throw new NotSupportedException("Collection is read-only");
+        }
+
+        public bool Contains(AssetOrDirectReference<T> item)
+        {
+            foreach (SpawnPoolEntry<T> entry in _entries)
+            {
+                if (entry.MatchAssetReference(item))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public void CopyTo(AssetOrDirectReference<T>[] array, int arrayIndex)
+        {
+            for (int i = 0; i < _entries.Count; i++)
+            {
+                SpawnPoolEntry<T> entry = _entries[i];
+                array[arrayIndex + i] = entry.GetAssetReference(false);
+            }
+        }
+
+        bool ICollection<AssetOrDirectReference<T>>.Remove(AssetOrDirectReference<T> item)
+        {
+            throw new NotSupportedException("Collection is read-only");
         }
 
         public IEnumerator<AssetOrDirectReference<T>> GetEnumerator()

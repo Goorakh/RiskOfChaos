@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace RiskOfTwitch
 {
-    public class Authentication
+    public static class Authentication
     {
         public const string CLIENT_ID = "2h96zmad9nhz11unv407c9ou6i6ofj";
 

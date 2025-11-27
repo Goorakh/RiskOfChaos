@@ -5,7 +5,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.Networking
 {
-    public class PickupTransformationNotificationMessage : INetMessage
+    public sealed class PickupTransformationNotificationMessage : INetMessage
     {
         CharacterMaster _master;
         PickupIndex _fromPickupIndex;
@@ -27,8 +27,8 @@ namespace RiskOfChaos.Networking
         void ISerializableObject.Serialize(NetworkWriter writer)
         {
             writer.Write(_master.gameObject);
-            PickupIndex.WriteToNetworkWriter(writer, _fromPickupIndex);
-            PickupIndex.WriteToNetworkWriter(writer, _toPickupIndex);
+            writer.Write(_fromPickupIndex);
+            writer.Write(_toPickupIndex);
             writer.WritePackedUInt32((uint)_transformationType);
         }
 
@@ -37,8 +37,8 @@ namespace RiskOfChaos.Networking
             GameObject masterObject = reader.ReadGameObject();
             _master = masterObject ? masterObject.GetComponent<CharacterMaster>() : null;
 
-            _fromPickupIndex = PickupIndex.ReadFromNetworkReader(reader);
-            _toPickupIndex = PickupIndex.ReadFromNetworkReader(reader);
+            _fromPickupIndex = reader.ReadPickupIndex();
+            _toPickupIndex = reader.ReadPickupIndex();
 
             _transformationType = (CharacterMasterNotificationQueue.TransformationType)reader.ReadPackedUInt32();
         }

@@ -59,10 +59,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                         }
                     }
                 }
-
-                if ((bodyPrefab.bodyFlags & CharacterBody.BodyFlags.Mechanical) != 0)
+                
+                if ((bodyPrefab.bodyFlags & CharacterBody.BodyFlags.Drone) != 0)
                 {
-                    weight *= 0.6f;
+                    weight *= 0.4f;
                 }
 
                 CharacterSpawnCard spawnCard = ScriptableObject.CreateInstance<CharacterSpawnCard>();

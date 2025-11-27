@@ -3,7 +3,7 @@ using System;
 
 namespace RiskOfChaos.ConfigHandling.AcceptableValues
 {
-    public class AcceptableValueMin<T> : AcceptableValueBase where T : IComparable
+    public sealed class AcceptableValueMin<T> : AcceptableValueBase where T : IComparable
     {
         public T MinValue { get; }
 

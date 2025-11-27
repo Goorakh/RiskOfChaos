@@ -1,13 +1,14 @@
 ﻿using RiskOfChaos.Utilities.Pool;
 using RoR2;
 using System;
+using System.Collections.Generic;
 
 namespace RiskOfChaos.Utilities.DropTables
 {
-    public class SequentialPickupDropTable : PickupDropTable, IPooledObject
+    public sealed class SequentialPickupDropTable : PickupDropTable, IPooledObject
     {
         int _currentPickupIndex;
-        public PickupIndex[] Pickups = [];
+        public UniquePickup[] Pickups = [];
 
         void IPooledObject.ResetValues()
         {
@@ -15,28 +16,23 @@ namespace RiskOfChaos.Utilities.DropTables
             Pickups = [];
         }
 
-        PickupIndex getNextPickup()
+        UniquePickup getNextPickup()
         {
-            return Pickups.Length > 0 ? Pickups[_currentPickupIndex++ % Pickups.Length] : PickupIndex.none;
+            return Pickups.Length > 0 ? Pickups[_currentPickupIndex++ % Pickups.Length] : UniquePickup.none;
         }
 
-        public override PickupIndex GenerateDropPreReplacement(Xoroshiro128Plus rng)
+        public override UniquePickup GeneratePickupPreReplacement(Xoroshiro128Plus rng)
         {
             return getNextPickup();
         }
 
-        public override PickupIndex[] GenerateUniqueDropsPreReplacement(int maxDrops, Xoroshiro128Plus rng)
+        public override void GenerateDistinctPickupsPreReplacement(List<UniquePickup> dest, int desiredCount, Xoroshiro128Plus rng)
         {
-            maxDrops = Math.Min(maxDrops, Pickups.Length);
-
-            PickupIndex[] result = new PickupIndex[maxDrops];
-
+            int maxDrops = Math.Min(desiredCount, Pickups.Length);
             for (int i = 0; i < maxDrops; i++)
             {
-                result[i] = getNextPickup();
+                dest.Add(getNextPickup());
             }
-
-            return result;
         }
 
         public override int GetPickupCount()

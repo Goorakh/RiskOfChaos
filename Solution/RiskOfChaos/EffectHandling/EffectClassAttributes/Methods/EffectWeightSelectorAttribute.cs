@@ -3,7 +3,7 @@
 namespace RiskOfChaos.EffectHandling.EffectClassAttributes.Methods
 {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public class EffectWeightMultiplierSelectorAttribute : Attribute
+    public sealed class EffectWeightMultiplierSelectorAttribute : Attribute
     {
     }
 }

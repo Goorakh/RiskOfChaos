@@ -6,7 +6,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.Components.CostProviders
 {
-    public class OriginalCostProvider : MonoBehaviour, ICostProvider
+    public sealed class OriginalCostProvider : MonoBehaviour, ICostProvider
     {
         [SystemInitializer]
         static void Init()

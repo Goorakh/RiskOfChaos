@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.EffectHandling;
+﻿using HG;
+using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.Utilities;
@@ -46,28 +47,31 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             if (!NetworkServer.active)
                 return;
-            
-            List<CharacterBody> charactersToKill = new List<CharacterBody>(CharacterBody.readOnlyInstancesList.Count);
 
-            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
+            using (ListPool<CharacterBody>.RentCollection(out List<CharacterBody> charactersToKill))
             {
-                if (canKillCharacter(body))
-                {
-                    charactersToKill.Add(body);
-                }
-            }
+                charactersToKill.EnsureCapacity(CharacterBody.readOnlyInstancesList.Count);
 
-            foreach (CharacterBody body in charactersToKill)
-            {
-                if (body.healthComponent)
+                foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
                 {
-                    try
+                    if (canKillCharacter(body))
                     {
-                        body.healthComponent.Suicide();
+                        charactersToKill.Add(body);
                     }
-                    catch (Exception e)
+                }
+
+                foreach (CharacterBody body in charactersToKill)
+                {
+                    if (body.healthComponent)
                     {
-                        Log.Error_NoCallerPrefix($"Failed to kill {FormatUtils.GetBestBodyName(body)}: {e}");
+                        try
+                        {
+                            body.healthComponent.Suicide();
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Error_NoCallerPrefix($"Failed to kill {FormatUtils.GetBestBodyName(body)}: {e}");
+                        }
                     }
                 }
             }

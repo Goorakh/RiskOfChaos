@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Trackers
 {
-    public class HudCountdownPanelTracker : MonoBehaviour
+    public sealed class HudCountdownPanelTracker : MonoBehaviour
     {
         [SystemInitializer]
         static void Init()

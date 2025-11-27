@@ -9,7 +9,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.UI
 {
-    public class ChaosUIController : MonoBehaviour
+    public sealed class ChaosUIController : MonoBehaviour
     {
         [SystemInitializer]
         static void Init()

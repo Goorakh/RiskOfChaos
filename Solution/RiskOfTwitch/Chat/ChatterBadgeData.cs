@@ -2,7 +2,7 @@
 
 namespace RiskOfTwitch.Chat
 {
-    public class ChatterBadgeData
+    public sealed class ChatterBadgeData
     {
         [JsonProperty("set_id")]
         public string BadgeSetID { get; set; }

@@ -17,7 +17,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 namespace RiskOfChaos.EffectDefinitions.World.Spawn
 {
     [ChaosEffect("spawn_fake_teleporter", DefaultSelectionWeight = 0.8f)]
-    public class SpawnFakeTeleporter : NetworkBehaviour
+    public sealed class SpawnFakeTeleporter : NetworkBehaviour
     {
         static InteractableSpawnCard _fakeTeleporterSpawnCard;
 

@@ -6,9 +6,9 @@ namespace RiskOfChaos.Utilities.Pickup
 {
     public static class PickupUtils
     {
-        public const PickupNotificationFlags DEFAULT_NOTIFICATION_FLAGS = PickupNotificationFlags.DisplayPushNotification | PickupNotificationFlags.PlaySound | PickupNotificationFlags.SendChatMessage;
+        public const PickupNotificationFlags DefaultNotificationFlags = PickupNotificationFlags.DisplayPushNotification | PickupNotificationFlags.PlaySound | PickupNotificationFlags.SendChatMessage;
 
-        public static void QueuePickupMessage(CharacterMaster characterMaster, PickupIndex pickupIndex, PickupNotificationFlags notificationFlags = DEFAULT_NOTIFICATION_FLAGS)
+        public static void QueuePickupMessage(CharacterMaster characterMaster, PickupIndex pickupIndex, PickupNotificationFlags notificationFlags = DefaultNotificationFlags)
         {
             PickupsNotificationMessage pickupMessage = new PickupsNotificationMessage(characterMaster, [pickupIndex])
             {
@@ -18,7 +18,7 @@ namespace RiskOfChaos.Utilities.Pickup
             NetworkMessageQueue.EnqueueMessage(pickupMessage, NetworkDestination.Clients);
         }
 
-        public static void QueuePickupMessage(string messageToken, PickupIndex pickupIndex, uint pickupQuantity, PickupNotificationFlags notificationFlags = DEFAULT_NOTIFICATION_FLAGS)
+        public static void QueuePickupMessage(string messageToken, PickupIndex pickupIndex, uint pickupQuantity, PickupNotificationFlags notificationFlags = DefaultNotificationFlags)
         {
             PickupsNotificationMessage pickupMessage = new PickupsNotificationMessage(messageToken, [pickupIndex], [pickupQuantity])
             {
@@ -28,7 +28,7 @@ namespace RiskOfChaos.Utilities.Pickup
             NetworkMessageQueue.EnqueueMessage(pickupMessage, NetworkDestination.Clients);
         }
 
-        public static void QueuePickupsMessage(CharacterMaster characterMaster, PickupIndex[] pickupIndices, PickupNotificationFlags notificationFlags = DEFAULT_NOTIFICATION_FLAGS)
+        public static void QueuePickupsMessage(CharacterMaster characterMaster, PickupIndex[] pickupIndices, PickupNotificationFlags notificationFlags = DefaultNotificationFlags)
         {
             if (pickupIndices.Length == 0)
                 return;
@@ -41,7 +41,7 @@ namespace RiskOfChaos.Utilities.Pickup
             NetworkMessageQueue.EnqueueMessage(pickupMessage, NetworkDestination.Clients);
         }
 
-        public static void QueuePickupsMessage(string messageToken, PickupIndex[] pickupIndices, uint[] pickupQuantities, PickupNotificationFlags notificationFlags = DEFAULT_NOTIFICATION_FLAGS)
+        public static void QueuePickupsMessage(string messageToken, PickupIndex[] pickupIndices, uint[] pickupQuantities, PickupNotificationFlags notificationFlags = DefaultNotificationFlags)
         {
             if (pickupIndices.Length == 0)
                 return;

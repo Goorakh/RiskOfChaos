@@ -94,7 +94,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
             }
         }
 
-        class CloakedInteractableController : MonoBehaviour
+        sealed class CloakedInteractableController : MonoBehaviour
         {
             AllInteractablesCloaked _owner;
 

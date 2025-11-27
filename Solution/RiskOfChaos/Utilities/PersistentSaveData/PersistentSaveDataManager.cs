@@ -12,7 +12,7 @@ namespace RiskOfChaos.Utilities.PersistentSaveData
             {
                 if (_directoryPath == null)
                 {
-                    _directoryPath = Path.Combine(Application.persistentDataPath, Main.PluginName);
+                    _directoryPath = Path.Combine(Application.persistentDataPath, RiskOfChaosPlugin.PluginName);
 
                     if (!Directory.Exists(_directoryPath))
                     {

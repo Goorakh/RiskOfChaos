@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Components
 {
-    public class SetProjectileGhostTeam : MonoBehaviour
+    public sealed class SetProjectileGhostTeam : MonoBehaviour
     {
         ProjectileController _projectileController;
         TeamFilter _teamFilter;

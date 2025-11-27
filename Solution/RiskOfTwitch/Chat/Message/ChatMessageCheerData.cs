@@ -2,7 +2,7 @@
 
 namespace RiskOfTwitch.Chat.Message
 {
-    public class ChatMessageCheerData
+    public sealed class ChatMessageCheerData
     {
         [JsonProperty("bits")]
         public int TotalBits { get; set; }

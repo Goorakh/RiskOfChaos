@@ -2,7 +2,7 @@
 
 namespace RiskOfTwitch.User
 {
-    public class GetUsersResponse
+    public sealed class GetUsersResponse
     {
         public static GetUsersResponse Empty { get; } = new GetUsersResponse
         {

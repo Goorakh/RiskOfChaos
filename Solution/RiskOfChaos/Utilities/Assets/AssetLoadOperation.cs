@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Utilities.Assets
 {
-    public class AssetLoadOperation<T> : IAsyncOperationCoroutine where T : UnityEngine.Object
+    public sealed class AssetLoadOperation<T> : IAsyncOperationCoroutine where T : UnityEngine.Object
     {
         readonly AssetBundleRequest _assetBundleRequest;
 

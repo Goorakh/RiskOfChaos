@@ -72,6 +72,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 loadSpawnCardEntry(AddressableGuids.RoR2_Base_Drones_iscBrokenMissileDrone_asset, new SpawnPoolEntryParameters(1f)),
                 loadSpawnCardEntry(AddressableGuids.RoR2_Base_Drones_iscBrokenTurret1_asset, new SpawnPoolEntryParameters(1f)),
                 loadSpawnCardEntry(AddressableGuids.RoR2_CU8_LemurianEgg_iscLemurianEgg_asset, new SpawnPoolEntryParameters(1f)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_DLC3_Drones_iscBrokenBombardmentDrone_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC3)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_DLC3_Drones_iscBrokenCleanupDrone_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC3)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_DLC3_Drones_iscBrokenCopycatDrone_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC3)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_DLC3_Drones_iscBrokenHaulerDrone_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC3)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_DLC3_Drones_iscBrokenJailerDrone_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC3)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_DLC3_Drones_iscBrokenJunkDrone_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC3)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_DLC3_Drones_iscBrokenRechargeDrone_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC3)),
             ], 1f);
 
             // Barrels
@@ -118,6 +125,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 loadSpawnCardEntry(AddressableGuids.RoR2_DLC1_FreeChest_iscFreeChest_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1)),
 
                 loadSpawnCardEntry(AddressableGuids.RoR2_DLC1_VoidTriple_iscVoidTriple_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1)),
+
+                loadSpawnCardEntry(AddressableGuids.RoR2_DLC3_TripleDroneShop_iscTripleDroneShop_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC3)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_DLC3_TemporaryItemsDistributor_iscTemporaryItemsShop_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC3)),
             ], 1.5f);
 
             // Printers
@@ -176,6 +186,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 loadSpawnCardEntry(AddressableGuids.RoR2_Base_ShrineHealing_iscShrineHealing_asset, new SpawnPoolEntryParameters(1f)),
                 loadSpawnCardEntry(AddressableGuids.RoR2_DLC2_iscShrineColossusAccess_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
                 _spawnPool.CreateEntry(CustomSpawnCards.iscGeodeFixed, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_DLC3_iscShrineCombatCollective_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC3)),
+            ]);
+
+            // Drone-related interactables
+            _spawnPool.AddGroupedEntries([
+                loadSpawnCardEntry(AddressableGuids.RoR2_DLC3_DroneCombinerStation_iscDroneCombinerStation_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC3)),
+                loadSpawnCardEntry(AddressableGuids.RoR2_DLC3_DroneScrapper_iscDroneScrapper_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC3)),
             ]);
 
             InteractableSpawnCard iscNewtStatue = ScriptableObject.CreateInstance<InteractableSpawnCard>();

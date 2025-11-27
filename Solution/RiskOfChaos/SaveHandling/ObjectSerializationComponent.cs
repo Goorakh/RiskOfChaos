@@ -16,7 +16,7 @@ namespace RiskOfChaos.SaveHandling
 {
     [DisallowMultipleComponent]
     [RequiredComponents(typeof(NetworkIdentity))]
-    public class ObjectSerializationComponent : MonoBehaviour
+    public sealed class ObjectSerializationComponent : MonoBehaviour
     {
         static readonly List<ObjectSerializationComponent> _instances = [];
         public static readonly ReadOnlyCollection<ObjectSerializationComponent> Instances = new ReadOnlyCollection<ObjectSerializationComponent>(_instances);

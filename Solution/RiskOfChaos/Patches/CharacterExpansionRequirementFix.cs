@@ -1,8 +1,10 @@
-﻿using HG.Coroutines;
+﻿using HG;
+using HG.Coroutines;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.ExpansionManagement;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +21,7 @@ namespace RiskOfChaos.Patches
             static void addExpansionRequirement(string prefabAssetGuid, ExpansionIndex expansionIndex, List<AsyncOperationHandle> operationsList)
             {
                 if (string.IsNullOrWhiteSpace(prefabAssetGuid))
-                    throw new System.ArgumentException($"'{nameof(prefabAssetGuid)}' cannot be null or whitespace.", nameof(prefabAssetGuid));
+                    throw new ArgumentException($"'{nameof(prefabAssetGuid)}' cannot be null or whitespace.", nameof(prefabAssetGuid));
 
                 if (expansionIndex == ExpansionIndex.None)
                 {
@@ -34,11 +36,11 @@ namespace RiskOfChaos.Patches
 
                     if (ExpansionUtils.GetObjectRequiredExpansions(prefab).Contains(expansionDef))
                     {
-                        Log.Debug($"Already has required expansion {expansionDef.name}");
+                        Log.Debug($"{prefab.name} already has required expansion {expansionDef.name}");
                         return;
                     }
 
-                    prefab.AddComponent<ExpansionRequirementComponent>().requiredExpansion = expansionDef;
+                    prefab.EnsureComponent<ExpansionRequirementComponent>().requiredExpansion = expansionDef;
 
                     Log.Debug($"Added expansion requirement {expansionDef.name} to {prefab.name}");
                 });

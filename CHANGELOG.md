@@ -19,7 +19,7 @@
   * Give Random Elite Aspect
   * Randomize Loadout
   * Splitscreen
-    * These were either unfun/boring on their own or messed with the balance too much to the point where the game was no longer fun.
+    * These were either unfun/boring on their own or became too much work to maintain.
 
 * Aspect Roulette:
   * No longer affects players' aspect.

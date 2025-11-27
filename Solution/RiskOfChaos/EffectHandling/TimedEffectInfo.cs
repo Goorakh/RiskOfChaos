@@ -14,7 +14,7 @@ using System.Collections.Generic;
 
 namespace RiskOfChaos.EffectHandling
 {
-    public class TimedEffectInfo : ChaosEffectInfo
+    public sealed class TimedEffectInfo : ChaosEffectInfo
     {
         readonly bool _allowDuplicates;
         readonly ConfigHolder<bool> _allowDuplicatesOverrideConfig;

@@ -2,7 +2,7 @@
 
 namespace RiskOfTwitch.Chat.Message
 {
-    public class ChatMessageFragment
+    public sealed class ChatMessageFragment
     {
         [JsonProperty("type")]
         public string FragmentType { get; set; }

@@ -4,7 +4,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.ChatMessages
 {
-    public class BestNameSubjectChatMessage : ChatMessageBase
+    public sealed class BestNameSubjectChatMessage : ChatMessageBase
     {
         public GameObject SubjectNetworkUserObject;
         MemoizedGetComponent<NetworkUser> _subjectNetworkUserGetComponent;
@@ -46,7 +46,7 @@ namespace RiskOfChaos.ChatMessages
             }
         }
 
-        protected string getSubjectName()
+        string getSubjectName()
         {
             string subjectName = "???";
             if (SubjectAsNetworkUser)
@@ -66,12 +66,12 @@ namespace RiskOfChaos.ChatMessages
             return subjectName;
         }
 
-        protected bool isSecondPerson()
+        bool isSecondPerson()
         {
             return LocalUserManager.readOnlyLocalUsersList.Count == 1 && SubjectAsNetworkUser && SubjectAsNetworkUser.localUser != null;
         }
 
-        protected string getResolvedToken()
+        string getResolvedToken()
         {
             if (isSecondPerson())
             {

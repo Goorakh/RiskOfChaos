@@ -202,7 +202,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             NetworkServer.Spawn(podObject);
         }
 
-        class RepeatedPassengerInteraction : MonoBehaviour
+        sealed class RepeatedPassengerInteraction : MonoBehaviour
         {
             VehicleSeat _seat;
 

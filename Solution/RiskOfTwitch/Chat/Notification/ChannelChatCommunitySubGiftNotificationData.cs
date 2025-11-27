@@ -2,7 +2,7 @@
 
 namespace RiskOfTwitch.Chat.Notification
 {
-    public class ChannelChatCommunitySubGiftNotificationData
+    public sealed class ChannelChatCommunitySubGiftNotificationData
     {
         [JsonProperty("id")]
         public string Id { get; set; }

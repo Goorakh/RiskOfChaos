@@ -7,7 +7,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectHandling.EffectComponents.SubtitleProviders
 {
     [RequiredComponents(typeof(ChaosEffectSubtitleComponent))]
-    public class ArtifactSubtitleProvider : NetworkBehaviour, IEffectSubtitleProvider
+    public sealed class ArtifactSubtitleProvider : NetworkBehaviour, IEffectSubtitleProvider
     {
         [SyncVar(hook = nameof(hookSetArtifactIndex))]
         int _artifactIndexInternal;

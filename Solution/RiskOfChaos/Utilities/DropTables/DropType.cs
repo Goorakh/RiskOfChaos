@@ -13,6 +13,8 @@
         VoidTier1,
         VoidTier2,
         VoidTier3,
-        VoidBoss
+        VoidBoss,
+        PowerShape,
+        FoodTier,
     }
 }

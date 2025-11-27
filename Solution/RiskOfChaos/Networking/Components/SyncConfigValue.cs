@@ -5,7 +5,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.Networking.Components
 {
-    public class SyncConfigValue : NetworkBehaviour
+    public sealed class SyncConfigValue : NetworkBehaviour
     {
         [SyncVar]
         string _configDefinition;

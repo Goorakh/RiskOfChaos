@@ -7,7 +7,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.Networking.Components
 {
-    public class SyncTimeScale : NetworkBehaviour
+    public sealed class SyncTimeScale : NetworkBehaviour
     {
         [ContentInitializer]
         static void LoadContent(ContentIntializerArgs args)

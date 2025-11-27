@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Components
 {
-    public class ReplacedProjectileHookReferenceResolver : MonoBehaviour
+    public sealed class ReplacedProjectileHookReferenceResolver : MonoBehaviour
     {
         ProjectileController _projectileController;
 

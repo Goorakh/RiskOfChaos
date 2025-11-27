@@ -2,7 +2,7 @@
 
 namespace RiskOfTwitch.Chat.Message
 {
-    public class ChatMessageCheermoteData
+    public sealed class ChatMessageCheermoteData
     {
         [JsonProperty("prefix")]
         public string Prefix { get; set; }

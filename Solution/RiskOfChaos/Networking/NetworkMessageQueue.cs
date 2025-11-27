@@ -10,7 +10,7 @@ namespace RiskOfChaos.Networking
 {
     public static class NetworkMessageQueue
     {
-        class QueuedMessage
+        sealed class QueuedMessage
         {
             public readonly INetMessage Message;
 

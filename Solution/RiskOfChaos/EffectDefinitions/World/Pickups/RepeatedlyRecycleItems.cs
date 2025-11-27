@@ -273,7 +273,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
             {
                 PickupController.NetworkRecycled = true;
 
-                _currentRecycleStepIndex = EffectInstance.findRecycleStepIndex(PickupController.pickupIndex);
+                _currentRecycleStepIndex = EffectInstance.findRecycleStepIndex(PickupController.pickup.pickupIndex);
 
                 startRecycleTimer();
             }
@@ -287,10 +287,10 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
             void stepRecycle()
             {
                 PickupIndex nextPickup = currentRecycleStep;
-                if (!nextPickup.isValid || nextPickup == PickupController.pickupIndex)
+                if (!nextPickup.isValid || nextPickup == PickupController.pickup.pickupIndex)
                     return;
 
-                PickupController.NetworkpickupIndex = nextPickup;
+                PickupController.pickup = PickupController.pickup.WithPickupIndex(nextPickup);
 
                 if (_recycleEffectIndex != EffectIndex.Invalid)
                 {
@@ -317,9 +317,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                 _recycleTimer -= Time.fixedDeltaTime;
                 if (_recycleTimer <= 0f)
                 {
-                    if (PickupController.pickupIndex != currentRecycleStep)
+                    if (PickupController.pickup.pickupIndex != currentRecycleStep)
                     {
-                        _currentRecycleStepIndex = EffectInstance.findRecycleStepIndex(PickupController.pickupIndex);
+                        _currentRecycleStepIndex = EffectInstance.findRecycleStepIndex(PickupController.pickup.pickupIndex);
                     }
 
                     _currentRecycleStepIndex++;

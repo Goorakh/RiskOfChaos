@@ -9,7 +9,7 @@ using UnityEngine;
 namespace RiskOfChaos.EffectHandling.EffectComponents.SubtitleProviders
 {
     [RequiredComponents(typeof(ApplyBuffEffect), typeof(ChaosEffectSubtitleComponent))]
-    public class BuffSubtitleProvider : MonoBehaviour, IEffectSubtitleProvider
+    public sealed class BuffSubtitleProvider : MonoBehaviour, IEffectSubtitleProvider
     {
         ApplyBuffEffect _applyBuffEffect;
 

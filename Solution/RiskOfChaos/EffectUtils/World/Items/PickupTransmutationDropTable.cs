@@ -1,12 +1,12 @@
 ﻿using HG;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace RiskOfChaos.EffectUtils.World.Items
 {
-    public class PickupTransmutationDropTable : PickupDropTable
+    public sealed class PickupTransmutationDropTable : PickupDropTable
     {
         public PickupIndex SourcePickup = PickupIndex.none;
 
@@ -74,27 +74,31 @@ namespace RiskOfChaos.EffectUtils.World.Items
             _transmutationGroupDirty = false;
         }
 
-        public override PickupIndex GenerateDropPreReplacement(Xoroshiro128Plus rng)
+        public override UniquePickup GeneratePickupPreReplacement(Xoroshiro128Plus rng)
         {
             regenerateIfNeeded();
 
-            if (_transmutationGroup.Length == 0)
-                return PickupIndex.none;
+            if (_transmutationGroup.Length <= 0)
+                return UniquePickup.none;
 
-            return rng.NextElementUniform(_transmutationGroup);
+            return new UniquePickup(rng.NextElementUniform(_transmutationGroup));
         }
 
-        public override PickupIndex[] GenerateUniqueDropsPreReplacement(int maxDrops, Xoroshiro128Plus rng)
+        public override void GenerateDistinctPickupsPreReplacement(List<UniquePickup> dest, int desiredCount, Xoroshiro128Plus rng)
         {
             regenerateIfNeeded();
 
-            if (_transmutationGroup.Length == 0)
-                return [];
+            if (_transmutationGroup.Length > 0)
+            {
+                PickupIndex[] modifiableTransmutationGroup = ArrayUtils.Clone(_transmutationGroup);
+                Util.ShuffleArray(modifiableTransmutationGroup, rng);
 
-            PickupIndex[] modifiableTransmutationGroup = ArrayUtils.Clone(_transmutationGroup);
-            Util.ShuffleArray(modifiableTransmutationGroup, rng);
-
-            return modifiableTransmutationGroup[0..Mathf.Min(modifiableTransmutationGroup.Length, maxDrops)];
+                dest.EnsureCapacity(Math.Min(desiredCount, modifiableTransmutationGroup.Length));
+                for (int i = 0; i < desiredCount && i < modifiableTransmutationGroup.Length; i++)
+                {
+                    dest.Add(new UniquePickup(modifiableTransmutationGroup[i]));
+                }
+            }
         }
 
         public override int GetPickupCount()

@@ -4,7 +4,7 @@ using System.Reflection;
 namespace RiskOfChaos.SaveHandling
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class SerializedMemberAttribute : Attribute
+    public sealed class SerializedMemberAttribute : Attribute
     {
         public readonly string OverrideName;
 

@@ -17,7 +17,7 @@ namespace RiskOfChaos.Patches.AttackHooks
 {
     static class OrbBounceHook
     {
-        class OrbBounceChain
+        sealed class OrbBounceChain
         {
             public readonly Xoroshiro128Plus RNG;
 

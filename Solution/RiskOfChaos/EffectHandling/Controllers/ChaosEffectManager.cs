@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectHandling.Controllers
 {
     [DisallowMultipleComponent]
-    public class ChaosEffectManager : MonoBehaviour
+    public sealed class ChaosEffectManager : MonoBehaviour
     {
         static GameObject[] _effectActivationSignalerPrefabs = [];
 

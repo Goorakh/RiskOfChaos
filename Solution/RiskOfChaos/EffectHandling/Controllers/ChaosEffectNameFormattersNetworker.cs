@@ -9,7 +9,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectHandling.Controllers
 {
     [DisallowMultipleComponent]
-    public class ChaosEffectNameFormattersNetworker : NetworkBehaviour
+    public sealed class ChaosEffectNameFormattersNetworker : NetworkBehaviour
     {
         static ChaosEffectNameFormattersNetworker _instance;
         public static ChaosEffectNameFormattersNetworker Instance => _instance;

@@ -26,6 +26,9 @@ namespace RiskOfChaos.Patches
             if (!NetworkServer.active || _patchDisabled)
                 return;
 
+            if (pickupInfo.duplicated)
+                return;
+
             PickupModificationManager pickupModificationManager = PickupModificationManager.Instance;
             if (!pickupModificationManager)
                 return;

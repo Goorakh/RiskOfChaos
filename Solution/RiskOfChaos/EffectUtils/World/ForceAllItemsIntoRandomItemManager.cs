@@ -36,23 +36,23 @@ namespace RiskOfChaos.EffectUtils.World
 
         public static event Action OnNextOverridePickupChanged;
 
-        PickupIndex _nextOverridePickupIndex = PickupIndex.none;
+        UniquePickup _nextOverridePickup = UniquePickup.none;
 
         [SerializedMember("n")]
-        public PickupIndex NextOverridePickupIndex
+        public UniquePickup NextOverridePickup
         {
             get
             {
-                return _nextOverridePickupIndex;
+                return _nextOverridePickup;
             }
             private set
             {
-                if (_nextOverridePickupIndex == value)
+                if (_nextOverridePickup == value)
                     return;
 
-                Log.Debug($"Next override pickup: {_nextOverridePickupIndex} -> {value}");
+                Log.Debug($"Next override pickup: {_nextOverridePickup} -> {value}");
 
-                _nextOverridePickupIndex = value;
+                _nextOverridePickup = value;
                 OnNextOverridePickupChanged?.Invoke();
             }
         }
@@ -88,7 +88,7 @@ namespace RiskOfChaos.EffectUtils.World
         [Server]
         public void RollNextOverridePickup()
         {
-            NextOverridePickupIndex = ForceAllItemsIntoRandomItem.GenerateOverridePickup(_rng);
+            NextOverridePickup = ForceAllItemsIntoRandomItem.GenerateOverridePickup(_rng);
         }
 
         void Stage_onServerStageBegin(Stage stage)

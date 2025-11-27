@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace RiskOfChaosPatcher
 {
-    public class ProjectilePatcher
+    public static class ProjectilePatcher
     {
         static readonly LogWriter _log = new LogWriter();
 

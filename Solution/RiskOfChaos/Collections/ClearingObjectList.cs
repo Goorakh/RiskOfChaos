@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Collections
 {
-    public class ClearingObjectList<T> : IList<T>, IDisposable where T : UnityEngine.Object
+    public sealed class ClearingObjectList<T> : IList<T>, IDisposable where T : UnityEngine.Object
     {
         readonly List<T> _list = [];
         readonly List<OnDestroyEvent> _destroyEvents = [];

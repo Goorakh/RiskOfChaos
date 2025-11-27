@@ -6,16 +6,18 @@ namespace RiskOfChaos.Utilities.Pickup
     {
         public readonly EquipmentIndex EquipmentIndex;
         public readonly uint EquipmentSlotIndex;
+        public readonly uint EquipmentSetIndex;
 
-        public EquipmentPickupInfo(Inventory inventory, EquipmentIndex equipmentIndex, uint equipmentSlotIndex) : base(inventory, PickupCatalog.FindPickupIndex(equipmentIndex))
+        public EquipmentPickupInfo(Inventory inventory, EquipmentIndex equipmentIndex, uint equipmentSlotIndex, uint equipmentSetIndex) : base(inventory, PickupCatalog.FindPickupIndex(equipmentIndex))
         {
-            EquipmentSlotIndex = equipmentSlotIndex;
             EquipmentIndex = equipmentIndex;
+            EquipmentSlotIndex = equipmentSlotIndex;
+            EquipmentSetIndex = equipmentSetIndex;
         }
 
         public override void RemoveFromInventory()
         {
-            Inventory.SetEquipmentIndexForSlot(EquipmentIndex.None, EquipmentSlotIndex);
+            Inventory.SetEquipmentIndexForSlot(EquipmentIndex.None, EquipmentSlotIndex, EquipmentSetIndex);
         }
     }
 }

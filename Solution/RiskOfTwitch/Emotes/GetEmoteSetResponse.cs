@@ -3,7 +3,7 @@ using System;
 
 namespace RiskOfTwitch.Emotes
 {
-    public class GetEmoteSetResponse
+    public sealed class GetEmoteSetResponse
     {
         public static GetEmoteSetResponse Empty { get; } = new GetEmoteSetResponse
         {

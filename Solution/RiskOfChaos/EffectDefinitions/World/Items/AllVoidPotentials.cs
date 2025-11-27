@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using HG;
+using Newtonsoft.Json;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -10,7 +11,6 @@ using RoR2;
 using RoR2.ContentManagement;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -170,7 +170,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
             _optionPickupPrefabReference?.Reset();
         }
 
-        bool tryGetAvailableOptionsFor(PickupIndex sourcePickup, int maxOptionCount, out PickupIndex[] options)
+        bool tryGetAvailableOptionsFor(PickupIndex sourcePickup, int maxOptionCount, out UniquePickup[] options)
         {
             if (sourcePickup.isValid && _pickupOptionGenerators.TryGetValue(sourcePickup, out PickupOptionGenerator optionGenerator))
             {
@@ -184,7 +184,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
             }
         }
 
-        PickupPickerController.Option[] getPickableOptions(PickupIndex sourcePickup)
+        PickupPickerController.Option[] getPickableOptions(UniquePickup sourcePickup)
         {
             const int NUM_ADDITIONAL_OPTIONS = 2;
 
@@ -193,27 +193,27 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
             // Guarantee the original item is always an option
             PickupPickerController.Option guaranteedOption = new PickupPickerController.Option
             {
-                pickupIndex = sourcePickup,
+                pickup = sourcePickup,
                 available = true
             };
 
             PickupPickerController.Option[] additionalOptions = [];
-            if (tryGetAvailableOptionsFor(sourcePickup, NUM_ADDITIONAL_OPTIONS, out PickupIndex[] availablePickupOptions))
+            if (tryGetAvailableOptionsFor(sourcePickup.pickupIndex, NUM_ADDITIONAL_OPTIONS, out UniquePickup[] availablePickupOptions))
             {
                 int numExtraOptions = availablePickupOptions.Length;
                 additionalOptions = new PickupPickerController.Option[numExtraOptions];
 
                 for (int i = 0; i < numExtraOptions; i++)
                 {
-                    PickupIndex pickupIndex = sourcePickup;
+                    UniquePickup pickup = sourcePickup;
                     if (allowChoices)
                     {
-                        pickupIndex = availablePickupOptions[i];
+                        pickup = pickup.WithPickupIndex(availablePickupOptions[i].pickupIndex);
                     }
 
                     additionalOptions[i] = new PickupPickerController.Option
                     {
-                        pickupIndex = pickupIndex,
+                        pickup = pickup,
                         available = true
                     };
                 }
@@ -227,11 +227,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
             if (createPickupInfo.pickerOptions != null)
                 return;
 
-            PickupIndex pickupIndex = createPickupInfo.pickupIndex;
-            if (!pickupIndex.isValid)
+            UniquePickup pickup = createPickupInfo.pickup;
+            if (!pickup.isValid)
                 return;
 
-            createPickupInfo.pickerOptions = getPickableOptions(pickupIndex);
+            createPickupInfo.pickerOptions = getPickableOptions(pickup);
             createPickupInfo.prefabOverride = _optionPickupPrefabReference.WaitForCompletion();
         }
 
@@ -267,7 +267,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
             {
             }
 
-            public PickupIndex[] GenerateOptions(int maxOptionCount)
+            public UniquePickup[] GenerateOptions(int maxOptionCount)
             {
                 int index = _sourcePickup.value;
                 if (index < 0 || index >= _pickupTransmutationDropTables.Length)
@@ -277,7 +277,11 @@ namespace RiskOfChaos.EffectDefinitions.World.Items
                 if (!dropTable)
                     return [];
 
-                return dropTable.GenerateUniqueDrops(maxOptionCount, new Xoroshiro128Plus(_rng.nextUlong));
+                using (ListPool<UniquePickup>.RentCollection(out List<UniquePickup> pickups))
+                {
+                    dropTable.GenerateDistinctPickups(pickups, maxOptionCount, new Xoroshiro128Plus(_rng.nextUlong));
+                    return [.. pickups];
+                }
             }
         }
     }

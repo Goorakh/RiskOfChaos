@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
 {
-    public class UniqueVoteSelection<TVoteKey, TVoteResult> : VoteSelection<TVoteResult>
+    public sealed class UniqueVoteSelection<TVoteKey, TVoteResult> : VoteSelection<TVoteResult>
     {
         readonly Dictionary<TVoteKey, int> _voteByKey = [];
 

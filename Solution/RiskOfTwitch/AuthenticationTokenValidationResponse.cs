@@ -4,7 +4,7 @@ using System;
 namespace RiskOfTwitch
 {
     [Serializable]
-    public class AuthenticationTokenValidationResponse
+    public sealed class AuthenticationTokenValidationResponse
     {
         [JsonProperty("client_id")]
         public string ClientId { get; set; } = string.Empty;

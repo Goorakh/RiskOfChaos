@@ -8,7 +8,7 @@ namespace RiskOfChaos
         {
             RoR2.Language.collectLanguageRootFolders += static folders =>
             {
-                string languageFolderPath = Path.Combine(Main.ModDirectory, "lang");
+                string languageFolderPath = Path.Combine(RiskOfChaosPlugin.ModDirectory, "lang");
                 if (Directory.Exists(languageFolderPath))
                 {
                     Log.Debug($"Found lang folder at {languageFolderPath}, adding to list ({string.Join(", ", folders)})");

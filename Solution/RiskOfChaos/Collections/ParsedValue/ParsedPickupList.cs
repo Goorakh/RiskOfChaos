@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace RiskOfChaos.Collections.ParsedValue
 {
-    public class ParsedPickupList : GenericParsedList<PickupIndex>
+    public sealed class ParsedPickupList : GenericParsedList<PickupIndex>
     {
         public ParsedPickupList(IComparer<PickupIndex> comparer) : base(comparer)
         {

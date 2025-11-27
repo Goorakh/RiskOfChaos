@@ -9,6 +9,7 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.ContentManagement;
+using RoR2.ExpansionManagement;
 using RoR2.Navigation;
 using System.Collections;
 using UnityEngine;
@@ -20,6 +21,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
     [ChaosEffect("spawn_geyser")]
     public sealed class SpawnGeyser : NetworkBehaviour
     {
+        readonly record struct GeyserInfo(string PrefabGuid, ExpansionIndex[] RequiredExpansions);
+
         static readonly SpawnPool<SpawnCard> _spawnPool = new SpawnPool<SpawnCard>();
 
         [ContentInitializer]
@@ -27,27 +30,28 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
         {
             ParallelProgressCoroutine parallelCoroutine = new ParallelProgressCoroutine(args.ProgressReceiver);
 
-            string[] geyserPrefabGuids = [
-                AddressableGuids.RoR2_Base_artifactworld_AWGeyser_prefab,
-                AddressableGuids.RoR2_Base_Common_Props_Geyser_prefab,
-                //"RoR2/Base/frozenwall/FW_HumanFan.prefab",
-                AddressableGuids.RoR2_Base_moon_MoonGeyser_prefab,
-                //"RoR2/Base/moon2/MoonElevator.prefab",
-                AddressableGuids.RoR2_Base_rootjungle_RJ_BounceShroom_prefab,
-                AddressableGuids.RoR2_DLC1_ancientloft_AL_Geyser_prefab,
-                AddressableGuids.RoR2_DLC1_snowyforest_SFGeyser_prefab,
-                AddressableGuids.RoR2_DLC1_voidstage_mdlVoidGravityGeyser_prefab,
-                AddressableGuids.RoR2_DLC2_meridian_PMLaunchPad_prefab
+            GeyserInfo[] geyserInfos = [
+                new GeyserInfo(AddressableGuids.RoR2_Base_artifactworld_AWGeyser_prefab, []),
+                new GeyserInfo(AddressableGuids.RoR2_Base_Common_Props_Geyser_prefab, []),
+                //new GeyserInfo("RoR2/Base/frozenwall/FW_HumanFan.prefab", []),
+                new GeyserInfo(AddressableGuids.RoR2_Base_moon_MoonGeyser_prefab, []),
+                //new GeyserInfo("RoR2/Base/moon2/MoonElevator.prefab", []),
+                new GeyserInfo(AddressableGuids.RoR2_Base_rootjungle_RJ_BounceShroom_prefab, []),
+                new GeyserInfo(AddressableGuids.RoR2_DLC1_ancientloft_AL_Geyser_prefab, [ExpansionUtils.DLC1]),
+                new GeyserInfo(AddressableGuids.RoR2_DLC1_snowyforest_SFGeyser_prefab, [ExpansionUtils.DLC1]),
+                new GeyserInfo(AddressableGuids.RoR2_DLC1_voidstage_mdlVoidGravityGeyser_prefab, [ExpansionUtils.DLC1]),
+                new GeyserInfo(AddressableGuids.RoR2_DLC2_meridian_PMLaunchPad_prefab, [ExpansionUtils.DLC2]),
+                new GeyserInfo(AddressableGuids.RoR2_DLC3_solutionalhaunt_SHSolusDecorJumpPad_prefab, [ExpansionUtils.DLC3]),
             ];
 
-            int geyserCount = geyserPrefabGuids.Length;
+            int geyserCount = geyserInfos.Length;
 
             GameObject[] geyserPrefabs = new GameObject[geyserCount];
             for (int i = 0; i < geyserCount; i++)
             {
                 int prefabIndex = i;
 
-                AsyncOperationHandle<GameObject> geyserLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(geyserPrefabGuids[i]);
+                AsyncOperationHandle<GameObject> geyserLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(geyserInfos[i].PrefabGuid);
                 geyserLoad.OnSuccess(geyserPrefab =>
                 {
                     GameObject geyserHolder = Prefabs.CreateNetworkedPrefab("Networked" + geyserPrefab.name, [
@@ -65,21 +69,25 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
                     GrantTemporaryItemsOnJump grantItemsOnJump = geyserHolder.GetComponent<GrantTemporaryItemsOnJump>();
                     grantItemsOnJump.JumpVolume = geyserJumpVolume;
-                    grantItemsOnJump.Items = [
-                        new GrantTemporaryItemsOnJump.ConditionalItem
-                        {
-                            ItemDef = AddressableUtil.LoadTempAssetAsync<ItemDef>(AddressableGuids.RoR2_Base_Feather_Feather_asset).WaitForCompletion(),
-                            GrantToPlayers = true,
-                            IgnoreIfItemAlreadyPresent = true,
-                            NotifyPickupIfNoneActive = true,
-                        },
-                        new GrantTemporaryItemsOnJump.ConditionalItem
-                        {
-                            ItemDef = AddressableUtil.LoadTempAssetAsync<ItemDef>(AddressableGuids.RoR2_Base_TeleportWhenOob_TeleportWhenOob_asset).WaitForCompletion(),
-                            GrantToInvincibleLemurian = true,
-                            IgnoreIfItemAlreadyPresent = true,
-                        }
-                    ];
+
+                    ItemCatalog.availability.CallWhenAvailable(() =>
+                    {
+                        grantItemsOnJump.Items = [
+                            new GrantTemporaryItemsOnJump.ConditionalItem
+                            {
+                                ItemDef = RoR2Content.Items.Feather,
+                                GrantToPlayers = true,
+                                IgnoreIfItemAlreadyPresent = true,
+                                NotifyPickupIfNoneActive = true,
+                            },
+                            new GrantTemporaryItemsOnJump.ConditionalItem
+                            {
+                                ItemDef = RoR2Content.Items.TeleportWhenOob,
+                                GrantToInvincibleLemurian = true,
+                                IgnoreIfItemAlreadyPresent = true,
+                            }
+                        ];
+                    });
 
                     geyserPrefabs[prefabIndex] = geyserHolder;
 
@@ -93,8 +101,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
             _spawnPool.EnsureCapacity(geyserPrefabs.Length);
 
-            foreach (GameObject geyserPrefab in geyserPrefabs)
+            for (int i = 0; i < geyserPrefabs.Length; i++)
             {
+                GameObject geyserPrefab = geyserPrefabs[i];
                 if (!geyserPrefab)
                     continue;
 
@@ -107,7 +116,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                 spawnCard.nodeGraphType = MapNodeGroup.GraphType.Ground;
                 spawnCard.occupyPosition = true;
 
-                _spawnPool.AddEntry(spawnCard, new SpawnPoolEntryParameters(1f));
+                _spawnPool.AddEntry(spawnCard, new SpawnPoolEntryParameters(1f, geyserInfos[i].RequiredExpansions));
             }
 
             _spawnPool.TrimExcess();

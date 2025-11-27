@@ -2,7 +2,7 @@
 
 namespace RiskOfTwitch.Chat.Notification
 {
-    public class ChannelChatCharityDonationAmountData
+    public sealed class ChannelChatCharityDonationAmountData
     {
         [JsonProperty("value")]
         public int Value { get; set; }

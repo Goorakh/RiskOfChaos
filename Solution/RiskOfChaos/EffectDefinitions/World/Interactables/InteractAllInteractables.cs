@@ -40,7 +40,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
 
             if (interactableComponent.TryGetComponent(out ShopTerminalBehavior shopTerminalBehavior))
             {
-                if (shopTerminalBehavior.CurrentPickupIndex() == PickupIndex.none)
+                if (shopTerminalBehavior.CurrentPickup() == UniquePickup.none)
                     return false;
             }
 
@@ -169,30 +169,26 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
             isAffordable = true;
         }
 
-        static void overridePayCost(CostTypeDef costTypeDef, int cost, Interactor activator, GameObject purchasedObject, Xoroshiro128Plus rng, ItemIndex avoidedItemIndex, ref CostTypeDef.PayCostResults results)
+        static void overridePayCost(CostTypeDef costTypeDef, CostTypeDef.PayCostContext context, CostTypeDef.PayCostResults result)
         {
             // Still include equipment data in cost results, but don't remove from inventory
             // If this isn't done equipment drones will not spawn at all
             if (costTypeDef == CostTypeCatalog.GetCostTypeDef(CostTypeIndex.Equipment) || costTypeDef == CostTypeCatalog.GetCostTypeDef(CostTypeIndex.VolatileBattery))
             {
-                if (results.equipmentTaken.Count == 0)
+                if (result.equipmentTaken.Count == 0)
                 {
                     EquipmentIndex equipmentTaken = EquipmentIndex.None;
-                    if (activator && activator.TryGetComponent(out CharacterBody activatorBody))
+                    if (context.activatorInventory)
                     {
-                        Inventory activatorInventory = activatorBody.inventory;
-                        if (activatorInventory)
+                        EquipmentIndex activatorCurrentEquipment = context.activatorInventory.GetEquipmentIndex();
+                        if (activatorCurrentEquipment != EquipmentIndex.None)
                         {
-                            EquipmentIndex activatorCurrentEquipment = activatorInventory.GetEquipmentIndex();
-                            if (activatorCurrentEquipment != EquipmentIndex.None)
-                            {
-                                equipmentTaken = activatorCurrentEquipment;
-                            }
+                            equipmentTaken = activatorCurrentEquipment;
                         }
                     }
 
                     // EquipmentIndex.None is perfectly fine here, there just needs to be *something* in the list
-                    results.equipmentTaken.Add(equipmentTaken);
+                    result.equipmentTaken.Add(equipmentTaken);
                 }
             }
         }

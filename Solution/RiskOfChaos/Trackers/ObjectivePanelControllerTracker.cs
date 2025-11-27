@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Trackers
 {
-    public class ObjectivePanelControllerTracker : MonoBehaviour
+    public sealed class ObjectivePanelControllerTracker : MonoBehaviour
     {
         [SystemInitializer]
         static void Init()

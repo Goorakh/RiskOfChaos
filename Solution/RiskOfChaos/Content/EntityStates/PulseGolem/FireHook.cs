@@ -7,7 +7,7 @@ using UnityEngine;
 namespace RiskOfChaos.Content.EntityStates.PulseGolem
 {
     [EntityStateType]
-    public class FireHook : BaseState
+    public sealed class FireHook : BaseState
     {
         static EffectIndex _muzzleEffectIndex = EffectIndex.Invalid;
 

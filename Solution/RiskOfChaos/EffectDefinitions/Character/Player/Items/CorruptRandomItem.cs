@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Collections.ParsedValue;
+﻿using HG;
+using RiskOfChaos.Collections.ParsedValue;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -39,27 +40,31 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         [EffectCanActivate]
         static bool CanActivate()
         {
-            List<ContagiousItemManager.TransformationInfo> itemCorruptions = getAllAvailableItemCorruptions();
-            if (itemCorruptions.Count > 0)
+            using (ListPool<ContagiousItemManager.TransformationInfo>.RentCollection(out List<ContagiousItemManager.TransformationInfo> itemCorruptions))
             {
-                foreach (PlayerCharacterMasterController playerMasterController in PlayerCharacterMasterController.instances)
+                getAllAvailableItemCorruptions(itemCorruptions);
+
+                if (itemCorruptions.Count > 0)
                 {
-                    if (!playerMasterController.isConnected)
-                        continue;
-
-                    CharacterMaster playerMaster = playerMasterController.master;
-                    if (!playerMaster)
-                        continue;
-
-                    Inventory inventory = playerMaster.inventory;
-                    if (!inventory)
-                        continue;
-                    
-                    foreach (ContagiousItemManager.TransformationInfo itemCorruptionInfo in itemCorruptions)
+                    foreach (PlayerCharacterMasterController playerMasterController in PlayerCharacterMasterController.instances)
                     {
-                        if (inventory.GetItemCount(itemCorruptionInfo.originalItem) > 0)
+                        if (!playerMasterController.isConnected)
+                            continue;
+
+                        CharacterMaster playerMaster = playerMasterController.master;
+                        if (!playerMaster)
+                            continue;
+
+                        Inventory inventory = playerMaster.inventory;
+                        if (!inventory)
+                            continue;
+
+                        foreach (ContagiousItemManager.TransformationInfo itemCorruptionInfo in itemCorruptions)
                         {
-                            return true;
+                            if (inventory.GetOwnedItemCount(itemCorruptionInfo.originalItem) > 0)
+                            {
+                                return true;
+                            }
                         }
                     }
                 }
@@ -68,13 +73,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             return false;
         }
 
-        static List<ContagiousItemManager.TransformationInfo> getAllAvailableItemCorruptions()
+        static void getAllAvailableItemCorruptions(List<ContagiousItemManager.TransformationInfo> dest)
         {
             Run run = Run.instance;
             if (!run)
-                return [];
+                return;
 
-            List<ContagiousItemManager.TransformationInfo> itemCorruptions = new List<ContagiousItemManager.TransformationInfo>(ContagiousItemManager.transformationInfos.Length);
+            dest.EnsureCapacity(dest.Count + ContagiousItemManager.transformationInfos.Length);
 
             for (int i = 0; i < ContagiousItemManager.transformationInfos.Length; i++)
             {
@@ -91,10 +96,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     continue;
                 }
 
-                itemCorruptions.Add(transformationInfo);
+                dest.Add(transformationInfo);
             }
-
-            return itemCorruptions;
         }
 
         ChaosEffectComponent _effectComponent;
@@ -112,8 +115,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
-            _itemCorruptionOrder = [.. getAllAvailableItemCorruptions()];
-            Util.ShuffleArray(_itemCorruptionOrder, rng.Branch());
+            using (ListPool<ContagiousItemManager.TransformationInfo>.RentCollection(out List<ContagiousItemManager.TransformationInfo> availableCorruptionsList))
+            {
+                getAllAvailableItemCorruptions(availableCorruptionsList);
+                _itemCorruptionOrder = [.. availableCorruptionsList];
+            }
+
+            Util.ShuffleArray(_itemCorruptionOrder, rng);
 
             Log.Debug($"Corrupt order: [{string.Join(", ", _itemCorruptionOrder.Select(t => FormatUtils.GetBestItemDisplayName(t.originalItem)))}]");
         }
@@ -136,7 +144,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 if (!inventory)
                     continue;
 
-                int itemToCorruptIndex = Array.FindIndex(_itemCorruptionOrder, i => inventory.GetItemCount(i.originalItem) > 0);
+                int itemToCorruptIndex = Array.FindIndex(_itemCorruptionOrder, i => inventory.GetItemCountEffective(i.originalItem) > 0);
                 if (itemToCorruptIndex == -1) // This inventory has none of the corruptable items
                     return;
 

@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Components
 {
-    public class PhysicMaterialOverride : MonoBehaviour
+    public sealed class PhysicMaterialOverride : MonoBehaviour
     {
         readonly Dictionary<Collider, PhysicMaterial> _originalMaterials = [];
 

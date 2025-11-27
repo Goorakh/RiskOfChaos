@@ -7,7 +7,7 @@ namespace RiskOfChaos.Components
 {
     [RequireComponent(typeof(ProjectileController))]
     [RequireComponent(typeof(ProjectileStickOnImpact))]
-    public class ProjectileHookController : NetworkBehaviour
+    public sealed class ProjectileHookController : NetworkBehaviour
     {
         public float ReelDelay;
 

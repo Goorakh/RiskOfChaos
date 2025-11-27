@@ -7,7 +7,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.Networking.Components.Gravity
 {
-    public class GravitySync : NetworkBehaviour
+    public sealed class GravitySync : NetworkBehaviour
     {
         [ContentInitializer]
         static void LoadContent(ContentIntializerArgs args)

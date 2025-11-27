@@ -10,7 +10,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.Components
 {
-    public class TemporaryItemController : MonoBehaviour
+    public sealed class TemporaryItemController : MonoBehaviour
     {
         Inventory _inventory;
 
@@ -125,7 +125,7 @@ namespace RiskOfChaos.Components
             tempItemController.AddTemporaryItem(itemIndex, count, condition, flags);
         }
 
-        class TemporaryItemInfo
+        sealed class TemporaryItemInfo
         {
             public readonly ItemIndex ItemIndex;
             public readonly int Count;
@@ -150,7 +150,7 @@ namespace RiskOfChaos.Components
 
                 try
                 {
-                    inventory.GiveItem(ItemIndex, Count);
+                    inventory.GiveItemChanneled(ItemIndex, Count);
                 }
                 catch (Exception e)
                 {
@@ -180,7 +180,7 @@ namespace RiskOfChaos.Components
 
                 try
                 {
-                    inventory.RemoveItem(ItemIndex, Count);
+                    inventory.RemoveItemChanneled(ItemIndex, Count);
                 }
                 catch (Exception e)
                 {

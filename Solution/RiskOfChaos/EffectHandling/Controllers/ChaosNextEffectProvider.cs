@@ -8,7 +8,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectHandling.Controllers
 {
     [DisallowMultipleComponent]
-    public class ChaosNextEffectProvider : NetworkBehaviour
+    public sealed class ChaosNextEffectProvider : NetworkBehaviour
     {
         static ChaosNextEffectProvider _instance;
         public static ChaosNextEffectProvider Instance => _instance;

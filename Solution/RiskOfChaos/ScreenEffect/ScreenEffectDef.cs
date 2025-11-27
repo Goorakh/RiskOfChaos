@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.ScreenEffect
 {
-    public class ScreenEffectDef
+    public sealed class ScreenEffectDef
     {
         public static readonly Func<ScreenEffectDef, string> NameProvider = d => d.Name;
 

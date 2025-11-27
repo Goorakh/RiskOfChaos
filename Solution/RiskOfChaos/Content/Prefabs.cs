@@ -23,7 +23,7 @@ namespace RiskOfChaos.Content
         {
             if (!_prefabParentObject)
             {
-                _prefabParentObject = new GameObject(Main.PluginGUID + "_PrefabParent");
+                _prefabParentObject = new GameObject(RiskOfChaosPlugin.PluginGUID + "_PrefabParent");
                 GameObject.DontDestroyOnLoad(_prefabParentObject);
                 _prefabParentObject.SetActive(false);
 
@@ -41,7 +41,7 @@ namespace RiskOfChaos.Content
         static NetworkHash128 getNetworkedObjectAssetId(string prefabName)
         {
             Hash128 hasher = Hash128.Compute(prefabName);
-            hasher.Append(Main.PluginGUID);
+            hasher.Append(RiskOfChaosPlugin.PluginGUID);
             
             return new NetworkHash128
             {

@@ -2,7 +2,7 @@
 
 namespace RiskOfTwitch.Emotes
 {
-    public class EmoteSetEmoteData
+    public sealed class EmoteSetEmoteData
     {
         [JsonProperty("id")]
         public string EmoteId { get; set; }

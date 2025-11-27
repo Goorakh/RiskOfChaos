@@ -5,10 +5,14 @@ using RiskOfChaos.EffectHandling;
 using RiskOfChaos.ModCompatibility;
 using RiskOfChaos.Networking;
 using RiskOfChaos.Utilities;
+using RoR2;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Text;
+using Path = System.IO.Path;
 
 namespace RiskOfChaos
 {
@@ -20,7 +24,7 @@ namespace RiskOfChaos
     [BepInDependency(RiskOfOptions.PluginInfo.PLUGIN_GUID)]
     [BepInDependency(ProperSave.ProperSavePlugin.GUID, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
-    public class Main : BaseUnityPlugin
+    public sealed class RiskOfChaosPlugin : BaseUnityPlugin
     {
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Gorakh";
@@ -29,8 +33,8 @@ namespace RiskOfChaos
 
         Harmony _harmonyInstance;
 
-        static Main _instance;
-        public static Main Instance => _instance;
+        static RiskOfChaosPlugin _instance;
+        public static RiskOfChaosPlugin Instance => _instance;
 
         public static string ModDirectory { get; private set; }
 
@@ -83,7 +87,7 @@ namespace RiskOfChaos
 
             ChaosEffectCatalog.InitConfig(Config);
 
-            RoR2.RoR2Application.onLoad = (Action)Delegate.Combine(RoR2.RoR2Application.onLoad, () =>
+            RoR2.RoR2Application.onLoad += () =>
             {
                 Config.SaveOnConfigSet = true;
 
@@ -99,7 +103,7 @@ namespace RiskOfChaos
 #endif
 
                 Configs.Metadata.CheckVersion();
-            });
+            };
         }
 
         void OnDestroy()

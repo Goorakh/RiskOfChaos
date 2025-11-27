@@ -5,7 +5,7 @@ using System;
 namespace RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers
 {
     [Serializable]
-    public class SerializedEffectVoteInfo
+    public sealed class SerializedEffectVoteInfo
     {
         [JsonProperty("v")]
         public string[] UserVotes;

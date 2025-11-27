@@ -7,7 +7,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 {
     [DisallowMultipleComponent]
     [DefaultExecutionOrder(-1)]
-    public class ChaosEffectActivationSignalerEnableRequirements : MonoBehaviour
+    public sealed class ChaosEffectActivationSignalerEnableRequirements : MonoBehaviour
     {
         ChaosEffectActivationSignaler[] _effectActivationSignalers;
 

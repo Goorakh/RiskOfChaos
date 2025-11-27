@@ -181,7 +181,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         }
 
         [Serializable]
-        class SerializedProjectileBodyPairing
+        sealed class SerializedProjectileBodyPairing
         {
             [JsonConverter(typeof(ProjectileIndexConverter))]
             [JsonProperty("p")]

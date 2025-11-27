@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Collections.ParsedValue;
+﻿using HG;
+using RiskOfChaos.Collections.ParsedValue;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -49,7 +50,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return getReverseItemCorruptionMap().Keys.Any(i => PlayerUtils.GetAllPlayerMasters(false).Any(m => m.inventory && m.inventory.GetItemCount(i) > 0));
+            return getReverseItemCorruptionMap().Keys.Any(i => PlayerUtils.GetAllPlayerMasters(false).Any(m => m.inventory && m.inventory.GetOwnedItemCount(i) > 0));
         }
 
         static Dictionary<ItemIndex, List<ItemIndex>> getReverseItemCorruptionMap()
@@ -125,60 +126,66 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             if (!inventory)
                 return;
 
-            HashSet<PickupIndex> uncorruptedItems = new HashSet<PickupIndex>(_uncorruptItemCount.Value);
-
-            for (int i = _uncorruptItemCount.Value - 1; i >= 0; i--)
+            using (SetPool<PickupIndex>.RentCollection(out HashSet<PickupIndex> uncorruptedItems))
             {
-                int itemUncorruptIndex = Array.FindIndex(_itemUncorruptionOrder, u => inventory.GetItemCount(u.CorruptedItem) > 0);
-                if (itemUncorruptIndex == -1)
-                    break;
+                uncorruptedItems.EnsureCapacity(_uncorruptItemCount.Value);
 
-                uncorruptItem(master, rng.Branch(), _itemUncorruptionOrder[itemUncorruptIndex], uncorruptedItems);
-            }
-
-            if (uncorruptedItems.Count > 0)
-            {
-                PickupUtils.QueuePickupsMessage(master, [.. uncorruptedItems], PickupNotificationFlags.SendChatMessage);
-            }
-        }
-
-        static void uncorruptItem(CharacterMaster master, Xoroshiro128Plus rng, ItemUncorruptionInfo uncorruptionInfo, HashSet<PickupIndex> uncorruptedItems)
-        {
-            Inventory inventory = master.inventory;
-            if (!inventory)
-                return;
-
-            int corruptItemCount = inventory.GetItemCount(uncorruptionInfo.CorruptedItem);
-
-            uncorruptedItems?.EnsureCapacity(uncorruptedItems.Count + corruptItemCount);
-
-            inventory.RemoveItem(uncorruptionInfo.CorruptedItem, corruptItemCount);
-
-            int[] newItemCounts = new int[uncorruptionInfo.UncorruptedItemOptions.Length];
-
-            while (corruptItemCount > 0)
-            {
-                int uncorruptItemIndex = rng.RangeInt(0, uncorruptionInfo.UncorruptedItemOptions.Length);
-
-                newItemCounts[uncorruptItemIndex]++;
-                corruptItemCount--;
-            }
-
-            for (int i = 0; i < newItemCounts.Length; i++)
-            {
-                int uncorruptItemCount = newItemCounts[i];
-                if (uncorruptItemCount <= 0)
-                    continue;
-
-                ItemIndex uncorruptItemIndex = uncorruptionInfo.UncorruptedItemOptions[i];
-                inventory.GiveItem(uncorruptItemIndex, uncorruptItemCount);
-
-                if (master.playerCharacterMasterController)
+                for (int i = _uncorruptItemCount.Value - 1; i >= 0; i--)
                 {
-                    CharacterMasterNotificationQueue.SendTransformNotification(master, uncorruptionInfo.CorruptedItem, uncorruptItemIndex, CharacterMasterNotificationQueue.TransformationType.ContagiousVoid);
+                    Xoroshiro128Plus uncorruptRng = rng.Branch();
+
+                    bool uncorruptedAnyItem = false;
+
+                    foreach (ItemUncorruptionInfo uncorruptionInfo in _itemUncorruptionOrder)
+                    {
+                        if (inventory.GetOwnedItemCount(uncorruptionInfo.CorruptedItem) <= 0)
+                            continue;
+
+                        int corruptItemCount = inventory.GetOwnedItemCount(uncorruptionInfo.CorruptedItem);
+
+                        int[] newItemCounts = new int[uncorruptionInfo.UncorruptedItemOptions.Length];
+
+                        while (corruptItemCount > 0)
+                        {
+                            int uncorruptItemIndex = rng.RangeInt(0, uncorruptionInfo.UncorruptedItemOptions.Length);
+
+                            newItemCounts[uncorruptItemIndex]++;
+                            corruptItemCount--;
+                        }
+
+                        for (int j = 0; j < newItemCounts.Length; j++)
+                        {
+                            int uncorruptItemCount = newItemCounts[j];
+                            if (uncorruptItemCount <= 0)
+                                continue;
+
+                            ItemIndex uncorruptItemIndex = uncorruptionInfo.UncorruptedItemOptions[j];
+
+                            Inventory.ItemTransformation itemTransformation = new Inventory.ItemTransformation
+                            {
+                                allowWhenDisabled = true,
+                                minToTransform = 1,
+                                maxToTransform = uncorruptItemCount,
+                                originalItemIndex = uncorruptionInfo.CorruptedItem,
+                                newItemIndex = uncorruptItemIndex,
+                                transformationType = (ItemTransformationTypeIndex)CharacterMasterNotificationQueue.TransformationType.ContagiousVoid
+                            };
+
+                            if (itemTransformation.TryTransform(inventory, out var result))
+                            {
+                                uncorruptedItems.Add(PickupCatalog.FindPickupIndex(uncorruptItemIndex));
+                            }
+                        }
+                    }
+
+                    if (!uncorruptedAnyItem)
+                        break;
                 }
 
-                uncorruptedItems?.Add(PickupCatalog.FindPickupIndex(uncorruptItemIndex));
+                if (uncorruptedItems.Count > 0)
+                {
+                    PickupUtils.QueuePickupsMessage(master, [.. uncorruptedItems], PickupNotificationFlags.SendChatMessage);
+                }
             }
         }
     }

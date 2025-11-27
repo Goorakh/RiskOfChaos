@@ -8,11 +8,11 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.Networking.Components
 {
     [RequireComponent(typeof(ItemStealController))]
-    public class SyncStolenItemCount : NetworkBehaviour
+    public sealed class SyncStolenItemCount : NetworkBehaviour
     {
         ItemStealController _itemStealController;
 
-        class SyncListInventoryInfo : SyncListStruct<InventoryInfo> { }
+        sealed class SyncListInventoryInfo : SyncListStruct<InventoryInfo> { }
         readonly SyncListInventoryInfo _inventoryInfos = new SyncListInventoryInfo();
 
         float _refreshInventoriesTimer;

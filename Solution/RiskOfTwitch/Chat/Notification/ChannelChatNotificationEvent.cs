@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace RiskOfTwitch.Chat.Notification
 {
-    public class ChannelChatNotificationEvent
+    public sealed class ChannelChatNotificationEvent
     {
         [JsonProperty("broadcaster_user_id")]
         public string BroadcasterUserId { get; set; }

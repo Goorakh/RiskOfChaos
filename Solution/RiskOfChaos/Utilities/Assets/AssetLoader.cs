@@ -14,7 +14,7 @@ namespace RiskOfChaos.Utilities.Assets
         [ContentInitializer]
         static IEnumerator LoadContent(ContentIntializerArgs args)
         {
-            string assetBundlePath = Path.Combine(Main.ModDirectory, ASSET_BUNDLE_NAME);
+            string assetBundlePath = Path.Combine(RiskOfChaosPlugin.ModDirectory, ASSET_BUNDLE_NAME);
             AssetBundleCreateRequest assetBundleLoad = AssetBundle.LoadFromFileAsync(assetBundlePath);
             while (!assetBundleLoad.isDone)
             {

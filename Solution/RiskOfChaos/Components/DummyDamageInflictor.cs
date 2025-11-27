@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Components
 {
-    public class DummyDamageInflictor : MonoBehaviour
+    public sealed class DummyDamageInflictor : MonoBehaviour
     {
         [ContentInitializer]
         static void InitContent(ContentIntializerArgs args)

@@ -8,7 +8,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 {
     [DisallowMultipleComponent]
     [RequiredComponents(typeof(ChaosEffectDispatcher))]
-    public class ChaosEffectActivationSoundHandler : NetworkBehaviour
+    public sealed class ChaosEffectActivationSoundHandler : NetworkBehaviour
     {
         static ChaosEffectActivationSoundHandler _instance;
         public static ChaosEffectActivationSoundHandler Instance => _instance;

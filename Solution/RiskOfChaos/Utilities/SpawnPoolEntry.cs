@@ -1,4 +1,5 @@
 ﻿using HG;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2.ContentManagement;
 using RoR2.ExpansionManagement;
 using System;
@@ -7,7 +8,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.Utilities
 {
-    public class SpawnPoolEntry<T> where T : UnityEngine.Object
+    public sealed class SpawnPoolEntry<T> where T : UnityEngine.Object
     {
         public float Weight { get; set; }
 
@@ -117,6 +118,20 @@ namespace RiskOfChaos.Utilities
             return assetReference;
         }
 
+        public bool MatchAssetReference(AssetOrDirectReference<T> assetReference)
+        {
+            if (assetReference == null)
+                return false;
+
+            if (!string.IsNullOrEmpty(_assetGuid))
+                return string.Equals((assetReference.address?.RuntimeKey as string), _assetGuid);
+
+            if (_directReference)
+                return assetReference.directRef == _directReference;
+
+            return false;
+        }
+
         public override string ToString()
         {
             return $"{Name}: {Weight} ({string.Join(", ", RequiredExpansions)})";
@@ -128,17 +143,11 @@ namespace RiskOfChaos.Utilities
             SpawnPoolEntry<T> entry = new SpawnPoolEntry<T>(parameters);
 
             AsyncOperationHandle<TAsset> assetLoadHandle = AddressableUtil.LoadTempAssetAsync<TAsset>(assetGuid);
-            assetLoadHandle.Completed += handle =>
+            assetLoadHandle.OnSuccess(asset =>
             {
-                if (handle.Status != AsyncOperationStatus.Succeeded || !handle.Result)
-                {
-                    Log.Error($"Failed to load converted asset '{assetGuid}': {handle.OperationException}");
-                    return;
-                }
+                T convertedAsset = assetConverter(asset);
 
-                T convertedAsset = assetConverter(handle.Result);
-
-                if (typeof(T) == typeof(TAsset) && handle.Result == convertedAsset)
+                if (typeof(T) == typeof(TAsset) && asset == convertedAsset)
                 {
                     entry._assetGuid = assetGuid;
                 }
@@ -150,7 +159,7 @@ namespace RiskOfChaos.Utilities
                 // Regardless if the converted asset is different or not,
                 // we can still confidently cache the name here since it's already loaded
                 entry._cachedAssetName = convertedAsset.ToString();
-            };
+            });
 
             entry._assetConversionLoadHandle = assetLoadHandle;
 

@@ -25,12 +25,12 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
         public readonly Transform OriginalObjectTransform;
         public readonly PickupDropTable DropTable;
 
-        public readonly PickupIndex[] RolledPickups;
+        public readonly UniquePickup[] RolledPickups;
         public readonly bool UseForcedPickupDropTable;
 
         public readonly bool ShouldSpawnShrine;
 
-        ShrineReplacementData(GameObject originalObject, PickupDropTable dropTable, bool shouldSpawnShrine, PickupIndex[] rolledPickups, bool useForcedPickupDropTable)
+        ShrineReplacementData(GameObject originalObject, PickupDropTable dropTable, bool shouldSpawnShrine, UniquePickup[] rolledPickups, bool useForcedPickupDropTable)
         {
             OriginalObject = originalObject;
             OriginalObjectTransform = OriginalObject.transform;
@@ -40,7 +40,7 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
             UseForcedPickupDropTable = useForcedPickupDropTable;
         }
 
-        ShrineReplacementData(GameObject originalObject) : this(originalObject, default, default, default, default)
+        ShrineReplacementData(GameObject originalObject) : this(originalObject, default, default, [], default)
         {
         }
 
@@ -135,7 +135,7 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
         {
             if (interactableObject.TryGetComponent(out EntityStateMachine esm))
             {
-                if (esm.state is EntityStates.Barrel.Opened)
+                if (esm.state is EntityStates.Barrel.Opened || (interactableObject.GetComponent<PickupDistributorBehavior>() && esm.state is EntityStates.Idle))
                 {
                     yield break;
                 }
@@ -144,16 +144,16 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
             PurchaseInteraction purchaseInteraction = interactableObject.GetComponent<PurchaseInteraction>();
 
             PickupDropTable dropTable;
-            PickupIndex[] rolledPickups = [];
+            UniquePickup[] rolledPickups = [];
             bool useForcedPickupDropTable = false;
 
             if (interactableObject.TryGetComponent(out ChestBehavior chestBehavior))
             {
                 dropTable = chestBehavior.dropTable;
 
-                if (chestBehavior.dropPickup.isValid)
+                if (chestBehavior.currentPickup.isValid)
                 {
-                    rolledPickups = [ chestBehavior.dropPickup ];
+                    rolledPickups = [ chestBehavior.currentPickup];
                 }
             }
             else if (interactableObject.TryGetComponent(out RouletteChestController rouletteChestController))
@@ -163,20 +163,20 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
                 RouletteChestController.Entry[] entries = rouletteChestController.entries;
                 if (entries != null && entries.Length > 0)
                 {
-                    rolledPickups = Array.ConvertAll(entries, e => e.pickupIndex);
+                    rolledPickups = Array.ConvertAll(entries, e => e.pickup);
                 }
                 else if (dropTable)
                 {
                     Xoroshiro128Plus lootRNG = new Xoroshiro128Plus(rouletteChestController.rng);
 
-                    rolledPickups = new PickupIndex[rouletteChestController.maxEntries];
+                    rolledPickups = new UniquePickup[rouletteChestController.maxEntries];
 
-                    PickupIndex lastPickup = PickupIndex.none;
+                    UniquePickup lastPickup = UniquePickup.none;
                     for (int i = 0; i < rolledPickups.Length; i++)
                     {
-                        PickupIndex pickupIndex = dropTable.GenerateDrop(lootRNG);
+                        UniquePickup pickupIndex = dropTable.GeneratePickup(lootRNG);
                         if (pickupIndex == lastPickup)
-                            pickupIndex = dropTable.GenerateDrop(lootRNG);
+                            pickupIndex = dropTable.GeneratePickup(lootRNG);
 
                         rolledPickups[i] = pickupIndex;
                         lastPickup = pickupIndex;
@@ -185,14 +185,14 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
             }
             else if (interactableObject.TryGetComponent(out ShopTerminalBehavior shopTerminalBehavior))
             {
-                if (!shopTerminalBehavior.NetworkpickupIndex.isValid)
+                if (!shopTerminalBehavior.pickup.isValid)
                 {
                     yield break;
                 }
 
                 dropTable = shopTerminalBehavior.dropTable;
 
-                PickupIndex pickup = shopTerminalBehavior.CurrentPickupIndex();
+                UniquePickup pickup = shopTerminalBehavior.CurrentPickup();
                 if (pickup.isValid)
                 {
                     rolledPickups = [ pickup ];
@@ -212,10 +212,18 @@ namespace RiskOfChaos.EffectUtils.World.AllChanceShrines
             {
                 dropTable = optionChestBehavior.dropTable;
 
-                if (optionChestBehavior.generatedDrops != null)
+                if (optionChestBehavior.generatedPickups != null)
                 {
-                    rolledPickups = optionChestBehavior.generatedDrops;
+                    rolledPickups = [.. optionChestBehavior.generatedPickups];
                 }
+            }
+            else if (interactableObject.TryGetComponent(out PickupDistributorBehavior pickupDistributorBehavior))
+            {
+                dropTable = pickupDistributorBehavior.dropTable;
+
+                rolledPickups = [ pickupDistributorBehavior.pickup ];
+
+                useForcedPickupDropTable = true;
             }
             else
             {

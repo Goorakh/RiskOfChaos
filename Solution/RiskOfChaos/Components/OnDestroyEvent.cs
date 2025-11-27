@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Components
 {
-    public class OnDestroyEvent : MonoBehaviour
+    public sealed class OnDestroyEvent : MonoBehaviour
     {
         public delegate void OnDestroyedDelegate(GameObject obj);
         event OnDestroyedDelegate _onDestroyed;

@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace RiskOfChaos.Utilities.Reflection
 {
-    public class FieldWrapper<TValue, TInstance>
+    public sealed class FieldWrapper<TValue, TInstance>
     {
         readonly CachedFieldReference _field;
 

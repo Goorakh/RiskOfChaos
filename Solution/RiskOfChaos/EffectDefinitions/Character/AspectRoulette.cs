@@ -127,7 +127,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         }
 
         [Serializable]
-        class AspectStep
+        sealed class AspectStep
         {
             [JsonProperty("a")]
             public EquipmentIndex AspectEquipmentIndex { get; set; }
@@ -236,7 +236,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         }
 
         [RequireComponent(typeof(CharacterBody))]
-        class RandomlySwapAspect : MonoBehaviour
+        sealed class RandomlySwapAspect : MonoBehaviour
         {
             public AspectRoulette EffectInstance;
             CharacterBody _body;
@@ -281,10 +281,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                 if (currentEquipment != EquipmentIndex.None && !EliteUtils.IsEliteEquipment(currentEquipment))
                 {
-                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(currentEquipment), _body.corePosition, Vector3.up * 15f);
+                    PickupDropletController.CreatePickupDroplet(new UniquePickup(PickupCatalog.FindPickupIndex(currentEquipment)), _body.corePosition, Vector3.up * 15f, false, false);
                 }
 
-                inventory.SetEquipmentIndex(aspectEquipment);
+                inventory.SetEquipmentIndex(aspectEquipment, false);
 
                 GameObject masterObject = _body.masterObject;
                 if (masterObject)

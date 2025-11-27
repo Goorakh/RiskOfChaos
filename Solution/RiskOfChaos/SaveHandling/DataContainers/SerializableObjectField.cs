@@ -5,7 +5,7 @@ using System;
 namespace RiskOfChaos.SaveHandling.DataContainers
 {
     [Serializable]
-    public class SerializableObjectField
+    public sealed class SerializableObjectField
     {
         [JsonProperty("n")]
         public string Name;

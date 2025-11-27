@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RiskOfChaos.EffectDefinitions.World;
@@ -67,7 +68,7 @@ namespace RiskOfChaos.Patches.Effects.World
 
             if (!c.TryFindNext(out ILCursor[] foundCursors,
                                x => x.MatchLdfld<EquipmentDef>(nameof(EquipmentDef.dropOnDeathChance)),
-                               x => x.MatchCallOrCallvirt(typeof(Util), nameof(Util.CheckRoll))))
+                               x => x.MatchCallOrCallvirt(out MethodReference m) && m?.Name?.Contains("g__LocalCheckRoll|") == true))
             {
                 Log.Error("Failed to find equipment drop patch location");
                 return;

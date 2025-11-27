@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace RiskOfChaos.Utilities.Reflection
 {
-    public class CachedFieldReference
+    public sealed class CachedFieldReference
     {
         readonly Type _declaringType;
 

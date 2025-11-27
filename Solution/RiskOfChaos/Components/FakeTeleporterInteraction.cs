@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.Components
 {
-    public class FakeTeleporterInteraction : NetworkBehaviour, IInteractable, ICustomPingBehavior
+    public sealed class FakeTeleporterInteraction : NetworkBehaviour, IInteractable, ICustomPingBehavior
     {
         public static readonly SerializableEntityStateType IdleStateType = new SerializableEntityStateType(typeof(IdleState));
 
@@ -405,7 +405,7 @@ namespace RiskOfChaos.Components
         }
 
         [EntityStateType]
-        class IdleState : BaseTeleporterState
+        sealed class IdleState : BaseTeleporterState
         {
             public override Interactability GetInteractability(Interactor activator)
             {
@@ -427,7 +427,7 @@ namespace RiskOfChaos.Components
         }
 
         [EntityStateType]
-        class IdleToActiveState : BaseTeleporterState
+        sealed class IdleToActiveState : BaseTeleporterState
         {
             public override void OnEnter()
             {
@@ -461,7 +461,7 @@ namespace RiskOfChaos.Components
         }
 
         [EntityStateType]
-        class ActiveState : BaseTeleporterState
+        sealed class ActiveState : BaseTeleporterState
         {
             public override void OnEnter()
             {

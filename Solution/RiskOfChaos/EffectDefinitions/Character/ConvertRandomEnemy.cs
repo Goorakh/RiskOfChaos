@@ -1,4 +1,6 @@
-﻿using RiskOfChaos.ChatMessages;
+﻿using Grumpy.UnitTest;
+using HG;
+using RiskOfChaos.ChatMessages;
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -7,6 +9,7 @@ using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.CharacterAI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -20,29 +23,39 @@ namespace RiskOfChaos.EffectDefinitions.Character
         static readonly Color32 _bossSubjectColor = new Color32(0xFF, 0x2C, 0x2C, 0xFF);
         static readonly Color32 _defaultSubjectColor = new Color32(0xFF, 0xFF, 0xFF, 0xFF);
 
-        static IEnumerable<CharacterBody> getAllConvertableEnemies()
+        static bool canConvert(CharacterBody body)
         {
-            return CharacterBody.readOnlyInstancesList.Where(c =>
-            {
-                if (!c || !c.teamComponent || c.isPlayerControlled)
-                    return false;
+            if (!body || !body.teamComponent || body.isPlayerControlled)
+                return false;
 
-                switch (c.teamComponent.teamIndex)
+            switch (body.teamComponent.teamIndex)
+            {
+                case TeamIndex.Monster:
+                case TeamIndex.Lunar:
+                case TeamIndex.Void:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        static void getAllConvertableEnemies(List<CharacterBody> dest)
+        {
+            dest.EnsureCapacity(CharacterBody.readOnlyInstancesList.Count);
+
+            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
+            {
+                if (canConvert(body))
                 {
-                    case TeamIndex.Monster:
-                    case TeamIndex.Lunar:
-                    case TeamIndex.Void:
-                        return true;
-                    default:
-                        return false;
+                    dest.Add(body);
                 }
-            });
+            }
         }
 
         [EffectCanActivate]
         static bool CanActivate(in EffectCanActivateContext context)
         {
-            return !context.IsNow || getAllConvertableEnemies().Any();
+            return !context.IsNow || CharacterBody.readOnlyInstancesList.Any(canConvert);
         }
 
         ChaosEffectComponent _effectComponent;
@@ -60,24 +73,26 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             Xoroshiro128Plus rng = new Xoroshiro128Plus(_effectComponent.Rng.nextUlong);
 
-            BodyIndex[] convertOrder = new BodyIndex[BodyCatalog.bodyCount];
+            Span<BodyIndex> convertOrder = stackalloc BodyIndex[BodyCatalog.bodyCount];
             for (int i = 0; i < BodyCatalog.bodyCount; i++)
             {
                 convertOrder[i] = (BodyIndex)i;
             }
 
-            Util.ShuffleArray(convertOrder, rng);
+            Util.ShuffleSpan(convertOrder, rng);
 
-            Log.Debug($"Convert order: [{string.Join(", ", convertOrder.Select(BodyCatalog.GetBodyName))}]");
-
-            CharacterBody[] allConvertableEnemies = getAllConvertableEnemies().ToArray();
-            foreach (BodyIndex bodyIndex in convertOrder)
+            using (ListPool<CharacterBody>.RentCollection(out List<CharacterBody> allConvertableEnemies))
             {
-                CharacterBody[] availableBodies = allConvertableEnemies.Where(b => b.bodyIndex == bodyIndex).ToArray();
-                if (availableBodies.Length > 0)
+                getAllConvertableEnemies(allConvertableEnemies);
+
+                foreach (BodyIndex bodyIndex in convertOrder)
                 {
-                    _enemyToConvert = rng.NextElementUniform(availableBodies);
-                    break;
+                    IReadOnlyList<CharacterBody> availableBodies = [.. allConvertableEnemies.Where(b => b.bodyIndex == bodyIndex)];
+                    if (availableBodies.Count > 0)
+                    {
+                        _enemyToConvert = rng.NextElementUniform(availableBodies);
+                        break;
+                    }
                 }
             }
 
@@ -122,7 +137,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                 master.gameObject.SetDontDestroyOnLoad(true);
 
-                master.inventory.EnsureItem(RoCContent.Items.MinAllyRegen);
+                if (master.inventory.GetItemCountPermanent(RoCContent.Items.MinAllyRegen) == 0)
+                {
+                    master.inventory.GiveItemPermanent(RoCContent.Items.MinAllyRegen);
+                }
             }
 
             ChatMessageBase announcementMessage = getEnemyConvertedAnnouncementChatMessage(_enemyToConvert);
@@ -134,7 +152,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         static ChatMessageBase getEnemyConvertedAnnouncementChatMessage(CharacterBody convertedBody)
         {
-            if (convertedBody.inventory && convertedBody.inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
+            if (convertedBody.inventory && convertedBody.inventory.GetItemCountPermanent(RoCContent.Items.InvincibleLemurianMarker) > 0)
             {
                 return new Chat.SimpleChatMessage
                 {

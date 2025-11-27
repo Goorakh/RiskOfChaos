@@ -4,7 +4,7 @@ using UnityEngine;
 namespace RiskOfChaos.Components
 {
     [RequireComponent(typeof(EffectComponent))]
-    public class EquipmentTakenOrbEffect : MonoBehaviour
+    public sealed class EquipmentTakenOrbEffect : MonoBehaviour
     {
         public TrailRenderer TrailToColor;
 

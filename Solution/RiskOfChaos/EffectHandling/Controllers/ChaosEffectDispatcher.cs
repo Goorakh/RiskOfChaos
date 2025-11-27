@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectHandling.Controllers
 {
     [DisallowMultipleComponent]
-    public class ChaosEffectDispatcher : NetworkBehaviour
+    public sealed class ChaosEffectDispatcher : NetworkBehaviour
     {
         static ChaosEffectDispatcher _instance;
         public static ChaosEffectDispatcher Instance => _instance;

@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using HG;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
@@ -33,35 +34,31 @@ namespace RiskOfChaos.EffectDefinitions.Character
                                .OptionConfig(new CheckBoxConfig())
                                .Build();
 
-        static IEnumerable<CharacterBody> getAllInfestableBodies()
+        static bool canInfestBody(CharacterBody body)
         {
-            return CharacterBody.readOnlyInstancesList.Where(body =>
-            {
-                if (!body || body.isPlayerControlled)
-                    return false;
+            if (!body || body.isPlayerControlled)
+                return false;
 
-                // No inventory: Can't carry aspect, effect will do nothing
-                if (!body.inventory)
-                    return false;
+            // No inventory: Can't carry aspect, effect will do nothing
+            if (!body.inventory)
+                return false;
 
-                HealthComponent healthComponent = body.healthComponent;
-                if (!healthComponent || !healthComponent.alive)
-                    return false;
+            if (!body.healthComponent || !body.healthComponent.alive)
+                return false;
 
-                if (_excludeAllAllies.Value && body.IsPlayerOrPlayerAlly())
-                    return false;
+            if (_excludeAllAllies.Value && body.IsPlayerOrPlayerAlly())
+                return false;
 
-                if (_excludeDrones.Value && (body.bodyFlags & CharacterBody.BodyFlags.Mechanical) != 0)
-                    return false;
+            if (_excludeDrones.Value && (body.bodyFlags & CharacterBody.BodyFlags.Drone) != 0)
+                return false;
 
-                return true;
-            });
+            return true;
         }
 
         [EffectCanActivate]
         static bool CanActivate(in EffectCanActivateContext context)
         {
-            return ExpansionUtils.DLC1Enabled && (!context.IsNow || getAllInfestableBodies().Any());
+            return ExpansionUtils.DLC1Enabled && (!context.IsNow || CharacterBody.readOnlyInstancesList.Any(canInfestBody));
         }
 
         void Start()
@@ -69,41 +66,47 @@ namespace RiskOfChaos.EffectDefinitions.Character
             if (!NetworkServer.active)
                 return;
 
-            List<BaseAI> aiToReset = [];
-
-            getAllInfestableBodies().TryDo(body =>
+            using (ListPool<BaseAI>.RentCollection(out List<BaseAI> aiToReset))
             {
-                CharacterMaster master = body.master;
+                aiToReset.EnsureCapacity(CharacterMaster.readOnlyInstancesList.Count);
 
-                body.teamComponent.teamIndex = TeamIndex.Void;
-
-                Inventory inventory = body.inventory;
-                if (inventory)
+                foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
                 {
-                    inventory.SetEquipmentIndex(DLC1Content.Equipment.EliteVoidEquipment.equipmentIndex);
+                    if (!canInfestBody(body))
+                        continue;
+
+                    CharacterMaster master = body.master;
+
+                    body.teamComponent.teamIndex = TeamIndex.Void;
+
+                    Inventory inventory = body.inventory;
+                    if (inventory)
+                    {
+                        inventory.SetEquipmentIndex(DLC1Content.Equipment.EliteVoidEquipment.equipmentIndex, false);
+                    }
+
+                    if (master)
+                    {
+                        master.teamIndex = TeamIndex.Void;
+
+                        aiToReset.AddRange(master.AiComponents);
+
+                        // Make sure void infested allies don't stay until the next stage
+                        master.gameObject.SetDontDestroyOnLoad(false);
+                    }
+
+                    if (EntityStates.VoidInfestor.Infest.successfulInfestEffectPrefab)
+                    {
+                        EffectManager.SimpleImpactEffect(EntityStates.VoidInfestor.Infest.successfulInfestEffectPrefab, body.corePosition, Vector3.up, true);
+                    }
                 }
 
-                if (master)
+                foreach (BaseAI baseAI in aiToReset)
                 {
-                    master.teamIndex = TeamIndex.Void;
-
-                    aiToReset.AddRange(master.AiComponents);
-
-                    // Make sure void infested allies don't stay until the next stage
-                    master.gameObject.SetDontDestroyOnLoad(false);
+                    baseAI.enemyAttention = 0f;
+                    baseAI.currentEnemy.Reset();
+                    baseAI.ForceAcquireNearestEnemyIfNoCurrentEnemy();
                 }
-
-                if (EntityStates.VoidInfestor.Infest.successfulInfestEffectPrefab)
-                {
-                    EffectManager.SimpleImpactEffect(EntityStates.VoidInfestor.Infest.successfulInfestEffectPrefab, body.corePosition, Vector3.up, true);
-                }
-            }, FormatUtils.GetBestBodyName);
-
-            foreach (BaseAI baseAI in aiToReset)
-            {
-                baseAI.enemyAttention = 0f;
-                baseAI.currentEnemy.Reset();
-                baseAI.ForceAcquireNearestEnemyIfNoCurrentEnemy();
             }
         }
     }

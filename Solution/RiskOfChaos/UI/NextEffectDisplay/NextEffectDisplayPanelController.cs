@@ -14,7 +14,7 @@ using UnityEngine.UI;
 
 namespace RiskOfChaos.UI.NextEffectDisplay
 {
-    public class NextEffectDisplayPanelController : MonoBehaviour
+    public sealed class NextEffectDisplayPanelController : MonoBehaviour
     {
         [ContentInitializer]
         static IEnumerator LoadContent(ContentIntializerArgs args)

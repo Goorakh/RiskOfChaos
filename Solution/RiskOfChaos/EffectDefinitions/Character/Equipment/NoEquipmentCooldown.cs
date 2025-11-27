@@ -38,12 +38,16 @@ namespace RiskOfChaos.EffectDefinitions.Character.Equipment
                 return;
 
             int equipmentSlotCount = inventory.GetEquipmentSlotCount();
-            for (byte i = 0; i < equipmentSlotCount; i++)
+            for (byte slot = 0; slot < equipmentSlotCount; slot++)
             {
-                EquipmentState equipmentState = inventory.GetEquipment(i);
-                if (equipmentState.equipmentIndex != EquipmentIndex.None)
+                int equipmentSetCount = inventory.GetEquipmentSetCount(slot);
+                for (byte set = 0; set < equipmentSetCount; set++)
                 {
-                    inventory.RestockEquipmentCharges(i, int.MaxValue);
+                    EquipmentState equipmentState = inventory.GetEquipment(slot, set);
+                    if (equipmentState.equipmentIndex != EquipmentIndex.None)
+                    {
+                        inventory.RestockEquipmentCharges(slot, set, int.MaxValue);
+                    }
                 }
             }
         }

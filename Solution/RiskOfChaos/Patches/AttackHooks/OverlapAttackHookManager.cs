@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace RiskOfChaos.Patches.AttackHooks
 {
-    class OverlapAttackHookManager : AttackHookManager
+    sealed class OverlapAttackHookManager : AttackHookManager
     {
         static OverlapAttackHookManager()
         {

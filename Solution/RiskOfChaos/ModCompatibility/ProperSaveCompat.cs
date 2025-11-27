@@ -13,7 +13,7 @@ namespace RiskOfChaos.ModCompatibility
 
         public static bool LoadingComplete { get; private set; }
 
-        const string SAVE_DATA_KEY = $"{Main.PluginGUID}";
+        const string SAVE_DATA_KEY = $"{RiskOfChaosPlugin.PluginGUID}";
 
         public static void Init()
         {

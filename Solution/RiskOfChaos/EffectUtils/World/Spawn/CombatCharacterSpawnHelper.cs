@@ -1,10 +1,11 @@
-﻿using RiskOfChaos.Collections.CatalogIndex;
+﻿using HG;
+using RiskOfChaos.Collections.CatalogIndex;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
+using RiskOfChaos.Utilities.Pickup;
 using RoR2;
 using RoR2.Navigation;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectUtils.World.Spawn
@@ -85,80 +86,143 @@ namespace RiskOfChaos.EffectUtils.World.Spawn
             return true;
         }
 
-        static readonly MasterIndexCollection _overrideGroundNodeSpawnMasters = new MasterIndexCollection([
-            "EngiTurretMaster",
-            "GrandparentMaster",
-            "SquidTurretMaster",
-            "MinorConstructMaster",
-            "Turret1Master",
-            "VoidBarnacleNoCastMaster",
-            "VoidBarnacleAllyMaster",
-            "VoidBarnacleMaster"
-        ]);
+        static readonly BodyIndexCollection _overrideGroundNodeSpawnBodies = new BodyIndexCollection([]);
 
-        static readonly MasterIndexCollection _overrideAirNodeSpawnMasters = new MasterIndexCollection([
-            "FlyingVerminMaster"
+        static readonly BodyIndexCollection _overrideAirNodeSpawnBodies = new BodyIndexCollection([
+            "FlyingVerminBody"
         ]);
 
         public static MapNodeGroup.GraphType GetSpawnGraphType(CharacterMaster masterPrefab)
         {
-            if (_overrideGroundNodeSpawnMasters.Contains(masterPrefab.masterIndex))
-            {
-                return MapNodeGroup.GraphType.Ground;
-            }
-
-            if (_overrideAirNodeSpawnMasters.Contains(masterPrefab.masterIndex))
-            {
-                return MapNodeGroup.GraphType.Air;
-            }
-
-            return masterPrefab.bodyPrefab.GetComponent<CharacterMotor>() ? MapNodeGroup.GraphType.Ground : MapNodeGroup.GraphType.Air;
+            GameObject bodyPrefab = masterPrefab ? masterPrefab.bodyPrefab : null;
+            return GetSpawnGraphType(bodyPrefab ? bodyPrefab.GetComponent<CharacterBody>() : null);
         }
 
-        public static void SetupSpawnedCombatCharacter(CharacterMaster master, Xoroshiro128Plus rng)
+        public static MapNodeGroup.GraphType GetSpawnGraphType(CharacterBody bodyPrefab)
+        {
+            BodyIndex bodyIndex = BodyCatalog.FindBodyIndex(bodyPrefab);
+
+            if (_overrideGroundNodeSpawnBodies.Contains(bodyIndex))
+                return MapNodeGroup.GraphType.Ground;
+
+            if (_overrideAirNodeSpawnBodies.Contains(bodyIndex))
+                return MapNodeGroup.GraphType.Air;
+
+            IPhysMotor physMotor = bodyPrefab ? bodyPrefab.GetComponent<IPhysMotor>() : null;
+
+            bool isFlying = false;
+            bool isStatic = false;
+
+            switch (physMotor)
+            {
+                case null:
+                    isStatic = true;
+                    break;
+                case CharacterMotor characterMotor:
+                    isFlying = characterMotor.flightParameters.CheckShouldUseFlight() || !characterMotor.gravityParameters.CheckShouldUseGravity();
+                    break;
+                case RigidbodyMotor rigidbodyMotor:
+                    Rigidbody rigidbody = rigidbodyMotor.rigid;
+                    isFlying = rigidbody && !rigidbody.useGravity;
+                    isStatic = !rigidbody || rigidbody.isKinematic;
+                    break;
+                case PseudoCharacterMotor:
+                    isStatic = true;
+                    break;
+                default:
+                    Log.Warning($"Unhandled PhysMotor type: {physMotor?.GetType()?.FullName} ({physMotor})");
+                    isStatic = true;
+                    break;
+            }
+
+            return isStatic || !isFlying ? MapNodeGroup.GraphType.Ground : MapNodeGroup.GraphType.Air;
+        }
+
+        public static void SetupSpawnedCombatCharacter(CharacterMaster master, Xoroshiro128Plus rng, InventoryExtensions.PickupReplacementRule equipmentReplacementRule = InventoryExtensions.PickupReplacementRule.DeleteExisting)
         {
             Inventory inventory = master.inventory;
 
             if (master.masterIndex == MasterCatalog.FindMasterIndex("EquipmentDroneMaster"))
             {
-                List<EquipmentIndex> availableEquipment = new List<EquipmentIndex>(EquipmentCatalog.equipmentCount);
-                foreach (EquipmentIndex equipment in EquipmentCatalog.equipmentList)
+                using (ListPool<EquipmentIndex>.RentCollection(out List<EquipmentIndex> availableEquipment))
                 {
-                    if (Run.instance.IsEquipmentEnabled(equipment))
+                    availableEquipment.EnsureCapacity(EquipmentCatalog.equipmentCount);
+
+                    foreach (EquipmentIndex equipmentIndex in EquipmentCatalog.equipmentList)
                     {
-                        availableEquipment.Add(equipment);
+                        if (Run.instance.IsEquipmentEnabled(equipmentIndex))
+                        {
+                            availableEquipment.Add(equipmentIndex);
+                        }
                     }
-                }
 
-                if (availableEquipment.Count > 0)
-                {
-                    EquipmentIndex equipmentIndex = rng.NextElementUniform(availableEquipment);
-
-                    Log.Debug($"Gave {FormatUtils.GetBestEquipmentDisplayName(equipmentIndex)} to spawned equipment drone");
-
-                    if (inventory)
+                    if (availableEquipment.Count > 0)
                     {
-                        inventory.SetEquipmentIndex(equipmentIndex);
+                        EquipmentIndex equipmentIndex = rng.NextElementUniform(availableEquipment);
+
+                        InventoryExtensions.PickupGrantParameters equipmentGrantParameters = new InventoryExtensions.PickupGrantParameters
+                        {
+                            PickupToGrant = new PickupStack(PickupCatalog.FindPickupIndex(equipmentIndex), new Inventory.ItemStackValues { permanentStacks = 1}),
+                            ReplacementRule = equipmentReplacementRule,
+                            NotificationFlags = PickupUtils.DefaultNotificationFlags
+                        };
+
+                        if (equipmentGrantParameters.AttemptGrant(inventory))
+                        {
+                            Log.Debug($"Gave {FormatUtils.GetBestEquipmentDisplayName(equipmentIndex)} to spawned equipment drone");
+                        }
                     }
-                }
-                else
-                {
-                    Log.Warning("No available equipment to give to spawned equipment drone");
+                    else
+                    {
+                        Log.Warning("No available equipment to give to spawned equipment drone");
+                    }
                 }
             }
             else if (master.masterIndex == MasterCatalog.FindMasterIndex("DroneCommanderMaster"))
             {
-                if (inventory)
+                if (inventory && inventory.GetItemCountPermanent(DLC1Content.Items.DroneWeaponsBoost) == 0)
                 {
-                    inventory.GiveItem(DLC1Content.Items.DroneWeaponsBoost);
+                    inventory.GiveItemPermanent(DLC1Content.Items.DroneWeaponsBoost);
 
                     if (UnityEngine.Random.value < 0.1f)
                     {
-                        inventory.GiveItem(DLC1Content.Items.DroneWeaponsDisplay2);
+                        inventory.GiveItemPermanent(DLC1Content.Items.DroneWeaponsDisplay2);
                     }
                     else
                     {
-                        inventory.GiveItem(DLC1Content.Items.DroneWeaponsDisplay1);
+                        inventory.GiveItemPermanent(DLC1Content.Items.DroneWeaponsDisplay1);
+                    }
+                }
+            }
+            else if (master.masterIndex == MasterCatalog.FindMasterIndex("DroneBomberMaster"))
+            {
+                if (inventory && inventory.GetItemCountPermanent(DLC3Content.Items.DroneDynamiteDisplay) == 0)
+                {
+                    inventory.GiveItemPermanent(DLC3Content.Items.DroneDynamiteDisplay);
+                }
+            }
+
+            CharacterBody body = master.GetBody();
+            if (body)
+            {
+                DroneIndex droneIndex = DroneCatalog.GetDroneIndexFromBodyIndex(body.bodyIndex);
+                if (droneIndex != DroneIndex.None)
+                {
+                    if (ExpansionUtils.DLC3Enabled)
+                    {
+                        if (inventory)
+                        {
+                            int droneTier = 0;
+                            while (rng.nextNormalizedFloat <= 0.3f)
+                            {
+                                droneTier++;
+                            }
+
+                            if (droneTier > 0)
+                            {
+                                inventory.GiveItemPermanent(DLC3Content.Items.DroneUpgradeHidden, droneTier);
+                            }
+                        }
                     }
                 }
             }
@@ -189,16 +253,36 @@ namespace RiskOfChaos.EffectUtils.World.Spawn
             if (!eliteEquipmentDef)
                 return;
 
-            inventory.TryGrant(PickupCatalog.FindPickupIndex(eliteEquipmentDef.equipmentIndex), InventoryExtensions.EquipmentReplacementRule.DeleteExisting);
-
-            if (!ignoreEliteStatBoosts)
+            InventoryExtensions.PickupGrantParameters eliteEquipmentGrantParameters = new InventoryExtensions.PickupGrantParameters
             {
-                float healthBoostCoefficient = eliteDef.healthBoostCoefficient;
-                float damageBoostCoefficient = eliteDef.damageBoostCoefficient;
+                PickupToGrant = new PickupStack(PickupCatalog.FindPickupIndex(eliteEquipmentDef.equipmentIndex), new Inventory.ItemStackValues { totalStacks = 1 }),
+                ReplacementRule = InventoryExtensions.PickupReplacementRule.DeleteExisting,
+                NotificationFlags = PickupUtils.DefaultNotificationFlags
+            };
 
-                inventory.GiveItem(RoR2Content.Items.BoostHp, Mathf.RoundToInt((healthBoostCoefficient - 1f) * 10f));
-                inventory.GiveItem(RoR2Content.Items.BoostDamage, Mathf.RoundToInt((damageBoostCoefficient - 1f) * 10f));
+            if (eliteEquipmentGrantParameters.AttemptGrant(inventory))
+            {
+                if (!ignoreEliteStatBoosts)
+                {
+                    float healthBoostCoefficient = eliteDef.healthBoostCoefficient;
+                    float damageBoostCoefficient = eliteDef.damageBoostCoefficient;
+
+                    inventory.GiveItemPermanent(RoR2Content.Items.BoostHp, Mathf.RoundToInt((healthBoostCoefficient - 1f) * 10f));
+                    inventory.GiveItemPermanent(RoR2Content.Items.BoostDamage, Mathf.RoundToInt((damageBoostCoefficient - 1f) * 10f));
+                }
             }
         }
+
+#if DEBUG
+        [ConCommand(commandName = "roc_test_body_spawn_nodegraphs")]
+        static void CCTestSpawnNodeGraphs(ConCommandArgs args)
+        {
+            foreach (CharacterBody body in BodyCatalog.allBodyPrefabBodyBodyComponents)
+            {
+                MapNodeGroup.GraphType spawnGraphType = GetSpawnGraphType(body);
+                Log.Info($"{body.name}: {spawnGraphType}");
+            }
+        }
+#endif
     }
 }

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Trackers
 {
-    public class CurrentDifficultyIconControllerTracker : MonoBehaviour
+    public sealed class CurrentDifficultyIconControllerTracker : MonoBehaviour
     {
         public CurrentDifficultyIconController IconController { get; private set; }
 

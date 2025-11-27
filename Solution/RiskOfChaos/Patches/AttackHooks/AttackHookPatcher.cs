@@ -6,7 +6,6 @@ using RoR2;
 using RoR2.Orbs;
 using RoR2.Projectile;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace RiskOfChaos.Patches.AttackHooks
 {
@@ -15,13 +14,7 @@ namespace RiskOfChaos.Patches.AttackHooks
         [SystemInitializer]
         static void Init()
         {
-            // This makes all bullet attacks share the same collection instances which A) is dumb, and B) messes up a lot of hooks
-            // This is not even for effect pooling, this saves like, a couple allocations per bullet, really not worth the trouble it causes
-            BulletAttack._UsePools = false;
-
-            On.RoR2.BulletAttack.FireMulti += BulletAttack_FireMulti;
             On.RoR2.BulletAttack.FireSingle += BulletAttack_FireSingle;
-            On.RoR2.BulletAttack.FireSingle_ReturnHit += BulletAttack_FireSingle_ReturnHit;
 
             On.RoR2.BlastAttack.Fire += BlastAttack_Fire;
             On.RoR2.OverlapAttack.ProcessHits += OverlapAttack_ProcessHits;
@@ -38,34 +31,14 @@ namespace RiskOfChaos.Patches.AttackHooks
             return (activatedHooks & (AttackHookMask.Delayed | AttackHookMask.Replaced)) != 0;
         }
 
-        static void BulletAttack_FireMulti(On.RoR2.BulletAttack.orig_FireMulti orig, BulletAttack self, Vector3 normal, int muzzleIndex)
+        static void BulletAttack_FireSingle(On.RoR2.BulletAttack.orig_FireSingle orig, BulletAttack self, BulletAttack.FireSingleArgs args)
         {
-            AttackHookManager attackHookManager = new BulletAttackHookManager(self, normal, muzzleIndex, BulletAttackHookManager.FireType.Multi);
+            AttackHookManager attackHookManager = new BulletAttackHookManager(self, args);
             AttackHookMask activatedHooks = attackHookManager.RunHooks();
             if (shouldSkipOrig(activatedHooks))
                 return;
 
-            orig(self, normal, muzzleIndex);
-        }
-
-        static void BulletAttack_FireSingle(On.RoR2.BulletAttack.orig_FireSingle orig, BulletAttack self, Vector3 normal, int muzzleIndex)
-        {
-            AttackHookManager attackHookManager = new BulletAttackHookManager(self, normal, muzzleIndex, BulletAttackHookManager.FireType.Single);
-            AttackHookMask activatedHooks = attackHookManager.RunHooks();
-            if (shouldSkipOrig(activatedHooks))
-                return;
-
-            orig(self, normal, muzzleIndex);
-        }
-
-        static Vector3 BulletAttack_FireSingle_ReturnHit(On.RoR2.BulletAttack.orig_FireSingle_ReturnHit orig, BulletAttack self, Vector3 normal, int muzzleIndex)
-        {
-            AttackHookManager attackHookManager = new BulletAttackHookManager(self, normal, muzzleIndex, BulletAttackHookManager.FireType.Single_ReturnHit);
-            AttackHookMask activatedHooks = attackHookManager.RunHooks();
-            if (shouldSkipOrig(activatedHooks))
-                return self.origin + (self.aimVector * self.maxDistance);
-
-            return orig(self, normal, muzzleIndex);
+            orig(self, args);
         }
 
         static BlastAttack.Result BlastAttack_Fire(On.RoR2.BlastAttack.orig_Fire orig, BlastAttack self)

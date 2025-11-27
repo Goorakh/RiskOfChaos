@@ -2,7 +2,7 @@
 
 namespace RiskOfTwitch.Chat.Message
 {
-    public class ChannelChatMessageEvent
+    public sealed class ChannelChatMessageEvent
     {
         [JsonProperty("broadcaster_user_id")]
         public string BroadcasterUserId { get; set; }

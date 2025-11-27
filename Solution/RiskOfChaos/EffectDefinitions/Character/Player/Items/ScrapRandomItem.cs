@@ -13,7 +13,6 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.Pickup;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Networking;
@@ -23,27 +22,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
     [ChaosEffect("scrap_random_item", DefaultSelectionWeight = 0.5f)]
     public sealed class ScrapRandomItem : NetworkBehaviour
     {
-        static PickupIndex[] _scrapPickupByItemTier = [];
-
-        [SystemInitializer(typeof(PickupCatalog), typeof(ItemTierCatalog))]
-        static void InitItemScrapDict()
-        {
-            int itemTierCount = ItemTierCatalog.allItemTierDefs.Max(itd => (int)itd.tier) + 1;
-
-            _scrapPickupByItemTier = new PickupIndex[itemTierCount];
-            for (ItemTier i = 0; i < (ItemTier)itemTierCount; i++)
-            {
-                _scrapPickupByItemTier[(int)i] = i switch
-                {
-                    ItemTier.Tier1 => PickupCatalog.FindPickupIndex(RoR2Content.Items.ScrapWhite.itemIndex),
-                    ItemTier.Tier2 => PickupCatalog.FindPickupIndex(RoR2Content.Items.ScrapGreen.itemIndex),
-                    ItemTier.Tier3 => PickupCatalog.FindPickupIndex(RoR2Content.Items.ScrapRed.itemIndex),
-                    ItemTier.Boss => PickupCatalog.FindPickupIndex(RoR2Content.Items.ScrapYellow.itemIndex),
-                    _ => PickupIndex.none,
-                };
-            }
-        }
-
         [EffectConfig]
         static readonly ConfigHolder<bool> _scrapWholeStack =
             ConfigFactory<bool>.CreateConfig("Scrap Whole Stack", true)
@@ -87,7 +65,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 if (!itemTierDef || !itemTierDef.canScrap)
                     continue;
 
-                if (getScrapPickupForItemTier(itemDef.tier) == null)
+                if (!PickupCatalog.FindScrapIndexForItemTier(itemDef.tier).isValid)
                 {
                     Log.Warning($"{itemDef} ({itemTierDef}) should be scrappable, but no scrap item is defined");
                     continue;
@@ -108,13 +86,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             if (!inventory)
                 return [];
 
-            return getAllScrappableItems().Where(i => inventory.GetItemCount(i) > 0);
+            return getAllScrappableItems().Where(i => inventory.GetOwnedItemCount(i) > 0);
         }
 
         [EffectCanActivate]
         static bool CanActivate(in EffectCanActivateContext context)
         {
-            return _scrapPickupByItemTier != null && (!context.IsNow || PlayerUtils.GetAllPlayerMasters(false).Any(cm => getAllScrappableItems(cm.inventory).Any()));
+            return !context.IsNow || PlayerUtils.GetAllPlayerMasters(false).Any(cm => getAllScrappableItems(cm.inventory).Any());
         }
 
         ChaosEffectComponent _effectComponent;
@@ -152,51 +130,45 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             if (!inventory)
                 return;
 
-            HashSet<PickupIndex> notifiedScrapPickups = new HashSet<PickupIndex>(_scrapPickupByItemTier.Length);
-
-            for (int i = _scrapCount.Value - 1; i >= 0; i--)
+            using (SetPool<PickupIndex>.RentCollection(out HashSet<PickupIndex> scrapPickupIndicesGiven))
             {
-                int itemToScrapIndex = Array.FindIndex(_itemScrapOrder, i => inventory.GetItemCount(i) > 0);
-                if (itemToScrapIndex == -1) // No more items to scrap, inventory is out of scrappable items
-                    break;
+                for (int i = _scrapCount.Value - 1; i >= 0; i--)
+                {
+                    bool scrapSuccess = false;
+                    foreach (ItemIndex itemIndexToScrap in _itemScrapOrder)
+                    {
+                        ItemDef itemToScrap = ItemCatalog.GetItemDef(itemIndexToScrap);
+                        if (!itemToScrap)
+                            continue;
 
-                ItemDef itemToScrap = ItemCatalog.GetItemDef(_itemScrapOrder[itemToScrapIndex]);
-                scrapItem(characterMaster, inventory, itemToScrap, notifiedScrapPickups);
+                        InventoryExtensions.PickupTransformation scrapItemTransformation = new InventoryExtensions.PickupTransformation
+                        {
+                            AllowWhenDisabled = true,
+                            MinToTransform = 1,
+                            MaxToTransform = _scrapWholeStack.Value ? int.MaxValue : 1,
+                            OriginalPickupIndex = PickupCatalog.FindPickupIndex(itemIndexToScrap),
+                            NewPickupIndex = PickupCatalog.FindScrapIndexForItemTier(itemToScrap.tier),
+                            TransformationType = (ItemTransformationTypeIndex)CharacterMasterNotificationQueue.TransformationType.Default,
+                            ReplacementRule = InventoryExtensions.PickupReplacementRule.DropExisting
+                        };
+
+                        if (scrapItemTransformation.TryTransform(inventory, out InventoryExtensions.PickupTransformation.TryTransformResult result))
+                        {
+                            scrapPickupIndicesGiven.Add(result.GivenPickup.PickupIndex);
+                            scrapSuccess = true;
+                            break;
+                        }
+                    }
+
+                    if (!scrapSuccess)
+                        break;
+                }
+
+                if (scrapPickupIndicesGiven.Count > 0)
+                {
+                    PickupUtils.QueuePickupsMessage(characterMaster, [.. scrapPickupIndicesGiven], PickupNotificationFlags.SendChatMessage);
+                }
             }
-
-            if (notifiedScrapPickups.Count > 0)
-            {
-                PickupUtils.QueuePickupsMessage(characterMaster, [.. notifiedScrapPickups], PickupNotificationFlags.SendChatMessage);
-            }
-        }
-
-        static void scrapItem(CharacterMaster characterMaster, Inventory inventory, ItemDef itemToScrap, HashSet<PickupIndex> notifiedScrapPickups)
-        {
-            PickupDef scrapPickup = getScrapPickupForItemTier(itemToScrap.tier);
-            if (scrapPickup == null)
-                return;
-
-            int itemCount;
-            if (_scrapWholeStack.Value)
-            {
-                itemCount = inventory.GetItemCount(itemToScrap);
-            }
-            else
-            {
-                itemCount = 1;
-            }
-
-            inventory.RemoveItem(itemToScrap, itemCount);
-            inventory.GiveItem(scrapPickup.itemIndex, itemCount);
-
-            CharacterMasterNotificationQueue.SendTransformNotification(characterMaster, itemToScrap.itemIndex, scrapPickup.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
-
-            notifiedScrapPickups?.Add(scrapPickup.pickupIndex);
-        }
-
-        static PickupDef getScrapPickupForItemTier(ItemTier tier)
-        {
-            return PickupCatalog.GetPickupDef(ArrayUtils.GetSafe(_scrapPickupByItemTier, (int)tier, PickupIndex.none));
         }
     }
 }

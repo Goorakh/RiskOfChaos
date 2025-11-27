@@ -5,7 +5,7 @@ using UnityEngine.AddressableAssets;
 
 namespace RiskOfChaos.Components
 {
-    public class PersistentOverlayController : MonoBehaviour
+    public sealed class PersistentOverlayController : MonoBehaviour
     {
         public Material OverlayMaterial;
         public AssetReferenceT<Material> OverlayMaterialReference;

@@ -2,7 +2,7 @@
 
 namespace RiskOfTwitch.User
 {
-    public class TwitchUserData
+    public sealed class TwitchUserData
     {
         [JsonProperty("id")]
         public string UserId { get; set; }

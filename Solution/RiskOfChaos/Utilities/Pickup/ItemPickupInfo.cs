@@ -15,13 +15,13 @@ namespace RiskOfChaos.Utilities.Pickup
             ItemIndex = itemIndex;
         }
 
-        public ItemPickupInfo(Inventory inventory, ItemIndex itemIndex) : this(inventory, itemIndex, inventory.GetItemCount(itemIndex))
+        public ItemPickupInfo(Inventory inventory, ItemIndex itemIndex) : this(inventory, itemIndex, inventory.GetItemCountPermanent(itemIndex))
         {
         }
 
         public override void RemoveFromInventory()
         {
-            Inventory.RemoveItem(ItemIndex, ItemCount);
+            Inventory.RemoveItemPermanent(ItemIndex, ItemCount);
         }
     }
 }

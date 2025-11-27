@@ -14,7 +14,7 @@ namespace RiskOfChaos.Patches
         [SystemInitializer]
         static void Init()
         {
-            IL.RoR2.CharacterMaster.Respawn += CharacterMaster_Respawn;
+            IL.RoR2.CharacterMaster.Respawn_Vector3_Quaternion_bool += CharacterMaster_Respawn;
         }
 
         static void CharacterMaster_Respawn(ILContext il)
@@ -32,11 +32,10 @@ namespace RiskOfChaos.Patches
                 return;
             }
 
-            ILCursor cursor = foundCursors[2];
-            cursor.Index++;
+            c.Goto(foundCursors[2].Next, MoveType.After); // brfalse
 
-            cursor.Emit(OpCodes.Ldsfld, _preventionEnabled_FI);
-            cursor.Emit(OpCodes.Brtrue, afterIfLbl);
+            c.Emit(OpCodes.Ldsfld, _preventionEnabled_FI);
+            c.Emit(OpCodes.Brtrue, afterIfLbl);
         }
     }
 }

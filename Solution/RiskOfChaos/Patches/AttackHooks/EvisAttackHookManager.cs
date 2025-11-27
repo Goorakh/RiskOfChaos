@@ -5,7 +5,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.Patches.AttackHooks
 {
-    class EvisAttackHookManager : AttackHookManager
+    sealed class EvisAttackHookManager : AttackHookManager
     {
         readonly HurtBox _target;
 

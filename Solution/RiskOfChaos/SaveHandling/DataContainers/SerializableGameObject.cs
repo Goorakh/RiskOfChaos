@@ -5,7 +5,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.SaveHandling.DataContainers
 {
     [Serializable]
-    public class SerializableGameObject
+    public sealed class SerializableGameObject
     {
         [JsonProperty("id")]
         public NetworkHash128 PrefabAssetId;

@@ -7,7 +7,7 @@ namespace RiskOfChaos.EffectUtils.Character.Player.Items
 {
     public static class ConsumableItemUtils
     {
-        public static HG.ReadOnlyArray<ConsumableItemPair> ConsumableItemPairs { get; private set; } = new HG.ReadOnlyArray<ConsumableItemPair>([]);
+        public static ReadOnlyMemory<ConsumableItemPair> ConsumableItemPairs { get; private set; } = ReadOnlyMemory<ConsumableItemPair>.Empty;
 
         [SystemInitializer(typeof(ItemCatalog), typeof(EquipmentCatalog))]
         static void Init()
@@ -102,7 +102,7 @@ namespace RiskOfChaos.EffectUtils.Character.Player.Items
                 Log.Debug($"Registered consumable equipment pair: {FormatUtils.GetBestEquipmentDisplayName(equipmentDef)} -> {FormatUtils.GetBestEquipmentDisplayName(consumedEquipmentDef)}");
             }
 
-            ConsumableItemPairs = new HG.ReadOnlyArray<ConsumableItemPair>([.. consumableItemPairs]);
+            ConsumableItemPairs = new ReadOnlyMemory<ConsumableItemPair>([.. consumableItemPairs]);
         }
 
         public readonly struct ConsumableItemPair : IEquatable<ConsumableItemPair>
@@ -121,24 +121,29 @@ namespace RiskOfChaos.EffectUtils.Character.Player.Items
                 return obj is ConsumableItemPair otherPair && Equals(otherPair);
             }
 
-            public readonly bool Equals(ConsumableItemPair other)
+            public readonly bool Equals(in ConsumableItemPair other)
             {
                 return Item == other.Item && ConsumedItem == other.ConsumedItem;
             }
 
-            public override int GetHashCode()
+            readonly bool IEquatable<ConsumableItemPair>.Equals(ConsumableItemPair other)
+            {
+                return Equals(other);
+            }
+
+            public override readonly int GetHashCode()
             {
                 return HashCode.Combine(Item, ConsumedItem);
             }
 
-            public static bool operator ==(ConsumableItemPair left, ConsumableItemPair right)
+            public static bool operator ==(in ConsumableItemPair left, in ConsumableItemPair right)
             {
-                return left.Equals(right);
+                return ((IEquatable<ConsumableItemPair>)left).Equals(right);
             }
 
-            public static bool operator !=(ConsumableItemPair left, ConsumableItemPair right)
+            public static bool operator !=(in ConsumableItemPair left, in ConsumableItemPair right)
             {
-                return !(left == right);
+                return !((IEquatable<ConsumableItemPair>)left).Equals(right);
             }
         }
     }

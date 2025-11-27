@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Trackers
 {
-    public class AmbientLevelDisplayTracker : MonoBehaviour
+    public sealed class AmbientLevelDisplayTracker : MonoBehaviour
     {
         [SystemInitializer]
         static void Init()

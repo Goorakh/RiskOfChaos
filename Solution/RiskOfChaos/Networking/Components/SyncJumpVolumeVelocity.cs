@@ -4,7 +4,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.Networking.Components
 {
-    public class SyncJumpVolumeVelocity : NetworkBehaviour
+    public sealed class SyncJumpVolumeVelocity : NetworkBehaviour
     {
         public JumpVolume JumpVolume;
 

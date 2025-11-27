@@ -11,7 +11,7 @@ namespace RiskOfChaos.Patches
 {
     static class IgnoreItemTransformations
     {
-        class IgnoreTransformationInfo
+        sealed class IgnoreTransformationInfo
         {
             public readonly HashSet<ItemIndex> IgnoreItems = [];
             public int IgnoreAllTransformationsCount = 0;

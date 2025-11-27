@@ -88,9 +88,9 @@ namespace RiskOfChaos.Patches.AttackHooks
             Speed = null;
         }
 
-        public AttackInfo(BulletAttack bulletAttack, Vector3 normal, int muzzleIndex)
+        public AttackInfo(BulletAttack bulletAttack, BulletAttack.FireSingleArgs fireArgs)
         {
-            Vector3 position = bulletAttack.origin;
+            Vector3 position = fireArgs.ray.origin;
             Vector3 muzzlePosition = position;
 
             if (bulletAttack.weapon && bulletAttack.weapon.TryGetComponent(out ModelLocator weaponModelLocator))
@@ -98,7 +98,7 @@ namespace RiskOfChaos.Patches.AttackHooks
                 Transform weaponModelTransform = weaponModelLocator.modelTransform;
                 if (weaponModelTransform && weaponModelTransform.TryGetComponent(out ChildLocator weaponChildLocator))
                 {
-                    Transform muzzleTransform = weaponChildLocator.FindChild(muzzleIndex);
+                    Transform muzzleTransform = weaponChildLocator.FindChild(fireArgs.muzzleIndex);
                     if (muzzleTransform)
                     {
                         muzzlePosition = muzzleTransform.position;
@@ -111,7 +111,7 @@ namespace RiskOfChaos.Patches.AttackHooks
             Target = null;
             Position = position;
             MuzzlePosition = muzzlePosition;
-            AttackDirection = normal;
+            AttackDirection = fireArgs.ray.direction;
             Damage = bulletAttack.damage;
             Force = bulletAttack.force;
             Crit = bulletAttack.isCrit;

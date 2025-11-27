@@ -133,7 +133,7 @@ namespace RiskOfChaos.EffectUtils.World
 
                 if (SuppressedItemManager.suppressedInventory)
                 {
-                    SuppressedItemManager.suppressedInventory.RemoveItem(itemIndex);
+                    SuppressedItemManager.suppressedInventory.RemoveItemPermanent(itemIndex);
                 }
             }
 

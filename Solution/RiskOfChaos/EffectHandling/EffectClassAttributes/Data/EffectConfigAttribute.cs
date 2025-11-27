@@ -6,7 +6,7 @@ using System.Reflection;
 namespace RiskOfChaos.EffectHandling.EffectClassAttributes.Data
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class EffectConfigAttribute : InitEffectMemberAttribute
+    public sealed class EffectConfigAttribute : InitEffectMemberAttribute
     {
         public override InitializationPriority Priority => InitializationPriority.EffectCatalogInitialized;
 

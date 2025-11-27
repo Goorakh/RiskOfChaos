@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace RiskOfChaos.Utilities
 {
-    public class EventWaiter
+    public sealed class EventWaiter
     {
         public event Action OnAnyEventInvoked;
         public event Action OnAllEventsInvoked;

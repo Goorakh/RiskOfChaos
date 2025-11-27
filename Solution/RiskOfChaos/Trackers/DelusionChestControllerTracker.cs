@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Trackers
 {
-    public class DelusionChestControllerTracker : MonoBehaviour
+    public sealed class DelusionChestControllerTracker : MonoBehaviour
     {
         [SystemInitializer]
         static void Init()
@@ -24,7 +24,7 @@ namespace RiskOfChaos.Trackers
                     !DelusionChestController.isDelusionEnable &&
                     self.chestGeneratedFrom.TryGetComponent(out DelusionChestControllerTracker delusionChestTracker))
                 {
-                    delusionChestTracker._pendingDelusionPickupIndex = self.pickupIndex;
+                    delusionChestTracker._pendingDelusionPickupIndex = self.pickup.pickupIndex;
                 }
             };
         }

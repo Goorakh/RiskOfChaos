@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace RiskOfTwitch.EventSub
 {
-    public class TwitchEventSubClient : ITwitchEventSubMessageHandler
+    public sealed class TwitchEventSubClient : ITwitchEventSubMessageHandler
     {
         readonly string _accessToken;
         readonly string _overrideBroadcasterName;

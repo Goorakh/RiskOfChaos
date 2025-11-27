@@ -14,7 +14,7 @@ namespace RiskOfChaos.Utilities.Extensions
 {
     public static class OrbExtensions
     {
-        class CachedOrbFields
+        sealed class CachedOrbFields
         {
             public readonly Type OrbType;
 
@@ -85,7 +85,7 @@ namespace RiskOfChaos.Utilities.Extensions
 
         static readonly Dictionary<Type, CachedOrbFields> _cachedOrbFields = [];
 
-        class AdditionalOrbFields
+        sealed class AdditionalOrbFields
         {
             public ProcChainMask? ProcChainMask;
         }

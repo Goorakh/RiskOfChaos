@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using HG;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectDefinitions;
 using RiskOfChaos.SaveHandling;
 using RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers;
@@ -411,16 +412,19 @@ namespace RiskOfChaos.EffectHandling.Controllers.ChatVoting
             if (voteResult.IsRandom)
             {
                 EffectVoteInfo[] voteOptions = _effectVoteSelection.GetVoteOptions();
-                HashSet<ChaosEffectInfo> voteOptionEffects = new HashSet<ChaosEffectInfo>(voteOptions.Length);
-                foreach (EffectVoteInfo voteInfo in voteOptions)
+                using (SetPool<ChaosEffectInfo>.RentCollection(out HashSet<ChaosEffectInfo> voteOptionEffects))
                 {
-                    if (voteInfo.EffectInfo != null)
+                    voteOptionEffects.EnsureCapacity(voteOptions.Length);
+                    foreach (EffectVoteInfo voteInfo in voteOptions)
                     {
-                        voteOptionEffects.Add(voteInfo.EffectInfo);
+                        if (voteInfo.EffectInfo != null)
+                        {
+                            voteOptionEffects.Add(voteInfo.EffectInfo);
+                        }
                     }
-                }
 
-                effectInfo = ChaosEffectCatalog.PickActivatableEffect(_rng, EffectCanActivateContext.Now, voteOptionEffects);
+                    effectInfo = ChaosEffectCatalog.PickActivatableEffect(_rng, EffectCanActivateContext.Now, voteOptionEffects);
+                }
 
                 dispatchArgs = new ChaosEffectDispatchArgs
                 {

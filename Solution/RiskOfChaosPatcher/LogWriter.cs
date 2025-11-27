@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace RiskOfChaosPatcher
 {
-    class LogWriter
+    sealed class LogWriter
     {
         ManualLogSource _logSource;
 

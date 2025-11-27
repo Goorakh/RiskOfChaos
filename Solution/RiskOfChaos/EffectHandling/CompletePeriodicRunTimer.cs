@@ -3,7 +3,7 @@ using RoR2;
 
 namespace RiskOfChaos.EffectHandling
 {
-    public class CompletePeriodicRunTimer : IRunTimer
+    public sealed class CompletePeriodicRunTimer : IRunTimer
     {
         public delegate void TimerActivateDelegate(RunTimeStamp activationTime);
         public event TimerActivateDelegate OnActivate;

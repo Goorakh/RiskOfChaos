@@ -4,7 +4,7 @@ using System;
 namespace RiskOfChaos.SaveHandling.DataContainers
 {
     [Serializable]
-    public class SaveDataContainer
+    public sealed class SaveDataContainer
     {
         [JsonProperty("o")]
         public SerializableGameObject[] Objects;

@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Collections.ParsedValue;
+﻿using HG;
+using RiskOfChaos.Collections.ParsedValue;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -6,12 +7,12 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.EffectUtils.Character.Player.Items;
-using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Comparers;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.Pickup;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using System;
 using System.Collections.Generic;
 using UnityEngine.Networking;
 
@@ -54,7 +55,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             ConfigHolder = _itemBlacklistConfig
         };
 
-        static bool canConsume(ConsumableItemUtils.ConsumableItemPair consumablePair)
+        static bool canConsume(in ConsumableItemUtils.ConsumableItemPair consumablePair)
         {
             return consumablePair.Item.isValid && !_itemBlacklist.Contains(consumablePair.Item) &&
                    consumablePair.ConsumedItem.isValid && !_itemBlacklist.Contains(consumablePair.ConsumedItem);
@@ -78,7 +79,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                 for (int i = 0; i < ConsumableItemUtils.ConsumableItemPairs.Length; i++)
                 {
-                    if (canConsume(ConsumableItemUtils.ConsumableItemPairs[i]) && inventory.GetPickupCount(ConsumableItemUtils.ConsumableItemPairs[i].Item) > 0)
+                    if (canConsume(ConsumableItemUtils.ConsumableItemPairs.Span[i]) && inventory.GetOwnedPickupCount(ConsumableItemUtils.ConsumableItemPairs.Span[i].Item) > 0)
                     {
                         return true;
                     }
@@ -125,65 +126,44 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                 Xoroshiro128Plus playerRng = new Xoroshiro128Plus(_consumeRngSeed);
 
-                HashSet<ConsumableItemUtils.ConsumableItemPair> consumedPairs = new HashSet<ConsumableItemUtils.ConsumableItemPair>(ConsumableItemUtils.ConsumableItemPairs.Length);
-
-                int consumedItems = 0;
-                while (consumedItems < _consumeCountConfig.Value && tryConsumeItemPair(master, new Xoroshiro128Plus(playerRng.nextUlong), consumedPairs))
+                using (SetPool<PickupIndex>.RentCollection(out HashSet<PickupIndex> newConsumedPickups))
                 {
-                    consumedItems++;
-                }
+                    newConsumedPickups.EnsureCapacity(ConsumableItemUtils.ConsumableItemPairs.Length);
 
-                if (consumedPairs.Count > 0 && master.playerCharacterMasterController)
-                {
-                    PickupIndex[] pickupIndices = new PickupIndex[consumedPairs.Count];
-                    int pickupIndex = 0;
-                    foreach (ConsumableItemUtils.ConsumableItemPair consumablePair in consumedPairs)
+                    for (int i = _consumeCountConfig.Value; i > 0; i--)
                     {
-                        CharacterMasterNotificationQueueUtils.SendPickupTransformNotification(master, consumablePair.Item, consumablePair.ConsumedItem, CharacterMasterNotificationQueue.TransformationType.Default);
+                        Xoroshiro128Plus rng = playerRng.Branch();
 
-                        pickupIndices[pickupIndex] = consumablePair.ConsumedItem;
-                        pickupIndex++;
-                    }
+                        Span<ConsumableItemUtils.ConsumableItemPair> consumeOrder = [.. ConsumableItemUtils.ConsumableItemPairs.Span];
+                        Util.ShuffleSpan(consumeOrder, rng);
 
-                    PickupUtils.QueuePickupsMessage(master, pickupIndices, PickupNotificationFlags.SendChatMessage);
-                }
-            }
-        }
-
-        bool tryConsumeItemPair(CharacterMaster master, Xoroshiro128Plus rng, HashSet<ConsumableItemUtils.ConsumableItemPair> consumedPairs)
-        {
-            if (!master)
-                return false;
-
-            Inventory inventory = master.inventory;
-            if (!inventory)
-                return false;
-
-            ConsumableItemUtils.ConsumableItemPair[] consumeOrder = new ConsumableItemUtils.ConsumableItemPair[ConsumableItemUtils.ConsumableItemPairs.Length];
-            ConsumableItemUtils.ConsumableItemPairs.CopyTo(consumeOrder, 0);
-
-            Util.ShuffleArray(consumeOrder, rng);
-
-            foreach (ConsumableItemUtils.ConsumableItemPair consumablePair in consumeOrder)
-            {
-                if (canConsume(consumablePair))
-                {
-                    int pickupCount = inventory.GetPickupCount(consumablePair.Item);
-                    if (pickupCount > 0)
-                    {
-                        int consumeCount = _consumeFullStack.Value ? pickupCount : 1;
-                        if (inventory.TryRemove(consumablePair.Item, consumeCount))
+                        foreach (ref readonly ConsumableItemUtils.ConsumableItemPair consumablePair in consumeOrder)
                         {
-                            inventory.TryGrant(consumablePair.ConsumedItem, InventoryExtensions.EquipmentReplacementRule.DropExisting, consumeCount);
+                            InventoryExtensions.PickupTransformation pickupTransformation = new InventoryExtensions.PickupTransformation
+                            {
+                                AllowWhenDisabled = true,
+                                MinToTransform = 1,
+                                MaxToTransform = _consumeFullStack.Value ? int.MaxValue : 1,
+                                OriginalPickupIndex = consumablePair.Item,
+                                NewPickupIndex = consumablePair.ConsumedItem,
+                                TransformationType = (ItemTransformationTypeIndex)CharacterMasterNotificationQueue.TransformationType.Default,
+                                ReplacementRule = InventoryExtensions.PickupReplacementRule.DropExisting
+                            };
 
-                            consumedPairs.Add(consumablePair);
-                            return true;
+                            if (pickupTransformation.TryTransform(inventory, out InventoryExtensions.PickupTransformation.TryTransformResult result))
+                            {
+                                newConsumedPickups.Add(result.GivenPickup.PickupIndex);
+                                break;
+                            }
                         }
                     }
+
+                    if (newConsumedPickups.Count > 0 && master.playerCharacterMasterController)
+                    {
+                        PickupUtils.QueuePickupsMessage(master, [.. newConsumedPickups], PickupNotificationFlags.SendChatMessage);
+                    }
                 }
             }
-
-            return false;
         }
     }
 }

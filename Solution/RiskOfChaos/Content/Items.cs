@@ -82,11 +82,7 @@ namespace RiskOfChaos.Content
             {
                 HealthComponentHooks.PreTakeDamage += HealthComponentHooks_PreTakeDamage;
 
-                IL.RoR2.HealthComponent.TakeDamageProcess += HealthComponent_TakeDamageProcess;
-
-                On.RoR2.CharacterAI.BaseAI.FindEnemyHurtBox += On_BaseAI_FindEnemyHurtBox;
-
-                IL.RoR2.CharacterAI.BaseAI.FindEnemyHurtBox += IL_BaseAI_FindEnemyHurtBox;
+                IL.RoR2.CharacterAI.BaseAI.FindEnemyHurtBox += BaseAI_FindEnemyHurtBox;
 
                 On.RoR2.Projectile.ProjectileController.Start += ProjectileController_Start;
 
@@ -106,7 +102,7 @@ namespace RiskOfChaos.Content
                 if (!inventory)
                     return;
 
-                if (inventory.GetItemCount(MinAllyRegen) > 0)
+                if (inventory.GetItemCountEffective(MinAllyRegen) > 0)
                 {
                     const float TARGET_BASE_REGEN = 2.5f;
                     if (body.baseRegen < TARGET_BASE_REGEN)
@@ -130,7 +126,7 @@ namespace RiskOfChaos.Content
                 if (!damageReport.victimMaster || damageReport.victimMaster.IsExtraLifePendingServer())
                     return;
 
-                if (damageReport.victimMaster.inventory.GetItemCount(InvincibleLemurianMarker) > 0)
+                if (damageReport.victimMaster.inventory.GetItemCountPermanent(InvincibleLemurianMarker) > 0)
                 {
                     if (damageReport.victimTeamIndex == TeamIndex.Player)
                     {
@@ -159,7 +155,7 @@ namespace RiskOfChaos.Content
                     damageInfo.attacker &&
                     damageInfo.attacker.TryGetComponent(out CharacterBody attackerBody) &&
                     attackerBody.inventory &&
-                    attackerBody.inventory.GetItemCount(InvincibleLemurianMarker) > 0)
+                    attackerBody.inventory.GetItemCountPermanent(InvincibleLemurianMarker) > 0)
                 {
                     // Instantly die no matter what
                     damageInfo.damageType |= DamageType.BypassArmor | DamageType.BypassBlock | DamageType.BypassOneShotProtection | (DamageTypeCombo)DamageTypeExtended.SojournVehicleDamage;
@@ -167,58 +163,7 @@ namespace RiskOfChaos.Content
                 }
             }
 
-            static void HealthComponent_TakeDamageProcess(ILContext il)
-            {
-                ILCursor c = new ILCursor(il);
-
-                if (!il.Method.TryFindParameter<DamageInfo>(out ParameterDefinition damageInfoParameter))
-                {
-                    Log.Error("Failed to find DamageInfo parameter");
-                    return;
-                }
-
-                if (!c.TryGotoNext(MoveType.Before,
-                                  x => x.MatchCallOrCallvirt<TeleportOnLowHealthBehavior>(nameof(TeleportOnLowHealthBehavior.TryProc))))
-                {
-                    Log.Error("Failed to find patch location");
-                    return;
-                }
-
-                c.Emit(OpCodes.Ldarg, damageInfoParameter);
-                c.EmitDelegate(canProcTransmitter);
-                static bool canProcTransmitter(DamageInfo damageInfo)
-                {
-                    if (damageInfo != null &&
-                        damageInfo.attacker &&
-                        damageInfo.attacker.TryGetComponent(out CharacterBody attackerBody) &&
-                        attackerBody.inventory &&
-                        attackerBody.inventory.GetItemCount(InvincibleLemurianMarker) > 0)
-                    {
-                        return false;
-                    }
-
-                    return true;
-                }
-
-                c.EmitSkipMethodCall(OpCodes.Brfalse, c =>
-                {
-                    c.Emit(OpCodes.Ldc_I4_0);
-                });
-            }
-
-            static HurtBox On_BaseAI_FindEnemyHurtBox(On.RoR2.CharacterAI.BaseAI.orig_FindEnemyHurtBox orig, BaseAI self, float maxDistance, bool full360Vision, bool filterByLoS)
-            {
-                if (self.master && self.master.inventory && self.master.inventory.GetItemCount(InvincibleLemurianMarker) > 0)
-                {
-                    maxDistance = float.PositiveInfinity;
-                    full360Vision = true;
-                    filterByLoS = false;
-                }
-
-                return orig(self, maxDistance, full360Vision, filterByLoS);
-            }
-
-            static void IL_BaseAI_FindEnemyHurtBox(ILContext il)
+            static void BaseAI_FindEnemyHurtBox(ILContext il)
             {
                 ILCursor c = new ILCursor(il);
 
@@ -229,7 +174,7 @@ namespace RiskOfChaos.Content
                     c.EmitDelegate(filterTargets);
                     static IEnumerable<HurtBox> filterTargets(IEnumerable<HurtBox> results, BaseAI instance)
                     {
-                        if (instance && instance.master && instance.master.inventory && instance.master.inventory.GetItemCount(InvincibleLemurianMarker) > 0)
+                        if (instance && instance.master && instance.master.inventory && instance.master.inventory.GetItemCountPermanent(InvincibleLemurianMarker) > 0)
                         {
                             // Filter results to only target players (don't target player allies like drones)
                             IEnumerable<HurtBox> playerControlledTargets = results.Where(hurtBox =>
@@ -265,7 +210,7 @@ namespace RiskOfChaos.Content
                 if (!ownerInventory)
                     return;
 
-                if (ownerInventory.GetItemCount(InvincibleLemurianMarker) > 0)
+                if (ownerInventory.GetItemCountPermanent(InvincibleLemurianMarker) > 0)
                 {
                     self.cannotBeDeleted = true;
                 }
@@ -275,7 +220,7 @@ namespace RiskOfChaos.Content
             {
                 if (damageReport != null && damageReport.attackerMaster && damageReport.attackerMaster.inventory)
                 {
-                    if (damageReport.attackerMaster.inventory.GetItemCount(InvincibleLemurianMarker) > 0)
+                    if (damageReport.attackerMaster.inventory.GetItemCountPermanent(InvincibleLemurianMarker) > 0)
                     {
                         messageToken = "PLAYER_DEATH_QUOTE_INVINCIBLE_LEMURIAN";
                     }

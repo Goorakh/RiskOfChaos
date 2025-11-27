@@ -90,8 +90,7 @@ namespace RiskOfChaos.Content.ItemBehaviors
                 pulseSearch.OrderCandidatesByDistance();
                 pulseSearch.FilterCandidatesByDistinctHurtBoxEntities();
 
-                List<HurtBox> hurtBoxes = ListPool<HurtBox>.RentCollection();
-                try
+                using (ListPool<HurtBox>.RentCollection(out List<HurtBox> hurtBoxes))
                 {
                     pulseSearch.GetHurtBoxes(hurtBoxes);
 
@@ -108,10 +107,6 @@ namespace RiskOfChaos.Content.ItemBehaviors
                             });
                         }
                     }
-                }
-                finally
-                {
-                    ListPool<HurtBox>.ReturnCollection(hurtBoxes);
                 }
             }
 

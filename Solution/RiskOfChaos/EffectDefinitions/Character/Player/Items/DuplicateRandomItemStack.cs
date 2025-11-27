@@ -80,7 +80,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             if (!itemDef || itemDef.hidden)
                 return false;
 
-            if (inventory.GetItemCount(item) <= 0)
+            int itemCount = inventory.GetOwnedItemCount(item);
+            if (itemCount <= 0)
                 return false;
 
             if (_itemBlacklist.Contains(itemDef.itemIndex))
@@ -89,7 +90,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 return false;
             }
 
-            int itemCount = inventory.GetItemCount(item);
             int maxItemStacks = _maxItemStacksConfig.Value;
             if (maxItemStacks > 0 && itemCount >= maxItemStacks)
             {
@@ -146,7 +146,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                     {
                         try
                         {
-                            inventory.GiveItem(item, inventory.GetItemCount(item));
+                            inventory.GiveItemPermanent(item, inventory.GetItemCountPermanent(item));
+                            inventory.GiveItemTemp(item, inventory.tempItemsStorage.GetItemRawValue(item));
 
                             if (master.playerCharacterMasterController)
                             {

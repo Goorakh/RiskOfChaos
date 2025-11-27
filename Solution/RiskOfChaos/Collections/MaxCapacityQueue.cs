@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace RiskOfChaos.Collections
 {
-    public class MaxCapacityQueue<T> : IReadOnlyCollection<T>, ICollection
+    public sealed class MaxCapacityQueue<T> : IReadOnlyCollection<T>, ICollection
     {
         readonly Queue<T> _queue;
 
@@ -37,6 +37,8 @@ namespace RiskOfChaos.Collections
 
         public object SyncRoot => ((ICollection)_queue).SyncRoot;
 
+        public bool DisposeOnDequeue { get; set; } = false;
+
         public MaxCapacityQueue(int maxCapacity)
         {
             if (maxCapacity <= 0)
@@ -65,18 +67,18 @@ namespace RiskOfChaos.Collections
         {
             while (_queue.Count > _maxCapacity)
             {
-                _queue.Dequeue();
+                T value = _queue.Dequeue();
+                if (DisposeOnDequeue && value is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
             }
         }
 
         public void Enqueue(T item)
         {
             _queue.Enqueue(item);
-
-            if (_queue.Count > _maxCapacity)
-            {
-                _queue.Dequeue();
-            }
+            checkCapacity();
         }
 
         public T Dequeue()

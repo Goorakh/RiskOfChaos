@@ -2,7 +2,7 @@
 
 namespace RiskOfTwitch.Chat.Message
 {
-    public class ChannelChatMessageData
+    public sealed class ChannelChatMessageData
     {
         [JsonProperty("text")]
         public string FullText { get; set; }

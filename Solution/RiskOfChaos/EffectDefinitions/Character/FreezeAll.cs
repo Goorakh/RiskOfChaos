@@ -76,7 +76,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         }
 
         [EntityStateType]
-        class CustomFrozenState : FrozenState
+        sealed class CustomFrozenState : FrozenState
         {
             WormBodyPositions2 _wormBodyPositions;
             bool _wormBodyPositionsEnabled;

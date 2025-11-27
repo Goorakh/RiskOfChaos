@@ -1,5 +1,6 @@
-﻿using RiskOfChaos.Collections;
+﻿using HG;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
@@ -16,12 +17,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
     {
         static Material _hurtBoxSniperTargetMaterial;
         static Material _hurtBoxBullseyeMaterial;
-        static Material _hurtBoxDefaultMaterial;
+        static Material _colliderDefaultMaterial;
         
-        static Mesh _cubeMesh;
-        static Mesh _sphereMesh;
-        static Mesh _capsuleMesh;
-
         [SystemInitializer]
         static void Init()
         {
@@ -46,275 +43,21 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
 
             _hurtBoxSniperTargetMaterial = createColorMaterial(new Color32(224, 56, 44, 255));
             _hurtBoxBullseyeMaterial = createColorMaterial(new Color32(239, 222, 33, 255));
-            _hurtBoxDefaultMaterial = createColorMaterial(new Color32(169, 246, 252, 255));
-
-            static Mesh getPrimitiveMesh(PrimitiveType primitiveType)
-            {
-                GameObject primitiveObject = GameObject.CreatePrimitive(primitiveType);
-                Mesh mesh = null;
-                if (primitiveObject && primitiveObject.TryGetComponent(out MeshFilter meshFilter))
-                {
-                    mesh = meshFilter.sharedMesh;
-                    Destroy(primitiveObject);
-                }
-
-                if (!mesh)
-                {
-                    Log.Error($"Failed to find mesh for primitive type '{primitiveType}'");
-                }
-
-                return mesh;
-            }
-
-            _cubeMesh = getPrimitiveMesh(PrimitiveType.Cube);
-            _sphereMesh = getPrimitiveMesh(PrimitiveType.Sphere);
-            _capsuleMesh = getPrimitiveMesh(PrimitiveType.Capsule);
+            _colliderDefaultMaterial = createColorMaterial(new Color32(169, 246, 252, 255));
         }
 
-        class ColliderRendererController : MonoBehaviour
+        ChaosEffectComponent _effectComponent;
+
+        void Awake()
         {
-            readonly List<GameObject> _visualObjects = [];
-            readonly List<Renderer> _visualObjectRenderers = [];
-
-            CharacterModel _characterModel;
-
-            void Awake()
-            {
-                _characterModel = GetComponent<CharacterModel>();
-                if (!_characterModel)
-                {
-                    Log.Error("Cannot setup for character model with no CharacterModel instance");
-                    enabled = false;
-                }
-            }
-
-            void Start()
-            {
-                setupCharacterModel();
-            }
-
-            void OnDestroy()
-            {
-                if (_characterModel)
-                {
-                    List<CharacterModel.RendererInfo> rendererInfos = [.. _characterModel.baseRendererInfos];
-
-                    bool rendererInfosChanged = false;
-                    foreach (Renderer visualRenderer in _visualObjectRenderers)
-                    {
-                        if (visualRenderer)
-                        {
-                            for (int i = rendererInfos.Count - 1; i >= 0; i--)
-                            {
-                                Renderer renderer = rendererInfos[i].renderer;
-                                if (!renderer || renderer == visualRenderer)
-                                {
-                                    rendererInfos.RemoveAt(i);
-                                    rendererInfosChanged = true;
-                                }
-                            }
-                        }
-                    }
-
-                    if (rendererInfosChanged)
-                    {
-                        _characterModel.baseRendererInfos = [.. rendererInfos];
-                    }
-
-                    foreach (CharacterModel.RendererInfo rendererInfo in _characterModel.baseRendererInfos)
-                    {
-                        if (rendererInfo.renderer)
-                        {
-                            rendererInfo.renderer.forceRenderingOff = false;
-                        }
-                    }
-                }
-
-                foreach (GameObject visualObject in _visualObjects)
-                {
-                    if (visualObject)
-                    {
-                        Destroy(visualObject);
-                    }
-                }
-
-                _visualObjects.Clear();
-                _visualObjectRenderers.Clear();
-            }
-
-            static GameObject createVisualForCollider(Collider collider, out Vector3 visualLocalPosition, out Quaternion visualLocalRotation, out Vector3 visualLocalScale)
-            {
-                Mesh visualMesh = null;
-                switch (collider)
-                {
-                    case BoxCollider boxCollider:
-                        visualLocalPosition = boxCollider.center;
-                        visualLocalRotation = Quaternion.identity;
-                        visualLocalScale = boxCollider.size;
-                        visualMesh = _cubeMesh;
-
-                        break;
-                    case SphereCollider sphereCollider:
-                        visualLocalPosition = sphereCollider.center;
-                        visualLocalRotation = Quaternion.identity;
-                        visualLocalScale = Vector3.one * (sphereCollider.radius * 2f);
-                        visualMesh = _sphereMesh;
-
-                        break;
-                    case CapsuleCollider capsuleCollider:
-                        visualLocalPosition = capsuleCollider.center;
-
-                        Vector3 pointDirection;
-                        switch (capsuleCollider.direction)
-                        {
-                            case 0: // X
-                                pointDirection = Vector3.right;
-                                break;
-                            case 1: // Y
-                                pointDirection = Vector3.up;
-                                break;
-                            case 2: // Z
-                                pointDirection = Vector3.forward;
-                                break;
-                            default:
-                                Log.Warning($"Unhandled capsule direction: {capsuleCollider.direction}");
-                                pointDirection = Vector3.up;
-                                break;
-                        }
-                        
-                        visualLocalRotation = QuaternionUtils.PointLocalDirectionAt(Vector3.up, pointDirection);
-                        
-                        float diameter = capsuleCollider.radius * 2f;
-
-                        visualLocalScale = new Vector3(diameter, capsuleCollider.height - diameter, diameter);
-
-                        // TODO: Compute the actual collision shape mesh instead of stretching the default capsule
-                        visualMesh = _capsuleMesh;
-
-                        break;
-                    case MeshCollider meshCollider:
-                        visualLocalPosition = Vector3.zero;
-                        visualLocalRotation = Quaternion.identity;
-                        visualLocalScale = Vector3.one;
-                        visualMesh = meshCollider.sharedMesh;
-
-                        break;
-                    default:
-                        Log.Warning($"Unhandled hurtbox collider type {collider?.GetType()}");
-
-                        visualLocalPosition = Vector3.zero;
-                        visualLocalRotation = Quaternion.identity;
-                        visualLocalScale = Vector3.one;
-                        visualMesh = null;
-
-                        break;
-                }
-
-                if (!visualMesh)
-                {
-                    Log.Error($"Failed to determine visual mesh for collider {collider}");
-                    return null;
-                }
-
-                GameObject visualObject = new GameObject("ColliderVisual", [typeof(MeshFilter), typeof(MeshRenderer)]);
-
-                MeshFilter visualMeshFilter = visualObject.GetComponent<MeshFilter>();
-                visualMeshFilter.sharedMesh = visualMesh;
-
-                return visualObject;
-            }
-
-            void setupCharacterModel()
-            {
-                foreach (CharacterModel.RendererInfo rendererInfo in _characterModel.baseRendererInfos)
-                {
-                    if (rendererInfo.renderer)
-                    {
-                        rendererInfo.renderer.forceRenderingOff = true;
-                    }
-                }
-
-                List<CharacterModel.RendererInfo> additionalRendererInfos = [];
-
-                // If this isn't changed, animations won't play for some models while invisible
-                if (_characterModel.TryGetComponent(out Animator animator))
-                {
-                    animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
-                }
-
-                HurtBox[] hurtBoxes;
-                if (_characterModel.TryGetComponent(out HurtBoxGroup hurtBoxGroup))
-                {
-                    hurtBoxes = hurtBoxGroup.hurtBoxes;
-                }
-                else
-                {
-                    hurtBoxes = _characterModel.GetComponentsInChildren<HurtBox>();
-                }
-
-                foreach (HurtBox hurtBox in hurtBoxes)
-                {
-                    foreach (Collider collider in hurtBox.GetComponents<Collider>())
-                    {
-                        GameObject hurtBoxVisual = createVisualForCollider(collider,
-                                                                           out Vector3 visualLocalPosition,
-                                                                           out Quaternion visualLocalRotation,
-                                                                           out Vector3 visualLocalScale);
-
-                        if (!hurtBoxVisual)
-                            continue;
-                        
-                        Transform visualTransform = hurtBoxVisual.transform;
-                        Transform hurtBoxTransform = hurtBox.transform;
-
-                        visualTransform.SetParent(hurtBoxTransform.parent);
-                        visualTransform.localPosition = hurtBoxTransform.localPosition + visualLocalPosition;
-                        visualTransform.localRotation = hurtBoxTransform.localRotation * visualLocalRotation;
-                        visualTransform.localScale = Vector3.Scale(hurtBoxTransform.localScale, visualLocalScale);
-
-                        Material material = _hurtBoxDefaultMaterial;
-                        if (hurtBox.isSniperTarget)
-                        {
-                            material = _hurtBoxSniperTargetMaterial;
-                        }
-                        else if (hurtBox.isBullseye)
-                        {
-                            material = _hurtBoxBullseyeMaterial;
-                        }
-
-                        Renderer renderer = hurtBoxVisual.GetComponent<Renderer>();
-                        renderer.sharedMaterial = material;
-
-                        _visualObjectRenderers.Add(renderer);
-
-                        additionalRendererInfos.Add(new CharacterModel.RendererInfo
-                        {
-                            renderer = renderer,
-                            ignoreOverlays = false,
-                            hideOnDeath = false,
-                            defaultShadowCastingMode = renderer.shadowCastingMode,
-                            defaultMaterial = material
-                        });
-
-                        _visualObjects.Add(hurtBoxVisual);
-                    }
-                }
-
-                _characterModel.baseRendererInfos = [.. _characterModel.baseRendererInfos, .. additionalRendererInfos];
-            }
+            _effectComponent = GetComponent<ChaosEffectComponent>();
         }
-
-        readonly ClearingObjectList<ColliderRendererController> _colliderRenderers = [];
 
         void Start()
         {
             if (NetworkClient.active)
             {
-                List<CharacterModel> characterModels = InstanceTracker.GetInstancesList<CharacterModel>();
-
-                _colliderRenderers.EnsureCapacity(characterModels.Count);
-
-                characterModels.TryDo(setupModel);
+                InstanceTracker.GetInstancesList<CharacterModel>().TryDo(setupModel);
 
                 CharacterModelHooks.OnCharacterModelStartGlobal += onCharacterModelStartGlobal;
             }
@@ -323,8 +66,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
         void OnDestroy()
         {
             CharacterModelHooks.OnCharacterModelStartGlobal -= onCharacterModelStartGlobal;
-
-            _colliderRenderers.ClearAndDispose(true);
         }
 
         void onCharacterModelStartGlobal(CharacterModel model)
@@ -346,8 +87,377 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
                 return;
 
             ColliderRendererController rendererData = model.gameObject.AddComponent<ColliderRendererController>();
+            rendererData.OwnerEffect = _effectComponent;
+        }
 
-            _colliderRenderers.Add(rendererData);
+        sealed class ColliderRendererController : MonoBehaviour
+        {
+            GameObject[] _colliderVisualObjects = [];
+            GameObject[] _disabledModelObjects = [];
+            CharacterModel.RendererInfo[] _detachedRendererInfos = [];
+
+            SpecialObjectAttributes _specialObjectAttributes;
+
+            CharacterModel _characterModel;
+            ModelSkinController _modelSkinController;
+
+            public ChaosEffectComponent OwnerEffect;
+
+            void Awake()
+            {
+                _characterModel = GetComponent<CharacterModel>();
+                if (!_characterModel)
+                {
+                    Log.Error("Cannot setup for character model with no CharacterModel instance");
+                    enabled = false;
+                }
+
+                _modelSkinController = GetComponent<ModelSkinController>();
+                if (_modelSkinController)
+                {
+                    _modelSkinController.onSkinApplied += onSkinApplied;
+                }
+            }
+
+            void Start()
+            {
+                createColliderVisuals();
+
+                if (OwnerEffect)
+                {
+                    OwnerEffect.OnEffectEnd += onOwnerEffectEnd;
+                }
+            }
+
+            void OnDestroy()
+            {
+                if (OwnerEffect)
+                {
+                    OwnerEffect.OnEffectEnd -= onOwnerEffectEnd;
+                }
+
+                if (_modelSkinController)
+                {
+                    _modelSkinController.onSkinApplied -= onSkinApplied;
+                }
+
+                if (_characterModel)
+                {
+                    _characterModel.baseRendererInfos = _detachedRendererInfos;
+                    foreach (CharacterModel.RendererInfo rendererInfo in _characterModel.baseRendererInfos)
+                    {
+                        if (rendererInfo.renderer)
+                        {
+                            rendererInfo.renderer.forceRenderingOff = false;
+                        }
+                    }
+
+                    _detachedRendererInfos = [];
+
+                    _characterModel.forceUpdate = true;
+                }
+
+                if (_disabledModelObjects.Length > 0)
+                {
+                    foreach (GameObject disabledModelObject in _disabledModelObjects)
+                    {
+                        if (disabledModelObject)
+                        {
+                            disabledModelObject.SetActive(true);
+                        }
+                    }
+
+                    _disabledModelObjects = [];
+                }
+
+                cleanUpColliderVisuals();
+            }
+
+            void onOwnerEffectEnd(ChaosEffectComponent effectComponent)
+            {
+                Destroy(this);
+            }
+
+            void onSkinApplied(int localSkinIndex)
+            {
+                cleanUpColliderVisuals();
+                createColliderVisuals();
+            }
+
+            static GameObject createVisualForCollider(Collider collider, out Vector3 visualLocalPosition, out Quaternion visualLocalRotation, out Vector3 visualLocalScale, out bool requireUniformScale)
+            {
+                Mesh visualMesh;
+                switch (collider)
+                {
+                    case BoxCollider boxCollider:
+                        visualLocalPosition = boxCollider.center;
+                        visualLocalRotation = Quaternion.identity;
+                        visualLocalScale = boxCollider.size;
+                        requireUniformScale = false;
+                        visualMesh = MeshUtils.GetPrimitiveMesh(PrimitiveType.Cube);
+
+                        break;
+                    case SphereCollider sphereCollider:
+                        visualLocalPosition = sphereCollider.center;
+                        visualLocalRotation = Quaternion.identity;
+                        float diameter = sphereCollider.radius * 2f;
+                        visualLocalScale = new Vector3(diameter, diameter, diameter);
+                        requireUniformScale = true;
+                        visualMesh = MeshUtils.GetPrimitiveMesh(PrimitiveType.Sphere);
+
+                        break;
+                    case CapsuleCollider capsuleCollider:
+                        visualLocalPosition = capsuleCollider.center;
+
+                        Vector3 pointDirection;
+                        switch (capsuleCollider.direction)
+                        {
+                            case 0: // X
+                                pointDirection = Vector3.right;
+                                break;
+                            case 1: // Y
+                                pointDirection = Vector3.up;
+                                break;
+                            case 2: // Z
+                                pointDirection = Vector3.forward;
+                                break;
+                            default:
+                                Log.Error($"Unhandled capsule direction: {capsuleCollider.direction}");
+                                pointDirection = Vector3.up;
+                                break;
+                        }
+
+                        visualLocalRotation = QuaternionUtils.PointLocalDirectionAt(Vector3.up, pointDirection);
+
+                        float radius = capsuleCollider.radius;
+
+                        // .height includes height of both half-spheres
+                        float height = capsuleCollider.height - (radius * 2f);
+
+                        if (radius > 0f && height >= 0f)
+                        {
+                            float normalizedRadius = 1f;
+                            float normalizedHeight = height / radius;
+
+                            visualMesh = MeshUtils.GetCapsuleMesh(normalizedRadius, normalizedHeight);
+                        }
+                        else
+                        {
+                            Log.Warning($"Invalid capsule collider (r={radius}, h={height}) on {Util.GetGameObjectHierarchyName(collider.gameObject)} ({collider.GetType().FullName})");
+                            visualMesh = null;
+                        }
+
+                        visualLocalScale = new Vector3(radius, radius, radius);
+                        requireUniformScale = false;
+
+                        break;
+                    case MeshCollider meshCollider:
+                        visualLocalPosition = Vector3.zero;
+                        visualLocalRotation = Quaternion.identity;
+                        visualLocalScale = Vector3.one;
+                        requireUniformScale = false;
+                        visualMesh = meshCollider.sharedMesh;
+
+                        break;
+                    default:
+                        Log.Warning($"Unhandled hurtbox collider type {collider?.GetType()}");
+
+                        visualLocalPosition = Vector3.zero;
+                        visualLocalRotation = Quaternion.identity;
+                        visualLocalScale = Vector3.one;
+                        requireUniformScale = false;
+                        visualMesh = null;
+
+                        break;
+                }
+
+                if (!visualMesh)
+                {
+                    Log.Error($"Failed to determine visual mesh for collider {collider}");
+                    return null;
+                }
+
+                GameObject visualObject = new GameObject("ColliderVisual", [typeof(MeshFilter), typeof(MeshRenderer)]);
+
+                MeshFilter visualMeshFilter = visualObject.GetComponent<MeshFilter>();
+                visualMeshFilter.sharedMesh = visualMesh;
+
+                return visualObject;
+            }
+
+            void cleanUpColliderVisuals()
+            {
+                if (_colliderVisualObjects.Length > 0)
+                {
+                    foreach (GameObject colliderVisual in _colliderVisualObjects)
+                    {
+                        if (colliderVisual)
+                        {
+                            Destroy(colliderVisual);
+                        }
+                    }
+
+                    _colliderVisualObjects = [];
+                }
+            }
+
+            void createColliderVisuals()
+            {
+                _colliderVisualObjects = [];
+                _detachedRendererInfos = [];
+                _disabledModelObjects = [];
+
+                if (_specialObjectAttributes)
+                {
+                    _specialObjectAttributes.renderersToDisable.Clear();
+                }
+
+                foreach (CharacterModel.RendererInfo rendererInfo in _characterModel.baseRendererInfos)
+                {
+                    if (rendererInfo.renderer)
+                    {
+                        rendererInfo.renderer.enabled = false;
+                        rendererInfo.renderer.forceRenderingOff = true;
+                    }
+                }
+
+                if (_characterModel.baseRendererInfos.Length > 0)
+                {
+                    _detachedRendererInfos = ArrayUtils.Clone(_characterModel.baseRendererInfos);
+                }
+
+                List<CharacterModel.RendererInfo> rendererInfos = [];
+                List<GameObject> colliderVisualObjects = [];
+
+                // If this isn't changed, animations won't play for some models while invisible
+                if (_characterModel.TryGetComponent(out Animator animator))
+                {
+                    animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+                }
+
+                List<Collider> validColliders = [];
+
+                HurtBox[] hurtBoxes;
+                if (_characterModel.TryGetComponent(out HurtBoxGroup hurtBoxGroup))
+                {
+                    hurtBoxes = hurtBoxGroup.hurtBoxes;
+                }
+                else
+                {
+                    hurtBoxes = _characterModel.GetComponentsInChildren<HurtBox>();
+                }
+
+                foreach (HurtBox hurtBox in hurtBoxes)
+                {
+                    foreach (Collider collider in hurtBox.GetComponents<Collider>())
+                    {
+                        validColliders.Add(collider);
+                    }
+                }
+
+                if (validColliders.Count == 0)
+                {
+                    foreach (Collider collider in _characterModel.GetComponentsInChildren<Collider>(true))
+                    {
+                        if (collider.enabled && !collider.isTrigger)
+                        {
+                            validColliders.Add(collider);
+                        }
+                    }
+                }
+
+                foreach (Collider collider in validColliders)
+                {
+                    HurtBox hurtBox = collider.GetComponent<HurtBox>();
+
+                    GameObject colliderVisual = createVisualForCollider(collider,
+                                                                       out Vector3 visualLocalPosition,
+                                                                       out Quaternion visualLocalRotation,
+                                                                       out Vector3 visualLocalScale,
+                                                                       out bool requireUniformScale);
+
+                    if (!colliderVisual)
+                        continue;
+
+                    Transform visualTransform = colliderVisual.transform;
+                    Transform colliderTransform = collider.transform;
+
+                    Vector3 colliderPosition = colliderTransform.localPosition;
+                    Quaternion colliderRotation = colliderTransform.localRotation;
+                    Vector3 colliderScale = colliderTransform.localScale;
+
+                    if (requireUniformScale)
+                    {
+                        float maxComponent = colliderScale.ComponentMax();
+                        colliderScale = new Vector3(maxComponent, maxComponent, maxComponent);
+                    }
+
+                    visualTransform.SetParent(colliderTransform.parent);
+                    visualTransform.localPosition = colliderPosition + visualLocalPosition;
+                    visualTransform.localRotation = colliderRotation * visualLocalRotation;
+                    visualTransform.localScale = Vector3.Scale(colliderScale, visualLocalScale);
+
+                    Material material = _colliderDefaultMaterial;
+                    if (hurtBox)
+                    {
+                        if (hurtBox.isSniperTarget)
+                        {
+                            material = _hurtBoxSniperTargetMaterial;
+                        }
+                        else if (hurtBox.isBullseye)
+                        {
+                            material = _hurtBoxBullseyeMaterial;
+                        }
+                    }
+
+                    Renderer renderer = colliderVisual.GetComponent<Renderer>();
+                    renderer.sharedMaterial = material;
+
+                    rendererInfos.Add(new CharacterModel.RendererInfo
+                    {
+                        renderer = renderer,
+                        ignoreOverlays = false,
+                        hideOnDeath = false,
+                        defaultShadowCastingMode = renderer.shadowCastingMode,
+                        defaultMaterial = material
+                    });
+
+                    colliderVisualObjects.Add(colliderVisual);
+                }
+
+                _characterModel.baseRendererInfos = [.. rendererInfos];
+
+                if (colliderVisualObjects.Count > 0)
+                {
+                    _colliderVisualObjects = [.. colliderVisualObjects];
+                }
+
+                List<GameObject> disabledModelObjects = [];
+
+                foreach (Transform objectActivationTransform in _characterModel.gameObjectActivationTransforms)
+                {
+                    if (objectActivationTransform && objectActivationTransform.gameObject.activeSelf)
+                    {
+                        objectActivationTransform.gameObject.SetActive(false);
+                        disabledModelObjects.Add(objectActivationTransform.gameObject);
+                    }
+                }
+
+                foreach (Transform objectActivationTransform in _characterModel.customGameObjectActivationTransforms)
+                {
+                    if (objectActivationTransform && objectActivationTransform.gameObject.activeSelf)
+                    {
+                        objectActivationTransform.gameObject.SetActive(false);
+                    }
+                }
+
+                if (disabledModelObjects.Count > 0)
+                {
+                    _disabledModelObjects = [.. disabledModelObjects];
+                }
+
+                _characterModel.forceUpdate = true;
+            }
         }
     }
 }

@@ -1,5 +1,8 @@
-﻿namespace RiskOfChaos.Utilities.Pickup
+﻿using System;
+
+namespace RiskOfChaos.Utilities.Pickup
 {
+    [Flags]
     public enum PickupNotificationFlags : uint
     {
         None = 0,

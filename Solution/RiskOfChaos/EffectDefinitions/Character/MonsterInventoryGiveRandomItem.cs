@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using HG;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
@@ -65,28 +66,31 @@ namespace RiskOfChaos.EffectDefinitions.Character
             _dropTable.RegisterDrop(DropType.VoidTier2, 0.15f);
             _dropTable.RegisterDrop(DropType.VoidTier3, 0.1f);
             _dropTable.RegisterDrop(DropType.VoidBoss, 0.1f);
+            _dropTable.RegisterDrop(DropType.FoodTier, 0.2f);
 
             _dropTable.CreateItemBlacklistConfig("Item Blacklist", "A comma-separated list of items and equipment that should not be included for the effect. Both internal and English display names are accepted, with spaces and commas removed.");
 
             _dropTable.OnPreGenerate += () =>
             {
-                HashSet<ItemTag> bannedItemTags = [];
-                if (_applyAIBlacklist.Value)
+                using (SetPool<ItemTag>.RentCollection(out HashSet<ItemTag> bannedItemTags))
                 {
-                    bannedItemTags.UnionWith([
-                        ItemTag.AIBlacklist,
-                        ItemTag.Scrap,
-                        ItemTag.CannotCopy,
-                        ItemTag.PriorityScrap
-                    ]);
+                    if (_applyAIBlacklist.Value)
+                    {
+                        bannedItemTags.UnionWith([
+                            ItemTag.AIBlacklist,
+                            ItemTag.Scrap,
+                            ItemTag.CannotCopy,
+                            ItemTag.PriorityScrap
+                        ]);
+                    }
+
+                    _dropTable.bannedItemTags = [.. bannedItemTags];
                 }
 
-                _dropTable.bannedItemTags = [.. bannedItemTags];
-
 #if DEBUG
-                IEnumerable<ItemIndex> blacklistedItems = bannedItemTags.SelectMany(t => ItemCatalog.GetItemsWithTag(t))
-                                                                        .Distinct()
-                                                                        .OrderBy(i => i);
+                IEnumerable<ItemIndex> blacklistedItems = _dropTable.bannedItemTags.SelectMany(t => ItemCatalog.GetItemsWithTag(t))
+                                                                                   .Distinct()
+                                                                                   .OrderBy(i => i);
 
                 Log.Debug($"Excluded items: [{string.Join(", ", blacklistedItems.Select(FormatUtils.GetBestItemDisplayName))}]");
 #endif
@@ -161,7 +165,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 return;
 
             master.inventory.AddItemsFrom(_monsterInventory);
-            master.inventory.CopyEquipmentFrom(_monsterInventory);
+            master.inventory.CopyEquipmentFrom(_monsterInventory, false);
         }
 
         [EffectCanActivate]
@@ -175,7 +179,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         ObjectSerializationComponent _serializationComponent;
 
         [SerializedMember("p")]
-        PickupIndex[] _pickupIndicesToGrant = [];
+        UniquePickup[] _pickupsToGrant = [];
 
         void Awake()
         {
@@ -192,10 +196,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             _dropTable.RegenerateIfNeeded();
 
-            _pickupIndicesToGrant = new PickupIndex[_itemCount.Value];
-            for (int i = 0; i < _pickupIndicesToGrant.Length; i++)
+            _pickupsToGrant = new UniquePickup[_itemCount.Value];
+            for (int i = 0; i < _pickupsToGrant.Length; i++)
             {
-                _pickupIndicesToGrant[i] = _dropTable.GenerateDrop(rng);
+                _pickupsToGrant[i] = _dropTable.GeneratePickup(rng);
             }
         }
 
@@ -204,51 +208,84 @@ namespace RiskOfChaos.EffectDefinitions.Character
             if (!NetworkServer.active)
                 return;
 
-            HashSet<PickupIndex> grantedPickups = new HashSet<PickupIndex>(_pickupIndicesToGrant.Length);
-
-            foreach (PickupIndex pickupIndex in _pickupIndicesToGrant)
+            using (SetPool<PickupIndex>.RentCollection(out HashSet<PickupIndex> grantedPickups))
             {
-                PickupDef pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
-                if (pickupDef == null)
-                    continue;
+                grantedPickups.EnsureCapacity(_pickupsToGrant.Length);
 
-                if (_monsterInventory.TryGrant(pickupDef, InventoryExtensions.EquipmentReplacementRule.DeleteExisting))
+                foreach (UniquePickup pickup in _pickupsToGrant)
                 {
-                    grantedPickups.Add(pickupIndex);
-                }
-            }
+                    PickupDef pickupDef = PickupCatalog.GetPickupDef(pickup.pickupIndex);
+                    if (pickupDef == null)
+                        continue;
 
-            if (grantedPickups.Count > 0)
-            {
-                PickupIndex[] pickupIndices = [.. grantedPickups];
-                uint[] pickupQuantities = new uint[pickupIndices.Length];
+                    if (pickupDef.itemIndex != ItemIndex.None)
+                    {
+                        if (pickup.isTempItem)
+                        {
+                            _monsterInventory.GiveItemTemp(pickupDef.itemIndex);
+                        }
+                        else
+                        {
+                            _monsterInventory.GiveItemPermanent(pickupDef.itemIndex);
+                        }
 
-                for (int i = 0; i < pickupIndices.Length; i++)
-                {
-                    pickupQuantities[i] = (uint)_monsterInventory.GetPickupCount(PickupCatalog.GetPickupDef(pickupIndices[i]));
-                }
-
-                if (!_serializationComponent || !_serializationComponent.IsLoadedFromSave)
-                {
-                    PickupUtils.QueuePickupsMessage("MONSTER_INVENTORY_ADD_ITEM", pickupIndices, pickupQuantities, PickupNotificationFlags.SendChatMessage);
+                        grantedPickups.Add(pickup.pickupIndex);
+                    }
                 }
 
-                CharacterMaster.readOnlyInstancesList.TryDo(master =>
+                if (grantedPickups.Count > 0)
                 {
-                    if (canGiveItems(master))
+                    PickupIndex[] pickupIndices = [.. grantedPickups];
+                    uint[] pickupQuantities = new uint[pickupIndices.Length];
+
+                    for (int i = 0; i < pickupIndices.Length; i++)
+                    {
+                        PickupDef pickupDef = PickupCatalog.GetPickupDef(pickupIndices[i]);
+                        if (pickupDef == null)
+                            continue;
+
+                        if (pickupDef.itemIndex != ItemIndex.None)
+                        {
+                            pickupQuantities[i] = (uint)_monsterInventory.CalculateEffectiveItemStacks(pickupDef.itemIndex);
+                        }
+                    }
+
+                    if (!_serializationComponent || !_serializationComponent.IsLoadedFromSave)
+                    {
+                        PickupUtils.QueuePickupsMessage("MONSTER_INVENTORY_ADD_ITEM", pickupIndices, pickupQuantities, PickupNotificationFlags.SendChatMessage);
+                    }
+
+                    CharacterMaster.readOnlyInstancesList.TryDo(master =>
+                    {
+                        if (canGiveItems(master))
+                        {
+                            foreach (UniquePickup pickup in _pickupsToGrant)
+                            {
+                                PickupDef pickupDef = PickupCatalog.GetPickupDef(pickup.pickupIndex);
+                                if (pickupDef == null)
+                                    continue;
+
+                                if (pickupDef.itemIndex != ItemIndex.None)
+                                {
+                                    if (pickup.isTempItem)
+                                    {
+                                        master.inventory.GiveItemTemp(pickupDef.itemIndex);
+                                    }
+                                    else
+                                    {
+                                        master.inventory.GiveItemPermanent(pickupDef.itemIndex);
+                                    }
+                                }
+                            }
+                        }
+                    }, Util.GetBestMasterName);
+
+                    if (_pickupListSubtitleProvider)
                     {
                         foreach (PickupIndex pickupIndex in pickupIndices)
                         {
-                            master.inventory.TryGrant(PickupCatalog.GetPickupDef(pickupIndex), InventoryExtensions.EquipmentReplacementRule.DeleteExisting);
+                            _pickupListSubtitleProvider.AddPickup(pickupIndex);
                         }
-                    }
-                }, Util.GetBestMasterName);
-
-                if (_pickupListSubtitleProvider)
-                {
-                    foreach (PickupIndex pickupIndex in pickupIndices)
-                    {
-                        _pickupListSubtitleProvider.AddPickup(pickupIndex);
                     }
                 }
             }
@@ -258,9 +295,23 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             if (_monsterInventory)
             {
-                foreach (PickupIndex pickupIndex in _pickupIndicesToGrant)
+                foreach (UniquePickup pickup in _pickupsToGrant)
                 {
-                    _monsterInventory.TryRemove(PickupCatalog.GetPickupDef(pickupIndex));
+                    PickupDef pickupDef = PickupCatalog.GetPickupDef(pickup.pickupIndex);
+                    if (pickupDef == null)
+                        continue;
+
+                    if (pickupDef.itemIndex != ItemIndex.None)
+                    {
+                        if (pickup.isTempItem)
+                        {
+                            _monsterInventory.RemoveItemTemp(pickupDef.itemIndex);
+                        }
+                        else
+                        {
+                            _monsterInventory.RemoveItemPermanent(pickupDef.itemIndex);
+                        }
+                    }
                 }
             }
 
@@ -268,9 +319,23 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 if (canGiveItems(master))
                 {
-                    foreach (PickupIndex pickupIndex in _pickupIndicesToGrant)
+                    foreach (UniquePickup pickup in _pickupsToGrant)
                     {
-                        master.inventory.TryRemove(PickupCatalog.GetPickupDef(pickupIndex));
+                        PickupDef pickupDef = PickupCatalog.GetPickupDef(pickup.pickupIndex);
+                        if (pickupDef == null)
+                            continue;
+
+                        if (pickupDef.itemIndex != ItemIndex.None)
+                        {
+                            if (pickup.isTempItem)
+                            {
+                                master.inventory.RemoveItemTemp(pickupDef.itemIndex);
+                            }
+                            else
+                            {
+                                master.inventory.RemoveItemPermanent(pickupDef.itemIndex);
+                            }
+                        }
                     }
                 }
             }, Util.GetBestMasterName);

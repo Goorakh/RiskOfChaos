@@ -12,6 +12,7 @@ using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -40,7 +41,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
             "ArtifactShellMaster",
         ]);
 
-        static readonly MaxCapacityQueue<DeadCharacterInfo> _trackedDeadCharacters = new MaxCapacityQueue<DeadCharacterInfo>(_maxTrackedCharactersCount.Value);
+        static readonly MaxCapacityQueue<DeadCharacterInfo> _trackedDeadCharacters = new MaxCapacityQueue<DeadCharacterInfo>(_maxTrackedCharactersCount.Value)
+        {
+            DisposeOnDequeue = true
+        };
+
         static readonly List<DeadCharacterInfo> _trackedDeadPlayers = [];
 
         static EffectIndex _reviveEffectIndex = EffectIndex.Invalid;
@@ -48,70 +53,85 @@ namespace RiskOfChaos.EffectDefinitions.Character
         [SystemInitializer(typeof(EffectCatalogUtils))]
         static void Init()
         {
-            GlobalEventManager.onCharacterDeathGlobal += damageReport =>
-            {
-                if (!NetworkServer.active)
-                    return;
+            GlobalEventManager.onCharacterDeathGlobal += onCharacterDeathGlobal;
 
-                CharacterMaster victimMaster = damageReport.victimMaster;
-                if (!victimMaster)
-                    return;
+            Run.onRunDestroyGlobal += onRunDestroyGlobal;
 
-                if (_reviveBlacklist.Contains(victimMaster.masterIndex))
-                    return;
-
-                CharacterBody victimBody = damageReport.victimBody;
-                bool hadBody = victimBody;
-
-                IEnumerator waitForDeathThenTryTrack()
-                {
-                    yield return new WaitForFixedUpdate();
-
-                    if (!victimMaster || victimMaster.IsExtraLifePendingServer())
-                    {
-                        Log.Debug($"Not tracking death: {Util.GetBestMasterName(victimMaster)} is invalid or has extra life pending");
-                        yield break;
-                    }
-
-                    if (hadBody)
-                    {
-                        // victim body has been replaced, instant respawn
-                        CharacterBody currentBody = victimMaster.GetBody();
-                        if (currentBody && victimBody != currentBody)
-                        {
-                            Log.Debug($"Not tracking death: {Util.GetBestMasterName(victimMaster)} has new body, likely respawned");
-                            yield break;
-                        }
-                    }
-
-                    if (victimMaster.playerCharacterMasterController)
-                    {
-                        _trackedDeadPlayers.Add(new DeadCharacterInfo(damageReport));
-                    }
-                    else
-                    {
-                        _trackedDeadCharacters.Enqueue(new DeadCharacterInfo(damageReport));
-                    }
-                }
-
-                RoR2Application.instance.StartCoroutine(waitForDeathThenTryTrack());
-            };
-
-            Run.onRunDestroyGlobal += _ =>
-            {
-                clearTrackedDeaths();
-            };
-
-            Stage.onServerStageComplete += _ =>
-            {
-                clearTrackedDeaths();
-            };
+            Stage.onServerStageComplete += onServerStageComplete;
 
             _reviveEffectIndex = EffectCatalogUtils.FindEffectIndex("HippoRezEffect");
             if (_reviveEffectIndex == EffectIndex.Invalid)
             {
                 Log.Error($"Failed to find revive effect index");
             }
+        }
+
+        static void onCharacterDeathGlobal(DamageReport damageReport)
+        {
+            if (!NetworkServer.active)
+                return;
+
+            CharacterMaster victimMaster = damageReport.victimMaster;
+            if (!victimMaster)
+                return;
+
+            if (_reviveBlacklist.Contains(victimMaster.masterIndex))
+                return;
+
+            CharacterBody victimBody = damageReport.victimBody;
+            bool hadBody = victimBody;
+
+            IEnumerator waitForDeathThenTryTrack()
+            {
+                yield return new WaitForFixedUpdate();
+
+                if (!victimMaster || victimMaster.IsExtraLifePendingServer())
+                {
+                    Log.Debug($"Not tracking death: {Util.GetBestMasterName(victimMaster)} is invalid or has extra life pending");
+                    yield break;
+                }
+
+                if (hadBody)
+                {
+                    // victim body has been replaced, instant respawn
+                    CharacterBody currentBody = victimMaster.GetBody();
+                    if (currentBody && victimBody != currentBody)
+                    {
+                        Log.Debug($"Not tracking death: {Util.GetBestMasterName(victimMaster)} has new body, likely respawned");
+                        yield break;
+                    }
+                }
+
+                if (victimMaster.playerCharacterMasterController)
+                {
+                    _trackedDeadPlayers.Add(new DeadCharacterInfo(damageReport));
+                }
+                else
+                {
+                    _trackedDeadCharacters.Enqueue(new DeadCharacterInfo(damageReport));
+                }
+            }
+
+            MonoBehaviour coroutineHost = Stage.instance;
+            if (!coroutineHost)
+            {
+                coroutineHost = Run.instance;
+
+                if (!coroutineHost)
+                    coroutineHost = RoR2Application.instance;
+            }
+
+            coroutineHost.StartCoroutine(waitForDeathThenTryTrack());
+        }
+
+        static void onRunDestroyGlobal(Run run)
+        {
+            clearTrackedDeaths();
+        }
+
+        static void onServerStageComplete(Stage stage)
+        {
+            clearTrackedDeaths();
         }
 
         static void clearTrackedDeaths()
@@ -130,11 +150,20 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             if (NetworkServer.active)
             {
-                _trackedDeadPlayers.TryDo(player => player.Respawn());
+                _trackedDeadPlayers.TryDo(doRespawn);
                 _trackedDeadPlayers.Clear();
 
-                _trackedDeadCharacters.TryDo(character => character.Respawn());
+                _trackedDeadCharacters.TryDo(doRespawn);
                 _trackedDeadCharacters.Clear();
+            }
+        }
+
+        static void doRespawn(DeadCharacterInfo deadCharacterInfo)
+        {
+            if (deadCharacterInfo != null)
+            {
+                deadCharacterInfo.Respawn();
+                deadCharacterInfo.Dispose();
             }
         }
 
@@ -152,7 +181,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
             }
         }
 
-        readonly struct DeadCharacterInfo : MasterSummon.IInventorySetupCallback
+        sealed class DeadCharacterInfo : MasterSummon.IInventorySetupCallback, IDisposable
         {
             readonly CharacterMaster _master;
 
@@ -164,8 +193,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             readonly Loadout _loadout;
 
-            readonly int[] _itemStacks;
-            readonly EquipmentIndex[] _equipmentSlots;
+            readonly int[] _permanentItemStacks;
+            readonly float[] _tempItemStackValues;
+
+            readonly EquipmentIndex[][] _equipments;
 
             readonly CombatSquad _combatSquad;
 
@@ -236,19 +267,30 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 Inventory inventory = victimMaster ? victimMaster.inventory : null;
                 if (inventory)
                 {
-                    _itemStacks = ItemCatalog.RequestItemStackArray();
-                    inventory.WriteItemStacks(_itemStacks);
+                    _permanentItemStacks = ItemCatalog.RequestItemStackArray();
+                    inventory.WriteAllPermanentItemStacks(_permanentItemStacks);
+
+                    _tempItemStackValues = new float[ItemCatalog.itemCount];
+                    inventory.WriteAllTempItemRawValues(_tempItemStackValues);
 
                     int equipmentSlotCount = inventory.GetEquipmentSlotCount();
-                    _equipmentSlots = new EquipmentIndex[equipmentSlotCount];
-                    for (uint i = 0; i < equipmentSlotCount; i++)
+
+                    _equipments = new EquipmentIndex[equipmentSlotCount][];
+                    for (uint slot = 0; slot < equipmentSlotCount; slot++)
                     {
-                        _equipmentSlots[i] = inventory.GetEquipment(i).equipmentIndex;
+                        int equipmentSetCount = inventory.GetEquipmentSetCount(slot);
+
+                        _equipments[slot] = new EquipmentIndex[equipmentSetCount];
+
+                        for (uint set = 0; set < equipmentSetCount; set++)
+                        {
+                            _equipments[slot][set] = inventory.GetEquipment(slot, set).equipmentIndex;
+                        }
                     }
                 }
             }
 
-            public readonly void Respawn()
+            public void Respawn()
             {
                 bool respawned = false;
 
@@ -299,11 +341,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     }
                 }
 
-                if (_loadout != null)
-                {
-                    Loadout.ReturnInstance(_loadout);
-                }
-
                 if (!respawned)
                     return;
 
@@ -338,29 +375,42 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 }
             }
 
-            public readonly void SetupSummonedInventory(MasterSummon masterSummon, Inventory summonedInventory)
+            void MasterSummon.IInventorySetupCallback.SetupSummonedInventory(MasterSummon masterSummon, Inventory summonedInventory)
             {
-                if (_itemStacks != null)
+                using (new Inventory.InventoryChangeScope(summonedInventory))
                 {
-                    static bool itemCopyFilter(ItemIndex i)
+                    if (_permanentItemStacks != null)
                     {
-                        return true;
+                        static bool itemCopyFilter(ItemIndex i)
+                        {
+                            return true;
+                        }
+
+                        summonedInventory.AddItemsFrom(_permanentItemStacks, itemCopyFilter);
                     }
 
-                    summonedInventory.AddItemsFrom(_itemStacks, itemCopyFilter);
-                    ItemCatalog.ReturnItemStackArray(_itemStacks);
-                }
-
-                if (_equipmentSlots != null)
-                {
-                    for (uint i = 0; i < _equipmentSlots.Length; i++)
+                    if (_tempItemStackValues != null)
                     {
-                        summonedInventory.SetEquipmentIndexForSlot(_equipmentSlots[i], i);
+                        for (ItemIndex itemIndex = 0; (int)itemIndex < _tempItemStackValues.Length; itemIndex++)
+                        {
+                            summonedInventory.GiveItemTemp(itemIndex, _tempItemStackValues[(int)itemIndex]);
+                        }
+                    }
+
+                    if (_equipments != null)
+                    {
+                        for (uint slot = 0; slot < _equipments.Length; slot++)
+                        {
+                            for (uint set = 0; set < _equipments[slot].Length; set++)
+                            {
+                                summonedInventory.SetEquipmentIndexForSlot(_equipments[slot][set], slot, set);
+                            }
+                        }
                     }
                 }
             }
 
-            readonly void preSpawnSetupCallback(CharacterMaster master)
+            void preSpawnSetupCallback(CharacterMaster master)
             {
                 if (_combatSquad && _combatSquad.isActiveAndEnabled && !_combatSquad.defeatedServer)
                 {
@@ -377,7 +427,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 }
             }
 
-            public override readonly string ToString()
+            public override string ToString()
             {
                 if (_master)
                 {
@@ -386,6 +436,19 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 else
                 {
                     return BodyCatalog.GetBodyName(_bodyIndex);
+                }
+            }
+
+            public void Dispose()
+            {
+                if (_loadout != null)
+                {
+                    Loadout.ReturnInstance(_loadout);
+                }
+
+                if (_permanentItemStacks != null)
+                {
+                    ItemCatalog.ReturnItemStackArray(_permanentItemStacks);
                 }
             }
         }

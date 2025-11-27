@@ -49,7 +49,7 @@ namespace RiskOfChaos.Patches
             orig(self, collision);
         }
 
-        class ItemBounceTracker : MonoBehaviour
+        sealed class ItemBounceTracker : MonoBehaviour
         {
             static readonly PhysicMaterial _bouncyMaterial = new PhysicMaterial("PickupBounce")
             {

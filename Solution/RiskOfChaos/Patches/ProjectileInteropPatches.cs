@@ -162,7 +162,7 @@ namespace RiskOfChaos.Patches
             fireProjectileMessageData.ProcChainMask = reader.ReadProcChainMask();
         }
 
-        class FireProjectileMessagePatcherData
+        sealed class FireProjectileMessagePatcherData
         {
             public ProcChainMask ProcChainMask;
             public float? ProcCoefficientOverride;

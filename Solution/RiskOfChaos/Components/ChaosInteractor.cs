@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Components
 {
-    public class ChaosInteractor : MonoBehaviour
+    public sealed class ChaosInteractor : MonoBehaviour
     {
         static ChaosInteractor _instance;
         public static ChaosInteractor Instance => _instance;

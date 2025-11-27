@@ -33,7 +33,9 @@ namespace RiskOfChaos.Utilities.Extensions
                    run.availableVoidTier1DropList.Contains(pickupIndex) ||
                    run.availableVoidTier2DropList.Contains(pickupIndex) ||
                    run.availableVoidTier3DropList.Contains(pickupIndex) ||
-                   run.availableVoidBossDropList.Contains(pickupIndex);
+                   run.availableVoidBossDropList.Contains(pickupIndex) ||
+                   run.availableFoodTierDropList.Contains(pickupIndex) ||
+                   run.availablePowerShapeItemsDropList.Contains(pickupIndex);
         }
 
         public static bool IsItemEnabled(this Run run, ItemIndex itemIndex)

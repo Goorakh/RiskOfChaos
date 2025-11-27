@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.Networking.Components
 {
     [RequiredComponents(typeof(ValueModificationController))]
-    public class SuperhotPlayerController : NetworkBehaviour, ITimeScaleModificationProvider
+    public sealed class SuperhotPlayerController : NetworkBehaviour, ITimeScaleModificationProvider
     {
         static readonly List<SuperhotPlayerController> _instances = [];
 
@@ -28,6 +28,8 @@ namespace RiskOfChaos.Networking.Components
 
         CharacterBody _body;
         IPhysMotor _bodyMotor;
+
+        EntityStateMachine _bodyMainStateMachine;
 
         [SyncVar(hook = nameof(setCurrentMultiplier))]
         float _currentMultiplier = 1f;
@@ -82,6 +84,8 @@ namespace RiskOfChaos.Networking.Components
 
             _body = body;
 
+            _bodyMainStateMachine = EntityStateMachine.FindByCustomName(_body.gameObject, "Body");
+
             _lastBodyPosition = _body.footPosition;
             _bodyMotor = _body.GetComponent<IPhysMotor>();
         }
@@ -91,17 +95,8 @@ namespace RiskOfChaos.Networking.Components
             if (PauseStopController.instance && PauseStopController.instance.isPaused)
                 return;
 
-            bool hasAuthority = false;
-
             CharacterBody body = _networkedBodyAttachment.attachedBody;
-            if (body)
-            {
-                hasAuthority = body.hasEffectiveAuthority;
-            }
-            else
-            {
-                hasAuthority = _hasEffectiveAuthority;
-            }
+            bool hasAuthority = body ? body.hasEffectiveAuthority : _hasEffectiveAuthority;
 
             if (hasAuthority)
             {
@@ -181,8 +176,7 @@ namespace RiskOfChaos.Networking.Components
             float maxSpeedTimeScale = 1f;
             float absoluteMaxTimeScale = 1.5f;
 
-            EntityStateMachine bodyStateMachine = EntityStateMachine.FindByCustomName(_body.gameObject, "Body");
-            if (bodyStateMachine && !bodyStateMachine.IsInMainState() && !bodyStateMachine.CurrentStateInheritsFrom(typeof(BaseCharacterMain)))
+            if (_bodyMainStateMachine && !_bodyMainStateMachine.IsInMainState() && !_bodyMainStateMachine.CurrentStateInheritsFrom(typeof(BaseCharacterMain)))
             {
                 minSpeedTimeScale = 0.5f;
             }

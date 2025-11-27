@@ -55,6 +55,9 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
             _spawnPool.AddAssetEntry(AddressableGuids.RoR2_DLC1_VoidMegaCrab_cscVoidMegaCrab_asset, new SpawnPoolEntryParameters(0.6f, ExpansionUtils.DLC1));
 
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_DLC3_VultureHunter_cscVultureHunter_asset, new SpawnPoolEntryParameters(0.8f, ExpansionUtils.DLC3));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_DLC3_SolusAmalgamator_cscSolusAmalgamator_asset, new SpawnPoolEntryParameters(0.8f, ExpansionUtils.DLC3));
+
             _spawnPool.TrimExcess();
         }
 

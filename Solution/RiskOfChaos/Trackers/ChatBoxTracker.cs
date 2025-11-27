@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Trackers
 {
-    public class ChatBoxTracker : MonoBehaviour
+    public sealed class ChatBoxTracker : MonoBehaviour
     {
         [SystemInitializer]
         static void Init()

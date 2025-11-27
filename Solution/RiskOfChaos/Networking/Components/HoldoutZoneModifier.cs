@@ -4,7 +4,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.Networking.Components
 {
-    public class HoldoutZoneModifier : NetworkBehaviour
+    public sealed class HoldoutZoneModifier : NetworkBehaviour
     {
         [SystemInitializer]
         static void Init()

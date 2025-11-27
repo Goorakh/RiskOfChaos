@@ -34,7 +34,7 @@ namespace RiskOfChaos.EffectUtils.World
         public static DifficultyModificationManager Instance => _instance;
 
         [Serializable]
-        class DifficultyModification
+        sealed class DifficultyModification
         {
             [JsonProperty("id")]
             public int Id;

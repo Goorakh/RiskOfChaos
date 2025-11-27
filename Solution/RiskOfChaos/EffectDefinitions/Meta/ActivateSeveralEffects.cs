@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.ConfigHandling;
+﻿using HG;
+using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
@@ -79,27 +80,35 @@ namespace RiskOfChaos.EffectDefinitions.Meta
 
             bool allowDuplicateEffects = _allowDuplicateEffects.Value;
 
-            HashSet<ChaosEffectInfo> excludeEffects = [_effectInfo];
-
-            if (!allowDuplicateEffects)
+            HashSet<ChaosEffectInfo> excludeEffects = SetPool<ChaosEffectInfo>.RentCollection();
+            try
             {
-                excludeEffects.EnsureCapacity(excludeEffects.Count + _numEffectsToActivate.Value);
-            }
-
-            for (int i = 0; i < _numEffectsToActivate.Value; i++)
-            {
-                totalDelay += EFFECT_DELAY;
-                yield return new WaitForSeconds(EFFECT_DELAY);
-
-                ChaosEffectInfo effect = ChaosEffectActivationSignaler.PickEffect(_rng.Branch(), excludeEffects, out ChaosEffectDispatchArgs dispatchArgs);
-                dispatchArgs.OverrideStartTime = effectStartTime + Mathf.FloorToInt(totalDelay);
-                dispatchArgs.RNGSeed = _rng.nextUlong;
-                ChaosEffectDispatcher.Instance.DispatchEffectServer(effect, dispatchArgs);
+                excludeEffects.Add(_effectInfo);
 
                 if (!allowDuplicateEffects)
                 {
-                    excludeEffects.Add(effect);
+                    excludeEffects.EnsureCapacity(excludeEffects.Count + _numEffectsToActivate.Value);
                 }
+
+                for (int i = 0; i < _numEffectsToActivate.Value; i++)
+                {
+                    totalDelay += EFFECT_DELAY;
+                    yield return new WaitForSeconds(EFFECT_DELAY);
+
+                    ChaosEffectInfo effect = ChaosEffectActivationSignaler.PickEffect(_rng.Branch(), excludeEffects, out ChaosEffectDispatchArgs dispatchArgs);
+                    dispatchArgs.OverrideStartTime = effectStartTime + Mathf.FloorToInt(totalDelay);
+                    dispatchArgs.RNGSeed = _rng.nextUlong;
+                    ChaosEffectDispatcher.Instance.DispatchEffectServer(effect, dispatchArgs);
+
+                    if (!allowDuplicateEffects)
+                    {
+                        excludeEffects.Add(effect);
+                    }
+                }
+            }
+            finally
+            {
+                excludeEffects = SetPool<ChaosEffectInfo>.ReturnCollection(excludeEffects);
             }
 
             _effectComponent.RetireEffect();

@@ -1,6 +1,6 @@
 ﻿namespace RiskOfTwitch.EventSub
 {
-    public class TokenAccessRevokedEventData
+    public sealed class TokenAccessRevokedEventData
     {
         public readonly string SubscriptionType;
         public readonly string Status;

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Trackers
 {
-    public class ObjectSpawnCardTracker : MonoBehaviour
+    public sealed class ObjectSpawnCardTracker : MonoBehaviour
     {
         [SystemInitializer]
         static void Init()

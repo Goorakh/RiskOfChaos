@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace RiskOfChaos.Collections.ParsedValue
 {
-    public class ParsedEquipmentList : GenericParsedList<EquipmentIndex>
+    public sealed class ParsedEquipmentList : GenericParsedList<EquipmentIndex>
     {
         static readonly char[] _equipmentNameFilterChars = [',', ' '];
 

@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using HG;
 using RiskOfChaos.Collections.ParsedValue;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.Content;
@@ -231,10 +232,37 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                         }
 
                         master.gameObject.SetDontDestroyOnLoad(true);
+
+                        CharacterBody body = master.GetBody();
+                        BodyIndex droneBodyIndex = body ? body.bodyIndex : BodyIndex.None;
+
+                        DroneIndex droneIndex = DroneCatalog.GetDroneIndexFromBodyIndex(droneBodyIndex);
+                        if (droneIndex != DroneIndex.None)
+                        {
+                            int droneUpgradeValue = master.inventory ? master.inventory.GetItemCountPermanent(DLC3Content.Items.DroneUpgradeHidden) : 0;
+
+                            if (Util.HasEffectiveAuthority(master.gameObject))
+                            {
+                                CharacterMasterNotificationQueue.PushDroneNotification(master, droneIndex, droneUpgradeValue);
+                            }
+                            else
+                            {
+                                TargetRpcPushDroneNotification(master.connectionToClient, master.gameObject, droneIndex, droneUpgradeValue);
+                            }
+                        }
                     }
                 }
 
                 spawnRequest.SpawnWithFallbackPlacement(SpawnUtils.GetBestValidRandomPlacementRule());
+            }
+        }
+
+        [TargetRpc]
+        void TargetRpcPushDroneNotification(NetworkConnection connection, GameObject masterObject, DroneIndex droneIndex, int upgradeCount)
+        {
+            if (masterObject && masterObject.TryGetComponent(out CharacterMaster master))
+            {
+                CharacterMasterNotificationQueue.PushDroneNotification(master, droneIndex, upgradeCount);
             }
         }
     }

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace RiskOfTwitch.EventSub
 {
-    internal class TwitchEventSubConnection : ClientWebSocketConnection
+    internal sealed class TwitchEventSubConnection : ClientWebSocketConnection
     {
         readonly ITwitchEventSubMessageHandler _eventHandler;
 

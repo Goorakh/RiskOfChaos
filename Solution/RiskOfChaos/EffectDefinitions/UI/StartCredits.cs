@@ -18,7 +18,7 @@ namespace RiskOfChaos.EffectDefinitions.UI
         [ContentInitializer]
         static IEnumerator LoadContent(ContentIntializerArgs args)
         {
-            AsyncOperationHandle<GameObject> creditsPanelLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_UI_CreditsPanel_prefab);
+            AsyncOperationHandle<GameObject> creditsPanelLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_UI_CreditsPanel_CreditsPanel_prefab);
             creditsPanelLoad.OnSuccess(creditsPanelPrefab =>
             {
                 GameObject prefab = creditsPanelPrefab.InstantiatePrefab(nameof(RoCContent.LocalPrefabs.CreditsPanelNoBackground));

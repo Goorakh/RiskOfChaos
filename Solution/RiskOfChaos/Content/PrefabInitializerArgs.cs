@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Content
 {
-    public class PrefabInitializerArgs
+    public sealed class PrefabInitializerArgs
     {
         public GameObject Prefab { get; }
 

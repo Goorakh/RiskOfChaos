@@ -6,7 +6,7 @@ using UnityEngine;
 namespace RiskOfChaos.Trackers
 {
     [RequireComponent(typeof(HealthComponent))]
-    public class HealthComponentTracker : MonoBehaviour
+    public sealed class HealthComponentTracker : MonoBehaviour
     {
         [SystemInitializer]
         static void Init()

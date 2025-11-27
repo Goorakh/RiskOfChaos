@@ -10,7 +10,7 @@ namespace RiskOfChaos.Content
     // Point is, fuck you Unity, there is no reason I should have to do this.
 
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
-    public class RequiredComponentsAttribute : Attribute
+    public sealed class RequiredComponentsAttribute : Attribute
     {
         public readonly Type[] RequiredComponentTypes;
 

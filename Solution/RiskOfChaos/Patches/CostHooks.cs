@@ -9,7 +9,7 @@ namespace RiskOfChaos.Patches
         public delegate void OverrideIsAffordableDelegate(CostTypeDef costTypeDef, int cost, Interactor activator, ref bool isAffordable);
         public static event OverrideIsAffordableDelegate OverrideIsAffordable;
 
-        public delegate void OverridePayCostDelegate(CostTypeDef costTypeDef, int cost, Interactor activator, GameObject purchasedObject, Xoroshiro128Plus rng, ItemIndex avoidedItemIndex, ref CostTypeDef.PayCostResults results);
+        public delegate void OverridePayCostDelegate(CostTypeDef costTypeDef, CostTypeDef.PayCostContext context, CostTypeDef.PayCostResults result);
         public static event OverridePayCostDelegate OverridePayCost;
 
         [SystemInitializer]
@@ -41,26 +41,24 @@ namespace RiskOfChaos.Patches
             return orig(self, cost, activator);
         }
 
-        static CostTypeDef.PayCostResults CostTypeDef_PayCost(On.RoR2.CostTypeDef.orig_PayCost orig, CostTypeDef self, int cost, Interactor activator, GameObject purchasedObject, Xoroshiro128Plus rng, ItemIndex avoidedItemIndex)
+        static void CostTypeDef_PayCost(On.RoR2.CostTypeDef.orig_PayCost orig, CostTypeDef self, CostTypeDef.PayCostContext context, CostTypeDef.PayCostResults result)
         {
             if (OverridePayCost != null)
             {
                 bool hasAnyOverride = false;
-                CostTypeDef.PayCostResults results = new CostTypeDef.PayCostResults();
-
                 foreach (OverridePayCostDelegate overridePayCost in OverridePayCost.GetInvocationList().OfType<OverridePayCostDelegate>())
                 {
-                    overridePayCost(self, cost, activator, purchasedObject, rng, avoidedItemIndex, ref results);
+                    overridePayCost(self, context, result);
                     hasAnyOverride = true;
                 }
 
                 if (hasAnyOverride)
                 {
-                    return results;
+                    return;
                 }
             }
 
-            return orig(self, cost, activator, purchasedObject, rng, avoidedItemIndex);
+            orig(self, context, result);
         }
     }
 }

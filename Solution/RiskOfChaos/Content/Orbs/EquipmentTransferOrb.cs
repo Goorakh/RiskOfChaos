@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Content.Orbs
 {
-    public class EquipmentTransferOrb : Orb
+    public sealed class EquipmentTransferOrb : Orb
     {
         public EquipmentIndex EquipmentIndex;
 
@@ -46,7 +46,7 @@ namespace RiskOfChaos.Content.Orbs
         {
             if (orb.TargetInventory)
             {
-                orb.TargetInventory.SetEquipmentIndex(orb.EquipmentIndex);
+                orb.TargetInventory.SetEquipmentIndex(orb.EquipmentIndex, false);
             }
         }
 

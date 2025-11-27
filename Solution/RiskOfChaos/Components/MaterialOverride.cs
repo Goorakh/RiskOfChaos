@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Components
 {
-    public class MaterialOverride : MonoBehaviour
+    public sealed class MaterialOverride : MonoBehaviour
     {
         readonly Dictionary<Renderer, Material[]> _originalMaterials = [];
 
@@ -27,7 +27,7 @@ namespace RiskOfChaos.Components
                 if (IgnoreDecals && renderer.GetComponent("Decal"))
                     continue;
 
-                Material[] originalMaterials = ArrayUtils.Clone(renderer.sharedMaterials);
+                Material[] originalMaterials = [.. renderer.sharedMaterials];
                 _originalMaterials.Add(renderer, originalMaterials);
 
                 Material[] materials = new Material[originalMaterials.Length];
@@ -38,10 +38,8 @@ namespace RiskOfChaos.Components
 
         void OnDestroy()
         {
-            foreach (KeyValuePair<Renderer, Material[]> kvp in _originalMaterials)
+            foreach ((Renderer renderer, Material[] originalMaterials) in _originalMaterials)
             {
-                kvp.Deconstruct(out Renderer renderer, out Material[] originalMaterials);
-
                 if (renderer)
                 {
                     renderer.sharedMaterials = originalMaterials;

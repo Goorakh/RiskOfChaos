@@ -10,7 +10,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectHandling.EffectComponents.SubtitleProviders
 {
     [RequiredComponents(typeof(ChaosEffectSubtitleComponent))]
-    public class PickupListSubtitleProvider : NetworkBehaviour, IEffectSubtitleProvider
+    public sealed class PickupListSubtitleProvider : NetworkBehaviour, IEffectSubtitleProvider
     {
         readonly SyncListPickupIndex _pickups = [];
 

@@ -44,7 +44,7 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
             _holdoutZoneShrinkControllers.Add(shrinkController);
         }
 
-        class ShrinkingHoldoutZoneController : MonoBehaviour
+        sealed class ShrinkingHoldoutZoneController : MonoBehaviour
         {
             static readonly AnimationCurve _radiusMultiplierCurve = new AnimationCurve([
                 new Keyframe(0f, 0f, 1f, 1f),

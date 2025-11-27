@@ -90,7 +90,7 @@ namespace RiskOfChaos.Patches.AttackHooks
         }
 
         [RequireComponent(typeof(ProjectileController))]
-        class ProjectileEnvironmentBounceBehavior : MonoBehaviour
+        sealed class ProjectileEnvironmentBounceBehavior : MonoBehaviour
         {
             static readonly PhysicMaterial _bouncyMaterial = new PhysicMaterial("ProjectileBounce")
             {

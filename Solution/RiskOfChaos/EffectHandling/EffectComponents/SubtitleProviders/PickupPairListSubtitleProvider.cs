@@ -10,7 +10,7 @@ using UnityEngine.Networking;
 namespace RiskOfChaos.EffectHandling.EffectComponents.SubtitleProviders
 {
     [RequiredComponents(typeof(ChaosEffectSubtitleComponent))]
-    public class PickupPairListSubtitleProvider : NetworkBehaviour, IEffectSubtitleProvider
+    public sealed class PickupPairListSubtitleProvider : NetworkBehaviour, IEffectSubtitleProvider
     {
         public string PairFormatToken;
 

@@ -196,7 +196,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             }, Util.GetBestMasterName);
         }
 
-        class SteppedStealController
+        sealed class SteppedStealController
         {
             public readonly ItemStealController ItemStealController;
             public readonly CharacterMaster Master;
@@ -256,7 +256,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             }
         }
 
-        class CharacterItemStealInitializer
+        sealed class CharacterItemStealInitializer
         {
             public readonly CharacterMaster Master;
 

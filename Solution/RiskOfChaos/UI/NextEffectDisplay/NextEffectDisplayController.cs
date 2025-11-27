@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace RiskOfChaos.UI.NextEffectDisplay
 {
-    public class NextEffectDisplayController : MonoBehaviour
+    public sealed class NextEffectDisplayController : MonoBehaviour
     {
         public LanguageTextMeshController EffectText;
         public Image BackdropImage;

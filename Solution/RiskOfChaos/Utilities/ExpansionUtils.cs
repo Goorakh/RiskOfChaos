@@ -2,6 +2,7 @@
 using RoR2;
 using RoR2.ExpansionManagement;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
@@ -12,6 +13,8 @@ namespace RiskOfChaos.Utilities
         public static ExpansionIndex DLC1 { get; private set; } = ExpansionIndex.None;
 
         public static ExpansionIndex DLC2 { get; private set; } = ExpansionIndex.None;
+
+        public static ExpansionIndex DLC3 { get; private set; } = ExpansionIndex.None;
 
         public static ResourceAvailability Availability = new ResourceAvailability();
 
@@ -29,6 +32,9 @@ namespace RiskOfChaos.Utilities
                     case "DLC2":
                         DLC2 = expansionDef.expansionIndex;
                         break;
+                    case "DLC3":
+                        DLC3 = expansionDef.expansionIndex;
+                        break;
                 }
             }
 
@@ -45,6 +51,12 @@ namespace RiskOfChaos.Utilities
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => IsExpansionEnabled(DLC2);
+        }
+
+        public static bool DLC3Enabled
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => IsExpansionEnabled(DLC3);
         }
 
         public static ExpansionDef GetExpansionDef(ExpansionIndex index)
@@ -150,5 +162,16 @@ namespace RiskOfChaos.Utilities
         {
             return AllExpansionsEnabled(GetObjectRequiredExpansions(obj));
         }
+
+#if DEBUG
+        [ConCommand(commandName = "print_body_expansion_requirements")]
+        static void CCPrintBodyExpansionRequirements(ConCommandArgs args)
+        {
+            foreach (GameObject bodyPrefab in BodyCatalog.allBodyPrefabs)
+            {
+                Log.Info($"{bodyPrefab.name}: [{string.Join(", ", GetObjectRequiredExpansions(bodyPrefab).Select(e => e.name))}]");
+            }
+        }
+#endif
     }
 }

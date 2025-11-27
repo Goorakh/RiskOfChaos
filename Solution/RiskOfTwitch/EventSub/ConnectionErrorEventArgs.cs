@@ -11,7 +11,7 @@ namespace RiskOfTwitch.EventSub
         Generic,
     }
 
-    public class ConnectionErrorEventArgs : EventArgs
+    public sealed class ConnectionErrorEventArgs : EventArgs
     {
         public ConnectionErrorType Type { get; }
 

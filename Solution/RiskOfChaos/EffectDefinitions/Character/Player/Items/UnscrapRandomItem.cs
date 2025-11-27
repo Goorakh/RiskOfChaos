@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Collections.ParsedValue;
+﻿using HG;
+using RiskOfChaos.Collections.ParsedValue;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
@@ -12,7 +13,6 @@ using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.Pickup;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Networking;
@@ -46,10 +46,12 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             ConfigHolder = _itemBlacklistConfig
         };
 
+        static PickupIndex[] _scrapPickupIndices = [];
+
         static Dictionary<ItemTier, ItemIndex[]> _printableItemsByTier = [];
         static Dictionary<ItemTier, ItemIndex[]> _scrapItemsByTier = [];
 
-        [SystemInitializer(typeof(ItemCatalog), typeof(ItemTierCatalog))]
+        [SystemInitializer(typeof(ItemCatalog), typeof(ItemTierCatalog), typeof(PickupCatalog))]
         static void Init()
         {
             _printableItemsByTier = ItemCatalog.allItemDefs.Where(i => !i.hidden
@@ -65,32 +67,29 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                                                        .GroupBy(i => i.tier)
                                                        .ToDictionary(g => g.Key,
                                                                      g => g.Select(g => g.itemIndex).ToArray());
-        }
 
-        static IEnumerable<ItemDef> getAllScrapItems()
-        {
-            foreach (ItemIndex item in ItemCatalog.allItems)
+            using (SetPool<PickupIndex>.RentCollection(out HashSet<PickupIndex> scrapPickupIndices))
             {
-                ItemDef itemDef = ItemCatalog.GetItemDef(item);
-                if (itemDef.ContainsTag(ItemTag.Scrap) || itemDef.ContainsTag(ItemTag.PriorityScrap))
+                foreach (ItemIndex item in ItemCatalog.allItems)
                 {
-                    if (_itemBlacklist.Contains(item))
+                    ItemDef itemDef = ItemCatalog.GetItemDef(item);
+                    if (itemDef.ContainsTag(ItemTag.Scrap) || itemDef.ContainsTag(ItemTag.PriorityScrap))
                     {
-                        Log.Debug($"Not including scrap {itemDef}: Blacklist");
-                        continue;
+                        scrapPickupIndices.Add(PickupCatalog.FindPickupIndex(item));
                     }
-
-                    yield return itemDef;
                 }
+
+                foreach (ItemTierDef itemTierDef in ItemTierCatalog.allItemTierDefs)
+                {
+                    PickupIndex scrapPickupIndex = PickupCatalog.FindScrapIndexForItemTier(itemTierDef.tier);
+                    if (scrapPickupIndex != PickupIndex.none)
+                    {
+                        scrapPickupIndices.Add(scrapPickupIndex);
+                    }
+                }
+
+                _scrapPickupIndices = [.. scrapPickupIndices];
             }
-        }
-
-        static IEnumerable<ItemDef> getAllScrapItems(Inventory inventory)
-        {
-            if (!inventory)
-                return [];
-
-            return getAllScrapItems().Where(i => inventory.GetItemCount(i) > 0);
         }
 
         static bool canUnscrapToItem(ItemIndex item)
@@ -110,9 +109,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         {
             return !context.IsNow || PlayerUtils.GetAllPlayerMasters(false).Any(m =>
             {
-                return m && getAllScrapItems(m.inventory).Any(i =>
+                return m && _scrapPickupIndices.Any(pickupIndex =>
                 {
-                    return _printableItemsByTier.TryGetValue(i.tier, out ItemIndex[] printableItems) && printableItems.Any(canUnscrapToItem);
+                    if (m.inventory.GetOwnedPickupCount(pickupIndex) <= 0)
+                        return false;
+
+                    PickupDef pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
+                    return _printableItemsByTier.TryGetValue(pickupDef.itemTier, out ItemIndex[] printableItems) && printableItems.Any(canUnscrapToItem);
                 });
             });
         }
@@ -174,36 +177,65 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             if (!inventory)
                 return;
 
-            HashSet<PickupIndex> unscrappedItems = new HashSet<PickupIndex>(_unscrapItemCount.Value);
-
-            for (int i = _unscrapItemCount.Value - 1; i >= 0; i--)
+            using (SetPool<PickupIndex>.RentCollection(out HashSet<PickupIndex> unscrappedItems))
             {
-                int unscrapInfoIndex = Array.FindIndex(_unscrapOrder, u => inventory.GetItemCount(u.ScrapItemIndex) > 0);
-                if (unscrapInfoIndex == -1) // This inventory has no more items to unscrap
-                    break;
+                unscrappedItems.EnsureCapacity(_unscrapItemCount.Value);
 
-                UnscrapInfo unscrapInfo = _unscrapOrder[unscrapInfoIndex];
-
-                int scrapCount = inventory.GetItemCount(unscrapInfo.ScrapItemIndex);
-                inventory.RemoveItem(unscrapInfo.ScrapItemIndex, scrapCount);
-
-                ItemIndex newItem = rng.NextElementUniform(unscrapInfo.PrintableItems);
-                inventory.GiveItem(newItem, scrapCount);
-
-                unscrappedItems.Add(PickupCatalog.FindPickupIndex(newItem));
-
-                CharacterMasterNotificationQueue.SendTransformNotification(master, unscrapInfo.ScrapItemIndex, newItem, CharacterMasterNotificationQueue.TransformationType.Default);
-
-                if (unscrapInfo.ScrapItemIndex == DLC1Content.Items.RegeneratingScrap.itemIndex)
+                for (int i = _unscrapItemCount.Value - 1; i >= 0; i--)
                 {
-                    inventory.GiveItem(DLC1Content.Items.RegeneratingScrapConsumed, scrapCount);
-                    CharacterMasterNotificationQueue.SendTransformNotification(master, DLC1Content.Items.RegeneratingScrap.itemIndex, DLC1Content.Items.RegeneratingScrapConsumed.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
-                }
-            }
+                    Xoroshiro128Plus unscrapItemRng = rng.Branch();
 
-            if (unscrappedItems.Count > 0)
-            {
-                PickupUtils.QueuePickupsMessage(master, [.. unscrappedItems], PickupNotificationFlags.SendChatMessage);
+                    bool unscrapSuccess = false;
+                    foreach (UnscrapInfo unscrapInfo in _unscrapOrder)
+                    {
+                        ItemIndex unscrappedItemIndex = unscrapItemRng.NextElementUniform(unscrapInfo.PrintableItems);
+                        ItemDef unscrappedItemDef = ItemCatalog.GetItemDef(unscrappedItemIndex);
+                        if (!unscrappedItemDef)
+                            continue;
+
+                        InventoryExtensions.PickupTransformation scrapItemTransformation = new InventoryExtensions.PickupTransformation
+                        {
+                            AllowWhenDisabled = true,
+                            MinToTransform = 1,
+                            MaxToTransform = int.MaxValue,
+                            OriginalPickupIndex = PickupCatalog.FindPickupIndex(unscrapInfo.ScrapItemIndex),
+                            NewPickupIndex = PickupCatalog.FindScrapIndexForItemTier(unscrappedItemDef.tier),
+                            TransformationType = (ItemTransformationTypeIndex)CharacterMasterNotificationQueue.TransformationType.Default,
+                            ReplacementRule = InventoryExtensions.PickupReplacementRule.DropExisting
+                        };
+
+                        if (scrapItemTransformation.TryTransform(inventory, out InventoryExtensions.PickupTransformation.TryTransformResult result))
+                        {
+                            if (result.TakenPickup.PickupIndex == PickupCatalog.FindPickupIndex(DLC1Content.Items.RegeneratingScrap.itemIndex))
+                            {
+                                PickupIndex consumedScrapPickupIndex = PickupCatalog.FindPickupIndex(DLC1Content.Items.RegeneratingScrapConsumed.itemIndex);
+
+                                InventoryExtensions.PickupGrantParameters consumedScrapGrantParameters = new InventoryExtensions.PickupGrantParameters
+                                {
+                                    PickupToGrant = result.TakenPickup.WithPickupIndex(consumedScrapPickupIndex),
+                                    ReplacementRule = InventoryExtensions.PickupReplacementRule.DropExisting
+                                };
+
+                                if (consumedScrapGrantParameters.AttemptGrant(inventory))
+                                {
+                                    CharacterMasterNotificationQueue.SendTransformNotification(master, DLC1Content.Items.RegeneratingScrap.itemIndex, DLC1Content.Items.RegeneratingScrapConsumed.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                }
+                            }
+
+                            unscrappedItems.Add(result.GivenPickup.PickupIndex);
+                            unscrapSuccess = true;
+                            break;
+                        }
+                    }
+
+                    if (!unscrapSuccess)
+                        break;
+                }
+
+                if (unscrappedItems.Count > 0)
+                {
+                    PickupUtils.QueuePickupsMessage(master, [.. unscrappedItems], PickupNotificationFlags.SendChatMessage);
+                }
             }
         }
     }

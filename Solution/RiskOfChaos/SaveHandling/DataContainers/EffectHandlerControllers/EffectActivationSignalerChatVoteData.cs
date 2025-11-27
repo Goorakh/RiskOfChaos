@@ -4,7 +4,7 @@ using System;
 namespace RiskOfChaos.SaveHandling.DataContainers.EffectHandlerControllers
 {
     [Serializable]
-    public class EffectActivationSignalerChatVoteData
+    public sealed class EffectActivationSignalerChatVoteData
     {
         [JsonProperty("m")]
         public Configs.ChatVoting.ChatVotingMode VotingMode;

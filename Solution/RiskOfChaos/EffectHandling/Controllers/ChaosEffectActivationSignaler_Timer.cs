@@ -10,7 +10,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.EffectHandling.Controllers
 {
-    public class ChaosEffectActivationSignaler_Timer : ChaosEffectActivationSignaler
+    public sealed class ChaosEffectActivationSignaler_Timer : ChaosEffectActivationSignaler
     {
         CompletePeriodicRunTimer _effectDispatchTimer;
 

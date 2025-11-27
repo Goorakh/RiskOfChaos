@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace RiskOfChaos.UI.ChatVoting
 {
-    public class ChaosEffectVoteDisplayController : MonoBehaviour
+    public sealed class ChaosEffectVoteDisplayController : MonoBehaviour
     {
         [ContentInitializer]
         static IEnumerator LoadContent(ContentIntializerArgs args)

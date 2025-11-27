@@ -1,5 +1,5 @@
-﻿using RiskOfChaos.Collections;
-using RiskOfChaos.EffectHandling.EffectClassAttributes;
+﻿using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.EffectUtils.Character.AllSkillsAgile;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
@@ -13,13 +13,17 @@ namespace RiskOfChaos.EffectDefinitions.Character
     [IncompatibleEffects(typeof(DisableSprinting))]
     public sealed class ForceSprinting : MonoBehaviour
     {
-        readonly ClearingObjectList<ForceNonZeroMoveDirection> _forceMoveDirectionControllers = [];
+        ChaosEffectComponent _effectComponent;
+
+        void Awake()
+        {
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
 
         void Start()
         {
             OverrideSkillsAgile.AllSkillsAgileCount++;
 
-            _forceMoveDirectionControllers.EnsureCapacity(CharacterBody.readOnlyInstancesList.Count);
             CharacterBody.readOnlyInstancesList.TryDo(tryAddForceMovementComponent, FormatUtils.GetBestBodyName);
             CharacterBody.onBodyStartGlobal += onBodyStartGlobal;
 
@@ -33,8 +37,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
             CharacterBody.onBodyStartGlobal -= onBodyStartGlobal;
 
             SetIsSprintingOverride.OverrideCharacterSprinting -= overrideSprint;
-
-            _forceMoveDirectionControllers.ClearAndDispose(true);
         }
 
         void onBodyStartGlobal(CharacterBody body)
@@ -48,7 +50,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 return;
 
             ForceNonZeroMoveDirection forceNonZeroMoveDirection = body.gameObject.AddComponent<ForceNonZeroMoveDirection>();
-            _forceMoveDirectionControllers.Add(forceNonZeroMoveDirection);
+            forceNonZeroMoveDirection.OwnerEffect = _effectComponent;
 
             Log.Debug($"Added component to {FormatUtils.GetBestBodyName(body)}");
         }
@@ -58,8 +60,10 @@ namespace RiskOfChaos.EffectDefinitions.Character
             isSprinting = true;
         }
 
-        class ForceNonZeroMoveDirection : MonoBehaviour
+        sealed class ForceNonZeroMoveDirection : MonoBehaviour
         {
+            public ChaosEffectComponent OwnerEffect;
+
             CharacterBody _body;
             InputBankTest _inputBank;
 
@@ -86,6 +90,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
             void Start()
             {
+                if (OwnerEffect)
+                {
+                    OwnerEffect.OnEffectEnd += onEffectEnd;
+                }
+
                 Vector3 moveDir = _inputBank.aimDirection;
                 if (!_body.isFlying)
                 {
@@ -97,6 +106,14 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 }
 
                 _lastNonZeroMoveDirection = moveDir;
+            }
+
+            void OnDestroy()
+            {
+                if (OwnerEffect)
+                {
+                    OwnerEffect.OnEffectEnd -= onEffectEnd;
+                }
             }
 
             void Update()
@@ -112,6 +129,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 {
                     _inputBank.moveVector = _lastNonZeroMoveDirection;
                 }
+            }
+
+            void onEffectEnd(ChaosEffectComponent effectComponent)
+            {
+                Destroy(this);
             }
         }
     }

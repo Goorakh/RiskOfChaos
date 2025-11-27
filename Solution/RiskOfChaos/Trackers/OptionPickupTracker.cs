@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Trackers
 {
-    public class OptionPickupTracker : MonoBehaviour
+    public sealed class OptionPickupTracker : MonoBehaviour
     {
         [SystemInitializer]
         static void Init()

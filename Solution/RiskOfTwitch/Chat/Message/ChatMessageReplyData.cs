@@ -2,7 +2,7 @@
 
 namespace RiskOfTwitch.Chat.Message
 {
-    public class ChatMessageReplyData
+    public sealed class ChatMessageReplyData
     {
         [JsonProperty("parent_message_id")]
         public string ReplyingToMessageID { get; set; }

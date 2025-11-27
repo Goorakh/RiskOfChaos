@@ -1,6 +1,6 @@
 ﻿namespace RiskOfTwitch.Chat.Notification
 {
-    public class ChannelChatUnraidNotificationData
+    public sealed class ChannelChatUnraidNotificationData
     {
     }
 }

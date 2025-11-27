@@ -32,8 +32,6 @@ namespace RiskOfChaos.Patches
         static void Init()
         {
             IL.RoR2.BulletAttack.FireSingle += BulletAttack_FireSingle_FixTracerEffectOrigin;
-            IL.RoR2.BulletAttack.FireSingle_ReturnHit += BulletAttack_FireSingle_FixTracerEffectOrigin;
-            IL.RoR2.BulletAttack.FireMulti += BulletAttack_FireSingle_FixTracerEffectOrigin;
         }
 
         static void BulletAttack_FireSingle_FixTracerEffectOrigin(ILContext il)

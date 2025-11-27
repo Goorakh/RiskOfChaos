@@ -6,9 +6,9 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.Networking
 {
-    public class EnsureObjectDestroyMessage : INetRequest<EnsureObjectDestroyMessage, EnsureObjectDestroyMessage.Reply>
+    public sealed class EnsureObjectDestroyMessage : INetRequest<EnsureObjectDestroyMessage, EnsureObjectDestroyMessage.Reply>
     {
-        public class Reply : INetRequestReply<EnsureObjectDestroyMessage, Reply>
+        public sealed class Reply : INetRequestReply<EnsureObjectDestroyMessage, Reply>
         {
             public static event Action<Reply> OnReceived;
 

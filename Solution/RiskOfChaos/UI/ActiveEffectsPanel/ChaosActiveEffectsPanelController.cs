@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace RiskOfChaos.UI.ActiveEffectsPanel
 {
-    public class ChaosActiveEffectsPanelController : MonoBehaviour
+    public sealed class ChaosActiveEffectsPanelController : MonoBehaviour
     {
         [ContentInitializer]
         static void LoadContent(ContentIntializerArgs args)

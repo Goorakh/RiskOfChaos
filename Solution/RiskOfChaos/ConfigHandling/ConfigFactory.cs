@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace RiskOfChaos.ConfigHandling
 {
-    public class ConfigFactory<T>
+    public sealed class ConfigFactory<T>
     {
         readonly string _key;
         readonly T _defaultValue;

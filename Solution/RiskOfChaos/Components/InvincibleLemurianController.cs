@@ -26,9 +26,9 @@ namespace RiskOfChaos.Components
                 Inventory inventory = _body.inventory;
                 if (inventory)
                 {
-                    if (inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) == 0)
+                    if (inventory.GetItemCountPermanent(RoCContent.Items.InvincibleLemurianMarker) == 0)
                     {
-                        inventory.GiveItem(RoCContent.Items.InvincibleLemurianMarker);
+                        inventory.GiveItemPermanent(RoCContent.Items.InvincibleLemurianMarker);
 
                         InvincibleLemurianLogbookAdder.LemurianStatCollection statCollection = StatCollection;
                         if (statCollection != null)

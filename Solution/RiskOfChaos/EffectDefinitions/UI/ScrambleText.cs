@@ -256,7 +256,7 @@ namespace RiskOfChaos.EffectDefinitions.UI
             return result;
         }
 
-        class ScramblePreprocessor : ITextPreprocessor
+        sealed class ScramblePreprocessor : ITextPreprocessor
         {
             readonly ulong _scrambleSeed;
 

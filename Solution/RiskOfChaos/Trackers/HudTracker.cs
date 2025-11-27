@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Trackers
 {
-    public class HudTracker : MonoBehaviour
+    public sealed class HudTracker : MonoBehaviour
     {
         [SystemInitializer]
         static void Init()

@@ -22,7 +22,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_PortalGoldshores_iscGoldshoresPortal_asset, new SpawnPoolEntryParameters(1.2f));
             _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_PortalMS_iscMSPortal_asset, new SpawnPoolEntryParameters(1.2f));
             _spawnPool.AddAssetEntry(AddressableGuids.RoR2_Base_PortalShop_iscShopPortal_asset, new SpawnPoolEntryParameters(1.2f));
-            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_DLC1_GameModes_InfiniteTowerRun_InfiniteTowerAssets_iscInfiniteTowerPortal_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1));
+            _spawnPool.AddAssetEntry(AddressableGuids.RoR2_DLC1_GameModes_InfiniteTowerRun_ITAssets_iscInfiniteTowerPortal_asset, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC1));
             _spawnPool.AddAssetEntry(AddressableGuids.RoR2_DLC1_DeepVoidPortal_iscDeepVoidPortal_asset, new SpawnPoolEntryParameters(0.8f, ExpansionUtils.DLC1));
             _spawnPool.AddAssetEntry(AddressableGuids.RoR2_DLC1_PortalVoid_iscVoidPortal_asset, new SpawnPoolEntryParameters(0.8f, ExpansionUtils.DLC1));
             _spawnPool.AddAssetEntry(AddressableGuids.RoR2_DLC1_VoidOutroPortal_iscVoidOutroPortal_asset, new SpawnPoolEntryParameters(0.8f, ExpansionUtils.DLC1));

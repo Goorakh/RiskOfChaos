@@ -2,7 +2,7 @@
 
 namespace RiskOfChaos.Serialization.Converters
 {
-    public class BuffIndexConverter : CatalogValueConverter<BuffIndex>
+    public sealed class BuffIndexConverter : CatalogValueConverter<BuffIndex>
     {
         public BuffIndexConverter() : base(BuffIndex.None)
         {

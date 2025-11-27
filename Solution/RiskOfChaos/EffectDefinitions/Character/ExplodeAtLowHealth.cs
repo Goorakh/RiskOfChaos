@@ -1,9 +1,9 @@
 ﻿using EntityStates;
 using HG;
-using RiskOfChaos.Collections;
 using RiskOfChaos.Components;
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
@@ -40,13 +40,17 @@ namespace RiskOfChaos.EffectDefinitions.Character
             }
         }
 
-        readonly ClearingObjectList<GameObject> _exploderControllers = [];
+        ChaosEffectComponent _effectComponent;
+
+        void Awake()
+        {
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
 
         void Start()
         {
             if (NetworkServer.active)
             {
-                _exploderControllers.EnsureCapacity(CharacterBody.readOnlyInstancesList.Count);
                 CharacterBody.readOnlyInstancesList.TryDo(handleBody, FormatUtils.GetBestBodyName);
                 CharacterBody.onBodyStartGlobal += handleBody;
 
@@ -59,8 +63,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
             CharacterBody.onBodyStartGlobal -= handleBody;
 
             GlobalEventManager.onCharacterDeathGlobal -= onCharacterDeathGlobal;
-
-            _exploderControllers.ClearAndDispose(true);
         }
 
         void onCharacterDeathGlobal(DamageReport damageReport)
@@ -93,14 +95,15 @@ namespace RiskOfChaos.EffectDefinitions.Character
             ExplodeOnLowHealthController explodeOnLowHealthController = explodeController.GetComponent<ExplodeOnLowHealthController>();
             explodeOnLowHealthController.AttachedBody = body;
 
-            NetworkServer.Spawn(explodeController);
+            DestroyOnEffectEnd destroyOnEffectEnd = explodeController.AddComponent<DestroyOnEffectEnd>();
+            destroyOnEffectEnd.EffectComponent = _effectComponent;
 
-            _exploderControllers.Add(explodeController);
+            NetworkServer.Spawn(explodeController);
 
             return explodeController;
         }
 
-        class BaseState : EntityState
+        abstract class BaseState : EntityState
         {
             protected ExplodeOnLowHealthController explodeOnLowHealthController { get; private set; }
 
@@ -124,7 +127,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         }
 
         [EntityStateType]
-        class MonitorState : BaseState
+        sealed class MonitorState : BaseState
         {
             const float EXPLODE_HEALTH_FRACTION_DEFAULT = 0.45f;
             const float EXPLODE_HEALTH_FRACTION_BOSS = 0.175f;
@@ -200,7 +203,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
         }
 
         [EntityStateType]
-        class CountDownState : BaseState
+        sealed class CountDownState : BaseState
         {
             float _countDownDuration;
 
@@ -216,7 +219,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
                 _countDownVFXPrefabReference = new AssetOrDirectReference<GameObject>();
                 _countDownVFXPrefabReference.onValidReferenceDiscovered += onCountDownVFXPrefabDiscovered;
-                _countDownVFXPrefabReference.unloadType = AsyncReferenceHandleUnloadType.OnSceneUnload;
+                _countDownVFXPrefabReference.unloadType = AsyncReferenceHandleUnloadType.AtWill;
                 _countDownVFXPrefabReference.address = new AssetReferenceGameObject(AddressableGuids.RoR2_Base_QuestVolatileBattery_VolatileBatteryPreDetonation_prefab);
 
                 CharacterBody attachedBody = explodeOnLowHealthController.AttachedBody;
@@ -263,7 +266,7 @@ namespace RiskOfChaos.EffectDefinitions.Character
                 if (_countDownVFXPrefabReference != null)
                 {
                     _countDownVFXPrefabReference.onValidReferenceDiscovered -= onCountDownVFXPrefabDiscovered;
-                    _countDownVFXPrefabReference?.Reset();
+                    _countDownVFXPrefabReference.Reset();
                 }
 
                 if (_countDownVFXInstance)

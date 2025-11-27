@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Content;
+﻿using HG;
+using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
@@ -48,50 +49,52 @@ namespace RiskOfChaos.EffectDefinitions.Character
             if (!NetworkServer.active)
                 return;
 
-            List<CharacterBody> charactersToKill = new List<CharacterBody>(CharacterBody.readOnlyInstancesList.Count);
+            bool encounteredInvincibleLemurian = false;
 
-            foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
+            using (ListPool<CharacterBody>.RentCollection(out List<CharacterBody> charactersToKill))
             {
-                if (canKillCharacter(body))
+                charactersToKill.EnsureCapacity(CharacterBody.readOnlyInstancesList.Count);
+
+                foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
                 {
-                    charactersToKill.Add(body);
+                    if (canKillCharacter(body))
+                    {
+                        charactersToKill.Add(body);
+                    }
+                }
+
+                foreach (CharacterBody body in charactersToKill)
+                {
+                    Inventory inventory = body.inventory;
+                    if (inventory)
+                    {
+                        if (inventory.GetItemCountPermanent(RoCContent.Items.InvincibleLemurianMarker) > 0)
+                        {
+                            encounteredInvincibleLemurian = true;
+                            continue;
+                        }
+                    }
+
+                    if (body.healthComponent)
+                    {
+                        try
+                        {
+                            body.healthComponent.Suicide();
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Error_NoCallerPrefix($"Failed to kill {FormatUtils.GetBestBodyName(body)}: {e}");
+                        }
+                    }
                 }
             }
 
-            bool hasSentInvincibleLemurianKillFailMessage = false;
-
-            foreach (CharacterBody body in charactersToKill)
+            if (encounteredInvincibleLemurian)
             {
-                Inventory inventory = body.inventory;
-                if (inventory)
+                Chat.SendBroadcastChat(new Chat.SimpleChatMessage
                 {
-                    if (inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
-                    {
-                        if (!hasSentInvincibleLemurianKillFailMessage)
-                        {
-                            Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-                            {
-                                baseToken = "INVINCIBLE_LEMURIAN_KILL_FAIL_MESSAGE"
-                            });
-
-                            hasSentInvincibleLemurianKillFailMessage = true;
-                        }
-
-                        continue;
-                    }
-                }
-
-                if (body.healthComponent)
-                {
-                    try
-                    {
-                        body.healthComponent.Suicide();
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error_NoCallerPrefix($"Failed to kill {FormatUtils.GetBestBodyName(body)}: {e}");
-                    }
-                }
+                    baseToken = "INVINCIBLE_LEMURIAN_KILL_FAIL_MESSAGE"
+                });
             }
         }
     }

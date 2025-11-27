@@ -6,7 +6,7 @@ using UnityEngine;
 namespace RiskOfChaos.Components
 {
     [RequiredComponents(typeof(NetworkedBodyAttachment), typeof(SyncStolenItemCount))]
-    public class ShowStolenItemsPositionIndicator : MonoBehaviour
+    public sealed class ShowStolenItemsPositionIndicator : MonoBehaviour
     {
         NetworkedBodyAttachment _bodyAttachment;
 

@@ -7,7 +7,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.Components
 {
-    public class ExplodeOnLowHealthController : NetworkBehaviour
+    public sealed class ExplodeOnLowHealthController : NetworkBehaviour
     {
         static EffectIndex _explosionVFXEffectIndex = EffectIndex.Invalid;
 

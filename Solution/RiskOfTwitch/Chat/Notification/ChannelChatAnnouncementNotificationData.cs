@@ -2,7 +2,7 @@
 
 namespace RiskOfTwitch.Chat.Notification
 {
-    public class ChannelChatAnnouncementNotificationData
+    public sealed class ChannelChatAnnouncementNotificationData
     {
         [JsonProperty("color")]
         public string Color { get; set; }

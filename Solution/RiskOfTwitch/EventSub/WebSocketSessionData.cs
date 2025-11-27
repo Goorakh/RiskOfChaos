@@ -4,7 +4,7 @@ using System;
 namespace RiskOfTwitch.EventSub
 {
     [Serializable]
-    public class WebSocketSessionData
+    public sealed class WebSocketSessionData
     {
         [JsonProperty("id")]
         public string SessionID { get; set; }

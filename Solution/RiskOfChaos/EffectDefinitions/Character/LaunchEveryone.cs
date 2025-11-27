@@ -102,15 +102,15 @@ namespace RiskOfChaos.EffectDefinitions.Character
                         // Give players a chance to avoid fall damage
                         // Most relevant on characters without movement abilities (engi, captain)
 
-                        if (inventory.GetItemCount(RoR2Content.Items.Feather) == 0)
+                        if (inventory.GetItemCountEffective(RoR2Content.Items.Feather) == 0)
                         {
                             TemporaryItemController.AddTemporaryItem(inventory, RoR2Content.Items.Feather, TemporaryItemController.TemporaryItemCondition.Airborne, TemporaryItemController.TemporaryItemFlags.SuppressItemTransformation);
                         }
                     }
 
-                    if (inventory.GetItemCount(RoCContent.Items.InvincibleLemurianMarker) > 0)
+                    if (inventory.GetItemCountPermanent(RoCContent.Items.InvincibleLemurianMarker) > 0)
                     {
-                        if (inventory.GetItemCount(RoR2Content.Items.TeleportWhenOob) == 0)
+                        if (inventory.GetItemCountPermanent(RoR2Content.Items.TeleportWhenOob) == 0)
                         {
                             TemporaryItemController.AddTemporaryItem(inventory, RoR2Content.Items.TeleportWhenOob, TemporaryItemController.TemporaryItemCondition.Airborne);
                         }

@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace RiskOfChaos.Utilities.DropTables
 {
-    public class CombinedSequentialPickupDropTable : PickupDropTable, IPooledObject
+    public sealed class CombinedSequentialPickupDropTable : PickupDropTable, IPooledObject
     {
         int _currentDropCount;
 
@@ -57,32 +57,28 @@ namespace RiskOfChaos.Utilities.DropTables
             }
         }
 
-        public override PickupIndex GenerateDropPreReplacement(Xoroshiro128Plus rng)
+        public override UniquePickup GeneratePickupPreReplacement(Xoroshiro128Plus rng)
         {
             DropTableEntry? tableEntry = getDropTableEntryForCount(_currentDropCount++);
             if (!tableEntry.HasValue)
-                return PickupIndex.none;
+                return UniquePickup.none;
 
-            return tableEntry.Value.DropTable.GenerateDropPreReplacement(rng);
+            return tableEntry.Value.DropTable.GeneratePickupPreReplacement(rng);
         }
 
-        public override PickupIndex[] GenerateUniqueDropsPreReplacement(int maxDrops, Xoroshiro128Plus rng)
+        public override void GenerateDistinctPickupsPreReplacement(List<UniquePickup> dest, int desiredCount, Xoroshiro128Plus rng)
         {
-            List<PickupIndex> result = [];
-
-            while (result.Count < maxDrops)
+            while (dest.Count < desiredCount)
             {
                 DropTableEntry? entry = getDropTableEntryForCount(_currentDropCount);
                 if (!entry.HasValue)
                     break;
 
-                int remainingDrops = maxDrops - result.Count;
+                int remainingDrops = desiredCount - dest.Count;
                 int remainingTableDrops = Math.Min(remainingDrops, entry.Value.Count);
-                result.AddRange(entry.Value.DropTable.GenerateUniqueDropsPreReplacement(remainingTableDrops, rng.Branch()));
+                entry.Value.DropTable.GenerateDistinctPickups(dest, remainingDrops, rng.Branch());
                 _currentDropCount += remainingTableDrops;
             }
-
-            return [.. result];
         }
 
         public override int GetPickupCount()

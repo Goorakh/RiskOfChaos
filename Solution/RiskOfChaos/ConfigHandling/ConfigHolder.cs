@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace RiskOfChaos.ConfigHandling
 {
-    public class ConfigHolder<T> : ConfigHolderBase
+    public sealed class ConfigHolder<T> : ConfigHolderBase
     {
         public readonly T DefaultValue;
         public readonly IEqualityComparer<T> EqualityComparer;
@@ -16,7 +16,7 @@ namespace RiskOfChaos.ConfigHandling
         public new ConfigEntry<T> Entry
         {
             get => (ConfigEntry<T>)base.Entry;
-            protected set => base.Entry = value;
+            private set => base.Entry = value;
         }
 
         public T LocalValue

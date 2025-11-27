@@ -3,7 +3,7 @@ using RoR2;
 
 namespace RiskOfChaos.Patches.AttackHooks
 {
-    class BlastAttackHookManager : AttackHookManager
+    sealed class BlastAttackHookManager : AttackHookManager
     {
         readonly BlastAttack _blastAttack;
 

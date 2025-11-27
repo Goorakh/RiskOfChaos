@@ -81,7 +81,13 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             addBuffEntry(DLC2Content.Buffs.SoulCost, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
             addBuffEntry(DLC2Content.Buffs.Oiled, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
             addBuffEntry(DLC2Content.Buffs.SeekerRevivedOnce, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC2));
-            addBuffEntry(DLC2Content.Buffs.Frost, new SpawnPoolEntryParameters(0.8f, ExpansionUtils.DLC2));
+
+            addBuffEntry(DLC3Content.Buffs.Accelerant, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC3));
+            addBuffEntry(DLC3Content.Buffs.GravitySlow, new SpawnPoolEntryParameters(0.8f, ExpansionUtils.DLC3));
+            addBuffEntry(DLC3Content.Buffs.SharedSuffering, new SpawnPoolEntryParameters(0.5f, ExpansionUtils.DLC3));
+            addBuffEntry(DLC3Content.Buffs.SolusWingWeakpointDestroyed, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC3));
+            addBuffEntry(DLC3Content.Buffs.Slow10Stacking, new SpawnPoolEntryParameters(0.8f, ExpansionUtils.DLC3));
+            addBuffEntry(DLC3Content.Buffs.TransferDebuffOnHit, new SpawnPoolEntryParameters(1f, ExpansionUtils.DLC3));
 
             _availableDebuffs.TrimExcess();
 

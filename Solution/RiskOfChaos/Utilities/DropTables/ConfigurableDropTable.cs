@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Collections.ParsedValue;
+﻿using HG;
+using RiskOfChaos.Collections.ParsedValue;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.Utilities.Comparers;
@@ -11,7 +12,7 @@ using System.Collections.Generic;
 
 namespace RiskOfChaos.Utilities.DropTables
 {
-    public class ConfigurableDropTable : BasicPickupDropTable, IConfigProvider
+    public sealed class ConfigurableDropTable : BasicPickupDropTable, IConfigProvider
     {
         readonly Dictionary<DropType, ConfigHolder<float>> _dropTypeToWeightConfig = [];
 
@@ -46,6 +47,8 @@ namespace RiskOfChaos.Utilities.DropTables
                 DropType.VoidTier2 => "Uncommon Void Items",
                 DropType.VoidTier3 => "Legendary Void Items",
                 DropType.VoidBoss => "Void Boss Items",
+                DropType.PowerShape => "Solus Mission Items",
+                DropType.FoodTier => "Food Items",
                 _ => throw new NotImplementedException($"Drop type {type} is not implemented")
             };
 
@@ -142,46 +145,52 @@ namespace RiskOfChaos.Utilities.DropTables
             voidTier2Weight = GetWeight(DropType.VoidTier2);
             voidTier3Weight = GetWeight(DropType.VoidTier3);
             voidBossWeight = GetWeight(DropType.VoidBoss);
+            powerShapesWeight = GetWeight(DropType.PowerShape);
+            foodTierWeight = GetWeight(DropType.FoodTier);
 
             OnPreGenerate?.Invoke();
 
             base.Regenerate(run);
 
-            List<ExplicitDrop> additionalDrops = [];
-            AddDrops?.Invoke(additionalDrops);
-            foreach (ExplicitDrop drop in additionalDrops)
+            using (ListPool<ExplicitDrop>.RentCollection(out List<ExplicitDrop> additionalDrops))
             {
-                if ((!IsFilterRequired() || PassesFilter(drop.PickupIndex)) &&
-                    (drop.RequiredExpansion == ExpansionIndex.None || ExpansionUtils.IsExpansionEnabled(drop.RequiredExpansion)))
+                AddDrops?.Invoke(additionalDrops);
+                foreach (ExplicitDrop drop in additionalDrops)
                 {
-                    selector.AddOrModifyWeight(drop.PickupIndex, GetWeight(drop.DropType));
+                    if ((!IsFilterRequired() || PassesFilter(drop.Pickup.pickupIndex)) &&
+                        (drop.RequiredExpansion == ExpansionIndex.None || ExpansionUtils.IsExpansionEnabled(drop.RequiredExpansion)))
+                    {
+                        selector.AddOrModifyWeight(drop.Pickup, GetWeight(drop.DropType), UniquePickupComparer.PickupIndexComparer);
+                    }
                 }
             }
 
-            List<PickupIndex> removePickups = [];
-            RemoveDrops?.Invoke(removePickups);
-
-            if (_itemBlacklist != null || removePickups.Count > 0)
+            using (ListPool<PickupIndex>.RentCollection(out List<PickupIndex> removePickups))
             {
-                for (int i = selector.Count - 1; i >= 0; i--)
+                RemoveDrops?.Invoke(removePickups);
+
+                if (_itemBlacklist != null || removePickups.Count > 0)
                 {
-                    PickupIndex pickupIndex = selector.GetChoice(i).value;
+                    for (int i = selector.Count - 1; i >= 0; i--)
+                    {
+                        PickupIndex pickupIndex = selector.GetChoice(i).value.pickupIndex;
 
-                    bool remove = false;
-                    if (_itemBlacklist != null && _itemBlacklist.Contains(pickupIndex))
-                    {
-                        Log.Debug($"Removing {pickupIndex} from droptable {name}: Blacklist");
-                        remove = true;
-                    }
-                    else if (removePickups.Contains(pickupIndex))
-                    {
-                        Log.Debug($"Removing {pickupIndex} from droptable {name}: In remove list");
-                        remove = true;
-                    }
+                        bool remove = false;
+                        if (_itemBlacklist != null && _itemBlacklist.Contains(pickupIndex))
+                        {
+                            Log.Debug($"Removing {pickupIndex} from droptable {name}: Blacklist");
+                            remove = true;
+                        }
+                        else if (removePickups.Contains(pickupIndex))
+                        {
+                            Log.Debug($"Removing {pickupIndex} from droptable {name}: In remove list");
+                            remove = true;
+                        }
 
-                    if (remove)
-                    {
-                        selector.RemoveChoice(i);
+                        if (remove)
+                        {
+                            selector.RemoveChoice(i);
+                        }
                     }
                 }
             }
@@ -189,7 +198,7 @@ namespace RiskOfChaos.Utilities.DropTables
             if (selector.Count == 0)
             {
                 Log.Warning($"Drop table {name} has no options, adding fallback");
-                selector.AddChoice(PickupCatalog.FindPickupIndex(RoR2Content.Items.ArtifactKey.itemIndex), 1f);
+                selector.AddChoice(new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.ArtifactKey.itemIndex)), 1f);
             }
         }
     }

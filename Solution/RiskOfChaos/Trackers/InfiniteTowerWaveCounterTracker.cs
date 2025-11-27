@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.Trackers
 {
-    public class InfiniteTowerWaveCounterTracker : MonoBehaviour
+    public sealed class InfiniteTowerWaveCounterTracker : MonoBehaviour
     {
         [SystemInitializer]
         static void Init()

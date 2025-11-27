@@ -5,7 +5,7 @@ using UnityEngine.Networking;
 
 namespace RiskOfChaos.Components
 {
-    public class PerpetualBossController : MonoBehaviour
+    public sealed class PerpetualBossController : MonoBehaviour
     {
         public CombatDirector BossDirector;
 

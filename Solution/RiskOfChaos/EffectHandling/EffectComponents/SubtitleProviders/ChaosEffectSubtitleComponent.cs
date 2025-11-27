@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace RiskOfChaos.EffectHandling.EffectComponents.SubtitleProviders
 {
-    public class ChaosEffectSubtitleComponent : MonoBehaviour
+    public sealed class ChaosEffectSubtitleComponent : MonoBehaviour
     {
         bool _subtitleProvidersDirty;
         IEffectSubtitleProvider[] _subtitleProviders = [];

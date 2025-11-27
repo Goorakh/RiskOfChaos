@@ -333,7 +333,12 @@ namespace RiskOfChaos.Components.MaterialInterpolation
                 return obj is ValuePair<T> pair && Equals(pair);
             }
 
-            public readonly bool Equals(ValuePair<T> other)
+            readonly bool IEquatable<ValuePair<T>>.Equals(ValuePair<T> other)
+            {
+                return Equals(other);
+            }
+
+            public readonly bool Equals(in ValuePair<T> other)
             {
                 return EqualityComparer<T>.Default.Equals(Start, other.Start) &&
                        EqualityComparer<T>.Default.Equals(End, other.End);
@@ -351,7 +356,7 @@ namespace RiskOfChaos.Components.MaterialInterpolation
 
             public static bool operator !=(in ValuePair<T> left, in ValuePair<T> right)
             {
-                return !(left == right);
+                return !left.Equals(right);
             }
         }
     }

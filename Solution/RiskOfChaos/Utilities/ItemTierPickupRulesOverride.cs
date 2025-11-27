@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace RiskOfChaos.Utilities
 {
-    public class ItemTierPickupRulesOverride : IDisposable
+    public sealed class ItemTierPickupRulesOverride : IDisposable
     {
         static ItemTierDef.PickupRules[] _originalPickupRules = [];
 

@@ -3,10 +3,8 @@ using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RoR2;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -15,7 +13,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 {
     [DisallowMultipleComponent]
     [RequiredComponents(typeof(ChaosEffectDispatcher))]
-    public class ChaosEffectTracker : MonoBehaviour
+    public sealed class ChaosEffectTracker : MonoBehaviour
     {
         static ChaosEffectTracker _instance;
         public static ChaosEffectTracker Instance => _instance;

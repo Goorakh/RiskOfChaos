@@ -13,7 +13,7 @@ namespace RiskOfChaos.EffectHandling.Controllers
 {
     [DisallowMultipleComponent]
     [RequiredComponents(typeof(ChaosEffectDispatcher))]
-    public class ChaosAlwaysActiveEffectsHandler : MonoBehaviour
+    public sealed class ChaosAlwaysActiveEffectsHandler : MonoBehaviour
     {
         readonly Dictionary<ChaosEffectIndex, List<ChaosEffectComponent>> _alwaysActiveEffects = [];
 

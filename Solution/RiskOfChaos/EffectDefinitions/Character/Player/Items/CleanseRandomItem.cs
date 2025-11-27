@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Collections.ParsedValue;
+﻿using HG;
+using RiskOfChaos.Collections.ParsedValue;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -96,7 +97,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
         [EffectCanActivate]
         static bool CanActivate()
         {
-            return PlayerUtils.GetAllPlayerMasters(false).Any(m => getAllCleansablePickups().Any(pickup => m.inventory.GetPickupCount(pickup) > 0));
+            return PlayerUtils.GetAllPlayerMasters(false).Any(m => getAllCleansablePickups().Any(pickup => m.inventory.GetOwnedPickupCount(pickup.pickupIndex) > 0));
         }
 
         AssetOrDirectReference<PickupDropTable> _pearlDropTableReference;
@@ -191,41 +192,41 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             int cleanseCount = _cleanseOrder.GetLength(0);
             int cleansablesCount = _cleanseOrder.GetLength(1);
 
-            HashSet<PickupIndex> grantedPickups = new HashSet<PickupIndex>(pearlDropTable.GetPickupCount());
-
-            for (int i = 0; i < cleanseCount; i++)
+            using (SetPool<PickupIndex>.RentCollection(out HashSet<PickupIndex> grantedPickups))
             {
-                PickupIndex pickupToCleanse = PickupIndex.none;
+                grantedPickups.EnsureCapacity(pearlDropTable.GetPickupCount());
 
-                for (int j = 0; j < cleansablesCount; j++)
+                for (int i = 0; i < cleanseCount; i++)
                 {
-                    PickupIndex candidatePickup = _cleanseOrder[i, j];
-                    if (inventory.GetPickupCount(candidatePickup) > 0)
+                    UniquePickup pearlPickup = pearlDropTable.GeneratePickup(rng.Branch());
+
+                    for (int j = 0; j < cleansablesCount; j++)
                     {
-                        pickupToCleanse = candidatePickup;
-                        break;
+                        PickupIndex candidatePickupIndex = _cleanseOrder[i, j];
+
+                        InventoryExtensions.PickupTransformation pickupTransformation = new InventoryExtensions.PickupTransformation
+                        {
+                            AllowWhenDisabled = true,
+                            MinToTransform = 1,
+                            MaxToTransform = 1,
+                            OriginalPickupIndex = candidatePickupIndex,
+                            NewPickupIndex = pearlPickup.pickupIndex,
+                            ReplacementRule = InventoryExtensions.PickupReplacementRule.DropExisting,
+                            TransformationType = (ItemTransformationTypeIndex)CharacterMasterNotificationQueue.TransformationType.Default
+                        };
+
+                        if (pickupTransformation.TryTransform(inventory, out InventoryExtensions.PickupTransformation.TryTransformResult result))
+                        {
+                            grantedPickups.Add(result.GivenPickup.PickupIndex);
+                            break;
+                        }
                     }
                 }
 
-                if (!pickupToCleanse.isValid)
-                    break;
-
-                if (inventory.TryRemove(pickupToCleanse))
+                if (grantedPickups.Count > 0)
                 {
-                    PickupIndex pearlPickupIndex = pearlDropTable.GenerateDrop(rng.Branch());
-
-                    if (inventory.TryGrant(pearlPickupIndex, InventoryExtensions.EquipmentReplacementRule.DropExisting))
-                    {
-                        CharacterMasterNotificationQueueUtils.SendPickupTransformNotification(master, pickupToCleanse, pearlPickupIndex, CharacterMasterNotificationQueue.TransformationType.Default);
-
-                        grantedPickups.Add(pearlPickupIndex);
-                    }
+                    PickupUtils.QueuePickupsMessage(master, [.. grantedPickups], PickupNotificationFlags.SendChatMessage);
                 }
-            }
-
-            if (grantedPickups.Count > 0)
-            {
-                PickupUtils.QueuePickupsMessage(master, [.. grantedPickups], PickupNotificationFlags.SendChatMessage);
             }
         }
     }

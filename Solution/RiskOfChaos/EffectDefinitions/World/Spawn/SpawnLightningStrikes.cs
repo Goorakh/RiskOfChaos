@@ -18,7 +18,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
     [ChaosTimedEffect("spawn_lightning_strikes", 30f)]
     public sealed class SpawnLightningStrikes : NetworkBehaviour
     {
-        class StationaryLightningStrikeOrb : GenericDamageOrb
+        sealed class StationaryLightningStrikeOrb : GenericDamageOrb
         {
             static readonly BoolConVar _enableDebugRangeIndicator = new BoolConVar("roc_lightning_strikes_debug_range_indicator", ConVarFlags.None, "0", "Enables debug visualization of the \"Risk of Thunder\" lightning strikes damage radius");
 

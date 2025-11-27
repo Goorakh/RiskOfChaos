@@ -39,7 +39,7 @@ namespace RiskOfChaos
 
         static Sprite generateIcon()
         {
-            DirectoryInfo pluginDir = new DirectoryInfo(Main.ModDirectory);
+            DirectoryInfo pluginDir = new DirectoryInfo(RiskOfChaosPlugin.ModDirectory);
             FileInfo iconFile = findFileInParentDirectories(pluginDir, "icon.png");
             if (iconFile == null)
             {
@@ -47,7 +47,7 @@ namespace RiskOfChaos
             }
 
             Texture2D iconTexture = new Texture2D(256, 256);
-            iconTexture.name = $"tex{Main.PluginName}Icon";
+            iconTexture.name = $"tex{RiskOfChaosPlugin.PluginName}Icon";
             if (!iconTexture.LoadImage(File.ReadAllBytes(iconFile.FullName)))
             {
                 GameObject.Destroy(iconTexture);
@@ -55,7 +55,7 @@ namespace RiskOfChaos
             }
 
             Sprite icon = Sprite.Create(iconTexture, new Rect(0f, 0f, iconTexture.width, iconTexture.height), new Vector2(0.5f, 0.5f));
-            icon.name = $"{Main.PluginName}Icon";
+            icon.name = $"{RiskOfChaosPlugin.PluginName}Icon";
             return icon;
         }
 

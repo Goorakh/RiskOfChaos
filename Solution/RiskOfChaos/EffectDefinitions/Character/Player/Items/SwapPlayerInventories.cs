@@ -5,6 +5,7 @@ using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Orbs;
 using System;
@@ -18,8 +19,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
     [ChaosEffect("swap_player_inventories", EnabledInSingleplayer = false, DefaultSelectionWeight = 0.5f)]
     public sealed class SwapPlayerInventories : NetworkBehaviour
     {
-        [RequireComponent(typeof(CharacterBody))]
-        class GiveInventoryTo : MonoBehaviour
+        sealed class GiveInventoryTo : MonoBehaviour
         {
             public CharacterBody OwnerBody;
             public Inventory OwnerInventory;
@@ -27,7 +27,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             public CharacterBody Target;
             Inventory _targetInventory;
 
-            ItemStack[] _itemStacksToTransfer = [];
+            Inventory.ItemAndStackValues[] _itemStacksToTransfer = [];
             int _currentItemTransferIndex;
 
             bool _hasFinishedGivingItems;
@@ -58,12 +58,27 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
                 if (OwnerInventory)
                 {
-                    List<ItemStack> itemsToTransfer = new List<ItemStack>(OwnerInventory.itemAcquisitionOrder.Count);
+                    List<Inventory.ItemAndStackValues> itemsToTransfer = new List<Inventory.ItemAndStackValues>(OwnerInventory.itemAcquisitionOrder.Count);
                     foreach (ItemIndex item in OwnerInventory.itemAcquisitionOrder)
                     {
                         if (ItemTransferFilter(item))
                         {
-                            itemsToTransfer.Add(new ItemStack(item, OwnerInventory.GetItemCount(item)));
+                            int permanentItemCount = OwnerInventory.GetItemCountPermanent(item);
+                            float tempItemCount = OwnerInventory.tempItemsStorage.GetItemRawValue(item);
+                            float totalTransferrableItemCount = permanentItemCount + tempItemCount;
+                            if (totalTransferrableItemCount > 0)
+                            {
+                                itemsToTransfer.Add(new Inventory.ItemAndStackValues
+                                {
+                                    itemIndex = item,
+                                    stackValues = new Inventory.ItemStackValues
+                                    {
+                                        permanentStacks = permanentItemCount,
+                                        temporaryStacksValue = tempItemCount,
+                                        totalStacks = (int)totalTransferrableItemCount
+                                    }
+                                });
+                            }
                         }
                     }
 
@@ -85,15 +100,30 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 {
                     for (int i = _currentItemTransferIndex; i < _itemStacksToTransfer.Length; i++)
                     {
-                        ItemStack itemStack = _itemStacksToTransfer[i];
+                        Inventory.ItemAndStackValues itemStack = _itemStacksToTransfer[i];
 
-                        OwnerInventory.RemoveItem(itemStack.ItemIndex, itemStack.ItemCount);
-                        _targetInventory.GiveItem(itemStack.ItemIndex, itemStack.ItemCount);
+                        Inventory.ItemTransformation itemTransformation = new Inventory.ItemTransformation
+                        {
+                            allowWhenDisabled = true,
+                            minToTransform = 1,
+                            maxToTransform = int.MaxValue,
+                            originalItemIndex = itemStack.itemIndex,
+                            newItemIndex = ItemIndex.None,
+                            transformationType = ItemTransformationTypeIndex.None,
+                        };
+
+                        if (itemTransformation.TryTake(OwnerInventory, out Inventory.ItemTransformation.TakeResult takeResult))
+                        {
+                            takeResult.GiveTakenItem(_targetInventory, itemStack.itemIndex);
+                        }
                     }
                 }
 
-                _hasFinishedGivingItems = true;
-                OnFinishGivingInventory?.Invoke();
+                if (!_hasFinishedGivingItems)
+                {
+                    _hasFinishedGivingItems = true;
+                    OnFinishGivingInventory?.Invoke();
+                }
             }
 
             void FixedUpdate()
@@ -124,15 +154,28 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
 
             void giveNextItem()
             {
-                ItemStack itemStack = _itemStacksToTransfer[_currentItemTransferIndex++];
-                OwnerInventory.RemoveItem(itemStack.ItemIndex, itemStack.ItemCount);
-                ItemTransferOrb orb = ItemTransferOrb.DispatchItemTransferOrb(OwnerBody.corePosition, Target.inventory, itemStack.ItemIndex, itemStack.ItemCount, orb =>
-                {
-                    ItemTransferOrb.DefaultOnArrivalBehavior(orb);
-                    _inFlightOrbs.Remove(orb);
-                });
+                Inventory.ItemAndStackValues itemStack = _itemStacksToTransfer[_currentItemTransferIndex++];
 
-                _inFlightOrbs.Add(orb);
+                Inventory.ItemTransformation itemTransformation = new Inventory.ItemTransformation
+                {
+                    allowWhenDisabled = true,
+                    minToTransform = 1,
+                    maxToTransform = int.MaxValue,
+                    originalItemIndex = itemStack.itemIndex,
+                    newItemIndex = ItemIndex.None,
+                    transformationType = ItemTransformationTypeIndex.None,
+                };
+
+                if (itemTransformation.TryTake(OwnerInventory, out Inventory.ItemTransformation.TakeResult takeResult))
+                {
+                    ItemTransferOrb orb = ItemTransferOrb.DispatchItemTransferOrb(OwnerBody.corePosition, Target.inventory, takeResult.takenItem.itemIndex, takeResult.takenItem.stackValues.permanentStacks, takeResult.takenItem.stackValues.temporaryStacksValue, orb =>
+                    {
+                        ItemTransferOrb.DefaultOnArrivalBehavior(orb);
+                        _inFlightOrbs.Remove(orb);
+                    });
+
+                    _inFlightOrbs.Add(orb);
+                }
             }
 
             public void TransferEquipment()
@@ -141,7 +184,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
                 if (currentEquipment == EquipmentIndex.None)
                     return;
 
-                OwnerInventory.SetEquipmentIndex(EquipmentIndex.None);
+                OwnerInventory.SetEquipmentIndex(EquipmentIndex.None, true);
                 EquipmentTransferOrb.DispatchEquipmentTransferOrb(OwnerBody.corePosition, _targetInventory, currentEquipment);
             }
         }
@@ -173,7 +216,23 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Items
             if (playerBodies.Count < 2)
                 return false;
 
-            return !context.IsNow || playerBodies.Any(b => b.inventory && (b.inventory.GetEquipmentIndex() != EquipmentIndex.None || b.inventory.itemAcquisitionOrder.Any(GiveInventoryTo.ItemTransferFilter)));
+            return !context.IsNow || playerBodies.Any(b => b.inventory && hasAnySwappableItem(b.inventory));
+        }
+
+        static bool hasAnySwappableItem(Inventory inventory)
+        {
+            if (inventory.GetEquipmentIndex() != EquipmentIndex.None)
+                return true;
+
+            foreach (ItemIndex itemIndex in inventory.itemAcquisitionOrder)
+            {
+                if (GiveInventoryTo.ItemTransferFilter(itemIndex) && inventory.GetOwnedItemCount(itemIndex) > 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         ChaosEffectComponent _effectComponent;

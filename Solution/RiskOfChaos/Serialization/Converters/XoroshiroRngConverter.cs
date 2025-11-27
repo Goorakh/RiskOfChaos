@@ -3,7 +3,7 @@ using System;
 
 namespace RiskOfChaos.Serialization.Converters
 {
-    public class XoroshiroRngConverter : JsonConverter<Xoroshiro128Plus>
+    public sealed class XoroshiroRngConverter : JsonConverter<Xoroshiro128Plus>
     {
         public override void WriteJson(JsonWriter writer, Xoroshiro128Plus value, JsonSerializer serializer)
         {

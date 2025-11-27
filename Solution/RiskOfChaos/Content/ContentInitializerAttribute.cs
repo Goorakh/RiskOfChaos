@@ -129,7 +129,7 @@ namespace RiskOfChaos.Content
             return totalProgressCoroutine;
         }
 
-        class ParallelCoroutineGroup : IEnumerator
+        sealed class ParallelCoroutineGroup : IEnumerator
         {
             public readonly HashSet<Type> _initializedTypes = [];
             readonly ParallelProgressCoroutine _combinedCoroutine;

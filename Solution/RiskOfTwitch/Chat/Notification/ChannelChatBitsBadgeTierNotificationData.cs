@@ -2,7 +2,7 @@
 
 namespace RiskOfTwitch.Chat.Notification
 {
-    public class ChannelChatBitsBadgeTierNotificationData
+    public sealed class ChannelChatBitsBadgeTierNotificationData
     {
         [JsonProperty("tier")]
         public int Tier { get; set; }
