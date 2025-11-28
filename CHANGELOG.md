@@ -2,6 +2,8 @@
 
 **?.?.? Changes:**
 
+* Updated for Alloyed Collective.
+
 * Removed 15 effects:
   * All Skills are Agile
     * Just became a less intuitive version of the 'Always Sprinting' effect
@@ -28,7 +30,7 @@
   * No longer affects bosses.
 
 * Adaptive Recycling:
-  * Fixed 'Recycle Timer Scale' config value not being applied properly
+  * Fixed 'Recycle Timer Scale' config value not being applied properly.
 
 * Reinforcements:
   * Reduced default number of spawned survivors: 10 -> 5
@@ -39,7 +41,7 @@
 
 * Guaranteed Chance Effects:
   * Default Duration: 60s -> 30s 
-  * No longer gives guaranteed aspect drops when active, instead grants additional luck during an elite kill for a significantly higher chance of an aspect drop
+  * No longer gives guaranteed aspect drops when active, instead grants additional luck during an elite kill for a significantly higher chance of an aspect drop.
 
 * Spawn Scavenger Bag:
   * Default weight: 0.6 -> 0.5
