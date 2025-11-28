@@ -1,6 +1,6 @@
 ## Changelog
 
-**?.?.? Changes:**
+**2.7.0 Changes:**
 
 * Updated for Alloyed Collective.
 

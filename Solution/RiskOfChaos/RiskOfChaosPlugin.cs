@@ -6,12 +6,9 @@ using RiskOfChaos.ModCompatibility;
 using RiskOfChaos.Networking;
 using RiskOfChaos.Utilities;
 using RoR2;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
-using System.Text;
+
 using Path = System.IO.Path;
 
 namespace RiskOfChaos
@@ -29,7 +26,7 @@ namespace RiskOfChaos
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Gorakh";
         public const string PluginName = "RiskOfChaos";
-        public const string PluginVersion = "2.6.7";
+        public const string PluginVersion = "2.7.0";
 
         Harmony _harmonyInstance;
 
@@ -87,7 +84,7 @@ namespace RiskOfChaos
 
             ChaosEffectCatalog.InitConfig(Config);
 
-            RoR2.RoR2Application.onLoad += () =>
+            RoR2Application.onLoad += () =>
             {
                 Config.SaveOnConfigSet = true;
 
