@@ -237,22 +237,26 @@ namespace RiskOfChaos.EffectUtils.World.Spawn
             CharacterBody body = master.GetBody();
             if (body)
             {
-                DroneIndex droneIndex = DroneCatalog.GetDroneIndexFromBodyIndex(body.bodyIndex);
-                if (droneIndex != DroneIndex.None)
+                if (ExpansionUtils.DLC3Enabled)
                 {
-                    if (ExpansionUtils.DLC3Enabled)
+                    DroneIndex droneIndex = DroneCatalog.GetDroneIndexFromBodyIndex(body.bodyIndex);
+                    if (droneIndex != DroneIndex.None)
                     {
-                        if (inventory)
+                        DroneDef droneDef = DroneCatalog.GetDroneDef(droneIndex);
+                        if (droneDef && droneDef.canCombine)
                         {
-                            int droneTier = 0;
-                            while (rng.nextNormalizedFloat <= 0.3f)
+                            if (inventory)
                             {
-                                droneTier++;
-                            }
+                                int droneTier = 0;
+                                while (rng.nextNormalizedFloat <= 0.3f)
+                                {
+                                    droneTier++;
+                                }
 
-                            if (droneTier > 0)
-                            {
-                                inventory.GiveItemPermanent(DLC3Content.Items.DroneUpgradeHidden, droneTier);
+                                if (droneTier > 0)
+                                {
+                                    inventory.GiveItemPermanent(DLC3Content.Items.DroneUpgradeHidden, droneTier);
+                                }
                             }
                         }
                     }
