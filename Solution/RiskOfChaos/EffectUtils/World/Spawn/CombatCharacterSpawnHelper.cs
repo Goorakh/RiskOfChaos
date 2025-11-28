@@ -1,10 +1,12 @@
 ﻿using HG;
 using RiskOfChaos.Collections.CatalogIndex;
 using RiskOfChaos.Utilities;
+using RiskOfChaos.Utilities.Comparers;
 using RiskOfChaos.Utilities.Extensions;
 using RiskOfChaos.Utilities.Pickup;
 using RoR2;
 using RoR2.Navigation;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -26,6 +28,7 @@ namespace RiskOfChaos.EffectUtils.World.Spawn
             "BeetleGuardMasterCrystal", // Weird beetle guard reskin
             "DevotedLemurianMaster", // Just regular Lemurian without Devotion artifact
             "EngiBeamTurretMaster", // Seems to ignore the player
+            "ITBrotherMaster", // Mithrix copy
             "LemurianBruiserMasterHaunted", // Would include if it had a more distinct appearance
             "LemurianBruiserMasterPoison", // Would include if it had a more distinct appearance
             "MiniVoidRaidCrabMasterBase", // Base voidling
@@ -33,6 +36,9 @@ namespace RiskOfChaos.EffectUtils.World.Spawn
             "MinorConstructOnKillMaster", // Alpha construct reskin
             "ParentPodMaster", // Just a worse Parent spawn
             "ShopkeeperMaster", // Too much health, also flashbang thing when it takes enough damage
+            "SolusHeartMaster", // Doesn't work outside arena
+            "SolusVendorMaster", // Cannot do damage
+            "ToolbotMonsterMasterVariant", // MUL-T copy
             "UrchinTurretMaster", // Dies shortly after spawning
             "VoidBarnacleNoCastMaster",
             "VoidRaidCrabMaster", // Beta voidling, half invisible
@@ -48,23 +54,49 @@ namespace RiskOfChaos.EffectUtils.World.Spawn
             "InvincibleLemurianBruiserMaster",
         ]);
 
-        public static void GetAllValidCombatCharacters(List<CharacterMaster> dest)
-        {
-            List<CharacterMaster> aiMasters = [.. MasterCatalog.allAiMasters];
+        static MasterCatalog.MasterIndex[] _validCombatMasterIndices = [];
 
-            dest.EnsureCapacity(aiMasters.Count);
+        [SystemInitializer(typeof(MasterCatalog))]
+        static void Init()
+        {
+            CharacterMaster[] aiMasters = [.. MasterCatalog.allAiMasters];
+
+            List<MasterCatalog.MasterIndex> validCombatMasterIndices = [];
+            validCombatMasterIndices.EnsureCapacity(aiMasters.Length);
 
             foreach (CharacterMaster masterPrefab in aiMasters)
             {
                 if (IsValidCombatCharacter(masterPrefab))
                 {
-                    dest.Add(masterPrefab);
+                    validCombatMasterIndices.Add(masterPrefab.masterIndex);
+                }
+            }
+
+            _validCombatMasterIndices = [.. validCombatMasterIndices];
+            Array.Sort(_validCombatMasterIndices, MasterIndexComparer.Instance);
+        }
+
+        public static void GetAllValidCombatCharacters(List<CharacterMaster> dest)
+        {
+            if (dest is null)
+                throw new ArgumentNullException(nameof(dest));
+
+            dest.EnsureCapacity(dest.Count + _validCombatMasterIndices.Length);
+            foreach (MasterCatalog.MasterIndex combatMasterIndex in _validCombatMasterIndices)
+            {
+                GameObject masterPrefab = MasterCatalog.GetMasterPrefab(combatMasterIndex);
+                if (masterPrefab && masterPrefab.TryGetComponent(out CharacterMaster combatMaster))
+                {
+                    dest.Add(combatMaster);
                 }
             }
         }
 
         public static bool IsValidCombatCharacter(CharacterMaster masterPrefab)
         {
+            if (!masterPrefab)
+                return false;
+
             if (_masterBlacklist.Contains(masterPrefab.masterIndex))
                 return false;
 
@@ -257,7 +289,7 @@ namespace RiskOfChaos.EffectUtils.World.Spawn
             {
                 PickupToGrant = new PickupStack(PickupCatalog.FindPickupIndex(eliteEquipmentDef.equipmentIndex), new Inventory.ItemStackValues { totalStacks = 1 }),
                 ReplacementRule = InventoryExtensions.PickupReplacementRule.DeleteExisting,
-                NotificationFlags = PickupUtils.DefaultNotificationFlags
+                NotificationFlags = PickupNotificationFlags.None
             };
 
             if (eliteEquipmentGrantParameters.AttemptGrant(inventory))
@@ -274,6 +306,28 @@ namespace RiskOfChaos.EffectUtils.World.Spawn
         }
 
 #if DEBUG
+        [ConCommand(commandName = "roc_print_combat_characters")]
+        static void CCPrintCombatCharacters(ConCommandArgs args)
+        {
+            List<CharacterMaster> combatMasters = [];
+            GetAllValidCombatCharacters(combatMasters);
+
+            Log.Info("INCLUDED:");
+            foreach (CharacterMaster combatMaster in combatMasters)
+            {
+                Log.Info(combatMaster.name);
+            }
+
+            Log.Info("EXCLUDED:");
+            foreach (CharacterMaster aiMaster in MasterCatalog.allAiMasters)
+            {
+                if (!combatMasters.Contains(aiMaster))
+                {
+                    Log.Info(aiMaster.name);
+                }
+            }
+        }
+
         [ConCommand(commandName = "roc_test_body_spawn_nodegraphs")]
         static void CCTestSpawnNodeGraphs(ConCommandArgs args)
         {

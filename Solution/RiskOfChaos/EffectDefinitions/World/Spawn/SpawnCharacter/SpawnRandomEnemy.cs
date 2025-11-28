@@ -26,7 +26,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
     {
         static readonly SpawnPool<CharacterSpawnCard> _spawnPool = new SpawnPool<CharacterSpawnCard>();
 
-        [SystemInitializer(typeof(MasterCatalog), typeof(UnlockableCatalog), typeof(CharacterExpansionRequirementFix), typeof(ExpansionUtils))]
+        [SystemInitializer(typeof(MasterCatalog), typeof(UnlockableCatalog), typeof(CharacterExpansionRequirementFix), typeof(ExpansionUtils), typeof(CombatCharacterSpawnHelper))]
         static void Init()
         {
             List<CharacterMaster> validCombatCharacters = [];

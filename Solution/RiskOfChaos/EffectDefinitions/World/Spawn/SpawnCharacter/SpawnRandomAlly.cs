@@ -28,7 +28,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
     {
         static readonly SpawnPool<CharacterSpawnCard> _spawnPool = new SpawnPool<CharacterSpawnCard>();
 
-        [SystemInitializer(typeof(MasterCatalog), typeof(BodyCatalog), typeof(UnlockableCatalog), typeof(CharacterExpansionRequirementFix), typeof(ExpansionCatalog))]
+        [SystemInitializer(typeof(MasterCatalog), typeof(BodyCatalog), typeof(UnlockableCatalog), typeof(CharacterExpansionRequirementFix), typeof(ExpansionCatalog), typeof(CombatCharacterSpawnHelper))]
         static void Init()
         {
             List<CharacterMaster> validCombatCharacters = [];
@@ -222,24 +222,24 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn.SpawnCharacter
                     if (!result.success)
                         return;
 
-                    if (result.spawnedInstance.TryGetComponent(out CharacterMaster master))
+                    if (result.spawnedInstance.TryGetComponent(out CharacterMaster spawnedMaster))
                     {
-                        CombatCharacterSpawnHelper.SetupSpawnedCombatCharacter(master, spawnRng);
+                        CombatCharacterSpawnHelper.SetupSpawnedCombatCharacter(spawnedMaster, spawnRng);
 
                         if (spawnRng.nextNormalizedFloat <= _eliteChance.Value)
                         {
-                            CombatCharacterSpawnHelper.GrantRandomEliteAspect(master, spawnRng, _allowDirectorUnavailableElites.Value);
+                            CombatCharacterSpawnHelper.GrantRandomEliteAspect(spawnedMaster, spawnRng, _allowDirectorUnavailableElites.Value);
                         }
 
-                        master.gameObject.SetDontDestroyOnLoad(true);
+                        spawnedMaster.gameObject.SetDontDestroyOnLoad(true);
 
-                        CharacterBody body = master.GetBody();
+                        CharacterBody body = spawnedMaster.GetBody();
                         BodyIndex droneBodyIndex = body ? body.bodyIndex : BodyIndex.None;
 
                         DroneIndex droneIndex = DroneCatalog.GetDroneIndexFromBodyIndex(droneBodyIndex);
                         if (droneIndex != DroneIndex.None)
                         {
-                            int droneUpgradeValue = master.inventory ? master.inventory.GetItemCountPermanent(DLC3Content.Items.DroneUpgradeHidden) : 0;
+                            int droneUpgradeValue = spawnedMaster.inventory ? spawnedMaster.inventory.GetItemCountPermanent(DLC3Content.Items.DroneUpgradeHidden) : 0;
 
                             if (Util.HasEffectiveAuthority(master.gameObject))
                             {
