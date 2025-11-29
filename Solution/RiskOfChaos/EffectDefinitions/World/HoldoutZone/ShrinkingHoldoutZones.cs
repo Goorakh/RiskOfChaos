@@ -1,9 +1,8 @@
-﻿using RiskOfChaos.Collections;
-using RiskOfChaos.EffectHandling;
+﻿using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Trackers;
 using RoR2;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
@@ -11,15 +10,16 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
     [ChaosTimedEffect("shrinking_holdout_zones", TimedEffectType.UntilStageEnd, AllowDuplicates = false)]
     public sealed class ShrinkingHoldoutZones : MonoBehaviour
     {
-        readonly ClearingObjectList<ShrinkingHoldoutZoneController> _holdoutZoneShrinkControllers = [];
+        ChaosEffectComponent _effectComponent;
+
+        void Awake()
+        {
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
 
         void Start()
         {
-            List<HoldoutZoneTracker> holdoutZoneTrackers = InstanceTracker.GetInstancesList<HoldoutZoneTracker>();
-
-            _holdoutZoneShrinkControllers.EnsureCapacity(holdoutZoneTrackers.Count);
-
-            foreach (HoldoutZoneTracker holdoutZoneTracker in holdoutZoneTrackers)
+            foreach (HoldoutZoneTracker holdoutZoneTracker in InstanceTracker.GetInstancesList<HoldoutZoneTracker>())
             {
                 registerHoldoutZone(holdoutZoneTracker);
             }
@@ -30,8 +30,6 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
         void OnDestroy()
         {
             HoldoutZoneTracker.OnHoldoutZoneStartGlobal -= registerHoldoutZone;
-
-            _holdoutZoneShrinkControllers.ClearAndDispose(true);
         }
 
         void registerHoldoutZone(HoldoutZoneTracker holdoutZoneTracker)
@@ -41,7 +39,7 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
                 return;
 
             ShrinkingHoldoutZoneController shrinkController = holdoutZoneController.gameObject.AddComponent<ShrinkingHoldoutZoneController>();
-            _holdoutZoneShrinkControllers.Add(shrinkController);
+            shrinkController.OwnerEffectComponent = _effectComponent;
         }
 
         sealed class ShrinkingHoldoutZoneController : MonoBehaviour
@@ -53,6 +51,28 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
             ]);
 
             HoldoutZoneController _holdoutZone;
+
+            public ChaosEffectComponent OwnerEffectComponent
+            {
+                get => field;
+                set
+                {
+                    if (field == value)
+                        return;
+
+                    if (field)
+                    {
+                        field.OnEffectEnd -= onOwnerEffectEnd;
+                    }
+
+                    field = value;
+
+                    if (field)
+                    {
+                        field.OnEffectEnd += onOwnerEffectEnd;
+                    }
+                }
+            }
 
             void Awake()
             {
@@ -67,6 +87,11 @@ namespace RiskOfChaos.EffectDefinitions.World.HoldoutZone
             void OnDisable()
             {
                 _holdoutZone.calcRadius -= calcRadius;
+            }
+
+            void onOwnerEffectEnd(ChaosEffectComponent effectComponent)
+            {
+                Destroy(this);
             }
 
             void calcRadius(ref float radius)

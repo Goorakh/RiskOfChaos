@@ -4,6 +4,7 @@ using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
@@ -24,12 +25,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                                 .OptionConfig(new FloatFieldConfig { Min = 0f, FormatString = "{0}x" })
                                 .Build();
 
+        ChaosEffectComponent _effectComponent;
+
         GenericAttractPickupsEffect _attractPickupsEffect;
 
         ItemTierPickupRulesOverride _itemPickupRulesOverride;
 
         void Awake()
         {
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+
             _attractPickupsEffect = GetComponent<GenericAttractPickupsEffect>();
             _attractPickupsEffect.SetupAttractComponent += updateAttractComponent;
         }
@@ -62,9 +67,12 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
 
         void updateAllAttractComponents()
         {
-            foreach (AttractToPlayers attractComponent in _attractPickupsEffect.AttractComponents)
+            foreach (AttractToPlayers attractComponent in InstanceTracker.GetInstancesList<AttractToPlayers>())
             {
-                updateAttractComponent(attractComponent);
+                if (attractComponent.OwnerEffectComponent == _effectComponent)
+                {
+                    updateAttractComponent(attractComponent);
+                }
             }
         }
 

@@ -1,10 +1,12 @@
 ﻿using EntityStates;
 using RiskOfChaos.Content;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.ModificationController;
 using RiskOfChaos.ModificationController.TimeScale;
 using RiskOfChaos.Utilities;
 using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -36,6 +38,28 @@ namespace RiskOfChaos.Networking.Components
         float _targetMultiplier = 1f;
 
         float _lastSetTargetMultiplier = 1f;
+
+        public ChaosEffectComponent OwnerEffectComponent
+        {
+            get => field;
+            set
+            {
+                if (field == value)
+                    return;
+
+                if (field)
+                {
+                    field.OnEffectEnd -= onOwnerEffectEnd;
+                }
+
+                field = value;
+
+                if (field)
+                {
+                    field.OnEffectEnd += onOwnerEffectEnd;
+                }
+            }
+        }
 
         void Awake()
         {
@@ -75,6 +99,14 @@ namespace RiskOfChaos.Networking.Components
         void updateHasAuthority()
         {
             _hasEffectiveAuthority = Util.HasEffectiveAuthority(_networkIdentity);
+        }
+
+        void onOwnerEffectEnd(ChaosEffectComponent effectComponent)
+        {
+            if (NetworkServer.active)
+            {
+                Retire();
+            }
         }
 
         void setBody(CharacterBody body)

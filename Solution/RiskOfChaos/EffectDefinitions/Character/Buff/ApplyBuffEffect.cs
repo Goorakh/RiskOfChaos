@@ -1,5 +1,4 @@
-﻿using RiskOfChaos.Collections;
-using RiskOfChaos.Components;
+﻿using RiskOfChaos.Components;
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.SaveHandling;
@@ -56,6 +55,8 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 
         public event Action OnAppliedBuffChanged;
 
+        public event Action<int> RemoveBuffsEvent;
+
         [SyncVar(hook = nameof(hookSetBuffIndex))]
         int _buffIndexInternal;
 
@@ -76,16 +77,18 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
             set => _buffStackCount = value;
         }
 
+        public ChaosEffectComponent EffectComponent { get; private set; }
+
         BuffIndex _appliedBuffIndexServer = BuffIndex.None;
         int _appliedBuffStackCountServer;
-
-        readonly ClearingObjectList<KeepBuff> _keepBuffComponents = [];
 
         bool _appliedBuffDirty;
 
         void Awake()
         {
             _instancesList.Add(this);
+
+            EffectComponent = GetComponent<ChaosEffectComponent>();
         }
 
         void Start()
@@ -117,7 +120,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
                     {
                         removeAllBuffComponents();
 
-                        _keepBuffComponents.EnsureCapacity(CharacterBody.readOnlyInstancesList.Count);
                         CharacterBody.readOnlyInstancesList.TryDo(tryAddBuff, FormatUtils.GetBestBodyName);
 
                         _appliedBuffIndexServer = BuffIndex;
@@ -142,8 +144,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
 
             KeepBuff keepBuff = KeepBuff.GetOrAddBuffComponent(body, BuffIndex);
             keepBuff.MinBuffCount += BuffStackCount;
-
-            _keepBuffComponents.Add(keepBuff);
+            keepBuff.SubscribeToEffect(this);
 
             OnBuffAppliedServer?.Invoke(body);
         }
@@ -151,15 +152,7 @@ namespace RiskOfChaos.EffectDefinitions.Character.Buff
         [Server]
         void removeAllBuffComponents()
         {
-            foreach (KeepBuff keepBuff in _keepBuffComponents)
-            {
-                if (keepBuff)
-                {
-                    keepBuff.MinBuffCount -= _appliedBuffStackCountServer;
-                }
-            }
-
-            _keepBuffComponents.Clear();
+            RemoveBuffsEvent?.Invoke(_appliedBuffStackCountServer);
         }
 
         void hookSetBuffIndex(int value)

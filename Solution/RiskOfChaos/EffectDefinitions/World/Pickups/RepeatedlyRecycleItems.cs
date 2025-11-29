@@ -1,4 +1,4 @@
-﻿using RiskOfChaos.Collections;
+﻿using HG;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
@@ -94,8 +94,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
         const float RECYCLE_IGNORE_GROUP_CHANCE = 0.05f;
 
         ChaosEffectComponent _effectComponent;
-
-        readonly ClearingObjectList<RecycleOnTimer> _recyclerComponents = [];
 
         PickupIndex[] _recycleSteps = [];
 
@@ -197,11 +195,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
         {
             if (NetworkServer.active)
             {
-                List<GenericPickupController> genericPickupControllers = InstanceTracker.GetInstancesList<GenericPickupController>();
-
-                _recyclerComponents.EnsureCapacity(genericPickupControllers.Count);
-
-                genericPickupControllers.TryDo(handlePickupController);
+                InstanceTracker.GetInstancesList<GenericPickupController>().TryDo(handlePickupController);
                 GenericPickupControllerHooks.OnGenericPickupControllerStartGlobal += handlePickupController;
             }
         }
@@ -209,17 +203,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
         void OnDestroy()
         {
             GenericPickupControllerHooks.OnGenericPickupControllerStartGlobal -= handlePickupController;
-
-            _recyclerComponents.ClearAndDispose(true);
         }
 
         [Server]
         void handlePickupController(GenericPickupController pickupController)
         {
-            RecycleOnTimer recycleOnTimer = pickupController.gameObject.AddComponent<RecycleOnTimer>();
+            RecycleOnTimer recycleOnTimer = pickupController.gameObject.EnsureComponent<RecycleOnTimer>();
             recycleOnTimer.EffectInstance = this;
-
-            _recyclerComponents.Add(recycleOnTimer);
         }
 
         int findRecycleStepIndex(PickupIndex pickupIndex)
@@ -276,6 +266,13 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
                 _currentRecycleStepIndex = EffectInstance.findRecycleStepIndex(PickupController.pickup.pickupIndex);
 
                 startRecycleTimer();
+
+                EffectInstance._effectComponent.OnEffectEnd += onOwnerEffectEnd;
+            }
+
+            void onOwnerEffectEnd(ChaosEffectComponent effectComponent)
+            {
+                Destroy(this);
             }
 
             void startRecycleTimer()

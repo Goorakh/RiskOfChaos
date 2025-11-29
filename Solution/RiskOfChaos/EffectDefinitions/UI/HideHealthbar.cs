@@ -1,10 +1,9 @@
-﻿using RiskOfChaos.Collections;
-using RiskOfChaos.Components;
+﻿using RiskOfChaos.Components;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Trackers;
 using RoR2;
 using RoR2.UI;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace RiskOfChaos.EffectDefinitions.UI
@@ -12,23 +11,16 @@ namespace RiskOfChaos.EffectDefinitions.UI
     [ChaosTimedEffect("hide_healthbar", 60f, AllowDuplicates = false)]
     public sealed class HideHealthbar : MonoBehaviour
     {
-        readonly ClearingObjectList<KeepDisabled> _healthBarHiderComponents = new ClearingObjectList<KeepDisabled>()
+        ChaosEffectComponent _effectComponent;
+
+        void Awake()
         {
-            DontUseDestroyEvent = true,
-            AutoClearInterval = 10f,
-            ObjectIdentifier = "HealthBarHider"
-        };
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
 
         void Start()
         {
-            List<HealthBarTracker> healthBarTrackers = InstanceTracker.GetInstancesList<HealthBarTracker>();
-            List<HUDBossHealthBarControllerTracker> bossHealthBarControllerTrackers = InstanceTracker.GetInstancesList<HUDBossHealthBarControllerTracker>();
-
-            int currentHealthBarsCount = healthBarTrackers.Count + bossHealthBarControllerTrackers.Count;
-
-            _healthBarHiderComponents.EnsureCapacity(currentHealthBarsCount);
-
-            foreach (HealthBarTracker healthBarTracker in healthBarTrackers)
+            foreach (HealthBarTracker healthBarTracker in InstanceTracker.GetInstancesList<HealthBarTracker>())
             {
                 if (healthBarTracker)
                 {
@@ -36,7 +28,7 @@ namespace RiskOfChaos.EffectDefinitions.UI
                 }
             }
 
-            foreach (HUDBossHealthBarControllerTracker bossHealthBarControllerTracker in bossHealthBarControllerTrackers)
+            foreach (HUDBossHealthBarControllerTracker bossHealthBarControllerTracker in InstanceTracker.GetInstancesList<HUDBossHealthBarControllerTracker>())
             {
                 if (bossHealthBarControllerTracker)
                 {
@@ -52,8 +44,6 @@ namespace RiskOfChaos.EffectDefinitions.UI
         {
             HealthBarTracker.OnHealthBarAwakeGlobal -= hideHealthBar;
             HUDBossHealthBarControllerTracker.OnHUDBossHealthBarControllerAwakeGlobal -= hideBossHealthBar;
-
-            _healthBarHiderComponents.ClearAndDispose(true);
         }
 
         void hideHealthBar(HealthBarTracker healthBarTracker)
@@ -76,7 +66,7 @@ namespace RiskOfChaos.EffectDefinitions.UI
                 return;
 
             KeepDisabled healthBarHider = healthBarRoot.AddComponent<KeepDisabled>();
-            _healthBarHiderComponents.Add(healthBarHider);
+            healthBarHider.OwnerEffectComponent = _effectComponent;
         }
     }
 }

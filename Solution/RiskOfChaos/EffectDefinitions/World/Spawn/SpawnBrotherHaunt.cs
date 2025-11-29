@@ -1,15 +1,17 @@
-﻿using RiskOfChaos.Collections;
-using RiskOfChaos.ConfigHandling;
+﻿using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.EffectHandling;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Data;
 using RiskOfChaos.EffectHandling.EffectClassAttributes.Methods;
 using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Trackers;
+using RiskOfChaos.Utilities;
 using RiskOfOptions.OptionConfigs;
 using RoR2;
 using RoR2.ContentManagement;
 using RoR2.UI;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -63,20 +65,18 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         AssetOrDirectReference<GameObject> _countdownTimerPrefabReference;
 
-        ChaosEffectComponent _effectComponent;
+        public ChaosEffectComponent EffectComponent { get; private set; }
 
         float _masterRespawnTimer;
         CharacterMaster _spawnedMaster;
 
-        readonly ClearingObjectList<TimerText> _countdownTimers = new ClearingObjectList<TimerText>()
-        {
-            ObjectIdentifier = "SpawnBrotherHauntCountdownTimers",
-            DestroyComponentGameObject = true
-        };
+        float _hudUpdateTimer;
+
+        public event Action DestroyTimersSignal;
 
         void Awake()
         {
-            _effectComponent = GetComponent<ChaosEffectComponent>();
+            EffectComponent = GetComponent<ChaosEffectComponent>();
 
             if (NetworkClient.active)
             {
@@ -85,13 +85,19 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     unloadType = AsyncReferenceHandleUnloadType.AtWill,
                     address = new AssetReferenceGameObject(AddressableGuids.RoR2_Base_UI_HudCountdownPanel_prefab)
                 };
+
+                _countdownTimerPrefabReference.onValidReferenceDiscovered += _ =>
+                {
+                    updateHud();
+                };
+
+                _showCountdownTimer.SettingChanged += onShowCountdownTimerChanged;
+                Stage.onStageStartGlobal += onStageStartGlobal;
             }
         }
 
         void OnDestroy()
         {
-            _countdownTimers.ClearAndDispose(true);
-
             if (_spawnedMaster)
             {
                 _spawnedMaster.TrueKill();
@@ -99,6 +105,19 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
             _countdownTimerPrefabReference?.Reset();
             _countdownTimerPrefabReference = null;
+
+            _showCountdownTimer.SettingChanged -= onShowCountdownTimerChanged;
+            Stage.onStageStartGlobal -= onStageStartGlobal;
+        }
+
+        void onStageStartGlobal(Stage obj)
+        {
+            updateHud();
+        }
+
+        void onShowCountdownTimerChanged(object sender, ConfigChangedArgs<bool> args)
+        {
+            updateHud();
         }
 
         void FixedUpdate()
@@ -112,11 +131,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
             {
                 updateClient();
             }
-        }
-
-        void Update()
-        {
-            updateTimers();
         }
 
         void updateServer()
@@ -133,7 +147,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
                     {
                         masterPrefab = _brotherHauntPrefab,
                         ignoreTeamMemberLimit = true,
-                        teamIndexOverride = TeamIndex.Lunar
+                        teamIndexOverride = TeamIndex.Monster
                     }.Perform();
                 }
             }
@@ -141,62 +155,132 @@ namespace RiskOfChaos.EffectDefinitions.World.Spawn
 
         void updateClient()
         {
-            bool canShowCountdownTimer = _effectComponent.DurationComponent && _effectComponent.DurationComponent.TimedType == TimedEffectType.FixedDuration;
+            _hudUpdateTimer -= Time.deltaTime;
+            if (_hudUpdateTimer <= 0f)
+            {
+                _hudUpdateTimer = 5f;
+                updateHud();
+            }
+        }
+
+        void updateHud()
+        {
+            bool canShowCountdownTimer = EffectComponent.DurationComponent && EffectComponent.DurationComponent.Duration > 0f;
 
             if (canShowCountdownTimer && _showCountdownTimer.Value && isValidScene())
             {
-                if (_countdownTimers.Count < HUD.readOnlyInstanceList.Count)
+                if (_countdownTimerPrefabReference != null && _countdownTimerPrefabReference.IsLoaded())
                 {
-                    if (_countdownTimerPrefabReference != null && _countdownTimerPrefabReference.IsLoaded())
+                    GameObject countdownTimerPrefab = _countdownTimerPrefabReference.Result;
+
+                    List<HudCountdownPanelTracker> hudCountdownPanels = InstanceTracker.GetInstancesList<HudCountdownPanelTracker>();
+
+                    foreach (HUD hud in HUD.readOnlyInstanceList)
                     {
-                        GameObject countdownTimerPrefab = _countdownTimerPrefabReference.Result;
+                        if (hudCountdownPanels.Any(p => p.HUD == hud))
+                            continue;
 
-                        _countdownTimers.EnsureCapacity(HUD.readOnlyInstanceList.Count);
-                        foreach (HUD hud in HUD.readOnlyInstanceList)
-                        {
-                            if (InstanceTracker.GetInstancesList<HudCountdownPanelTracker>().Any(p => p.HUD == hud))
-                                continue;
+                        if (!hud.TryGetComponent(out ChildLocator childLocator))
+                            continue;
 
-                            if (!hud.TryGetComponent(out ChildLocator childLocator))
-                                continue;
+                        RectTransform topCenterCluster = childLocator.FindChild("TopCenterCluster") as RectTransform;
+                        if (!topCenterCluster)
+                            continue;
 
-                            RectTransform topCenterCluster = childLocator.FindChild("TopCenterCluster") as RectTransform;
-                            if (!topCenterCluster)
-                                continue;
+                        GameObject countdownPanel = GameObject.Instantiate(countdownTimerPrefab, topCenterCluster);
+                        CountdownTimerController countdownController = countdownPanel.AddComponent<CountdownTimerController>();
+                        countdownController.OwnerEffect = this;
 
-                            GameObject countdownPanel = GameObject.Instantiate(countdownTimerPrefab, topCenterCluster);
-                            TimerText timerText = countdownPanel.GetComponent<TimerText>();
-
-                            _countdownTimers.Add(timerText);
-
-                            Log.Debug($"Created countdown timer for local user {hud.localUserViewer?.id}");
-                        }
+                        Log.Debug($"Created countdown timer for local user {hud.localUserViewer?.id}");
                     }
                 }
             }
             else
             {
-                _countdownTimers.Clear(true);
+                DestroyTimersSignal?.Invoke();
             }
         }
 
-        void updateTimers()
+        sealed class CountdownTimerController : MonoBehaviour
         {
-            if (_countdownTimers.Count > 0)
+            ChaosEffectComponent _ownerEffectComponent;
+            public SpawnBrotherHaunt OwnerEffect
             {
-                float timeRemaining = _effectComponent.TimeStarted.TimeSinceClamped;
-                if (_effectComponent.DurationComponent && _effectComponent.DurationComponent.TimedType == TimedEffectType.FixedDuration)
+                get => field;
+                set
                 {
-                    timeRemaining = _effectComponent.DurationComponent.Remaining;
-                }
+                    if (field == value)
+                        return;
 
-                foreach (TimerText timerText in _countdownTimers)
-                {
-                    if (timerText)
+                    if (_ownerEffectComponent)
                     {
-                        timerText.seconds = timeRemaining;
+                        _ownerEffectComponent.OnEffectEnd -= onOwnerEffectEnd;
+                    }
+
+                    if (field)
+                    {
+                        field.DestroyTimersSignal -= destroyTimer;
+                    }
+
+                    field = value;
+                    _ownerEffectComponent = field ? field.EffectComponent : null;
+
+                    if (_ownerEffectComponent)
+                    {
+                        _ownerEffectComponent.OnEffectEnd += onOwnerEffectEnd;
+                    }
+
+                    if (field)
+                    {
+                        field.DestroyTimersSignal += destroyTimer;
                     }
                 }
+            }
+
+            RunTimeStamp _startTime;
+
+            TimerText _timerText;
+
+            void Awake()
+            {
+                _timerText = GetComponent<TimerText>();
+                _startTime = RunTimeStamp.Now(RunTimerType.Realtime);
+            }
+
+            void OnDestroy()
+            {
+                OwnerEffect = null;
+            }
+
+            void FixedUpdate()
+            {
+                if (NetworkClient.active)
+                {
+                    if (_timerText)
+                    {
+                        float timeRemaining = _startTime.TimeSinceClamped;
+                        if (_ownerEffectComponent)
+                        {
+                            timeRemaining = _ownerEffectComponent.TimeStarted.TimeSinceClamped;
+                            if (_ownerEffectComponent.DurationComponent && _ownerEffectComponent.DurationComponent.Duration > 0f)
+                            {
+                                timeRemaining = _ownerEffectComponent.DurationComponent.Remaining;
+                            }
+                        }
+
+                        _timerText.seconds = timeRemaining;
+                    }
+                }
+            }
+
+            void onOwnerEffectEnd(ChaosEffectComponent effectComponent)
+            {
+                Destroy(gameObject);
+            }
+
+            void destroyTimer()
+            {
+                Destroy(gameObject);
             }
         }
     }

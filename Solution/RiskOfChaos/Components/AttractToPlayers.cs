@@ -1,4 +1,5 @@
-﻿using RiskOfChaos.Utilities.Extensions;
+﻿using RiskOfChaos.EffectHandling.EffectComponents;
+using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.Projectile;
 using UnityEngine;
@@ -55,6 +56,28 @@ namespace RiskOfChaos.Components
             }
         }
 
+        public ChaosEffectComponent OwnerEffectComponent
+        {
+            get => field;
+            set
+            {
+                if (field == value)
+                    return;
+
+                if (field)
+                {
+                    field.OnEffectEnd -= onOwnerEffectEnd;
+                }
+
+                field = value;
+
+                if (field)
+                {
+                    field.OnEffectEnd += onOwnerEffectEnd;
+                }
+            }
+        }
+
         Rigidbody _rigidbody;
 
         PhysicMaterialOverride _materialOverrideController;
@@ -73,15 +96,26 @@ namespace RiskOfChaos.Components
             };
 
             _materialOverrideController = PhysicMaterialOverride.AddOverrideMaterial(gameObject, _overrideMaterial);
+
+            InstanceTracker.Add(this);
         }
 
         void OnDestroy()
         {
+            InstanceTracker.Remove(this);
+
+            OwnerEffectComponent = null;
+
             if (_overrideMaterial)
             {
                 _materialOverrideController.RemoveOverrideMaterial(_overrideMaterial);
                 Destroy(_overrideMaterial);
             }
+        }
+
+        void onOwnerEffectEnd(ChaosEffectComponent effectComponent)
+        {
+            Destroy(this);
         }
 
         float getTargetFrictionMultiplier()

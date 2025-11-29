@@ -1,7 +1,7 @@
-﻿using RiskOfChaos.Collections;
-using RiskOfChaos.Components;
+﻿using RiskOfChaos.Components;
 using RiskOfChaos.Content;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Networking.Components;
 using RiskOfChaos.Utilities.Interpolation;
 using RoR2;
@@ -36,16 +36,17 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
             args.ContentPack.networkedObjectPrefabs.Add([superhotController]);
         }
 
-        readonly ClearingObjectList<SuperhotPlayerController> _superhotControllers = new ClearingObjectList<SuperhotPlayerController>()
+        ChaosEffectComponent _effectComponent;
+
+        void Awake()
         {
-            DestroyComponentGameObject = true
-        };
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+        }
 
         void Start()
         {
             if (NetworkServer.active)
             {
-                _superhotControllers.EnsureCapacity(PlayerCharacterMasterController.instances.Count);
                 foreach (CharacterBody body in CharacterBody.readOnlyInstancesList)
                 {
                     tryAddSuperhotController(body);
@@ -57,16 +58,6 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 
         void OnDestroy()
         {
-            foreach (SuperhotPlayerController superhotController in _superhotControllers)
-            {
-                if (superhotController)
-                {
-                    superhotController.Retire();
-                }
-            }
-
-            _superhotControllers.ClearAndDispose(false);
-
             CharacterBody.onBodyStartGlobal -= onBodyStartGlobal;
         }
 
@@ -88,6 +79,7 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
             GameObject superhotControllerObj = Instantiate(RoCContent.NetworkedPrefabs.SuperhotController);
 
             SuperhotPlayerController superhotController = superhotControllerObj.GetComponent<SuperhotPlayerController>();
+            superhotController.OwnerEffectComponent = _effectComponent;
 
             if (superhotController.TryGetComponent(out IInterpolationProvider interpolationComponent))
             {
@@ -96,8 +88,6 @@ namespace RiskOfChaos.EffectDefinitions.World.TimeScale
 
             NetworkedBodyAttachment networkedBodyAttachment = superhotControllerObj.GetComponent<NetworkedBodyAttachment>();
             networkedBodyAttachment.AttachToGameObjectAndSpawn(body.gameObject);
-
-            _superhotControllers.Add(superhotController);
         }
     }
 }

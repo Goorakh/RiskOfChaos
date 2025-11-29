@@ -1,18 +1,15 @@
-﻿using RiskOfChaos.Collections;
-using RiskOfChaos.Components;
+﻿using RiskOfChaos.Components;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Trackers;
-using RiskOfChaos.Utilities;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
+using RoR2.ContentManagement;
 using RoR2.Projectile;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RiskOfChaos.EffectDefinitions.World.Pickups
 {
@@ -22,67 +19,61 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
         [SystemInitializer]
         static void Init()
         {
-            static void addNetworkTransformAsync(string prefabAssetGuid)
+            foreach (GameObject prefab in ContentManager.networkedObjectPrefabs)
             {
-                AsyncOperationHandle<GameObject> prefabLoad = AddressableUtil.LoadTempAssetAsync<GameObject>(prefabAssetGuid);
-                prefabLoad.OnSuccess(prefab =>
+                if (prefab.GetComponent<GenericPickupController>() ||
+                    prefab.GetComponent<PickupPickerController>() ||
+                    prefab.GetComponent<PickupDropletController>())
                 {
-                    ProjectileNetworkTransform networkTransform = prefab.GetComponent<ProjectileNetworkTransform>();
-                    if (networkTransform || prefab.GetComponent<NetworkTransform>())
+                    if (AttractToPlayers.CanAddComponent(prefab))
                     {
-                        Log.Info($"{prefab.name} ({prefabAssetGuid}) already has NetworkTransform component, skipping");
-                        return;
+                        ProjectileNetworkTransform networkTransform = prefab.GetComponent<ProjectileNetworkTransform>();
+                        if (networkTransform || prefab.GetComponent<NetworkTransform>())
+                        {
+                            Log.Info($"{prefab.name} already has NetworkTransform component, skipping");
+                            continue;
+                        }
+
+                        if (!prefab.GetComponent<NetworkIdentity>())
+                        {
+                            Log.Error($"{prefab.name} is not a networked object");
+                            continue;
+                        }
+
+                        if (!AttractToPlayers.CanAddComponent(prefab))
+                        {
+                            Log.Error($"{prefab.name} is invalid for component");
+                            continue;
+                        }
+
+                        networkTransform = prefab.AddComponent<ProjectileNetworkTransform>();
+                        networkTransform.positionTransmitInterval = 1f / 10f;
+                        networkTransform.allowClientsideCollision = true;
+
+                        Log.Debug($"Added network transform component to {prefab.name}");
                     }
-
-                    if (!prefab.GetComponent<NetworkIdentity>())
-                    {
-                        Log.Error($"{prefab.name} ({prefabAssetGuid}) is not a networked object");
-                        return;
-                    }
-
-                    if (!AttractToPlayers.CanAddComponent(prefab))
-                    {
-                        Log.Error($"{prefab.name} ({prefabAssetGuid}) is invalid for component");
-                        return;
-                    }
-
-                    networkTransform = prefab.AddComponent<ProjectileNetworkTransform>();
-                    networkTransform.positionTransmitInterval = 1f / 15f;
-                    networkTransform.allowClientsideCollision = true;
-
-                    Log.Debug($"Added network transform component to {prefab.name} ({prefabAssetGuid})");
-                });
+                }
             }
-
-            addNetworkTransformAsync(AddressableGuids.RoR2_Base_Common_GenericPickup_prefab);
-            addNetworkTransformAsync(AddressableGuids.RoR2_Base_Command_CommandCube_prefab);
-
-            addNetworkTransformAsync(AddressableGuids.RoR2_DLC1_OptionPickup_OptionPickup_prefab);
-
-            addNetworkTransformAsync(AddressableGuids.RoR2_DLC2_FragmentPotentialPickup_prefab);
         }
 
-        readonly ClearingObjectList<AttractToPlayers> _attractComponents = [];
-        public ReadOnlyCollection<AttractToPlayers> AttractComponents { get; private set; }
+        ChaosEffectComponent _effectComponent;
 
         public event Action<AttractToPlayers> SetupAttractComponent;
 
         void Awake()
         {
-            AttractComponents = _attractComponents.AsReadOnly();
+            _effectComponent = GetComponent<ChaosEffectComponent>();
         }
 
         void Start()
         {
             if (NetworkServer.active)
             {
-                List<MonoBehaviour> pickupControllerComponents = [
+                IEnumerable<MonoBehaviour> pickupControllerComponents = [
                     .. InstanceTracker.GetInstancesList<PickupDropletControllerTracker>(),
                     .. InstanceTracker.GetInstancesList<GenericPickupController>(),
                     .. InstanceTracker.GetInstancesList<PickupPickerController>()
                 ];
-
-                _attractComponents.EnsureCapacity(pickupControllerComponents.Count);
 
                 foreach (MonoBehaviour pickupControllerComponent in pickupControllerComponents)
                 {
@@ -100,8 +91,6 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
             PickupDropletControllerTracker.OnPickupDropletControllerStartGlobal -= onPickupDropletControllerStartGlobal;
             GenericPickupControllerHooks.OnGenericPickupControllerStartGlobal -= onGenericPickupControllerStartGlobal;
             PickupPickerControllerHooks.OnPickupPickerControllerAwakeGlobal -= onPickupPickerControllerAwakeGlobal;
-
-            _attractComponents.ClearAndDispose(true);
         }
 
         void onPickupDropletControllerStartGlobal(PickupDropletController pickupDropletController)
@@ -124,8 +113,8 @@ namespace RiskOfChaos.EffectDefinitions.World.Pickups
             AttractToPlayers attractComponent = AttractToPlayers.TryAddComponent(pickupControllerObj);
             if (attractComponent)
             {
+                attractComponent.OwnerEffectComponent = _effectComponent;
                 SetupAttractComponent?.Invoke(attractComponent);
-                _attractComponents.Add(attractComponent);
             }
         }
     }

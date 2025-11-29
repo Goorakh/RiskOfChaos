@@ -1,4 +1,5 @@
-﻿using RoR2;
+﻿using RiskOfChaos.EffectHandling.EffectComponents;
+using RoR2;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,18 +9,26 @@ namespace RiskOfChaos.Components
     {
         static readonly List<GameObject> _objectsToReenable = [];
 
-        static void reenableObjects()
+        public ChaosEffectComponent OwnerEffectComponent
         {
-            foreach (GameObject gameObject in _objectsToReenable)
+            get => field;
+            set
             {
-                if (gameObject)
+                if (field == value)
+                    return;
+
+                if (field)
                 {
-                    Log.Debug($"Re-activated {gameObject}");
-                    gameObject.SetActive(true);
+                    field.OnEffectEnd -= onOwnerEffectEnd;
+                }
+
+                field = value;
+
+                if (field)
+                {
+                    field.OnEffectEnd += onOwnerEffectEnd;
                 }
             }
-
-            _objectsToReenable.Clear();
         }
 
         void OnEnable()
@@ -35,6 +44,25 @@ namespace RiskOfChaos.Components
             }
 
             _objectsToReenable.Add(gameObject);
+        }
+
+        void onOwnerEffectEnd(ChaosEffectComponent effectComponent)
+        {
+            Destroy(this);
+        }
+
+        static void reenableObjects()
+        {
+            foreach (GameObject gameObject in _objectsToReenable)
+            {
+                if (gameObject)
+                {
+                    Log.Debug($"Re-activated {gameObject}");
+                    gameObject.SetActive(true);
+                }
+            }
+
+            _objectsToReenable.Clear();
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using HG;
 using Newtonsoft.Json;
-using RiskOfChaos.Collections;
 using RiskOfChaos.ConfigHandling;
 using RiskOfChaos.ConfigHandling.AcceptableValues;
 using RiskOfChaos.EffectHandling;
@@ -166,8 +165,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
 
         Xoroshiro128Plus _aspectStepRng;
 
-        readonly ClearingObjectList<RandomlySwapAspect> _swapAspectComponents = [];
-
         void Awake()
         {
             _effectComponent = GetComponent<ChaosEffectComponent>();
@@ -189,8 +186,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
         {
             if (NetworkServer.active)
             {
-                _swapAspectComponents.EnsureCapacity(CharacterBody.readOnlyInstancesList.Count);
-
                 CharacterBody.readOnlyInstancesList.Do(tryAddComponentToBody);
 
                 CharacterBody.onBodyStartGlobal += tryAddComponentToBody;
@@ -200,8 +195,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
         void OnDestroy()
         {
             CharacterBody.onBodyStartGlobal -= tryAddComponentToBody;
-
-            _swapAspectComponents.ClearAndDispose(true);
         }
 
         void tryAddComponentToBody(CharacterBody body)
@@ -213,8 +206,6 @@ namespace RiskOfChaos.EffectDefinitions.Character
             {
                 RandomlySwapAspect randomlySwapAspect = body.gameObject.AddComponent<RandomlySwapAspect>();
                 randomlySwapAspect.EffectInstance = this;
-
-                _swapAspectComponents.Add(randomlySwapAspect);
             }
             catch (Exception ex)
             {
@@ -238,14 +229,43 @@ namespace RiskOfChaos.EffectDefinitions.Character
         [RequireComponent(typeof(CharacterBody))]
         sealed class RandomlySwapAspect : MonoBehaviour
         {
-            public AspectRoulette EffectInstance;
             CharacterBody _body;
 
             float _aspectReplaceTimer;
 
+            ChaosEffectComponent _effectComponent;
+
+            public AspectRoulette EffectInstance
+            {
+                get => field;
+                set
+                {
+                    if (field == value)
+                        return;
+
+                    if (_effectComponent)
+                    {
+                        _effectComponent.OnEffectEnd -= onEffectEnd;
+                    }
+
+                    field = value;
+                    _effectComponent = field ? field.GetComponent<ChaosEffectComponent>() : null;
+
+                    if (_effectComponent)
+                    {
+                        _effectComponent.OnEffectEnd += onEffectEnd;
+                    }
+                }
+            }
+
             void Awake()
             {
                 _body = GetComponent<CharacterBody>();
+            }
+
+            void OnDestroy()
+            {
+                EffectInstance = null;
             }
 
             void FixedUpdate()
@@ -264,6 +284,11 @@ namespace RiskOfChaos.EffectDefinitions.Character
                     tryReplaceAspect(currentStep.AspectEquipmentIndex);
                     _aspectReplaceTimer = currentStep.Duration;
                 }
+            }
+
+            void onEffectEnd(ChaosEffectComponent effectComponent)
+            {
+                Destroy(this);
             }
 
             void tryReplaceAspect(EquipmentIndex aspectEquipment)

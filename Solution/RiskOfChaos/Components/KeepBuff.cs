@@ -1,4 +1,7 @@
-﻿using RoR2;
+﻿using HG;
+using RiskOfChaos.EffectDefinitions.Character.Buff;
+using RiskOfChaos.EffectHandling.EffectComponents;
+using RoR2;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
@@ -25,6 +28,8 @@ namespace RiskOfChaos.Components
         BuffIndex _appliedBuffIndex = BuffIndex.None;
         int _appliedBuffCount;
 
+        List<ApplyBuffEffect> _subscribedToEffects;
+
         public CharacterBody Body { get; private set; }
 
         void Awake()
@@ -37,6 +42,23 @@ namespace RiskOfChaos.Components
             }
 
             Body = GetComponent<CharacterBody>();
+        }
+
+        void OnDestroy()
+        {
+            if (_subscribedToEffects != null)
+            {
+                foreach (ApplyBuffEffect applyBuffEffect in _subscribedToEffects)
+                {
+                    if (applyBuffEffect)
+                    {
+                        applyBuffEffect.RemoveBuffsEvent -= removeBuffs;
+                        applyBuffEffect.EffectComponent.OnEffectEnd -= onEffectEnd;
+                    }
+                }
+
+                _subscribedToEffects = ListPool<ApplyBuffEffect>.ReturnCollection(_subscribedToEffects);
+            }
         }
 
         void OnEnable()
@@ -130,6 +152,37 @@ namespace RiskOfChaos.Components
                 return;
             
             buffCount = Mathf.Max(buffCount, _appliedBuffCount);
+        }
+
+        public void SubscribeToEffect(ApplyBuffEffect applyBuffEffect)
+        {
+            applyBuffEffect.RemoveBuffsEvent += removeBuffs;
+            applyBuffEffect.EffectComponent.OnEffectEnd += onEffectEnd;
+
+            _subscribedToEffects ??= ListPool<ApplyBuffEffect>.RentCollection();
+            _subscribedToEffects.Add(applyBuffEffect);
+        }
+
+        void onEffectEnd(ChaosEffectComponent effectComponent)
+        {
+            effectComponent.OnEffectEnd -= onEffectEnd;
+
+            if (effectComponent.TryGetComponent(out ApplyBuffEffect applyBuffEffect))
+            {
+                applyBuffEffect.RemoveBuffsEvent -= removeBuffs;
+                removeBuffs(applyBuffEffect.BuffStackCount);
+
+                _subscribedToEffects.Remove(applyBuffEffect);
+            }
+        }
+
+        void removeBuffs(int count)
+        {
+            MinBuffCount -= count;
+            if (MinBuffCount <= 0)
+            {
+                Destroy(this);
+            }
         }
 
         public static KeepBuff FindKeepBuffComponent(CharacterBody body, BuffIndex buffIndex)
