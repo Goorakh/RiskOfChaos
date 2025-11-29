@@ -4,7 +4,7 @@ Every minute, a random effect happens. Multiplayer compatible! Every player need
 
 Heavily inspired by the "Chaos Mod" series of GTA games.
 
-Currently features 133 different effects.
+Currently features 134 different effects.
 
 <details>
 	<summary>Full list of effects</summary>
@@ -142,6 +142,7 @@ Currently features 133 different effects.
 * Spawn Fake Teleporter: Spawns a fake teleporter somewhere on the stage.
 * End All Active Effects: Ends all currently active effects.
 * Disable Revives: Disables all means of reviving, lasts 1 stage.
+* Temporarily Duplicate Inventory: Doubles every item in your inventory with temporary copies.
 </details>
 
 <hr>

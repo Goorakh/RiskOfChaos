@@ -2,6 +2,9 @@
 
 **?.?.? Changes:**
 
+* Added 1 effect:
+  * Temporarily Duplicate Inventory: Doubles every item in your inventory with temporary copies.
+
 * All Interactables are Cloaked:
   * Fixed multishops not being entirely un-cloaked when effect ends.
 
