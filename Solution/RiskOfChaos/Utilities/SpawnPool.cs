@@ -1,7 +1,5 @@
-﻿using HG;
-using RiskOfChaos.Utilities.Extensions;
+﻿using RiskOfChaos.Utilities.Extensions;
 using RoR2.ContentManagement;
-using RoR2.ExpansionManagement;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -108,8 +106,8 @@ namespace RiskOfChaos.Utilities
             SpawnPoolEntry<T>[] entries = [.. _entries];
             Array.Sort(entries, (a, b) =>
             {
-                ReadOnlyArray<ExpansionIndex> expansionsA = a.RequiredExpansions;
-                ReadOnlyArray<ExpansionIndex> expansionsB = b.RequiredExpansions;
+                HG.ReadOnlyArray<RoR2.ExpansionManagement.ExpansionIndex> expansionsA = a.RequiredExpansions;
+                HG.ReadOnlyArray<RoR2.ExpansionManagement.ExpansionIndex> expansionsB = b.RequiredExpansions;
 
                 if (expansionsA.Length != expansionsB.Length)
                 {
@@ -118,8 +116,8 @@ namespace RiskOfChaos.Utilities
 
                 for (int i = 0; i < expansionsA.Length; i++)
                 {
-                    ExpansionDef expansionDefA = ExpansionUtils.GetExpansionDef(expansionsA[i]);
-                    ExpansionDef expansionDefB = ExpansionUtils.GetExpansionDef(expansionsB[i]);
+                    RoR2.ExpansionManagement.ExpansionDef expansionDefA = ExpansionUtils.GetExpansionDef(expansionsA[i]);
+                    RoR2.ExpansionManagement.ExpansionDef expansionDefB = ExpansionUtils.GetExpansionDef(expansionsB[i]);
                     int compare = string.Compare(expansionDefA?.name, expansionDefB?.name, true);
                     if (compare != 0)
                     {

@@ -96,8 +96,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
             GameObject[] _disabledModelObjects = [];
             CharacterModel.RendererInfo[] _detachedRendererInfos = [];
 
-            SpecialObjectAttributes _specialObjectAttributes;
-
             CharacterModel _characterModel;
             ModelSkinController _modelSkinController;
 
@@ -306,11 +304,6 @@ namespace RiskOfChaos.EffectDefinitions.Character.Player.Camera
                 _colliderVisualObjects = [];
                 _detachedRendererInfos = [];
                 _disabledModelObjects = [];
-
-                if (_specialObjectAttributes)
-                {
-                    _specialObjectAttributes.renderersToDisable.Clear();
-                }
 
                 foreach (CharacterModel.RendererInfo rendererInfo in _characterModel.baseRendererInfos)
                 {

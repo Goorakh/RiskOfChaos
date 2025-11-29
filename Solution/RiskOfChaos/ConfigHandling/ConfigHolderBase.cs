@@ -86,6 +86,10 @@ namespace RiskOfChaos.ConfigHandling
             {
                 Log.Error_NoCallerPrefix($"OnBind invoke failed for {Definition}: {e}");
             }
+            finally
+            {
+                OnBind = null;
+            }
         }
 
         public void SetServerOverrideValue(object value)

@@ -121,7 +121,7 @@ namespace RiskOfChaos.Utilities.ParsedValueHolders
             }
             else
             {
-                Log.Warning($"Sender {sender} is not of type {nameof(ConfigEntry<string>)}");
+                Log.Warning($"Sender {sender} is not of type {nameof(ConfigEntry<>)}");
             }
         }
 

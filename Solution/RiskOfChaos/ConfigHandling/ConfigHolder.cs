@@ -80,14 +80,32 @@ namespace RiskOfChaos.ConfigHandling
         {
             base.invokeSettingChanged();
 
-            SettingChanged?.Invoke(this, new ConfigChangedArgs<T>(this));
+            try
+            {
+                SettingChanged?.Invoke(this, new ConfigChangedArgs<T>(this));
+            }
+            catch (Exception e)
+            {
+                Log.Error_NoCallerPrefix($"SettingChanged invoke failed for {Definition}: {e}");
+            }
         }
 
         protected override void invokeOnBind()
         {
             base.invokeOnBind();
-
-            OnBind?.Invoke(Entry);
+            
+            try
+            {
+                OnBind?.Invoke(Entry);
+            }
+            catch (Exception e)
+            {
+                Log.Error_NoCallerPrefix($"OnBind invoke failed for {Definition}: {e}");
+            }
+            finally
+            {
+                OnBind = null;
+            }
         }
 
         public override void Bind(ChaosEffectInfo ownerEffect)

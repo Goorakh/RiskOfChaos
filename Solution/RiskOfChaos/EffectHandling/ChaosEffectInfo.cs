@@ -159,7 +159,7 @@ namespace RiskOfChaos.EffectHandling
 
             StaticDisplayNameFormatterProvider = new EffectNameFormatterProvider(GetDefaultNameFormatter(), true);
 
-            IncompatibleEffectComponentTypes = new ReadOnlyCollection<Type>(incompatibleEffectTypes.ToArray());
+            IncompatibleEffectComponentTypes = new ReadOnlyCollection<Type>([.. incompatibleEffectTypes]);
 
             ConfigSectionName = "Effect: " + (attribute.ConfigName ?? Language.GetString(NameToken, "en").FilterConfigKey());
 
@@ -193,8 +193,9 @@ namespace RiskOfChaos.EffectHandling
                                                .OptionConfig(new KeyBindConfig())
                                                .Build();
 
-            foreach (MemberInfo member in EffectComponentType.GetMembers(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly)
-                                                    .WithAttribute<MemberInfo, InitEffectMemberAttribute>())
+            const BindingFlags Flags = BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly;
+            foreach (MemberInfo member in EffectComponentType.GetMembers(Flags)
+                                                             .WithAttribute<MemberInfo, InitEffectMemberAttribute>())
             {
                 foreach (InitEffectMemberAttribute initEffectMember in member.GetCustomAttributes<InitEffectMemberAttribute>())
                 {

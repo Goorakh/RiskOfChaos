@@ -12,7 +12,7 @@ namespace RiskOfChaos.Trackers
         [SystemInitializer]
         static void Init()
         {
-            AddressableUtil.LoadTempAssetAsync<GameObject>(AddressableGuids.RoR2_Base_UI_HudCountdownPanel_prefab).OnSuccess(hudCountdownPanel =>
+            AddressableUtil.LoadAssetAsync<GameObject>(AddressableGuids.RoR2_Base_UI_HudCountdownPanel_prefab).OnSuccess(hudCountdownPanel =>
             {
                 hudCountdownPanel.EnsureComponent<HudCountdownPanelTracker>();
             });
