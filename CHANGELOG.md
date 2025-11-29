@@ -1,5 +1,10 @@
 ## Changelog
 
+**?.?.? Changes:**
+
+* All Interactables are Cloaked:
+  * Fixed multishops not being entirely un-cloaked when effect ends.
+
 **2.7.0 Changes:**
 
 * Updated for Alloyed Collective.

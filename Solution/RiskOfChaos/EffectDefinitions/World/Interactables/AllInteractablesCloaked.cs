@@ -1,13 +1,11 @@
-﻿using RiskOfChaos.Collections;
-using RiskOfChaos.Components;
+﻿using RiskOfChaos.Components;
 using RiskOfChaos.EffectHandling.EffectClassAttributes;
+using RiskOfChaos.EffectHandling.EffectComponents;
 using RiskOfChaos.Patches;
 using RiskOfChaos.Trackers;
-using RiskOfChaos.Utilities.Extensions;
 using RoR2;
 using RoR2.ContentManagement;
 using RoR2.Hologram;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -16,12 +14,14 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
     [ChaosTimedEffect("all_interactables_cloaked", 90f, AllowDuplicates = false)]
     public sealed class AllInteractablesCloaked : MonoBehaviour
     {
-        AssetOrDirectReference<Material> _cloakedMaterialReference;
+        ChaosEffectComponent _effectComponent;
 
-        readonly ClearingObjectList<CloakedInteractableController> _cloakControllers = [];
+        AssetOrDirectReference<Material> _cloakedMaterialReference;
 
         void Awake()
         {
+            _effectComponent = GetComponent<ChaosEffectComponent>();
+
             _cloakedMaterialReference = new AssetOrDirectReference<Material>
             {
                 unloadType = AsyncReferenceHandleUnloadType.AtWill,
@@ -31,9 +31,7 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
 
         void Start()
         {
-            List<ObjectSpawnCardTracker> spawnedObjects = InstanceTracker.GetInstancesList<ObjectSpawnCardTracker>();
-            _cloakControllers.EnsureCapacity(spawnedObjects.Count);
-            foreach (ObjectSpawnCardTracker spawnedObject in spawnedObjects)
+            foreach (ObjectSpawnCardTracker spawnedObject in InstanceTracker.GetInstancesList<ObjectSpawnCardTracker>())
             {
                 if (spawnedObject.SpawnCard is InteractableSpawnCard)
                 {
@@ -41,28 +39,24 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
                 }
             }
 
-            List<PurchaseInteraction> purchaseInteractions = InstanceTracker.GetInstancesList<PurchaseInteraction>();
-            _cloakControllers.EnsureCapacity(_cloakControllers.Count + purchaseInteractions.Count);
-            foreach (PurchaseInteraction purchaseInteraction in purchaseInteractions)
+            foreach (PurchaseInteraction purchaseInteraction in InstanceTracker.GetInstancesList<PurchaseInteraction>())
             {
                 tryCloakPurchaseInteraction(purchaseInteraction);
             }
 
-            SpawnCard.onSpawnedServerGlobal += SpawnCard_onSpawnedServerGlobal;
+            SpawnCard.onSpawnedServerGlobal += onSpawnCardSpawnedServerGlobal;
             PurchaseInteractionHooks.OnPurchaseInteractionStartGlobal += tryCloakPurchaseInteraction;
         }
 
         void OnDestroy()
         {
-            SpawnCard.onSpawnedServerGlobal -= SpawnCard_onSpawnedServerGlobal;
+            SpawnCard.onSpawnedServerGlobal -= onSpawnCardSpawnedServerGlobal;
             PurchaseInteractionHooks.OnPurchaseInteractionStartGlobal -= tryCloakPurchaseInteraction;
-
-            _cloakControllers.ClearAndDispose(true);
 
             _cloakedMaterialReference?.Reset();
         }
 
-        void SpawnCard_onSpawnedServerGlobal(SpawnCard.SpawnResult result)
+        void onSpawnCardSpawnedServerGlobal(SpawnCard.SpawnResult result)
         {
             if (result.success && result.spawnRequest.spawnCard is InteractableSpawnCard)
             {
@@ -87,23 +81,16 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
             if (!obj)
                 return;
 
-            IList<CloakedInteractableController> cloakControllers = CloakedInteractableController.TryAddTo(obj, this);
-            if (cloakControllers.Count > 0)
-            {
-                _cloakControllers.AddRange(cloakControllers);
-            }
+            CloakedInteractableController.TryAddTo(obj, this);
         }
 
         sealed class CloakedInteractableController : MonoBehaviour
         {
             AllInteractablesCloaked _owner;
 
+            SpecialObjectAttributes _specialObjectAttributes;
+
             MaterialOverride _materialOverride;
-
-            HologramProjector _hologramProjector;
-            bool _hologramProjectorWasEnabled;
-
-            Light[] _enabledLights = [];
 
             void Start()
             {
@@ -122,53 +109,95 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
                 _materialOverride.IgnoreDecals = true;
                 _materialOverride.OverrideMaterial = _owner._cloakedMaterialReference.WaitForCompletion();
 
-                Light[] lights = modelRoot.GetComponentsInChildren<Light>();
-                List<Light> enabledLights = new List<Light>(lights.Length);
-                foreach (Light light in lights)
-                {
-                    if (light.enabled)
-                    {
-                        light.enabled = false;
-                        enabledLights.Add(light);
-                    }
-                }
+                _specialObjectAttributes = GetComponent<SpecialObjectAttributes>();
 
-                if (enabledLights.Count > 0)
-                {
-                    _enabledLights = [.. enabledLights];
-                }
+                VehicleSeat.onPassengerEnterGlobal += onPassengerEnterGlobal;
+                VehicleSeat.onPassengerExitGlobal += onPassengerExitGlobal;
 
-                _hologramProjector = GetComponent<HologramProjector>();
-                if (_hologramProjector)
-                {
-                    _hologramProjector.DestroyHologram();
+                setVisualsActive(false);
 
-                    if (_hologramProjector.enabled)
-                    {
-                        _hologramProjectorWasEnabled = true;
-                        _hologramProjector.enabled = false;
-                    }
-                }
+                _owner._effectComponent.OnEffectEnd += onOwnerEffectEnd;
             }
 
             void OnDestroy()
             {
                 Destroy(_materialOverride);
 
-                if (_hologramProjector)
+                if (!VehicleSeat.FindVehicleSeatWithPassenger(gameObject))
                 {
-                    if (_hologramProjectorWasEnabled)
-                    {
-                        _hologramProjector.enabled = true;
-                    }
+                    setVisualsActive(true);
                 }
 
-                foreach (Light light in _enabledLights)
+                VehicleSeat.onPassengerEnterGlobal -= onPassengerEnterGlobal;
+                VehicleSeat.onPassengerExitGlobal -= onPassengerExitGlobal;
+            }
+
+            void onOwnerEffectEnd(ChaosEffectComponent effectComponent)
+            {
+                Destroy(this);
+            }
+
+            void setVisualsActive(bool active)
+            {
+                setSpecialObjectVisualsActive(_specialObjectAttributes, active);
+            }
+
+            static void setSpecialObjectVisualsActive(SpecialObjectAttributes specialObjectAttributes, bool active)
+            {
+                if (!specialObjectAttributes)
+                    return;
+
+                foreach (Light light in specialObjectAttributes.lightsToDisable)
                 {
                     if (light)
                     {
-                        light.enabled = true;
+                        light.enabled = active;
                     }
+                }
+
+                foreach (MonoBehaviour behaviour in specialObjectAttributes.behavioursToDisable)
+                {
+                    if (behaviour && behaviour is HologramProjector hologramProjector)
+                    {
+                        if (hologramProjector.hologramContentInstance)
+                        {
+                            hologramProjector.hologramContentInstance.SetActive(active);
+                        }
+
+                        behaviour.enabled = active;
+                    }
+                }
+
+                foreach (PickupDisplay pickupDisplay in specialObjectAttributes.pickupDisplaysToDisable)
+                {
+                    if (pickupDisplay)
+                    {
+                        if (pickupDisplay.highlight)
+                        {
+                            pickupDisplay.highlight.enabled = active;
+                        }
+                    }
+                }
+
+                foreach (SpecialObjectAttributes childObjectAttributes in specialObjectAttributes.childSpecialObjectAttributes)
+                {
+                    setSpecialObjectVisualsActive(childObjectAttributes, active);
+                }
+            }
+
+            void onPassengerEnterGlobal(VehicleSeat seat, GameObject passengerObject)
+            {
+                if (passengerObject == gameObject)
+                {
+                    setVisualsActive(false);
+                }
+            }
+
+            void onPassengerExitGlobal(VehicleSeat seat, GameObject passengerObject)
+            {
+                if (passengerObject == gameObject)
+                {
+                    setVisualsActive(false);
                 }
             }
 
@@ -179,26 +208,29 @@ namespace RiskOfChaos.EffectDefinitions.World.Interactables
                 return cloakedInteractableController;
             }
 
-            public static IList<CloakedInteractableController> TryAddTo(GameObject obj, AllInteractablesCloaked owner)
+            public static void TryAddTo(GameObject obj, AllInteractablesCloaked owner)
             {
                 if (!obj)
-                    return [];
+                    return;
 
                 if (obj.GetComponent<CloakedInteractableController>())
-                    return [];
+                    return;
 
-                List<CloakedInteractableController> cloakControllers = [addTo(obj, owner)];
+                if (obj.TryGetComponent(out ShopTerminalBehavior shopTerminalBehavior) && obj.GetComponentInParent<MultiShopController>())
+                    return;
+
+                addTo(obj, owner);
 
                 if (obj.TryGetComponent(out MultiShopController multiShopController))
                 {
-                    cloakControllers.EnsureCapacity(cloakControllers.Count + multiShopController.terminalGameObjects.Length);
-                    for (int i = 0; i < multiShopController.terminalGameObjects.Length; i++)
+                    foreach (GameObject terminalObject in multiShopController.terminalGameObjects)
                     {
-                        cloakControllers.AddRange(TryAddTo(multiShopController.terminalGameObjects[i], owner));
+                        if (!terminalObject.transform.IsChildOf(obj.transform))
+                        {
+                            TryAddTo(terminalObject, owner);
+                        }
                     }
                 }
-
-                return cloakControllers;
             }
         }
     }
